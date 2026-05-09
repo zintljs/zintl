@@ -1,0 +1,15 @@
+{
+  "$schema": ".schemas/i18n.shared.schema.json",
+  "Compiler-driven internationalization for the modern web.": {
+    "ar": "التدويل الموجه بالمعالجة للويب الحديث.",
+    "es": "La internacionalización impulsada por el compilador para la web moderna."
+  },
+  "Zintl I18n": {
+    "ar": "تدويل زينتل",
+    "es": "¡Zintl I18n"
+  },
+  "{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}": {
+    "ar": "{counter, plural, zero {ابدا العد الان} one {العد وصل لواحد} two {العد وصل لاثنان} other {العد وصل لـ {counter}}}",
+    "es": "{counter, plural, =0 {Empieza a contar ahora!} one {El contador es uno.} two {El contador es dos.} other {El contador es #}}"
+  }
+}

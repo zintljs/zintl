@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/pages/About.About.schema.json",
+  "About Zintl": "عن زينتل",
+  "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": "وُلِد زينتل من الحاجة إلى طريقة أكثر صداقة للمطورين للتعامل مع الترجمات في تطبيقات الويب المعقدة.\n        غالبًا ما تتطلب أنظمة التدويل التقليدية إدارة يدوية لملفات JSON وأكواد نمطية معقدة.",
+  "\"Our mission is to make internationalization as seamless as writing your UI code.\"": "\"مهمتنا هي جعل التدويل سلسًا مثل كتابة كود واجهة المستخدم الخاصة بك.\"",
+  "The Philosophy": "الفلسفة",
+  "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.": "نحن نؤمن بأن المترجم يجب أن يكون أفضل صديق لك. من خلال تحليل كود المصدر الخاص بك،\n          يمكن لـ زينتل أتمتة استخراج وربط وتحسين ترجماتك،\n          مما يترك لك الحرية للتركيز على بناء تجارب مستخدم مذهلة."
+}

@@ -1,0 +1,38 @@
+  // 2. Try global owner metadata (inheritance across file boundaries)
+  const ownerId = resolveOwner(boundaryId, worldState);
+  const fileIdOrHash = ownerId.split(":")[0];
+  const root = worldState.config.root;
+  const isDev = worldState.config.isDev;
+
+  // Search for the anchor that matches the owner ID in the entire metadata graph
+  for (const meta of Object.values(worldState.metadataGraph)) {
+    const site = (meta.anchorSites || []).find((s) => {
+      // Normalize site boundary ID to relative
+      const sId = s.boundaryId.startsWith(root)
+        ? s.boundaryId.substring(root.length).replace(/^\/+/, "").replace(/\.[^/.]+$/, "")
+        : s.boundaryId.replace(/\.[^/.]+$/, "");
+      
+      const sHash = calculateSafeBoundaryId(sId, root, isDev);
+      return sId === fileIdOrHash || sHash === fileIdOrHash;
+    });
+
+    if (site) {
+      // Convert Raw AnchorSite from metadata to ObservedAnchor
+      const locale: AnchorLocale =
+        site.argType === "literal"
+          ? { type: "literal", value: site.originalArgs.replace(/['"]/g, "") }
+          : { type: "expression", source: site.originalArgs };
+
+      return {
+        location: { start: site.start, end: site.end, line: 0, column: 0 },
+        scope: site.scope,
+        boundaryId: site.boundaryId,
+        locale,
+        isTopLevel: site.isTopLevel,
+        originalName: site.originalName,
+      };
+    }
+  }
+
+  return undefined;
+}

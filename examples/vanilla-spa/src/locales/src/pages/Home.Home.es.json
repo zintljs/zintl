@@ -1,0 +1,13 @@
+{
+  "$schema": "../../.schemas/src/pages/Home.Home.schema.json",
+  "Powerful I18n for Modern Apps": "I18n potente para aplicaciones modernas",
+  "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!": "Zintl transforma sus cadenas estáticas en catálogos de traducción optimizados y conscientes de los fragmentos.\n          ¡Experimente el futuro de la internacionalización hoy mismo!",
+  "Get Started": "Empezar",
+  "Learn More": "Saber más",
+  "Zero Config": "Cero configuración",
+  "Just call zintl() and let the compiler do the rest of the heavy lifting for you.": "Solo llame a zintl() y deje que el compilador haga el resto del trabajo pesado por usted.",
+  "Type Safe": "Seguridad de tipos",
+  "Enjoy full TypeScript support with automatically generated translation schemas.": "Disfrute de soporte completo de TypeScript con esquemas de traducción generados automáticamente.",
+  "Optimized": "Optimizado",
+  "Only load what you need, when you need it. Smallest runtime footprint in the industry.": "Cargue solo lo que necesite, cuando lo necesite. La huella de tiempo de ejecución más pequeña de la industria."
+}

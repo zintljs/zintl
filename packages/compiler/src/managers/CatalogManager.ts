@@ -1,0 +1,1079 @@
+import { join, dirname, relative, basename, isAbsolute } from "node:path";
+import { type ReconcileResult } from "../reconcile.js";
+import { bakeICU } from "../utils/icu-baker.js";
+import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
+import type { IOManager } from "./IOManager.js";
+import type { CatalogCache } from "../types/index.js";
+import { sortObjectKeys } from "../utils/serialization.js";
+
+/**
+ * Manages translation catalogs and JSON schemas.
+ */
+export class CatalogManager {
+  private catalogCache: CatalogCache = {};
+  private catalogMtimes = new Map<string, number>();
+  private pathCache = new Map<string, string>();
+  private schemaPathCache = new Map<string, string>();
+  private lastPrunedManifestHash: string | null = null;
+  private serializationCache = new Map<string, string>();
+  private schemaContentCache = new Map<string, string>();
+  private lastPrunedPathsHash: string | null = null;
+  private activeSchemaPaths = new Set<string>();
+  private groupContentCache = new Map<string, string>();
+
+  constructor(
+    private readonly io: IOManager,
+    private readonly root: string,
+    outputDir: string,
+    private readonly sourceLocale: string,
+    private readonly isDev: boolean,
+    private readonly catalogFormat: string | ((ctx: any) => string) | undefined,
+    private readonly logger: ZintlLogger,
+    public prune: boolean = true,
+  ) {
+    this._outputDir = outputDir;
+  }
+
+  private _outputDir: string;
+  public get outputDir() {
+    return this._outputDir;
+  }
+  public set outputDir(dir: string) {
+    if (this._outputDir !== dir) {
+      this._outputDir = dir;
+      this.clearCaches();
+    }
+  }
+
+  public isMultilingualFormat(): boolean {
+    if (typeof this.catalogFormat === "string") {
+      return !this.catalogFormat.includes("[locale]");
+    }
+    return false;
+  }
+
+  private isBoundarySpecific(format: string | ((ctx: any) => string)): boolean {
+    if (typeof format === "function") return true;
+    return (
+      format.includes("[bId]") ||
+      format.includes("[hash]") ||
+      format.includes("[path]") ||
+      format.includes("[name]")
+    );
+  }
+
+  public reset() {
+    this.activeSchemaPaths.clear();
+  }
+
+  public clearCaches() {
+    this.pathCache.clear();
+    this.schemaPathCache.clear();
+    this.serializationCache.clear();
+    this.schemaContentCache.clear();
+    this.groupContentCache.clear();
+    this.catalogMtimes.clear();
+    this.lastPrunedManifestHash = null;
+    this.lastPrunedPathsHash = null;
+  }
+
+  public groupBoundariesByPath(
+    boundaryIds: Set<string>,
+    locales: string[],
+  ): Map<string, { locales: string[] }> {
+    const groups = new Map<string, { locales: string[] }>();
+    const isMulti = this.isMultilingualFormat();
+
+    for (const bId of boundaryIds) {
+      if (isMulti) {
+        const path = this.getCatalogPath(bId, locales[0]);
+        if (path) {
+          if (!groups.has(path)) groups.set(path, { locales: [] });
+          const group = groups.get(path)!;
+          for (const l of locales) {
+            if (l !== this.sourceLocale && !group.locales.includes(l)) {
+              group.locales.push(l);
+            }
+          }
+        }
+      } else {
+        for (const locale of locales) {
+          if (locale === this.sourceLocale) continue;
+
+          const path = this.getCatalogPath(bId, locale);
+          if (path) {
+            if (!groups.has(path)) groups.set(path, { locales: [] });
+            const group = groups.get(path)!;
+            if (!group.locales.includes(locale)) group.locales.push(locale);
+          }
+        }
+      }
+    }
+    return groups;
+  }
+
+  public getAllBoundariesForPath(
+    path: string,
+    locale: string,
+    internalManifest: Record<string, any[]>,
+  ): Set<string> {
+    const bIds = new Set<string>();
+    for (const bId of Object.keys(internalManifest)) {
+      if (this.getCatalogPath(bId, locale) === path) {
+        bIds.add(bId);
+      }
+    }
+    return bIds;
+  }
+
+  public getCatalogPath(boundaryId: string, locale: string): string | null {
+    if (boundaryId.includes("\0")) return null;
+    const cacheKey = `${boundaryId}:${locale}`;
+    if (this.pathCache.has(cacheKey)) return this.pathCache.get(cacheKey)!;
+
+    let path = boundaryId;
+    let func = "";
+    if (boundaryId.includes(":")) {
+      const parts = boundaryId.split(":");
+      path = parts[0];
+      func = parts.slice(1).join(":");
+    }
+
+    const dir = dirname(path);
+    const name = basename(path);
+    const hash = this.io.getBoundaryId(boundaryId);
+    const bId = boundaryId;
+
+    const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
+    const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
+
+    if (this.catalogFormat) {
+      let format = this.catalogFormat;
+      if (isHtml && typeof format === "string" && !this.isBoundarySpecific(format)) {
+        // Compound format detected for HTML. Inject [path] to avoid collisions.
+        const parts = format.split("/");
+        const last = parts[parts.length - 1];
+        if (last.includes("[locale]")) {
+          parts[parts.length - 1] = last.replace("[locale]", "[path].[locale]");
+        } else {
+          parts[parts.length - 1] = `[path].${last}`;
+        }
+        format = parts.join("/");
+      }
+
+      let result: string;
+      if (typeof format === "function") {
+        result = join(baseDir, format({ locale, bId, hash, path, dir, name, func }));
+      } else {
+        // Grouping is now supported via syncPathCatalogs.
+        let res = format
+          .replace(/\[locale\]/g, locale)
+          .replace(/\[bId\]/g, bId.replace(/[:/]/g, "_"))
+          .replace(/\[hash\]/g, hash)
+          .replace(/\[path\]/g, path)
+          .replace(/\[dir\]/g, dir === "." ? "" : dir)
+          .replace(/\[name\]/g, name)
+          .replace(/\[func\]/g, func)
+          .replace(/[-_.]+(\.[a-z0-9]+)$/i, "$1");
+
+        res = res
+          .replace(/\.+/g, ".")
+          .replace(/\.$/, "")
+          .replace(/\.\//g, "/")
+          .replace(/\/+/g, "/");
+        result = join(baseDir, res);
+      }
+      this.pathCache.set(cacheKey, result);
+      return result;
+    }
+
+    let defaultName = path;
+    if (func) defaultName += `.${func}`;
+    const result = join(baseDir, `${defaultName}.${locale}.json`);
+    this.pathCache.set(cacheKey, result);
+    return result;
+  }
+
+  public getSchemaPath(boundaryId: string): string | null {
+    if (!boundaryId || boundaryId.includes("\0")) return null;
+    if (this.schemaPathCache.has(boundaryId)) return this.schemaPathCache.get(boundaryId)!;
+
+    let path = boundaryId;
+    let func = "";
+    if (boundaryId.includes(":")) {
+      const parts = boundaryId.split(":");
+      path = parts[0];
+      func = parts.slice(1).join(":");
+    }
+
+    const dir = dirname(path);
+    const name = basename(path);
+    const hash = this.io.getBoundaryId(boundaryId);
+    const bId = boundaryId;
+
+    let relativePath: string;
+    const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
+
+    if (this.catalogFormat) {
+      let format = this.catalogFormat;
+      if (isHtml && typeof format === "string" && !this.isBoundarySpecific(format)) {
+        const parts = format.split("/");
+        const last = parts[parts.length - 1];
+        if (last.includes("[locale]")) {
+          parts[parts.length - 1] = last.replace("[locale]", "[path].[locale]");
+        } else {
+          parts[parts.length - 1] = `[path].${last}`;
+        }
+        format = parts.join("/");
+      }
+
+      if (typeof format === "function") {
+        relativePath = format({ locale: "", bId, hash, path, dir, name, func });
+      } else {
+        relativePath = format
+          .replace(/\[locale\]/g, "")
+          .replace(/\[bId\]/g, bId.replace(/[:/]/g, "_"))
+          .replace(/\[hash\]/g, hash)
+          .replace(/\[path\]/g, path)
+          .replace(/\[dir\]/g, dir === "." ? "" : dir)
+          .replace(/\[name\]/g, name)
+          .replace(/\[func\]/g, func)
+          .replace(/[-_.]+(?=\.json$)/i, "")
+          .replace(/\.+/g, ".")
+          .replace(/\.$/, "")
+          .replace(/\.\//g, "/")
+          .replace(/\/+/g, "/");
+      }
+      relativePath = relativePath.replace(/^\//, "").replace(/\.json$/i, ".schema.json");
+    } else {
+      relativePath = `${path}${func ? "." + func : ""}.schema.json`;
+    }
+
+    const result = join(this.root, this.outputDir, ".schemas", relativePath);
+    this.schemaPathCache.set(boundaryId, result);
+    return result;
+  }
+
+  public async loadUserCatalog(
+    bId: string,
+    locale: string,
+    internalManifest: Record<string, any[]>,
+    bypassCache = false,
+    hive?: Record<string, Record<string, any>>,
+    reconciliation?: ReconcileResult,
+  ) {
+    const cached = this.catalogCache[bId]?.[locale];
+    if (!this.isDev && !bypassCache && cached) return cached;
+
+    if (locale === this.sourceLocale) {
+      const ghost: Record<string, string> = {};
+      const msgs = internalManifest[bId] || [];
+      for (const m of msgs) ghost[m.text] = m.text;
+      // We don't cache the ghost catalog because it's derived directly from the volatile manifest
+      return ghost;
+    }
+
+    const path = this.getCatalogPath(bId, locale);
+    if (!path) return {};
+
+    try {
+      const meta = await this.io.stat(path);
+      if (!this.isDev && cached && this.catalogMtimes.get(path) === meta.mtimeMs) return cached;
+
+      const parsed = JSON.parse(await this.io.readFile(path));
+
+      let final: Record<string, any> = parsed;
+      if (this.isMultilingualFormat()) {
+        final = {};
+        for (const [key, val] of Object.entries(parsed)) {
+          if (key === "$schema") continue;
+          if (val && typeof val === "object") {
+            final[key] = (val as any)[locale] || "";
+          } else {
+            final[key] = val;
+          }
+        }
+      }
+
+      if (!this.catalogCache[bId]) this.catalogCache[bId] = {};
+      this.catalogCache[bId][locale] = final;
+
+      // Apply On-The-Fly Reconciliation for HMR
+      if (reconciliation && locale !== this.sourceLocale) {
+        // 1. Handle renames within the same boundary
+        const bRenames = reconciliation.renames[bId]?.["*"] || {};
+        const bVarMappings = reconciliation.varMappings[bId]?.["*"] || {};
+
+        for (const [oldKey, newKey] of Object.entries(bRenames)) {
+          if (
+            final[oldKey] &&
+            (final[newKey as string] === undefined || final[newKey as string] === "")
+          ) {
+            let translation = final[oldKey];
+            const mapping = bVarMappings[newKey as string];
+
+            if (mapping && typeof translation === "string") {
+              translation = this.healICUString(translation, mapping);
+            }
+
+            final[newKey as string] = translation;
+          }
+        }
+
+        // 2. Handle moves from other boundaries
+        for (const move of (reconciliation.moves || []) as any[]) {
+          if (
+            move.toBoundary === bId &&
+            (final[move.text] === undefined || final[move.text] === "")
+          ) {
+            const fromCat = await this.loadUserCatalog(
+              move.fromBoundary,
+              locale,
+              internalManifest,
+              true,
+              hive,
+              reconciliation,
+            );
+            if (fromCat[move.text] !== undefined) {
+              final[move.text] = fromCat[move.text];
+            }
+          }
+        }
+      }
+
+      // Apply Hive fallback if available
+      if (hive && locale !== this.sourceLocale) {
+        const msgs = internalManifest[bId] || [];
+        for (const msg of msgs) {
+          if (final[msg.text] === undefined || final[msg.text] === "") {
+            const memory = hive[locale]?.[msg.text];
+            if (memory) {
+              final[msg.text] = memory;
+            }
+          }
+        }
+      }
+
+      this.catalogMtimes.set(path, meta.mtimeMs);
+      return final;
+    } catch {
+      const empty: Record<string, any> = {};
+
+      // Still attempt to heal even if disk read failed
+      if (reconciliation && locale !== this.sourceLocale) {
+        // (Implementation for empty case can be simplified or just rely on Hive below)
+      }
+
+      if (hive && locale !== this.sourceLocale) {
+        const msgs = internalManifest[bId] || [];
+        for (const msg of msgs) {
+          const memory = hive[locale]?.[msg.text];
+          if (memory) empty[msg.text] = memory;
+        }
+      }
+      if (!this.catalogCache[bId]) this.catalogCache[bId] = {};
+      this.catalogCache[bId][locale] = empty;
+      return empty;
+    }
+  }
+
+  public async generateSchema(schemaPath: string, messages: any[]) {
+    const properties: Record<string, any> = { $schema: { type: "string" } };
+    for (const msg of messages) {
+      const vars = new Set<string>();
+      if (msg.variables) msg.variables.forEach((v: string) => vars.add(v));
+      if (msg.passVars) Object.keys(msg.passVars).forEach((v: string) => vars.add(v));
+
+      if (vars.size > 0 || msg.note) {
+        properties[msg.text] = {
+          anyOf: [{ type: "string" }, { type: "object", additionalProperties: { type: "string" } }],
+        };
+        const desc: string[] = [];
+        if (msg.note) desc.push(`Note: ${msg.note}`);
+        if (vars.size > 0) desc.push(`Variables: {${Array.from(vars).join("}, {")}}`);
+        properties[msg.text].description = desc.join(" | ");
+      } else {
+        properties[msg.text] = { type: "string" };
+      }
+    }
+
+    const activeKeys = messages.map((m) => m.text);
+    const schema = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      type: "object",
+      properties: sortObjectKeys(properties),
+      required: activeKeys.length > 0 ? activeKeys.sort((a, b) => a.localeCompare(b)) : undefined,
+      additionalProperties: false,
+    };
+
+    const content = JSON.stringify(schema, null, 2);
+    if (this.schemaContentCache.get(schemaPath) === content) return;
+
+    this.schemaContentCache.set(schemaPath, content);
+    await this.io.safeWriteFile(schemaPath, content);
+  }
+
+  public async generateSharedSchema(
+    schemaPath: string,
+    messages: Map<string, any>,
+    locales: string[],
+  ) {
+    const isMulti = this.isMultilingualFormat();
+    const properties: Record<string, any> = { $schema: { type: "string" } };
+    const activeKeys: string[] = [];
+
+    for (const [text, msg] of messages) {
+      activeKeys.push(text);
+      const vars = new Set<string>();
+      if (msg.variables) msg.variables.forEach((v: string) => vars.add(v));
+      if (msg.passVars) Object.keys(msg.passVars).forEach((v: string) => vars.add(v));
+
+      const desc: string[] = [];
+      if (msg.note) desc.push(`Note: ${msg.note}`);
+      if (vars.size > 0) desc.push(`Variables: {${Array.from(vars).join("}, {")}}`);
+
+      if (isMulti) {
+        const localeProps: Record<string, any> = {};
+        for (const l of locales) {
+          localeProps[l] = { type: "string" };
+        }
+        properties[text] = {
+          type: "object",
+          properties: localeProps,
+          description: desc.join(" | "),
+          additionalProperties: false,
+        };
+      } else {
+        if (vars.size > 0 || msg.note) {
+          properties[text] = {
+            anyOf: [
+              { type: "string" },
+              { type: "object", additionalProperties: { type: "string" } },
+            ],
+            description: desc.join(" | "),
+          };
+        } else {
+          properties[text] = { type: "string" };
+        }
+      }
+    }
+
+    const schema = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      type: "object",
+      properties: sortObjectKeys(properties),
+      required: activeKeys.length > 0 ? activeKeys.sort((a, b) => a.localeCompare(b)) : undefined,
+      additionalProperties: false,
+    };
+
+    const content = JSON.stringify(schema, null, 2);
+    if (this.schemaContentCache.get(schemaPath) === content) return;
+
+    this.schemaContentCache.set(schemaPath, content);
+    await this.io.safeWriteFile(schemaPath, content);
+  }
+
+  public ensureSchemaAtTop(
+    userCatalog: Record<string, string>,
+    schemaPath: string,
+    catalogPath: string,
+  ) {
+    const rel = relative(dirname(catalogPath), schemaPath).replace(/\\/g, "/");
+    const schemaRef = rel.startsWith(".") ? rel : "./" + rel;
+    const newCatalog: Record<string, any> = { $schema: schemaRef };
+    for (const key of Object.keys(userCatalog))
+      if (key !== "$schema") newCatalog[key] = userCatalog[key];
+    return newCatalog;
+  }
+
+  public async getCatalogForFullModule(
+    fullModuleId: string,
+    locale: string,
+    boundaryGraph: any,
+    chunkGraph: any,
+    internalManifest: Record<string, any[]>,
+    hive?: Record<string, Record<string, any>>,
+    reconciliation?: ReconcileResult,
+    isMgr = false,
+    colonyBoundaries: string[] = [],
+  ): Promise<{ catalog: Record<string, any> }> {
+    let chunkType: "entry" | "lazy" | "shared" = "entry";
+    let idOrHash = fullModuleId;
+
+    if (fullModuleId.startsWith("entry:")) {
+      chunkType = "entry";
+      idOrHash = fullModuleId.substring(6);
+    } else if (fullModuleId.startsWith("lazy:") || fullModuleId.startsWith("boundary:")) {
+      chunkType = "lazy";
+      idOrHash = fullModuleId.substring(fullModuleId.indexOf(":") + 1);
+    } else if (fullModuleId.startsWith("shared:")) {
+      chunkType = "shared";
+      idOrHash = fullModuleId.substring(7);
+    } else {
+      const splitIdx = fullModuleId.indexOf(":");
+      if (splitIdx !== -1) {
+        const prefix = fullModuleId.substring(0, splitIdx);
+        if (["entry", "lazy", "shared", "boundary"].includes(prefix)) {
+          chunkType = (prefix === "boundary" ? "lazy" : prefix) as any;
+          idOrHash = fullModuleId.substring(splitIdx + 1);
+        }
+      }
+    }
+
+    let pathId = idOrHash;
+    if (!boundaryGraph.nodes.has(idOrHash)) {
+      for (const nodeId of boundaryGraph.nodes.keys()) {
+        if (
+          this.io.getSafeBoundaryId(nodeId) === idOrHash ||
+          this.io.getBoundaryId(nodeId) === idOrHash
+        ) {
+          pathId = nodeId;
+          break;
+        }
+      }
+    }
+
+    let targetChunk: any;
+    for (const chunk of chunkGraph.chunks.values()) {
+      if (chunk.boundaries.has(pathId)) {
+        if (
+          (chunkType === "entry" && chunk.type === "entry") ||
+          chunkType === "lazy" ||
+          chunkType === "shared"
+        ) {
+          targetChunk = chunk;
+          break;
+        }
+      }
+    }
+
+    if (!targetChunk) return { catalog: {} };
+    this.logger?.debug(`[Catalog] Found chunk ${targetChunk.id} for ${idOrHash} (isMgr: ${isMgr})`);
+
+    let boundariesToCollect = new Set<string>(targetChunk.boundaries as Set<string>);
+
+    if (isMgr && chunkType === "entry") {
+      // For managers, we inline EVERYTHING that is statically reachable from this entry point
+      // even if it belongs to a shared or different chunk.
+      const staticTree = this.getStaticTree(pathId, boundaryGraph);
+      for (const bId of staticTree) boundariesToCollect.add(bId);
+      this.logger?.debug(
+        `[Catalog] Expanded manager boundaries to ${boundariesToCollect.size} items`,
+      );
+    }
+
+    // Include Colony boundaries in both manager and content modules
+    if (colonyBoundaries.length > 0) {
+      for (const colonyId of colonyBoundaries) {
+        boundariesToCollect.add(colonyId);
+      }
+      this.logger?.debug(`[Catalog] Added ${colonyBoundaries.length} colony boundaries`);
+    }
+
+    const result: Record<string, Record<string, any>> = {};
+    const isDev = this.isDev;
+
+    for (const boundaryId of boundariesToCollect) {
+      const userCatalog = await this.loadUserCatalog(
+        boundaryId,
+        locale,
+        internalManifest,
+        false,
+        hive,
+        reconciliation,
+      );
+      const messages = internalManifest[boundaryId] || [];
+      const stableId = this.io.getSafeBoundaryId(boundaryId);
+
+      const path = this.getCatalogPath(boundaryId, locale);
+      const mtime = path ? this.catalogMtimes.get(path) || 0 : 0;
+
+      const cacheKey = `${stableId}:${locale}:${mtime}:${JSON.stringify(messages)}`;
+      let serialized = this.isDev ? undefined : this.serializationCache.get(cacheKey);
+
+      if (!serialized) {
+        if (this.isDev && locale === this.sourceLocale) {
+          this.logger?.debug(
+            `[Ghost] Processing boundary ${boundaryId} with ${messages.length} messages`,
+          );
+          for (const m of messages) {
+            this.logger?.debug(`  - ${m.text.substring(0, 50)}...`);
+          }
+        }
+        const boundaryCatalog: Record<string, any> = {};
+        for (const msg of messages) {
+          const translation = locale === this.sourceLocale ? msg.text : userCatalog[msg.text];
+          const key = isDev ? msg.text : msg.id;
+          boundaryCatalog[key] = translation !== undefined ? translation : isDev ? msg.text : "";
+        }
+        serialized = this.serializeCatalog(boundaryCatalog, locale, 6, this.logger);
+        this.serializationCache.set(cacheKey, serialized);
+      }
+
+      if (serialized.includes(":")) {
+        result[stableId] = { __zintl_pre_serialized: true, code: serialized };
+      }
+    }
+
+    return { catalog: result };
+  }
+
+  public serializeCatalog(
+    catalog: Record<string, any>,
+    locale?: string,
+    indent = 4,
+    logger?: any,
+  ): string {
+    let code = `{\n`;
+    const sp = " ".repeat(indent);
+    const subSp = " ".repeat(indent + 2);
+
+    for (const [key, value] of Object.entries(catalog)) {
+      if (value && typeof value === "object" && (value as any).__zintl_pre_serialized) {
+        code += `${sp}${JSON.stringify(key)}: ${(value as any).code.trimStart()},\n`;
+        continue;
+      }
+
+      const isBoundary = key.startsWith("b_") || key.includes("/") || key.includes(":");
+      if (isBoundary && typeof value === "object" && value !== null && !Array.isArray(value)) {
+        code += `${sp}${JSON.stringify(key)}: ${this.serializeCatalog(value, locale, indent + 2, logger)},\n`;
+        continue;
+      }
+
+      if (typeof value === "string" && locale) {
+        const baked = bakeICU(value, locale, logger);
+        if (baked) {
+          code += `${sp}${JSON.stringify(key)}: ${baked},\n`;
+          continue;
+        }
+      }
+
+      if (typeof value === "object" && value !== null) {
+        let fnBody = `(params) => {\n`;
+        for (const [condition, translation] of Object.entries(value)) {
+          const jsConds = condition.split(",").map((c) => {
+            let op = "==",
+              sep = "=";
+            if (c.includes(">")) {
+              op = ">";
+              sep = ">";
+            } else if (c.includes("<")) {
+              op = "<";
+              sep = "<";
+            }
+            const parts = c.split(sep);
+            if (parts.length !== 2) return "true";
+            const right = parts[1].trim();
+            const finalRight =
+              !isNaN(Number(right)) && right !== "" ? right : `'${right.replace(/'/g, "\\'")}'`;
+            return `params['${parts[0].trim()}'] ${op} ${finalRight}`;
+          });
+          fnBody += `${subSp}  if (${jsConds.join(" && ")}) return \`${String(translation).replace(/\{(\w+)\}/g, "${params['$1']}")}\`;\n`;
+        }
+        code += `${sp}${JSON.stringify(key)}: ${fnBody}${subSp}  return "";\n${subSp}},\n`;
+      } else {
+        code += `${sp}${JSON.stringify(key)}: ${JSON.stringify(value)},\n`;
+      }
+    }
+    return code + `${" ".repeat(indent - 2)}}`;
+  }
+
+  public healICUString(icu: string, mapping: Record<string, string>): string {
+    let healed = icu;
+    for (const [oldVar, newVar] of Object.entries(mapping)) {
+      const regex = new RegExp(`\\{${oldVar}([\\s,}])`, "g");
+      healed = healed.replace(regex, `{${newVar}$1`);
+    }
+    return healed;
+  }
+
+  private getStaticTree(entryId: string, graph: BoundaryGraph): Set<string> {
+    const tree = new Set<string>();
+    const walk = (id: string) => {
+      if (tree.has(id)) return;
+      const node = graph.nodes.get(id);
+      if (!node) return;
+
+      // Zintl Isolation: Do not rollup static dependencies that are themselves entry points
+      if (id !== entryId && node.mode === "entry") return;
+
+      tree.add(id);
+      for (const dep of node.deps) if (!dep.dynamic) walk(dep.id);
+    };
+    walk(entryId);
+    return tree;
+  }
+
+  public async syncPathCatalogs(
+    path: string,
+    locales: string[],
+    bIds: Set<string>,
+    internalManifest: Record<string, any[]>,
+    hive: Record<string, Record<string, any>>,
+    onHiveChange: () => void,
+    reconciliation?: ReconcileResult,
+    metadataGraph?: Record<string, any>,
+    graph?: BoundaryGraph,
+  ) {
+    const isMulti = this.isMultilingualFormat();
+    const firstBId = Array.from(bIds)[0];
+    if (!firstBId) return;
+    this.logger.debug(`Syncing catalog at ${relative(this.root, path)} (${bIds.size} boundaries)`);
+
+    // Load the existing physical catalog
+    let fullCatalog = await this.io
+      .readFile(path)
+      .then(JSON.parse)
+      .catch(() => ({}));
+    let anyChanged = false;
+
+    const allMessages = new Map<string, any>();
+    const allCurrentKeys = new Set<string>();
+    for (const bId of bIds) {
+      const messages = internalManifest[bId] || [];
+      for (const msg of messages) {
+        allMessages.set(msg.text, msg);
+        allCurrentKeys.add(msg.text);
+      }
+    }
+
+    // Shared Schema Throttling
+    const groupContentKey =
+      JSON.stringify(Array.from(allMessages.keys()).sort((a, b) => a.localeCompare(b))) +
+      ":" +
+      locales.join(",");
+
+    const isShared = bIds.size > 1 || locales.length > 1 || this.isMultilingualFormat();
+    const schemaPath = isShared
+      ? this.getSchemaPath(firstBId)?.replace(/\.schema\.json$/, ".shared.schema.json")
+      : this.getSchemaPath(firstBId);
+
+    if (schemaPath && allCurrentKeys.size > 0) {
+      this.activeSchemaPaths.add(schemaPath);
+      if (this.groupContentCache.get(path) !== groupContentKey) {
+        if (isShared) {
+          await this.generateSharedSchema(schemaPath, allMessages, locales);
+        } else {
+          await this.generateSchema(schemaPath, Array.from(allMessages.values()));
+        }
+        this.groupContentCache.set(path, groupContentKey);
+      }
+    }
+
+    // Loop through each locale to perform synchronization logic
+    for (const locale of locales) {
+      if (locale === this.sourceLocale) continue;
+      // 1. Extract single-locale view for logic
+      let userCatalog: Record<string, any> = {};
+      if (isMulti) {
+        for (const [k, v] of Object.entries(fullCatalog)) {
+          if (k === "$schema") continue;
+          userCatalog[k] = (v as any)?.[locale];
+        }
+      } else {
+        userCatalog = { ...fullCatalog };
+      }
+
+      let changed = false;
+
+      // 2. Apply renames/moves from reconciliation if any
+      if (reconciliation) {
+        for (const bId of bIds) {
+          const bRenames = reconciliation.renames[bId]?.["*"] || {};
+          const bVarMappings = reconciliation.varMappings[bId]?.["*"] || {};
+
+          for (const [oldKey, newKey] of Object.entries(bRenames)) {
+            if (userCatalog[oldKey] && !userCatalog[newKey as string]) {
+              let translation = userCatalog[oldKey];
+              const mapping = bVarMappings[newKey as string];
+
+              if (mapping && typeof translation === "string") {
+                translation = this.healICUString(translation, mapping);
+              }
+
+              userCatalog[newKey as string] = translation;
+              delete userCatalog[oldKey];
+              changed = true;
+            }
+          }
+        }
+
+        for (const move of (reconciliation.moves || []) as any[]) {
+          if (bIds.has(move.toBoundary)) {
+            const fromCat = await this.loadUserCatalog(move.fromBoundary, locale, internalManifest);
+            if (fromCat[move.text] !== undefined && userCatalog[move.text] === undefined) {
+              userCatalog[move.text] = fromCat[move.text];
+              changed = true;
+            }
+          }
+        }
+      }
+
+      // 3. Harvest translations from disk into hive
+      for (const key of Object.keys(userCatalog)) {
+        if (key === "$schema") continue;
+        const value = userCatalog[key];
+        const isNonEmpty =
+          typeof value === "string"
+            ? value.trim() !== ""
+            : value && typeof value === "object" && Object.keys(value).length > 0;
+
+        if (isNonEmpty) {
+          if (!hive[locale]) hive[locale] = {};
+          if (hive[locale][key] !== value) {
+            hive[locale][key] = value;
+            onHiveChange();
+          }
+        }
+      }
+
+      // 4. Prune keys that are NOT in ANY of the grouped boundaries
+      if (this.prune) {
+        for (const key of Object.keys(userCatalog)) {
+          if (key === "$schema") continue;
+          if (!allCurrentKeys.has(key)) {
+            delete userCatalog[key];
+            changed = true;
+          }
+        }
+      }
+
+      // 5. Add/Update keys for all boundaries in this group
+      for (const text of allMessages.keys()) {
+        if (!userCatalog[text]) {
+          const memory = hive[locale]?.[text];
+          if (memory) {
+            userCatalog[text] = memory;
+            changed = true;
+          } else if (userCatalog[text] === undefined) {
+            userCatalog[text] = "";
+            changed = true;
+          }
+        }
+      }
+
+      // 6. Merge back into fullCatalog if changed
+      if (changed) {
+        anyChanged = true;
+        if (isMulti) {
+          for (const [k, v] of Object.entries(userCatalog)) {
+            if (!fullCatalog[k]) fullCatalog[k] = {};
+            fullCatalog[k][locale] = v;
+          }
+          // Handle pruned keys
+          for (const k of Object.keys(fullCatalog)) {
+            if (k === "$schema") continue;
+            if (userCatalog[k] === undefined) {
+              delete fullCatalog[k][locale];
+              if (Object.keys(fullCatalog[k]).length === 0) delete fullCatalog[k];
+            }
+          }
+        } else {
+          fullCatalog = { ...userCatalog };
+        }
+      }
+    }
+
+    let hasHtmlProjection = false;
+    if (metadataGraph) {
+      for (const bId of bIds) {
+        if (metadataGraph[bId]?.htmlProjection) {
+          // Only count it if it's actually in the graph (i.e. it's zintlized)
+          if (graph?.nodes.has(bId)) {
+            hasHtmlProjection = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (allCurrentKeys.size === 0) {
+      if (!hasHtmlProjection) {
+        if (this.prune) {
+          if (await this.io.exists(path)) await this.io.rm(path);
+          if (schemaPath && (await this.io.exists(schemaPath))) await this.io.rm(schemaPath);
+          for (const bId of bIds) {
+            if (this.catalogCache[bId]) delete this.catalogCache[bId];
+          }
+        }
+      }
+      // If it HAS an HTML projection but no messages, we EXIT and let HtmlManager handle it.
+      // This avoids writing a schema-only catalog that triggers "exists" in HtmlManager
+      // and causes unwanted dir=rtl injection.
+      return;
+    }
+
+    if (schemaPath) {
+      const rel = relative(dirname(path), schemaPath).replace(/\\/g, "/");
+      const schemaRef = rel.startsWith(".") ? rel : "./" + rel;
+      if (fullCatalog.$schema !== schemaRef || Object.keys(fullCatalog)[0] !== "$schema")
+        anyChanged = true;
+    }
+
+    if (anyChanged) {
+      const sorted = sortObjectKeys(fullCatalog);
+      const final = schemaPath ? this.ensureSchemaAtTop(sorted, schemaPath, path) : sorted;
+      this.logger.debug(`Saving catalog to ${path}`);
+      await this.io.safeWriteFile(path, JSON.stringify(final, null, 2));
+
+      // Update mtime to avoid redundant disk reads in loadUserCatalog
+      try {
+        const meta = await this.io.stat(path);
+        this.catalogMtimes.set(path, meta.mtimeMs);
+      } catch {
+        // Ignore if stat fails for some reason
+      }
+
+      // Update cache for all boundaries and locales in this path
+      for (const bId of bIds) {
+        if (!this.catalogCache[bId]) this.catalogCache[bId] = {};
+        for (const locale of locales) {
+          const view: Record<string, any> = {};
+          if (isMulti) {
+            for (const [k, v] of Object.entries(final)) {
+              if (k === "$schema") continue;
+              view[k] = (v as any)?.[locale] || "";
+            }
+          } else {
+            Object.assign(view, final);
+          }
+          this.catalogCache[bId][locale] = view;
+        }
+      }
+    }
+  }
+
+  public async harvestHive(
+    internalManifest: Record<string, any[]>,
+    locales: string[],
+    hive: Record<string, Record<string, any>>,
+    onHiveChange: () => void,
+  ) {
+    for (const bId of Object.keys(internalManifest)) {
+      for (const locale of locales) {
+        if (locale === this.sourceLocale) continue;
+        const catalog = await this.loadUserCatalog(bId, locale, internalManifest, true, hive);
+        for (const [key, value] of Object.entries(catalog)) {
+          if (key === "$schema") continue;
+          const isNonEmpty =
+            typeof value === "string"
+              ? value.trim() !== ""
+              : value && typeof value === "object" && Object.keys(value).length > 0;
+          if (isNonEmpty) {
+            if (!hive[locale]) hive[locale] = {};
+            if (hive[locale][key] !== value) {
+              hive[locale][key] = value;
+              onHiveChange();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public async pruneOrphanedBoundaries(
+    graph: BoundaryGraph,
+    locales: string[],
+    metadataGraph?: Record<string, any>,
+    dependencyGraph?: Record<string, any>,
+    graphManager?: any,
+  ) {
+    if (!this.prune) return;
+
+    // Optimization: Skip if the graph hasn't changed since last prune
+    const manifestHash = Array.from(graph.nodes.keys())
+      .sort((a: any, b: any) => String(a).localeCompare(String(b)))
+      .join(",");
+    if (this.lastPrunedManifestHash === manifestHash) return;
+    this.lastPrunedManifestHash = manifestHash;
+
+    const knownPaths = new Set<string>();
+
+    // 1. Regular boundaries
+    for (const bId of graph.nodes.keys()) {
+      for (const locale of locales) {
+        if (locale === this.sourceLocale) continue;
+        const p = this.getCatalogPath(bId, locale);
+        if (p) knownPaths.add(p);
+      }
+    }
+    for (const s of this.activeSchemaPaths) {
+      knownPaths.add(s);
+    }
+
+    if (metadataGraph && dependencyGraph && graphManager) {
+      for (const [id, meta] of Object.entries(metadataGraph)) {
+        if (meta.htmlProjection) {
+          const check = graphManager.leadsToBoundary(id, dependencyGraph, metadataGraph);
+          if (check.leads) {
+            for (const locale of locales) {
+              if (locale === this.sourceLocale) continue;
+              const p = this.getCatalogPath(id, locale);
+              if (p) knownPaths.add(p);
+            }
+            const sPath = this.getSchemaPath(id);
+            if (sPath) knownPaths.add(sPath);
+          }
+        }
+      }
+    } else if (metadataGraph) {
+      // Fallback for simple pruning
+      for (const [id, meta] of Object.entries(metadataGraph)) {
+        if (meta.htmlProjection && graph.nodes.has(id)) {
+          for (const locale of locales) {
+            if (locale === this.sourceLocale) continue;
+            const p = this.getCatalogPath(id, locale);
+            if (p) knownPaths.add(p);
+          }
+          const sPath = this.getSchemaPath(id);
+          if (sPath) knownPaths.add(sPath);
+        }
+      }
+    }
+
+    // Optimization: Only scan if the set of known paths has changed
+    const pathsHash = Array.from(knownPaths)
+      .sort((a, b) => a.localeCompare(b))
+      .join("|");
+    if (this.lastPrunedPathsHash !== null && this.lastPrunedPathsHash === pathsHash) return;
+    this.lastPrunedPathsHash = pathsHash;
+
+    const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
+    if (!(await this.io.exists(baseDir))) return;
+
+    this.logger.debug(`Pruning orphaned catalogs in ${this.outputDir}...`);
+    let prunedCount = 0;
+
+    const scan = async (dir: string) => {
+      const entries = await this.io.readEntries(dir);
+      for (const entry of entries) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === "node_modules" || entry.name === ".git") continue;
+          await scan(full);
+          // If directory is now empty, remove it
+          const remaining = await this.io.readDir(full);
+          if (remaining.length === 0) await this.io.rm(full);
+        } else if (entry.name.endsWith(".json")) {
+          if (!knownPaths.has(full)) {
+            this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
+            await this.io.rm(full);
+            prunedCount++;
+          }
+        }
+      }
+    };
+
+    await scan(baseDir);
+    if (prunedCount > 0) {
+      this.logger.debug(`Pruned ${prunedCount} orphaned files`);
+    }
+  }
+
+  public getCache() {
+    return this.catalogCache;
+  }
+  public setCache(cache: CatalogCache) {
+    this.catalogCache = cache;
+  }
+}

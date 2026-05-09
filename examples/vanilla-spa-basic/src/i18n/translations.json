@@ -1,0 +1,53 @@
+{
+  "$schema": ".schemas/translations.shared.schema.json",
+  "Connect with us": {
+    "ar": "تواصل معنا",
+    "es": "Conéctate con nosotros",
+    "zh": "联系我们"
+  },
+  "Count is {counter}": {
+    "ar": "العدد هو {counter}",
+    "es": "La cuenta es {counter}",
+    "zh": "计数为 {counter}"
+  },
+  "Documentation": {
+    "ar": "وثائق",
+    "es": "Documentación",
+    "zh": "文档"
+  },
+  "Edit": {
+    "ar": "عدّل",
+    "es": "Editar",
+    "zh": "编辑"
+  },
+  "Explore Vite": {
+    "ar": "استكشف Vite",
+    "es": "Explorar Vite",
+    "zh": "探索 Vite"
+  },
+  "Get started": {
+    "ar": "ابدأ الآن",
+    "es": "Empezar",
+    "zh": "开始使用"
+  },
+  "Join the Vite community": {
+    "ar": "انضم إلى مجتمع Vite",
+    "es": "Únete a la comunidad de Vite",
+    "zh": "加入 Vite 社区"
+  },
+  "Learn more": {
+    "ar": "تعرف على المزيد",
+    "es": "Leer más",
+    "zh": "了解更多"
+  },
+  "Your questions, answered": {
+    "ar": "إجابات لأسئلتك",
+    "es": "Tus preguntas, respondidas",
+    "zh": "你的问题，已有答案"
+  },
+  "and save to test": {
+    "ar": "واحفظ لاختبار",
+    "es": "y guarda para probar",
+    "zh": "并保存以测试"
+  }
+}

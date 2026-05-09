@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/translations/.shared.schema.json",
+  "Connect with us": "联系我们",
+  "Count is {counter}": "计数为 {counter}",
+  "Documentation": "文档",
+  "Edit": "编辑",
+  "Explore Vite": "探索 Vite",
+  "Get started": "开始使用",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "Your questions, answered": "你的问题，已有答案",
+  "and save to test": "并保存以测试"
+}

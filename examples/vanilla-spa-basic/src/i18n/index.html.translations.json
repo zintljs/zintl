@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "",
+    "zh": ""
+  },
+  "title": {
+    "ar": "فانيلا تي إس - مثال SPA مع زينتل",
+    "es": "Vanilla TS - Ejemplo de SPA con Zintl",
+    "zh": "Vanilla TS - 带有 Zintl 的 SPA 示例"
+  }
+}

@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Scenario: World-Class Meditations > Meditation 10: Massive Extraction (Scale Stress) 1`] = `
+"import { _t, loadI18nInstance } from "zintl/internal";
+import _zintl_mgr_b_src_main from "virtual:zintl/manager/en/entry:b_src_main";
+ loadI18nInstance({ locale: "en", loaders: { ["b_src_main"]: _zintl_mgr_b_src_main.loader } }); export const strings = document.body.innerHTML = _t("Msg 0", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 1", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 2", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 3", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 4", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 5", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 6", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 7", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 8", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 9", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 10", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 11", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 12", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 13", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 14", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 15", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 16", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 17", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 18", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); document.body.innerHTML = _t("Msg 19", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }); export const CONST = 42;"
+`;
+
+exports[`Scenario: World-Class Meditations > Meditation 12: The Hydration Void (Loading Race) 1`] = `
+{
+  "src/main.ts": "import { _t, loadI18nInstance } from "zintl/internal";
+import _zintl_mgr_b_src_main from "virtual:zintl/manager/none/entry:b_src_main";
+ 
+loadI18nInstance({ locale: "ar", loaders: { ["b_src_main"]: _zintl_mgr_b_src_main.loader } }); console.log(document.body.innerHTML = _t("Immediate", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" }));",
+}
+`;

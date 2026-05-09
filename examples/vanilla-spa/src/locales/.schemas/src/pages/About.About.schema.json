@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "\"Our mission is to make internationalization as seamless as writing your UI code.\"": {
+      "type": "string"
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "About Zintl": {
+      "type": "string"
+    },
+    "The Philosophy": {
+      "type": "string"
+    },
+    "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.": {
+      "type": "string"
+    },
+    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "\"Our mission is to make internationalization as seamless as writing your UI code.\"",
+    "About Zintl",
+    "The Philosophy",
+    "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.",
+    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code."
+  ],
+  "additionalProperties": false
+}

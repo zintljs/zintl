@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/translations/.shared.schema.json",
+  "Connect with us": "تواصل معنا",
+  "Count is {counter}": "العدد هو {counter}",
+  "Documentation": "وثائق",
+  "Edit": "عدّل",
+  "Explore Vite": "استكشف Vite",
+  "Get started": "ابدأ الآن",
+  "Join the Vite community": "انضم إلى مجتمع Vite",
+  "Learn more": "تعرف على المزيد",
+  "Your questions, answered": "إجابات لأسئلتك",
+  "and save to test": "واحفظ لاختبار"
+}

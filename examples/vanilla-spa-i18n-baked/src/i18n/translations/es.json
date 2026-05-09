@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/translations/.shared.schema.json",
+  "Connect with us": "Conéctate con nosotros",
+  "Count is {counter}": "La cuenta es {counter}",
+  "Documentation": "Documentación",
+  "Edit": "Editar",
+  "Explore Vite": "Explorar Vite",
+  "Get started": "Empezar",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Learn more": "Leer más",
+  "Your questions, answered": "Tus preguntas, respondidas",
+  "and save to test": "y guarda para probar"
+}

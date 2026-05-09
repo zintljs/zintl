@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Enjoy full TypeScript support with automatically generated translation schemas.": {
+      "type": "string"
+    },
+    "Get Started": {
+      "type": "string"
+    },
+    "Just call zintl() and let the compiler do the rest of the heavy lifting for you.": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {x}"
+    },
+    "Learn More": {
+      "type": "string"
+    },
+    "Only load what you need, when you need it. Smallest runtime footprint in the industry.": {
+      "type": "string"
+    },
+    "Optimized": {
+      "type": "string"
+    },
+    "Powerful I18n for Modern Apps": {
+      "type": "string"
+    },
+    "Type Safe": {
+      "type": "string"
+    },
+    "Zero Config": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Note: This is a note for Zero Config"
+    },
+    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Enjoy full TypeScript support with automatically generated translation schemas.",
+    "Get Started",
+    "Just call zintl() and let the compiler do the rest of the heavy lifting for you.",
+    "Learn More",
+    "Only load what you need, when you need it. Smallest runtime footprint in the industry.",
+    "Optimized",
+    "Powerful I18n for Modern Apps",
+    "Type Safe",
+    "Zero Config",
+    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!"
+  ],
+  "additionalProperties": false
+}

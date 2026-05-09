@@ -1,0 +1,11 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "title": {
+    "ar": "موقع الويب",
+    "es": "Website"
+  },
+  "dir": {
+    "ar": "rtl",
+    "es": "ltr"
+  }
+}

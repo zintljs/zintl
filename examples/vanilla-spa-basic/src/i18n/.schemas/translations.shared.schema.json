@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Count is {counter}": {
+      "additionalProperties": false,
+      "description": "Variables: {counter}",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Documentation": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Edit": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Explore Vite": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Get started": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Join the Vite community": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Learn more": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Your questions, answered": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "and save to test": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "and save to test",
+    "Connect with us",
+    "Count is {counter}",
+    "Documentation",
+    "Edit",
+    "Explore Vite",
+    "Get started",
+    "Join the Vite community",
+    "Learn more",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

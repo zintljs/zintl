@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "title": "زينتل | مثال تطبيق الصفحة الواحدة",
+  "dir": "rtl"
+}

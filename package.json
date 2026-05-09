@@ -1,0 +1,33 @@
+{
+  "name": "zintl-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "ready": "vp lint && knip && vp run build && vp test  && vp fmt && vp run bench ",
+    "dev": "pnpm run -F '@zintl/*' -F 'zintl' -F 'website' --parallel dev ",
+    "build": "vp run -r build",
+    "bench:write": "WRITE_BASELINE=1 vp test bench --run",
+    "bench": "vp test bench --run",
+    "deps": "vpx taze@latest -Ilwr",
+    "deps:major": "vpx taze@latest major -Ilwr",
+    "deps:lint": "knip",
+    "deps:fix": "knip --fix && pnpm store prune",
+    "skills": "vpx skills@latest",
+    "prepare": "vp config"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
+    "knip": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "pnpm@10.33.3"
+}
