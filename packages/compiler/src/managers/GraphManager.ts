@@ -26,6 +26,7 @@ export class GraphManager {
     _root: string,
     _isDev: boolean,
     private readonly logger: ZintlLogger,
+    private readonly locales: string[] = ["en"],
   ) {}
 
   public buildBoundaryGraph(
@@ -167,25 +168,40 @@ export class GraphManager {
       }));
 
       let activeLocales: Set<string> | "all" = new Set<string>();
-      if (isDictator) {
-        const sites = (meta?.anchorSites || []).filter(
-          (s: ObservedAnchor) => this.io.getNormalizedId(s.boundaryId) === normalizedBId,
-        );
-        if (sites.length === 0) {
-          activeLocales = "all";
-        } else {
-          for (const site of sites) {
-            if (!site.locale) continue;
-            if (site.locale.type === "expression") {
-              activeLocales = "all";
-              break;
-            } else if (site.locale.type === "literal") {
-              (activeLocales as Set<string>).add(site.locale.value);
+      let isFannedBoundary = false;
+      for (const loc of this.locales) {
+        if (normalizedBId.startsWith(loc + "/") || normalizedBId === loc) {
+          activeLocales = new Set<string>([loc]);
+          isFannedBoundary = true;
+          break;
+        }
+      }
+
+      if (!isFannedBoundary) {
+        if (isDictator) {
+          const sites = (meta?.anchorSites || []).filter(
+            (s: ObservedAnchor) => this.io.getNormalizedId(s.boundaryId) === normalizedBId,
+          );
+          if (sites.length === 0) {
+            activeLocales = "all";
+          } else {
+            for (const site of sites) {
+              if (!site.locale) continue;
+              if (site.locale.type === "expression") {
+                activeLocales = "all";
+                break;
+              } else if (site.locale.type === "literal") {
+                if (site.locale.value === "*") {
+                  activeLocales = "all";
+                  break;
+                }
+                (activeLocales as Set<string>).add(site.locale.value);
+              }
             }
           }
+        } else {
+          activeLocales = "all";
         }
-      } else {
-        activeLocales = "all";
       }
 
       nodes.set(normalizedBId, {
@@ -486,9 +502,24 @@ export class GraphManager {
       result.leads = true;
       const anchors = meta.anchorSites;
       for (const a of anchors) {
-        if (a.locale.type === "expression") result.dynamic = true;
-        else if (a.locale.type === "literal" && !result.bakedLocale)
+        const isContextual =
+          (a.locale as any).type === "none" ||
+          (a.locale.type === "expression" && !a.locale.source) ||
+          (a.locale.type === "literal" && a.locale.value === "none");
+        const isSovereign = a.locale.type === "literal" && a.locale.value === "*";
+
+        if (isContextual) {
+          // Contextual anchor is inherited/baked statically
+        } else if (isSovereign) {
+          // Sovereign anchor is fanned/baked statically
+          if (!result.bakedLocale) {
+            result.bakedLocale = "*";
+          }
+        } else if (a.locale.type === "expression") {
+          result.dynamic = true;
+        } else if (a.locale.type === "literal" && !result.bakedLocale) {
           result.bakedLocale = a.locale.value;
+        }
       }
     }
 

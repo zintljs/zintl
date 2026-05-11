@@ -95,10 +95,31 @@ class ZintlCompiler {
 ### Build System
 
 - Uses Vite+ unified toolchain
-- Commands: `vp run @zintl/compiler#build`, `vp test`, `vp lint`
-- Build all packages: `vp run -r build` (we need to build before testing or running/building the example apps)
+- Commands: `vpr @zintl/compiler#build`, `vp test`, `vp lint`
+- Build all packages: `vp run -r build`, or `bp build` (we need to build before testing or running/building the example apps)
 - TypeScript strict mode enabled
 - Test structure follows Vitest patterns
+
+#### Testing
+
+- Run `vp test` to run all tests
+- Run `vp test <dir>` or `vp test <dir-or-filename.test>` to run specific files
+
+#### Ready
+
+Run `vpr ready` to make sure the project is ready to hand the task, it is a task to run multiple gates to check if the repo is ready to hand the task to the developer.
+
+#### Benchmarking
+
+Run `vp bench` to run benchmarks.
+
+#### notes
+
+- This project is experimental, so breaking changes are expected.
+- Do not use any tools (like CLI, utils, etc.) in the source code, only use `vp`, `vpr` and `vpx` (Vite Project Runner).
+- The goal is to provide the best developer experience (DX) and speed. Also, we are optimizing for performance or bundle size. Just a little bit.
+- Do not use `pnpm` or `npm` or `yarn` in the source code, only use `vp`, `vpr` and `vpx`.
+- use git only for diff (no pager), anything else is not allowed.
 
 ### File Organization
 

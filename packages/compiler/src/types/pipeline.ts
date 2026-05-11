@@ -31,6 +31,7 @@ export interface ZintlConfig {
   similarityThreshold?: number;
   logLevel?: LogLevel;
   debug?: boolean | string;
+  bakedLocale?: string;
 }
 
 export type FormIntentFn = (

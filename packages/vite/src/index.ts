@@ -1,5 +1,7 @@
 import type { Plugin, ResolvedConfig, HmrContext, ModuleNode, ViteDevServer } from "vite";
 import { ZintlCompiler, type ZintlOptions, type LogLevel } from "@zintl/compiler";
+import { readFileSync, existsSync } from "node:fs";
+import { join, isAbsolute } from "node:path";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,
@@ -21,21 +23,102 @@ export function zintl(
 ): Plugin & { __compiler: ZintlCompiler; __options: ZintlOptions } {
   let compiler: ZintlCompiler;
   let server: ViteDevServer | null = null;
+  let multiplexEnabled: boolean | null = null;
+
+  function getMultiplex(config?: any): boolean {
+    if (multiplexEnabled !== null) return multiplexEnabled;
+    const root = config?.root || compiler?.rootDir || process.cwd();
+
+    if ((options as any).multiplex !== undefined) {
+      multiplexEnabled = (options as any).multiplex;
+      return multiplexEnabled!;
+    }
+
+    try {
+      const mainPath = join(root, "src/main.ts");
+      const indexPath = join(root, "index.html");
+
+      let content = "";
+      if (existsSync(mainPath)) {
+        content += readFileSync(mainPath, "utf-8");
+      }
+      if (existsSync(indexPath)) {
+        content += readFileSync(indexPath, "utf-8");
+      }
+
+      if (/zintl\(\s*['"]\*['"]\s*\)/.test(content) || /zintl\(\s*\)/.test(content)) {
+        multiplexEnabled = true;
+      } else {
+        multiplexEnabled = false;
+      }
+    } catch {
+      multiplexEnabled = false;
+    }
+
+    return multiplexEnabled;
+  }
+
+  function getMultiplexLocale(id: string): string | undefined {
+    if (!id.includes("zintl-multiplex=")) return undefined;
+    const match = id.match(/zintl-multiplex=([^&]+)/);
+    return match ? match[1] : undefined;
+  }
 
   return {
     name: PLUGIN_NAME,
     enforce: "pre",
 
-    config(_config: any) {
+    config(userConfig: any) {
+      const multiplex = getMultiplex(userConfig);
+      const locales = options.locales || ["en"];
+      const configUpdate: any = {};
+
       if (options.debug) {
-        return {
-          define: {
-            "process.env.ZINTL_DEBUG": JSON.stringify(
-              options.debug === true ? "true" : options.debug,
-            ),
+        configUpdate.define = {
+          "process.env.ZINTL_DEBUG": JSON.stringify(
+            options.debug === true ? "true" : options.debug,
+          ),
+        };
+      }
+
+      if (multiplex) {
+        const userBuild = userConfig.build || {};
+        const userRollupOptions = userBuild.rollupOptions || {};
+        const userInput = userRollupOptions.input || "index.html";
+
+        const inputObj: Record<string, string> = {};
+        if (typeof userInput === "string") {
+          inputObj.index = userInput;
+        } else if (Array.isArray(userInput)) {
+          userInput.forEach((inp, idx) => {
+            const name = inp.replace(/\.html$/, "").replace(/[^a-zA-Z0-9]/g, "_");
+            inputObj[name || `input_${idx}`] = inp;
+          });
+        } else if (typeof userInput === "object" && userInput !== null) {
+          Object.assign(inputObj, userInput);
+        }
+
+        const expandedInput: Record<string, string> = { ...inputObj };
+        for (const [key, val] of Object.entries(inputObj)) {
+          if (val.endsWith(".html")) {
+            for (const loc of locales) {
+              const prefixKey = `${loc}/${key === "main" || key === "index" ? "index" : key}`;
+              const prefixVal = `${loc}/${val}`;
+              expandedInput[prefixKey] = prefixVal;
+            }
+          }
+        }
+
+        configUpdate.build = {
+          ...userBuild,
+          rollupOptions: {
+            ...userRollupOptions,
+            input: expandedInput,
           },
         };
       }
+
+      return configUpdate;
     },
 
     configResolved(config: ResolvedConfig) {
@@ -53,6 +136,91 @@ export function zintl(
 
     configureServer(_server: ViteDevServer) {
       server = _server;
+
+      const multiplex = getMultiplex();
+      if (multiplex) {
+        const locales = options.locales || ["en"];
+        _server.middlewares.use(async (req, res, next) => {
+          const url = req.url || "/";
+          const [pathname] = url.split("?");
+
+          // Match /locale/ or /locale/index.html
+          const match = pathname.match(/^\/([a-z]{2})(\/index\.html|\/)?$/);
+          if (match) {
+            const locale = match[1];
+            if (locales.includes(locale)) {
+              const originalPath = join(_server.config.root, "index.html");
+              if (existsSync(originalPath)) {
+                let html = readFileSync(originalPath, "utf-8");
+                let dir = locale === "ar" ? "rtl" : "ltr";
+                try {
+                  const catalogPath = compiler.html.getCatalogPath("index.html", locale);
+                  if (existsSync(catalogPath)) {
+                    const cat = JSON.parse(readFileSync(catalogPath, "utf-8"));
+                    const isMulti = compiler.isMultilingualFormat();
+                    const catalogDir = isMulti ? cat.dir?.[locale] : cat.dir;
+                    if (catalogDir !== undefined) {
+                      dir = catalogDir;
+                    }
+                  }
+                } catch {}
+
+                html = html.replace(/<html([^>]*)>/i, (m, attrs) => {
+                  let newAttrs = attrs;
+                  if (!/lang=/i.test(attrs)) newAttrs += ` lang="${locale}"`;
+                  else newAttrs = newAttrs.replace(/lang=["'][^"']*["']/i, `lang="${locale}"`);
+
+                  if (!/dir=/i.test(attrs)) newAttrs += ` dir="${dir}"`;
+                  else newAttrs = newAttrs.replace(/dir=["'][^"']*["']/i, `dir="${dir}"`);
+
+                  return `<html${newAttrs}>`;
+                });
+
+                html = html.replace(
+                  /(<script\s+[^>]*type=["']module["'][^>]*src=["'])([^"']*)(["'])/gi,
+                  (m, prefix, src, suffix) => {
+                    if (
+                      src.includes("node_modules") ||
+                      src.startsWith("http") ||
+                      src.startsWith("//")
+                    ) {
+                      return m;
+                    }
+                    const separator = src.includes("?") ? "&" : "?";
+                    return `${prefix}${src}${separator}zintl-multiplex=${locale}${suffix}`;
+                  },
+                );
+
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "text/html");
+                return res.end(await _server.transformIndexHtml(url, html));
+              }
+            }
+          }
+
+          if (pathname === "/" || pathname === "/index.html") {
+            const defaultLocale = options.sourceLocale || "en";
+            const localesStr = JSON.stringify(locales);
+            const redirectHtml = `
+<!doctype html>
+<html>
+  <head>
+    <script>
+      const lang = (navigator.language || '${defaultLocale}').split('-')[0];
+      const supported = ${localesStr};
+      const target = supported.includes(lang) ? lang : '${defaultLocale}';
+      window.location.replace('/' + target + '/');
+    </script>
+  </head>
+</html>`;
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "text/html");
+            return res.end(redirectHtml);
+          }
+
+          next();
+        });
+      }
     },
 
     async buildStart() {
@@ -64,7 +232,7 @@ export function zintl(
       }
     },
 
-    resolveId(id: string) {
+    resolveId(id: string, importer: string | undefined) {
       if (
         id.startsWith(VIRTUAL_PREFIX) ||
         id.startsWith(CHUNK_VIRTUAL_PREFIX) ||
@@ -74,9 +242,112 @@ export function zintl(
         compiler._logger.withPrefix("Vite").debug(`Resolving virtual module: ${id}`);
         return "\0" + id;
       }
+
+      const multiplex = getMultiplex();
+      if (multiplex && id.endsWith(".html")) {
+        const locales = options.locales || ["en"];
+        for (const loc of locales) {
+          const pattern = new RegExp(`(^|\\/)${loc}\\/([^\\/]+\\.html)$`);
+          if (pattern.test(id)) {
+            const match = id.match(pattern);
+            if (match) {
+              return join(compiler.rootDir, `${loc}/${match[2]}`);
+            }
+          }
+        }
+      }
+
+      // Propagate multiplexing to dependencies
+      if (importer) {
+        const locale = getMultiplexLocale(importer);
+        if (locale && !id.includes("zintl-multiplex=")) {
+          const cleanId = id.split("?")[0];
+          const query = id.includes("?") ? id.split("?")[1] : "";
+          const newId = `${cleanId}?${query ? query + "&" : ""}zintl-multiplex=${locale}`;
+          return this.resolve(newId, importer, { skipSelf: true });
+        }
+      }
     },
 
     async load(id: string) {
+      const multiplex = getMultiplex();
+      if (multiplex && id.endsWith(".html")) {
+        const locales = options.locales || ["en"];
+        let isFanned = false;
+        let matchedLocale = "";
+        let originalHtmlFile = "";
+
+        for (const loc of locales) {
+          const pattern = new RegExp(`[\\/\\\\]${loc}[\\/\\\\]([^\\/\\\\]+\\.html)$`);
+          const m = id.match(pattern);
+          if (m) {
+            isFanned = true;
+            matchedLocale = loc;
+            originalHtmlFile = m[1];
+            break;
+          }
+        }
+
+        if (isFanned) {
+          const originalPath = join(compiler.rootDir, originalHtmlFile);
+          if (existsSync(originalPath)) {
+            let html = readFileSync(originalPath, "utf-8");
+            let dir = matchedLocale === "ar" ? "rtl" : "ltr";
+            try {
+              const catalogPath = compiler.html.getCatalogPath(originalHtmlFile, matchedLocale);
+              if (existsSync(catalogPath)) {
+                const cat = JSON.parse(readFileSync(catalogPath, "utf-8"));
+                const isMulti = compiler.isMultilingualFormat();
+                const catalogDir = isMulti ? cat.dir?.[matchedLocale] : cat.dir;
+                if (catalogDir !== undefined) {
+                  dir = catalogDir;
+                }
+              }
+            } catch {}
+
+            html = html.replace(/<html([^>]*)>/i, (m, attrs) => {
+              let newAttrs = attrs;
+              if (!/lang=/i.test(attrs)) newAttrs += ` lang="${matchedLocale}"`;
+              else newAttrs = newAttrs.replace(/lang=["'][^"']*["']/i, `lang="${matchedLocale}"`);
+
+              if (!/dir=/i.test(attrs)) newAttrs += ` dir="${dir}"`;
+              else newAttrs = newAttrs.replace(/dir=["'][^"']*["']/i, `dir="${dir}"`);
+
+              return `<html${newAttrs}>`;
+            });
+
+            html = html.replace(
+              /(<script\s+[^>]*type=["']module["'][^>]*src=["'])([^"']*)(["'])/gi,
+              (m, prefix, src, suffix) => {
+                if (
+                  src.includes("node_modules") ||
+                  src.startsWith("http") ||
+                  src.startsWith("//")
+                ) {
+                  return m;
+                }
+                const separator = src.includes("?") ? "&" : "?";
+                return `${prefix}${src}${separator}zintl-multiplex=${matchedLocale}${suffix}`;
+              },
+            );
+
+            return html;
+          }
+        } else {
+          const normalizedPath = id.replace(/\\/g, "/");
+          if (!normalizedPath.includes("node_modules")) {
+            if (existsSync(id)) {
+              let html = readFileSync(id, "utf-8");
+              html = html.replace(
+                /<script[^>]*src=["'][^"']*(src\/main\.ts|main\.ts)["'][^>]*>([\s\S]*?)<\/script>/gi,
+                "",
+              );
+              return html;
+            }
+          }
+        }
+      }
+
       const vLogger = compiler._logger.withPrefix("Vite");
       if (id.startsWith(RESOLVED_VIRTUAL_PREFIX)) {
         const boundaryId = id.slice(RESOLVED_VIRTUAL_PREFIX.length + 1);
@@ -151,7 +422,16 @@ export function zintl(
       const vLogger = compiler._logger.withPrefix("Vite");
       if (id.includes("node_modules") || id.startsWith("\0")) return;
 
-      const result = await compiler.transform(code, id, VIRTUAL_PREFIX);
+      const multiplexLocale = getMultiplexLocale(id);
+      const cleanId = id.split("?")[0];
+
+      const result = await compiler.transform(
+        code,
+        cleanId,
+        VIRTUAL_PREFIX,
+        false,
+        multiplexLocale,
+      );
 
       if (server && !id.startsWith("\0")) {
         const boundaryId = compiler.getNormalizedId(id);
@@ -203,6 +483,42 @@ export function zintl(
               }
             }
           }
+        }
+
+        const filename = ctx.filename || ctx.path || "";
+        const normalizedPath = filename.replace(/\\/g, "/");
+        const cleanPath = normalizedPath.split("?")[0];
+        const parts = cleanPath.split("/");
+        const locales = options.locales || ["en"];
+        const isFanned =
+          parts.some((p: string) => locales.includes(p)) ||
+          normalizedPath.includes("virtual:zintl-multiplex-html");
+
+        if (getMultiplex() && !isFanned) {
+          const localesStr = JSON.stringify(locales);
+          const defaultLocale = options.sourceLocale || "en";
+          return `<!doctype html>
+<html lang="${defaultLocale}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script id="zintl-multiplex-redirect">
+      (function() {
+        try {
+          const lang = (navigator.language || '${defaultLocale}').split('-')[0];
+          const supported = ${localesStr};
+          const target = supported.includes(lang) ? lang : '${defaultLocale}';
+          window.location.replace('/' + target + '/');
+        } catch (e) {
+          window.location.replace('/${defaultLocale}/');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>`;
         }
 
         return await compiler.transformHtml(html, ctx.filename || ctx.path, preloads);
@@ -263,6 +579,27 @@ export function zintl(
           vLogger.debug(`Invalidating legacy virtual module: ${legacyVirtualId}`);
           server.moduleGraph.invalidateModule(legacyMod);
           invalidatedModules.add(legacyMod);
+        }
+
+        // Invalidate the source file itself (and its multiplexed query-param variants)
+        let node = compiler.boundaryGraph?.nodes.get(boundaryId);
+        if (!node) {
+          for (const [nid, n] of compiler.boundaryGraph?.nodes.entries() || []) {
+            if (compiler.ioManager.getSafeBoundaryId(nid) === boundaryId) {
+              node = n;
+              break;
+            }
+          }
+        }
+        const fileId = node?.filePath || boundaryId.split(":")[0];
+        const absFileId = isAbsolute(fileId) ? fileId : join(compiler.rootDir, fileId);
+
+        for (const [id, mod] of server.moduleGraph.idToModuleMap) {
+          if (mod.file === absFileId || id.includes(fileId)) {
+            vLogger.debug(`[HMR] Invalidating source module: ${id}`);
+            server.moduleGraph.invalidateModule(mod);
+            invalidatedModules.add(mod);
+          }
         }
 
         // 4. If it's an HTML boundary, trigger full reload

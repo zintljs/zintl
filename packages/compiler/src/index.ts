@@ -1,4 +1,5 @@
 import * as Extractor from "@zintl/extractor";
+import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
 import {
   observe,
@@ -34,7 +35,7 @@ export class ZintlCompiler {
   private readonly graph: GraphManager;
   private readonly catalog: CatalogManager;
   private readonly messages: MessageManager;
-  private readonly html: HtmlManager;
+  public readonly html: HtmlManager;
 
   private graphDirty = true;
 
@@ -50,6 +51,10 @@ export class ZintlCompiler {
 
   public get _logger() {
     return this.logger;
+  }
+
+  public get rootDir() {
+    return this.root;
   }
 
   public get outputDir() {
@@ -96,7 +101,13 @@ export class ZintlCompiler {
     this._prune = options.prune ?? true;
     this._verifyIntegrity = options.verifyIntegrity ?? false;
     this.io = new IOManager(root, isDev, this.logger.withPrefix("IO"), options);
-    this.graph = new GraphManager(this.io, root, isDev, this.logger.withPrefix("Graph"));
+    this.graph = new GraphManager(
+      this.io,
+      root,
+      isDev,
+      this.logger.withPrefix("Graph"),
+      this.locales,
+    );
     this.catalog = new CatalogManager(
       this.io,
       root,
@@ -161,6 +172,9 @@ export class ZintlCompiler {
   }
   public set _chunkGraph(v) {
     (this.graph as any).chunkGraph = v;
+  }
+  public get ioManager() {
+    return this.io;
   }
 
   public async setup() {
@@ -247,7 +261,8 @@ export class ZintlCompiler {
       if (bId.includes("\0")) continue;
       if (foundBoundaryIds.includes(bId)) continue;
       for (const locale of this.locales) {
-        if (this.catalog.getCatalogPath(bId, locale) === filePath) {
+        const catPath = this.catalog.getCatalogPath(bId, locale);
+        if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
           foundBoundaryIds.push(bId);
           this.messages.dirtyBoundaries.add(bId);
           break;
@@ -261,7 +276,7 @@ export class ZintlCompiler {
       if (foundBoundaryIds.includes(bId)) continue;
       for (const locale of this.locales) {
         const catPath = this.html.getCatalogPath(bId, locale);
-        if (catPath === filePath) {
+        if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
           foundBoundaryIds.push(bId);
           this.messages.dirtyBoundaries.add(bId);
           break;
@@ -388,14 +403,47 @@ export class ZintlCompiler {
     id: string,
     preloads?: Record<string, string[]>,
   ): Promise<string> {
-    const fileId = this.io.getNormalizedId(id);
+    let fileId = this.io.getNormalizedId(id);
+    let fannedLocale: string | undefined;
+
+    // Normalize fanned directory requests (e.g. "en" or "en/") to "en/index.html"
+    const dirParts = fileId.split("/");
+    if (dirParts.length === 1 && this.locales.includes(dirParts[0])) {
+      fileId = `${dirParts[0]}/index.html`;
+    } else if (dirParts.length > 1 && this.locales.includes(dirParts[dirParts.length - 1])) {
+      fileId = `${fileId}/index.html`;
+    }
+
+    if (fileId.endsWith(".html") && fileId !== "index.html") {
+      const parts = fileId.split("/");
+      const last = parts[parts.length - 1];
+      if (last === "index.html" || fileId.includes("virtual:zintl-multiplex-html")) {
+        for (const loc of this.locales) {
+          if (parts.includes(loc) || fileId.includes(`:${loc}`) || fileId.includes(`/${loc}`)) {
+            fannedLocale = loc;
+            break;
+          }
+        }
+        fileId = "index.html";
+      }
+    }
+
     let meta = this.metadataGraph[fileId];
 
-    // In dev mode, we always re-extract to ensure metadata is fresh for the current transformation
-    // This handles cases where elements are added/removed/updated in index.html during HMR.
     if (!meta || this.isDev) {
       this.logger.debug(`Refreshing HTML metadata: ${fileId}`);
-      await this.transform(html, id, undefined, true);
+      let sourceHtml = html;
+      let sourcePath = id;
+
+      if (fileId === "index.html") {
+        const physicalPath = join(this.root, "index.html");
+        if (await this.io.exists(physicalPath)) {
+          sourceHtml = await this.io.readFile(physicalPath);
+          sourcePath = physicalPath;
+        }
+      }
+
+      await this.transform(sourceHtml, sourcePath, undefined, true);
       meta = this.metadataGraph[fileId];
     }
 
@@ -408,10 +456,10 @@ export class ZintlCompiler {
     for (const script of scripts) {
       let scriptRel = script;
       if (scriptRel.startsWith("/")) scriptRel = scriptRel.substring(1);
-      const scriptId = scriptRel.replace(/\.[^/.]+$/, "");
+      const scriptPath = join(this.root, scriptRel);
+      const scriptId = this.io.getNormalizedId(scriptPath);
 
       if (!this.messages.metadataGraph[scriptId]) {
-        const scriptPath = join(this.root, scriptRel);
         if (await this.io.exists(scriptPath)) {
           this.logger.debug(`JIT extraction for script: ${scriptId}`);
           try {
@@ -438,13 +486,34 @@ export class ZintlCompiler {
 
     // 2. Determine base projection values
     const isLiteral = !winningCheck.dynamic;
-    const targetLocale = isLiteral
-      ? winningCheck.bakedLocale || this.sourceLocale
-      : this.sourceLocale;
+    const targetLocale =
+      (isLiteral && fannedLocale) ||
+      (isLiteral ? winningCheck.bakedLocale || this.sourceLocale : this.sourceLocale);
+
+    if (targetLocale === "*") {
+      const localesStr = JSON.stringify(this.locales);
+      const defaultLocale = this.sourceLocale || "en";
+      const redirectScript = `<script id="zintl-sovereign-redirect">
+      (function() {
+        const lang = (navigator.language || '${defaultLocale}').split('-')[0];
+        const supported = ${localesStr};
+        const target = supported.includes(lang) ? lang : '${defaultLocale}';
+        window.location.replace('/' + target + '/');
+      })();
+    </script>`;
+
+      if (html.includes("</head>")) {
+        return html.replace(/<\/head>/i, `  ${redirectScript}\n  </head>`);
+      }
+      return `<head>\n  ${redirectScript}\n</head>\n${html}`;
+    }
 
     let title = meta.htmlProjection.title;
     let description = meta.htmlProjection.description;
     let dir = meta.htmlProjection.dir;
+    if (isLiteral && !dir) {
+      dir = ["ar", "he", "iw", "fa", "ur", "yi"].includes(targetLocale) ? "rtl" : "ltr";
+    }
 
     if (isLiteral && targetLocale !== "none") {
       const catalogPath = this.html.getCatalogPath(fileId, targetLocale);
@@ -688,29 +757,74 @@ export class ZintlCompiler {
     id: string,
     _virtualInjectionTarget?: string,
     onlyExtract = false,
+    multiplexLocale?: string,
   ): Promise<{ code: string; map: any } | undefined> {
     if (id.includes("node_modules") || id.startsWith("\0")) return;
-    const fileHash = sha1(code);
-    const fileId = this.io.getNormalizedId(id);
-    const oldHash = this.hashCache[id];
+    if (code.includes('id="zintl-multiplex-redirect"')) return;
+    const multiplexMatch = id.match(/[?&]zintl-multiplex=([^&]+)/);
+    const effectiveMultiplexLocale =
+      multiplexLocale || (multiplexMatch ? multiplexMatch[1] : undefined);
+    const cleanId = id.split("?")[0];
+    let fileId = this.io.getNormalizedId(cleanId);
+    let effectiveCleanId = cleanId;
 
-    let observation = this.observationCache[id];
+    // Detect and redirect fanned HTML files to their original physical file
+    for (const loc of this.locales) {
+      const prefixProd = loc + "/";
+      const prefixDev = `virtual:zintl-multiplex-html:${loc}/`;
+      const prefixDevBare = `virtual:zintl-multiplex-html:${loc}`;
+
+      if (fileId.startsWith(prefixProd) && fileId.endsWith(".html")) {
+        const relativeHtml = fileId.substring(prefixProd.length);
+        fileId = relativeHtml;
+        effectiveCleanId = join(this.root, relativeHtml);
+        break;
+      } else if (fileId.startsWith(prefixDev) && fileId.endsWith(".html")) {
+        const relativeHtml = fileId.substring(prefixDev.length);
+        fileId = relativeHtml;
+        effectiveCleanId = join(this.root, relativeHtml);
+        break;
+      } else if (fileId === prefixDevBare) {
+        fileId = "index.html";
+        effectiveCleanId = join(this.root, "index.html");
+        break;
+      }
+    }
+
+    let codeToUse = code;
+    if (fileId === "index.html") {
+      const physicalPath = join(this.root, "index.html");
+      if (existsSync(physicalPath)) {
+        codeToUse = readFileSync(physicalPath, "utf-8");
+        effectiveCleanId = physicalPath;
+      }
+    }
+
+    const fileHash = sha1(codeToUse);
+    const oldHash = this.hashCache[effectiveCleanId];
+
+    let observation = this.observationCache[effectiveCleanId];
 
     if (oldHash !== fileHash || !observation) {
       this.graphDirty = true;
-      this.hashCache[id] = fileHash;
+      this.hashCache[effectiveCleanId] = fileHash;
 
       if (
-        !id.endsWith(".ts") &&
-        !id.endsWith(".tsx") &&
-        !id.endsWith(".js") &&
-        !id.endsWith(".jsx") &&
-        !id.endsWith(".html")
+        !effectiveCleanId.endsWith(".ts") &&
+        !effectiveCleanId.endsWith(".tsx") &&
+        !effectiveCleanId.endsWith(".js") &&
+        !effectiveCleanId.endsWith(".jsx") &&
+        !effectiveCleanId.endsWith(".html")
       )
         return;
 
-      observation = observe(code, id, fileId, this.logger.withPrefix("Extractor"));
-      this.observationCache[id] = observation;
+      observation = observe(
+        codeToUse,
+        effectiveCleanId,
+        fileId,
+        this.logger.withPrefix("Extractor"),
+      );
+      this.observationCache[effectiveCleanId] = observation;
 
       this.messages.dependencyGraph[fileId] = observation.dependencies;
       this.messages.metadataGraph[fileId] = {
@@ -776,13 +890,43 @@ export class ZintlCompiler {
 
     if (onlyExtract) return;
 
+    // Clone observation to avoid mutating the cached pristine copy
+    const activeObservation = {
+      ...observation,
+      anchors: observation.anchors.map((a: any) => ({
+        ...a,
+        locale: { ...a.locale },
+      })),
+      sinks: observation.sinks.map((s: any) => ({ ...s })),
+      manualTranslations: observation.manualTranslations.map((m: any) => ({ ...m })),
+    };
+
+    if (effectiveMultiplexLocale) {
+      for (const anchor of activeObservation.anchors) {
+        const isContextual =
+          anchor.locale.type === "none" ||
+          (anchor.locale.type === "expression" && !anchor.locale.source) ||
+          (anchor.locale.type === "literal" && anchor.locale.value === "none");
+        const isSovereign = anchor.locale.type === "literal" && anchor.locale.value === "*";
+
+        if (isContextual || isSovereign) {
+          anchor.locale = {
+            type: "literal",
+            value: effectiveMultiplexLocale,
+          };
+        }
+      }
+    }
+
     let bakedLocale: string | undefined;
-    if (!this.isDev) {
-      if (observation.anchors.length > 0) {
+    if (effectiveMultiplexLocale) {
+      bakedLocale = effectiveMultiplexLocale;
+    } else if (!this.isDev) {
+      if (activeObservation.anchors.length > 0) {
         let common: string | undefined,
           dynamic = false,
           mismatch = false;
-        for (const a of observation.anchors) {
+        for (const a of activeObservation.anchors) {
           if (a.locale.type === "expression") {
             dynamic = true;
             break;
@@ -796,8 +940,13 @@ export class ZintlCompiler {
         if (!dynamic && !mismatch) bakedLocale = common;
       } else {
         const dummy = this.createWorldState();
-        const ownerId = resolveOwner(observation.fileId, dummy);
-        const anchor = findEffectiveAnchor(observation.fileId, dummy, observation, ownerId);
+        const ownerId = resolveOwner(activeObservation.fileId, dummy);
+        const anchor = findEffectiveAnchor(
+          activeObservation.fileId,
+          dummy,
+          activeObservation,
+          ownerId,
+        );
         if (anchor?.locale.type === "literal") bakedLocale = anchor.locale.value;
       }
     }
@@ -805,8 +954,8 @@ export class ZintlCompiler {
     const catalogs: Record<string, Record<string, any>> = {};
     if (bakedLocale) {
       const relevant = new Set([fileId]);
-      observation.sinks.forEach((s: any) => relevant.add(s.boundaryId));
-      observation.manualTranslations.forEach((m: any) => relevant.add(m.boundaryId));
+      activeObservation.sinks.forEach((s: any) => relevant.add(s.boundaryId));
+      activeObservation.manualTranslations.forEach((m: any) => relevant.add(m.boundaryId));
       await Promise.all(
         Array.from(relevant).map(async (bId) => {
           catalogs[bId] = await this.catalog.loadUserCatalog(
@@ -821,12 +970,42 @@ export class ZintlCompiler {
       );
     }
 
-    const world = this.createWorldState(catalogs);
-    const intents = formIntent(observation, world);
-    const plan = resolve(intents, observation, world.config, this.logger.withPrefix("Pipeline"));
+    const world = this.createWorldState(
+      catalogs,
+      effectiveMultiplexLocale ? false : undefined,
+      effectiveMultiplexLocale,
+    );
+
+    // Ensure findEffectiveAnchor uses the current mutated observation for this file
+    world.metadataGraph[fileId] = {
+      hasZintlMarker: activeObservation.hasZintlMarker,
+      hasZintlMacro: activeObservation.hasZintlMacro,
+      isEntry:
+        activeObservation.hasZintlMarker ||
+        activeObservation.anchors.some((a: any) => a.isTopLevel),
+      anchorSites: activeObservation.anchors,
+      needsLoader:
+        activeObservation.sinks.length > 0 || activeObservation.manualTranslations.length > 0,
+      exportedBoundaries: activeObservation.exportedBoundaries,
+      internalDependencies: activeObservation.internalDependencies,
+      htmlProjection: activeObservation.htmlProjection,
+    };
+
+    const intents = formIntent(activeObservation, world);
+    const plan = resolve(
+      intents,
+      activeObservation,
+      world.config,
+      this.logger.withPrefix("Pipeline"),
+    );
     const result = apply(code, plan, this.logger.withPrefix("Pipeline"));
     if (this.isDev) {
-      const validation = validate(result, plan, observation, this.logger.withPrefix("Pipeline"));
+      const validation = validate(
+        result,
+        plan,
+        activeObservation,
+        this.logger.withPrefix("Pipeline"),
+      );
       if (!validation.valid) {
         this.logger.error(`Validation failed for ${id}:`, validation.errors);
       }
@@ -1051,7 +1230,11 @@ export class ZintlCompiler {
     );
   }
 
-  private createWorldState(catalogs: Record<string, Record<string, any>> = {}): WorldState {
+  private createWorldState(
+    catalogs: Record<string, Record<string, any>> = {},
+    isDevOverride?: boolean,
+    bakedLocale?: string,
+  ): WorldState {
     return {
       manifest: this.messages.internalManifest as any,
       dependencyGraph: this.messages.dependencyGraph,
@@ -1059,12 +1242,13 @@ export class ZintlCompiler {
       boundaryGraph: this.graph.boundaryGraph!,
       chunkGraph: this.graph.chunkGraph!,
       config: {
-        isDev: this.isDev,
+        isDev: isDevOverride !== undefined ? isDevOverride : this.isDev,
         sourceLocale: this.sourceLocale,
         locales: this.locales,
         root: this.root,
         outputDir: this._outputDir,
         debug: this.debug,
+        bakedLocale,
       },
       catalogs,
       logger: this.logger,
@@ -1109,7 +1293,7 @@ export class ZintlCompiler {
           (s: any) => this.io.getSafeBoundaryId(s.boundaryId) === bId,
         );
         if (anchor) {
-          const world = this.createWorldState();
+          const world = this.createWorldState({}, undefined, loc);
           const { colonies } = getReachableHandshake(anchor.boundaryId, world);
           reachableColonies = colonies;
         }

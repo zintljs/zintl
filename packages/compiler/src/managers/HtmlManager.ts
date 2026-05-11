@@ -28,7 +28,6 @@ export class HtmlManager {
     onHiveChange: () => void,
   ) {
     const isMulti = this.catalog.isMultilingualFormat();
-
     for (const [id, meta] of Object.entries(htmlMetadatas)) {
       if (!meta.htmlProjection) continue;
 

@@ -48,12 +48,54 @@ export function planAnchors(
   const anchorRewritesByLocation = new Map<string, AnchorRewriteIntent>();
 
   for (const anchor of observation.anchors) {
+    if (anchor.locale.type === "literal" && anchor.locale.value === "*") {
+      const isNestedInFunction = !anchor.isTopLevel || anchor.boundaryId.includes(":");
+      if (isNestedInFunction) {
+        throw new Error(
+          `Zintl Sovereign Error: Sovereign anchor 'zintl("*")' is only valid at the root module level. Found nested sovereign anchor inside a function scope in file: ${observation.fileId}`,
+        );
+      }
+
+      const isImportedSubordinate = Object.entries(worldState.dependencyGraph || {}).some(
+        ([parentId, deps]) => {
+          if (parentId === observation.fileId) return false;
+          return deps.some((d) => {
+            let depFileId = d.id;
+            if (!depFileId) return false;
+            if (depFileId.startsWith(".")) {
+              const parentDir = parentId.includes("/")
+                ? parentId.substring(0, parentId.lastIndexOf("/"))
+                : "";
+              depFileId = parentDir
+                ? `${parentDir}/${depFileId.replace(/^\.\//, "")}`
+                : depFileId.replace(/^\.\//, "");
+              while (depFileId.includes("/../")) {
+                depFileId = depFileId.replace(/[^/]+\/\.\.\//, "");
+              }
+            }
+            const resolvedDepId = depFileId.replace(/\.(?:ts|tsx|js|jsx)$/, "").replace(/^\/+/, "");
+            return resolvedDepId === observation.fileId;
+          });
+        },
+      );
+      if (isImportedSubordinate) {
+        throw new Error(
+          `Zintl Sovereign Error: Sovereign anchor 'zintl("*")' is only valid at the root entry point. Found illegal sovereign anchor in subordinate/imported file: ${observation.fileId}`,
+        );
+      }
+    }
+
     const { handshake, colonies } = getReachableHandshake(anchor.boundaryId, worldState);
     const allHandshake = [...handshake, ...colonies];
     const loadersMap = new Map<string, LoaderEntry>();
     const seenManagers = new Set<string>();
 
-    const isBakeMode = !worldState.config.isDev && anchor.locale.type === "literal";
+    const isContextual =
+      anchor.locale.type === "none" ||
+      (anchor.locale.type === "expression" && !anchor.locale.source);
+    const isBakeMode =
+      !worldState.config.isDev &&
+      (anchor.locale.type === "literal" || (isContextual && !!worldState.config.bakedLocale));
 
     for (const bId of allHandshake) {
       const ownerId = resolveKingdom(bId, worldState);
@@ -133,7 +175,10 @@ export function planSinks(observation: FileObservation, worldState: WorldState):
     const messageId = generateMessageId(sink.text);
     const ownerId = resolveKingdom(sink.boundaryId, worldState);
     const anchor = findEffectiveAnchor(sink.boundaryId, worldState, observation, ownerId);
-    const isDynamic = anchor?.locale.type === "expression";
+    const isContextual =
+      anchor?.locale.type === "none" ||
+      (anchor?.locale.type === "expression" && !anchor?.locale.source);
+    const isDynamic = anchor?.locale.type === "expression" && !isContextual;
 
     if (config.isDev || isDynamic || !anchor) {
       intents.push(createWrapIntent(sink, messageId, ownerId, worldState));
@@ -151,7 +196,6 @@ export function planSinks(observation: FileObservation, worldState: WorldState):
     }
 
     let locale = anchor?.locale.type === "literal" ? anchor.locale.value : config.sourceLocale;
-    if (locale === "none") locale = config.sourceLocale;
 
     if (locale === config.sourceLocale) {
       intents.push({ type: "source_locale_passthrough", sink, reason: "source_locale_baking" });
@@ -198,12 +242,14 @@ export function planManualT(
 
     if (!worldState.config.isDev) {
       const anchor = findEffectiveAnchor(manual.boundaryId, worldState, observation, ownerId);
-      const isDynamic = anchor?.locale.type === "expression";
+      const isContextual =
+        anchor?.locale.type === "none" ||
+        (anchor?.locale.type === "expression" && !anchor?.locale.source);
+      const isDynamic = anchor?.locale.type === "expression" && !isContextual;
 
       if (!isDynamic && anchor) {
         let locale =
           anchor.locale.type === "literal" ? anchor.locale.value : worldState.config.sourceLocale;
-        if (locale === "none") locale = worldState.config.sourceLocale;
 
         if (locale === worldState.config.sourceLocale) {
           intents.push({

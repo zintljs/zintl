@@ -41,7 +41,8 @@
  */
 
 import { writeFile, readFile, readdir, stat, mkdir } from "node:fs/promises";
-import { join, dirname, relative } from "node:path";
+import { join, dirname, relative, isAbsolute } from "node:path";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   build as viteBuild,
@@ -153,14 +154,32 @@ export async function createExampleContext(
     metadataDir: join(overlayRoot, "node_modules", ".zintl"),
   });
 
+  // Point the compiler to the temp output dir and disable pruning to ensure isolation
+  if ((projectPlugin as any).__options) {
+    const opt = (projectPlugin as any).__options;
+    opt.prune = false;
+    opt.metadataDir = join(overlayRoot, "node_modules", ".zintl");
+  }
+
+  if ((projectPlugin as any).configResolved) {
+    await (projectPlugin as any).configResolved({
+      root: exampleRoot,
+      command: configEnv.command,
+    });
+  }
+
   const tempOutputDir = join(overlayRoot, ".tmp", "locales");
   await mkdir(tempOutputDir, { recursive: true });
 
-  const realOutputDir = (projectPlugin as any).__compiler?.outputDir ?? "src/locales";
-  const realLocalesPath = join(exampleRoot, realOutputDir);
+  const compiler = (projectPlugin as any).__compiler;
+  const realOutputDir = compiler?.outputDir ?? "src/locales";
+  const realLocalesPath = isAbsolute(realOutputDir)
+    ? realOutputDir
+    : join(exampleRoot, realOutputDir);
 
   const copyDir = async (src: string, dest: string) => {
     try {
+      if (!existsSync(src)) return;
       const entries = await readdir(src, { withFileTypes: true });
       await mkdir(dest, { recursive: true });
       for (const entry of entries) {
@@ -172,8 +191,8 @@ export async function createExampleContext(
           await writeFile(destPath, await readFile(srcPath));
         }
       }
-    } catch {
-      // Might not exist, that's fine
+    } catch (e) {
+      console.warn(`[Harness] Failed to copy ${src} to ${dest}:`, e);
     }
   };
   await copyDir(realLocalesPath, tempOutputDir);
@@ -182,19 +201,9 @@ export async function createExampleContext(
   const tempMetadataPath = join(overlayRoot, "node_modules", ".zintl");
   await copyDir(realMetadataPath, tempMetadataPath);
 
-  // Point the compiler to the temp output dir and disable pruning to ensure isolation
-  if ((projectPlugin as any).__options) {
-    const opt = (projectPlugin as any).__options;
-    opt.outputDir = relative(exampleRoot, tempOutputDir);
-    opt.prune = false;
-    opt.metadataDir = join(overlayRoot, "node_modules", ".zintl");
-  }
-
-  if ((projectPlugin as any).configResolved) {
-    await (projectPlugin as any).configResolved({
-      root: exampleRoot,
-      command: configEnv.command,
-    });
+  // Redirect the compiler to the temp output dir
+  if (compiler) {
+    compiler.outputDir = relative(exampleRoot, tempOutputDir);
   }
 
   // -------------------------------------------------------------------------

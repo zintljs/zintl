@@ -122,7 +122,7 @@ function adaptExtractionResult(
       }),
       scope: "module",
       boundaryId: fileId,
-      locale: { type: "literal", value: "none" },
+      locale: { type: "none" },
       isTopLevel: true,
       originalName: "implicit-anchor",
     });
@@ -177,6 +177,7 @@ function parseAnchorLocale(site: AnchorSite): AnchorLocale {
   if (site.argType === "literal") {
     return { type: "literal", value: site.originalArgs.replace(/['"]/g, "") };
   }
+  if (!site.originalArgs) return { type: "none" };
   return { type: "expression", source: site.originalArgs };
 }
 

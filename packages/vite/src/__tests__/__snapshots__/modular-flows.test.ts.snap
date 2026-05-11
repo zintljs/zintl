@@ -9,14 +9,19 @@ import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57
   "src/other.ts": "import { loadI18nInstance } from "zintl/internal";
 import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15249a44";
 import _zintl_mgr_b_e0ddd38cb83c from "virtual:zintl/manager/none/entry:b_e0ddd38cb83c";
- loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_e0ddd38cb83c"]: _zintl_mgr_b_e0ddd38cb83c.loader, ["b_e30d15249a44"]: _zintl_mgr_b_e30d15249a44.loader } }); import "./shared";",
-  "src/shared.ts": "document.body.innerHTML = "Welcome";",
+import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
+ loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader, ["b_e0ddd38cb83c"]: _zintl_mgr_b_e0ddd38cb83c.loader, ["b_e30d15249a44"]: _zintl_mgr_b_e30d15249a44.loader } }); import "./shared";",
+  "src/shared.ts": "import { loadI18nInstance } from "zintl/internal";
+import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15249a44";
+import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
+ document.body.innerHTML = "Welcome";",
 }
 `;
 
 exports[`Flow: Modular SPA > should isolate dynamic dependencies into independent lazy chunks 1`] = `
 {
   "src/lazy.ts": "import { _t, loadI18nInstance } from "zintl/internal";
+import _zintl_mgr_b_src_main from "virtual:zintl/manager/en/entry:b_src_main";
 import _zintl_mgr_b_src_lazy from "virtual:zintl/manager/none/entry:b_src_lazy";
  document.body.innerHTML = _t("Sub Page", { _mgr: _zintl_mgr_b_src_lazy, _bId: "b_src_lazy" });",
   "src/main.ts": "import { loadI18nInstance } from "zintl/internal";

@@ -14,7 +14,7 @@
  *
  * @zintl-macro
  */
-export async function zintl(_locale: string): Promise<any> {
+export async function zintl(_locale?: string): Promise<any> {
   // LOGIC-FREE: This is a marker for the compiler.
   // In a non-transformed environment, this is a no-op.
   return Promise.resolve();

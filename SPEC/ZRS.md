@@ -60,8 +60,23 @@ await zintl();
 - **Semantics**: The boundary inherits the locale from the runtime environment (parent Kingdom or global state). It maintains its own **storage isolation** (independent catalog chunk) but does not dictate locale.
 - **Manager**: Equivalent to $A_{dynamic}$ — a full lazy lookup table.
 
+### §2.4 — $A_{sovereign}$ (Sovereign Tier)
+
+```js
+// At the application root / entry module:
+await zintl("*");
+```
+
+- **Build-time determinism**: Compiler-Governed.
+- **Semantics**: When `zintl("*")` is located at the root module of a Portal-linked entry, it asserts full Sovereign control. It instructs Zintl to take over routing, entry partitioning, and the hydration topology.
+- **Baking**: Operates with the exact same 0ms runtime overhead as `$A_{static}$`, fanning out static-baked standalone outputs for each locale natively via the compiler's transform pipeline based on the multiplex context.
+- **Rules of Precedence**:
+  - **Rule 1**: Sovereign only valid at root kingdom (Root Entry). Nested/subordinate sovereign anchors are illegal and emit a compile-time error.
+  - **Rule 2**: MPA sovereignty is per-entry. Individual inputs choose authority models independently.
+  - **Rule 3**: Sovereignty dominates contextual descendants. Descendant contextual `zintl()` calls collapse into compile-time static localized boundaries relative to the sovereign branch's targeted locale.
+
 > [!IMPORTANT]
-> **Tier classification is performed in `observe.ts`** via `parseAnchorLocale()`. A `literal` argType produces $A_{static}$. An `expression` argType produces $A_{dynamic}$. An empty argument list produces $A_{contextual}$. This classification flows through `intent.ts` → `resolve.ts` unchanged.
+> **Tier classification is performed in `observe.ts`** via `parseAnchorLocale()`. A `literal` argType produces $A_{static}$ (or $A_{sovereign}$ if the literal value is `"*"`). An `expression` argType produces $A_{dynamic}$. An empty argument list produces $A_{contextual}$ representing compositional subtree inheritance. This classification flows through `intent.ts` → `resolve.ts` unchanged.
 
 ---
 
@@ -214,12 +229,15 @@ function resolvePattern(fileId: string, graph: BoundaryGraph): Pattern {
   return pattern;
 }
 
-function resolveAnchorTier(anchor: ObservedAnchor): AnchorTier {
+function resolveAnchorTier(anchor: ObservedAnchor, isRootEntry: boolean): AnchorTier {
   if (anchor.locale.type === "literal" && anchor.locale.value !== "none") {
     return "BAKED"; // §2.1 — $A_static
   }
   if (anchor.locale.type === "expression") {
     return "GOVERNANCE"; // §2.2 — $A_dynamic
+  }
+  if (isRootEntry) {
+    return "MULTIPLEX"; // §2.4 — $A_multiplex
   }
   return "INHERITANCE"; // §2.3 — $A_contextual
 }

@@ -13,6 +13,17 @@ export class I18nStore {
   pendingBoundaries = new Set<string>();
   private listeners = new Set<() => void>();
 
+  constructor() {
+    if (typeof document !== "undefined" && document.documentElement) {
+      this.locale = document.documentElement.lang || "";
+    }
+    if (!this.locale && typeof window !== "undefined") {
+      try {
+        this.locale = localStorage.getItem("zintl-locale") || "";
+      } catch {}
+    }
+  }
+
   subscribe(listener: () => void) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);

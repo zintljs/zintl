@@ -7,7 +7,8 @@ import type { SourceLocation, ImportSpecifier } from "./ast.js";
  */
 export type AnchorLocale =
   | { type: "literal"; value: string }
-  | { type: "expression"; source: string };
+  | { type: "expression"; source: string }
+  | { type: "none" };
 
 /**
  * The complete, immutable observation of a single source file.

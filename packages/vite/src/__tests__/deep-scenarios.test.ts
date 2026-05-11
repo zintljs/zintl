@@ -53,9 +53,9 @@ describe("Scenario: Deep Meditations", () => {
     const { matchers } = ctx;
 
     // Transitive consolidation check: heavy should be served by the entry it reaches
-    // If it fails to consolidate deep, it uses its own manager.
-    const heavyBId = "b_a4433d7168fd";
-    matchers.toRegisterManager(results["src/heavy.ts"], heavyBId, { locale: "none" });
+    // In ZRS, colonies share the manager of their Kingdom (the entry point)
+    const mainBId = "src/main";
+    matchers.toRegisterManager(results["src/heavy.ts"], mainBId, { locale: "none" });
 
     expect(results).toMatchSnapshot();
   });

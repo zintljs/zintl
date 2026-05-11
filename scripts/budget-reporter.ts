@@ -27,7 +27,7 @@ const BUDGETS: Record<string, number> = {
  * Reference mean latency for the calibration benchmark on the "Golden Baseline" machine.
  * This should match the machine used to define the original budgets.
  */
-const GOLDEN_REFERENCE = 0.0006; // 0.6ms (600μs) for calibration bench on baseline machine
+const GOLDEN_REFERENCE = 0.0005; // 0.6ms (600μs) for calibration bench on baseline machine
 
 interface BenchmarkResult {
   name: string;

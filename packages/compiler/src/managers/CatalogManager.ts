@@ -979,6 +979,13 @@ export class CatalogManager {
     graphManager?: any,
   ) {
     if (!this.prune) return;
+    if (
+      this.isDev &&
+      !process.env.VITEST &&
+      !process.env.VITEST_WORKER_ID &&
+      process.env.NODE_ENV !== "test"
+    )
+      return; // Skip pruning in dev mode in real environments
 
     // Optimization: Skip if the graph hasn't changed since last prune
     const manifestHash = Array.from(graph.nodes.keys())

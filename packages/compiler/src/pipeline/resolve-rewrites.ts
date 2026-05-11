@@ -169,7 +169,7 @@ function generateAnchorRewrite(intent: AnchorRewriteIntent, config: ZintlConfig)
   let localePart = "";
 
   if (intent.locale) {
-    if (intent.locale.type === "literal" && intent.locale.value !== "none") {
+    if (intent.locale.type === "literal") {
       localePart = `locale: "${intent.locale.value}", `;
     } else if (intent.locale.type === "expression" && intent.locale.source) {
       const src = intent.locale.source.trim();
@@ -231,7 +231,7 @@ function generateManualTRewrite(intent: ManualTRewriteIntent): ResolvedRewrite {
 }
 
 function generateBakeRewrite(intent: BakingIntent): ResolvedRewrite {
-  let baked = bakeTranslation(intent.translation, intent.variables || []);
+  let baked = bakeTranslation(intent.translation, intent.variables || [], intent.sink.isFragment);
   if (
     !intent.sink.isFragment &&
     (intent.sink.sinkType === "TemplateLiteral" || intent.sink.sinkType === "HTML") &&
@@ -252,6 +252,7 @@ function generateBakeRewrite(intent: BakingIntent): ResolvedRewrite {
 function bakeTranslation(
   translation: string | Record<string, string>,
   variables: VariableBinding[],
+  isFragment: boolean = false,
 ): string {
   if (typeof translation === "string") {
     if (translation.includes("{")) {
@@ -263,11 +264,13 @@ function bakeTranslation(
         if (v.name) varMap.set(v.name, replacementStr);
         if (expr) varMap.set(expr, replacementStr);
       }
-      return (
-        "`" + translation.replace(/\{([^}]+)\}/g, (match, key) => varMap.get(key) || match) + "`"
+      const replaced = translation.replace(
+        /\{([^}]+)\}/g,
+        (match, key) => varMap.get(key) || match,
       );
+      return isFragment ? replaced : "`" + replaced + "`";
     }
-    return JSON.stringify(translation);
+    return isFragment ? translation : JSON.stringify(translation);
   }
   return typeof translation === "object"
     ? buildTernary(Object.entries(translation), variables, 0)

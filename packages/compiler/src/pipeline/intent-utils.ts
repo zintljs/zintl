@@ -37,6 +37,13 @@ export function resolveOwner(
   const owner = chunkGraph.boundaryToOwner.get(normId);
   if (owner) return owner;
 
+  // Fallback for function-scoped boundaries: use the file-level owner
+  if (normId.includes(":")) {
+    const fileId = normId.split(":")[0];
+    const fileOwner = chunkGraph.boundaryToOwner.get(fileId);
+    if (fileOwner) return fileOwner;
+  }
+
   let currentId = normId;
   while (currentId.includes(":")) {
     currentId = currentId.substring(0, currentId.lastIndexOf(":"));
@@ -82,12 +89,18 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   }
 
   // 2. Trace back through dynamic/static imports
-  const anchor = findEffectiveAnchor(boundaryId, worldState, {
-    fileId: normId.split(":")[0],
-    anchors: metadataGraph[normId.split(":")[0]]?.anchorSites || [],
-    sinks: [],
-    manualTranslations: [],
-  } as any);
+  const anchor = findEffectiveAnchor(
+    boundaryId,
+    worldState,
+    {
+      fileId: normId.split(":")[0],
+      anchors: metadataGraph[normId.split(":")[0]]?.anchorSites || [],
+      sinks: [],
+      manualTranslations: [],
+    } as any,
+    undefined,
+    new Set(),
+  );
 
   if (anchor) {
     return anchor.boundaryId.replace(/\.[^/.]+$/, "");
@@ -112,8 +125,13 @@ export function findEffectiveAnchor(
   worldState: WorldState,
   observation: FileObservation,
   providedOwnerId?: string,
+  seen: Set<string> = new Set(),
 ): ObservedAnchor | undefined {
   const { config } = worldState;
+
+  if (seen.has(boundaryId)) return undefined;
+  seen.add(boundaryId);
+
   const relativeId = boundaryId.startsWith(config.root)
     ? boundaryId.substring(config.root.length).replace(/^\/+/, "")
     : boundaryId;
@@ -123,9 +141,21 @@ export function findEffectiveAnchor(
   while (true) {
     const local = observation.anchors.find((a) => {
       const aId = a.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
-      return aId === currentId || aId.startsWith(currentId + ":");
+      return aId === currentId;
     });
-    if (local) return local;
+    if (local) {
+      if (
+        config.bakedLocale &&
+        (local.locale.type === "none" ||
+          (local.locale.type === "expression" && !local.locale.source))
+      ) {
+        return {
+          ...local,
+          locale: { type: "literal", value: config.bakedLocale },
+        };
+      }
+      return local;
+    }
     if (!currentId.includes(":")) break;
     currentId = currentId.substring(0, currentId.lastIndexOf(":"));
   }
@@ -147,8 +177,8 @@ export function findEffectiveAnchor(
       const sHash = calculateSafeBoundaryId(sIdRel, root, isDev);
 
       return (
-        siteHash === targetHash ||
         siteOwnerId === ownerId ||
+        siteHash === targetHash ||
         sHash === ownerId ||
         sIdRel === ownerId ||
         sId === ownerId ||
@@ -157,22 +187,42 @@ export function findEffectiveAnchor(
     });
 
     if (site) {
+      let locale = site.locale;
+      if (
+        config.bakedLocale &&
+        (locale.type === "none" || (locale.type === "expression" && !locale.source))
+      ) {
+        locale = { type: "literal", value: config.bakedLocale };
+      }
       return {
         location: site.location,
         scope: site.scope,
         boundaryId: site.boundaryId,
-        locale: site.locale,
+        locale,
         isTopLevel: site.isTopLevel,
         originalName: site.originalName,
       };
     }
   }
 
-  // Trace back through dynamic imports if still not found
+  // Fallback: If the owner itself is an entry point, check its metadata directly
+  const ownerMeta = worldState.metadataGraph[ownerId.split(":")[0]];
+  if (ownerMeta?.isEntry && ownerMeta.anchorSites?.length > 0) {
+    const site = ownerMeta.anchorSites[0];
+    let locale = site.locale;
+    if (
+      config.bakedLocale &&
+      (locale.type === "none" || (locale.type === "expression" && !locale.source))
+    ) {
+      locale = { type: "literal", value: config.bakedLocale };
+    }
+    return { ...site, locale };
+  }
+
+  // Trace back through imports if still not found
   for (const [parentId, deps] of Object.entries(worldState.dependencyGraph)) {
     if (
       deps.some((d) => {
-        if (!d.dynamic) return false;
         const depOwner = resolveOwner(d.id, worldState, parentId);
         return depOwner === ownerId || depOwner.split(":")[0] === ownerId.split(":")[0];
       })
@@ -181,12 +231,18 @@ export function findEffectiveAnchor(
       if (parentObservation) {
         // Recursively find the anchor for the parent
         // Use a simple observation mock since we only care about the metadata graph part
-        const parentAnchor = findEffectiveAnchor(parentId, worldState, {
-          fileId: parentId,
-          anchors: parentObservation.anchorSites || [],
-          sinks: [],
-          manualTranslations: [],
-        } as any);
+        const parentAnchor = findEffectiveAnchor(
+          parentId,
+          worldState,
+          {
+            fileId: parentId,
+            anchors: parentObservation.anchorSites || [],
+            sinks: [],
+            manualTranslations: [],
+          } as any,
+          undefined,
+          seen,
+        );
         if (parentAnchor) return parentAnchor;
       }
     }
