@@ -438,8 +438,8 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
     } };"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/About-i8ZVldu0.js 1`] = `
-"import { n as _t, t as lazy_b_9152c1db0645_default } from "./index-DQNfP_Fo.js";
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/About.js 1`] = `
+"import { n as _t, t as lazy_b_9152c1db0645_default } from "./index.js";
 //#region examples/vanilla-spa/src/pages/About.ts
 function About() {
 	const container = document.createElement("div");
@@ -487,7 +487,7 @@ export { About };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f-CeXLRkw6.js 1`] = `
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_26f6a2043b0f
 var entry_b_26f6a2043b0f_default = {
 	"b_e7c8b4f1ad96": {
@@ -520,7 +520,7 @@ export { entry_b_26f6a2043b0f_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f-DAAwlCRU.js 1`] = `
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f2.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_26f6a2043b0f
 var entry_b_26f6a2043b0f_default = {
 	"b_e7c8b4f1ad96": {
@@ -553,7 +553,7 @@ export { entry_b_26f6a2043b0f_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/index-DQNfP_Fo.js 1`] = `
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/index.js 1`] = `
 "//#region \\0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -825,8 +825,8 @@ var lazy_b_9152c1db0645_default = {
 	loader: (locale) => {
 		switch (locale) {
 			case "en": return {};
-			case "ar": return __vitePreload(() => import("./lazy_b_9152c1db0645-9u3xKiSx.js").then((m) => m.default), []);
-			case "es": return __vitePreload(() => import("./lazy_b_9152c1db0645-Dcy-zQ_Y.js").then((m) => m.default), []);
+			case "ar": return __vitePreload(() => import("./lazy_b_9152c1db0645.js").then((m) => m.default), []);
+			case "es": return __vitePreload(() => import("./lazy_b_9152c1db06452.js").then((m) => m.default), []);
 			default: return {};
 		}
 	}
@@ -863,8 +863,8 @@ var entry_b_26f6a2043b0f_default = {
 					"c8ba9e8e": "We believe that the compiler should be your best friend. By analyzing your source code, \\n          Zintl can automate the extraction, stitching, and optimization of your translations, \\n          leaving you free to focus on building amazing user experiences."
 				}
 			};
-			case "ar": return __vitePreload(() => import("./entry_b_26f6a2043b0f-CeXLRkw6.js").then((m) => m.default), []);
-			case "es": return __vitePreload(() => import("./entry_b_26f6a2043b0f-DAAwlCRU.js").then((m) => m.default), []);
+			case "ar": return __vitePreload(() => import("./entry_b_26f6a2043b0f.js").then((m) => m.default), []);
+			case "es": return __vitePreload(() => import("./entry_b_26f6a2043b0f2.js").then((m) => m.default), []);
 			default: return {};
 		}
 	}
@@ -1053,7 +1053,7 @@ async function initApp() {
 	router.addRoute("/", () => Home());
 	router.addRoute("/about", async () => {
 		const { About } = await __vitePreload(async () => {
-			const { About } = await import("./About-i8ZVldu0.js");
+			const { About } = await import("./About.js");
 			return { About };
 		}, []);
 		return About();
@@ -1080,7 +1080,7 @@ export { _t as n, lazy_b_9152c1db0645_default as t };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/lazy_b_9152c1db0645-9u3xKiSx.js 1`] = `
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/lazy_b_9152c1db0645.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/lazy:b_9152c1db0645
 var lazy_b_9152c1db0645_default = {};
 //#endregion
@@ -1088,7 +1088,7 @@ export { lazy_b_9152c1db0645_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/lazy_b_9152c1db0645-Dcy-zQ_Y.js 1`] = `
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/lazy_b_9152c1db06452.js 1`] = `
 "//#region \\0virtual:zintl/content/es/lazy:b_9152c1db0645
 var lazy_b_9152c1db0645_default = {};
 //#endregion
@@ -1110,7 +1110,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
       rel="stylesheet"
     />
     <title>Zintl | Vanilla SPA Example</title>
-    <script type="module" crossorigin src="/assets/index-DQNfP_Fo.js"></script>
+    <script type="module" crossorigin src="/assets/index.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-C6gV1h4h.css">
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
@@ -1123,7 +1123,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
         const originals = {
           title: document.title,
         };
-        const preloads = {"ar":["assets/entry_b_26f6a2043b0f-CeXLRkw6.js","assets/lazy_b_9152c1db0645-9u3xKiSx.js"],"es":["assets/entry_b_26f6a2043b0f-DAAwlCRU.js","assets/lazy_b_9152c1db0645-Dcy-zQ_Y.js"]};
+        const preloads = {"ar":["assets/entry_b_26f6a2043b0f.js","assets/lazy_b_9152c1db0645.js"],"es":["assets/entry_b_26f6a2043b0f2.js","assets/lazy_b_9152c1db06452.js"]};
         function preload(locale) {
           const urls = preloads[locale] || [];
           for (const url of urls) {

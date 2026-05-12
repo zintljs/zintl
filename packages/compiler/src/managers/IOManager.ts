@@ -151,7 +151,8 @@ export class IOManager {
 
   public async readFile(path: string): Promise<string> {
     this.logger.debug(`Reading file: ${relative(this.root, path)}`);
-    return readFile(path, "utf-8");
+    const content = await readFile(path, "utf-8");
+    return content.replace(/\r\n/g, "\n");
   }
 
   public async readDir(path: string): Promise<string[]> {

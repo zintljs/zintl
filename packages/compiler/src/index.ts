@@ -760,6 +760,7 @@ export class ZintlCompiler {
     multiplexLocale?: string,
   ): Promise<{ code: string; map: any } | undefined> {
     if (id.includes("node_modules") || id.startsWith("\0")) return;
+    code = code.replace(/\r\n/g, "\n");
     if (code.includes('id="zintl-multiplex-redirect"')) return;
     const multiplexMatch = id.match(/[?&]zintl-multiplex=([^&]+)/);
     const effectiveMultiplexLocale =
@@ -795,8 +796,15 @@ export class ZintlCompiler {
     if (fileId === "index.html") {
       const physicalPath = join(this.root, "index.html");
       if (existsSync(physicalPath)) {
-        codeToUse = readFileSync(physicalPath, "utf-8");
+        codeToUse = readFileSync(physicalPath, "utf-8").replace(/\r\n/g, "\n");
         effectiveCleanId = physicalPath;
+      }
+    } else if (effectiveMultiplexLocale !== undefined || id.includes("?")) {
+      const physicalPath = isAbsolute(cleanId) ? cleanId : join(this.root, cleanId);
+      if (existsSync(physicalPath)) {
+        codeToUse = readFileSync(physicalPath, "utf-8").replace(/\r\n/g, "\n");
+        effectiveCleanId = physicalPath;
+        code = codeToUse;
       }
     }
 
@@ -805,7 +813,10 @@ export class ZintlCompiler {
 
     let observation = this.observationCache[effectiveCleanId];
 
-    if (oldHash !== fileHash || !observation) {
+    const shouldObserve =
+      !observation || (effectiveMultiplexLocale === undefined && oldHash !== fileHash);
+
+    if (shouldObserve) {
       this.graphDirty = true;
       this.hashCache[effectiveCleanId] = fileHash;
 

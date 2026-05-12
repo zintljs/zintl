@@ -109,8 +109,16 @@ export function buildTestOverrides(
     return { ...BASE_TEST_OVERRIDES, ...LIB_OUTPUT_OVERRIDES };
   }
 
-  // App mode (index.html entry) — only apply the safe subset
-  return { ...BASE_TEST_OVERRIDES };
+  // App mode (index.html entry) — lock down JS output filenames nested under assets/ to prevent hash drifts in snapshots without affecting assets/HTML fanning
+  return {
+    ...BASE_TEST_OVERRIDES,
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/[name].js",
+        chunkFileNames: "assets/[name].js",
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

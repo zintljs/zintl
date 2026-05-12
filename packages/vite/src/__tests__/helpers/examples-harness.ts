@@ -144,35 +144,13 @@ export async function createExampleContext(
 
   const examplePlugins = rawPlugins.filter((p: any) => p && p.name !== "zintl") as any[];
 
-  // -------------------------------------------------------------------------
-  // Project plugin — drives transform() and project().
-  // Isolated from the build plugin so the two never share compiler state.
-  // -------------------------------------------------------------------------
-  const projectPlugin = zintl({
-    ...exampleOptions,
-    prune: false, // Prevent deleting example files
-    metadataDir: join(overlayRoot, "node_modules", ".zintl"),
-  });
-
-  // Point the compiler to the temp output dir and disable pruning to ensure isolation
-  if ((projectPlugin as any).__options) {
-    const opt = (projectPlugin as any).__options;
-    opt.prune = false;
-    opt.metadataDir = join(overlayRoot, "node_modules", ".zintl");
-  }
-
-  if ((projectPlugin as any).configResolved) {
-    await (projectPlugin as any).configResolved({
-      root: exampleRoot,
-      command: configEnv.command,
-    });
-  }
-
   const tempOutputDir = join(overlayRoot, ".tmp", "locales");
   await mkdir(tempOutputDir, { recursive: true });
 
-  const compiler = (projectPlugin as any).__compiler;
-  const realOutputDir = compiler?.outputDir ?? "src/locales";
+  const tempMetadataPath = join(overlayRoot, "node_modules", ".zintl");
+  await mkdir(tempMetadataPath, { recursive: true });
+
+  const realOutputDir = exampleOptions.outputDir ?? "src/locales";
   const realLocalesPath = isAbsolute(realOutputDir)
     ? realOutputDir
     : join(exampleRoot, realOutputDir);
@@ -195,15 +173,28 @@ export async function createExampleContext(
       console.warn(`[Harness] Failed to copy ${src} to ${dest}:`, e);
     }
   };
+
   await copyDir(realLocalesPath, tempOutputDir);
 
   const realMetadataPath = join(exampleRoot, "node_modules", ".zintl");
-  const tempMetadataPath = join(overlayRoot, "node_modules", ".zintl");
   await copyDir(realMetadataPath, tempMetadataPath);
 
-  // Redirect the compiler to the temp output dir
-  if (compiler) {
-    compiler.outputDir = relative(exampleRoot, tempOutputDir);
+  // -------------------------------------------------------------------------
+  // Project plugin — drives transform() and project().
+  // Isolated from the build plugin so the two never share compiler state.
+  // -------------------------------------------------------------------------
+  const projectPlugin = zintl({
+    ...exampleOptions,
+    prune: false, // Prevent deleting example files
+    metadataDir: tempMetadataPath,
+    outputDir: relative(exampleRoot, tempOutputDir),
+  });
+
+  if ((projectPlugin as any).configResolved) {
+    await (projectPlugin as any).configResolved({
+      root: exampleRoot,
+      command: configEnv.command,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -303,6 +294,10 @@ export async function createExampleContext(
       }
     }
 
+    if (projectPlugin.buildStart) {
+      await (projectPlugin.buildStart as any)();
+    }
+
     const targetFiles = files ?? (await readExampleFiles());
     const absPaths: Record<string, string> = {};
     for (const path of Object.keys(targetFiles)) {
@@ -315,8 +310,8 @@ export async function createExampleContext(
     }
 
     // Flush catalogs so baking keys are available in the final pass
-    if ((projectPlugin as any).__compiler) {
-      await (projectPlugin as any).__compiler.flush();
+    if (projectPlugin.buildEnd) {
+      await (projectPlugin.buildEnd as any)();
     }
 
     // Final transform — injects baked or identity keys depending on mode
@@ -447,13 +442,7 @@ async function _runBuild(
   // Override Zintl output directory and disable pruning for the build instance too
   const zintlPlugin = findZintlPlugin(config);
   if (zintlPlugin && tempOutputDir) {
-    if ((zintlPlugin as any).__compiler) {
-      const compiler = (zintlPlugin as any).__compiler;
-      compiler.outputDir = relative(root, tempOutputDir);
-      compiler.prune = false;
-      compiler.metadataDir = join(dirname(tempOutputDir), "node_modules", ".zintl");
-    }
-    // Also update the options so if configResolved is called again (by Vite), it uses the new paths
+    // Update the options so when configResolved is called by Vite, it uses the correct paths
     if ((zintlPlugin as any).__options) {
       const opt = (zintlPlugin as any).__options;
       opt.outputDir = relative(root, tempOutputDir);

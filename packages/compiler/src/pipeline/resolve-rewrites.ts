@@ -70,7 +70,9 @@ export function resolveRewrites(
         let finalReplacement = replacement;
         if (!intent.sink.isFragment) {
           finalReplacement =
-            intent.sink.sinkType === "TemplateLiteral" || intent.sink.sinkType === "HTML"
+            intent.sink.sinkType === "TemplateLiteral" ||
+            intent.sink.sinkType === "HTML" ||
+            (intent.sink.variables && intent.sink.variables.length > 0)
               ? "`" + replacement + "`"
               : JSON.stringify(replacement);
         }

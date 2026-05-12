@@ -288,7 +288,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
     } };"
 `;
 
-exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f74-7Tm-N5f6.js 1`] = `
+exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f74.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_ae1e7cbb2f74
 var entry_b_ae1e7cbb2f74_default = {
 	"b_ae1e7cbb2f74": {
@@ -312,31 +312,7 @@ export { entry_b_ae1e7cbb2f74_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f74-BJxz-AbQ.js 1`] = `
-"//#region \\0virtual:zintl/content/zh/entry:b_ae1e7cbb2f74
-var entry_b_ae1e7cbb2f74_default = {
-	"b_ae1e7cbb2f74": {
-		"90e40d50": "开始使用",
-		"5301648d": "编辑",
-		"f7a53867": "并保存以测试",
-		"9e9cf322": "文档",
-		"d0f7666b": "你的问题，已有答案",
-		"e49cb0ee": "探索 Vite",
-		"824d76b1": "了解更多",
-		"65ac13a7": "联系我们",
-		"15545bc4": "加入 Vite 社区"
-	},
-	"b_f05b8e5701f3": { "3aaf6932": (params) => {
-		const { counter } = params;
-		return \`计数为 \${params["counter"]}\`;
-	} }
-};
-//#endregion
-export { entry_b_ae1e7cbb2f74_default as default };
-"
-`;
-
-exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f74-DA0Ic4CM.js 1`] = `
+exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f742.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_ae1e7cbb2f74
 var entry_b_ae1e7cbb2f74_default = {
 	"b_ae1e7cbb2f74": {
@@ -360,7 +336,31 @@ export { entry_b_ae1e7cbb2f74_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/index-DIEDaxqC.js 1`] = `
+exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f743.js 1`] = `
+"//#region \\0virtual:zintl/content/zh/entry:b_ae1e7cbb2f74
+var entry_b_ae1e7cbb2f74_default = {
+	"b_ae1e7cbb2f74": {
+		"90e40d50": "开始使用",
+		"5301648d": "编辑",
+		"f7a53867": "并保存以测试",
+		"9e9cf322": "文档",
+		"d0f7666b": "你的问题，已有答案",
+		"e49cb0ee": "探索 Vite",
+		"824d76b1": "了解更多",
+		"65ac13a7": "联系我们",
+		"15545bc4": "加入 Vite 社区"
+	},
+	"b_f05b8e5701f3": { "3aaf6932": (params) => {
+		const { counter } = params;
+		return \`计数为 \${params["counter"]}\`;
+	} }
+};
+//#endregion
+export { entry_b_ae1e7cbb2f74_default as default };
+"
+`;
+
+exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/index.js 1`] = `
 "//#region \\0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -648,9 +648,9 @@ var entry_b_ae1e7cbb2f74_default = {
 					return \`Count is \${params["counter"]}\`;
 				} }
 			};
-			case "ar": return __vitePreload(() => import("./entry_b_ae1e7cbb2f74-7Tm-N5f6.js").then((m) => m.default), []);
-			case "es": return __vitePreload(() => import("./entry_b_ae1e7cbb2f74-DA0Ic4CM.js").then((m) => m.default), []);
-			case "zh": return __vitePreload(() => import("./entry_b_ae1e7cbb2f74-BJxz-AbQ.js").then((m) => m.default), []);
+			case "ar": return __vitePreload(() => import("./entry_b_ae1e7cbb2f74.js").then((m) => m.default), []);
+			case "es": return __vitePreload(() => import("./entry_b_ae1e7cbb2f742.js").then((m) => m.default), []);
+			case "zh": return __vitePreload(() => import("./entry_b_ae1e7cbb2f743.js").then((m) => m.default), []);
 			default: return {};
 		}
 	}
@@ -836,7 +836,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vanilla TS - Zintl SPA Example</title>
-    <script type="module" crossorigin src="/assets/index-DIEDaxqC.js"></script>
+    <script type="module" crossorigin src="/assets/index.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
@@ -848,7 +848,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
         const originals = {
           title: document.title,
         };
-        const preloads = {"ar":["assets/entry_b_ae1e7cbb2f74-7Tm-N5f6.js"],"zh":["assets/entry_b_ae1e7cbb2f74-BJxz-AbQ.js"],"es":["assets/entry_b_ae1e7cbb2f74-DA0Ic4CM.js"]};
+        const preloads = {"ar":["assets/entry_b_ae1e7cbb2f74.js"],"es":["assets/entry_b_ae1e7cbb2f742.js"],"zh":["assets/entry_b_ae1e7cbb2f743.js"]};
         function preload(locale) {
           const urls = preloads[locale] || [];
           for (const url of urls) {

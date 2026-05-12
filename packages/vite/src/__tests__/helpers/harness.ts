@@ -89,6 +89,10 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
       paths[path] = await setupFile(path, content);
     }
 
+    if (plugin.buildStart) {
+      await (plugin.buildStart as any)();
+    }
+
     // 2. Warmup — extraction pass
     for (const [path, content] of Object.entries(files)) {
       if (plugin.transform) {
@@ -97,8 +101,8 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
     }
 
     // 3. Flush catalogs for baking
-    if ((plugin as any).__compiler) {
-      await (plugin as any).__compiler.flush();
+    if (plugin.buildEnd) {
+      await (plugin.buildEnd as any)();
     }
 
     // 4. Final transform for assertions
