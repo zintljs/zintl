@@ -4,8 +4,8 @@ packages:
   - tools/*
 
 catalog:
-  "@formatjs/icu-messageformat-parser": ^3.5.6
-  "@types/node": ^24.12.2
+  "@formatjs/icu-messageformat-parser": ^3.5.9
+  "@types/node": ^24.12.4
   "@vitest/coverage-v8": "4.1.5"
   "@vitest/ui": "4.1.5"
   typescript: ^6.0.3
@@ -13,7 +13,7 @@ catalog:
   vite-plus: latest
   vitest: npm:@voidzero-dev/vite-plus-test@latest
   magic-string: ^0.30.21
-  knip: ^6.11.0
+  knip: ^6.14.1
   "@oxc-project/types": "=0.122.0"
   "oxc-parser": "=0.121.0"
 
