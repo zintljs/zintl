@@ -87,6 +87,7 @@ export class CatalogManager {
     const isMulti = this.isMultilingualFormat();
 
     for (const bId of boundaryIds) {
+      if (bId === "b_assets") continue;
       if (isMulti) {
         const path = this.getCatalogPath(bId, locales[0]);
         if (path) {
@@ -121,6 +122,7 @@ export class CatalogManager {
   ): Set<string> {
     const bIds = new Set<string>();
     for (const bId of Object.keys(internalManifest)) {
+      if (bId === "b_assets") continue;
       if (this.getCatalogPath(bId, locale) === path) {
         bIds.add(bId);
       }

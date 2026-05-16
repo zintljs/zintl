@@ -1,9 +1,5 @@
 {
   "$schema": ".schemas/i18n.shared.schema.json",
-  "@zintl/asset:src/about.txt": {
-    "ar": "هذه صفحة رائعة مكتوبة بصيغة نصية ويتم تحميلها ديناميكياً.\nشكراً لاستخدام Zintl",
-    "es": "Esta es una página de información increíble cargada dinámicamente.\n¡Gracias por usar Zintl"
-  },
   "Compiler-driven internationalization for the modern web.": {
     "ar": "التدويل الموجه بالمعالجة للويب الحديث.",
     "es": "La internacionalización impulsada por el compilador para la web moderna."
