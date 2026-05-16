@@ -1,10 +1,12 @@
 import { join, dirname, relative, basename, isAbsolute } from "node:path";
+import { existsSync } from "node:fs";
 import { type ReconcileResult } from "../reconcile.js";
 import { bakeICU } from "../utils/icu-baker.js";
 import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
 import type { IOManager } from "./IOManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
+import { generateMessageId } from "../utils/hashing.js";
 
 /**
  * Manages translation catalogs and JSON schemas.
@@ -496,7 +498,8 @@ export class CatalogManager {
     reconciliation?: ReconcileResult,
     isMgr = false,
     colonyBoundaries: string[] = [],
-  ): Promise<{ catalog: Record<string, any> }> {
+    assetManager?: any,
+  ): Promise<{ catalog: Record<string, any>; imports?: string[] }> {
     let chunkType: "entry" | "lazy" | "shared" = "entry";
     let idOrHash = fullModuleId;
 
@@ -615,7 +618,35 @@ export class CatalogManager {
       }
     }
 
-    return { catalog: result };
+    const imports: string[] = [];
+
+    if (assetManager) {
+      const assetsCatalog: Record<string, any> = {};
+      const registeredAssets = assetManager.getRegisteredAssets();
+      let assetCounter = 0;
+      for (const assetId of registeredAssets) {
+        const isSource = locale === this.sourceLocale;
+        const localizedPath = isSource
+          ? join(this.root, assetId)
+          : assetManager.getAssetPath(assetId, locale);
+        if (existsSync(localizedPath)) {
+          const varName = `_zintl_asset_${assetCounter++}`;
+          imports.push(`import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`);
+          const assetKey = this.isDev
+            ? `@zintl/asset:${assetId}`
+            : generateMessageId(`@zintl/asset:${assetId}`);
+          assetsCatalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
+        }
+      }
+      if (Object.keys(assetsCatalog).length > 0) {
+        result["b_assets"] = {
+          __zintl_pre_serialized: true,
+          code: this.serializeCatalog(assetsCatalog, locale, 4, this.logger),
+        };
+      }
+    }
+
+    return { catalog: result, imports };
   }
 
   public serializeCatalog(
@@ -977,6 +1008,7 @@ export class CatalogManager {
     metadataGraph?: Record<string, any>,
     dependencyGraph?: Record<string, any>,
     graphManager?: any,
+    activeAssetPaths?: Set<string>,
   ) {
     if (!this.prune) return;
     if (
@@ -988,9 +1020,10 @@ export class CatalogManager {
       return; // Skip pruning in dev mode in real environments
 
     // Optimization: Skip if the graph hasn't changed since last prune
-    const manifestHash = Array.from(graph.nodes.keys())
-      .sort((a: any, b: any) => String(a).localeCompare(String(b)))
-      .join(",");
+    const manifestHash =
+      Array.from(graph.nodes.keys())
+        .sort((a: any, b: any) => String(a).localeCompare(String(b)))
+        .join(",") + (activeAssetPaths ? `|assets:${activeAssetPaths.size}` : "");
     if (this.lastPrunedManifestHash === manifestHash) return;
     this.lastPrunedManifestHash = manifestHash;
 
@@ -1006,6 +1039,12 @@ export class CatalogManager {
     }
     for (const s of this.activeSchemaPaths) {
       knownPaths.add(s);
+    }
+
+    if (activeAssetPaths) {
+      for (const p of activeAssetPaths) {
+        knownPaths.add(p);
+      }
     }
 
     if (metadataGraph && dependencyGraph && graphManager) {
@@ -1061,7 +1100,7 @@ export class CatalogManager {
           // If directory is now empty, remove it
           const remaining = await this.io.readDir(full);
           if (remaining.length === 0) await this.io.rm(full);
-        } else if (entry.name.endsWith(".json")) {
+        } else if (/\.(json|md|txt)$/.test(entry.name)) {
           if (!knownPaths.has(full)) {
             this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
             await this.io.rm(full);

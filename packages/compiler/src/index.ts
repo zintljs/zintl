@@ -26,23 +26,25 @@ import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
 import { HtmlManager } from "./managers/HtmlManager.js";
+import { AssetManager } from "./managers/AssetManager.js";
 
 export { generateMessageId } from "./utils/hashing.js";
 export type { ZintlOptions, ZintlLogger, LogLevel };
 
 export class ZintlCompiler {
-  private readonly io: IOManager;
-  private readonly graph: GraphManager;
-  private readonly catalog: CatalogManager;
-  private readonly messages: MessageManager;
+  public readonly io: IOManager;
+  public readonly graph: GraphManager;
+  public readonly catalog: CatalogManager;
+  public readonly messages: MessageManager;
   public readonly html: HtmlManager;
+  public readonly assets: AssetManager;
 
   private graphDirty = true;
 
   private readonly sourceLocale: string;
   private readonly locales: string[];
   private readonly root: string;
-  private readonly isDev: boolean;
+  public readonly isDev: boolean;
   private readonly logger: ZintlLogger;
   private _outputDir: string;
   private _prune: boolean;
@@ -83,7 +85,10 @@ export class ZintlCompiler {
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
 
+  public _options: ZintlOptions;
+
   constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
+    this._options = options;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
     this.root = root;
@@ -101,13 +106,7 @@ export class ZintlCompiler {
     this._prune = options.prune ?? true;
     this._verifyIntegrity = options.verifyIntegrity ?? false;
     this.io = new IOManager(root, isDev, this.logger.withPrefix("IO"), options);
-    this.graph = new GraphManager(
-      this.io,
-      root,
-      isDev,
-      this.logger.withPrefix("Graph"),
-      this.locales,
-    );
+    this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
     this.catalog = new CatalogManager(
       this.io,
       root,
@@ -129,6 +128,14 @@ export class ZintlCompiler {
       this._outputDir,
       this.sourceLocale,
       this.logger.withPrefix("HTML"),
+      this.catalog,
+    );
+    this.assets = new AssetManager(
+      this.io,
+      root,
+      this.sourceLocale,
+      this.locales,
+      this.logger.withPrefix("Assets"),
       this.catalog,
     );
   }
@@ -228,6 +235,27 @@ export class ZintlCompiler {
   public async invalidateFile(filePath: string, force = false): Promise<string[]> {
     if (!force && this.io.writingFiles.has(filePath)) return [];
 
+    const normalizedPath = this.io.getNormalizedId(filePath);
+    const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
+      ? this.catalog.outputDir
+      : join(this.root, this.catalog.outputDir);
+    const normalizedOutputDir = this.io.getNormalizedId(absoluteOutputDir);
+    const isInsideOutputDir = normalizedPath.startsWith(normalizedOutputDir + "/");
+
+    // If it's a supported asset (md, txt, json, etc) and NOT inside the output dir
+    // OR if it's a localized asset inside the output dir
+    if (
+      (!isInsideOutputDir && this.assets.isSupportedAsset(filePath)) ||
+      (isInsideOutputDir && (await this.assets.isLocalizedAsset(filePath)))
+    ) {
+      if (!isInsideOutputDir) await this.assets.registerAsset(filePath);
+      if (this.isDev) {
+        this.scheduleFlush();
+        return ["b_assets"];
+      }
+      return [];
+    }
+
     const foundBoundaryIds: string[] = [];
 
     // 1. Check if it's a source file (boundary ownership)
@@ -296,6 +324,16 @@ export class ZintlCompiler {
   public getAffectedChunks(boundaryId: string): string[] {
     const affected = new Set<string>();
     if (!this.graph.chunkGraph) return [];
+
+    if (boundaryId === "b_assets") {
+      for (const [id, chunk] of this.graph.chunkGraph.chunks.entries()) {
+        if (chunk.type === "entry") {
+          const splitIdx = id.indexOf("_");
+          affected.add(`${id.substring(0, splitIdx)}:${id.substring(splitIdx + 1)}`);
+        }
+      }
+    }
+
     for (const chunk of this.graph.chunkGraph.chunks.values()) {
       let isAffected = chunk.boundaries.has(boundaryId) || chunk.colonies.has(boundaryId);
 
@@ -333,11 +371,25 @@ export class ZintlCompiler {
   public async discover(dir: string = this.root) {
     this.discoveryPhase = true;
     this.logger.debug(`Discovering source files in ${dir}...`);
+
+    const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
+      ? this.catalog.outputDir
+      : join(this.root, this.catalog.outputDir);
+    const normalizedOutputDir = absoluteOutputDir.replace(/\\/g, "/");
+
     const doDisc = async (d: string) => {
       const entries = await this.io.readEntries(d);
       const tasks: Promise<void>[] = [];
       for (const entry of entries) {
         const fullPath = join(d, entry.name);
+        const normalizedFullPath = fullPath.replace(/\\/g, "/");
+        if (
+          normalizedFullPath === normalizedOutputDir ||
+          normalizedFullPath.startsWith(normalizedOutputDir + "/")
+        ) {
+          continue;
+        }
+
         if (entry.isDirectory()) {
           if (entry.name === "node_modules" || entry.name.startsWith(".") || entry.name === "dist")
             continue;
@@ -349,6 +401,8 @@ export class ZintlCompiler {
               await this.transform(code, fullPath, undefined, true);
             })(),
           );
+        } else if (/\.(md|txt)$/.test(entry.name)) {
+          tasks.push(this.assets.registerAsset(fullPath));
         }
       }
       await Promise.all(tasks);
@@ -373,6 +427,33 @@ export class ZintlCompiler {
     if (!this.graphDirty && this.rebuildPromise) return this.rebuildPromise;
     this.graphDirty = false;
     this.rebuildPromise = (async () => {
+      // In dev mode, we add a special shared boundary for assets
+      if (this.isDev) {
+        const assetTranslations = await this.assets.getAssetTranslations(this.sourceLocale);
+        const assetKeys = Object.keys(assetTranslations).map((text) => ({
+          text,
+          id: "asset",
+          boundaryId: "b_assets",
+        }));
+        this.messages.internalManifest["b_assets"] = assetKeys as any;
+
+        if (!this.messages.metadataGraph["b_assets"]) {
+          this.messages.metadataGraph["b_assets"] = {
+            isEntry: false,
+            needsLoader: false,
+            anchorSites: [],
+            internalDependencies: [],
+            exportedBoundaries: [],
+          };
+        }
+
+        for (const loc of this.locales) {
+          const locAssets = await this.assets.getAssetTranslations(loc);
+          if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
+          Object.assign(this.messages.hive[loc], locAssets);
+        }
+      }
+
       this.logger.debug(
         `Building boundary graph with ${Object.keys(this.messages.internalManifest).length} nodes`,
       );
@@ -841,7 +922,7 @@ export class ZintlCompiler {
       this.messages.metadataGraph[fileId] = {
         hasZintlMarker: observation.hasZintlMarker,
         hasZintlMacro: observation.hasZintlMacro,
-        isEntry: observation.hasZintlMarker || observation.anchors.some((a: any) => a.isTopLevel),
+        isEntry: observation.hasZintlMarker || observation.anchors.length > 0,
         anchorSites: observation.anchors,
         needsLoader: observation.sinks.length > 0 || observation.manualTranslations.length > 0,
         exportedBoundaries: observation.exportedBoundaries,
@@ -932,7 +1013,7 @@ export class ZintlCompiler {
     let bakedLocale: string | undefined;
     if (effectiveMultiplexLocale) {
       bakedLocale = effectiveMultiplexLocale;
-    } else if (!this.isDev) {
+    } else if (!this.isDev && this._options.multiplex !== false) {
       if (activeObservation.anchors.length > 0) {
         let common: string | undefined,
           dynamic = false,
@@ -991,9 +1072,7 @@ export class ZintlCompiler {
     world.metadataGraph[fileId] = {
       hasZintlMarker: activeObservation.hasZintlMarker,
       hasZintlMacro: activeObservation.hasZintlMacro,
-      isEntry:
-        activeObservation.hasZintlMarker ||
-        activeObservation.anchors.some((a: any) => a.isTopLevel),
+      isEntry: activeObservation.hasZintlMarker || activeObservation.anchors.length > 0,
       anchorSites: activeObservation.anchors,
       needsLoader:
         activeObservation.sinks.length > 0 || activeObservation.manualTranslations.length > 0,
@@ -1023,7 +1102,13 @@ export class ZintlCompiler {
     }
 
     if (this.isDev) this.scheduleFlush();
-    return result.code !== code ? { code: result.code, map: result.map } : undefined;
+
+    let finalCode = result.code;
+    if (this.isDev && this.messages.metadataGraph[fileId].anchorSites.length > 0) {
+      finalCode += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+    }
+
+    return finalCode !== code ? { code: finalCode, map: result.map } : undefined;
   }
 
   private scheduleFlush() {
@@ -1053,12 +1138,14 @@ export class ZintlCompiler {
       }
 
       await this.syncGraphs();
+      const activeAssetPaths = await this.assets.getActiveAssetPaths(this.locales);
       await this.catalog.pruneOrphanedBoundaries(
         this.graph.boundaryGraph!,
         this.locales,
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
         this.graph,
+        activeAssetPaths,
       );
       const changes = this.messages.reconcile();
       const changeCount =
@@ -1120,6 +1207,7 @@ export class ZintlCompiler {
       await this.html.syncHtmlProjections(htmlMetadatas, this.locales, this.messages.hive, () =>
         this.messages.markHiveDirty(),
       );
+      await this.assets.syncAssets(this.locales);
 
       await this.verifyIntegrity();
       this.logger.debug("Flush complete");
@@ -1163,7 +1251,14 @@ export class ZintlCompiler {
           const isChunkRoot = Array.from(cg.chunks.values()).some(
             (c) => c.entrySources.has(bId as string) || c.entrySources.has(fileIdOfB),
           );
-          if (!owner && !bg.entries.has(bId as string) && !isChunkRoot) {
+          const hasContent = (this.messages.internalManifest[bId as string] || []).length > 0;
+          if (
+            bg.nodes.has(bId as string) &&
+            hasContent &&
+            !owner &&
+            !bg.entries.has(bId as string) &&
+            !isChunkRoot
+          ) {
             this.logger.warn(
               `Boundary "${bId}" in "${fileId}" is detected but has no owner chunk. It may fail to hydrate at runtime.`,
             );
@@ -1260,6 +1355,7 @@ export class ZintlCompiler {
         outputDir: this._outputDir,
         debug: this.debug,
         bakedLocale,
+        multiplex: this._options.multiplex ?? true,
       },
       catalogs,
       logger: this.logger,
@@ -1312,7 +1408,7 @@ export class ZintlCompiler {
     }
 
     if (loc && !isManagerPath && !isMgr) {
-      const { catalog: cat } = await this.catalog.getCatalogForFullModule(
+      const { catalog: cat, imports } = await this.catalog.getCatalogForFullModule(
         id,
         loc,
         boundaryGraph,
@@ -1322,15 +1418,23 @@ export class ZintlCompiler {
         this.messages.currentReconciliation,
         false,
         reachableColonies,
+        this.assets,
       );
+      const importsCode = imports && imports.length > 0 ? imports.join("\n") + "\n" : "";
+      let code = `${importsCode}export default ${this.catalog.serializeCatalog(cat, loc, 4, this.logger)};`;
+      if (this.isDev) {
+        code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
+      }
       return {
-        code: `export default ${this.catalog.serializeCatalog(cat, loc, 4, this.logger)};`,
+        code,
         watchedFiles: [],
       };
     }
 
     if (loc === undefined) {
-      const meta = this.messages.metadataGraph[fileId];
+      const meta =
+        this.messages.metadataGraph[fileId] ||
+        this.messages.metadataGraph[this.io.getNormalizedId(fileId)];
       if (meta && meta.anchorSites.length > 0) {
         for (const site of meta.anchorSites) {
           if (site.locale.type === "literal") {
@@ -1343,7 +1447,7 @@ export class ZintlCompiler {
 
     const bakedLoc = loc || this.sourceLocale;
 
-    const { catalog: catData } = await this.catalog.getCatalogForFullModule(
+    const { catalog: catData, imports: mgrImports } = await this.catalog.getCatalogForFullModule(
       id,
       bakedLoc,
       boundaryGraph,
@@ -1353,6 +1457,7 @@ export class ZintlCompiler {
       this.messages.currentReconciliation,
       true,
       reachableColonies,
+      this.assets,
     );
 
     const isStaticallyLocked =
@@ -1363,20 +1468,45 @@ export class ZintlCompiler {
 
     const loader = isStaticallyLocked
       ? `() => (${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)})`
-      : `(locale) => {
+      : this.isDev
+        ? `(locale) => {
       switch(locale) { 
         case "${bakedLoc}":\n          return ${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)};
         ${this.locales
           .filter((l) => l !== bakedLoc)
-          .map((l) => {
-            return `        case "${l}":\n          return import("virtual:zintl/content/${l}/${id}").then(m => m.default);`;
-          })
+          .map(
+            (l) =>
+              `        case "${l}":\n          return import(${this.isDev ? "/* @vite-ignore */ " : ""}"virtual:zintl/content/${l}/${id}").then(m => m.default);`,
+          )
+          .join("\n")}
+        default: return {};
+      }
+    }`
+        : `(locale) => {
+      switch(locale) { 
+        case "${bakedLoc}":\n          return ${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)};
+        ${this.locales
+          .filter((l) => l !== bakedLoc)
+          .map(
+            (l) =>
+              `        case "${l}":\n          return import(${this.isDev ? "/* @vite-ignore */ " : ""}"virtual:zintl/content/${l}/${id}").then(m => m.default);`,
+          )
           .join("\n")}
         default: return {};
       }
     }`;
+    const hmrCode = this.isDev
+      ? `\nif (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}`
+      : "";
+    const mgrImportsCode = mgrImports && mgrImports.length > 0 ? mgrImports.join("\n") + "\n" : "";
     return {
-      code: `export default { id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader} };`,
+      code: `${mgrImportsCode}export default { id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader} };${hmrCode}`,
       watchedFiles: [],
     };
   }

@@ -7,6 +7,19 @@ import type {
   VariableBinding,
 } from "../types/index.js";
 
+function getMeta(id: string, metadataGraph: Record<string, any>) {
+  if (!id) return undefined;
+  if (metadataGraph[id]) return metadataGraph[id];
+  const clean = id.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  return (
+    metadataGraph[clean] ||
+    metadataGraph[`${clean}.ts`] ||
+    metadataGraph[`${clean}.js`] ||
+    metadataGraph[`${clean}.tsx`] ||
+    metadataGraph[`${clean}.jsx`]
+  );
+}
+
 /**
  * Resolve a boundary ID to its owning Autonomous Root ID.
  */
@@ -68,7 +81,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
 
   const isKingdom = (b: string) => {
     const fId = b.split(":")[0];
-    const m = metadataGraph[fId];
+    const m = getMeta(fId, metadataGraph);
     if (!m) return false;
     // A file with zintl-marker is a Kingdom (Axiom 5)
     if (m.hasZintlMarker && !b.includes(":")) return true;
@@ -89,12 +102,13 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   }
 
   // 2. Trace back through dynamic/static imports
+  const normMeta = getMeta(normId.split(":")[0], metadataGraph);
   const anchor = findEffectiveAnchor(
     boundaryId,
     worldState,
     {
       fileId: normId.split(":")[0],
-      anchors: metadataGraph[normId.split(":")[0]]?.anchorSites || [],
+      anchors: normMeta?.anchorSites || [],
       sinks: [],
       manualTranslations: [],
     } as any,
@@ -112,7 +126,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
 
   // 4. Final fallback: If the owner is a file that is an entry, it's the kingdom
   const ownerFileId = owner.split(":")[0];
-  if (metadataGraph[ownerFileId]?.isEntry) return owner;
+  if (getMeta(ownerFileId, metadataGraph)?.isEntry) return owner;
 
   return owner;
 }
@@ -206,7 +220,7 @@ export function findEffectiveAnchor(
   }
 
   // Fallback: If the owner itself is an entry point, check its metadata directly
-  const ownerMeta = worldState.metadataGraph[ownerId.split(":")[0]];
+  const ownerMeta = getMeta(ownerId.split(":")[0], worldState.metadataGraph);
   if (ownerMeta?.isEntry && ownerMeta.anchorSites?.length > 0) {
     const site = ownerMeta.anchorSites[0];
     let locale = site.locale;
@@ -227,7 +241,7 @@ export function findEffectiveAnchor(
         return depOwner === ownerId || depOwner.split(":")[0] === ownerId.split(":")[0];
       })
     ) {
-      const parentObservation = worldState.metadataGraph[parentId] as any;
+      const parentObservation = getMeta(parentId, worldState.metadataGraph) as any;
       if (parentObservation) {
         // Recursively find the anchor for the parent
         // Use a simple observation mock since we only care about the metadata graph part
@@ -277,7 +291,7 @@ function isLiveOwner(ownerId: string, worldState: WorldState): boolean {
   const resolvedOwnerId = chunkGraph.boundaryToOwner.get(normPathId);
   if (!resolvedOwnerId) return false;
 
-  const meta = worldState.metadataGraph[resolvedOwnerId];
+  const meta = getMeta(resolvedOwnerId, worldState.metadataGraph);
   if (meta?.hasZintlMarker) return true;
 
   if (meta?.anchorSites && meta.anchorSites.some((a: any) => a.originalName !== "implicit-anchor"))
@@ -323,7 +337,7 @@ export function generateManagerUrl(
   for (const rId of reachableNodeIds) {
     const normRId = rId.replace(/\.[^/.]+$/, "");
     const fileId = normRId.split(":")[0];
-    const meta = worldState.metadataGraph[fileId];
+    const meta = getMeta(fileId, worldState.metadataGraph);
     if (meta?.anchorSites?.some((s: any) => s.locale.type === "expression")) {
       hasDynamicAnchor = true;
       break;
@@ -333,7 +347,7 @@ export function generateManagerUrl(
   if (!hasDynamicAnchor) {
     const normOwnerId = ownerId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
     const entryId = normOwnerId.includes(":") ? normOwnerId.split(":")[0] : normOwnerId;
-    const meta = worldState.metadataGraph[entryId];
+    const meta = getMeta(entryId, worldState.metadataGraph);
     if (meta?.anchorSites) {
       const site = meta.anchorSites.find((s: any) => {
         const normSId = s.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
@@ -392,20 +406,17 @@ export function getReachableHandshake(
     const owner = resolveKingdom(id, worldState);
     if (isLiveOwner(owner, worldState)) {
       reachable.add(owner);
-      if (id !== startId) {
-        // Only add to handshake if it's an independent Kingdom
-        const fileId = owner.includes(":") ? owner.split(":")[0] : owner;
-        const meta = worldState.metadataGraph[fileId];
-        if (meta?.anchorSites?.length || meta?.hasZintlMarker) {
-          handshake.add(owner);
-        } else {
-          colonies.add(owner);
-        }
+      const fileId = owner.includes(":") ? owner.split(":")[0] : owner;
+      const meta = getMeta(fileId, worldState.metadataGraph);
+      if (meta?.anchorSites?.length || meta?.hasZintlMarker) {
+        handshake.add(owner);
+      } else {
+        colonies.add(owner);
       }
     }
 
     const fileId = id.includes(":") ? id.split(":")[0] : id;
-    const fileMeta = worldState.metadataGraph[fileId];
+    const fileMeta = getMeta(fileId, worldState.metadataGraph);
 
     // Collect all dependencies for this ID and its file-level siblings
     const allDeps: any[] = [...(worldState.dependencyGraph[fileId] || [])];
@@ -441,16 +452,17 @@ export function getReachableHandshake(
         walk(normDepId);
       } else {
         // Dynamic import: check for function-level boundaries (Colonies or nested Kingdoms)
-        const depMeta = worldState.metadataGraph[normDepId];
+        const depMeta = getMeta(normDepId, worldState.metadataGraph);
         if (depMeta?.exportedBoundaries && Object.keys(depMeta.exportedBoundaries).length > 0) {
-          for (const [, bId] of Object.entries(depMeta.exportedBoundaries)) {
+          for (const [, bIdRaw] of Object.entries(depMeta.exportedBoundaries)) {
+            const bId = bIdRaw as string;
             const fullBId = bId.includes(":") ? bId : `${normDepId}:${bId}`;
             const depOwner = resolveOwner(fullBId, worldState);
             reachable.add(depOwner);
 
             // Only add to handshake if it has its own anchor (Kingdom), not if it's a Colony
             const bFileId = fullBId.split(":")[0];
-            const bMeta = worldState.metadataGraph[bFileId];
+            const bMeta = getMeta(bFileId, worldState.metadataGraph);
             if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
               handshake.add(depOwner);
             } else {
@@ -461,7 +473,7 @@ export function getReachableHandshake(
           const depOwner = resolveOwner(normDepId, worldState);
           reachable.add(depOwner);
 
-          const bMeta = worldState.metadataGraph[normDepId];
+          const bMeta = getMeta(normDepId, worldState.metadataGraph);
           if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
             handshake.add(depOwner);
           } else {

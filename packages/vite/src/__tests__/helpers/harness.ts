@@ -134,6 +134,14 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
             ...options,
           }),
         ],
+        resolve: {
+          alias: {
+            "zintl/internal": fileURLToPath(
+              new URL("../../../../runtime/src/internal.ts", import.meta.url),
+            ),
+            zintl: fileURLToPath(new URL("../../../../runtime/src/index.ts", import.meta.url)),
+          },
+        },
       },
       { build: BASE_TEST_OVERRIDES },
     );

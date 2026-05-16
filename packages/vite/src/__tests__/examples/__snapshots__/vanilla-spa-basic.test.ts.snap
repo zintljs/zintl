@@ -81,7 +81,7 @@ document.body.insertBefore(iconsDiv, document.body.firstChild);
 
 async function render() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-  await loadI18nInstance({ locale: lang, loaders: { ["b_src_main_render"]: _zintl_mgr_b_src_main_render.loader } });
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_render"]: _zintl_mgr_b_src_main_render.loader } }));
 
   document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 <section id="header">
@@ -154,7 +154,14 @@ async function render() {
   });
 }
 
-void render();"
+void render();
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/main");
+  });
+}"
 `;
 
 exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (Identity keys) > vanilla-spa-basic/dev-transforms/src/switcher.ts 1`] = `
@@ -207,7 +214,8 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
     return \`العدد هو \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (Identity keys) > vanilla-spa-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_main_render 1`] = `
@@ -229,7 +237,8 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
     return \`La cuenta es \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (Identity keys) > vanilla-spa-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_main_render 1`] = `
@@ -251,7 +260,8 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
     return \`计数为 \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (Identity keys) > vanilla-spa-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_render 1`] = `
@@ -278,14 +288,21 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
     },
   };
                 case "ar":
-          return import("virtual:zintl/content/ar/entry:b_src_main_render").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_render").then(m => m.default);
         case "es":
-          return import("virtual:zintl/content/es/entry:b_src_main_render").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_render").then(m => m.default);
         case "zh":
-          return import("virtual:zintl/content/zh/entry:b_src_main_render").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_main_render").then(m => m.default);
         default: return {};
       }
-    } };"
+    } };
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
 `;
 
 exports[`Example Proof: vanilla-spa-basic > should match Final Production Build (dist) snapshots > vanilla-spa-basic/dist/assets/entry_b_ae1e7cbb2f74.js 1`] = `
@@ -392,7 +409,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
 	}
 })();
 //#endregion
-//#region packages/runtime/dist/internal.mjs
+//#region packages/runtime/dist/store-XEH7Miu3.mjs
 var I18nStore = class {
 	locale = "";
 	catalogs = {};
@@ -457,6 +474,7 @@ var I18nStore = class {
 		} else this.notify();
 	}
 	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
 		const result = loader(this.locale);
 		const processResult = (res) => {
 			if (!res) return;
@@ -480,7 +498,7 @@ function setActiveInstance(instance) {
 	currentInstance = instance;
 }
 function registerLoader(boundaryId, loader) {
-	if (!globalRegistry.has(boundaryId)) globalRegistry.set(boundaryId, loader);
+	globalRegistry.set(boundaryId, loader);
 	const instance = getActiveInstance();
 	try {
 		const result = loader(instance.locale);
@@ -497,6 +515,8 @@ function registerLoader(boundaryId, loader) {
 function isThenable(obj) {
 	return obj && typeof obj.then === "function";
 }
+//#endregion
+//#region packages/runtime/dist/internal.mjs
 function _t(key, params = {}, options) {
 	const instance = getActiveInstance();
 	const catalogs = instance.catalogs;
@@ -537,6 +557,7 @@ function interpolate(message, params) {
 async function loadI18nInstance(config = {}) {
 	const store = new I18nStore();
 	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
 	try {
 		if (config.debug !== void 0) store.debug = config.debug;
 		if (config.locale) store.locale = config.locale;
@@ -723,10 +744,11 @@ iconsDiv.style.display = "none";
 iconsDiv.innerHTML = icons_default;
 document.body.insertBefore(iconsDiv, document.body.firstChild);
 async function render() {
-	await loadI18nInstance({
-		locale: new URLSearchParams(window.location.search).get("lang") || "en",
+	const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+	await (globalThis.__zintl_inst = loadI18nInstance({
+		locale: lang,
 		loaders: { ["b_ae1e7cbb2f74"]: entry_b_ae1e7cbb2f74_default.loader }
-	});
+	}));
 	document.querySelector("#app").innerHTML = \`
 <section id="header">
   <div id="switcher" class="switcher"></div>
@@ -968,7 +990,7 @@ document.body.insertBefore(iconsDiv, document.body.firstChild);
 
 async function render() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-  await loadI18nInstance({ locale: lang, loaders: { ["b_ae1e7cbb2f74"]: _zintl_mgr_b_ae1e7cbb2f74.loader } });
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_ae1e7cbb2f74"]: _zintl_mgr_b_ae1e7cbb2f74.loader } }));
 
   document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 <section id="header">

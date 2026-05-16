@@ -23,8 +23,7 @@ export class GraphManager {
 
   constructor(
     private readonly io: IOManager,
-    _root: string,
-    _isDev: boolean,
+    private readonly isDev: boolean,
     private readonly logger: ZintlLogger,
     private readonly locales: string[] = ["en"],
   ) {}
@@ -97,7 +96,7 @@ export class GraphManager {
       let isDictator = isNested
         ? !hasTopLevelA &&
           (meta?.anchorSites || []).some(
-            (s) => this.io.getNormalizedId(s.boundaryId) === normalizedBId && !s.isTopLevel,
+            (s) => this.io.getNormalizedId(s.boundaryId) === normalizedBId,
           )
         : hasTopLevelA || !!meta?.hasZintlMarker;
 
@@ -204,16 +203,34 @@ export class GraphManager {
         }
       }
 
+      const allDeps = [...resolvedDeps, ...uniqueNestedAnchors, ...resolvedInternalDeps];
+      // In dev mode, every entry depends on b_assets to ensure localized assets are available
+      if (mode === "entry" && this.isDev) {
+        allDeps.push({ id: "b_assets", dynamic: false });
+      }
+
       nodes.set(normalizedBId, {
         id: normalizedBId,
         mode: (mode === "entry" ? "entry" : "boundary") as any,
-        deps: [...resolvedDeps, ...uniqueNestedAnchors, ...resolvedInternalDeps],
+        deps: allDeps,
         usageCount: 0,
         filePath: fileId,
         activeLocales,
       });
 
       if (mode === "entry") entries.add(normalizedBId);
+    }
+
+    // Ensure b_assets itself exists in the graph in dev mode
+    if (this.isDev && !nodes.has("b_assets")) {
+      nodes.set("b_assets", {
+        id: "b_assets",
+        mode: "boundary" as any,
+        deps: [],
+        usageCount: 1,
+        filePath: "assets",
+        activeLocales: "all",
+      });
     }
 
     return { nodes, entries };
@@ -320,7 +337,7 @@ export class GraphManager {
 
     const sharedBoundaries = new Set<string>();
     for (const [id, count] of usageCounts.entries()) {
-      if (count > 1 && !entryPoints.has(id)) {
+      if (count > 1 && !entryPoints.has(id) && id !== "b_assets") {
         sharedBoundaries.add(this.io.getNormalizedId(id));
         const chunkId = `shared_${this.io.getSafeBoundaryId(id)}`;
         chunks.set(chunkId, {
@@ -434,7 +451,9 @@ export class GraphManager {
         meta?.hasZintlMarker;
       const hasContent = (internalManifest[bId]?.length || 0) > 0;
 
-      if (isDictator || meta?.isEntry || meta?.hasZintlMarker) {
+      const isFileLevelEntry = !bId.includes(":") && (meta?.isEntry || meta?.hasZintlMarker);
+
+      if (isDictator || isFileLevelEntry) {
         roots.add(bId);
       } else {
         const normalizedBId = this.io.getNormalizedId(bId);

@@ -34,6 +34,7 @@ export function t(key: string, _params: Record<string, any> = {}): string {
   return key;
 }
 
-// Re-export core types for DX
+// Re-export core types and functions for DX
+export { getLocale } from "./store.js";
 export type { Catalogs, Loader } from "./store.js";
 export type { I18nInstanceConfig } from "./internal.js";

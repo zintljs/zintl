@@ -6,96 +6,171 @@ import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 export function handleHotUpdateHook(ctx: ZintlPluginContext) {
   return async function ({ file, server, modules }: HmrContext) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
-    // Write Guard: If the compiler is currently writing this file, skip HMR
-    // to prevent infinite loops.
     if (ctx.compiler.isWritingFile(file)) return;
 
     const isSource = /\.(ts|tsx|js|jsx|html)$/.test(file);
     const isJson = file.endsWith(".json");
+    const isAsset = file.endsWith(".md") || file.endsWith(".txt");
 
-    if (!isJson && !isSource) return;
+    if (!isJson && !isSource && !isAsset) return;
 
     vLogger.debug(`HMR triggered for ${file}`);
-    const invalidatedBoundaries = await ctx.compiler.invalidateFile(file);
-    if (invalidatedBoundaries.length > 0) {
-      vLogger.debug(`Invalidated ${invalidatedBoundaries.length} boundaries`);
+    const invalidatedModules = new Set<ModuleNode>();
+    let invalidatedBoundaries: string[] = [];
+
+    if (isJson || isAsset) {
+      if (isAsset) {
+        await ctx.compiler.assets.registerAsset(file);
+      }
+      const inv = await ctx.compiler.invalidateFile(file, true);
+      for (const b of inv) invalidatedBoundaries.push(b);
+
+      if (inv.length === 0 && isJson) {
+        for (const [id, mod] of server.moduleGraph.idToModuleMap) {
+          if (id.includes("virtual:zintl") && id.includes("/manager/")) {
+            invalidatedModules.add(mod);
+          }
+        }
+      }
+    } else {
+      const inv = await ctx.compiler.invalidateFile(file);
+      for (const b of inv) invalidatedBoundaries.push(b);
     }
 
-    // Non-Blocking Flush: We don't await the physical disk write during HMR.
-    // The virtual modules will read the fresh data from the compiler's memory (the Hive) instantly.
-    // The physical catalogs are updated in the background for persistence.
     ctx.compiler.flush().catch((e) => vLogger.error(`Background flush failed: ${String(e)}`));
 
-    const invalidatedModules = new Set<ModuleNode>();
+    // 1. Invalidate modules provided by Vite
+    for (const mod of modules) {
+      const isBaseJson = isJson && mod.file === file;
+      const isBaseAsset = isAsset && mod.file === file && !mod.id?.includes("?");
+      if (isBaseJson || isBaseAsset) continue;
 
-    let sourceBoundaryId: string | null = null;
-    if (isSource) {
-      sourceBoundaryId = ctx.compiler.getNormalizedId(file);
+      server.moduleGraph.invalidateModule(mod);
+      invalidatedModules.add(mod);
+
+      if (mod.importers) {
+        for (const importer of mod.importers) {
+          if (importer.id && !importer.id.includes("node_modules")) {
+            server.moduleGraph.invalidateModule(importer);
+            invalidatedModules.add(importer);
+          }
+        }
+      }
     }
 
+    // 2. Invalidate affected boundaries
     const boundaryIds = new Set(invalidatedBoundaries);
-    if (sourceBoundaryId) boundaryIds.add(sourceBoundaryId);
+    if (isSource) boundaryIds.add(ctx.compiler.getNormalizedId(file));
+
+    const mg = server.moduleGraph;
 
     for (const boundaryId of boundaryIds) {
-      // Ask compiler which chunks are affected by this boundary
-      const affectedChunkIds = ctx.compiler.getAffectedChunks(boundaryId);
+      if (boundaryId === "b_assets" && ctx.compiler.graph.boundaryGraph) {
+        for (const [_nid, n] of ctx.compiler.graph.boundaryGraph.nodes.entries()) {
+          if (n.mode === "entry" && n.filePath && n.filePath !== "assets") {
+            const relPath = n.filePath.startsWith("/") ? n.filePath : "/" + n.filePath;
+            for (const [id, mod] of mg.idToModuleMap) {
+              const normalizedId = id.split("?")[0];
+              const idNoExt = normalizedId.replace(/\.[a-z0-9]+$/i, "");
+              if (
+                id === relPath ||
+                id === n.filePath ||
+                normalizedId.endsWith(n.filePath) ||
+                idNoExt.endsWith(n.filePath)
+              ) {
+                mg.invalidateModule(mod);
+                invalidatedModules.add(mod);
+              }
+            }
+          }
+        }
+      }
 
+      const affectedChunkIds = ctx.compiler.getAffectedChunks(boundaryId);
       for (const chunkModuleId of affectedChunkIds) {
-        // Invalidate all virtual modules tied to this chunk (catalog, content, manager)
-        for (const [id, mod] of server.moduleGraph.idToModuleMap) {
+        for (const [id, mod] of mg.idToModuleMap) {
           if (id.includes(chunkModuleId) && id.includes("virtual:zintl")) {
-            vLogger.debug(`Invalidating virtual module: ${id}`);
-            server.moduleGraph.invalidateModule(mod);
+            mg.invalidateModule(mod);
             invalidatedModules.add(mod);
           }
         }
       }
 
-      // Also handle legacy virtual modules if any
-      const legacyVirtualId = `${RESOLVED_VIRTUAL_PREFIX}:${boundaryId}`;
-      const legacyMod = server.moduleGraph.getModuleById(legacyVirtualId);
-      if (legacyMod) {
-        vLogger.debug(`Invalidating legacy virtual module: ${legacyVirtualId}`);
-        server.moduleGraph.invalidateModule(legacyMod);
-        invalidatedModules.add(legacyMod);
-      }
-
-      // Invalidate the source file itself (and its multiplexed query-param variants)
-      let node = ctx.compiler.boundaryGraph?.nodes.get(boundaryId);
+      let node = ctx.compiler.graph.boundaryGraph?.nodes.get(boundaryId);
       if (!node) {
-        for (const [nid, n] of ctx.compiler.boundaryGraph?.nodes.entries() || []) {
-          if (ctx.compiler.ioManager.getSafeBoundaryId(nid) === boundaryId) {
+        for (const [_nid, n] of ctx.compiler.graph.boundaryGraph?.nodes.entries() || []) {
+          if (ctx.compiler.io.getSafeBoundaryId(_nid) === boundaryId) {
             node = n;
             break;
           }
         }
       }
-      const fileId = node?.filePath || boundaryId.split(":")[0];
-      const absFileId = isAbsolute(fileId) ? fileId : join(ctx.compiler.rootDir, fileId);
 
-      for (const [id, mod] of server.moduleGraph.idToModuleMap) {
-        if (mod.file === absFileId || id.includes(fileId)) {
-          vLogger.debug(`[HMR] Invalidating source module: ${id}`);
-          server.moduleGraph.invalidateModule(mod);
-          invalidatedModules.add(mod);
+      const fileId =
+        node?.filePath || (boundaryId.includes(":") ? boundaryId.split(":")[0] : boundaryId);
+      if (fileId && fileId !== "assets" && !fileId.includes("\0")) {
+        const absFileId = isAbsolute(fileId) ? fileId : join(ctx.compiler.rootDir, fileId);
+
+        if (typeof mg.getModulesByFile === "function") {
+          const sourceMods = mg.getModulesByFile(absFileId);
+          if (
+            sourceMods &&
+            (sourceMods instanceof Set
+              ? sourceMods.size > 0
+              : Array.isArray(sourceMods) && (sourceMods as any[]).length > 0)
+          ) {
+            for (const mod of sourceMods as Iterable<ModuleNode>) {
+              mg.invalidateModule(mod);
+              invalidatedModules.add(mod);
+            }
+          }
+        }
+
+        const virtualId = `${RESOLVED_VIRTUAL_PREFIX}:${fileId}`;
+        if (typeof mg.getModuleById === "function") {
+          const vMod = mg.getModuleById(virtualId);
+          if (vMod) {
+            mg.invalidateModule(vMod);
+            invalidatedModules.add(vMod);
+          }
+        }
+
+        // Fallback scan
+        const relPath = fileId.startsWith("/") ? fileId : "/" + fileId;
+        const fileIdNoExt = fileId.replace(/\.[a-z0-9]+$/i, "");
+        const relPathNoExt = relPath.replace(/\.[a-z0-9]+$/i, "");
+
+        for (const [id, mod] of mg.idToModuleMap) {
+          const normalizedId = id.split("?")[0];
+          const normalizedIdNoExt = normalizedId.replace(/\.[a-z0-9]+$/i, "");
+
+          const isMatch =
+            id === relPath ||
+            id === fileId ||
+            id.endsWith(fileId) ||
+            normalizedId.endsWith(fileId) ||
+            normalizedId === relPath ||
+            normalizedId === fileId ||
+            normalizedIdNoExt === fileIdNoExt ||
+            normalizedIdNoExt === relPathNoExt ||
+            normalizedIdNoExt.endsWith(fileIdNoExt);
+
+          if (isMatch && !id.includes("virtual:zintl")) {
+            mg.invalidateModule(mod);
+            invalidatedModules.add(mod);
+          }
         }
       }
 
-      // 4. If it's an HTML boundary, trigger full reload
       if (boundaryId.endsWith(".html")) {
-        vLogger.debug(`[HMR] HTML boundary detected: ${boundaryId}. Triggering full reload.`);
         server.ws.send({ type: "full-reload", path: "*" });
       }
     }
 
-    // If we found specific virtual modules to reload, we return ONLY those.
-    // This "steals" the HMR event from the source file and prevents a full page reload
-    // if the source file (like an entry point) isn't set up for HMR.
     if (invalidatedModules.size > 0) {
-      return Array.from(new Set([...modules, ...invalidatedModules]));
+      return Array.from(invalidatedModules);
     }
 
-    // Otherwise, fall back to default Vite behavior
     return modules;
   };
 }

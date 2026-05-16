@@ -12,6 +12,7 @@ export interface ZintlOptions {
   debug?: boolean | string;
   prune?: boolean;
   verifyIntegrity?: boolean;
+  multiplex?: boolean;
 }
 
 interface CatalogFormatContext {

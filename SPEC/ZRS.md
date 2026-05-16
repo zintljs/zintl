@@ -11,14 +11,15 @@
 Every source file is classified by the presence of exactly one set of **Symbolic Markers**.
 These markers are mutually exclusive at a given scope (file or function).
 
-| Symbol | Name   | Detection                                                                                       |
-| :----- | :----- | :---------------------------------------------------------------------------------------------- |
-| **$A** | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument).  |
-| **$M** | Marker | A bare `import "zintl"` side-effect import with no named specifiers.                            |
-| **$L** | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                            |
-| **$S** | Sink   | A UI string assigned to a translatable property (innerHTML, JSX text, title, aria-label, etc.). |
-| **$V** | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                               |
-| **$H** | Portal | An HTML entry point that projects internationalization state onto the DOM.                      |
+| Symbol  | Name   | Detection                                                                                       |
+| :------ | :----- | :---------------------------------------------------------------------------------------------- |
+| **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument).  |
+| **$M**  | Marker | A bare `import "zintl"` side-effect import with no named specifiers.                            |
+| **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                            |
+| **$S**  | Sink   | A UI string assigned to a translatable property (innerHTML, JSX text, title, aria-label, etc.). |
+| **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                               |
+| **$H**  | Portal | An HTML entry point that projects internationalization state onto the DOM.                      |
+| **$AS** | Asset  | A static asset (.txt, .md) that participates in the localization pipeline.                      |
 
 > [!NOTE]
 > A file may contain **both** $A and $S simultaneously. The $A governs ownership; the $S participates in the catalog. A file may also contain $L alongside any other symbol — $L defines storage partitioning at the _dependency edge_, not the file itself.
@@ -447,6 +448,33 @@ To eliminate the latency gap between application startup and translation hydrati
    - Appends a `<link rel="modulepreload" href="...">` for every chunk associated with $L$.
 
 Result: **Zero-latency locale hydration** for SPAs, as the browser fetches the dictionary in parallel with the main JS payload.
+
+---
+
+## §14 — Localized Assets ($AS$)
+
+Localized Assets are static files (e.g., `.txt`, `.md`) that Zintl manages to provide locale-specific content without modifying the application's runtime logic.
+
+### §14.1 — Detection and Registration
+
+- **Detection**: Files with extensions `.txt` or `.md` that are imported in the source code.
+- **Registration**: When an asset is resolved, it is registered in the `AssetManager`.
+- **Localization Pattern**: If `about.txt` exists, Zintl looks for `about.[locale].txt` (e.g., `about.ar.txt`).
+
+### §14.2 — Development Mode (HMR)
+
+In development, assets are mapped to a global **Virtual Boundary** named `b_assets`.
+
+- **Dependency Mapping**: In `isDev` mode, every active entry chunk automatically depends on `b_assets`.
+- **Invalidation**: When any registered asset (source or localized) is modified, the compiler invalidates the `b_assets` boundary. This triggers a cascading invalidation of all entry points, ensuring the UI reflects the new asset content immediately.
+
+### §14.3 — Production Mode (Hashing)
+
+In production, localized assets are treated as first-class citizens in the build graph:
+
+- **Key Generation**: The compiler generates a unique stable key for each asset based on its relative path.
+- **Content Hashing**: Localized assets are emitted with content hashes (e.g., `about.ar-BF8QNONU.txt`) to ensure cache busting and long-term stability.
+- **Mapping**: The mapping between the abstract asset ID and the localized physical path is baked into the production catalogs.
 
 ---
 

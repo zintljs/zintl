@@ -1,0 +1,105 @@
+# Zintl HMR Specification (ZHMR)
+
+**Version**: 1.0  
+**Status**: Active  
+**Mantra**: _Measure the shame, sharpen the architecture, Bakalau!_
+
+---
+
+## §1 — The HMR Philosophy
+
+Hot Module Replacement in Zintl is not a simple file reload. It is a **Surgical Invalidation** of the internationalization dependency graph. The goal is to update translations without a full page refresh whenever possible, while maintaining strict consistency between the compiler's world state and the runtime's hydration.
+
+---
+
+## §2 — The Invalidation Pipeline
+
+When a file changes, the system executes a multi-stage invalidation dance:
+
+### §2.1 — Stage 1: Compiler Synchronization
+
+- **Re-Observation**: The compiler re-scans the changed file for anchors, sinks, and dependencies.
+- **State Flush**: The `BoundaryGraph` and `ChunkGraph` are rebuilt to reflect any structural shifts (e.g., a file moving from a Kingdom to a Colony).
+- **Manifest Update**: The internal translation manifest is updated, and physical JSON catalogs on disk are synced.
+
+### §2.2 — Stage 2: Vite Hook Handshake
+
+The `handleHotUpdate` hook in the Vite plugin receives the changed file and queries the compiler for **Affected Modules**.
+
+1. **Direct Invalidation**: The changed source module itself is invalidated by Vite.
+2. **Affected Chunks**: The compiler returns a list of virtual IDs (e.g., `virtual:zintl/content/...`, `virtual:zintl/manager/...`) that are impacted by the change.
+3. **Entry Point Cascading**: Crucially, the compiler identifies all **Entry Points** (e.g., `main.ts`) that depend on the changed boundary. These are added to the invalidation set to force a re-registration of translation loaders.
+
+---
+
+## §3 — Virtual Module Orchestration
+
+Zintl uses virtual modules to decouple the source code from the translation data.
+
+### §3.1 — The Manager Module
+
+- **Path**: `virtual:zintl/manager/<locale>/<boundaryId>`
+- **Role**: Serves as the "Smart Manager". It knows how to load catalogs for every locale.
+- **HMR Behavior**:
+  - The manager includes an `import.meta.hot.accept()` block.
+  - When invalidated, it re-fetches its internal state and re-executes.
+  - It triggers a call to the runtime's `registerLoader` to update the global registry with its new reference.
+
+### §3.2 — The Content Module
+
+- **Path**: `virtual:zintl/content/<locale>/<boundaryId>`
+- **Role**: Provides the raw JSON translation data.
+- **HMR Behavior**:
+  - When a translator edits a JSON file on disk, the compiler flushes the change to the virtual content module.
+  - Invalidation of this module causes all dependent Managers to re-import the fresh data.
+
+---
+
+## §4 — Fast Replacement vs. Hard Reload
+
+Zintl prioritizes **Fast Replacement** to maintain developer flow.
+
+### §4.1 — Fast Replacement (The Warm Path)
+
+Triggered when:
+
+- A translation string is updated in a JSON file.
+- A static asset (.txt, .md) is modified.
+- A sink is added or removed without changing the boundary hierarchy.
+
+**Mechanism**:
+The `import.meta.hot.accept()` in the virtual manager allows the module to update in-place. The runtime `registerLoader` updates the `globalRegistry`. Existing UI sinks (using the `t()` function) will pick up the new strings on their next reactive update.
+
+### §4.2 — Hard Reload (The Structural Path)
+
+Triggered when:
+
+- A new `zintl()` anchor is added or removed.
+- A dynamic import (`$L`) is added, creating a new Colony.
+- A file's ownership moves between boundaries.
+
+**Mechanism**:
+In these cases, the structural integrity of the graph has changed. Vite's standard HMR bubbling will eventually trigger a hard reload if the change cannot be safely hot-replaced at the entry level.
+
+---
+
+## §5 — Asset HMR ($AS$)
+
+Static assets participate in a specialized HMR track.
+
+1. **Global Boundary**: All assets are mapped to a single virtual boundary: `b_assets`.
+2. **Entry Dependency**: In development mode, every entry point is automatically marked as a dependent of `b_assets`.
+3. **Trigger**: Updating `about.txt` or `about.ar.txt` invalidates `b_assets`.
+4. **Cascading**: This invalidates the virtual managers of all entries, causing the runtime to reload the asset mapping and refresh the UI.
+
+---
+
+## §6 — Troubleshooting & Diagnostics
+
+- **504 Outdated Dep**: Often caused by Vite trying to optimize virtual modules. Zintl explicitly excludes itself from optimization to prevent this.
+- **Missing Update**: Check if the file is correctly categorized (Anchor, Marker, Sink). If a file has no Zintl symbols, it is a Vassal and its updates bubble to the nearest parent Kingdom.
+- **Flicker**: Ensure `import.meta.hot.accept()` is correctly present in the generated manager code.
+
+---
+
+_The bloat is dead, the paths are readable, Claritas!_

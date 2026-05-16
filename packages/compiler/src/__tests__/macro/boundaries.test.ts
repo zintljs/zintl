@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { createTestDir, type TestContext } from "../helpers/fs.js";
 
 function evalManager(code: string) {
-  const objectPart = code
+  const cleanCode = code.replace(/\nif \(import\.meta\.hot\) \{[\s\S]*$/, "");
+  const objectPart = cleanCode
     .split("\n")
     .filter((line) => !line.trim().startsWith("import "))
     .join("\n")

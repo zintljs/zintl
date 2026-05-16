@@ -131,6 +131,7 @@ export class I18nStore {
   }
 
   registerLoader(boundaryId: string, loader: Loader) {
+    globalRegistry.set(boundaryId, loader);
     const result = loader(this.locale);
     const processResult = (res: Catalog | BoundaryCatalogs) => {
       if (!res) return;
@@ -162,9 +163,7 @@ export function setActiveInstance(instance: I18nStore) {
 }
 
 export function registerLoader(boundaryId: string, loader: Loader) {
-  if (!globalRegistry.has(boundaryId)) {
-    globalRegistry.set(boundaryId, loader);
-  }
+  globalRegistry.set(boundaryId, loader);
 
   // Sync current active instance with this loader
   const instance = getActiveInstance();

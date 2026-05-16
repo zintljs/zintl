@@ -10,7 +10,7 @@ export default defineConfig({
       outputDir: "./src/locales",
       catalogFormat: "i18n.json",
       similarityThreshold: 0.01,
-      // debug: true,
+      // debug: "compiler",
     }),
   ],
 });

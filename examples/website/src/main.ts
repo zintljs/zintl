@@ -4,6 +4,7 @@ import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintl";
 import { setupCounter } from "./counter";
+import aboutTxt from "./about.txt?raw";
 
 // export function setupCounter(element: HTMLButtonElement) {
 //   let counter = 0;
@@ -42,6 +43,10 @@ async function render() {
 
       <div class="card">
         <button id="counter" type="button"></button>
+      </div>
+
+      <div class="about-section" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: sans-serif; white-space: pre-line;">
+        ${aboutTxt}
       </div>
 
       <div class="language-switcher">

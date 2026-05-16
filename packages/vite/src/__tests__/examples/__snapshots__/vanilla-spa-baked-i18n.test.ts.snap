@@ -51,7 +51,7 @@ import heroImg from "./assets/hero.png";
 import { setupCounter } from "./counter.ts";
 import { setupSwitcher } from "./switcher.ts";
 
-await loadI18nInstance({ loaders: { ["b_src_main"]: _zintl_mgr_b_src_main.loader } });
+await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_main"]: _zintl_mgr_b_src_main.loader } }));
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 <section id="header">
   <div id="switcher" class="switcher"></div>
@@ -115,7 +115,14 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 \`;
 
 setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
-setupSwitcher(document.querySelector<HTMLDivElement>("#switcher")!);"
+setupSwitcher(document.querySelector<HTMLDivElement>("#switcher")!);
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/main");
+  });
+}"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/src/switcher.ts 1`] = `
@@ -167,7 +174,8 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
     return \`العدد هو \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/content/es/entry:b_src_main 1`] = `
@@ -189,7 +197,8 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
     return \`La cuenta es \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/content/zh/entry:b_src_main 1`] = `
@@ -211,7 +220,8 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
     return \`计数为 \${params['counter']}\`;
   },
     },
-  };"
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/manager/none/entry:b_src_main 1`] = `
@@ -238,14 +248,21 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
     },
   };
                 case "ar":
-          return import("virtual:zintl/content/ar/entry:b_src_main").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main").then(m => m.default);
         case "es":
-          return import("virtual:zintl/content/es/entry:b_src_main").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main").then(m => m.default);
         case "zh":
-          return import("virtual:zintl/content/zh/entry:b_src_main").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_main").then(m => m.default);
         default: return {};
       }
-    } };"
+    } };
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/ar/index.html 1`] = `
@@ -961,7 +978,7 @@ import heroImg from "./assets/hero.png";
 import { setupCounter } from "./counter.ts";
 import { setupSwitcher } from "./switcher.ts";
 
-await loadI18nInstance({ loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader } });
+await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader } }));
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 <section id="header">
   <div id="switcher" class="switcher"></div>

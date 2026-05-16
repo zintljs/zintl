@@ -101,7 +101,10 @@ export class IOManager {
     }
 
     const rel = relative(this.root, abs).replace(/\\/g, "/");
-    const result = rel.endsWith(".html") ? rel : rel.replace(/\.[^/.]+$/, "");
+    const result =
+      rel.endsWith(".html") || rel.endsWith(".md") || rel.endsWith(".txt")
+        ? rel
+        : rel.replace(/\.[^/.]+$/, "");
     this.normalizedIdCache.set(id, result);
     return result;
   }

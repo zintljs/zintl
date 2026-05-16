@@ -95,6 +95,7 @@ export function planAnchors(
       (anchor.locale.type === "expression" && !anchor.locale.source);
     const isBakeMode =
       !worldState.config.isDev &&
+      worldState.config.multiplex !== false &&
       (anchor.locale.type === "literal" || (isContextual && !!worldState.config.bakedLocale));
 
     for (const bId of allHandshake) {
@@ -139,7 +140,11 @@ export function planAnchors(
     } else {
       // In Production Mode, if it's a literal anchor, we remove it
       // to achieve Zero-Runtime.
-      if (!worldState.config.isDev && anchor.locale.type === "literal") {
+      if (
+        !worldState.config.isDev &&
+        worldState.config.multiplex !== false &&
+        anchor.locale.type === "literal"
+      ) {
         anchorRewritesByLocation.set(key, {
           type: "marker_removal",
           start: anchor.statementLocation?.start ?? anchor.location.start,

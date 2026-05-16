@@ -131,6 +131,29 @@ describe("Zintl Vite Plugin Lifecycle", () => {
     expect(compiler.generateVirtualModule).toHaveBeenCalledWith("entry:b_123", "en");
   });
 
+  it("should handle load for RESOLVED_CONTENT_PREFIX with query parameters", async () => {
+    const plugin = zintl();
+    (plugin as any).configResolved({ root: "/mock", command: "build" });
+    const compiler = (plugin as any).__compiler;
+    vi.spyOn(compiler, "generateVirtualModule").mockResolvedValue({
+      code: "export default { 'cache': 'busted' };",
+      watchedFiles: ["/mock/content.ts"],
+    });
+
+    const context = {
+      addWatchFile: vi.fn(),
+    };
+
+    const result = await (plugin as any).load.call(
+      context,
+      `${RESOLVED_CONTENT_PREFIX}/en/entry:b_123?t=123456`,
+    );
+    expect(result).toBe("export default { 'cache': 'busted' };");
+    expect(context.addWatchFile).toHaveBeenCalledWith("/mock/content.ts");
+    // Ensure that query parameters like ?t=123456 do NOT bleed into the chunk ID
+    expect(compiler.generateVirtualModule).toHaveBeenCalledWith("entry:b_123", "en");
+  });
+
   it("should call compiler.flush on buildEnd", async () => {
     const plugin = zintl();
     (plugin as any).configResolved({ root: "/mock", command: "build" });

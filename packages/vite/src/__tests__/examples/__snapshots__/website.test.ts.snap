@@ -1,0 +1,264 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/index.html 1`] = `
+"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Website</title>
+  <!--zintl-bootstrap-->
+    <script id="zintl-projection">
+      (function() {
+        const params = new URLSearchParams(window.location.search);
+        const l = params.get("lang") || "en" || localStorage.getItem('zintl-locale') || 'en';
+        const rtl = ["ar"];
+        const deltas = {"ar":{"title":"موقع الويب"}};
+        const originals = {
+          title: document.title,
+        };
+        function apply(locale) {
+          if (document.documentElement.lang === locale) return;
+          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
+          document.documentElement.lang = locale;
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
+        }
+        window.__zintlApplyHtml = apply;
+        if (l !== 'en') {
+          apply(l);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>"
+`;
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/src/counter.ts 1`] = `
+"import { _t } from "zintl/internal";
+import _zintl_mgr_b_src_main_render from "virtual:zintl/manager/none/entry:b_src_main_render";
+
+
+export function setupCounter(element: HTMLButtonElement) {
+  let counter = 0;
+  const setCounter = (count: number) => {
+    counter = count;
+    // @zintl-note This is a note for the compiler
+    element.innerHTML = _t("{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}", { counter }, { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_counter_setupCounter" });
+  };
+  element.addEventListener("click", () => setCounter(counter + 1));
+  setCounter(0);
+}"
+`;
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/src/main.ts 1`] = `
+"import { _t, loadI18nInstance } from "zintl/internal";
+import _zintl_mgr_b_src_main_render from "virtual:zintl/manager/none/entry:b_src_main_render";
+import "./style.css";
+import typescriptLogo from "./assets/typescript.svg";
+import viteLogo from "./assets/vite.svg";
+import heroImg from "./assets/hero.png";
+
+import { setupCounter } from "./counter";
+import aboutTxt from "./about.txt?raw";
+
+// export function setupCounter(element: HTMLButtonElement) {
+//   let counter = 0;
+//   const setCounter = (count: number) => {
+//     counter = count;
+//     element.innerHTML = t(
+//       "{counter, plural, zero {Start Counting Now!} one {Count is One.} two {Count is Two} other {Count is #}}",
+//       { counter },
+//     );
+//   };
+//   element.addEventListener("click", () => setCounter(counter + 1));
+//   setCounter(0);
+// }
+
+async function render() {
+  const params = new URLSearchParams(window.location.search);
+
+  // zintlizing to search params lang, default to "en", hence no baking allowed for this flow.
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: params.get("lang") || "en", loaders: { ["b_src_main_render"]: _zintl_mgr_b_src_main_render.loader } }));
+
+  const app = document.querySelector<HTMLDivElement>("#app")!;
+  app.innerHTML = \`
+    <div>
+      <a href="https://vite.dev" target="_blank">
+        <img src="\${viteLogo}" class="logo" alt="Vite logo" />
+      </a>
+      <a href="https://www.typescriptlang.org/" target="_blank">
+        <img src="\${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
+      </a>
+      <div class="hero-container">
+        <img src="\${heroImg}" class="hero-image" alt="Zintl Hero" />
+        <!-- @zintl-note This is a note for the compiler -->
+        <h1 class="hero-title">\${_t("Zintl I18n", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</h1>
+        <p class="hero-subtitle">\${_t("Compiler-driven internationalization for the modern web.", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</p>
+      </div>
+
+      <div class="card">
+        <button id="counter" type="button"></button>
+      </div>
+
+      <div class="about-section" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: sans-serif; white-space: pre-line;">
+        \${aboutTxt}
+      </div>
+
+      <div class="language-switcher">
+        <!-- @zintl-ignore -->
+        <button id="set-ar">العربية</button>
+        <!-- @zintl-ignore -->
+        <button id="set-en">English</button>
+        <!-- @zintl-ignore -->
+        <button id="set-es">Español</button>
+      </div>
+
+    </div>
+  \`;
+
+  setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+
+  // 2. Logic to toggle language using the unified API
+  document.querySelector("#set-en")?.addEventListener("click", async () => {
+    history.pushState({}, "", "?lang=en");
+    await render();
+  });
+  document.querySelector("#set-ar")?.addEventListener("click", async () => {
+    window.history.pushState({}, "", \`?lang=ar\`);
+    await render();
+  });
+  document.querySelector("#set-es")?.addEventListener("click", async () => {
+    window.history.pushState({}, "", \`?lang=es\`);
+    await render();
+  });
+}
+
+// Initial render
+await render();
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/main");
+  });
+}"
+`;
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_render?t=123456789 1`] = `
+"import _zintl_asset_0 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/about.ar.txt?zintl-raw";
+import _zintl_asset_1 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/locales/src/about.ar.ar.txt?zintl-raw";
+import _zintl_asset_2 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/locales/src/about.es.ar.txt?zintl-raw";
+export default {
+    "b_src_main_render": {
+      "Zintl I18n": "تدويل زينتل",
+      "Compiler-driven internationalization for the modern web.": "التدويل الموجه بالمعالجة للويب الحديث.",
+    },
+    "b_src_counter_setupCounter": {
+      "{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}": (params) => {
+    const { counter } = params;
+    return \`\${(() => {
+      const rule = new Intl.PluralRules('ar').select(params['counter']);
+      if (rule === 'zero') return \`ابدا العد الان\`;
+      if (rule === 'one') return \`العد وصل لواحد\`;
+      if (rule === 'two') return \`العد وصل لاثنان\`;
+      return \`العد وصل لـ \${params['counter']}\`;
+    })()}\`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/locales/src/about.ar.txt": _zintl_asset_1,
+    "@zintl/asset:src/locales/src/about.es.txt": _zintl_asset_2,
+  },
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/es/entry:b_src_main_render?t=123456789 1`] = `
+"import _zintl_asset_0 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/about.es.txt?zintl-raw";
+import _zintl_asset_1 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/locales/src/about.ar.es.txt?zintl-raw";
+import _zintl_asset_2 from "/Users/khalid/Lingua/lingua/packages/vite/src/__tests__/helpers/.tmp/example-website-3a29710f-30g4gp/.tmp/locales/src/locales/src/about.es.es.txt?zintl-raw";
+export default {
+    "b_src_main_render": {
+      "Zintl I18n": "¡Zintl I18n",
+      "Compiler-driven internationalization for the modern web.": "La internacionalización impulsada por el compilador para la web moderna.",
+    },
+    "b_src_counter_setupCounter": {
+      "{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}": (params) => {
+    const { counter } = params;
+    return \`\${(() => {
+      if (params['counter'] == 0) return \`Empieza a contar ahora!\`;
+      const rule = new Intl.PluralRules('es').select(params['counter']);
+      if (rule === 'one') return \`El contador es uno.\`;
+      if (rule === 'two') return \`El contador es dos.\`;
+      return \`El contador es \${params['counter']}\`;
+    })()}\`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/locales/src/about.ar.txt": _zintl_asset_1,
+    "@zintl/asset:src/locales/src/about.es.txt": _zintl_asset_2,
+  },
+  };
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_render 1`] = `
+"import _zintl_asset_0 from "/Users/khalid/Lingua/lingua/examples/website/src/about.txt?zintl-raw";
+import _zintl_asset_1 from "/Users/khalid/Lingua/lingua/examples/website/src/locales/src/about.ar.txt?zintl-raw";
+import _zintl_asset_2 from "/Users/khalid/Lingua/lingua/examples/website/src/locales/src/about.es.txt?zintl-raw";
+export default { id: "b_src_main_render", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_main_render": {
+      "Zintl I18n": "Zintl I18n",
+      "Compiler-driven internationalization for the modern web.": "Compiler-driven internationalization for the modern web.",
+    },
+    "b_src_counter_setupCounter": {
+      "{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}": (params) => {
+    const { counter } = params;
+    return \`\${(() => {
+      if (params['counter'] == 0) return \`Start Counting Now!\`;
+      if (params['counter'] == 2) return \`Count is Two\`;
+      const rule = new Intl.PluralRules('en').select(params['counter']);
+      if (rule === 'one') return \`Count is One.\`;
+      return \`Count is \${params['counter']}\`;
+    })()}\`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/locales/src/about.ar.txt": _zintl_asset_1,
+    "@zintl/asset:src/locales/src/about.es.txt": _zintl_asset_2,
+  },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_render?t=123456789").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_render?t=123456789").then(m => m.default);
+        default: return {};
+      }
+    } };
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
+`;

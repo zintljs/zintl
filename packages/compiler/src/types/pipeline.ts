@@ -32,6 +32,7 @@ export interface ZintlConfig {
   logLevel?: LogLevel;
   debug?: boolean | string;
   bakedLocale?: string;
+  multiplex?: boolean;
 }
 
 export type FormIntentFn = (

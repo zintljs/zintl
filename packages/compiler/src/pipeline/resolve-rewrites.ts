@@ -192,7 +192,7 @@ function generateAnchorRewrite(intent: AnchorRewriteIntent, config: ZintlConfig)
   return {
     start: intent.location.start,
     end: intent.location.end,
-    replacement: `loadI18nInstance({ ${localePart}${debugPart}loaders: { ${loadersObj} } })`,
+    replacement: `(globalThis.__zintl_inst = loadI18nInstance({ ${localePart}${debugPart}loaders: { ${loadersObj} } }))`,
     kind: "anchor",
     priority: PRIORITY.anchor,
   };

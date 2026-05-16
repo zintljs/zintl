@@ -4,7 +4,7 @@ exports[`Scenario: Deep Meditations > Meditation 5: The Homeless Parent (Hierarc
 {
   "src/child.ts": "import { _t, loadI18nInstance } from "zintl/internal";
 import _zintl_mgr_b_90b2fd922a28 from "virtual:zintl/manager/none/entry:b_90b2fd922a28";
- loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_90b2fd922a28"]: _zintl_mgr_b_90b2fd922a28.loader } }); document.body.innerHTML = _t("8dfcaa24", { _mgr: _zintl_mgr_b_90b2fd922a28, _bId: "b_90b2fd922a28" });",
+ (globalThis.__zintl_inst = loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_90b2fd922a28"]: _zintl_mgr_b_90b2fd922a28.loader } })); document.body.innerHTML = _t("8dfcaa24", { _mgr: _zintl_mgr_b_90b2fd922a28, _bId: "b_90b2fd922a28" });",
   "src/main.ts": "import "./parent";",
   "src/parent.ts": "import { _t } from "zintl/internal";
 import _zintl_mgr_b_c2bbdf8d0ad2 from "virtual:zintl/manager/none/boundary:b_c2bbdf8d0ad2";
@@ -19,7 +19,7 @@ import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57
  export const heavy = () => { document.body.innerHTML = _t("263c62ef", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("061da32f", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("2a090d0f", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("2d43872b", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("8a31d08e", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("85715feb", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("59840aa2", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("12190a31", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("114f8eb4", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }); document.body.innerHTML = _t("8359691e", { _mgr: _zintl_mgr_b_785c57fb4811, _bId: "b_a4433d7168fd" }) };",
   "src/main.ts": "import { loadI18nInstance } from "zintl/internal";
 import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
- loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader } }); import { VERSION } from "./utils"; console.log(VERSION);",
+ (globalThis.__zintl_inst = loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader } })); import { VERSION } from "./utils"; console.log(VERSION);",
   "src/utils.ts": "import { heavy } from "./heavy"; export const VERSION = "1.0";",
 }
 `;

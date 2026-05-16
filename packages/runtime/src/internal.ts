@@ -1,5 +1,6 @@
 import {
   setLocale,
+  getLocale,
   addCatalogs,
   subscribe,
   registerLoader,
@@ -39,6 +40,10 @@ export async function loadI18nInstance(config: I18nInstanceConfig = {}) {
 
   // Temporarily set as active to perform initialization
   setActiveInstance(store);
+
+  if (typeof globalThis !== "undefined") {
+    (globalThis as any).__zintl_active = store;
+  }
 
   try {
     // 1. Config injection (Synchronous)
@@ -93,6 +98,7 @@ export async function loadI18nInstance(config: I18nInstanceConfig = {}) {
 
 export {
   setLocale,
+  getLocale,
   addCatalogs,
   subscribe,
   _t,
