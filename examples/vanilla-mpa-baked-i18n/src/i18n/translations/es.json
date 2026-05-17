@@ -1,0 +1,9 @@
+{
+  "$schema": "../.schemas/translations/.shared.schema.json",
+  "About Zintl MPA": "Acerca de Zintl MPA",
+  "Go back Home": "Volver al inicio",
+  "Go to About Page": "Ir a la página de información",
+  "This is the homepage of our multi-page application example.": "Esta es la página de inicio de nuestro ejemplo de aplicación multipágina.",
+  "This page demonstrates clean MPA routing and fully isolated hydration cycles.": "Esta página demuestra un enrutamiento MPA limpio y ciclos de hidratación completamente aislados.",
+  "Welcome to Zintl MPA Home!": "Bienvenido a la página de inicio de Zintl MPA"
+}

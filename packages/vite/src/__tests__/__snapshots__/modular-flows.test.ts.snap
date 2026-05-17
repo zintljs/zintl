@@ -11,10 +11,7 @@ import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15
 import _zintl_mgr_b_e0ddd38cb83c from "virtual:zintl/manager/none/entry:b_e0ddd38cb83c";
 import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
  (globalThis.__zintl_inst = loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader, ["b_e0ddd38cb83c"]: _zintl_mgr_b_e0ddd38cb83c.loader, ["b_e30d15249a44"]: _zintl_mgr_b_e30d15249a44.loader } })); import "./shared";",
-  "src/shared.ts": "import { loadI18nInstance } from "zintl/internal";
-import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15249a44";
-import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
- document.body.innerHTML = "Welcome";",
+  "src/shared.ts": "document.body.innerHTML = "Welcome";",
 }
 `;
 

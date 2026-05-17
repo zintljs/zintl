@@ -439,7 +439,6 @@ async function _runBuild(
     { build: testOverrides },
   );
 
-  // Override Zintl output directory and disable pruning for the build instance too
   const zintlPlugin = findZintlPlugin(config);
   if (zintlPlugin && tempOutputDir) {
     // Update the options so when configResolved is called by Vite, it uses the correct paths
@@ -458,5 +457,7 @@ async function _runBuild(
 
 function findZintlPlugin(config: InlineConfig): any {
   const plugins = ((config.plugins ?? []) as any[]).flat(Infinity);
-  return plugins.find((p: any) => p != null && typeof p === "object" && p.name === "zintl");
+  return plugins.find(
+    (p: any) => p != null && typeof p === "object" && (p.__options || p.name === "zintl"),
+  );
 }

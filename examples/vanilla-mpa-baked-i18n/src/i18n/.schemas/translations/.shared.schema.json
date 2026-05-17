@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "About Zintl MPA": {
+      "type": "string"
+    },
+    "Go back Home": {
+      "type": "string"
+    },
+    "Go to About Page": {
+      "type": "string"
+    },
+    "This is the homepage of our multi-page application example.": {
+      "type": "string"
+    },
+    "This page demonstrates clean MPA routing and fully isolated hydration cycles.": {
+      "type": "string"
+    },
+    "Welcome to Zintl MPA Home!": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "About Zintl MPA",
+    "Go back Home",
+    "Go to About Page",
+    "This is the homepage of our multi-page application example.",
+    "This page demonstrates clean MPA routing and fully isolated hydration cycles.",
+    "Welcome to Zintl MPA Home!"
+  ],
+  "additionalProperties": false
+}

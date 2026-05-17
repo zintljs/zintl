@@ -3,7 +3,7 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   workspaces: {
     "examples/**": {
-      entry: ["index.html"],
+      entry: ["index.html", "src/main.ts", "src/index.ts", "src/about.ts"],
       project: ["src/**/*.ts", "index.html"],
     },
     "packages/compiler": {

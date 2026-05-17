@@ -67,6 +67,60 @@ importers:
         specifier: npm:@voidzero-dev/vite-plus-test@latest
         version: '@voidzero-dev/vite-plus-test@0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(jiti@2.7.0)(typescript@6.0.3)(vite@8.0.13(@types/node@24.12.4)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)'
 
+  examples/vanilla-mpa-baked-i18n:
+    devDependencies:
+      '@zintl/vite':
+        specifier: workspace:*
+        version: link:../../packages/vite
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@latest
+        version: '@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
+      zintl:
+        specifier: workspace:*
+        version: link:../../packages/runtime
+
+  examples/vanilla-mpa-basic:
+    devDependencies:
+      '@zintl/vite':
+        specifier: workspace:*
+        version: link:../../packages/vite
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@latest
+        version: '@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
+      zintl:
+        specifier: workspace:*
+        version: link:../../packages/runtime
+
+  examples/vanilla-mpa-shared:
+    devDependencies:
+      '@zintl/vite':
+        specifier: workspace:*
+        version: link:../../packages/vite
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@latest
+        version: '@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
+      zintl:
+        specifier: workspace:*
+        version: link:../../packages/runtime
+
   examples/vanilla-spa:
     devDependencies:
       '@zintl/vite':

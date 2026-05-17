@@ -1,6 +1,6 @@
 {
   "$schema": "../../.schemas/src/components/Header.Header.schema.json",
-  "Zintl": "Zintl",
+  "About": "Sobre nosotros",
   "Home": "Inicio",
-  "About": "Sobre nosotros"
+  "Zintl": "Zintl"
 }

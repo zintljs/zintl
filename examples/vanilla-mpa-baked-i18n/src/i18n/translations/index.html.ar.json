@@ -1,0 +1,5 @@
+{
+  "$schema": "../.schemas/index.html.schema.json",
+  "dir": "rtl",
+  "title": "الرئيسية - مثال Zintl MPA Baked"
+}

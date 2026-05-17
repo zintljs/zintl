@@ -1,6 +1,6 @@
 {
   "$schema": "../../.schemas/src/components/Header.Header.schema.json",
-  "Zintl": "زينتل",
+  "About": "من نحن",
   "Home": "الرئيسية",
-  "About": "من نحن"
+  "Zintl": "زينتل"
 }

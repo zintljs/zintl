@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/about.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "",
+    "zh": ""
+  },
+  "title": {
+    "ar": "حول - مثال Zintl MPA المشترك",
+    "es": "Acerca de - Ejemplo de Zintl MPA Compartido",
+    "zh": "关于 - Zintl MPA 共享示例"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "$schema": "../.schemas/about.html.schema.json",
+  "dir": "",
+  "title": "Acerca de - Ejemplo de Zintl MPA Baked"
+}

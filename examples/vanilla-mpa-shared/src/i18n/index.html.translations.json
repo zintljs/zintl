@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "",
+    "zh": ""
+  },
+  "title": {
+    "ar": "الرئيسية - مثال Zintl MPA المشترك",
+    "es": "Inicio - Ejemplo de Zintl MPA Compartido",
+    "zh": "首页 - Zintl MPA 共享示例"
+  }
+}

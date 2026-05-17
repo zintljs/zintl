@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "title": "Zintl | Ejemplo de SPA Vanilla",
-  "dir": ""
+  "dir": "",
+  "title": "Zintl | Ejemplo de SPA Vanilla"
 }

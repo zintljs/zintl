@@ -5,22 +5,13 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirecting...</title>
-    <script id="zintl-multiplex-redirect">
-      (function() {
-        try {
-          const lang = (navigator.language || 'en').split('-')[0];
-          const supported = ["en","ar","es","zh"];
-          const target = supported.includes(lang) ? lang : 'en';
-          window.location.replace('/' + target + '/');
-        } catch (e) {
-          window.location.replace('/en/');
-        }
-      })();
-    </script>
+    <title>Zintl - Vanilla Baked I18n SPAs</title>
   </head>
   <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>"
 `;
@@ -273,9 +264,9 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>زينتل | مثال تطبيق الصفحة الواحدة مخبوز متعدد اللغات</title>
-    <script type="module" crossorigin src="/assets/modulepreload-polyfill.js"></script>
     <script type="module" crossorigin src="/assets/ar/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
+    <link rel="modulepreload" crossorigin href="/assets/switcher.js">
+    <link rel="stylesheet" crossorigin href="/assets/switcher-CUFt-qr9.css">
   </head>
   <body>
     <div id="app"></div>
@@ -285,16 +276,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/ar/index.js 1`] = `
-"import "../modulepreload-polyfill.js";
-//#region examples/vanilla-spa-i18n-baked/src/assets/typescript.svg?zintl-multiplex=ar
-var typescript_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20width='32'%20height='32'%20viewBox='0%200%20256%20256'%3e%3cpath%20fill='%23007ACC'%20d='M0%20128v128h256V0H0z'/%3e%3cpath%20fill='%23FFF'%20d='m56.612%20128.85l-.081%2010.483h33.32v94.68h23.568v-94.68h33.321v-10.28c0-5.69-.122-10.444-.284-10.566c-.122-.162-20.4-.244-44.983-.203l-44.74.122l-.121%2010.443Zm149.955-10.742c6.501%201.625%2011.459%204.51%2016.01%209.224c2.357%202.52%205.851%207.111%206.136%208.208c.08.325-11.053%207.802-17.798%2011.988c-.244.162-1.22-.894-2.317-2.52c-3.291-4.795-6.745-6.867-12.028-7.233c-7.76-.528-12.759%203.535-12.718%2010.321c0%201.992.284%203.17%201.097%204.795c1.707%203.536%204.876%205.649%2014.832%209.956c18.326%207.883%2026.168%2013.084%2031.045%2020.48c5.445%208.249%206.664%2021.415%202.966%2031.208c-4.063%2010.646-14.14%2017.879-28.323%2020.276c-4.388.772-14.79.65-19.504-.203c-10.28-1.828-20.033-6.908-26.047-13.572c-2.357-2.6-6.949-9.387-6.664-9.874c.122-.163%201.178-.813%202.356-1.504c1.138-.65%205.446-3.129%209.509-5.485l7.355-4.267l1.544%202.276c2.154%203.29%206.867%207.801%209.712%209.305c8.167%204.307%2019.383%203.698%2024.909-1.26c2.357-2.153%203.332-4.388%203.332-7.68c0-2.966-.366-4.266-1.91-6.501c-1.99-2.845-6.054-5.242-17.595-10.24c-13.206-5.69-18.895-9.224-24.096-14.832c-3.007-3.25-5.852-8.452-7.03-12.8c-.975-3.617-1.22-12.678-.447-16.335c2.723-12.76%2012.353-21.659%2026.25-24.3c4.51-.853%2014.994-.528%2019.424.569Z'/%3e%3c/svg%3e";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/vite.svg?zintl-multiplex=ar
-var vite_default = "/assets/vite-BF8QNONU.svg?zintl-multiplex=ar";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/hero.png?zintl-multiplex=ar
-var hero_default = "/assets/hero-CLDdwZDr.png?zintl-multiplex=ar";
-//#endregion
+"import { i as typescript_default, n as hero_default, r as vite_default, t as setupSwitcher } from "../switcher.js";
 //#region examples/vanilla-spa-i18n-baked/src/counter.ts?zintl-multiplex=ar
 function setupCounter(element) {
 	let counter = 0;
@@ -304,33 +286,6 @@ function setupCounter(element) {
 	};
 	element.addEventListener("click", () => setCounter(counter + 1));
 	setCounter(0);
-}
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/switcher.ts?zintl-multiplex=ar
-function setupSwitcher(element) {
-	const lang = window.location.pathname.split("/")[1] || "en";
-	element.innerHTML = [
-		{
-			id: "en",
-			name: "English"
-		},
-		{
-			id: "ar",
-			name: "العربية"
-		},
-		{
-			id: "es",
-			name: "Español"
-		},
-		{
-			id: "zh",
-			name: "中文"
-		}
-	].map((l) => \`
-    <button data-lang="\${l.id}" class="\${lang === l.id ? "active" : ""}">
-      <a href="/\${l.id}/">\${l.name}</a>
-    </button>
-  \`).join("");
 }
 //#endregion
 //#region examples/vanilla-spa-i18n-baked/src/main.ts?zintl-multiplex=ar
@@ -401,32 +356,8 @@ setupSwitcher(document.querySelector("#switcher"));
 "
 `;
 
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/en/ar/index.js 1`] = `
-"import "../../ar/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/en/en/index.js 1`] = `
-"import "../index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/en/es/index.js 1`] = `
-"import "../../es/index.js";
-"
-`;
-
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/en/index.js 1`] = `
-"import "../modulepreload-polyfill.js";
-//#region examples/vanilla-spa-i18n-baked/src/assets/typescript.svg?zintl-multiplex=en
-var typescript_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20width='32'%20height='32'%20viewBox='0%200%20256%20256'%3e%3cpath%20fill='%23007ACC'%20d='M0%20128v128h256V0H0z'/%3e%3cpath%20fill='%23FFF'%20d='m56.612%20128.85l-.081%2010.483h33.32v94.68h23.568v-94.68h33.321v-10.28c0-5.69-.122-10.444-.284-10.566c-.122-.162-20.4-.244-44.983-.203l-44.74.122l-.121%2010.443Zm149.955-10.742c6.501%201.625%2011.459%204.51%2016.01%209.224c2.357%202.52%205.851%207.111%206.136%208.208c.08.325-11.053%207.802-17.798%2011.988c-.244.162-1.22-.894-2.317-2.52c-3.291-4.795-6.745-6.867-12.028-7.233c-7.76-.528-12.759%203.535-12.718%2010.321c0%201.992.284%203.17%201.097%204.795c1.707%203.536%204.876%205.649%2014.832%209.956c18.326%207.883%2026.168%2013.084%2031.045%2020.48c5.445%208.249%206.664%2021.415%202.966%2031.208c-4.063%2010.646-14.14%2017.879-28.323%2020.276c-4.388.772-14.79.65-19.504-.203c-10.28-1.828-20.033-6.908-26.047-13.572c-2.357-2.6-6.949-9.387-6.664-9.874c.122-.163%201.178-.813%202.356-1.504c1.138-.65%205.446-3.129%209.509-5.485l7.355-4.267l1.544%202.276c2.154%203.29%206.867%207.801%209.712%209.305c8.167%204.307%2019.383%203.698%2024.909-1.26c2.357-2.153%203.332-4.388%203.332-7.68c0-2.966-.366-4.266-1.91-6.501c-1.99-2.845-6.054-5.242-17.595-10.24c-13.206-5.69-18.895-9.224-24.096-14.832c-3.007-3.25-5.852-8.452-7.03-12.8c-.975-3.617-1.22-12.678-.447-16.335c2.723-12.76%2012.353-21.659%2026.25-24.3c4.51-.853%2014.994-.528%2019.424.569Z'/%3e%3c/svg%3e";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/vite.svg?zintl-multiplex=en
-var vite_default = "/assets/vite-BF8QNONU.svg?zintl-multiplex=en";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/hero.png?zintl-multiplex=en
-var hero_default = "/assets/hero-CLDdwZDr.png?zintl-multiplex=en";
-//#endregion
+"import { i as typescript_default, n as hero_default, r as vite_default, t as setupSwitcher } from "../switcher.js";
 //#region examples/vanilla-spa-i18n-baked/src/counter.ts?zintl-multiplex=en
 function setupCounter(element) {
 	let counter = 0;
@@ -436,33 +367,6 @@ function setupCounter(element) {
 	};
 	element.addEventListener("click", () => setCounter(counter + 1));
 	setCounter(0);
-}
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/switcher.ts?zintl-multiplex=en
-function setupSwitcher(element) {
-	const lang = window.location.pathname.split("/")[1] || "en";
-	element.innerHTML = [
-		{
-			id: "en",
-			name: "English"
-		},
-		{
-			id: "ar",
-			name: "العربية"
-		},
-		{
-			id: "es",
-			name: "Español"
-		},
-		{
-			id: "zh",
-			name: "中文"
-		}
-	].map((l) => \`
-    <button data-lang="\${l.id}" class="\${lang === l.id ? "active" : ""}">
-      <a href="/\${l.id}/">\${l.name}</a>
-    </button>
-  \`).join("");
 }
 //#endregion
 //#region examples/vanilla-spa-i18n-baked/src/main.ts?zintl-multiplex=en
@@ -533,37 +437,8 @@ setupSwitcher(document.querySelector("#switcher"));
 "
 `;
 
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/en/zh/index.js 1`] = `
-"import "../../zh/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/es/ar/index.js 1`] = `
-"import "../../ar/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/es/en/index.js 1`] = `
-"import "../../en/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/es/es/index.js 1`] = `
-"import "../index.js";
-"
-`;
-
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/es/index.js 1`] = `
-"import "../modulepreload-polyfill.js";
-//#region examples/vanilla-spa-i18n-baked/src/assets/typescript.svg?zintl-multiplex=es
-var typescript_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20width='32'%20height='32'%20viewBox='0%200%20256%20256'%3e%3cpath%20fill='%23007ACC'%20d='M0%20128v128h256V0H0z'/%3e%3cpath%20fill='%23FFF'%20d='m56.612%20128.85l-.081%2010.483h33.32v94.68h23.568v-94.68h33.321v-10.28c0-5.69-.122-10.444-.284-10.566c-.122-.162-20.4-.244-44.983-.203l-44.74.122l-.121%2010.443Zm149.955-10.742c6.501%201.625%2011.459%204.51%2016.01%209.224c2.357%202.52%205.851%207.111%206.136%208.208c.08.325-11.053%207.802-17.798%2011.988c-.244.162-1.22-.894-2.317-2.52c-3.291-4.795-6.745-6.867-12.028-7.233c-7.76-.528-12.759%203.535-12.718%2010.321c0%201.992.284%203.17%201.097%204.795c1.707%203.536%204.876%205.649%2014.832%209.956c18.326%207.883%2026.168%2013.084%2031.045%2020.48c5.445%208.249%206.664%2021.415%202.966%2031.208c-4.063%2010.646-14.14%2017.879-28.323%2020.276c-4.388.772-14.79.65-19.504-.203c-10.28-1.828-20.033-6.908-26.047-13.572c-2.357-2.6-6.949-9.387-6.664-9.874c.122-.163%201.178-.813%202.356-1.504c1.138-.65%205.446-3.129%209.509-5.485l7.355-4.267l1.544%202.276c2.154%203.29%206.867%207.801%209.712%209.305c8.167%204.307%2019.383%203.698%2024.909-1.26c2.357-2.153%203.332-4.388%203.332-7.68c0-2.966-.366-4.266-1.91-6.501c-1.99-2.845-6.054-5.242-17.595-10.24c-13.206-5.69-18.895-9.224-24.096-14.832c-3.007-3.25-5.852-8.452-7.03-12.8c-.975-3.617-1.22-12.678-.447-16.335c2.723-12.76%2012.353-21.659%2026.25-24.3c4.51-.853%2014.994-.528%2019.424.569Z'/%3e%3c/svg%3e";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/vite.svg?zintl-multiplex=es
-var vite_default = "/assets/vite-BF8QNONU.svg?zintl-multiplex=es";
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/hero.png?zintl-multiplex=es
-var hero_default = "/assets/hero-CLDdwZDr.png?zintl-multiplex=es";
-//#endregion
+"import { i as typescript_default, n as hero_default, r as vite_default, t as setupSwitcher } from "../switcher.js";
 //#region examples/vanilla-spa-i18n-baked/src/counter.ts?zintl-multiplex=es
 function setupCounter(element) {
 	let counter = 0;
@@ -573,33 +448,6 @@ function setupCounter(element) {
 	};
 	element.addEventListener("click", () => setCounter(counter + 1));
 	setCounter(0);
-}
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/switcher.ts?zintl-multiplex=es
-function setupSwitcher(element) {
-	const lang = window.location.pathname.split("/")[1] || "en";
-	element.innerHTML = [
-		{
-			id: "en",
-			name: "English"
-		},
-		{
-			id: "ar",
-			name: "العربية"
-		},
-		{
-			id: "es",
-			name: "Español"
-		},
-		{
-			id: "zh",
-			name: "中文"
-		}
-	].map((l) => \`
-    <button data-lang="\${l.id}" class="\${lang === l.id ? "active" : ""}">
-      <a href="/\${l.id}/">\${l.name}</a>
-    </button>
-  \`).join("");
 }
 //#endregion
 //#region examples/vanilla-spa-i18n-baked/src/main.ts?zintl-multiplex=es
@@ -670,12 +518,7 @@ setupSwitcher(document.querySelector("#switcher"));
 "
 `;
 
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/es/zh/index.js 1`] = `
-"import "../../zh/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/modulepreload-polyfill.js 1`] = `
+exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/switcher.js 1`] = `
 "//#region \\0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -707,47 +550,16 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
 	}
 })();
 //#endregion
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/ar/index.js 1`] = `
-"import "../../ar/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/en/index.js 1`] = `
-"import "../../en/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/es/index.js 1`] = `
-"import "../../es/index.js";
-"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/index.js 1`] = `
-"import "../modulepreload-polyfill.js";
-//#region examples/vanilla-spa-i18n-baked/src/assets/typescript.svg?zintl-multiplex=zh
+//#region examples/vanilla-spa-i18n-baked/src/assets/typescript.svg
 var typescript_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20aria-hidden='true'%20width='32'%20height='32'%20viewBox='0%200%20256%20256'%3e%3cpath%20fill='%23007ACC'%20d='M0%20128v128h256V0H0z'/%3e%3cpath%20fill='%23FFF'%20d='m56.612%20128.85l-.081%2010.483h33.32v94.68h23.568v-94.68h33.321v-10.28c0-5.69-.122-10.444-.284-10.566c-.122-.162-20.4-.244-44.983-.203l-44.74.122l-.121%2010.443Zm149.955-10.742c6.501%201.625%2011.459%204.51%2016.01%209.224c2.357%202.52%205.851%207.111%206.136%208.208c.08.325-11.053%207.802-17.798%2011.988c-.244.162-1.22-.894-2.317-2.52c-3.291-4.795-6.745-6.867-12.028-7.233c-7.76-.528-12.759%203.535-12.718%2010.321c0%201.992.284%203.17%201.097%204.795c1.707%203.536%204.876%205.649%2014.832%209.956c18.326%207.883%2026.168%2013.084%2031.045%2020.48c5.445%208.249%206.664%2021.415%202.966%2031.208c-4.063%2010.646-14.14%2017.879-28.323%2020.276c-4.388.772-14.79.65-19.504-.203c-10.28-1.828-20.033-6.908-26.047-13.572c-2.357-2.6-6.949-9.387-6.664-9.874c.122-.163%201.178-.813%202.356-1.504c1.138-.65%205.446-3.129%209.509-5.485l7.355-4.267l1.544%202.276c2.154%203.29%206.867%207.801%209.712%209.305c8.167%204.307%2019.383%203.698%2024.909-1.26c2.357-2.153%203.332-4.388%203.332-7.68c0-2.966-.366-4.266-1.91-6.501c-1.99-2.845-6.054-5.242-17.595-10.24c-13.206-5.69-18.895-9.224-24.096-14.832c-3.007-3.25-5.852-8.452-7.03-12.8c-.975-3.617-1.22-12.678-.447-16.335c2.723-12.76%2012.353-21.659%2026.25-24.3c4.51-.853%2014.994-.528%2019.424.569Z'/%3e%3c/svg%3e";
 //#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/vite.svg?zintl-multiplex=zh
-var vite_default = "/assets/vite-BF8QNONU.svg?zintl-multiplex=zh";
+//#region examples/vanilla-spa-i18n-baked/src/assets/vite.svg
+var vite_default = "/assets/vite-BF8QNONU.svg";
 //#endregion
-//#region examples/vanilla-spa-i18n-baked/src/assets/hero.png?zintl-multiplex=zh
-var hero_default = "/assets/hero-CLDdwZDr.png?zintl-multiplex=zh";
+//#region examples/vanilla-spa-i18n-baked/src/assets/hero.png
+var hero_default = "/assets/hero-CLDdwZDr.png";
 //#endregion
-//#region examples/vanilla-spa-i18n-baked/src/counter.ts?zintl-multiplex=zh
-function setupCounter(element) {
-	let counter = 0;
-	const setCounter = (count) => {
-		counter = count;
-		element.innerHTML = \`计数为 \${counter}\`;
-	};
-	element.addEventListener("click", () => setCounter(counter + 1));
-	setCounter(0);
-}
-//#endregion
-//#region examples/vanilla-spa-i18n-baked/src/switcher.ts?zintl-multiplex=zh
+//#region examples/vanilla-spa-i18n-baked/src/switcher.ts
 function setupSwitcher(element) {
 	const lang = window.location.pathname.split("/")[1] || "en";
 	element.innerHTML = [
@@ -772,6 +584,23 @@ function setupSwitcher(element) {
       <a href="/\${l.id}/">\${l.name}</a>
     </button>
   \`).join("");
+}
+//#endregion
+export { typescript_default as i, hero_default as n, vite_default as r, setupSwitcher as t };
+"
+`;
+
+exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/index.js 1`] = `
+"import { i as typescript_default, n as hero_default, r as vite_default, t as setupSwitcher } from "../switcher.js";
+//#region examples/vanilla-spa-i18n-baked/src/counter.ts?zintl-multiplex=zh
+function setupCounter(element) {
+	let counter = 0;
+	const setCounter = (count) => {
+		counter = count;
+		element.innerHTML = \`计数为 \${counter}\`;
+	};
+	element.addEventListener("click", () => setCounter(counter + 1));
+	setCounter(0);
 }
 //#endregion
 //#region examples/vanilla-spa-i18n-baked/src/main.ts?zintl-multiplex=zh
@@ -842,11 +671,6 @@ setupSwitcher(document.querySelector("#switcher"));
 "
 `;
 
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/assets/zh/zh/index.js 1`] = `
-"import "../index.js";
-"
-`;
-
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/en/index.html 1`] = `
 "<!doctype html>
 <html lang="en" dir="ltr">
@@ -855,9 +679,9 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zintl - Vanilla Baked I18n SPAs</title>
-    <script type="module" crossorigin src="/assets/modulepreload-polyfill.js"></script>
     <script type="module" crossorigin src="/assets/en/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
+    <link rel="modulepreload" crossorigin href="/assets/switcher.js">
+    <link rel="stylesheet" crossorigin href="/assets/switcher-CUFt-qr9.css">
   </head>
   <body>
     <div id="app"></div>
@@ -874,9 +698,9 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zintl | ejemplo básico de aplicación de página única</title>
-    <script type="module" crossorigin src="/assets/modulepreload-polyfill.js"></script>
     <script type="module" crossorigin src="/assets/es/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
+    <link rel="modulepreload" crossorigin href="/assets/switcher.js">
+    <link rel="stylesheet" crossorigin href="/assets/switcher-CUFt-qr9.css">
   </head>
   <body>
     <div id="app"></div>
@@ -898,9 +722,11 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
           const lang = (navigator.language || 'en').split('-')[0];
           const supported = ["en","ar","es","zh"];
           const target = supported.includes(lang) ? lang : 'en';
-          window.location.replace('/' + target + '/');
+          const path = window.location.pathname.replace(/^\\/+/, '');
+          window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
-          window.location.replace('/en/');
+          const path = window.location.pathname.replace(/^\\/+/, '');
+          window.location.replace('/en/' + path);
         }
       })();
     </script>
@@ -918,9 +744,9 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zintl | 基础单页应用多语言示例</title>
-    <script type="module" crossorigin src="/assets/modulepreload-polyfill.js"></script>
     <script type="module" crossorigin src="/assets/zh/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
+    <link rel="modulepreload" crossorigin href="/assets/switcher.js">
+    <link rel="stylesheet" crossorigin href="/assets/switcher-CUFt-qr9.css">
   </head>
   <body>
     <div id="app"></div>
@@ -934,22 +760,13 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapsho
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirecting...</title>
-    <script id="zintl-multiplex-redirect">
-      (function() {
-        try {
-          const lang = (navigator.language || 'en').split('-')[0];
-          const supported = ["en","ar","es","zh"];
-          const target = supported.includes(lang) ? lang : 'en';
-          window.location.replace('/' + target + '/');
-        } catch (e) {
-          window.location.replace('/en/');
-        }
-      })();
-    </script>
+    <title>Zintl - Vanilla Baked I18n SPAs</title>
   </head>
   <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>"
 `;
@@ -967,9 +784,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapsho
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapshots (Baking) > vanilla-spa-i18n-baked/prod-transforms/src/main.ts 1`] = `
-"import { loadI18nInstance } from "zintl/internal";
-import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
-import "./style.css";
+"import "./style.css";
 import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
@@ -978,7 +793,7 @@ import heroImg from "./assets/hero.png";
 import { setupCounter } from "./counter.ts";
 import { setupSwitcher } from "./switcher.ts";
 
-await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader } }));
+
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
 <section id="header">
   <div id="switcher" class="switcher"></div>
@@ -1073,104 +888,4 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapsho
   //   });
   // });
 }"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapshots (Baking) > vanilla-spa-i18n-baked/prod-transforms/virtual:zintl/content/ar/entry:b_785c57fb4811 1`] = `
-"export default {
-    "b_785c57fb4811": {
-      "90e40d50": "ابدأ الآن",
-      "5301648d": "عدّل",
-      "f7a53867": "واحفظ لاختبار",
-      "9e9cf322": "وثائق",
-      "d0f7666b": "إجابات لأسئلتك",
-      "e49cb0ee": "استكشف Vite",
-      "824d76b1": "تعرف على المزيد",
-      "65ac13a7": "تواصل معنا",
-      "15545bc4": "انضم إلى مجتمع Vite",
-    },
-    "b_f05b8e5701f3": {
-      "3aaf6932": (params) => {
-    const { counter } = params;
-    return \`العدد هو \${params['counter']}\`;
-  },
-    },
-  };"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapshots (Baking) > vanilla-spa-i18n-baked/prod-transforms/virtual:zintl/content/es/entry:b_785c57fb4811 1`] = `
-"export default {
-    "b_785c57fb4811": {
-      "90e40d50": "Empezar",
-      "5301648d": "Editar",
-      "f7a53867": "y guarda para probar",
-      "9e9cf322": "Documentación",
-      "d0f7666b": "Tus preguntas, respondidas",
-      "e49cb0ee": "Explorar Vite",
-      "824d76b1": "Leer más",
-      "65ac13a7": "Conéctate con nosotros",
-      "15545bc4": "Únete a la comunidad de Vite",
-    },
-    "b_f05b8e5701f3": {
-      "3aaf6932": (params) => {
-    const { counter } = params;
-    return \`La cuenta es \${params['counter']}\`;
-  },
-    },
-  };"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapshots (Baking) > vanilla-spa-i18n-baked/prod-transforms/virtual:zintl/content/zh/entry:b_785c57fb4811 1`] = `
-"export default {
-    "b_785c57fb4811": {
-      "90e40d50": "开始使用",
-      "5301648d": "编辑",
-      "f7a53867": "并保存以测试",
-      "9e9cf322": "文档",
-      "d0f7666b": "你的问题，已有答案",
-      "e49cb0ee": "探索 Vite",
-      "824d76b1": "了解更多",
-      "65ac13a7": "联系我们",
-      "15545bc4": "加入 Vite 社区",
-    },
-    "b_f05b8e5701f3": {
-      "3aaf6932": (params) => {
-    const { counter } = params;
-    return \`计数为 \${params['counter']}\`;
-  },
-    },
-  };"
-`;
-
-exports[`Example Proof: vanilla-spa-i18n-baked > should match Production snapshots (Baking) > vanilla-spa-i18n-baked/prod-transforms/virtual:zintl/manager/none/entry:b_785c57fb4811 1`] = `
-"export default { id: "b_785c57fb4811", loader: (locale) => {
-      switch(locale) { 
-        case "en":
-          return {
-    "b_785c57fb4811": {
-      "90e40d50": "Get started",
-      "5301648d": "Edit",
-      "f7a53867": "and save to test",
-      "9e9cf322": "Documentation",
-      "d0f7666b": "Your questions, answered",
-      "e49cb0ee": "Explore Vite",
-      "824d76b1": "Learn more",
-      "65ac13a7": "Connect with us",
-      "15545bc4": "Join the Vite community",
-    },
-    "b_f05b8e5701f3": {
-      "3aaf6932": (params) => {
-    const { counter } = params;
-    return \`Count is \${params['counter']}\`;
-  },
-    },
-  };
-                case "ar":
-          return import("virtual:zintl/content/ar/entry:b_785c57fb4811").then(m => m.default);
-        case "es":
-          return import("virtual:zintl/content/es/entry:b_785c57fb4811").then(m => m.default);
-        case "zh":
-          return import("virtual:zintl/content/zh/entry:b_785c57fb4811").then(m => m.default);
-        default: return {};
-      }
-    } };"
 `;

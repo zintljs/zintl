@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "About Zintl MPA": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Go back Home": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Go to About Page": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "This is the homepage of our multi-page application example.": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "This page demonstrates clean MPA routing and fully isolated hydration cycles.": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Welcome to Zintl MPA Home": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "About Zintl MPA",
+    "Go back Home",
+    "Go to About Page",
+    "This is the homepage of our multi-page application example.",
+    "This page demonstrates clean MPA routing and fully isolated hydration cycles.",
+    "Welcome to Zintl MPA Home"
+  ],
+  "additionalProperties": false
+}

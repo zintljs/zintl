@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "",
+    "zh": ""
+  },
+  "title": {
+    "ar": "الرئيسية - مثال Zintl MPA",
+    "es": "Inicio - Ejemplo de Zintl MPA",
+    "zh": "首页 - Zintl MPA 示例"
+  }
+}

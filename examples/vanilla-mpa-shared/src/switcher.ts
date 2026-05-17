@@ -1,0 +1,28 @@
+export function setupSwitcher(element: HTMLElement, onSwitch: (lang: string) => void) {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+
+  const locales = [
+    { id: "en", name: "English" },
+    { id: "ar", name: "العربية" },
+    { id: "es", name: "Español" },
+    { id: "zh", name: "中文" },
+  ];
+
+  element.innerHTML = locales
+    .map(
+      (l) => `
+    <!-- @zintl-ignore -->
+    <button data-lang="${l.id}" class="${lang === l.id ? "active" : ""}">
+      ${l.name}
+    </button>
+  `,
+    )
+    .join("");
+
+  element.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const newLang = (btn as HTMLElement).dataset.lang!;
+      onSwitch(newLang);
+    });
+  });
+}
