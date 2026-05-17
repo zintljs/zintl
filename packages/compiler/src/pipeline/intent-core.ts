@@ -138,13 +138,9 @@ export function planAnchors(
         }
       }
     } else {
-      // In Production Mode, if it's a literal anchor, we remove it
+      // In Production Mode, if it's a literal or contextual baked anchor, we remove it
       // to achieve Zero-Runtime.
-      if (
-        !worldState.config.isDev &&
-        worldState.config.multiplex !== false &&
-        anchor.locale.type === "literal"
-      ) {
+      if (isBakeMode) {
         anchorRewritesByLocation.set(key, {
           type: "marker_removal",
           start: anchor.statementLocation?.start ?? anchor.location.start,

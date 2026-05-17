@@ -87,39 +87,105 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
       const locale = ctx.getMultiplexLocale(importer);
       if (locale && !id.includes("zintl-multiplex=")) {
         const cleanId = id.split("?")[0];
-        const query = id.includes("?") ? id.split("?")[1] : "";
-        const newId = `${cleanId}?${query ? query + "&" : ""}zintl-multiplex=${locale}`;
+        const extMatch = cleanId.match(/\.([a-zA-Z0-9]+)$/);
+        const ext = extMatch ? extMatch[1].toLowerCase() : "";
+        const isEligible = !ext || ["js", "jsx", "ts", "tsx", "md", "txt"].includes(ext);
 
-        const resolved = await this.resolve(newId, importer, { skipSelf: true });
-        if (resolved) {
-          const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
-          const cleanResolvedId = resolvedId.split("?")[0];
+        if (isEligible) {
+          // Resolve clean first to check for translation neutrality
+          const resolvedClean = await this.resolve(id, importer, { skipSelf: true });
+          if (resolvedClean) {
+            const cleanResolvedId = (
+              typeof resolvedClean === "string" ? resolvedClean : resolvedClean.id
+            ).split("?")[0];
+            let isTranslationNeutral = false;
+            if (ctx.compiler?.messages?.metadataGraph) {
+              const startFileId = ctx.compiler.getNormalizedId(cleanResolvedId);
+              const hasActiveZintlTransitive = (
+                fileId: string,
+                visited = new Set<string>(),
+              ): boolean => {
+                if (typeof fileId !== "string" || visited.has(fileId)) return false;
+                visited.add(fileId);
 
-          if (cleanResolvedId.endsWith(".md") || cleanResolvedId.endsWith(".txt")) {
-            await ctx.compiler.assets.registerAsset(cleanResolvedId);
+                const cleanFileId = fileId.split("?")[0];
+                const res = (() => {
+                  if (cleanFileId.endsWith(".md") || cleanFileId.endsWith(".txt")) return true;
 
-            if (locale === (ctx.compiler as any).sourceLocale) {
-              return resolved;
+                  const registeredAssets = ctx.compiler?.assets?.getRegisteredAssets() || [];
+                  if (
+                    registeredAssets.some(
+                      (asset: string) =>
+                        asset === cleanFileId || asset.startsWith(cleanFileId + "."),
+                    )
+                  ) {
+                    return true;
+                  }
+
+                  const meta = ctx.compiler.messages.metadataGraph[cleanFileId];
+                  if (meta) {
+                    const hasOwnContent =
+                      meta.hasZintlMarker ||
+                      meta.hasZintlMacro ||
+                      (meta.anchorSites && meta.anchorSites.length > 0) ||
+                      meta.needsLoader;
+                    if (hasOwnContent) return true;
+                  }
+
+                  const deps = ctx.compiler.messages.dependencyGraph[cleanFileId];
+                  if (deps) {
+                    for (const dep of deps) {
+                      const depId = typeof dep === "string" ? dep : dep?.id;
+                      if (depId && hasActiveZintlTransitive(depId, visited)) return true;
+                    }
+                  }
+                  return false;
+                })();
+                return res;
+              };
+
+              isTranslationNeutral = !hasActiveZintlTransitive(startFileId);
             }
 
-            const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
-            const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
-
-            if (existsSync(localizedPath)) {
-              const queries = resolvedId.split("?")[1] || "";
-              const suffix = queries ? `?${queries}` : "";
-              const finalId = localizedPath + suffix;
-
-              if (typeof resolved === "string") {
-                return finalId;
-              }
-              return {
-                ...resolved,
-                id: finalId,
-              };
+            if (isTranslationNeutral) {
+              return resolvedClean;
             }
           }
-          return resolved;
+
+          const query = id.includes("?") ? id.split("?")[1] : "";
+          const newId = `${cleanId}?${query ? query + "&" : ""}zintl-multiplex=${locale}`;
+
+          const resolved = await this.resolve(newId, importer, { skipSelf: true });
+          if (resolved) {
+            const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
+            const cleanResolvedId = resolvedId.split("?")[0];
+
+            if (cleanResolvedId.endsWith(".md") || cleanResolvedId.endsWith(".txt")) {
+              await ctx.compiler.assets.registerAsset(cleanResolvedId);
+
+              if (locale === (ctx.compiler as any).sourceLocale) {
+                return resolved;
+              }
+
+              const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
+              const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
+
+              if (existsSync(localizedPath)) {
+                const queries = resolvedId.split("?")[1] || "";
+                const suffix = queries ? `?${queries}` : "";
+                const finalId = localizedPath + suffix;
+
+                if (typeof resolved === "string") {
+                  return finalId;
+                }
+                return {
+                  ...resolved,
+                  id: finalId,
+                };
+              }
+            }
+            return resolved;
+          }
         }
       }
     }

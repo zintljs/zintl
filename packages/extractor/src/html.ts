@@ -11,6 +11,7 @@ export function extractHtml(
   fileBoundaryId: string,
   options: ExtractionOptions = {},
 ): ExtractionResult {
+  code = code.replace(/\r\n/g, "\n");
   const ctx = new ExtractionContext(code, filePath, fileBoundaryId, options);
   ctx.logger.debug(`Extracting HTML configurations from ${filePath}`);
 

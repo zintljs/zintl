@@ -19,7 +19,63 @@ export function zintl(
 ): Plugin & { __compiler: any; __options: ZintlOptions } {
   const ctx = new ZintlPluginContext(options);
 
-  return {
+  const prePlugin: Plugin = {
+    name: "zintl-pre",
+    enforce: "pre",
+    transformIndexHtml: {
+      order: "pre",
+      handler(html: string, viteCtx: any) {
+        const filename = viteCtx.filename || viteCtx.path || "";
+        const normalizedPath = filename.replace(/\\/g, "/");
+        const parts = normalizedPath.split("?")[0].split("/");
+        const locales = ctx.options.locales || ["en"];
+        const isFanned =
+          parts.some((p: string) => locales.includes(p)) ||
+          normalizedPath.includes("virtual:zintl-multiplex-html");
+
+        const isMultiplex = ctx.getMultiplex();
+        // console.log("[Zintl Debug] zintl-pre transformIndexHtml:", {
+        //   filename,
+        //   normalizedPath,
+        //   isFanned,
+        //   isMultiplex,
+        // });
+
+        if (isMultiplex && !isFanned) {
+          // console.log("[Zintl Debug] zintl-pre returning redirect for:", filename);
+          const localesStr = JSON.stringify(locales);
+          const defaultLocale = ctx.options.sourceLocale || "en";
+          return `<!doctype html>
+<html lang="${defaultLocale}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script id="zintl-multiplex-redirect">
+      (function() {
+        try {
+          const lang = (navigator.language || '${defaultLocale}').split('-')[0];
+          const supported = ${localesStr};
+          const target = supported.includes(lang) ? lang : '${defaultLocale}';
+          const path = window.location.pathname.replace(/^\\/+/, '');
+          window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
+        } catch (e) {
+          const path = window.location.pathname.replace(/^\\/+/, '');
+          window.location.replace('/${defaultLocale}/' + path);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>`;
+        }
+        return html;
+      },
+    },
+  };
+
+  const mainPlugin: Plugin = {
     name: PLUGIN_NAME,
     enforce: "pre",
 
@@ -33,12 +89,64 @@ export function zintl(
     transformIndexHtml: transformIndexHtmlHook(ctx),
     handleHotUpdate: handleHotUpdateHook(ctx),
     buildEnd: buildEndHook(ctx),
+  };
 
-    get __compiler() {
+  Object.defineProperty(mainPlugin, "__compiler", {
+    get() {
       return ctx.compiler;
     },
-    get __options() {
+    configurable: true,
+    enumerable: true,
+  });
+  Object.defineProperty(mainPlugin, "__options", {
+    get() {
       return ctx.options;
     },
-  } as any;
+    configurable: true,
+    enumerable: true,
+  });
+
+  const result = [prePlugin, mainPlugin];
+
+  const propertiesToForward = [
+    "name",
+    "enforce",
+    "config",
+    "configResolved",
+    "configureServer",
+    "buildStart",
+    "resolveId",
+    "load",
+    "transform",
+    "transformIndexHtml",
+    "handleHotUpdate",
+    "buildEnd",
+  ];
+
+  for (const prop of propertiesToForward) {
+    Object.defineProperty(result, prop, {
+      get() {
+        return (mainPlugin as any)[prop];
+      },
+      configurable: true,
+      enumerable: true,
+    });
+  }
+
+  Object.defineProperty(result, "__compiler", {
+    get() {
+      return ctx.compiler;
+    },
+    configurable: true,
+    enumerable: true,
+  });
+  Object.defineProperty(result, "__options", {
+    get() {
+      return ctx.options;
+    },
+    configurable: true,
+    enumerable: true,
+  });
+
+  return result as any;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@zintl/compiler",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Bundler-agnostic compiler intelligence for Zintl",
   "type": "module",
   "exports": {

@@ -495,17 +495,17 @@ export class ZintlCompiler {
       fileId = `${fileId}/index.html`;
     }
 
-    if (fileId.endsWith(".html") && fileId !== "index.html") {
+    if (fileId.endsWith(".html")) {
       const parts = fileId.split("/");
-      const last = parts[parts.length - 1];
-      if (last === "index.html" || fileId.includes("virtual:zintl-multiplex-html")) {
-        for (const loc of this.locales) {
-          if (parts.includes(loc) || fileId.includes(`:${loc}`) || fileId.includes(`/${loc}`)) {
-            fannedLocale = loc;
-            break;
-          }
+      for (const loc of this.locales) {
+        if (parts.includes(loc) || fileId.includes(`:${loc}`) || fileId.includes(`/${loc}`)) {
+          fannedLocale = loc;
+          break;
         }
-        fileId = "index.html";
+      }
+      if (fannedLocale) {
+        const filteredParts = parts.filter((p) => p !== fannedLocale);
+        fileId = filteredParts.join("/");
       }
     }
 
@@ -516,12 +516,10 @@ export class ZintlCompiler {
       let sourceHtml = html;
       let sourcePath = id;
 
-      if (fileId === "index.html") {
-        const physicalPath = join(this.root, "index.html");
-        if (await this.io.exists(physicalPath)) {
-          sourceHtml = await this.io.readFile(physicalPath);
-          sourcePath = physicalPath;
-        }
+      const physicalPath = join(this.root, fileId);
+      if (await this.io.exists(physicalPath)) {
+        sourceHtml = await this.io.readFile(physicalPath);
+        sourcePath = physicalPath;
       }
 
       await this.transform(sourceHtml, sourcePath, undefined, true);
@@ -572,6 +570,9 @@ export class ZintlCompiler {
       (isLiteral ? winningCheck.bakedLocale || this.sourceLocale : this.sourceLocale);
 
     if (targetLocale === "*") {
+      const existingRedirectRe = /<script id="zintl-sovereign-redirect">[\s\S]*?<\/script>/gi;
+      const cleanedHtml = html.replace(existingRedirectRe, "");
+
       const localesStr = JSON.stringify(this.locales);
       const defaultLocale = this.sourceLocale || "en";
       const redirectScript = `<script id="zintl-sovereign-redirect">
@@ -583,10 +584,10 @@ export class ZintlCompiler {
       })();
     </script>`;
 
-      if (html.includes("</head>")) {
-        return html.replace(/<\/head>/i, `  ${redirectScript}\n  </head>`);
+      if (cleanedHtml.includes("</head>")) {
+        return cleanedHtml.replace(/<\/head>/i, `  ${redirectScript}\n  </head>`);
       }
-      return `<head>\n  ${redirectScript}\n</head>\n${html}`;
+      return `<head>\n  ${redirectScript}\n</head>\n${cleanedHtml}`;
     }
 
     let title = meta.htmlProjection.title;
@@ -617,6 +618,15 @@ export class ZintlCompiler {
         } catch {}
       }
     }
+
+    // console.log("[Zintl Debug] transformHtml:", {
+    //   fileId,
+    //   id,
+    //   fannedLocale,
+    //   isLiteral,
+    //   targetLocale,
+    //   dir,
+    // });
 
     // 3. Apply Projection
     let mutated = html;
@@ -651,6 +661,10 @@ export class ZintlCompiler {
 
     // 4. Inject Bootstrap for Dynamic Anchors
     if (!isLiteral) {
+      const existingRe =
+        /<!--zintl-bootstrap-->\s*<script id="zintl-projection">[\s\S]*?<\/script>/gi;
+      mutated = mutated.replace(existingRe, "");
+
       let winningDetection: string | undefined;
       let winningVar: string | undefined;
 
@@ -658,9 +672,9 @@ export class ZintlCompiler {
         let scriptRel = script;
         if (scriptRel.startsWith("/")) scriptRel = scriptRel.substring(1);
         const scriptId = scriptRel.replace(/\.[^/.]+$/, "");
-        const meta = this.messages.metadataGraph[scriptId];
-        if (meta?.anchorSites) {
-          const dynamicAnchor = meta.anchorSites.find((a: any) => a.detectionCode);
+        const scriptMeta = this.messages.metadataGraph[scriptId];
+        if (scriptMeta?.anchorSites) {
+          const dynamicAnchor = scriptMeta.anchorSites.find((a: any) => a.detectionCode);
           if (dynamicAnchor) {
             winningDetection = dynamicAnchor.detectionCode;
             winningVar =
@@ -850,6 +864,7 @@ export class ZintlCompiler {
     let fileId = this.io.getNormalizedId(cleanId);
     let effectiveCleanId = cleanId;
 
+    let isFannedHtml = false;
     // Detect and redirect fanned HTML files to their original physical file
     for (const loc of this.locales) {
       const prefixProd = loc + "/";
@@ -860,28 +875,32 @@ export class ZintlCompiler {
         const relativeHtml = fileId.substring(prefixProd.length);
         fileId = relativeHtml;
         effectiveCleanId = join(this.root, relativeHtml);
+        isFannedHtml = true;
         break;
       } else if (fileId.startsWith(prefixDev) && fileId.endsWith(".html")) {
         const relativeHtml = fileId.substring(prefixDev.length);
         fileId = relativeHtml;
         effectiveCleanId = join(this.root, relativeHtml);
+        isFannedHtml = true;
         break;
       } else if (fileId === prefixDevBare) {
         fileId = "index.html";
         effectiveCleanId = join(this.root, "index.html");
+        isFannedHtml = true;
         break;
       }
     }
 
     let codeToUse = code;
-    if (fileId === "index.html") {
-      const physicalPath = join(this.root, "index.html");
-      if (existsSync(physicalPath)) {
-        codeToUse = readFileSync(physicalPath, "utf-8").replace(/\r\n/g, "\n");
-        effectiveCleanId = physicalPath;
-      }
-    } else if (effectiveMultiplexLocale !== undefined || id.includes("?")) {
-      const physicalPath = isAbsolute(cleanId) ? cleanId : join(this.root, cleanId);
+    if (
+      fileId === "index.html" ||
+      isFannedHtml ||
+      effectiveMultiplexLocale !== undefined ||
+      id.includes("?")
+    ) {
+      const physicalPath = isAbsolute(effectiveCleanId)
+        ? effectiveCleanId
+        : join(this.root, effectiveCleanId);
       if (existsSync(physicalPath)) {
         codeToUse = readFileSync(physicalPath, "utf-8").replace(/\r\n/g, "\n");
         effectiveCleanId = physicalPath;
@@ -1023,13 +1042,14 @@ export class ZintlCompiler {
             dynamic = true;
             break;
           }
-          if (common === undefined) common = a.locale.value;
-          else if (common !== a.locale.value) {
+          const val = a.locale.type === "literal" ? a.locale.value : this.sourceLocale;
+          if (common === undefined) common = val;
+          else if (common !== val) {
             mismatch = true;
             break;
           }
         }
-        if (!dynamic && !mismatch) bakedLocale = common;
+        if (!dynamic && !mismatch) bakedLocale = common || this.sourceLocale;
       } else {
         const dummy = this.createWorldState();
         const ownerId = resolveOwner(activeObservation.fileId, dummy);
@@ -1039,7 +1059,13 @@ export class ZintlCompiler {
           activeObservation,
           ownerId,
         );
-        if (anchor?.locale.type === "literal") bakedLocale = anchor.locale.value;
+        if (anchor) {
+          if (anchor.locale.type === "literal") {
+            bakedLocale = anchor.locale.value;
+          } else if (anchor.locale.type === "none") {
+            bakedLocale = this.sourceLocale;
+          }
+        }
       }
     }
 
@@ -1064,8 +1090,8 @@ export class ZintlCompiler {
 
     const world = this.createWorldState(
       catalogs,
-      effectiveMultiplexLocale ? false : undefined,
-      effectiveMultiplexLocale,
+      effectiveMultiplexLocale || bakedLocale ? false : undefined,
+      bakedLocale,
     );
 
     // Ensure findEffectiveAnchor uses the current mutated observation for this file
@@ -1344,7 +1370,7 @@ export class ZintlCompiler {
     return {
       manifest: this.messages.internalManifest as any,
       dependencyGraph: this.messages.dependencyGraph,
-      metadataGraph: this.messages.metadataGraph,
+      metadataGraph: { ...this.messages.metadataGraph },
       boundaryGraph: this.graph.boundaryGraph!,
       chunkGraph: this.graph.chunkGraph!,
       config: {

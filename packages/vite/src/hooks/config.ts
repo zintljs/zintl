@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from "vite";
 import { ZintlCompiler, type LogLevel } from "@zintl/compiler";
 import type { ZintlPluginContext } from "../context.js";
+import { isAbsolute, relative } from "node:path";
 
 export function configHook(ctx: ZintlPluginContext) {
   return function (userConfig: any) {
@@ -33,12 +34,27 @@ export function configHook(ctx: ZintlPluginContext) {
         Object.assign(inputObj, userInput);
       }
 
+      // Clean fanned inputs to avoid double-fanning
+      for (const [key, val] of Object.entries(inputObj)) {
+        for (const loc of locales) {
+          if (val.startsWith(`${loc}/`) || val.startsWith(`./${loc}/`)) {
+            delete inputObj[key];
+          }
+        }
+      }
+
+      if (Object.keys(inputObj).length === 0) {
+        inputObj.index = "index.html";
+      }
+
+      const root = userConfig.root || process.cwd();
       const expandedInput: Record<string, string> = { ...inputObj };
       for (const [key, val] of Object.entries(inputObj)) {
         if (val.endsWith(".html")) {
+          const relativeVal = isAbsolute(val) ? relative(root, val) : val;
           for (const loc of locales) {
             const prefixKey = `${loc}/${key === "main" || key === "index" ? "index" : key}`;
-            const prefixVal = `${loc}/${val}`;
+            const prefixVal = `${loc}/${relativeVal}`;
             expandedInput[prefixKey] = prefixVal;
           }
         }
@@ -71,5 +87,6 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       config.root,
       config.command === "serve",
     );
+    ctx.getMultiplex(config);
   };
 }

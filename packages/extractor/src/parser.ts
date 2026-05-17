@@ -19,6 +19,7 @@ export function extract(
   fileBoundaryId: string,
   options: ExtractionOptions = {},
 ): ExtractionResult {
+  code = code.replace(/\r\n/g, "\n");
   const activeSinks = Array.from(options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS)
     .concat(DEFAULT_UI_SINK_PROPERTIES)
     .concat(Array.from(options.uiAttributes || DEFAULT_UI_ATTRIBUTES)) as string[];

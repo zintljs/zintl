@@ -42,8 +42,18 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
   return {
     order: "post" as const,
     async handler(html: string, viteCtx: any) {
-      const vLogger = ctx.compiler._logger.withPrefix("Vite");
-      vLogger.debug(`Transforming HTML: ${viteCtx.filename || viteCtx.path}`);
+      const filename = viteCtx.filename || viteCtx.path || "";
+      const normalizedPath = filename.replace(/\\/g, "/");
+      const cleanPath = normalizedPath.split("?")[0];
+      const parts = cleanPath.split("/");
+      const locales = ctx.options.locales || ["en"];
+      const isFanned =
+        parts.some((p: string) => locales.includes(p)) ||
+        normalizedPath.includes("virtual:zintl-multiplex-html");
+
+      if (ctx.getMultiplex() && !isFanned) {
+        return html;
+      }
 
       const preloads: Record<string, string[]> = {};
       const base = (viteCtx.server?.config?.base || "") as string;
@@ -67,42 +77,6 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
             }
           }
         }
-      }
-
-      const filename = viteCtx.filename || viteCtx.path || "";
-      const normalizedPath = filename.replace(/\\/g, "/");
-      const cleanPath = normalizedPath.split("?")[0];
-      const parts = cleanPath.split("/");
-      const locales = ctx.options.locales || ["en"];
-      const isFanned =
-        parts.some((p: string) => locales.includes(p)) ||
-        normalizedPath.includes("virtual:zintl-multiplex-html");
-
-      if (ctx.getMultiplex() && !isFanned) {
-        const localesStr = JSON.stringify(locales);
-        const defaultLocale = ctx.options.sourceLocale || "en";
-        return `<!doctype html>
-<html lang="${defaultLocale}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirecting...</title>
-    <script id="zintl-multiplex-redirect">
-      (function() {
-        try {
-          const lang = (navigator.language || '${defaultLocale}').split('-')[0];
-          const supported = ${localesStr};
-          const target = supported.includes(lang) ? lang : '${defaultLocale}';
-          window.location.replace('/' + target + '/');
-        } catch (e) {
-          window.location.replace('/${defaultLocale}/');
-        }
-      })();
-    </script>
-  </head>
-  <body>
-  </body>
-</html>`;
       }
 
       return await ctx.compiler.transformHtml(html, viteCtx.filename || viteCtx.path, preloads);
