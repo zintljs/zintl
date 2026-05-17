@@ -17,9 +17,13 @@
     "deps:lint": "knip",
     "deps:fix": "knip --fix && pnpm store prune",
     "skills": "vpx skills@latest",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "change": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "knip": "catalog:",
