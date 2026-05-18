@@ -1,5 +1,14 @@
 # @zintl/compiler
 
+## 0.0.2
+
+### Patch Changes
+
+- Optimize compiler pipelines to handle collapsed phrasing tag mappings:
+  - **Deduplicated Pipeline Support**: Propagates deduplicated tagMaps through the observation, rewrite, and baking pipelines to align with normalized phrasing tag configurations.
+- Updated dependencies
+  - @zintl/extractor@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

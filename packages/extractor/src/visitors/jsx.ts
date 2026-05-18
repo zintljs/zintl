@@ -6,10 +6,33 @@ import type {
   JSXAttribute,
   JSXExpressionContainer,
 } from "@oxc-project/types";
-import { ExtractionContext } from "../context.js";
+import { ExtractionContext, INLINE_PHRASING_TAGS } from "../context.js";
 import { generateMessageId } from "../hashing.js";
 import { getAttachedComments, parseZintlComments } from "../comments.js";
-import type { RawVariable } from "../types.js";
+import type { RawVariable, TagMapEntry } from "../types.js";
+
+function getJsxTagName(element: any): string {
+  if (element.openingElement?.name?.type === "JSXIdentifier") {
+    return element.openingElement.name.name.toLowerCase();
+  }
+  return "";
+}
+
+function isPhrasingOnly(node: any): boolean {
+  if (node.type === "JSXText") return true;
+  if (node.type === "JSXExpressionContainer") return true;
+  if (node.type === "JSXElement") {
+    const tagName = getJsxTagName(node);
+    if (!INLINE_PHRASING_TAGS.has(tagName)) return false;
+    const children = node.children || [];
+    return children.every(isPhrasingOnly);
+  }
+  if (node.type === "JSXFragment") {
+    const children = node.children || [];
+    return children.every(isPhrasingOnly);
+  }
+  return false;
+}
 
 function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionContext) {
   if (ctx.suppressionLevel > 0) return;
@@ -42,19 +65,75 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
 
   const hasDirectives = !!comments.note || Object.keys(comments.contextVars).length > 0;
   if (!children.some((c) => c.type === "JSXText" && c.value.trim()) && !hasDirectives) return;
-  if (children.some((c) => c.type === "JSXElement" || c.type === "JSXFragment")) return;
+
+  const hasNestedElements = children.some(
+    (c) => c.type === "JSXElement" || c.type === "JSXFragment",
+  );
+  if (hasNestedElements) {
+    if (!children.every(isPhrasingOnly)) return;
+
+    function shouldStitchChildren(childrenList: any[]): boolean {
+      let elementCount = 0;
+      let hasNonWhitespaceText = false;
+
+      for (const child of childrenList) {
+        if (ctx.handledNodes.has(child) || ctx.handledNodes.has(child.start)) continue;
+
+        if (child.type === "JSXElement" || child.type === "JSXFragment") {
+          elementCount++;
+        } else if (child.type === "JSXText") {
+          if (child.value.trim().length > 0) {
+            hasNonWhitespaceText = true;
+          }
+        } else if (child.type === "JSXExpressionContainer") {
+          const expr = child.expression;
+          if (expr.type !== "JSXEmptyExpression") {
+            hasNonWhitespaceText = true;
+          }
+        }
+      }
+
+      if (elementCount === 0) return false;
+      return hasNonWhitespaceText;
+    }
+
+    if (!shouldStitchChildren(children)) return;
+  }
 
   let text = "",
     variables: string[] = [],
     pairs: string[] = [];
 
-  for (const child of children) {
-    if (child.type === "JSXText") {
-      text += child.value;
-      ctx.handledNodes.add(child as any);
-    } else if (child.type === "JSXExpressionContainer") {
-      const expr = child.expression;
-      if (expr.type === "JSXEmptyExpression") continue;
+  const exprNodes: any[] = [];
+  const tagMap: TagMapEntry[] = [];
+  const counts: Record<string, number> = {};
+
+  // First pass: count tag occurrences
+  function countTags(childNode: any) {
+    if (ctx.handledNodes.has(childNode) || ctx.handledNodes.has(childNode.start)) return;
+    if (childNode.type === "JSXElement") {
+      const tagName = getJsxTagName(childNode);
+      if (INLINE_PHRASING_TAGS.has(tagName)) {
+        counts[tagName] = (counts[tagName] || 0) + 1;
+      }
+      (childNode.children || []).forEach(countTags);
+    } else if (childNode.type === "JSXFragment") {
+      (childNode.children || []).forEach(countTags);
+    }
+  }
+  children.forEach(countTags);
+
+  const currentIndices: Record<string, number> = {};
+  const activeStacks: Record<string, number[]> = {};
+
+  function serializeNode(childNode: any) {
+    if (ctx.handledNodes.has(childNode) || ctx.handledNodes.has(childNode.start)) return;
+    if (childNode.type === "JSXText") {
+      text += childNode.value;
+      ctx.handledNodes.add(childNode as any);
+    } else if (childNode.type === "JSXExpressionContainer") {
+      const expr = childNode.expression;
+      if (expr.type === "JSXEmptyExpression") return;
 
       let vName = `var${variables.length}`;
       if (expr.type === "Identifier") vName = expr.name;
@@ -78,9 +157,63 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
       text += `{${vName}}`;
       variables.push(vName);
       pairs.push(`${vName}: ${ctx.code.slice(expr.start, expr.end)}`);
-      ctx.handledNodes.add(child as any);
+      exprNodes.push(expr);
+      ctx.handledNodes.add(childNode as any);
+    } else if (childNode.type === "JSXElement") {
+      const tagName = getJsxTagName(childNode);
+      const total = counts[tagName] || 0;
+
+      const isSelfClosing = childNode.openingElement.selfClosing;
+      let alias = tagName;
+      if (total > 1) {
+        const idx = (currentIndices[tagName] || 0) + 1;
+        currentIndices[tagName] = idx;
+        if (!isSelfClosing) {
+          if (!activeStacks[tagName]) activeStacks[tagName] = [];
+          activeStacks[tagName].push(idx);
+        }
+        alias = `${tagName}${idx}`;
+      }
+
+      const openStart = childNode.openingElement.start;
+      const openEnd = childNode.openingElement.end;
+      const originalOpen = ctx.code.slice(openStart, openEnd);
+
+      tagMap.push({
+        alias,
+        originalOpen,
+        tagName,
+      });
+
+      text += isSelfClosing ? `<${alias}/>` : `<${alias}>`;
+      ctx.handledNodes.add(childNode as any);
+      ctx.handledNodes.add(childNode.openingElement as any);
+      if (childNode.closingElement) {
+        ctx.handledNodes.add(childNode.closingElement as any);
+      }
+
+      if (!isSelfClosing) {
+        (childNode.children || []).forEach(serializeNode);
+
+        if (total > 1) {
+          const stack = activeStacks[tagName] || [];
+          const idx = stack.pop() || 1;
+          text += `</${tagName}${idx}>`;
+        } else {
+          text += `</${tagName}>`;
+        }
+      }
+    } else if (childNode.type === "JSXFragment") {
+      ctx.handledNodes.add(childNode as any);
+      ctx.handledNodes.add(childNode.openingFragment as any);
+      if (childNode.closingFragment) {
+        ctx.handledNodes.add(childNode.closingFragment as any);
+      }
+      (childNode.children || []).forEach(serializeNode);
     }
   }
+
+  children.forEach(serializeNode);
 
   text = text.replace(/\s+/g, " ").trim();
   if (!text) return;
@@ -105,11 +238,6 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
 
   const start = children[0].start,
     end = children[children.length - 1].end;
-  const exprNodes = children
-    .filter(
-      (c: any) => c.type === "JSXExpressionContainer" && c.expression.type !== "JSXEmptyExpression",
-    )
-    .map((c: any) => c.expression);
 
   ctx.addRawSink({
     text,
@@ -129,6 +257,7 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
       end: exprNodes[i]?.end ?? 0,
     })),
     passVars: Object.keys(comments.contextVars).length ? comments.contextVars : undefined,
+    tagMap: tagMap.length ? tagMap : undefined,
   });
 }
 
@@ -136,7 +265,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
   return {
     JSXElement: {
       enter(node: JSXElement, ctx: ExtractionContext) {
-        if (ctx.handledNodes.has(node.start)) return;
+        if (ctx.handledNodes.has(node as any) || ctx.handledNodes.has(node.start)) return;
         const comments = parseZintlComments(node.start, ctx.trivias, ctx.code);
         if (comments.ignore) {
           ctx.pushSuppression(comments);
@@ -150,7 +279,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
     },
     JSXFragment: {
       enter(node: JSXFragment, ctx: ExtractionContext) {
-        if (ctx.handledNodes.has(node.start)) return;
+        if (ctx.handledNodes.has(node as any) || ctx.handledNodes.has(node.start)) return;
         const comments = parseZintlComments(node.start, ctx.trivias, ctx.code);
         if (comments.ignore) {
           ctx.pushSuppression(comments);

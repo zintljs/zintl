@@ -67,12 +67,17 @@ export function resolveRewrites(
           );
         }
 
+        if (intent.sink.tagMap && intent.sink.tagMap.length) {
+          replacement = reconstructTags(replacement, intent.sink.tagMap);
+        }
+
         let finalReplacement = replacement;
         if (!intent.sink.isFragment) {
           finalReplacement =
             intent.sink.sinkType === "TemplateLiteral" ||
             intent.sink.sinkType === "HTML" ||
-            (intent.sink.variables && intent.sink.variables.length > 0)
+            (intent.sink.variables && intent.sink.variables.length > 0) ||
+            (intent.sink.tagMap && intent.sink.tagMap.length > 0)
               ? "`" + replacement + "`"
               : JSON.stringify(replacement);
         }
@@ -206,7 +211,25 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent): ResolvedRewrite {
   const keyIdentifier =
     intent.isDev && intent.sink.text ? intent.sink.text : intent.messageId || intent.sink.text;
 
-  let replacement = `_t(${JSON.stringify(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${JSON.stringify(intent.boundaryId)} })`;
+  let tagsPart = "";
+  if (
+    intent.sink.text &&
+    intent.sink.text.includes("<") &&
+    intent.sink.tagMap &&
+    intent.sink.tagMap.length
+  ) {
+    const usedTags = intent.sink.tagMap.filter(
+      (entry: any) =>
+        intent.sink.text.includes(`<${entry.alias}>`) ||
+        intent.sink.text.includes(`</${entry.alias}>`) ||
+        intent.sink.text.includes(`<${entry.alias}/>`),
+    );
+    if (usedTags.length > 0) {
+      tagsPart = `, _tags: ${JSON.stringify(usedTags)}`;
+    }
+  }
+
+  let replacement = `_t(${JSON.stringify(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${JSON.stringify(intent.boundaryId)}${tagsPart} })`;
   if (intent.sink.isFragment) replacement = `\${${replacement}}`;
 
   return {
@@ -232,11 +255,27 @@ function generateManualTRewrite(intent: ManualTRewriteIntent): ResolvedRewrite {
   };
 }
 
+function reconstructTags(text: string, tagMap: any[]): string {
+  let result = text;
+  for (const entry of tagMap) {
+    result = result.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+    result = result.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+  }
+  return result;
+}
+
 function generateBakeRewrite(intent: BakingIntent): ResolvedRewrite {
-  let baked = bakeTranslation(intent.translation, intent.variables || [], intent.sink.isFragment);
+  let baked = bakeTranslation(
+    intent.translation,
+    intent.variables || [],
+    intent.sink.isFragment,
+    intent.tagMap,
+  );
   if (
     !intent.sink.isFragment &&
-    (intent.sink.sinkType === "TemplateLiteral" || intent.sink.sinkType === "HTML") &&
+    (intent.sink.sinkType === "TemplateLiteral" ||
+      intent.sink.sinkType === "HTML" ||
+      (intent.tagMap && intent.tagMap.length > 0)) &&
     !baked.startsWith("`")
   ) {
     baked = "`" + (baked.startsWith('"') ? JSON.parse(baked) : baked) + "`";
@@ -255,8 +294,10 @@ function bakeTranslation(
   translation: string | Record<string, string>,
   variables: VariableBinding[],
   isFragment: boolean = false,
+  tagMap?: any[],
 ): string {
   if (typeof translation === "string") {
+    let replaced = translation;
     if (translation.includes("{")) {
       const varMap = new Map<string, string>();
       for (const v of variables) {
@@ -266,16 +307,19 @@ function bakeTranslation(
         if (v.name) varMap.set(v.name, replacementStr);
         if (expr) varMap.set(expr, replacementStr);
       }
-      const replaced = translation.replace(
-        /\{([^}]+)\}/g,
-        (match, key) => varMap.get(key) || match,
-      );
-      return isFragment ? replaced : "`" + replaced + "`";
+      replaced = translation.replace(/\{([^}]+)\}/g, (match, key) => varMap.get(key) || match);
     }
-    return isFragment ? translation : JSON.stringify(translation);
+    if (tagMap && tagMap.length) {
+      replaced = reconstructTags(replaced, tagMap);
+    }
+    return isFragment
+      ? replaced
+      : translation.includes("{") || (tagMap && tagMap.length)
+        ? "`" + replaced + "`"
+        : JSON.stringify(replaced);
   }
   return typeof translation === "object"
-    ? buildTernary(Object.entries(translation), variables, 0)
+    ? buildTernary(Object.entries(translation), variables, 0, tagMap)
     : '""';
 }
 
@@ -283,6 +327,7 @@ function buildTernary(
   entries: [string, string | Record<string, string>][],
   variables: VariableBinding[],
   index: number,
+  tagMap?: any[],
 ): string {
   if (index >= entries.length) return '""';
   const [condition, text] = entries[index];
@@ -306,11 +351,14 @@ function buildTernary(
   }
   for (const name of mentionedInConds) if (!varMap.has(name)) varMap.set(name, `\${${name}}`);
 
-  const translatedText = String(text as any).replace(
+  let translatedText = String(text as any).replace(
     /\{([^}]+)\}/g,
     (match, key) => varMap.get(key) || match,
   );
-  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1)}`;
+  if (tagMap && tagMap.length) {
+    translatedText = reconstructTags(translatedText, tagMap);
+  }
+  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1, tagMap)}`;
 }
 
 function parseConditionToJS(condition: string, variables: VariableBinding[]): string {

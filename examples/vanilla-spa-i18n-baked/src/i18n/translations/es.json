@@ -3,11 +3,10 @@
   "Connect with us": "Conéctate con nosotros",
   "Count is {counter}": "La cuenta es {counter}",
   "Documentation": "Documentación",
-  "Edit": "Editar",
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
   "Explore Vite": "Explorar Vite",
   "Get started": "Empezar",
   "Join the Vite community": "Únete a la comunidad de Vite",
   "Learn more": "Leer más",
-  "Your questions, answered": "Tus preguntas, respondidas",
-  "and save to test": "y guarda para probar"
+  "Your questions, answered": "Tus preguntas, respondidas"
 }

@@ -11,6 +11,7 @@ import {
   AnchorSite,
   RawSink,
   RawManualT,
+  TagMapEntry,
 } from "./types.js";
 import { parseZintlComments, parseHTMLDirectives } from "./comments.js";
 import { logger as defaultLogger, type ZintlLogger } from "./logger.js";
@@ -35,6 +36,212 @@ const VOID_ELEMENTS = new Set([
 function getTagName(token: string): string {
   const match = token.match(/^<\/?([a-zA-Z0-9:-]+)/);
   return match ? match[1].toLowerCase() : "";
+}
+
+function isSingleWrappingPhrasingTag(html: string): boolean {
+  const trimmed = html.trim();
+  if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) return false;
+  if (trimmed.endsWith("/>")) return false;
+
+  const tokens = trimmed.split(/(<[^>]+>)/g).filter((t) => t.length > 0);
+  if (tokens.length < 3) return false;
+
+  const first = tokens[0];
+  if (!first.startsWith("<") || first.startsWith("</") || first.startsWith("<!--")) return false;
+
+  const firstTagName = getTagName(first);
+  if (!INLINE_PHRASING_TAGS.has(firstTagName.replace(/\d+$/, ""))) return false;
+
+  const last = tokens[tokens.length - 1];
+  if (last !== `</${firstTagName}>` && !last.startsWith(`</${firstTagName}`)) return false;
+
+  const stack: string[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.startsWith("<") && token.endsWith(">")) {
+      if (token.startsWith("<!--")) continue;
+      const isClosing = token.startsWith("</");
+      const isSelfClosing = token.endsWith("/>");
+      if (isSelfClosing) continue;
+
+      const tagName = getTagName(token);
+      if (isClosing) {
+        if (stack.length === 0) return false;
+        const popped = stack.pop();
+        if (popped !== tagName) return false;
+        if (stack.length === 0 && i < tokens.length - 1) return false;
+      } else {
+        stack.push(tagName);
+      }
+    }
+  }
+
+  return stack.length === 0;
+}
+
+function hasTranslatableText(text: string): boolean {
+  let stripped = text.replace(/<[^>]+>/g, "");
+  stripped = stripped.replace(/\{[^}]+\}/g, "");
+  return stripped.trim().length > 0;
+}
+
+function hasNonWhitespaceOutsidePhrasing(html: string): boolean {
+  const tokens = html.split(/(<[^>]+>)/g);
+  let textOutside = "";
+  const stack: string[] = [];
+  for (const token of tokens) {
+    if (token.startsWith("<") && token.endsWith(">")) {
+      if (token.startsWith("<!--")) continue;
+      const isClosing = token.startsWith("</");
+      const isSelfClosing = token.endsWith("/>");
+      if (isSelfClosing) continue;
+      const tagName = getTagName(token);
+      if (isClosing) {
+        if (stack.length > 0) stack.pop();
+      } else {
+        stack.push(tagName);
+      }
+    } else {
+      if (stack.length === 0) {
+        textOutside += token;
+      }
+    }
+  }
+  return textOutside.trim().length > 0;
+}
+
+export const INLINE_PHRASING_TAGS = new Set([
+  "span",
+  "code",
+  "strong",
+  "em",
+  "a",
+  "b",
+  "i",
+  "u",
+  "mark",
+  "small",
+  "s",
+  "del",
+  "ins",
+  "sub",
+  "sup",
+  "abbr",
+  "time",
+  "q",
+  "img",
+  "br",
+  "picture",
+  "svg",
+]);
+
+function normalizeTags(html: string): {
+  normalized: string;
+  tagMap: TagMapEntry[];
+  offsetMap: number[];
+} {
+  const tokens = html.split(/(<[^>]+>)/g);
+  const tagMap: TagMapEntry[] = [];
+  const distinctOpenTags: Record<string, string[]> = {};
+
+  // First pass: collect distinct open tag configurations for inline phrasing tags
+  for (const token of tokens) {
+    const isTag = token.startsWith("<") && token.endsWith(">");
+    if (isTag) {
+      const isClosing = token.startsWith("</");
+      const isComment = token.startsWith("<!--");
+      if (!isComment && !isClosing) {
+        const tagName = getTagName(token);
+        if (INLINE_PHRASING_TAGS.has(tagName)) {
+          if (!distinctOpenTags[tagName]) {
+            distinctOpenTags[tagName] = [];
+          }
+          if (!distinctOpenTags[tagName].includes(token)) {
+            distinctOpenTags[tagName].push(token);
+          }
+        }
+      }
+    }
+  }
+
+  // Second pass: construct normalized string, tagMap, and offsetMap
+  const activeStacks: Record<string, number[]> = {};
+  let normalized = "";
+  const offsetMap: number[] = [];
+  let origIdx = 0;
+
+  for (const token of tokens) {
+    const isTag = token.startsWith("<") && token.endsWith(">");
+    if (isTag) {
+      const isClosing = token.startsWith("</");
+      const isComment = token.startsWith("<!--");
+      if (isComment) {
+        for (let i = 0; i < token.length; i++) {
+          offsetMap.push(origIdx + i);
+        }
+        normalized += token;
+      } else {
+        const tagName = getTagName(token);
+        if (INLINE_PHRASING_TAGS.has(tagName)) {
+          const list = distinctOpenTags[tagName] || [];
+          const totalConfigs = list.length;
+          let normToken = "";
+          if (isClosing) {
+            if (totalConfigs > 1) {
+              const stack = activeStacks[tagName] || [];
+              const idx = stack.pop() || 1;
+              normToken = `</${tagName}${idx}>`;
+            } else {
+              normToken = `</${tagName}>`;
+            }
+          } else {
+            let alias = tagName;
+            const isVoid = VOID_ELEMENTS.has(tagName) || token.endsWith("/>");
+            if (totalConfigs > 1) {
+              const idx = list.indexOf(token) + 1;
+              if (!isVoid) {
+                if (!activeStacks[tagName]) activeStacks[tagName] = [];
+                activeStacks[tagName].push(idx);
+              }
+              alias = `${tagName}${idx}`;
+            }
+            normToken = isVoid ? `<${alias}/>` : `<${alias}>`;
+
+            if (!tagMap.some((entry) => entry.alias === alias)) {
+              tagMap.push({
+                alias,
+                originalOpen: token,
+                tagName,
+              });
+            }
+          }
+
+          for (let i = 0; i < normToken.length; i++) {
+            const origOffset =
+              origIdx +
+              Math.min(token.length - 1, Math.floor((i / normToken.length) * token.length));
+            offsetMap.push(origOffset);
+          }
+          normalized += normToken;
+        } else {
+          for (let i = 0; i < token.length; i++) {
+            offsetMap.push(origIdx + i);
+          }
+          normalized += token;
+        }
+      }
+    } else {
+      for (let i = 0; i < token.length; i++) {
+        offsetMap.push(origIdx + i);
+      }
+      normalized += token;
+    }
+    origIdx += token.length;
+  }
+
+  offsetMap.push(origIdx);
+
+  return { normalized, tagMap, offsetMap };
 }
 
 export class ExtractionContext {
@@ -250,53 +457,180 @@ export class ExtractionContext {
 
   private stitchHTML(
     text: string,
-    onFragment: (t: string, n?: string, v?: Record<string, string>, s?: number, e?: number) => void,
+    onFragment: (
+      t: string,
+      n?: string,
+      v?: Record<string, string>,
+      s?: number,
+      e?: number,
+      tagMap?: TagMapEntry[],
+    ) => void,
     initialNote?: string,
     initialPassVars: Record<string, string> = {},
     getOffsets?: (s: number, e: number) => { start: number; end: number },
   ) {
-    const tokens = text.split(/(<[^>]+>)/g);
+    const { normalized, tagMap, offsetMap } = normalizeTags(text);
+    const tokens = normalized.split(/(<[^>]+>)/g);
+
+    // Identify non-phrasing tokens or comments as partitions
+    const isPartition = (t: string) => {
+      if (t.startsWith("<") && t.endsWith(">")) {
+        const isComment = t.startsWith("<!--");
+        if (isComment) return true;
+        const tagName = getTagName(t);
+        const baseTagName = tagName.replace(/\d+$/, "");
+        return !INLINE_PHRASING_TAGS.has(baseTagName);
+      }
+      return false;
+    };
+
+    const skipStitchTokenIndices = new Set<number>();
+
+    // Group token indices into segments separated by partitions
+    let currentSegment: number[] = [];
+    const processSegment = (indices: number[]) => {
+      if (indices.length === 0) return;
+      const segmentStr = indices.map((idx) => tokens[idx]).join("");
+      if (!hasNonWhitespaceOutsidePhrasing(segmentStr)) {
+        for (const idx of indices) {
+          const t = tokens[idx];
+          if (t.startsWith("<") && t.endsWith(">") && !t.startsWith("<!--")) {
+            skipStitchTokenIndices.add(idx);
+          }
+        }
+      } else if (isSingleWrappingPhrasingTag(segmentStr)) {
+        let openIdx = -1;
+        let closeIdx = -1;
+        for (const idx of indices) {
+          const t = tokens[idx];
+          if (
+            t.startsWith("<") &&
+            t.endsWith(">") &&
+            !t.startsWith("<!--") &&
+            !t.startsWith("</")
+          ) {
+            openIdx = idx;
+            break;
+          }
+        }
+        for (let i = indices.length - 1; i >= 0; i--) {
+          const idx = indices[i];
+          const t = tokens[idx];
+          if (t.startsWith("</") && t.endsWith(">")) {
+            closeIdx = idx;
+            break;
+          }
+        }
+        if (openIdx !== -1 && closeIdx !== -1) {
+          skipStitchTokenIndices.add(openIdx);
+          skipStitchTokenIndices.add(closeIdx);
+        }
+      }
+    };
+
+    for (let i = 0; i < tokens.length; i++) {
+      if (isPartition(tokens[i])) {
+        processSegment(currentSegment);
+        currentSegment = [];
+      } else {
+        currentSegment.push(i);
+      }
+    }
+    processSegment(currentSegment);
+
     let currentIdx = 0,
       pendingIgnore = false;
     const ignoreStack: string[] = [];
     let localNote = initialNote;
     const localPassVars = { ...initialPassVars };
 
+    let buffer = "";
+    let bufferStartIdx = 0;
+
+    const flushBuffer = () => {
+      if (buffer.trim() && hasTranslatableText(buffer)) {
+        const trimmed = buffer.trim();
+        const leadingWhitespaceLen = buffer.length - buffer.trimStart().length;
+        const trailingWhitespaceLen = buffer.length - buffer.trimEnd().length;
+        const sInNorm = bufferStartIdx + leadingWhitespaceLen;
+        const eInNorm = currentIdx - trailingWhitespaceLen;
+
+        const sInOrig = offsetMap[sInNorm];
+        const eInOrig = offsetMap[eInNorm];
+
+        const offsets = getOffsets?.(sInOrig, eInOrig);
+        onFragment(
+          trimmed,
+          localNote,
+          localPassVars,
+          offsets?.start,
+          offsets?.end,
+          tagMap.length ? tagMap : undefined,
+        );
+        localNote = initialNote;
+        for (const k in localPassVars) {
+          if (!(k in initialPassVars)) delete localPassVars[k];
+          else localPassVars[k] = initialPassVars[k];
+        }
+      }
+      buffer = "";
+      bufferStartIdx = 0;
+    };
+
+    let tokenIdx = 0;
     for (const token of tokens) {
       const isTag = token.startsWith("<") && token.endsWith(">");
       if (isTag) {
         const isClosing = token.startsWith("</"),
           isComment = token.startsWith("<!--"),
           tagName = isComment ? "" : getTagName(token);
+
         const directives = parseHTMLDirectives(token);
-        if (directives.ignore) {
-          if (isComment) pendingIgnore = true;
-          else if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
-            ignoreStack.push(tagName);
-        } else if (pendingIgnore && !isComment) {
-          if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
-            ignoreStack.push(tagName);
-          pendingIgnore = false;
+        const hasIgnore = directives.ignore || pendingIgnore || ignoreStack.length > 0;
+
+        const baseTagName = tagName.replace(/\d+$/, "");
+        let isPhrasing = INLINE_PHRASING_TAGS.has(baseTagName);
+        if (skipStitchTokenIndices.has(tokenIdx) || hasIgnore) {
+          isPhrasing = false;
         }
-        if (isClosing && ignoreStack.length && ignoreStack[ignoreStack.length - 1] === tagName)
-          ignoreStack.pop();
-        if (directives.note) localNote = directives.note;
-        Object.assign(localPassVars, directives.contextVars);
+
+        if (isPhrasing && !isComment) {
+          if (ignoreStack.length === 0 && !pendingIgnore) {
+            if (buffer === "") {
+              bufferStartIdx = currentIdx;
+            }
+            buffer += token;
+          }
+        } else {
+          flushBuffer();
+
+          if (directives.ignore) {
+            if (isComment) pendingIgnore = true;
+            else if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
+              ignoreStack.push(tagName);
+          } else if (pendingIgnore && !isComment) {
+            if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
+              ignoreStack.push(tagName);
+            pendingIgnore = false;
+          }
+          if (isClosing && ignoreStack.length && ignoreStack[ignoreStack.length - 1] === tagName)
+            ignoreStack.pop();
+          if (directives.note) localNote = directives.note;
+          Object.assign(localPassVars, directives.contextVars);
+        }
       } else {
-        if (ignoreStack.length === 0 && !pendingIgnore && token.trim()) {
-          const trimmed = token.trim(),
-            sInT = currentIdx + token.indexOf(trimmed),
-            eInT = sInT + trimmed.length,
-            offsets = getOffsets?.(sInT, eInT);
-          onFragment(trimmed, localNote, localPassVars, offsets?.start, offsets?.end);
-          localNote = initialNote;
-          for (const k in localPassVars)
-            if (!(k in initialPassVars)) delete localPassVars[k];
-            else localPassVars[k] = initialPassVars[k];
+        if (ignoreStack.length === 0 && !pendingIgnore) {
+          if (buffer === "") {
+            bufferStartIdx = currentIdx;
+          }
+          buffer += token;
         }
       }
       currentIdx += token.length;
+      tokenIdx++;
     }
+
+    flushBuffer();
   }
 
   public findLiteralsInExpression(
@@ -322,7 +656,7 @@ export class ExtractionContext {
       if (/<[^>]+>/.test(text)) {
         this.stitchHTML(
           text,
-          (trimmed, note, passVars, start, end) => {
+          (trimmed, note, passVars, start, end, tagMap) => {
             this.pushNormalizedSource(
               {
                 node,
@@ -335,6 +669,7 @@ export class ExtractionContext {
                 transformEnd: end,
                 inlineReplacement: true,
                 passVars: Object.keys(passVars || {}).length ? { ...passVars } : undefined,
+                tagMap,
               },
               sources,
             );
@@ -418,7 +753,7 @@ export class ExtractionContext {
       if (/<[^>]+>/.test(text)) {
         this.stitchHTML(
           text,
-          (trimmed, note, passVars, start, end) => {
+          (trimmed, note, passVars, start, end, tagMap) => {
             if (
               trimmed.replace(/{[a-zA-Z0-9_]+}/g, "").trim() ||
               !!comments.note ||
@@ -436,6 +771,7 @@ export class ExtractionContext {
                   transformEnd: end,
                   inlineReplacement: true,
                   passVars: Object.keys(passVars || {}).length ? { ...passVars } : undefined,
+                  tagMap,
                 },
                 sources,
               );

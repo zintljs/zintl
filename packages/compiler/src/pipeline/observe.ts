@@ -86,6 +86,7 @@ function adaptExtractionResult(
         ? loc(raw.hostStart, raw.hostEnd!, { line: 0, column: 0 })
         : undefined,
     requiresQuoteConversion: raw.requiresQuoteConversion ?? false,
+    tagMap: raw.tagMap,
   }));
 
   // ── Convert manual t() calls ────────────────────────────────────────────

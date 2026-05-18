@@ -1,5 +1,5 @@
-import type { HtmlProjectionPayload } from "@zintl/extractor";
-export type { HtmlProjectionPayload };
+import type { HtmlProjectionPayload, TagMapEntry } from "@zintl/extractor";
+export type { HtmlProjectionPayload, TagMapEntry };
 import type { SourceLocation, ImportSpecifier } from "./ast.js";
 
 /**
@@ -48,6 +48,7 @@ export interface ObservedSink {
   fragmentLocation?: SourceLocation;
   hostNodeLocation?: SourceLocation;
   requiresQuoteConversion?: boolean;
+  tagMap?: TagMapEntry[];
 }
 
 /**

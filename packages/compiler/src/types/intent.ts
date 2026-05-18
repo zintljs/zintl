@@ -1,5 +1,5 @@
 import type { SourceLocation } from "./ast.js";
-import type { AnchorLocale, ObservedSink } from "./observation.js";
+import type { AnchorLocale, ObservedSink, TagMapEntry } from "./observation.js";
 
 /**
  * A transform intent — a desired transformation.
@@ -75,6 +75,7 @@ export interface BakingIntent {
   messageId: string;
   translation: string | Record<string, string>;
   variables?: VariableBinding[];
+  tagMap?: TagMapEntry[];
   isDev: boolean;
 }
 

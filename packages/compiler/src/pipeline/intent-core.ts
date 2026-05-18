@@ -210,6 +210,7 @@ export function planSinks(observation: FileObservation, worldState: WorldState):
       messageId,
       translation: translation !== undefined && translation !== "" ? translation : sink.text,
       variables: mapVariables(sink),
+      tagMap: sink.tagMap,
       isDev: config.isDev,
     });
   }

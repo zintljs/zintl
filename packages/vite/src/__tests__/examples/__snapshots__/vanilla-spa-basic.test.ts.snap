@@ -100,7 +100,7 @@ async function render() {
   </div>
   <div>
     <h1>\${_t("Get started", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</h1>
-    <p>\${_t("Edit", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })} <!-- @zintl-ignore --> <code>src/main.ts</code> \${_t("and save to test", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })} <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -199,8 +199,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
 "export default {
     "b_src_main_render": {
       "Get started": "ابدأ الآن",
-      "Edit": "عدّل",
-      "and save to test": "واحفظ لاختبار",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
       "Documentation": "وثائق",
       "Your questions, answered": "إجابات لأسئلتك",
       "Explore Vite": "استكشف Vite",
@@ -222,8 +221,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
 "export default {
     "b_src_main_render": {
       "Get started": "Empezar",
-      "Edit": "Editar",
-      "and save to test": "y guarda para probar",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
       "Documentation": "Documentación",
       "Your questions, answered": "Tus preguntas, respondidas",
       "Explore Vite": "Explorar Vite",
@@ -245,8 +243,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
 "export default {
     "b_src_main_render": {
       "Get started": "开始使用",
-      "Edit": "编辑",
-      "and save to test": "并保存以测试",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
       "Documentation": "文档",
       "Your questions, answered": "你的问题，已有答案",
       "Explore Vite": "探索 Vite",
@@ -271,8 +268,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
           return {
     "b_src_main_render": {
       "Get started": "Get started",
-      "Edit": "Edit",
-      "and save to test": "and save to test",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
       "Documentation": "Documentation",
       "Your questions, answered": "Your questions, answered",
       "Explore Vite": "Explore Vite",
@@ -310,8 +306,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
 var entry_b_ae1e7cbb2f74_default = {
 	"b_ae1e7cbb2f74": {
 		"90e40d50": "ابدأ الآن",
-		"5301648d": "عدّل",
-		"f7a53867": "واحفظ لاختبار",
+		"e2aae512": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
 		"9e9cf322": "وثائق",
 		"d0f7666b": "إجابات لأسئلتك",
 		"e49cb0ee": "استكشف Vite",
@@ -334,8 +329,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
 var entry_b_ae1e7cbb2f74_default = {
 	"b_ae1e7cbb2f74": {
 		"90e40d50": "Empezar",
-		"5301648d": "Editar",
-		"f7a53867": "y guarda para probar",
+		"e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
 		"9e9cf322": "Documentación",
 		"d0f7666b": "Tus preguntas, respondidas",
 		"e49cb0ee": "Explorar Vite",
@@ -358,8 +352,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
 var entry_b_ae1e7cbb2f74_default = {
 	"b_ae1e7cbb2f74": {
 		"90e40d50": "开始使用",
-		"5301648d": "编辑",
-		"f7a53867": "并保存以测试",
+		"e2aae512": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
 		"9e9cf322": "文档",
 		"d0f7666b": "你的问题，已有答案",
 		"e49cb0ee": "探索 Vite",
@@ -539,8 +532,13 @@ function _t(key, params = {}, options) {
 	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
-	const { _mgr, _bId, ...restParams } = effectiveParams;
-	return interpolate(message, restParams);
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
+	}
+	return interpolated;
 }
 function interpolate(message, params) {
 	if (message === null || message === void 0) return "";
@@ -655,8 +653,7 @@ var entry_b_ae1e7cbb2f74_default = {
 			case "en": return {
 				"b_ae1e7cbb2f74": {
 					"90e40d50": "Get started",
-					"5301648d": "Edit",
-					"f7a53867": "and save to test",
+					"e2aae512": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
 					"9e9cf322": "Documentation",
 					"d0f7666b": "Your questions, answered",
 					"e49cb0ee": "Explore Vite",
@@ -769,13 +766,15 @@ async function render() {
 		_mgr: entry_b_ae1e7cbb2f74_default,
 		_bId: "b_ae1e7cbb2f74"
 	})}</h1>
-    <p>\${_t("5301648d", {
+    <p>\${_t("e2aae512", {
 		_mgr: entry_b_ae1e7cbb2f74_default,
-		_bId: "b_ae1e7cbb2f74"
-	})} <!-- @zintl-ignore --> <code>src/main.ts</code> \${_t("f7a53867", {
-		_mgr: entry_b_ae1e7cbb2f74_default,
-		_bId: "b_ae1e7cbb2f74"
-	})} <!-- @zintl-ignore --> <code>HMR</code></p>
+		_bId: "b_ae1e7cbb2f74",
+		_tags: [{
+			"alias": "code",
+			"originalOpen": "<code>",
+			"tagName": "code"
+		}]
+	})}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -1009,7 +1008,7 @@ async function render() {
   </div>
   <div>
     <h1>\${_t("90e40d50", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })}</h1>
-    <p>\${_t("5301648d", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })} <!-- @zintl-ignore --> <code>src/main.ts</code> \${_t("f7a53867", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })} <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>\${_t("e2aae512", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -1101,8 +1100,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Production snapshots (B
 "export default {
     "b_ae1e7cbb2f74": {
       "90e40d50": "ابدأ الآن",
-      "5301648d": "عدّل",
-      "f7a53867": "واحفظ لاختبار",
+      "e2aae512": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
       "9e9cf322": "وثائق",
       "d0f7666b": "إجابات لأسئلتك",
       "e49cb0ee": "استكشف Vite",
@@ -1123,8 +1121,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Production snapshots (B
 "export default {
     "b_ae1e7cbb2f74": {
       "90e40d50": "Empezar",
-      "5301648d": "Editar",
-      "f7a53867": "y guarda para probar",
+      "e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
       "9e9cf322": "Documentación",
       "d0f7666b": "Tus preguntas, respondidas",
       "e49cb0ee": "Explorar Vite",
@@ -1145,8 +1142,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Production snapshots (B
 "export default {
     "b_ae1e7cbb2f74": {
       "90e40d50": "开始使用",
-      "5301648d": "编辑",
-      "f7a53867": "并保存以测试",
+      "e2aae512": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
       "9e9cf322": "文档",
       "d0f7666b": "你的问题，已有答案",
       "e49cb0ee": "探索 Vite",
@@ -1170,8 +1166,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Production snapshots (B
           return {
     "b_ae1e7cbb2f74": {
       "90e40d50": "Get started",
-      "5301648d": "Edit",
-      "f7a53867": "and save to test",
+      "e2aae512": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
       "9e9cf322": "Documentation",
       "d0f7666b": "Your questions, answered",
       "e49cb0ee": "Explore Vite",

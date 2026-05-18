@@ -48,10 +48,18 @@ export function _t(
     return "";
   }
 
-  // Remove _mgr and _bId from params before interpolation
-  const { _mgr, _bId, ...restParams } = effectiveParams;
+  // Remove _mgr, _bId and _tags from params before interpolation
+  const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 
-  return interpolate(message, restParams);
+  let interpolated = interpolate(message, restParams);
+  if (_tags && Array.isArray(_tags)) {
+    for (const entry of _tags) {
+      interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+      interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+    }
+  }
+
+  return interpolated;
 }
 
 function interpolate(message: string | Function, params: Record<string, any>): string {

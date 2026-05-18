@@ -101,12 +101,8 @@ describe("createJsxVisitor (Integration)", () => {
       }
     `;
     const result = extract(code, "test.tsx", "test");
-    // b bold /b should be a separate boundary or handled by JSXText?
-    // In processJsxChildren, if there are JSXElement children, it returns early.
-    // So <b>bold</b> is handled by its own visitor, and "Mixed" and " text" are handled by JSXText visitor.
-    expect(result.messages.map((m) => m.text)).toContain("Mixed");
-    expect(result.messages.map((m) => m.text)).toContain("bold");
-    expect(result.messages.map((m) => m.text)).toContain("text");
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].text).toBe("Mixed <b>bold</b> text");
   });
 
   it("should handle JSXAttribute with @zintl-ignore", () => {

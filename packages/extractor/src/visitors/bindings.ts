@@ -140,6 +140,7 @@ function processSinkSource(
     hostStart: isFragment ? (source.node as any).start : undefined,
     hostEnd: isFragment ? (source.node as any).end : undefined,
     requiresQuoteConversion,
+    tagMap: source.tagMap,
   });
 
   // No-op: Transformations are now handled by the Pipeline during Phase 3/4

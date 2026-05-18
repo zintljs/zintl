@@ -15,10 +15,10 @@
     "es": "Documentación",
     "zh": "文档"
   },
-  "Edit": {
-    "ar": "عدّل",
-    "es": "Editar",
-    "zh": "编辑"
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": {
+    "ar": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
+    "es": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+    "zh": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>"
   },
   "Explore Vite": {
     "ar": "استكشف Vite",
@@ -44,10 +44,5 @@
     "ar": "إجابات لأسئلتك",
     "es": "Tus preguntas, respondidas",
     "zh": "你的问题，已有答案"
-  },
-  "and save to test": {
-    "ar": "واحفظ لاختبار",
-    "es": "y guarda para probar",
-    "zh": "并保存以测试"
   }
 }

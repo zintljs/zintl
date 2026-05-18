@@ -53,7 +53,7 @@
       },
       "type": "object"
     },
-    "Edit": {
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": {
       "additionalProperties": false,
       "description": "",
       "properties": {
@@ -148,30 +148,13 @@
         }
       },
       "type": "object"
-    },
-    "and save to test": {
-      "additionalProperties": false,
-      "description": "",
-      "properties": {
-        "ar": {
-          "type": "string"
-        },
-        "es": {
-          "type": "string"
-        },
-        "zh": {
-          "type": "string"
-        }
-      },
-      "type": "object"
     }
   },
   "required": [
-    "and save to test",
     "Connect with us",
     "Count is {counter}",
     "Documentation",
-    "Edit",
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
     "Explore Vite",
     "Get started",
     "Join the Vite community",

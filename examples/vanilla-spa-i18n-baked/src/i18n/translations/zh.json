@@ -3,11 +3,10 @@
   "Connect with us": "联系我们",
   "Count is {counter}": "计数为 {counter}",
   "Documentation": "文档",
-  "Edit": "编辑",
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
   "Explore Vite": "探索 Vite",
   "Get started": "开始使用",
   "Join the Vite community": "加入 Vite 社区",
   "Learn more": "了解更多",
-  "Your questions, answered": "你的问题，已有答案",
-  "and save to test": "并保存以测试"
+  "Your questions, answered": "你的问题，已有答案"
 }

@@ -60,7 +60,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
   </div>
   <div>
     <h1>\${_t("Get started", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" })}</h1>
-    <p>\${_t("Edit", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" })} <!-- @zintl-ignore --> <code>src/main.ts</code> \${_t("and save to test", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main" })} <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main, _bId: "b_src_main", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -150,8 +150,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 "export default {
     "b_src_main": {
       "Get started": "ابدأ الآن",
-      "Edit": "عدّل",
-      "and save to test": "واحفظ لاختبار",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
       "Documentation": "وثائق",
       "Your questions, answered": "إجابات لأسئلتك",
       "Explore Vite": "استكشف Vite",
@@ -173,8 +172,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 "export default {
     "b_src_main": {
       "Get started": "Empezar",
-      "Edit": "Editar",
-      "and save to test": "y guarda para probar",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
       "Documentation": "Documentación",
       "Your questions, answered": "Tus preguntas, respondidas",
       "Explore Vite": "Explorar Vite",
@@ -196,8 +194,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 "export default {
     "b_src_main": {
       "Get started": "开始使用",
-      "Edit": "编辑",
-      "and save to test": "并保存以测试",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
       "Documentation": "文档",
       "Your questions, answered": "你的问题，已有答案",
       "Explore Vite": "探索 Vite",
@@ -222,8 +219,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
           return {
     "b_src_main": {
       "Get started": "Get started",
-      "Edit": "Edit",
-      "and save to test": "and save to test",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
       "Documentation": "Documentation",
       "Your questions, answered": "Your questions, answered",
       "Explore Vite": "Explore Vite",
@@ -306,7 +302,7 @@ document.querySelector("#app").innerHTML = \`
   </div>
   <div>
     <h1>ابدأ الآن</h1>
-    <p>عدّل <!-- @zintl-ignore --> <code>src/main.ts</code> واحفظ لاختبار <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -387,7 +383,7 @@ document.querySelector("#app").innerHTML = \`
   </div>
   <div>
     <h1>Get started</h1>
-    <p>Edit <!-- @zintl-ignore --> <code>src/main.ts</code> and save to test <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -468,7 +464,7 @@ document.querySelector("#app").innerHTML = \`
   </div>
   <div>
     <h1>Empezar</h1>
-    <p>Editar <!-- @zintl-ignore --> <code>src/main.ts</code> y guarda para probar <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -621,7 +617,7 @@ document.querySelector("#app").innerHTML = \`
   </div>
   <div>
     <h1>开始使用</h1>
-    <p>编辑 <!-- @zintl-ignore --> <code>src/main.ts</code> 并保存以测试 <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -811,7 +807,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = \`
   </div>
   <div>
     <h1>Get started</h1>
-    <p>Edit <!-- @zintl-ignore --> <code>src/main.ts</code> and save to test <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>

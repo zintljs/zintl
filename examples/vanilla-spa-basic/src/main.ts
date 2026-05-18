@@ -35,7 +35,7 @@ async function render() {
   </div>
   <div>
     <h1>Get started</h1>
-    <p>Edit <!-- @zintl-ignore --> <code>src/main.ts</code> and save to test <!-- @zintl-ignore --> <code>HMR</code></p>
+    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>

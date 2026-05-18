@@ -3,11 +3,10 @@
   "Connect with us": "تواصل معنا",
   "Count is {counter}": "العدد هو {counter}",
   "Documentation": "وثائق",
-  "Edit": "عدّل",
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
   "Explore Vite": "استكشف Vite",
   "Get started": "ابدأ الآن",
   "Join the Vite community": "انضم إلى مجتمع Vite",
   "Learn more": "تعرف على المزيد",
-  "Your questions, answered": "إجابات لأسئلتك",
-  "and save to test": "واحفظ لاختبار"
+  "Your questions, answered": "إجابات لأسئلتك"
 }

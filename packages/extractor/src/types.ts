@@ -127,6 +127,14 @@ export interface RawSink {
   hostEnd?: number;
   /** True if the host string literal must be converted to a template literal. */
   requiresQuoteConversion?: boolean;
+  /** Phrase tag attribute map (alias -> original open tag). */
+  tagMap?: TagMapEntry[];
+}
+
+export interface TagMapEntry {
+  alias: string;
+  originalOpen: string;
+  tagName: string;
 }
 
 /**
@@ -177,6 +185,7 @@ export interface LiteralSource {
   inlineReplacement?: boolean;
   normalizedVariables?: Record<string, string>;
   passVars?: Record<string, string>;
+  tagMap?: TagMapEntry[];
 }
 
 export interface BoundaryInfo {

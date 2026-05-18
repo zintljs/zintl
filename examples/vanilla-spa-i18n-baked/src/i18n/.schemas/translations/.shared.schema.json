@@ -25,7 +25,7 @@
     "Documentation": {
       "type": "string"
     },
-    "Edit": {
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": {
       "type": "string"
     },
     "Explore Vite": {
@@ -42,17 +42,13 @@
     },
     "Your questions, answered": {
       "type": "string"
-    },
-    "and save to test": {
-      "type": "string"
     }
   },
   "required": [
-    "and save to test",
     "Connect with us",
     "Count is {counter}",
     "Documentation",
-    "Edit",
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
     "Explore Vite",
     "Get started",
     "Join the Vite community",

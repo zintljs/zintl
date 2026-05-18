@@ -132,3 +132,128 @@ it("should normalize unnamed template literal expressions to stable {input} name
   expect(msg).toBeDefined();
   expect(msg?.text).toBe("Type-safe by default {input}");
 });
+
+describe("Rich HTML/JSX Tag Stitching exploration", () => {
+  it.skip("explores how the current system parses rich HTML blocks with tags", () => {
+    const code = `
+      element.innerHTML = "Please <span>click here</span> to read the <code>instructions</code>.";
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    console.log(
+      "DIAGNOSTIC - Extracted messages:",
+      result.messages.map((m) => m.text),
+    );
+  });
+
+  it.skip("explores how the current system parses rich JSX elements with tags", () => {
+    const code = `
+      const App = () => {
+        return <p>Please <span>click here</span> to read the <code>instructions</code>.</p>;
+      };
+    `;
+    const result = extract(code, "test.tsx", "test_boundary");
+    console.log(
+      "DIAGNOSTIC - Extracted JSX messages:",
+      Array.from(result.messages.values()).map((m) => m.text),
+    );
+  });
+
+  it("should isolate adjacent standalone sibling HTML elements without sibling text", () => {
+    const code = `
+      element.innerHTML = '<a>Home</a>\\n<a>About</a>';
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    const texts = result.messages.map((m) => m.text);
+    expect(texts).toContain("Home");
+    expect(texts).toContain("About");
+    expect(texts).not.toContain("Home Navigation");
+  });
+
+  it("should parse ignore comment directives inside phrasing tags correctly", () => {
+    const code = `
+      element.innerHTML = '<p>Edit <!-- @zintl-ignore --> <code>src/main.ts</code> and save to test</p>';
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    const texts = result.messages.map((m) => m.text);
+    expect(texts).toContain("Edit");
+    expect(texts).toContain("and save to test");
+  });
+
+  it("should construct full tagMaps with attributes and keep aliases stable", () => {
+    const code = `
+      element.innerHTML = \`Please <span class="accent-btn" id="clicker">click here</span> to read.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("Please <span>click here</span> to read.");
+    expect(sink.tagMap).toBeDefined();
+    expect(sink.tagMap).toHaveLength(1);
+    expect(sink.tagMap![0]).toMatchObject({
+      alias: "span",
+      tagName: "span",
+      originalOpen: '<span class="accent-btn" id="clicker">',
+    });
+  });
+
+  it("should handle multiple spans where one has attributes and one does not", () => {
+    const code = `
+      element.innerHTML = \`This is <span class="blue-text" id="t1">first</span> and <span>second</span>.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("This is <span1>first</span1> and <span2>second</span2>.");
+    expect(sink.tagMap).toBeDefined();
+    expect(sink.tagMap).toHaveLength(2);
+    expect(sink.tagMap![0]).toMatchObject({
+      alias: "span1",
+      tagName: "span",
+      originalOpen: '<span class="blue-text" id="t1">',
+    });
+    expect(sink.tagMap![1]).toMatchObject({
+      alias: "span2",
+      tagName: "span",
+      originalOpen: "<span>",
+    });
+  });
+
+  it("should handle multiple spans that share the exact same attributes", () => {
+    const code = `
+      element.innerHTML = \`Both <span class="highlight" id="same">first</span> and <span class="highlight" id="same">second</span>.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("Both <span>first</span> and <span>second</span>.");
+    expect(sink.tagMap).toBeDefined();
+    expect(sink.tagMap).toHaveLength(1);
+    expect(sink.tagMap![0]).toMatchObject({
+      alias: "span",
+      tagName: "span",
+      originalOpen: '<span class="highlight" id="same">',
+    });
+  });
+
+  it("should handle multiple spans with completely different classes and ids", () => {
+    const code = `
+      element.innerHTML = \`<span class="c1" id="id1">first</span> and <span class="c1">second</span>.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("<span1>first</span1> and <span2>second</span2>.");
+    expect(sink.tagMap).toBeDefined();
+    expect(sink.tagMap).toHaveLength(2);
+    expect(sink.tagMap![0]).toMatchObject({
+      alias: "span1",
+      tagName: "span",
+      originalOpen: '<span class="c1" id="id1">',
+    });
+    expect(sink.tagMap![1]).toMatchObject({
+      alias: "span2",
+      tagName: "span",
+      originalOpen: '<span class="c1">',
+    });
+  });
+});

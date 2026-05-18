@@ -1,5 +1,14 @@
 # @zintl/vite
 
+## 0.0.2
+
+### Patch Changes
+
+- Update Vite integration snapshots and examples for collapsed identical tags:
+  - **Vite Snapshot Harmonization**: Standardized vanilla-spa and baked-i18n snapshots to align with collapsed phrasing tag normalization.
+- Updated dependencies
+  - @zintl/compiler@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes
