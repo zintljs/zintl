@@ -476,7 +476,7 @@ export class ExtractionContext {
     const isPartition = (t: string) => {
       if (t.startsWith("<") && t.endsWith(">")) {
         const isComment = t.startsWith("<!--");
-        if (isComment) return true;
+        if (isComment) return false;
         const tagName = getTagName(t);
         const baseTagName = tagName.replace(/\d+$/, "");
         return !INLINE_PHRASING_TAGS.has(baseTagName);
@@ -586,6 +586,20 @@ export class ExtractionContext {
           tagName = isComment ? "" : getTagName(token);
 
         const directives = parseHTMLDirectives(token);
+
+        if (isComment) {
+          if (directives.ignore) {
+            pendingIgnore = true;
+          }
+          if (directives.note) {
+            localNote = directives.note;
+          }
+          Object.assign(localPassVars, directives.contextVars);
+          currentIdx += token.length;
+          tokenIdx++;
+          continue;
+        }
+
         const hasIgnore = directives.ignore || pendingIgnore || ignoreStack.length > 0;
 
         const baseTagName = tagName.replace(/\d+$/, "");

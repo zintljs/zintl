@@ -256,4 +256,42 @@ describe("Rich HTML/JSX Tag Stitching exploration", () => {
       originalOpen: '<span class="c1">',
     });
   });
+
+  it("should support deeply nested inline phrasing tags without malformed outputs", () => {
+    const code = `
+      element.innerHTML = 'Please <a>read the <code>instructions</code> carefully</a>.';
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("Please <a>read the <code>instructions</code> carefully</a>.");
+    expect(sink.tagMap).toHaveLength(2);
+    expect(sink.tagMap![0]).toMatchObject({ alias: "a", tagName: "a" });
+    expect(sink.tagMap![1]).toMatchObject({ alias: "code", tagName: "code" });
+  });
+
+  it("should propagate @zintl-note comment directives seamlessly when nested inside phrasing tags", () => {
+    const code = `
+      element.innerHTML = \`This is a <span class="btn"><!-- @zintl-note: button note -->Click here</span> element.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("This is a <span>Click here</span> element.");
+    expect(sink.note).toBe("button note");
+  });
+
+  it("should propagate @zintl-pass comment directives seamlessly when nested inside phrasing tags", () => {
+    const code = `
+      element.innerHTML = \`This is a <span class="btn"><!-- @zintl-pass: role="admin" gender="female" -->Click here</span> element.\`;
+    `;
+    const result = extract(code, "test.ts", "test_boundary");
+    expect(result.rawSinks).toHaveLength(1);
+    const sink = result.rawSinks[0];
+    expect(sink.text).toBe("This is a <span>Click here</span> element.");
+    expect(sink.passVars).toEqual({
+      role: '"admin"',
+      gender: '"female"',
+    });
+  });
 });
