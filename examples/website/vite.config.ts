@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-import { zintl } from "@zintl/vite";
+import { zintl } from "zintl";
 
 export default defineConfig({
   // logLevel: "silent",

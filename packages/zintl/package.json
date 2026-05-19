@@ -1,6 +1,6 @@
 {
-  "name": "@zintl/vite",
-  "version": "0.1.0-alpha.0",
+  "name": "zintl",
+  "version": "0.1.0-alpha.1",
   "description": "Vite plugin for Zintl automation",
   "type": "module",
   "exports": {

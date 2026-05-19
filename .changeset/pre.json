@@ -4,7 +4,7 @@
   "initialVersions": {
     "@zintl/compiler": "0.0.3",
     "@zintl/extractor": "0.0.3",
-    "@zintl/vite": "0.0.3"
+    "zintl": "0.0.3"
   },
-  "changesets": ["decouple-runtime-virtualization", "zzz-perf-zintl-compiler"]
+  "changesets": ["decouple-runtime-virtualization", "rebrand-to-zintl", "zzz-perf-zintl-compiler"]
 }

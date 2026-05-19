@@ -1,5 +1,16 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.1
+
+### Minor Changes
+
+- Rebranded the primary Vite plugin package from `@zintl/vite` to `zintl` to serve as the unified main entry point. Updated the compiler import resolution pipelines, extractor AST visitor patterns, configurations, and example imports to resolve and load from `zintl` and `zintl/macro`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @zintl/extractor@0.1.0-alpha.1
+
 ## 0.1.0-alpha.0
 
 ### Minor Changes

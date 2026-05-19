@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-import { zintl } from "@zintl/vite";
+import { zintl } from "zintl";
 import { resolve } from "node:path";
 
 export default defineConfig({

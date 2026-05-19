@@ -20,7 +20,7 @@ const config: KnipConfig = {
       entry: "src/index.ts",
       project: ["src/**/*.ts"],
     },
-    "packages/vite": {
+    "packages/zintl": {
       entry: ["src/index.ts", "src/macro.ts"],
       project: ["src/**/*.ts"],
     },

@@ -91,7 +91,7 @@ export function extract(
       const isZintl =
         sourceVal === "zintl" ||
         sourceVal === "zintl/internal" ||
-        sourceVal === "@zintl/vite/macro" ||
+        sourceVal === "zintl/macro" ||
         sourceVal === "virtual:zintl/runtime/internal" ||
         sourceVal === ctx.runtimePackage;
       const hasNoSpecifiers = !stmt.specifiers || stmt.specifiers.length === 0;

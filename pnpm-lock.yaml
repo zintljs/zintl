@@ -69,9 +69,6 @@ importers:
 
   examples/vanilla-mpa-baked-i18n:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -83,13 +80,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/vanilla-mpa-basic:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -101,13 +95,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/vanilla-mpa-shared:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -119,13 +110,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/vanilla-spa:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -137,13 +125,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/vanilla-spa-basic:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -155,13 +140,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/vanilla-spa-i18n-baked:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -173,13 +155,10 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   examples/website:
     devDependencies:
-      '@zintl/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -191,7 +170,7 @@ importers:
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)
       zintl:
         specifier: workspace:*
-        version: link:../../packages/runtime
+        version: link:../../packages/zintl
 
   packages/compiler:
     dependencies:
@@ -234,19 +213,7 @@ importers:
         specifier: 'catalog:'
         version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(jiti@2.7.0)(typescript@6.0.3)(vite@8.0.13(@types/node@24.12.4)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)
 
-  packages/runtime:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.12.4
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vite-plus:
-        specifier: 'catalog:'
-        version: 0.1.21(@types/node@24.12.4)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(jiti@2.7.0)(typescript@6.0.3)(vite@8.0.13(@types/node@24.12.4)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)
-
-  packages/vite:
+  packages/zintl:
     dependencies:
       '@zintl/compiler':
         specifier: workspace:*
@@ -254,9 +221,6 @@ importers:
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@latest
         version: '@voidzero-dev/vite-plus-core@0.1.21(@types/node@24.12.4)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.0)'
-      zintl:
-        specifier: workspace:*
-        version: link:../runtime
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

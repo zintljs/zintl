@@ -9,9 +9,9 @@
     "preview": "vp preview"
   },
   "devDependencies": {
-    "@zintl/vite": "workspace:*",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "zintl": "workspace:*"
   }
 }

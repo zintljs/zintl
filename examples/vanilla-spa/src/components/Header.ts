@@ -1,4 +1,4 @@
-// import { zintl } from "@zintl/vite/macro";
+// import { zintl } from "zintl/macro";
 
 export async function Header(currentLocale: string) {
   // Establishing an independent anchor for the header

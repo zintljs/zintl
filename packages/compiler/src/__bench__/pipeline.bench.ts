@@ -98,7 +98,7 @@ describe("Zintl Compiler Pipeline", async () => {
   // Setup for Colony HMR Bench
   const colonyPath = join(root, "src/colony.ts");
   const colonyContent = (seed: number) => `
-    import { t } from "@zintl/vite/macro";
+    import { t } from "zintl/macro";
     export function Colony() { return t("Colony Message ${seed}"); }
   `;
   await writeFile(colonyPath, colonyContent(0));
@@ -106,7 +106,7 @@ describe("Zintl Compiler Pipeline", async () => {
 
   const kingdomPath = join(root, "src/kingdom.ts");
   const kingdomContent = `
-    import { zintl } from "@zintl/vite/macro";
+    import { zintl } from "zintl/macro";
     zintl("en");
     export async function main() {
       const { Colony } = await import("./colony.js");

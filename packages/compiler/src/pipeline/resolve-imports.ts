@@ -8,7 +8,7 @@ import type {
 } from "../types/index.js";
 
 const RUNTIME_INTERNAL_PACKAGE = "virtual:zintl/runtime/internal";
-const MACRO_PACKAGE = "@zintl/vite/macro";
+const MACRO_PACKAGE = "zintl/macro";
 
 /**
  * Resolve imports for the transformation plan.

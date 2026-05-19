@@ -1,4 +1,4 @@
-import { zintl } from "@zintl/vite/macro";
+import { zintl } from "zintl/macro";
 
 export async function Header(locale: string) {
   await zintl(locale);

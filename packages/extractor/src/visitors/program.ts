@@ -496,7 +496,7 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
             ZINTL_MACRO,
             "zintl",
             "zintl/internal",
-            "@zintl/vite/macro",
+            "zintl/macro",
             "virtual:zintl/runtime/internal",
             ctx.runtimePackage,
           ].includes(sourceVal)
