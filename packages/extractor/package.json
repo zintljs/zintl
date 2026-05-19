@@ -1,6 +1,6 @@
 {
   "name": "@zintl/extractor",
-  "version": "0.0.3",
+  "version": "0.1.0-alpha.0",
   "description": "AST-based message extractor for Zintl",
   "type": "module",
   "types": "./dist/index.d.mts",

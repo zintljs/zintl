@@ -9,8 +9,8 @@ import {
   subscribe,
   getActiveInstance,
   setActiveInstance,
-} from "../store.js";
-import { registerZintlLoader } from "../registry.js";
+} from "../../runtime/store.js";
+import { registerZintlLoader } from "../../runtime/registry.js";
 
 describe("I18nStore & Registry", () => {
   const registeredLoaders = new Set<string>();

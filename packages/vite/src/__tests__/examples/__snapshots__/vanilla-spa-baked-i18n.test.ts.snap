@@ -17,7 +17,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/src/counter.ts 1`] = `
-"import { _t } from "zintl/internal";
+"import { _t } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_src_main from "virtual:zintl/manager/none/entry:b_src_main";
 export function setupCounter(element: HTMLButtonElement) {
   let counter = 0;
@@ -31,7 +31,7 @@ export function setupCounter(element: HTMLButtonElement) {
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/src/main.ts 1`] = `
-"import { _t, loadI18nInstance } from "zintl/internal";
+"import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_src_main from "virtual:zintl/manager/none/entry:b_src_main";
 import "./style.css";
 import typescriptLogo from "./assets/typescript.svg";
@@ -250,6 +250,56 @@ if (import.meta.hot) {
     }
   });
 }"
+`;
+
+exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/runtime/internal 1`] = `
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, registerLoader, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.mjs";
+import { _t } from "./resolver.mjs";
+import { registerZintlLoader } from "./registry.mjs";
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	await setLocale(locale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) store.addCatalogs(config.catalogs);
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) registerLoader(boundaryId, loader);
+		if (config.locale) await store.setLocale(config.locale);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/ar/index.html 1`] = `

@@ -54,9 +54,9 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
 `;
 
 exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/src/components/Header.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_src_main_f_830 from "virtual:zintl/manager/none/entry:b_src_main_f_830";
-// import { zintl } from "zintl";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_main_f_842 from "virtual:zintl/manager/none/entry:b_src_main_f_842";
+// import { zintl } from "@zintl/vite/macro";
 
 export async function Header(currentLocale: string) {
   // Establishing an independent anchor for the header
@@ -68,11 +68,11 @@ export async function Header(currentLocale: string) {
   container.innerHTML = \`
     <nav class="navbar">
       <div class="nav-brand">
-        <span class="brand-text">\${_t("Zintl", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_components_Header_Header" })}</span>
+        <span class="brand-text">\${_t("Zintl", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_components_Header_Header" })}</span>
       </div>
       <div class="nav-links">
-        <a href="/" class="nav-link">\${_t("Home", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_components_Header_Header" })}</a>
-        <a href="/about" class="nav-link">\${_t("About", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_components_Header_Header" })}</a>
+        <a href="/" class="nav-link">\${_t("Home", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_components_Header_Header" })}</a>
+        <a href="/about" class="nav-link">\${_t("About", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_components_Header_Header" })}</a>
       </div>
       <!-- @zintl-ignore -->
       <div class="locale-switcher">
@@ -107,8 +107,8 @@ export async function Header(currentLocale: string) {
 `;
 
 exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/src/main.ts 1`] = `
-"import { loadI18nInstance } from "zintl/internal";
-import _zintl_mgr_b_src_main_f_830 from "virtual:zintl/manager/none/entry:b_src_main_f_830";
+"import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_main_f_842 from "virtual:zintl/manager/none/entry:b_src_main_f_842";
 import "./style.css";
 import { Router } from "./router";
 import { Header } from "./components/Header";
@@ -134,7 +134,7 @@ async function initApp() {
     currentLocale = locale;
 
     // Hydrate the app with the new locale's translations
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: currentLocale, loaders: { ["b_src_main_f_830"]: _zintl_mgr_b_src_main_f_830.loader, ["b_src_pages_About_About"]: _zintl_mgr_b_src_main_f_830.loader } }));
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: currentLocale, loaders: { ["b_src_main_f_842"]: _zintl_mgr_b_src_main_f_842.loader, ["b_src_pages_About_About"]: _zintl_mgr_b_src_main_f_842.loader } }));
 
     // Update Header
     headerContainer.innerHTML = "";
@@ -186,29 +186,29 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/src/pages/About.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_src_main_f_830 from "virtual:zintl/manager/none/entry:b_src_main_f_830";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_main_f_842 from "virtual:zintl/manager/none/entry:b_src_main_f_842";
 export function About() {
   const container = document.createElement("div");
   container.className = "page about-page";
 
   container.innerHTML = \`
     <section class="about-content">
-      <h2 class="section-title">\${_t("About Zintl", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_About_About" })}</h2>
+      <h2 class="section-title">\${_t("About Zintl", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_About_About" })}</h2>
       <p>
-        \${_t("Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \\n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_About_About" })}
+        \${_t("Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \\n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_About_About" })}
       </p>
       
       <div class="mission-statement">
         <blockquote>
-          \${_t("\\"Our mission is to make internationalization as seamless as writing your UI code.\\"", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_About_About" })}
+          \${_t("\\"Our mission is to make internationalization as seamless as writing your UI code.\\"", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_About_About" })}
         </blockquote>
       </div>
 
       <div class="team-section">
-        <h3>\${_t("The Philosophy", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_About_About" })}</h3>
+        <h3>\${_t("The Philosophy", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_About_About" })}</h3>
         <p>
-          \${_t("We believe that the compiler should be your best friend. By analyzing your source code, \\n          Zintl can automate the extraction, stitching, and optimization of your translations, \\n          leaving you free to focus on building amazing user experiences.", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_About_About" })}
+          \${_t("We believe that the compiler should be your best friend. By analyzing your source code, \\n          Zintl can automate the extraction, stitching, and optimization of your translations, \\n          leaving you free to focus on building amazing user experiences.", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_About_About" })}
         </p>
       </div>
     </section>
@@ -219,9 +219,9 @@ export function About() {
 `;
 
 exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/src/pages/Home.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_src_main_f_830 from "virtual:zintl/manager/none/entry:b_src_main_f_830";
-// import { zintl } from "zintl";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_main_f_842 from "virtual:zintl/manager/none/entry:b_src_main_f_842";
+// import { zintl } from "@zintl/vite/macro";
 import heroImg from "../assets/hero.png";
 
 export async function Home() {
@@ -234,13 +234,13 @@ export async function Home() {
   container.innerHTML = \`
     <section class="hero">
       <div class="hero-content">
-        <h1 class="hero-title">\${_t("Powerful I18n for Modern Apps", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</h1>
+        <h1 class="hero-title">\${_t("Powerful I18n for Modern Apps", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</h1>
         <p class="hero-subtitle">
-          \${_t("Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\\n          Experience the future of internationalization today!", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}
+          \${_t("Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\\n          Experience the future of internationalization today!", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}
         </p>
         <div class="hero-cta">
-          <button class="btn btn-primary">\${_t("Get Started", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</button>
-          <button class="btn btn-secondary">\${_t("Learn More", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</button>
+          <button class="btn btn-primary">\${_t("Get Started", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</button>
+          <button class="btn btn-secondary">\${_t("Learn More", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</button>
         </div>
       </div>
       <div class="hero-visual">
@@ -251,17 +251,17 @@ export async function Home() {
     <section class="features">
       <div class="feature-card">
         <!-- @zintl-note This is a note for Zero Config -->
-        <h3>\${_t("Zero Config", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</h3>
+        <h3>\${_t("Zero Config", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</h3>
         <!-- @zintl-pass x=1 -->
-        <p>\${_t("Just call zintl() and let the compiler do the rest of the heavy lifting for you.", { x: 1 }, { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</p>
+        <p>\${_t("Just call zintl() and let the compiler do the rest of the heavy lifting for you.", { x: 1 }, { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</p>
       </div>
       <div class="feature-card">
-        <h3>\${_t("Type Safe", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</h3>
-        <p>\${_t("Enjoy full TypeScript support with automatically generated translation schemas.", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</p>
+        <h3>\${_t("Type Safe", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</h3>
+        <p>\${_t("Enjoy full TypeScript support with automatically generated translation schemas.", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</p>
       </div>
       <div class="feature-card">
-        <h3>\${_t("Optimized", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</h3>
-        <p>\${_t("Only load what you need, when you need it. Smallest runtime footprint in the industry.", { _mgr: _zintl_mgr_b_src_main_f_830, _bId: "b_src_pages_Home_Home" })}</p>
+        <h3>\${_t("Optimized", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</h3>
+        <p>\${_t("Only load what you need, when you need it. Smallest runtime footprint in the industry.", { _mgr: _zintl_mgr_b_src_main_f_842, _bId: "b_src_pages_Home_Home" })}</p>
       </div>
     </section>
   \`;
@@ -322,7 +322,7 @@ export class Router {
 }"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_f_830 1`] = `
+exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_f_842 1`] = `
 "export default {
     "b_src_components_Header_Header": {
       "Zintl": "زينتل",
@@ -352,7 +352,7 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/content/es/entry:b_src_main_f_830 1`] = `
+exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/content/es/entry:b_src_main_f_842 1`] = `
 "export default {
     "b_src_components_Header_Header": {
       "Zintl": "Zintl",
@@ -382,8 +382,8 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_f_830 1`] = `
-"export default { id: "b_src_main_f_830", loader: (locale) => {
+exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_f_842 1`] = `
+"export default { id: "b_src_main_f_842", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -413,9 +413,9 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
     },
   };
                 case "ar":
-          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_f_830").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_f_842").then(m => m.default);
         case "es":
-          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_f_830").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_f_842").then(m => m.default);
         default: return {};
       }
     } };
@@ -428,8 +428,58 @@ if (import.meta.hot) {
 }"
 `;
 
+exports[`Example Proof: vanilla-spa > should match Development snapshots (Identity keys) > vanilla-spa/dev-transforms/virtual:zintl/runtime/internal 1`] = `
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, registerLoader, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.mjs";
+import { _t } from "./resolver.mjs";
+import { registerZintlLoader } from "./registry.mjs";
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	await setLocale(locale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) store.addCatalogs(config.catalogs);
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) registerLoader(boundaryId, loader);
+		if (config.locale) await store.setLocale(config.locale);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
+`;
+
 exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/About.js 1`] = `
-"import { n as _t, t as entry_b_26f6a2043b0f_default } from "./index.js";
+"import { n as _t, t as entry_b_2e08c9518c0e_default } from "./index.js";
 //#region examples/vanilla-spa/src/pages/About.ts
 function About() {
 	const container = document.createElement("div");
@@ -437,12 +487,12 @@ function About() {
 	container.innerHTML = \`
     <section class="about-content">
       <h2 class="section-title">\${_t("0c4eede9", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_41f76352d384"
 	})}</h2>
       <p>
         \${_t("cdc3f7c6", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_41f76352d384"
 	})}
       </p>
@@ -450,7 +500,7 @@ function About() {
       <div class="mission-statement">
         <blockquote>
           \${_t("cab0f0a8", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_41f76352d384"
 	})}
         </blockquote>
@@ -458,12 +508,12 @@ function About() {
 
       <div class="team-section">
         <h3>\${_t("20a173f4", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_41f76352d384"
 	})}</h3>
         <p>
           \${_t("c8ba9e8e", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_41f76352d384"
 	})}
         </p>
@@ -477,9 +527,9 @@ export { About };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f.js 1`] = `
-"//#region \\0virtual:zintl/content/ar/entry:b_26f6a2043b0f
-var entry_b_26f6a2043b0f_default = {
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_2e08c9518c0e.js 1`] = `
+"//#region \\0virtual:zintl/content/ar/entry:b_2e08c9518c0e
+var entry_b_2e08c9518c0e_default = {
 	"b_e7c8b4f1ad96": {
 		"dedf795b": "زينتل",
 		"70f8bb9a": "الرئيسية",
@@ -506,13 +556,13 @@ var entry_b_26f6a2043b0f_default = {
 	}
 };
 //#endregion
-export { entry_b_26f6a2043b0f_default as default };
+export { entry_b_2e08c9518c0e_default as default };
 "
 `;
 
-exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_26f6a2043b0f2.js 1`] = `
-"//#region \\0virtual:zintl/content/es/entry:b_26f6a2043b0f
-var entry_b_26f6a2043b0f_default = {
+exports[`Example Proof: vanilla-spa > should match Final Production Build (dist) snapshots > vanilla-spa/dist/assets/entry_b_2e08c9518c0e2.js 1`] = `
+"//#region \\0virtual:zintl/content/es/entry:b_2e08c9518c0e
+var entry_b_2e08c9518c0e_default = {
 	"b_e7c8b4f1ad96": {
 		"dedf795b": "Zintl",
 		"70f8bb9a": "Inicio",
@@ -539,7 +589,7 @@ var entry_b_26f6a2043b0f_default = {
 	}
 };
 //#endregion
-export { entry_b_26f6a2043b0f_default as default };
+export { entry_b_2e08c9518c0e_default as default };
 "
 `;
 
@@ -575,7 +625,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
 	}
 })();
 //#endregion
-//#region packages/runtime/dist/store-XEH7Miu3.mjs
+//#region \\0virtual:zintl/runtime/store
 var I18nStore = class {
 	locale = "";
 	catalogs = {};
@@ -682,7 +732,7 @@ function isThenable(obj) {
 	return obj && typeof obj.then === "function";
 }
 //#endregion
-//#region packages/runtime/dist/internal.mjs
+//#region \\0virtual:zintl/runtime/resolver
 function _t(key, params = {}, options) {
 	const instance = getActiveInstance();
 	const catalogs = instance.catalogs;
@@ -719,6 +769,8 @@ function interpolate(message, params) {
 		return params[key]?.toString() ?? match;
 	});
 }
+//#endregion
+//#region \\0virtual:zintl/runtime/internal
 /**
 * Loads and configures the i18n instance for a boundary.
 * Registers loaders and merges new catalogs into the existing state.
@@ -818,9 +870,9 @@ var __vitePreload = function preload(baseModule, deps, importerUrl) {
 	});
 };
 //#endregion
-//#region \\0virtual:zintl/manager/none/entry:b_26f6a2043b0f
-var entry_b_26f6a2043b0f_default = {
-	id: "b_26f6a2043b0f",
+//#region \\0virtual:zintl/manager/none/entry:b_2e08c9518c0e
+var entry_b_2e08c9518c0e_default = {
+	id: "b_2e08c9518c0e",
 	loader: (locale) => {
 		switch (locale) {
 			case "en": return {
@@ -849,8 +901,8 @@ var entry_b_26f6a2043b0f_default = {
 					"c8ba9e8e": "We believe that the compiler should be your best friend. By analyzing your source code, \\n          Zintl can automate the extraction, stitching, and optimization of your translations, \\n          leaving you free to focus on building amazing user experiences."
 				}
 			};
-			case "ar": return __vitePreload(() => import("./entry_b_26f6a2043b0f.js").then((m) => m.default), []);
-			case "es": return __vitePreload(() => import("./entry_b_26f6a2043b0f2.js").then((m) => m.default), []);
+			case "ar": return __vitePreload(() => import("./entry_b_2e08c9518c0e.js").then((m) => m.default), []);
+			case "es": return __vitePreload(() => import("./entry_b_2e08c9518c0e2.js").then((m) => m.default), []);
 			default: return {};
 		}
 	}
@@ -902,17 +954,17 @@ async function Header(currentLocale) {
     <nav class="navbar">
       <div class="nav-brand">
         <span class="brand-text">\${_t("dedf795b", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_e7c8b4f1ad96"
 	})}</span>
       </div>
       <div class="nav-links">
         <a href="/" class="nav-link">\${_t("70f8bb9a", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_e7c8b4f1ad96"
 	})}</a>
         <a href="/about" class="nav-link">\${_t("6b21fb79", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_e7c8b4f1ad96"
 	})}</a>
       </div>
@@ -950,22 +1002,22 @@ async function Home() {
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">\${_t("da2c5899", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</h1>
         <p class="hero-subtitle">
           \${_t("d77d2ed7", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}
         </p>
         <div class="hero-cta">
           <button class="btn btn-primary">\${_t("bd2cb051", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</button>
           <button class="btn btn-secondary">\${_t("378cbbf5", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</button>
         </div>
@@ -979,32 +1031,32 @@ async function Home() {
       <div class="feature-card">
         <!-- @zintl-note This is a note for Zero Config -->
         <h3>\${_t("29eaa4f9", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</h3>
         <!-- @zintl-pass x=1 -->
         <p>\${_t("e8d55846", { x: 1 }, {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</p>
       </div>
       <div class="feature-card">
         <h3>\${_t("eb4a6c12", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</h3>
         <p>\${_t("7548843e", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</p>
       </div>
       <div class="feature-card">
         <h3>\${_t("5e115f01", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</h3>
         <p>\${_t("0ff9c8a8", {
-		_mgr: entry_b_26f6a2043b0f_default,
+		_mgr: entry_b_2e08c9518c0e_default,
 		_bId: "b_16245bf9a205"
 	})}</p>
       </div>
@@ -1028,8 +1080,8 @@ async function initApp() {
 		await (globalThis.__zintl_inst = loadI18nInstance({
 			locale: currentLocale,
 			loaders: {
-				["b_26f6a2043b0f"]: entry_b_26f6a2043b0f_default.loader,
-				["b_41f76352d384"]: entry_b_26f6a2043b0f_default.loader
+				["b_2e08c9518c0e"]: entry_b_2e08c9518c0e_default.loader,
+				["b_41f76352d384"]: entry_b_2e08c9518c0e_default.loader
 			}
 		}));
 		headerContainer.innerHTML = "";
@@ -1062,7 +1114,7 @@ async function initApp() {
 }
 initApp();
 //#endregion
-export { _t as n, entry_b_26f6a2043b0f_default as t };
+export { _t as n, entry_b_2e08c9518c0e_default as t };
 "
 `;
 
@@ -1093,7 +1145,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
         const originals = {
           title: document.title,
         };
-        const preloads = {"ar":["assets/entry_b_26f6a2043b0f.js"],"es":["assets/entry_b_26f6a2043b0f2.js"]};
+        const preloads = {"ar":["assets/entry_b_2e08c9518c0e.js"],"es":["assets/entry_b_2e08c9518c0e2.js"]};
         function preload(locale) {
           const urls = preloads[locale] || [];
           for (const url of urls) {
@@ -1186,9 +1238,9 @@ exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/
 `;
 
 exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/src/components/Header.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_26f6a2043b0f from "virtual:zintl/manager/none/entry:b_26f6a2043b0f";
-// import { zintl } from "zintl";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_2e08c9518c0e from "virtual:zintl/manager/none/entry:b_2e08c9518c0e";
+// import { zintl } from "@zintl/vite/macro";
 
 export async function Header(currentLocale: string) {
   // Establishing an independent anchor for the header
@@ -1200,11 +1252,11 @@ export async function Header(currentLocale: string) {
   container.innerHTML = \`
     <nav class="navbar">
       <div class="nav-brand">
-        <span class="brand-text">\${_t("dedf795b", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_e7c8b4f1ad96" })}</span>
+        <span class="brand-text">\${_t("dedf795b", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_e7c8b4f1ad96" })}</span>
       </div>
       <div class="nav-links">
-        <a href="/" class="nav-link">\${_t("70f8bb9a", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_e7c8b4f1ad96" })}</a>
-        <a href="/about" class="nav-link">\${_t("6b21fb79", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_e7c8b4f1ad96" })}</a>
+        <a href="/" class="nav-link">\${_t("70f8bb9a", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_e7c8b4f1ad96" })}</a>
+        <a href="/about" class="nav-link">\${_t("6b21fb79", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_e7c8b4f1ad96" })}</a>
       </div>
       <!-- @zintl-ignore -->
       <div class="locale-switcher">
@@ -1239,8 +1291,8 @@ export async function Header(currentLocale: string) {
 `;
 
 exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/src/main.ts 1`] = `
-"import { loadI18nInstance } from "zintl/internal";
-import _zintl_mgr_b_26f6a2043b0f from "virtual:zintl/manager/none/entry:b_26f6a2043b0f";
+"import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_2e08c9518c0e from "virtual:zintl/manager/none/entry:b_2e08c9518c0e";
 import "./style.css";
 import { Router } from "./router";
 import { Header } from "./components/Header";
@@ -1266,7 +1318,7 @@ async function initApp() {
     currentLocale = locale;
 
     // Hydrate the app with the new locale's translations
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: currentLocale, loaders: { ["b_26f6a2043b0f"]: _zintl_mgr_b_26f6a2043b0f.loader, ["b_41f76352d384"]: _zintl_mgr_b_26f6a2043b0f.loader } }));
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: currentLocale, loaders: { ["b_2e08c9518c0e"]: _zintl_mgr_b_2e08c9518c0e.loader, ["b_41f76352d384"]: _zintl_mgr_b_2e08c9518c0e.loader } }));
 
     // Update Header
     headerContainer.innerHTML = "";
@@ -1311,29 +1363,29 @@ void initApp();"
 `;
 
 exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/src/pages/About.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_26f6a2043b0f from "virtual:zintl/manager/none/entry:b_26f6a2043b0f";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_2e08c9518c0e from "virtual:zintl/manager/none/entry:b_2e08c9518c0e";
 export function About() {
   const container = document.createElement("div");
   container.className = "page about-page";
 
   container.innerHTML = \`
     <section class="about-content">
-      <h2 class="section-title">\${_t("0c4eede9", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_41f76352d384" })}</h2>
+      <h2 class="section-title">\${_t("0c4eede9", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_41f76352d384" })}</h2>
       <p>
-        \${_t("cdc3f7c6", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_41f76352d384" })}
+        \${_t("cdc3f7c6", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_41f76352d384" })}
       </p>
       
       <div class="mission-statement">
         <blockquote>
-          \${_t("cab0f0a8", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_41f76352d384" })}
+          \${_t("cab0f0a8", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_41f76352d384" })}
         </blockquote>
       </div>
 
       <div class="team-section">
-        <h3>\${_t("20a173f4", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_41f76352d384" })}</h3>
+        <h3>\${_t("20a173f4", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_41f76352d384" })}</h3>
         <p>
-          \${_t("c8ba9e8e", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_41f76352d384" })}
+          \${_t("c8ba9e8e", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_41f76352d384" })}
         </p>
       </div>
     </section>
@@ -1344,9 +1396,9 @@ export function About() {
 `;
 
 exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/src/pages/Home.ts 1`] = `
-"import { _t } from "zintl/internal";
-import _zintl_mgr_b_26f6a2043b0f from "virtual:zintl/manager/none/entry:b_26f6a2043b0f";
-// import { zintl } from "zintl";
+"import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_2e08c9518c0e from "virtual:zintl/manager/none/entry:b_2e08c9518c0e";
+// import { zintl } from "@zintl/vite/macro";
 import heroImg from "../assets/hero.png";
 
 export async function Home() {
@@ -1359,13 +1411,13 @@ export async function Home() {
   container.innerHTML = \`
     <section class="hero">
       <div class="hero-content">
-        <h1 class="hero-title">\${_t("da2c5899", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</h1>
+        <h1 class="hero-title">\${_t("da2c5899", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</h1>
         <p class="hero-subtitle">
-          \${_t("d77d2ed7", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}
+          \${_t("d77d2ed7", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}
         </p>
         <div class="hero-cta">
-          <button class="btn btn-primary">\${_t("bd2cb051", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</button>
-          <button class="btn btn-secondary">\${_t("378cbbf5", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</button>
+          <button class="btn btn-primary">\${_t("bd2cb051", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</button>
+          <button class="btn btn-secondary">\${_t("378cbbf5", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</button>
         </div>
       </div>
       <div class="hero-visual">
@@ -1376,17 +1428,17 @@ export async function Home() {
     <section class="features">
       <div class="feature-card">
         <!-- @zintl-note This is a note for Zero Config -->
-        <h3>\${_t("29eaa4f9", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</h3>
+        <h3>\${_t("29eaa4f9", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</h3>
         <!-- @zintl-pass x=1 -->
-        <p>\${_t("e8d55846", { x: 1 }, { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</p>
+        <p>\${_t("e8d55846", { x: 1 }, { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</p>
       </div>
       <div class="feature-card">
-        <h3>\${_t("eb4a6c12", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</h3>
-        <p>\${_t("7548843e", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</p>
+        <h3>\${_t("eb4a6c12", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</h3>
+        <p>\${_t("7548843e", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</p>
       </div>
       <div class="feature-card">
-        <h3>\${_t("5e115f01", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</h3>
-        <p>\${_t("0ff9c8a8", { _mgr: _zintl_mgr_b_26f6a2043b0f, _bId: "b_16245bf9a205" })}</p>
+        <h3>\${_t("5e115f01", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</h3>
+        <p>\${_t("0ff9c8a8", { _mgr: _zintl_mgr_b_2e08c9518c0e, _bId: "b_16245bf9a205" })}</p>
       </div>
     </section>
   \`;
@@ -1447,7 +1499,7 @@ export class Router {
 }"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/content/ar/entry:b_26f6a2043b0f 1`] = `
+exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/content/ar/entry:b_2e08c9518c0e 1`] = `
 "export default {
     "b_e7c8b4f1ad96": {
       "dedf795b": "زينتل",
@@ -1476,7 +1528,7 @@ exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/
   };"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/content/es/entry:b_26f6a2043b0f 1`] = `
+exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/content/es/entry:b_2e08c9518c0e 1`] = `
 "export default {
     "b_e7c8b4f1ad96": {
       "dedf795b": "Zintl",
@@ -1505,8 +1557,8 @@ exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/
   };"
 `;
 
-exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/manager/none/entry:b_26f6a2043b0f 1`] = `
-"export default { id: "b_26f6a2043b0f", loader: (locale) => {
+exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/manager/none/entry:b_2e08c9518c0e 1`] = `
+"export default { id: "b_2e08c9518c0e", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -1536,10 +1588,60 @@ exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/
     },
   };
                 case "ar":
-          return import("virtual:zintl/content/ar/entry:b_26f6a2043b0f").then(m => m.default);
+          return import("virtual:zintl/content/ar/entry:b_2e08c9518c0e").then(m => m.default);
         case "es":
-          return import("virtual:zintl/content/es/entry:b_26f6a2043b0f").then(m => m.default);
+          return import("virtual:zintl/content/es/entry:b_2e08c9518c0e").then(m => m.default);
         default: return {};
       }
     } };"
+`;
+
+exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/Handshake) > vanilla-spa/prod-transforms/virtual:zintl/runtime/internal 1`] = `
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, registerLoader, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.mjs";
+import { _t } from "./resolver.mjs";
+import { registerZintlLoader } from "./registry.mjs";
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	await setLocale(locale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) store.addCatalogs(config.catalogs);
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) registerLoader(boundaryId, loader);
+		if (config.locale) await store.setLocale(config.locale);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
 `;

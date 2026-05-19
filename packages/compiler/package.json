@@ -1,6 +1,6 @@
 {
   "name": "@zintl/compiler",
-  "version": "0.0.3",
+  "version": "0.1.0-alpha.0",
   "description": "Bundler-agnostic compiler intelligence for Zintl",
   "type": "module",
   "exports": {
@@ -11,8 +11,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vp pack --dts",
-    "dev": "vp pack --dts --watch",
+    "build": "vp pack src/index.ts src/runtime/store.ts src/runtime/resolver.ts src/runtime/registry.ts src/runtime/internal.ts --dts",
+    "dev": "vp pack src/index.ts src/runtime/store.ts src/runtime/resolver.ts src/runtime/registry.ts src/runtime/internal.ts --dts --watch",
     "test": "vp test",
     "check": "vp check",
     "bench": "node --experimental-strip-types scripts/run-bench.ts"

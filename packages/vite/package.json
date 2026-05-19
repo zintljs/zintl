@@ -1,6 +1,6 @@
 {
   "name": "@zintl/vite",
-  "version": "0.0.3",
+  "version": "0.1.0-alpha.0",
   "description": "Vite plugin for Zintl automation",
   "type": "module",
   "exports": {
@@ -8,11 +8,15 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
+    "./macro": {
+      "types": "./dist/macro.d.mts",
+      "import": "./dist/macro.mjs"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vp pack --dts",
-    "dev": "vp pack --dts --watch",
+    "build": "vp pack src/index.ts src/macro.ts --dts",
+    "dev": "vp pack src/index.ts src/macro.ts --dts --watch",
     "test": "vp test",
     "check": "vp check"
   },
@@ -26,7 +30,6 @@
     "vite-plus": "catalog:"
   },
   "peerDependencies": {
-    "vite": "^5.0.0 || ^6.0.0",
-    "zintl": "workspace:*"
+    "vite": "^5.0.0 || ^6.0.0"
   }
 }

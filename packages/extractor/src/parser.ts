@@ -89,7 +89,11 @@ export function extract(
     if (stmt.type === "ImportDeclaration") {
       const sourceVal = stmt.source?.value ?? "";
       const isZintl =
-        sourceVal === "zintl" || sourceVal === "zintl/internal" || sourceVal === ctx.runtimePackage;
+        sourceVal === "zintl" ||
+        sourceVal === "zintl/internal" ||
+        sourceVal === "@zintl/vite/macro" ||
+        sourceVal === "virtual:zintl/runtime/internal" ||
+        sourceVal === ctx.runtimePackage;
       const hasNoSpecifiers = !stmt.specifiers || stmt.specifiers.length === 0;
       if (isZintl) {
         ctx.zintlImportGroup = { start: stmt.start, end: stmt.end, source: sourceVal };

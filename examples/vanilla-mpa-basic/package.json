@@ -12,7 +12,6 @@
     "@zintl/vite": "workspace:*",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plus": "catalog:",
-    "zintl": "workspace:*"
+    "vite-plus": "catalog:"
   }
 }

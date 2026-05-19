@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { _t } from "../resolver.js";
-import { setActiveInstance, I18nStore } from "../store.js";
+import { _t } from "../../runtime/resolver.js";
+import { setActiveInstance, I18nStore } from "../../runtime/store.js";
 
 // this test shoule mock `console.warn` since we do not want those prints to the console in testing!
 describe("Resolver", () => {

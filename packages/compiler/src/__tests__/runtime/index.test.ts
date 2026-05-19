@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vite-plus/test";
-import { t, loadI18nInstance, zintl, subscribe, addCatalogs } from "../internal.js";
-import { getLocale } from "../store.js";
+import { t, loadI18nInstance, zintl, subscribe, addCatalogs } from "../../runtime/internal.js";
+import { getLocale } from "../../runtime/store.js";
 
 describe("Zintl Runtime", () => {
   beforeEach(async () => {

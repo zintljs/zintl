@@ -7,7 +7,8 @@ import type {
   ZintlLogger,
 } from "../types/index.js";
 
-const RUNTIME_INTERNAL_PACKAGE = "zintl/internal";
+const RUNTIME_INTERNAL_PACKAGE = "virtual:zintl/runtime/internal";
+const MACRO_PACKAGE = "@zintl/vite/macro";
 
 /**
  * Resolve imports for the transformation plan.
@@ -36,18 +37,35 @@ export function resolveImports(
     }
   }
 
-  if (observation.zintlImportLocation && !specifiersBySource[RUNTIME_PACKAGE]) {
-    specifiersBySource[RUNTIME_PACKAGE] = new Set();
+  if (
+    observation.zintlImportLocation &&
+    !specifiersBySource[MACRO_PACKAGE] &&
+    !specifiersBySource[RUNTIME_PACKAGE]
+  ) {
+    const importSource =
+      observation.imports?.find((i) => i.source === MACRO_PACKAGE || i.source === RUNTIME_PACKAGE)
+        ?.source || RUNTIME_PACKAGE;
+    specifiersBySource[importSource] = new Set();
   }
 
   for (const exp of observation.imports || []) {
-    if (exp.source === RUNTIME_PACKAGE || exp.source === RUNTIME_INTERNAL_PACKAGE) {
+    if (
+      exp.source === RUNTIME_PACKAGE ||
+      exp.source === MACRO_PACKAGE ||
+      exp.source === RUNTIME_INTERNAL_PACKAGE
+    ) {
       const source = exp.source;
       if (!specifiersBySource[source]) specifiersBySource[source] = new Set();
       for (const s of exp.specifiers) {
         if (
-          source === RUNTIME_PACKAGE &&
-          (s.imported === "_t" || s.imported === "loadI18nInstance")
+          (source === RUNTIME_PACKAGE || source === MACRO_PACKAGE) &&
+          (s.imported === "_t" ||
+            s.imported === "loadI18nInstance" ||
+            s.imported === "getLocale" ||
+            s.imported === "setLocale" ||
+            s.imported === "subscribe" ||
+            s.imported === "addCatalogs" ||
+            s.imported === "registerZintlLoader")
         ) {
           if (!specifiersBySource[RUNTIME_INTERNAL_PACKAGE]) {
             specifiersBySource[RUNTIME_INTERNAL_PACKAGE] = new Set();
@@ -80,10 +98,13 @@ export function resolveImports(
 
       for (const exp of allExisting) {
         for (const s of exp.specifiers) {
-          if (source === RUNTIME_PACKAGE && (s.imported === "t" || s.imported === "zintl"))
+          if (
+            (source === RUNTIME_PACKAGE || source === MACRO_PACKAGE) &&
+            (s.imported === "t" || s.imported === "zintl")
+          )
             continue;
           if (
-            source === RUNTIME_PACKAGE &&
+            (source === RUNTIME_PACKAGE || source === MACRO_PACKAGE) &&
             (s.imported === "_t" || s.imported === "loadI18nInstance")
           )
             continue;

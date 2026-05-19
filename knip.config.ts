@@ -7,19 +7,21 @@ const config: KnipConfig = {
       project: ["src/**/*.ts", "index.html"],
     },
     "packages/compiler": {
-      entry: ["src/index.ts"],
+      entry: [
+        "src/index.ts",
+        "src/runtime/store.ts",
+        "src/runtime/resolver.ts",
+        "src/runtime/registry.ts",
+        "src/runtime/internal.ts",
+      ],
       project: ["src/**/*.ts", "scratch/**/*.ts"],
     },
     "packages/extractor": {
       entry: "src/index.ts",
       project: ["src/**/*.ts"],
     },
-    "packages/runtime": {
-      entry: ["src/index.ts", "src/internal.ts"],
-      project: ["src/**/*.ts"],
-    },
     "packages/vite": {
-      entry: "src/index.ts",
+      entry: ["src/index.ts", "src/macro.ts"],
       project: ["src/**/*.ts"],
     },
   },

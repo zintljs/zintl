@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { loadI18nInstance } from "../internal.js";
-import { I18nStore, getActiveInstance, setActiveInstance } from "../store.js";
+import { loadI18nInstance } from "../../runtime/internal.js";
+import { I18nStore, getActiveInstance, setActiveInstance } from "../../runtime/store.js";
 
 describe("loadI18nInstance", () => {
   it("should create a configured i18n instance", async () => {

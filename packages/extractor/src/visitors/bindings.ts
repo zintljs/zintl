@@ -156,7 +156,12 @@ export function createBindingVisitor(_ctx: ExtractionContext) {
         return;
       const sourceVal = (node.source as any).value;
 
-      if (sourceVal === ctx.runtimePackage || sourceVal === "zintl/internal") {
+      if (
+        sourceVal === ctx.runtimePackage ||
+        sourceVal === "zintl/internal" ||
+        sourceVal === "@zintl/vite/macro" ||
+        sourceVal === "virtual:zintl/runtime/internal"
+      ) {
         node.specifiers?.forEach((spec: any) => {
           if (spec.type === "ImportSpecifier" && spec.imported.type === "Identifier") {
             ctx.runtimeImports.push(spec.imported.name);

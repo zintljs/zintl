@@ -68,7 +68,13 @@ export function configHook(ctx: ZintlPluginContext) {
     }
 
     configUpdate.optimizeDeps = {
-      exclude: [...(userConfig.optimizeDeps?.exclude || []), "zintl", "zintl/internal"],
+      exclude: [
+        ...(userConfig.optimizeDeps?.exclude || []),
+        "zintl",
+        "zintl/internal",
+        "virtual:zintl/runtime",
+        "virtual:zintl/runtime/internal",
+      ],
     };
 
     return configUpdate;

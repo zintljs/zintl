@@ -2,11 +2,11 @@
 
 exports[`Flow: Modular SPA > should consolidate shared boundaries between parallel entries 1`] = `
 {
-  "src/main.ts": "import { loadI18nInstance } from "zintl/internal";
+  "src/main.ts": "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15249a44";
 import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
  (globalThis.__zintl_inst = loadI18nInstance({ locale: window.navigator.language || "en", loaders: { ["b_785c57fb4811"]: _zintl_mgr_b_785c57fb4811.loader, ["b_e30d15249a44"]: _zintl_mgr_b_e30d15249a44.loader } })); import "./shared";",
-  "src/other.ts": "import { loadI18nInstance } from "zintl/internal";
+  "src/other.ts": "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_e30d15249a44 from "virtual:zintl/manager/none/entry:b_e30d15249a44";
 import _zintl_mgr_b_e0ddd38cb83c from "virtual:zintl/manager/none/entry:b_e0ddd38cb83c";
 import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57fb4811";
@@ -17,7 +17,7 @@ import _zintl_mgr_b_785c57fb4811 from "virtual:zintl/manager/none/entry:b_785c57
 
 exports[`Flow: Modular SPA > should isolate dynamic dependencies into independent lazy chunks 1`] = `
 {
-  "src/lazy.ts": "import { _t, loadI18nInstance } from "zintl/internal";
+  "src/lazy.ts": "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_src_lazy from "virtual:zintl/manager/none/entry:b_src_lazy";
  document.body.innerHTML = _t("Sub Page", { _mgr: _zintl_mgr_b_src_lazy, _bId: "b_src_lazy" });
 
@@ -26,7 +26,7 @@ if (import.meta.hot) {
     console.debug("[Zintl] HMR update accepted for: src/lazy");
   });
 }",
-  "src/main.ts": "import { loadI18nInstance } from "zintl/internal";
+  "src/main.ts": "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_src_main from "virtual:zintl/manager/en/entry:b_src_main";
 import _zintl_mgr_b_src_lazy from "virtual:zintl/manager/none/entry:b_src_lazy";
  (globalThis.__zintl_inst = loadI18nInstance({ locale: "en", loaders: { ["b_src_lazy"]: _zintl_mgr_b_src_lazy.loader, ["b_src_main"]: _zintl_mgr_b_src_main.loader } })); const load = () => import("./lazy");

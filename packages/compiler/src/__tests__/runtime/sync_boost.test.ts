@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { t, loadI18nInstance } from "../internal.js";
-import { getLocale } from "../store.js";
+import { t, loadI18nInstance } from "../../runtime/internal.js";
+import { getLocale } from "../../runtime/store.js";
 
 describe("Zintl Runtime: Synchronous Boost", () => {
   it("should populate store synchronously for non-promise loaders", () => {

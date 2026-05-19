@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@zintl/compiler": "0.0.3",
+    "@zintl/extractor": "0.0.3",
+    "@zintl/vite": "0.0.3"
+  },
+  "changesets": ["decouple-runtime-virtualization", "zzz-perf-zintl-compiler"]
+}

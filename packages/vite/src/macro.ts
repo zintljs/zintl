@@ -1,5 +1,5 @@
 /**
- * @module @zintl/runtime
+ * @module @zintl/vite/macro
  *
  * This is the Macro Facade.
  * The functions here are primarily for developers to use as code markers (macros).
@@ -35,6 +35,18 @@ export function t(key: string, _params: Record<string, any> = {}): string {
 }
 
 // Re-export core types and functions for DX
-export { getLocale } from "./store.js";
-export type { Catalogs, Loader } from "./store.js";
-export type { I18nInstanceConfig } from "./internal.js";
+export function getLocale(): string {
+  if (typeof globalThis !== "undefined" && (globalThis as any).__zintl_active) {
+    return (globalThis as any).__zintl_active.locale;
+  }
+  return "";
+}
+
+export type Catalogs = Record<string, Record<string, Record<string, string | Function>>>;
+export type Loader = (locale: string) => any;
+export interface I18nInstanceConfig {
+  locale?: string;
+  catalogs?: Catalogs;
+  loaders?: Record<string, Loader>;
+  debug?: boolean;
+}

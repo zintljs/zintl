@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@zintl/compiler", "@zintl/extractor", "zintl", "@zintl/vite"]],
+  "fixed": [["@zintl/compiler", "@zintl/extractor", "@zintl/vite"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

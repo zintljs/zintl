@@ -3,7 +3,7 @@ import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { setupCounter } from "./counter.ts";
-import { zintl } from "zintl";
+import { zintl } from "@zintl/vite/macro";
 import { setupSwitcher } from "./switcher.ts";
 import iconsSvg from "./assets/icons.svg?raw";
 

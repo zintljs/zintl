@@ -491,7 +491,16 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
               bindings.push((spec.imported as any).name || (spec.imported as any).value);
             else if (spec.type === "ImportDefaultSpecifier") bindings.push("default");
           }
-        if ([ZINTL_MACRO, "zintl", "zintl/internal", ctx.runtimePackage].includes(sourceVal)) {
+        if (
+          [
+            ZINTL_MACRO,
+            "zintl",
+            "zintl/internal",
+            "@zintl/vite/macro",
+            "virtual:zintl/runtime/internal",
+            ctx.runtimePackage,
+          ].includes(sourceVal)
+        ) {
           ctx.zintlImportGroup = { start: node.start, end: node.end, source: sourceVal };
           for (const name of bindings) ctx.runtimeImports.push(name);
           if (!node.specifiers?.length) {

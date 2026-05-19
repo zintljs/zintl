@@ -1,4 +1,4 @@
-import { t } from "zintl";
+import { t } from "@zintl/vite/macro";
 
 export function setupCounter(element: HTMLButtonElement) {
   let counter = 0;

@@ -1,6 +1,7 @@
 import * as Extractor from "@zintl/extractor";
 import { existsSync, readFileSync } from "node:fs";
-import { join, isAbsolute } from "node:path";
+import { join, isAbsolute, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   observe,
   resolve,
@@ -1536,4 +1537,17 @@ export class ZintlCompiler {
       watchedFiles: [],
     };
   }
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export function getRuntimeCode(moduleName: "store" | "resolver" | "registry" | "internal"): string {
+  const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
+  const mjsPath = join(__dirname, "runtime", `${cleanName}.mjs`);
+  const path = existsSync(mjsPath) ? mjsPath : join(__dirname, "runtime", `${cleanName}.js`);
+  if (!existsSync(path)) {
+    throw new Error(`[Zintl] Runtime module not found: ${moduleName} (resolved to ${path})`);
+  }
+  return readFileSync(path, "utf-8");
 }

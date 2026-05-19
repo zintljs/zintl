@@ -1,5 +1,23 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.0
+
+### Minor Changes
+
+- Decoupled the runtime by relocating it from the Vite plugin and the old runtime packages directly into the compiler. The Vite plugin now dynamically resolves and loads the runtime (only when needed) as a virtualized module served from compiler-generated assets, while `@zintl/vite/macro` has been streamlined as a lean, zero-dependency facade.
+- be116c3: **⚡ Performance Benchmark Changes Detected**:
+
+  **Summary:** 🟢 1 benchmark(s) improved (normalized and calibrated against Reference Calibration machine-speed differences).
+
+  | Benchmark                         | Baseline | New Run                        | Calibrated Delta | Status    |
+  | :-------------------------------- | :------- | :----------------------------- | :--------------- | :-------- |
+  | Colony HMR Latency (Manager Sync) | 415.9 µs | 391.0 µs (385.2 µs calibrated) | -7.38%           | 🚀 Faster |
+
+### Patch Changes
+
+- Updated dependencies
+  - @zintl/extractor@0.1.0-alpha.0
+
 ## 0.0.3
 
 ### Patch Changes

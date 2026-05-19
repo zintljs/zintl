@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import type { ZintlPluginContext } from "../context.js";
-import { generateMessageId } from "@zintl/compiler";
+import { generateMessageId, getRuntimeCode } from "@zintl/compiler";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,
@@ -11,10 +11,27 @@ import {
   RESOLVED_CONTENT_PREFIX,
   MANAGER_VIRTUAL_PREFIX,
   RESOLVED_MANAGER_PREFIX,
+  RUNTIME_VIRTUAL_ID,
+  RUNTIME_INTERNAL_VIRTUAL_ID,
 } from "../constants.js";
 
 export function resolveIdHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string, importer: string | undefined) {
+    if (
+      id === RUNTIME_VIRTUAL_ID ||
+      id === RUNTIME_INTERNAL_VIRTUAL_ID ||
+      id.startsWith("virtual:zintl/runtime/")
+    ) {
+      return "\0" + id;
+    }
+
+    if (importer && importer.includes("virtual:zintl/runtime")) {
+      if (id.startsWith("./")) {
+        const cleanName = id.replace("./", "").replace(".js", "").replace(".mjs", "");
+        return "\0virtual:zintl/runtime/" + cleanName;
+      }
+    }
+
     if (
       id.startsWith(VIRTUAL_PREFIX) ||
       id.startsWith(CHUNK_VIRTUAL_PREFIX) ||
@@ -195,6 +212,16 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 export function loadHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string) {
     const cleanId = id.split("?")[0];
+    if (cleanId.startsWith("\0virtual:zintl/runtime")) {
+      const moduleName = cleanId
+        .replace("\0virtual:zintl/runtime/", "")
+        .replace("\0virtual:zintl/runtime", "internal");
+      ctx.compiler._logger
+        .withPrefix("Vite")
+        .debug(`Loading virtual runtime module: ${moduleName}`);
+      return getRuntimeCode(moduleName as any);
+    }
+
     if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) {
       if (existsSync(cleanId)) {
         const content = readFileSync(cleanId, "utf-8");
@@ -245,7 +272,7 @@ export function loadHook(ctx: ZintlPluginContext) {
           const rawAssetKey = `@zintl/asset:${assetId}`;
           const assetKey = ctx.compiler.isDev ? rawAssetKey : generateMessageId(rawAssetKey);
           return `
-import { getLocale, _t } from "zintl/internal";
+import { getLocale, _t } from "virtual:zintl/runtime/internal";
 const sourceContent = ${JSON.stringify(translationOnly)};
 const assetKey = ${JSON.stringify(assetKey)};
 const proxy = new Proxy({}, {

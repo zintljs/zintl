@@ -7,3 +7,5 @@ export const RESOLVED_CHUNK_PREFIX = "\0" + CHUNK_VIRTUAL_PREFIX;
 export const RESOLVED_CONTENT_PREFIX = "\0" + CONTENT_VIRTUAL_PREFIX;
 export const RESOLVED_MANAGER_PREFIX = "\0" + MANAGER_VIRTUAL_PREFIX;
 export const PLUGIN_NAME = "zintl";
+export const RUNTIME_VIRTUAL_ID = "virtual:zintl/runtime";
+export const RUNTIME_INTERNAL_VIRTUAL_ID = "virtual:zintl/runtime/internal";
