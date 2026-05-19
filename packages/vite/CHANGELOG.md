@@ -1,5 +1,13 @@
 # @zintl/vite
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [be116c3]
+  - @zintl/compiler@0.0.3
+  - zintl@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

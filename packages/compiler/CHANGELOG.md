@@ -1,5 +1,20 @@
 # @zintl/compiler
 
+## 0.0.3
+
+### Patch Changes
+
+- be116c3: **⚡ Performance Benchmark Changes Detected**:
+
+  **Summary:** 🔴 1 benchmark(s) regressed (normalized and calibrated against Reference Calibration machine-speed differences).
+
+  | Benchmark                         | Baseline  | New Run                          | Calibrated Delta | Status       |
+  | :-------------------------------- | :-------- | :------------------------------- | :--------------- | :----------- |
+  | Extractor Baseline (Full Project) | 1010.9 µs | 1064.4 µs (1075.7 µs calibrated) | +6.41%           | ⚠️ Regressed |
+
+- Updated dependencies [d2d7d9b]
+  - @zintl/extractor@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

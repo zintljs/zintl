@@ -1,6 +1,6 @@
 {
   "name": "zintl",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The ultra-light i18n runtime for Zintl",
   "type": "module",
   "types": "./dist/index.d.mts",
