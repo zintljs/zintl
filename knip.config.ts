@@ -3,8 +3,7 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   workspaces: {
     "examples/**": {
-      entry: ["index.html", "src/main.ts", "src/index.ts", "src/about.ts"],
-      project: ["src/**/*.ts", "index.html"],
+      entry: ["src/{about,main}.ts"],
     },
     "packages/compiler": {
       entry: [
@@ -14,7 +13,7 @@ const config: KnipConfig = {
         "src/runtime/registry.ts",
         "src/runtime/internal.ts",
       ],
-      project: ["src/**/*.ts", "scratch/**/*.ts"],
+      project: ["src/**/*.ts"],
     },
     "packages/extractor": {
       entry: "src/index.ts",
@@ -25,7 +24,6 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
   },
-  // ignoreDependencies: ["@vitest/ui"],
   ignoreBinaries: [
     "vpx", // vite-plus companion binary, ships with vite-plus package
   ],
