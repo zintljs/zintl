@@ -2,7 +2,9 @@ import { join, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import type { Node, Expression } from "@oxc-project/types";
 import type { Comment } from "oxc-parser";
-import { DEFAULT_UI_ATTRIBUTES, DEFAULT_UI_OBJECT_FIELDS, RUNTIME_PACKAGE } from "./constants.js";
+import { RUNTIME_PACKAGE } from "./constants.js";
+import { resolveTargets } from "./targets.js";
+
 import {
   ExtractedMessage,
   ExtractionOptions,
@@ -322,6 +324,10 @@ export class ExtractionContext {
   public runtimePackage: string;
   public uiAttributes: Set<string>;
   public uiObjectFields: Set<string>;
+  public uiSinkProperties: string[];
+  public jsxElementAttributes: Map<string, Set<string>>;
+  public htmlAttributes: Set<string>;
+  public targetPlugins: any[];
   public boundaryStack: { id: string; active: boolean }[];
   public logger: ZintlLogger;
   public isIgnoredFile = false;
@@ -335,8 +341,30 @@ export class ExtractionContext {
   ) {
     this.logger = options.logger || defaultLogger;
     this.runtimePackage = options.runtimePackage || RUNTIME_PACKAGE;
-    this.uiAttributes = options.uiAttributes || DEFAULT_UI_ATTRIBUTES;
-    this.uiObjectFields = options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS;
+    this.uiAttributes = options.uiAttributes ? new Set(options.uiAttributes) : new Set();
+    this.uiObjectFields = options.uiObjectFields ? new Set(options.uiObjectFields) : new Set();
+    this.uiSinkProperties = options.uiSinkProperties ? [...options.uiSinkProperties] : [];
+    this.jsxElementAttributes = new Map();
+    this.htmlAttributes = new Set();
+    this.targetPlugins = [];
+
+    const targets = options.targets || ["vanilla", "react", "html"];
+    const resolved = resolveTargets(targets);
+    for (const attr of resolved.jsxAttributes) {
+      this.uiAttributes.add(attr);
+    }
+    for (const field of resolved.objectFields) {
+      this.uiObjectFields.add(field);
+    }
+    for (const prop of resolved.domProperties) {
+      if (!this.uiSinkProperties.includes(prop)) {
+        this.uiSinkProperties.push(prop);
+      }
+    }
+    this.jsxElementAttributes = resolved.jsxElementAttributes;
+    this.htmlAttributes = resolved.htmlAttributes;
+    this.targetPlugins = resolved.plugins;
+
     this.isZeroConfig = options.isZeroConfig ?? true;
     this.boundaryStack = [{ id: fileBoundaryId, active: true }];
   }

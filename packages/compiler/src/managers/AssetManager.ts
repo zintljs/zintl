@@ -1,6 +1,6 @@
-import { join, isAbsolute } from "node:path";
+import { join, isAbsolute, relative } from "node:path";
 import { IOManager } from "./IOManager.js";
-import type { ZintlLogger } from "../types/index.js";
+import type { ZintlLogger, ZintlOptions, AssetMergeStrategy } from "../types/index.js";
 import type { CatalogManager } from "./CatalogManager.js";
 
 /**
@@ -16,7 +16,76 @@ export class AssetManager {
     private readonly locales: string[],
     private readonly logger: ZintlLogger,
     private readonly catalog: CatalogManager,
+    private readonly options: ZintlOptions = {},
   ) {}
+
+  /**
+   * Resolves the customized asset pattern configuration for a given path.
+   */
+  private resolveAssetConfig(filePath: string): {
+    targetPattern: string;
+    strategy: AssetMergeStrategy;
+    outputPattern?: string;
+  } | null {
+    const absolutePath = isAbsolute(filePath) ? filePath : join(this.root, filePath);
+    const relativePath = relative(this.root, absolutePath).replace(/\\/g, "/");
+
+    const assetsTarget = this.options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
+
+    for (const item of assetsTarget) {
+      let targetPattern = "";
+      let strategy: AssetMergeStrategy | undefined;
+      let outputPattern: string | undefined;
+
+      if (typeof item === "string") {
+        targetPattern = item;
+      } else if (item && typeof item === "object") {
+        targetPattern = item.targetPattern;
+        strategy = item.strategy;
+        outputPattern = item.outputPattern;
+      }
+
+      if (!targetPattern) continue;
+
+      let normalizedPattern = targetPattern;
+      if (
+        !targetPattern.includes("*") &&
+        !targetPattern.includes("?") &&
+        !targetPattern.includes("/")
+      ) {
+        const ext = targetPattern.startsWith(".") ? targetPattern : "." + targetPattern;
+        normalizedPattern = `**/*${ext}`;
+      }
+
+      let escaped = normalizedPattern.replace(/\*\*\//g, "__DOUBLE_STAR_SLASH__");
+      escaped = escaped.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+      escaped = escaped.replace(/\*/g, "[^/]*");
+      escaped = escaped.replace(/\?/g, "[^/]");
+      escaped = escaped.replace(/__DOUBLE_STAR_SLASH__/g, "(?:.*/)?");
+      const regex = new RegExp(`^${escaped}$`, "i");
+
+      if (regex.test(relativePath)) {
+        if (!strategy) {
+          const lower = relativePath.toLowerCase();
+          if (lower.endsWith(".md") || lower.endsWith(".mdx")) {
+            strategy = "frontmatter";
+          } else if (lower.endsWith(".txt")) {
+            strategy = "text-passthrough";
+          } else {
+            strategy = "binary-passthrough";
+          }
+        }
+
+        return {
+          targetPattern,
+          strategy,
+          outputPattern,
+        };
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Registers a discovered static asset.
@@ -46,23 +115,49 @@ export class AssetManager {
    * Synchronizes a single asset's localized targets to disk.
    */
   public async syncSingleAsset(assetId: string) {
-    const ext = this.getAssetExtension(assetId);
+    const config = this.resolveAssetConfig(assetId);
+    if (!config) return;
+
     const originalPath = join(this.root, assetId);
     if (!(await this.io.exists(originalPath))) return;
-
-    const sourceContent = await this.io.readFile(originalPath);
 
     for (const locale of this.locales) {
       if (locale === this.sourceLocale) continue;
 
       const destPath = this.getAssetPath(assetId, locale);
-      let existingContent = "";
-      if (await this.io.exists(destPath)) {
-        existingContent = await this.io.readFile(destPath);
-      }
 
-      const merged = this.mergeContent(sourceContent, existingContent, ext, locale);
-      await this.io.safeWriteFile(destPath, merged);
+      if (config.strategy === "binary-passthrough") {
+        if (!(await this.io.exists(destPath))) {
+          const buffer = await this.io.readBuffer(originalPath);
+          await this.io.safeWriteBuffer(destPath, buffer);
+        }
+      } else {
+        const sourceContent = await this.io.readFile(originalPath);
+        let existingContent = "";
+        if (await this.io.exists(destPath)) {
+          existingContent = await this.io.readFile(destPath);
+        }
+
+        let merged: string;
+        if (typeof config.strategy === "function") {
+          const srcBuf = Buffer.from(sourceContent, "utf-8");
+          const extBuf = existingContent ? Buffer.from(existingContent, "utf-8") : null;
+          const resBuf = config.strategy(srcBuf, extBuf, locale);
+          merged = resBuf.toString("utf-8");
+        } else if (config.strategy === "text-passthrough") {
+          merged = existingContent.trim() ? existingContent : sourceContent;
+        } else {
+          // frontmatter merge
+          merged = this.mergeContent(
+            sourceContent,
+            existingContent,
+            this.getAssetExtension(assetId),
+            locale,
+          );
+        }
+
+        await this.io.safeWriteFile(destPath, merged);
+      }
     }
   }
 
@@ -73,25 +168,19 @@ export class AssetManager {
     return Array.from(this.registeredAssets);
   }
 
-  private static readonly SUPPORTED_EXTENSIONS = [".md", ".txt", ".png", ".jpg", ".jpeg", ".webp"];
-
   /**
    * Checks if a file path is a supported static asset.
    */
   public isSupportedAsset(filePath: string): boolean {
-    const lower = filePath.toLowerCase();
-    return AssetManager.SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+    return this.resolveAssetConfig(filePath) !== null;
   }
 
   /**
    * Returns the file extension for a given asset ID.
    */
   public getAssetExtension(id: string): string {
-    const lower = id.toLowerCase();
-    for (const ext of AssetManager.SUPPORTED_EXTENSIONS) {
-      if (lower.endsWith(ext)) return ext;
-    }
-    return ".txt";
+    const idx = id.lastIndexOf(".");
+    return idx !== -1 ? id.substring(idx) : ".txt";
   }
 
   /**
@@ -106,14 +195,31 @@ export class AssetManager {
    */
   public getAssetPath(id: string, locale: string): string {
     const ext = this.getAssetExtension(id);
+    const config = this.resolveAssetConfig(id);
+
+    if (config?.outputPattern) {
+      const lastSlash = id.lastIndexOf("/");
+      const dir = lastSlash !== -1 ? id.substring(0, lastSlash) : "";
+      const filename = lastSlash !== -1 ? id.substring(lastSlash + 1) : id;
+      const cleanName = filename.endsWith(ext)
+        ? filename.substring(0, filename.length - ext.length)
+        : filename;
+
+      let formatted = config.outputPattern
+        .replace(/\[locales?\]/g, locale)
+        .replace(/\[name\]/g, cleanName)
+        .replace(/\[dir\]/g, dir)
+        .replace(/\[ext\]/g, ext.startsWith(".") ? ext.substring(1) : ext);
+
+      formatted = formatted.replace(/\/+/g, "/");
+      return isAbsolute(formatted) ? formatted : join(this.root, formatted);
+    }
+
     const hasCatalogFormat = !!(this.catalog as any).catalogFormat;
     const isMultilingual =
       hasCatalogFormat && !(this.catalog as any).catalogFormat.includes("[locale]");
 
     if (!hasCatalogFormat || isMultilingual) {
-      // If no catalogFormat is defined, or if catalogFormat is multilingual (lacks [locale]),
-      // we generate the localized asset at: join(baseDir, id_with_locale_inserted)
-      // e.g. id = "src/about.txt", baseDir = "/root/locales" -> "/root/locales/src/about.ar.txt"
       const baseDir = isAbsolute(this.catalog.outputDir)
         ? this.catalog.outputDir
         : join(this.root, this.catalog.outputDir);
@@ -122,7 +228,6 @@ export class AssetManager {
       return join(baseDir, `${cleanId}.${locale}${ext}`);
     }
 
-    // Otherwise, we respect the catalogFormat with [locale]
     const defaultCatalogPath = this.catalog.getCatalogPath(id, locale)!;
     if (defaultCatalogPath.endsWith(".json")) {
       let result = defaultCatalogPath.replace(/\.json$/, ext);
@@ -214,27 +319,10 @@ export class AssetManager {
   /**
    * Synchronizes and emits localized static content files to disk.
    */
-  public async syncAssets(locales: string[]) {
+  public async syncAssets(_locales: string[]) {
     this.logger.debug(`Syncing static assets (${this.registeredAssets.size} files)`);
     for (const assetId of this.registeredAssets) {
-      const ext = this.getAssetExtension(assetId);
-      const originalPath = join(this.root, assetId);
-      if (!(await this.io.exists(originalPath))) continue;
-
-      const sourceContent = await this.io.readFile(originalPath);
-
-      for (const locale of locales) {
-        if (locale === this.sourceLocale) continue;
-
-        const destPath = this.getAssetPath(assetId, locale);
-        let existingContent = "";
-        if (await this.io.exists(destPath)) {
-          existingContent = await this.io.readFile(destPath);
-        }
-
-        const merged = this.mergeContent(sourceContent, existingContent, ext, locale);
-        await this.io.safeWriteFile(destPath, merged);
-      }
+      await this.syncSingleAsset(assetId);
     }
   }
 
@@ -259,7 +347,6 @@ export class AssetManager {
       }
     }
 
-    // Clean up registered assets that no longer exist on disk
     for (const assetId of toRemove) {
       this.registeredAssets.delete(assetId);
     }
@@ -274,7 +361,6 @@ export class AssetManager {
     const normalized = this.io.getNormalizedId(filePath);
     const paths = await this.getActiveAssetPaths(this.locales);
 
-    // Check by normalized ID to be safe
     for (const p of paths) {
       if (this.io.getNormalizedId(p) === normalized) return true;
     }
@@ -287,6 +373,10 @@ export class AssetManager {
   public async getAssetTranslations(locale: string): Promise<Record<string, string>> {
     const translations: Record<string, string> = {};
     for (const assetId of this.registeredAssets) {
+      const config = this.resolveAssetConfig(assetId);
+      if (config?.strategy === "binary-passthrough") {
+        continue;
+      }
       const key = `@zintl/asset:${assetId}`;
       if (locale === this.sourceLocale) {
         const originalPath = join(this.root, assetId);

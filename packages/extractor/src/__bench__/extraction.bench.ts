@@ -1,7 +1,12 @@
-import { describe, bench } from "vite-plus/test";
+import { describe, bench, beforeEach } from "vite-plus/test";
 import { extract } from "../index.js";
 
 describe("Zintl Extractor Performance", () => {
+  beforeEach(() => {
+    if (typeof globalThis.gc === "function") {
+      globalThis.gc();
+    }
+  });
   const shortFile = `
     import { t } from "zintl";
     export function App() {
@@ -22,16 +27,27 @@ describe("Zintl Extractor Performance", () => {
   `;
 
   bench("Reference Calibration (No-Op)", () => {
-    extract("", "x.js", "x");
+    let sum = 0;
+    for (let i = 0; i < 1000; i++) {
+      sum += Math.sin(i);
+    }
   });
 
-  bench("Extract Short File", () => {
-    extract(shortFile, "short.tsx", "short");
-  });
+  bench(
+    "Extract Short File",
+    () => {
+      extract(shortFile, "short.tsx", "short");
+    },
+    { time: 500, warmupTime: 500, warmupIterations: 10 },
+  );
 
-  bench("Extract Long File (200 keys)", () => {
-    extract(longFile, "long.tsx", "long");
-  });
+  bench(
+    "Extract Long File (200 keys)",
+    () => {
+      extract(longFile, "long.tsx", "long");
+    },
+    { time: 500, warmupTime: 500, warmupIterations: 10 },
+  );
 
   const noI18nFile = `
     export function App() {
@@ -39,9 +55,13 @@ describe("Zintl Extractor Performance", () => {
     }
   `;
 
-  bench("Fast-Path (No Translations/Sinks)", () => {
-    extract(noI18nFile, "pure.tsx", "pure");
-  });
+  bench(
+    "Fast-Path (No Translations/Sinks)",
+    () => {
+      extract(noI18nFile, "pure.tsx", "pure");
+    },
+    { time: 500, warmupTime: 500, warmupIterations: 10 },
+  );
 
   const nonUiFile = `
     export function add(a, b) {
@@ -49,7 +69,11 @@ describe("Zintl Extractor Performance", () => {
     }
   `;
 
-  bench("Fast-Path (Non-UI Logic)", () => {
-    extract(nonUiFile, "math.ts", "math");
-  });
+  bench(
+    "Fast-Path (Non-UI Logic)",
+    () => {
+      extract(nonUiFile, "math.ts", "math");
+    },
+    { time: 500, warmupTime: 500, warmupIterations: 10 },
+  );
 });

@@ -22,6 +22,14 @@ export function createCombinedVisitor(ctx: ExtractionContext): Visitors {
     ? [createJsxVisitor(ctx), createBindingVisitor(ctx), createProgramVisitor(ctx)]
     : [createProgramVisitor(ctx)];
 
+  if ((ctx as any).targetPlugins) {
+    for (const plugin of (ctx as any).targetPlugins) {
+      if (plugin.createVisitor) {
+        visitors.push(plugin.createVisitor(ctx));
+      }
+    }
+  }
+
   const combined: Visitors = {};
 
   for (const visitor of visitors) {

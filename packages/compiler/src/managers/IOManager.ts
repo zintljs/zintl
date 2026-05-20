@@ -101,10 +101,8 @@ export class IOManager {
     }
 
     const rel = relative(this.root, abs).replace(/\\/g, "/");
-    const result =
-      rel.endsWith(".html") || rel.endsWith(".md") || rel.endsWith(".txt")
-        ? rel
-        : rel.replace(/\.[^/.]+$/, "");
+    const hasSourceExtension = /\.(tsx?|jsx?|mts|mjs|cts|cjs)$/i.test(rel);
+    const result = hasSourceExtension ? rel.replace(/\.[^/.]+$/, "") : rel;
     this.normalizedIdCache.set(id, result);
     return result;
   }
@@ -156,6 +154,38 @@ export class IOManager {
     this.logger.debug(`Reading file: ${relative(this.root, path)}`);
     const content = await readFile(path, "utf-8");
     return content.replace(/\r\n/g, "\n");
+  }
+
+  public async readBuffer(path: string): Promise<Buffer> {
+    this.logger.debug(`Reading file as buffer: ${relative(this.root, path)}`);
+    return readFile(path);
+  }
+
+  public async safeWriteBuffer(path: string | null, content: Buffer) {
+    if (!path) return;
+
+    try {
+      if (await this.exists(path)) {
+        const existing = await this.readBuffer(path);
+        if (existing.equals(content)) {
+          return;
+        }
+      }
+    } catch {
+      // Ignore read errors and proceed to write
+    }
+
+    this.logger.debug(`Writing file as buffer: ${relative(this.root, path)}`);
+    this.writingFiles.add(path);
+    try {
+      const dir = dirname(path);
+      await mkdir(dir, { recursive: true });
+      await writeFile(path, content);
+    } finally {
+      setTimeout(() => {
+        this.writingFiles.delete(path);
+      }, WRITE_GUARD_DELAY_MS);
+    }
   }
 
   public async readDir(path: string): Promise<string[]> {

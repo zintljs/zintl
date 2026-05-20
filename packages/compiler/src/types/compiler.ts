@@ -1,5 +1,17 @@
-import type { LogLevel, ZintlLogger } from "@zintl/extractor";
+import type { LogLevel, ZintlLogger, TargetDescriptor } from "@zintl/extractor";
 export type { LogLevel, ZintlLogger };
+
+export type AssetMergeStrategy =
+  | "frontmatter"
+  | "text-passthrough"
+  | "binary-passthrough"
+  | ((source: Buffer, existing: Buffer | null, locale: string) => Buffer);
+
+export interface AssetTargetConfig {
+  targetPattern: string;
+  strategy?: AssetMergeStrategy;
+  outputPattern?: string;
+}
 
 export interface ZintlOptions {
   sourceLocale?: string;
@@ -13,6 +25,8 @@ export interface ZintlOptions {
   prune?: boolean;
   verifyIntegrity?: boolean;
   multiplex?: boolean;
+  targets?: TargetDescriptor[];
+  assetsTarget?: (string | AssetTargetConfig)[];
 }
 
 interface CatalogFormatContext {

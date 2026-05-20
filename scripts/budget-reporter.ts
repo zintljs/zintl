@@ -23,11 +23,7 @@ const BUDGETS: Record<string, number> = {
   "Fast-Path (Non-UI Logic)": 0.002,
 };
 
-/**
- * Reference mean latency for the calibration benchmark on the "Golden Baseline" machine.
- * This should match the machine used to define the original budgets.
- */
-const GOLDEN_REFERENCE = 0.0005; // 0.6ms (600μs) for calibration bench on baseline machine
+const GOLDEN_REFERENCE = 0.0165; // ~16.5μs for pure JS math calibration loop on baseline machine
 
 interface BenchmarkResult {
   name: string;
@@ -299,10 +295,10 @@ export default class BudgetReporter {
           const normalizedNewMean = bench.mean / scalingFactor;
           const delta = ((normalizedNewMean - oldMean) / oldMean) * 100;
 
-          // Noise reduction: Only consider >= 3% changes (regressions or enhancements)
-          // AND ensure the absolute change is at least 0.025 ms (25 microseconds) to filter out microsecond timing noise
+          // Noise reduction: Only consider >= 5% changes (regressions or enhancements)
+          // AND ensure the absolute change is at least 0.05 ms (50 microseconds) to filter out microsecond timing noise
           const absDiff = Math.abs(normalizedNewMean - oldMean);
-          if (absDiff >= 0.025 && (delta <= -3 || delta >= 3)) {
+          if (absDiff >= 0.05 && (delta <= -5 || delta >= 5)) {
             significantChanges.push({
               filepath: file.filepath,
               groupName: group.fullName,

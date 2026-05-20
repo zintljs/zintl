@@ -150,11 +150,13 @@ export class CatalogManager {
 
     const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
     const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
+    const isAsset =
+      !isHtml && /\.[a-zA-Z0-9]+$/.test(boundaryId) && !/\.(tsx?|jsx?)$/i.test(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
-      if (isHtml && typeof format === "string" && !this.isBoundarySpecific(format)) {
-        // Compound format detected for HTML. Inject [path] to avoid collisions.
+      if ((isHtml || isAsset) && typeof format === "string" && !this.isBoundarySpecific(format)) {
+        // Compound format detected for HTML/Assets. Inject [path] to avoid collisions.
         const parts = format.split("/");
         const last = parts[parts.length - 1];
         if (last.includes("[locale]")) {
@@ -217,10 +219,12 @@ export class CatalogManager {
 
     let relativePath: string;
     const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
+    const isAsset =
+      !isHtml && /\.[a-zA-Z0-9]+$/.test(boundaryId) && !/\.(tsx?|jsx?)$/i.test(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
-      if (isHtml && typeof format === "string" && !this.isBoundarySpecific(format)) {
+      if ((isHtml || isAsset) && typeof format === "string" && !this.isBoundarySpecific(format)) {
         const parts = format.split("/");
         const last = parts[parts.length - 1];
         if (last.includes("[locale]")) {

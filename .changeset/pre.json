@@ -6,5 +6,11 @@
     "@zintl/extractor": "0.0.3",
     "zintl": "0.0.3"
   },
-  "changesets": ["decouple-runtime-virtualization", "rebrand-to-zintl", "zzz-perf-zintl-compiler"]
+  "changesets": [
+    "decouple-runtime-virtualization",
+    "rebrand-to-zintl",
+    "universal-targets-and-assets",
+    "zzz-perf-zintl-compiler",
+    "zzz-perf-zintl-extractor"
+  ]
 }

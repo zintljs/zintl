@@ -250,7 +250,25 @@ export async function createExampleContext(
         (path.startsWith("src/") || path.endsWith(".html") || path.startsWith("virtual:zintl/")) &&
         !path.match(/\.(css|png|jpg|ico|svg|json)$/)
       ) {
-        filtered[path] = code;
+        const escapedOverlay = overlayRoot.replace(/\\/g, "/");
+        const escapedTempOutput = tempOutputDir.replace(/\\/g, "/");
+        let sanitizedCode = code;
+
+        sanitizedCode = sanitizedCode
+          .split(overlayRoot)
+          .join("<OVERLAY_ROOT>")
+          .split(escapedOverlay)
+          .join("<OVERLAY_ROOT>")
+          .split(tempOutputDir)
+          .join("<TEMP_OUTPUT_DIR>")
+          .split(escapedTempOutput)
+          .join("<TEMP_OUTPUT_DIR>");
+
+        sanitizedCode = sanitizedCode.replace(
+          /\.tmp\/example-[a-zA-Z0-9-]+-[a-zA-Z0-9]+/g,
+          ".tmp/example-placeholder",
+        );
+        filtered[path] = sanitizedCode;
       }
     }
     return filtered;

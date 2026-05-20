@@ -13,7 +13,12 @@
  */
 
 import type { ZintlLogger } from "../types.js";
-import { extract, type ExtractionResult, type AnchorSite } from "@zintl/extractor";
+import {
+  extract,
+  type ExtractionResult,
+  type AnchorSite,
+  type ExtractionOptions,
+} from "@zintl/extractor";
 import { sha1 } from "../utils/hashing.js";
 import type {
   FileObservation,
@@ -43,8 +48,9 @@ export const observe = (
   filePath: string,
   fileId: string,
   logger?: ZintlLogger,
+  options?: ExtractionOptions,
 ): FileObservation => {
-  const result = extract(code, filePath, fileId, { logger });
+  const result = extract(code, filePath, fileId, { logger, ...options });
   return adaptExtractionResult(result, code, fileId);
 };
 

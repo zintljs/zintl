@@ -336,8 +336,22 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
           return;
         }
         const attrName = node.name.type === "JSXIdentifier" ? node.name.name : "";
+        let isTranslatable = ctx.uiAttributes.has(attrName);
+        if (!isTranslatable) {
+          const parentElement = parents
+            .slice()
+            .reverse()
+            .find((p) => p.type === "JSXOpeningElement") as any;
+          if (parentElement && parentElement.name && parentElement.name.type === "JSXIdentifier") {
+            const elementName = parentElement.name.name;
+            const scopedAttrs = (ctx as any).jsxElementAttributes?.get(elementName);
+            if (scopedAttrs && scopedAttrs.has(attrName)) {
+              isTranslatable = true;
+            }
+          }
+        }
         if (
-          ctx.uiAttributes.has(attrName) &&
+          isTranslatable &&
           (node.value?.type === ("StringLiteral" as any) || node.value?.type === ("Literal" as any))
         ) {
           const text = (node.value as any).value;

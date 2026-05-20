@@ -203,12 +203,35 @@ export interface Transform {
   argNode?: Expression;
 }
 
+export type TargetDescriptor =
+  | "react"
+  | "vue"
+  | "svelte"
+  | "html"
+  | "vanilla"
+  | `jsx:*:${string}`
+  | `jsx:${string}:${string}`
+  | `dom:prop:${string}`
+  | `dom:attr:${string}`
+  | `obj:field:${string}`
+  | `html:attr:${string}`
+  | TargetPlugin;
+
+export interface TargetPlugin {
+  name: string;
+  resolveOptions?: (base: ExtractionOptions) => Partial<ExtractionOptions>;
+  createVisitor?: (ctx: any) => any;
+  fastPathHint?: string | string[];
+}
+
 import type { ZintlLogger, LogLevel } from "./logger.js";
 export type { ZintlLogger, LogLevel };
 export interface ExtractionOptions {
   runtimePackage?: string; // default: "zintl"
   uiAttributes?: Set<string>;
   uiObjectFields?: Set<string>;
+  uiSinkProperties?: string[];
+  targets?: TargetDescriptor[];
   logger?: ZintlLogger;
   isZeroConfig?: boolean;
 }

@@ -1,4 +1,4 @@
-import { describe, bench, afterAll } from "vite-plus/test";
+import { describe, bench, afterAll, beforeEach } from "vite-plus/test";
 import { ZintlCompiler } from "../index.js";
 import { extract } from "@zintl/extractor";
 import { generateStressProject } from "./stress-util.js";
@@ -7,6 +7,12 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 describe("Zintl Compiler Pipeline", async () => {
+  beforeEach(() => {
+    if (typeof globalThis.gc === "function") {
+      globalThis.gc();
+    }
+  });
+
   const root = join(tmpdir(), `zintl-bench-stable-${Date.now()}`);
 
   const generatedFiles = await generateStressProject(root, {
@@ -51,7 +57,10 @@ describe("Zintl Compiler Pipeline", async () => {
   bench(
     "Reference Calibration (No-Op)",
     () => {
-      extract("", "x.js", "x");
+      let sum = 0;
+      for (let i = 0; i < 1000; i++) {
+        sum += Math.sin(i);
+      }
     },
     { time: 500 },
   );
@@ -63,7 +72,7 @@ describe("Zintl Compiler Pipeline", async () => {
         extract(file.content, file.path, file.rel.replace(/\.[^/.]+$/, ""));
       }
     },
-    { time: 500 },
+    { time: 1000, warmupTime: 500, warmupIterations: 10 },
   );
 
   bench(
@@ -72,7 +81,7 @@ describe("Zintl Compiler Pipeline", async () => {
       const testFile = fileContents[1];
       await compiler.transform(testFile.content, testFile.path, "none");
     },
-    { time: 2000, iterations: 100 },
+    { time: 2000, iterations: 100, warmupTime: 500, warmupIterations: 10 },
   );
 
   bench(
@@ -92,7 +101,7 @@ describe("Zintl Compiler Pipeline", async () => {
     async () => {
       await compiler.flush();
     },
-    { time: 1000, iterations: 100 },
+    { time: 1000, iterations: 100, warmupTime: 500, warmupIterations: 10 },
   );
 
   // Setup for Colony HMR Bench

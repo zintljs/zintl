@@ -17,6 +17,8 @@ import { buildStartHook, buildEndHook } from "./hooks/build.js";
 export function zintl(
   options: ZintlOptions = {},
 ): Plugin & { __compiler: any; __options: ZintlOptions } {
+  options.targets = options.targets || ["vanilla", "react", "html"];
+  options.assetsTarget = options.assetsTarget || ["md", "txt"];
   const ctx = new ZintlPluginContext(options);
 
   const prePlugin: Plugin = {

@@ -20,7 +20,13 @@ import {
   DEFAULT_OUTPUT_DIR,
   SAVE_DEBOUNCE_MS,
 } from "./constants.js";
-import { type ZintlOptions, type ZintlLogger, type LogLevel } from "./types/index.js";
+import {
+  type ZintlOptions,
+  type ZintlLogger,
+  type LogLevel,
+  type AssetTargetConfig,
+  type AssetMergeStrategy,
+} from "./types/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -30,7 +36,7 @@ import { HtmlManager } from "./managers/HtmlManager.js";
 import { AssetManager } from "./managers/AssetManager.js";
 
 export { generateMessageId } from "./utils/hashing.js";
-export type { ZintlOptions, ZintlLogger, LogLevel };
+export type { ZintlOptions, ZintlLogger, LogLevel, AssetTargetConfig, AssetMergeStrategy };
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -89,6 +95,8 @@ export class ZintlCompiler {
   public _options: ZintlOptions;
 
   constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
+    options.targets = options.targets || ["vanilla", "react", "html"];
+    options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
@@ -138,6 +146,7 @@ export class ZintlCompiler {
       this.locales,
       this.logger.withPrefix("Assets"),
       this.catalog,
+      options,
     );
   }
 
@@ -402,7 +411,7 @@ export class ZintlCompiler {
               await this.transform(code, fullPath, undefined, true);
             })(),
           );
-        } else if (/\.(md|txt)$/.test(entry.name)) {
+        } else if (this.assets.isSupportedAsset(fullPath)) {
           tasks.push(this.assets.registerAsset(fullPath));
         }
       }
@@ -935,6 +944,7 @@ export class ZintlCompiler {
         effectiveCleanId,
         fileId,
         this.logger.withPrefix("Extractor"),
+        { targets: this._options.targets },
       );
       this.observationCache[effectiveCleanId] = observation;
 

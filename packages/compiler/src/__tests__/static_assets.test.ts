@@ -146,4 +146,112 @@ author: Khalid
     expect(existsSync(txtArPath)).toBe(false);
     expect(existsSync(txtFrPath)).toBe(false);
   });
+
+  it("should support custom globs, strategies, and output patterns", async (context: LocalContext) => {
+    const root = context.root!;
+
+    await mkdir(join(root, "src/docs"), { recursive: true });
+    await mkdir(join(root, "src/public"), { recursive: true });
+
+    await writeFile(join(root, "src/docs/intro.mdx"), "---\ntitle: Intro\n---\nHello MDX");
+    await writeFile(join(root, "src/public/hero.png"), "FAKE_PNG_BINARY_DATA");
+
+    const compiler = new ZintlCompiler(
+      {
+        locales: ["en", "ar"],
+        outputDir: "locales",
+        assetsTarget: [
+          "md",
+          {
+            targetPattern: "src/docs/**/*.mdx",
+            strategy: "frontmatter",
+            outputPattern: "locales/docs/[locale]/[name].mdx",
+          },
+          {
+            targetPattern: "src/public/*.png",
+            strategy: "binary-passthrough",
+            outputPattern: "locales/assets/[locale]/[name].[ext]",
+          },
+        ],
+      },
+      root,
+      true,
+    );
+
+    await compiler.discover();
+    await compiler.flush();
+
+    const mdxArPath = compiler.assets.getAssetPath("src/docs/intro.mdx", "ar");
+    expect(mdxArPath).toBe(join(root, "locales/docs/ar/intro.mdx"));
+    expect(existsSync(mdxArPath)).toBe(true);
+    const mdxContent = await readFile(mdxArPath, "utf-8");
+    expect(mdxContent).toContain("title: Intro");
+    expect(mdxContent).toContain("Hello MDX");
+
+    const pngArPath = compiler.assets.getAssetPath("src/public/hero.png", "ar");
+    expect(pngArPath).toBe(join(root, "locales/assets/ar/hero.png"));
+    expect(existsSync(pngArPath)).toBe(true);
+    const pngContent = await readFile(pngArPath, "utf-8");
+    expect(pngContent).toBe("FAKE_PNG_BINARY_DATA");
+  });
+
+  it("should prevent asset collision by injecting [path] when catalogFormat is non-boundary-specific", async (context: LocalContext) => {
+    const { root } = context;
+    await mkdir(join(root, "src/assets"), { recursive: true });
+    await writeFile(join(root, "src/assets/logo.png"), "LOGO_DATA");
+
+    const compiler = new ZintlCompiler(
+      {
+        locales: ["en", "ar"],
+        outputDir: "locales",
+        catalogFormat: "translations/[locale].json",
+        assetsTarget: ["png"],
+      },
+      root,
+      true,
+    );
+
+    await compiler.discover();
+    await compiler.flush();
+
+    const logoPath = compiler.assets.getAssetPath("src/assets/logo.png", "ar");
+    // Ensure the catalog path includes the original file path to avoid collision
+    expect(logoPath).toBe(join(root, "locales/translations/src/assets/logo.ar.png"));
+    expect(existsSync(logoPath)).toBe(true);
+    const content = await readFile(logoPath, "utf-8");
+    expect(content).toBe("LOGO_DATA");
+  });
+
+  it("should support custom strategy functions", async (context: LocalContext) => {
+    const root = context.root!;
+    await mkdir(join(root, "src/docs"), { recursive: true });
+    await writeFile(join(root, "src/docs/custom.txt"), "hello custom strategy");
+
+    const compiler = new ZintlCompiler(
+      {
+        locales: ["en", "ar"],
+        outputDir: "locales",
+        assetsTarget: [
+          {
+            targetPattern: "src/docs/custom.txt",
+            strategy: (srcBuf, extBuf, locale) => {
+              const text = srcBuf.toString("utf-8");
+              return Buffer.from(`[${locale}] ${text.toUpperCase()}`, "utf-8");
+            },
+            outputPattern: "locales/docs/[locale]/[name].[ext]",
+          },
+        ],
+      },
+      root,
+      true,
+    );
+
+    await compiler.discover();
+    await compiler.flush();
+
+    const arPath = compiler.assets.getAssetPath("src/docs/custom.txt", "ar");
+    expect(existsSync(arPath)).toBe(true);
+    const content = await readFile(arPath, "utf-8");
+    expect(content).toBe("[ar] HELLO CUSTOM STRATEGY");
+  });
 });

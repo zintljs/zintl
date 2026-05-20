@@ -8,7 +8,6 @@ import type {
 } from "@oxc-project/types";
 import { ExtractionContext } from "../context.js";
 import { generateMessageId } from "../hashing.js";
-import { DEFAULT_UI_SINK_PROPERTIES } from "../constants.js";
 import { getAttachedComments } from "../comments.js";
 import type { LiteralSource, RawVariable } from "../types.js";
 
@@ -202,7 +201,7 @@ export function createBindingVisitor(_ctx: ExtractionContext) {
       const prop =
         (node.left as any).property.type === "Identifier" ? (node.left as any).property.name : "";
 
-      if (!DEFAULT_UI_SINK_PROPERTIES.includes(prop)) return;
+      if (!ctx.uiSinkProperties.includes(prop)) return;
 
       const stmtComments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
       const sources = ctx.findLiteralsInExpression(node.right as Node, stmtComments, prop);

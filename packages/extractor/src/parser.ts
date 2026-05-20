@@ -6,12 +6,8 @@ import { createCombinedVisitor } from "./visitors/index.js";
 import { walk } from "./walker.js";
 
 import { extractHtml } from "./html.js";
-import {
-  DEFAULT_UI_ATTRIBUTES,
-  DEFAULT_UI_OBJECT_FIELDS,
-  DEFAULT_UI_SINK_PROPERTIES,
-  ZINTL_MACRO,
-} from "./constants.ts";
+import { ZINTL_MACRO } from "./constants.ts";
+import { resolveTargets } from "./targets.js";
 
 export function extract(
   code: string,
@@ -20,20 +16,31 @@ export function extract(
   options: ExtractionOptions = {},
 ): ExtractionResult {
   code = code.replace(/\r\n/g, "\n");
-  const activeSinks = Array.from(options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS)
-    .concat(DEFAULT_UI_SINK_PROPERTIES)
-    .concat(Array.from(options.uiAttributes || DEFAULT_UI_ATTRIBUTES)) as string[];
+
+  const targets = options.targets || ["vanilla", "react", "html"];
+  const resolved = resolveTargets(targets);
+
+  let hints = resolved.uniqueHints;
+  if (options.uiObjectFields || options.uiSinkProperties || options.uiAttributes) {
+    const hintsSet = new Set(resolved.uniqueHints);
+    if (options.uiObjectFields) {
+      for (const f of options.uiObjectFields) hintsSet.add(f);
+    }
+    if (options.uiSinkProperties) {
+      for (const p of options.uiSinkProperties) hintsSet.add(p);
+    }
+    if (options.uiAttributes) {
+      for (const a of options.uiAttributes) hintsSet.add(a);
+    }
+    hints = Array.from(hintsSet);
+  }
 
   // Fast-Path Heuristic: Skip files that are statistically unlikely to contain translatable logic.
-  // We check for:
-  // 1. Explicit zintl() calls or t() calls.
-  // 2. JSX syntax (<tag).
-  // 3. UI Sink properties (innerHTML, ariaLabel, etc.) followed by an assignment or object property pattern.
   const isLikelyUI =
     code.includes(ZINTL_MACRO) ||
     code.includes("t(") ||
     code.includes("<") ||
-    activeSinks.some((s) => code.includes(s));
+    hints.some((s) => code.includes(s));
 
   // we do not want to skip modules that may has imported another modules that use zintl() or has ui sinks
   const isLikelyBridge = code.includes("import");
