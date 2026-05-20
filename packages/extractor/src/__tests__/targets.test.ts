@@ -96,4 +96,24 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
     expect(messages).not.toContain("Ignore Label");
     expect(messages).not.toContain("Ignored Aria");
   });
+
+  it("should resolve plugin targets and DOM attributes", () => {
+    const plugin1 = {
+      name: "my-plugin-1",
+      fastPathHint: "hint-1",
+    };
+    const plugin2 = {
+      name: "my-plugin-2",
+      fastPathHint: ["hint-2", "hint-3"],
+    };
+
+    const resolved = resolveTargets([plugin1, plugin2, "dom:attr:data-my-dom-attr", null as any]);
+
+    expect(resolved.plugins).toContain(plugin1);
+    expect(resolved.plugins).toContain(plugin2);
+    expect(resolved.uniqueHints).toContain("hint-1");
+    expect(resolved.uniqueHints).toContain("hint-2");
+    expect(resolved.uniqueHints).toContain("hint-3");
+    expect(resolved.uniqueHints).toContain("data-my-dom-attr");
+  });
 });

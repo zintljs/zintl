@@ -93,4 +93,54 @@ describe("Zintl Extractor", () => {
     const result = extract(code, "test.tsx", "test");
     expect(result.internalDeps["test:Outer"]).toContain("test:Inner");
   });
+
+  it("should recursively trace variable declarations for anchor detection", () => {
+    const code = `
+      import { zintl } from "zintl";
+      const a = "en";
+      const b = a;
+      const c = b;
+      zintl(c);
+    `;
+    const result = extract(code, "App.tsx", "App");
+    expect(result.hasZintlMacro).toBe(true);
+    const site = result.anchorSites[0];
+    expect(site.detectionCode).toContain('const a = "en";');
+    expect(site.detectionCode).toContain("const b = a;");
+    expect(site.detectionCode).toContain("const c = b;");
+  });
+
+  it("should register exports and default exports in non-UI files (fast path)", () => {
+    const code = `
+      import { other } from "./other";
+      export function helper() {}
+      export const arrow = () => {};
+      export default function() {}
+    `;
+    const result = extract(code, "Helper.ts", "Helper");
+    expect(result.exportedBoundaries["helper"]).toBe("Helper:helper");
+    expect(result.exportedBoundaries["arrow"]).toBe("Helper:arrow");
+    expect(result.exportedBoundaries["default"]).toBe("Helper:default");
+  });
+
+  it("should handle default import specifiers", () => {
+    const code = `
+      import zintl from "zintl";
+      zintl("en");
+    `;
+    const result = extract(code, "App.tsx", "App");
+    expect(result.hasZintlMacro).toBe(true);
+  });
+
+  it("should capture statementRange correctly in ReturnStatement", () => {
+    const code = `
+      import { zintl } from "zintl";
+      function App() {
+        return zintl("en");
+      }
+    `;
+    const result = extract(code, "App.tsx", "App");
+    const site = result.anchorSites[0];
+    expect(site.statementRange).toBeDefined();
+  });
 });

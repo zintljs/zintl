@@ -1,5 +1,23 @@
 import { describe, it, expect, vi } from "vite-plus/test";
 import { zintl } from "../index.ts";
+
+let mockExistsSync: any = null;
+let mockReadFileSync: any = null;
+
+vi.mock("node:fs", async () => {
+  const actual = (await vi.importActual("node:fs")) as any;
+  return {
+    ...actual,
+    existsSync: (path: string) => {
+      if (mockExistsSync !== null) return mockExistsSync(path);
+      return actual.existsSync(path);
+    },
+    readFileSync: (path: string, options: any) => {
+      if (mockReadFileSync !== null) return mockReadFileSync(path, options);
+      return actual.readFileSync(path, options);
+    },
+  };
+});
 import {
   RESOLVED_VIRTUAL_PREFIX,
   RESOLVED_CHUNK_PREFIX,
@@ -278,5 +296,167 @@ describe("Zintl Vite Plugin HMR", () => {
 
     expect(result).toBeUndefined();
     expect(invalidateSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("Zintl Vite Plugin Config & Context Edge Cases", () => {
+  it("should handle configHook with Array and Object inputs and filter fanned inputs", () => {
+    const plugin = zintl({ locales: ["en", "ar"], multiplex: true });
+    const configFn = (plugin as any).config;
+
+    // Test Array input
+    const arrayConfig = configFn({
+      build: {
+        rollupOptions: {
+          input: ["index.html", "about.html", "ar/index.html", "./ar/about.html"],
+        },
+      },
+    });
+    // Locales are "en" and "ar". Fanned inputs "ar/index.html" and "./ar/about.html" should be deleted.
+    // The remaining input should be expanded for all locales.
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("index");
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("about");
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("en/index");
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("ar/index");
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("en/about");
+    expect(arrayConfig.build.rollupOptions.input).toHaveProperty("ar/about");
+    // Ensure the fanned ones are not there as raw entries
+    expect(arrayConfig.build.rollupOptions.input).not.toHaveProperty("ar_index");
+
+    // Test Object input
+    const objectConfig = configFn({
+      build: {
+        rollupOptions: {
+          input: {
+            main: "index.html",
+            fanned: "ar/about.html",
+          },
+        },
+      },
+    });
+    expect(objectConfig.build.rollupOptions.input).toHaveProperty("en/index");
+    expect(objectConfig.build.rollupOptions.input).not.toHaveProperty("fanned");
+
+    // Test empty input fallback to index.html
+    const emptyConfig = configFn({
+      build: {
+        rollupOptions: {
+          input: ["ar/index.html"], // will be cleaned/deleted, leaving empty
+        },
+      },
+    });
+    expect(emptyConfig.build.rollupOptions.input).toHaveProperty("en/index");
+  });
+
+  it("should handle getMultiplex with Array, Object, and fanned input path slicing, and fallback scanning", async () => {
+    const plugin = zintl({ locales: ["en", "ar"] });
+
+    // 1. Test scanning finds zintl() in main.ts
+    mockExistsSync = (path: string) => {
+      if (path.endsWith("index.html")) return true;
+      if (path.endsWith("main.ts")) return true;
+      return false;
+    };
+
+    mockReadFileSync = (path: string) => {
+      if (path.endsWith("index.html")) {
+        return `<html><body><script src="./src/main.ts"></script></body></html>`;
+      }
+      if (path.endsWith("main.ts")) {
+        return `import { zintl } from "zintl"; zintl();`;
+      }
+      return "";
+    };
+
+    try {
+      const configFn = (plugin as any).config;
+      const res = configFn({
+        root: "/mock-root",
+        build: {
+          rollupOptions: {
+            input: ["./ar/index.html"],
+          },
+        },
+      });
+      // Should have build.rollupOptions.input fanned because multiplex is detected as true
+      expect(res.build?.rollupOptions?.input).toHaveProperty("en/index");
+    } finally {
+      mockExistsSync = null;
+      mockReadFileSync = null;
+    }
+
+    // 2. Test getMultiplex catch block
+    mockExistsSync = () => {
+      throw new Error("Disk error");
+    };
+
+    try {
+      const configFn = (plugin as any).config;
+      const res = configFn({
+        root: "/mock-root",
+        build: {
+          rollupOptions: {
+            input: ["index.html"],
+          },
+        },
+      });
+      // Should NOT have build fanned because error was caught and multiplex is false
+      expect(res.build).toBeUndefined();
+    } finally {
+      mockExistsSync = null;
+    }
+  });
+});
+
+describe("Zintl Vite Plugin transformIndexHtml Hook Edge Cases", () => {
+  it("should return original HTML if multiplexed but not fanned", async () => {
+    const plugin = zintl({ locales: ["en", "ar"], multiplex: true });
+    (plugin as any).configResolved({ root: "/mock", command: "serve" });
+
+    const handler = (plugin as any).transformIndexHtml.handler;
+    const html = "<html></html>";
+    const result = await handler(html, { filename: "/mock/index.html" });
+    expect(result).toBe(html);
+  });
+
+  it("should transform HTML and scan bundle in production mode", async () => {
+    const plugin = zintl({ locales: ["en", "ar"], multiplex: false });
+    (plugin as any).configResolved({ root: "/mock", command: "build" });
+
+    const compiler = (plugin as any).__compiler;
+    vi.spyOn(compiler, "transformHtml").mockImplementation(
+      async (html: any, _filename: any, preloads: any) => {
+        return `preloads:${JSON.stringify(preloads)}:${html}`;
+      },
+    );
+
+    const handler = (plugin as any).transformIndexHtml.handler;
+    const html = "<html></html>";
+
+    const viteCtx = {
+      filename: "/mock/en/index.html",
+      bundle: {
+        "assets/main.js": {
+          type: "chunk",
+          moduleIds: ["\0virtual:zintl/content/en/entry:b1"],
+        },
+        "assets/ignored.js": {
+          type: "asset",
+          moduleIds: ["\0virtual:zintl/content/en/entry:b1"],
+        },
+        "assets/other.js": {
+          type: "chunk",
+          moduleIds: ["\0virtual:zintl/content/en/entry:b1"],
+        },
+      },
+      server: {
+        config: {
+          base: "/",
+        },
+      },
+    };
+
+    const result = await handler(html, viteCtx);
+    expect(result).toContain('preloads:{"en":["/assets/main.js","/assets/other.js"]}');
   });
 });

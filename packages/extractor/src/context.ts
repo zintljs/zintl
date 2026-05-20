@@ -646,6 +646,15 @@ export class ExtractionContext {
         } else {
           flushBuffer();
 
+          // TODO: check this change (in case it broken, revert to the old code)
+          // if (directives.ignore) {
+          //   if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
+          //     ignoreStack.push(tagName);
+          // } else if (pendingIgnore) {
+          //   if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
+          //     ignoreStack.push(tagName);
+          //   pendingIgnore = false;
+          // }
           if (directives.ignore) {
             if (isComment) pendingIgnore = true;
             else if (!isClosing && !token.endsWith("/>") && !VOID_ELEMENTS.has(tagName))
