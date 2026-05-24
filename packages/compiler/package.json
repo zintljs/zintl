@@ -11,8 +11,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vp pack src/index.ts src/runtime/store.ts src/runtime/resolver.ts src/runtime/registry.ts src/runtime/internal.ts --dts",
-    "dev": "vp pack src/index.ts src/runtime/store.ts src/runtime/resolver.ts src/runtime/registry.ts src/runtime/internal.ts --dts --watch",
+    "build": "vp pack src/index.ts --dts && vp pack src/runtime/store.ts --out-dir dist/runtime --dts && vp pack src/runtime/resolver.ts --out-dir dist/runtime --dts && vp pack src/runtime/registry.ts --out-dir dist/runtime --dts && vp pack src/runtime/internal.ts --out-dir dist/runtime --dts",
+    "dev": "vp pack src/index.ts --dts --watch",
     "test": "vp test",
     "check": "vp check",
     "bench": "node --experimental-strip-types scripts/run-bench.ts"

@@ -1,0 +1,15 @@
+{
+  "$schema": "../.schemas/src/entry-server.render.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "Conéctate con nosotros",
+  "Discord": "Discord",
+  "Documentation": "Documentación",
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+  "Explore Vite": "Explorar Vite",
+  "Get started": "Empezar",
+  "GitHub": "GitHub",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Learn more": "Leer más",
+  "X.com": "X.com",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}

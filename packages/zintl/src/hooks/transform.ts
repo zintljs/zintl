@@ -1,8 +1,9 @@
+import { join, dirname } from "node:path";
 import type { ZintlPluginContext } from "../context.js";
 import { VIRTUAL_PREFIX } from "../constants.js";
 
 export function transformHook(ctx: ZintlPluginContext) {
-  return async function (code: string, id: string) {
+  return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (id.includes("node_modules") || id.startsWith("\0")) return;
 
@@ -15,6 +16,7 @@ export function transformHook(ctx: ZintlPluginContext) {
       VIRTUAL_PREFIX,
       false,
       multiplexLocale,
+      options?.ssr,
     );
 
     if (ctx.server && !id.startsWith("\0")) {
@@ -42,7 +44,24 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
   return {
     order: "post" as const,
     async handler(html: string, viteCtx: any) {
-      const filename = viteCtx.filename || viteCtx.path || "";
+      let htmlId = viteCtx.filename || viteCtx.path || "";
+      if (viteCtx.path) {
+        const pathParts = viteCtx.path.split("/").filter(Boolean);
+        const locales = ctx.options.locales || ["en"];
+        const foundLocale = pathParts.find((p: string) => locales.includes(p));
+        if (foundLocale) {
+          const pathName = pathParts.filter((p: string) => p !== foundLocale).join("/");
+          const baseName = pathName
+            ? pathName.endsWith(".html")
+              ? pathName
+              : `${pathName}/index.html`
+            : "index.html";
+          const dir = dirname(htmlId);
+          htmlId = join(dir, foundLocale, baseName);
+        }
+      }
+
+      const filename = htmlId;
       const normalizedPath = filename.replace(/\\/g, "/");
       const cleanPath = normalizedPath.split("?")[0];
       const parts = cleanPath.split("/");
@@ -79,7 +98,7 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
         }
       }
 
-      return await ctx.compiler.transformHtml(html, viteCtx.filename || viteCtx.path, preloads);
+      return await ctx.compiler.transformHtml(html, htmlId, preloads);
     },
   };
 }

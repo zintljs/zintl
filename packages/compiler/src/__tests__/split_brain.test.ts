@@ -61,24 +61,25 @@ describe("ZintlCompiler - Split-Brain (Disk Collision)", () => {
 
     // Set catalog format to something that collides
     // Actually, I'll use a custom function to force collision
+    const root2 = join(root, "c2");
     const compiler2 = new ZintlCompiler(
       {
         outputDir: "locales",
         catalogFormat: () => "shared.ar.json",
         locales: ["en", "ar"],
       },
-      root,
+      root2,
       true,
     );
     await compiler2.setup();
 
-    await compiler2.transform('import { t } from "zintl"; t("Hello A")', join(root, "src/A.ts"));
+    await compiler2.transform('import { t } from "zintl"; t("Hello A")', join(root2, "src/A.ts"));
     await compiler2.flush();
 
-    await compiler2.transform('import { t } from "zintl"; t("Hello B")', join(root, "src/B.ts"));
+    await compiler2.transform('import { t } from "zintl"; t("Hello B")', join(root2, "src/B.ts"));
     await compiler2.flush();
 
-    const sharedPath = join(root, "locales/shared.ar.json");
+    const sharedPath = join(root2, "locales/shared.ar.json");
     catalog = JSON.parse(await readFile(sharedPath, "utf-8"));
 
     // WITHOUT the fix, "Hello A" would be overwritten by "Hello B"

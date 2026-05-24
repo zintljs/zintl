@@ -6,6 +6,16 @@ export type Catalogs = Record<string, BoundaryCatalogs>;
 type LoaderResult = Catalog | BoundaryCatalogs | Promise<Catalog | BoundaryCatalogs>;
 export type Loader = (locale: string) => LoaderResult;
 
+let storeStorage: any = null;
+if (typeof window === "undefined" && typeof process !== "undefined") {
+  try {
+    const asyncHooks = await import("node:async_hooks");
+    if (asyncHooks && asyncHooks.AsyncLocalStorage) {
+      storeStorage = new asyncHooks.AsyncLocalStorage();
+    }
+  } catch {}
+}
+
 export class I18nStore {
   locale: string = "";
   catalogs: Catalogs = {};
@@ -20,6 +30,16 @@ export class I18nStore {
     if (!this.locale && typeof window !== "undefined") {
       try {
         this.locale = localStorage.getItem("zintl-locale") || "";
+      } catch {}
+    }
+    if (!this.locale) {
+      try {
+        if (storeStorage) {
+          const active = storeStorage.getStore();
+          if (active && active !== this) {
+            this.locale = active.locale;
+          }
+        }
       } catch {}
     }
   }
@@ -155,12 +175,64 @@ let defaultInstance = new I18nStore();
 let currentInstance = defaultInstance;
 
 export function getActiveInstance() {
+  if (storeStorage) {
+    const store = storeStorage.getStore();
+    if (store) return store;
+  }
   return currentInstance;
 }
 
 export function setActiveInstance(instance: I18nStore) {
   currentInstance = instance;
 }
+
+export function runInRequestScope<T>(
+  urlOrReq: any,
+  locales: string[],
+  defaultLocale: string,
+  callback: () => T,
+): T {
+  if (typeof window === "undefined" && storeStorage) {
+    let locale = defaultLocale;
+    if (urlOrReq) {
+      let pathname = "";
+      if (typeof urlOrReq === "string") {
+        pathname = urlOrReq;
+      } else if (typeof urlOrReq === "object") {
+        pathname = urlOrReq.url || urlOrReq.path || "";
+      }
+
+      const parts = pathname.split("/").filter(Boolean);
+      if (parts.length > 0 && locales.includes(parts[0])) {
+        locale = parts[0];
+      }
+    }
+
+    const store = new I18nStore();
+    store.locale = locale;
+    return storeStorage.run(store, () => {
+      // Auto-hydrate the registered loaders for this new store context
+      for (const [, loader] of globalRegistry.entries()) {
+        try {
+          const result = loader(locale);
+          const processResult = (res: any) => {
+            if (!res) return;
+            store.addCatalogs({ [locale]: res } as Catalogs);
+          };
+          if (isThenable(result)) {
+            void (result as Promise<any>).then(processResult);
+          } else {
+            processResult(result);
+          }
+        } catch {}
+      }
+      return callback();
+    });
+  }
+  return callback();
+}
+
+export { storeStorage };
 
 export function registerLoader(boundaryId: string, loader: Loader) {
   globalRegistry.set(boundaryId, loader);

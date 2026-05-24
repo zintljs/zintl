@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": "ltr",
+  "title": "Zintl | 基础单页应用多语言示例"
+}

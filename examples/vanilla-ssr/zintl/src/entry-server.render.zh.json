@@ -1,0 +1,15 @@
+{
+  "$schema": "../.schemas/src/entry-server.render.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "联系我们",
+  "Discord": "Discord",
+  "Documentation": "文档",
+  "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
+  "Explore Vite": "探索 Vite",
+  "Get started": "开始使用",
+  "GitHub": "GitHub",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "X.com": "X.com",
+  "Your questions, answered": "你的问题，已有答案"
+}

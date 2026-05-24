@@ -1,0 +1,4 @@
+{
+  "$schema": "../.schemas/src/counter.setupCounter.schema.json",
+  "Count is {counter}": "La cuenta es {counter}"
+}

@@ -210,7 +210,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 }
 
 export function loadHook(ctx: ZintlPluginContext) {
-  return async function (this: any, id: string) {
+  return async function (this: any, id: string, options?: { ssr?: boolean }) {
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/runtime")) {
       const moduleName = cleanId
@@ -219,7 +219,11 @@ export function loadHook(ctx: ZintlPluginContext) {
       ctx.compiler._logger
         .withPrefix("Vite")
         .debug(`Loading virtual runtime module: ${moduleName}`);
-      return getRuntimeCode(moduleName as any);
+      let code = getRuntimeCode(moduleName as any);
+      if (!options?.ssr) {
+        code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");
+      }
+      return code;
     }
 
     if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) {

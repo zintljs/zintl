@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Bluesky": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Discord": {
+      "type": "string"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Explore Vite": {
+      "type": "string"
+    },
+    "Get started": {
+      "type": "string"
+    },
+    "GitHub": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "X.com": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Bluesky",
+    "Connect with us",
+    "Discord",
+    "Documentation",
+    "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
+    "Explore Vite",
+    "Get started",
+    "GitHub",
+    "Join the Vite community",
+    "Learn more",
+    "X.com",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

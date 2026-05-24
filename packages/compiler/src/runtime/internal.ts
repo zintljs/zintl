@@ -8,6 +8,7 @@ import {
   getActiveInstance,
   setActiveInstance,
   I18nStore,
+  runInRequestScope,
   type Catalogs,
   type Loader,
 } from "./store.js";
@@ -17,8 +18,12 @@ import { registerZintlLoader } from "./registry.js";
 // Friendly alias for internal tests
 export { _t as t };
 
-export async function zintl(locale: string) {
-  await setLocale(locale);
+export async function zintl(locale?: string) {
+  const activeLocale =
+    locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+  if (activeLocale) {
+    await setLocale(activeLocale);
+  }
 }
 
 export interface I18nInstanceConfig {
@@ -60,15 +65,23 @@ export async function loadI18nInstance(config: I18nInstanceConfig = {}) {
     }
 
     // 4. Register loaders (Synchronous Boost)
+    const promises: Promise<any>[] = [];
     if (config.loaders) {
       for (const [boundaryId, loader] of Object.entries(config.loaders)) {
-        void registerLoader(boundaryId, loader);
+        const res = registerLoader(boundaryId, loader);
+        if (res && typeof res.then === "function") {
+          promises.push(res);
+        }
       }
     }
 
     // 4. Full hydration (Async)
     if (config.locale) {
-      await store.setLocale(config.locale);
+      promises.push(store.setLocale(config.locale));
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
     }
   } finally {
     // Return to pool or maintain active if needed
@@ -105,4 +118,5 @@ export {
   registerZintlLoader,
   registerLoader,
   unregisterLoader as unregisterZintlLoader,
+  runInRequestScope,
 };

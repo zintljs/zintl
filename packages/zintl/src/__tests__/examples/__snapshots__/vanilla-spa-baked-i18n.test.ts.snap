@@ -253,12 +253,235 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/runtime/internal 1`] = `
-"import { I18nStore, addCatalogs, getActiveInstance, getLocale, registerLoader, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.mjs";
-import { _t } from "./resolver.mjs";
-import { registerZintlLoader } from "./registry.mjs";
+"//#region src/runtime/store.ts
+let storeStorage = null;
+if (typeof window === "undefined" && typeof process !== "undefined") try {
+	const asyncHooks = null;
+	if (asyncHooks && asyncHooks.AsyncLocalStorage) storeStorage = new asyncHooks.AsyncLocalStorage();
+} catch {}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	listeners = /* @__PURE__ */ new Set();
+	constructor() {
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	notify() {
+		this.listeners.forEach((l) => l());
+	}
+	addCatalogs(newCatalogs) {
+		let changed = false;
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		if (changed) {
+			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug("[Zintl] Catalogs updated:", Object.keys(newCatalogs).flatMap((l) => Object.keys(newCatalogs[l]).map((b) => \`\${l}/\${b}\`)));
+			this.notify();
+		}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (typeof window !== "undefined") {
+			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+			try {
+				localStorage.setItem("zintl-locale", locale);
+			} catch {}
+		}
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
+		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Switching to locale: \${locale}\`);
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {
+			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load catalog for boundary "\${boundaryId}" (\${locale})\`, err);
+		}
+		if (activePromises.length > 0) {
+			await Promise.all(activePromises);
+			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
+			this.notify();
+		} else {
+			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
+			this.notify();
+		}
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		const result = loader(this.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [this.locale]: res });
+		};
+		if (isThenable(result)) {
+			this.pendingBoundaries.add(boundaryId);
+			return result.then((res) => {
+				processResult(res);
+				this.pendingBoundaries.delete(boundaryId);
+			});
+		} else processResult(result);
+	}
+};
+const globalRegistry = /* @__PURE__ */ new Map();
+let currentInstance = new I18nStore();
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	currentInstance = instance;
+}
+function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
+	if (typeof window === "undefined" && storeStorage) {
+		let locale = defaultLocale;
+		if (urlOrReq) {
+			let pathname = "";
+			if (typeof urlOrReq === "string") pathname = urlOrReq;
+			else if (typeof urlOrReq === "object") pathname = urlOrReq.url || urlOrReq.path || "";
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
+		}
+		const store = new I18nStore();
+		store.locale = locale;
+		return storeStorage.run(store, () => {
+			for (const [, loader] of globalRegistry.entries()) try {
+				const result = loader(locale);
+				const processResult = (res) => {
+					if (!res) return;
+					store.addCatalogs({ [locale]: res });
+				};
+				if (isThenable(result)) result.then(processResult);
+				else processResult(result);
+			} catch {}
+			return callback();
+		});
+	}
+	return callback();
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	try {
+		const result = loader(instance.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [instance.locale]: res });
+		};
+		if (isThenable(result)) return result.then((res) => {
+			processResult(res);
+		});
+		else processResult(result);
+	} catch (err) {
+		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load initial catalog for boundary "\${boundaryId}"\`, err);
+	}
+}
+function unregisterLoader(boundaryId) {
+	globalRegistry.delete(boundaryId);
+}
+function setLocale(locale) {
+	return getActiveInstance().setLocale(locale);
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function addCatalogs(catalogs) {
+	return getActiveInstance().addCatalogs(catalogs);
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+//#region src/runtime/resolver.ts
+function _t(key, params = {}, options) {
+	const instance = getActiveInstance();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) {
+		if (mgr) {
+			instance.registerLoader(mgr.id, mgr.loader);
+			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
+			return \`\`;
+		}
+		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
+		return \`\`;
+	}
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+//#region src/runtime/registry.ts
+/**
+* A helper for the Zintl compiler to register a boundary loader.
+* This is designed to be called with a minimal footprint in the transformed source.
+*/
+function registerZintlLoader(boundaryId, loader) {
+	return registerLoader(boundaryId, loader);
+}
+//#endregion
 //#region src/runtime/internal.ts
 async function zintl(locale) {
-	await setLocale(locale);
+	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+	if (activeLocale) await setLocale(activeLocale);
 }
 /**
 * Loads and configures the i18n instance for a boundary.
@@ -274,8 +497,13 @@ async function loadI18nInstance(config = {}) {
 		if (config.debug !== void 0) store.debug = config.debug;
 		if (config.locale) store.locale = config.locale;
 		if (config.catalogs) store.addCatalogs(config.catalogs);
-		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) registerLoader(boundaryId, loader);
-		if (config.locale) await store.setLocale(config.locale);
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = registerLoader(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
 	} finally {}
 	return {
 		locale: store.locale,
@@ -299,7 +527,7 @@ async function loadI18nInstance(config = {}) {
 	};
 }
 //#endregion
-export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
+export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, runInRequestScope, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production Build (dist) snapshots > vanilla-spa-i18n-baked/dist/ar/index.html 1`] = `
@@ -767,11 +995,16 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Final Production B
         try {
           const lang = (navigator.language || 'en').split('-')[0];
           const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const target = supported.includes(lang) ? lang : 'en';
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/en/' + path);
         }
       })();

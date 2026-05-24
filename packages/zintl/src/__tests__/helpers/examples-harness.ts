@@ -150,7 +150,8 @@ export async function createExampleContext(
   const tempMetadataPath = join(overlayRoot, "node_modules", ".zintl");
   await mkdir(tempMetadataPath, { recursive: true });
 
-  const realOutputDir = exampleOptions.outputDir ?? "src/locales";
+  const realOutputDir =
+    exampleOptions.outputDir ?? (existsSync(join(exampleRoot, "zintl")) ? "zintl" : "src/locales");
   const realLocalesPath = isAbsolute(realOutputDir)
     ? realOutputDir
     : join(exampleRoot, realOutputDir);
@@ -464,7 +465,7 @@ async function _runBuild(
       const opt = (zintlPlugin as any).__options;
       opt.outputDir = relative(root, tempOutputDir);
       opt.prune = false;
-      opt.metadataDir = join(dirname(tempOutputDir), "node_modules", ".zintl");
+      opt.metadataDir = join(dirname(tempOutputDir), "../node_modules", ".zintl");
       opt.verifyIntegrity = true; // Ensure it's on for build
     }
   }

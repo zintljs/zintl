@@ -3,16 +3,11 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   workspaces: {
     "examples/**": {
-      entry: ["src/{about,main}.ts"],
+      entry: ["src/{about,main,entry-client,entry-server}.ts"],
+      project: ["src/**/*.ts"],
     },
     "packages/compiler": {
-      entry: [
-        "src/index.ts",
-        "src/runtime/store.ts",
-        "src/runtime/resolver.ts",
-        "src/runtime/registry.ts",
-        "src/runtime/internal.ts",
-      ],
+      entry: ["src/index.ts", "src/runtime/*.ts"],
       project: ["src/**/*.ts"],
     },
     "packages/extractor": {

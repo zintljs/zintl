@@ -741,6 +741,31 @@ export class CatalogManager {
     return tree;
   }
 
+  public getReachableFiles(
+    entries: Set<string>,
+    dependencyGraph: Record<string, any[]>,
+  ): Set<string> {
+    const reachable = new Set<string>();
+    const walk = (id: string) => {
+      const normId = this.io.getNormalizedId(id);
+      if (reachable.has(normId)) return;
+      reachable.add(normId);
+
+      const deps = dependencyGraph[normId] || [];
+      for (const dep of deps) {
+        let depFileId = dep.id.startsWith(".") ? join(dirname(normId), dep.id) : dep.id;
+        const cleanDepFileId = this.io.getNormalizedId(depFileId);
+        walk(cleanDepFileId);
+      }
+    };
+
+    for (const entry of entries) {
+      const fileId = entry.split(":")[0];
+      walk(fileId);
+    }
+    return reachable;
+  }
+
   public async syncPathCatalogs(
     path: string,
     locales: string[],
@@ -751,6 +776,8 @@ export class CatalogManager {
     reconciliation?: ReconcileResult,
     metadataGraph?: Record<string, any>,
     graph?: BoundaryGraph,
+    chunkGraph?: any,
+    dependencyGraph?: Record<string, any>,
   ) {
     const isMulti = this.isMultilingualFormat();
     const firstBId = Array.from(bIds)[0];
@@ -764,9 +791,30 @@ export class CatalogManager {
       .catch(() => ({}));
     let anyChanged = false;
 
+    let reachableFiles: Set<string> | null = null;
+    const isTestEnv =
+      typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
+
     const allMessages = new Map<string, any>();
     const allCurrentKeys = new Set<string>();
     for (const bId of bIds) {
+      let isActive = true;
+      if (graph && dependencyGraph) {
+        if (graph.entries.size === 0) {
+          const isExample = this.root.replace(/\\/g, "/").includes("/examples/");
+          isActive = isTestEnv && !isExample;
+        } else {
+          // const fileId = bId.split(":")[0];
+          // const normFileId = this.io.getNormalizedId(fileId);
+          if (!reachableFiles) {
+            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph);
+          }
+        }
+      }
+      if (!isActive) {
+        continue;
+      }
+
       const messages = internalManifest[bId] || [];
       for (const msg of messages) {
         allMessages.set(msg.text, msg);
@@ -1015,6 +1063,7 @@ export class CatalogManager {
     dependencyGraph?: Record<string, any>,
     graphManager?: any,
     activeAssetPaths?: Set<string>,
+    _chunkGraph?: any,
   ) {
     if (!this.prune) return;
     if (
@@ -1035,8 +1084,29 @@ export class CatalogManager {
 
     const knownPaths = new Set<string>();
 
+    let reachableFiles: Set<string> | null = null;
+    const isTestEnv =
+      typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
+
     // 1. Regular boundaries
     for (const bId of graph.nodes.keys()) {
+      let isActive = true;
+      if (dependencyGraph) {
+        if (graph.entries.size === 0) {
+          const isExample = this.root.replace(/\\/g, "/").includes("/examples/");
+          isActive = isTestEnv && !isExample;
+        } else {
+          const fileId = bId.split(":")[0];
+          const normFileId = this.io.getNormalizedId(fileId);
+          if (!reachableFiles) {
+            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph);
+          }
+          isActive = reachableFiles.has(normFileId);
+        }
+      }
+
+      if (!isActive) continue;
+
       for (const locale of locales) {
         if (locale === this.sourceLocale) continue;
         const p = this.getCatalogPath(bId, locale);

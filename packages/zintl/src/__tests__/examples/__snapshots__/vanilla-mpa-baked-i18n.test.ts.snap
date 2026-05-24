@@ -12,11 +12,16 @@ exports[`Example Proof: vanilla-mpa-baked-i18n > should match Final Production B
         try {
           const lang = (navigator.language || 'en').split('-')[0];
           const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const target = supported.includes(lang) ? lang : 'en';
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/en/' + path);
         }
       })();
@@ -1640,11 +1645,16 @@ exports[`Example Proof: vanilla-mpa-baked-i18n > should match Final Production B
         try {
           const lang = (navigator.language || 'en').split('-')[0];
           const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const target = supported.includes(lang) ? lang : 'en';
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/en/' + path);
         }
       })();

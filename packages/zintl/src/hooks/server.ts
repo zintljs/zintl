@@ -7,6 +7,10 @@ export function configureServerHook(ctx: ZintlPluginContext) {
   return function (server: ViteDevServer) {
     ctx.server = server;
 
+    if (server.config?.appType === "custom") {
+      return;
+    }
+
     const multiplex = ctx.getMultiplex();
     if (multiplex) {
       const locales = ctx.options.locales || ["en"];
@@ -80,10 +84,15 @@ export function configureServerHook(ctx: ZintlPluginContext) {
         try {
           const lang = (navigator.language || '${defaultLocale}').split('-')[0];
           const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const target = supported.includes(lang) ? lang : '${defaultLocale}';
           const path = window.location.pathname.replace(/^\\/+/, '');
           window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
+          const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const path = window.location.pathname.replace(/^\\/+/, '');
           window.location.replace('/${defaultLocale}/' + path);
         }

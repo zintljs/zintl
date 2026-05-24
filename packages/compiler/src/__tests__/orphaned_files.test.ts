@@ -65,4 +65,14 @@ describe("Zintl Compiler: Orphaned Files", () => {
       't("Directive Message", { _mgr: _zintl_mgr_b_src_directive, _bId: "b_src_directive" })',
     );
   });
+
+  it("should NOT transform a file with UI sinks if the project has zero zintl anchors/entries", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+    const examplePath = join(root, "examples/my-app/src/counter.ts");
+    const code = `export function setup(element: HTMLElement) { element.innerHTML = "Count is 0"; }`;
+
+    const result = await compiler.transform(code, examplePath, "virtual:zintl/catalogs");
+
+    expect(result).toBeUndefined();
+  });
 });

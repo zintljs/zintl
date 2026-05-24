@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": "",
+  "title": "Zintl | ejemplo básico de aplicación de página única"
+}

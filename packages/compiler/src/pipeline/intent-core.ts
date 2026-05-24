@@ -181,7 +181,7 @@ export function planSinks(observation: FileObservation, worldState: WorldState):
       (anchor?.locale.type === "expression" && !anchor?.locale.source);
     const isDynamic = anchor?.locale.type === "expression" && !isContextual;
 
-    if (config.isDev || isDynamic || !anchor) {
+    if (config.isDev || isDynamic || !anchor || (isContextual && !config.bakedLocale)) {
       intents.push(createWrapIntent(sink, messageId, ownerId, worldState));
       const safeId = calculateSafeBoundaryId(ownerId, config.root, config.isDev);
       const stableId = safeId;
@@ -249,7 +249,7 @@ export function planManualT(
         (anchor?.locale.type === "expression" && !anchor?.locale.source);
       const isDynamic = anchor?.locale.type === "expression" && !isContextual;
 
-      if (!isDynamic && anchor) {
+      if (!isDynamic && anchor && (!isContextual || !!worldState.config.bakedLocale)) {
         let locale =
           anchor.locale.type === "literal" ? anchor.locale.value : worldState.config.sourceLocale;
 

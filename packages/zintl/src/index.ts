@@ -31,8 +31,10 @@ export function zintl(
         const normalizedPath = filename.replace(/\\/g, "/");
         const parts = normalizedPath.split("?")[0].split("/");
         const locales = ctx.options.locales || ["en"];
+        const pathParts = (viteCtx.path || "").split("/").filter(Boolean);
         const isFanned =
           parts.some((p: string) => locales.includes(p)) ||
+          pathParts.some((p: string) => locales.includes(p)) ||
           normalizedPath.includes("virtual:zintl-multiplex-html");
 
         const isMultiplex = ctx.getMultiplex();
@@ -58,11 +60,16 @@ export function zintl(
         try {
           const lang = (navigator.language || '${defaultLocale}').split('-')[0];
           const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
           const target = supported.includes(lang) ? lang : '${defaultLocale}';
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
         } catch (e) {
-          const path = window.location.pathname.replace(/^\\/+/, '');
+          const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
           window.location.replace('/${defaultLocale}/' + path);
         }
       })();
