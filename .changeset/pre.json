@@ -7,10 +7,14 @@
     "zintl": "0.0.3"
   },
   "changesets": [
+    "bypass-non-zintlized-transforms",
     "decouple-runtime-virtualization",
     "rebrand-to-zintl",
+    "sfc-vue-svelte-integration-and-flush-perf",
+    "ssr-fanned-routing-and-svg-stitching",
+    "ssr-request-isolation",
     "universal-targets-and-assets",
-    "zzz-perf-zintl-compiler",
-    "zzz-perf-zintl-extractor"
+    "vue-svelte-catalog-and-manager-fixes",
+    "zzz-perf-zintl-compiler"
   ]
 }
