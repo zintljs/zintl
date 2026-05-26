@@ -456,7 +456,8 @@ export class ExtractionContext {
     const depId = id.startsWith(".")
       ? join(dirname(this.fileBoundaryId), id).replace(/\\/g, "/")
       : id;
-    const cleanId = depId.replace(/\.[^/.]+$/, "");
+    const hasSourceExtension = /\.(tsx?|jsx?|mts|mjs|cts|cjs)$/i.test(depId);
+    const cleanId = hasSourceExtension ? depId.replace(/\.[^/.]+$/, "") : depId;
     if (!this.dependencyPaths.has(cleanId)) this.dependencyPaths.set(cleanId, dynamic);
     else if (!dynamic) this.dependencyPaths.set(cleanId, false);
     if (bindings.length > 0) {
@@ -503,7 +504,7 @@ export class ExtractionContext {
     sources.push(source);
   }
 
-  private stitchHTML(
+  public stitchHTML(
     text: string,
     onFragment: (
       t: string,

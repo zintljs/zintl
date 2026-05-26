@@ -204,6 +204,7 @@ export interface Transform {
 }
 
 export type TargetDescriptor =
+  | "auto"
   | "react"
   | "vue"
   | "svelte"

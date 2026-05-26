@@ -782,6 +782,7 @@ exports[`Example Proof: vanilla-mpa-shared > should match Final Production Build
     <script type="module" crossorigin src="/assets/about.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/icons.js">
     <link rel="stylesheet" crossorigin href="/assets/icons-CchAdl3f.css">
+  
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
@@ -1502,6 +1503,7 @@ exports[`Example Proof: vanilla-mpa-shared > should match Final Production Build
     <script type="module" crossorigin src="/assets/main.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/icons.js">
     <link rel="stylesheet" crossorigin href="/assets/icons-CchAdl3f.css">
+  
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {

@@ -234,7 +234,7 @@ export async function createExampleContext(
           await walk(fullPath);
         } else {
           const relPath = relative(exampleRoot, fullPath);
-          if (relPath.match(/\.(ts|js|tsx|jsx|html|css|json|svg|png|jpg|ico)$/)) {
+          if (relPath.match(/\.(ts|js|tsx|jsx|html|vue|svelte|css|json|svg|png|jpg|ico)$/)) {
             files[relPath] = await readFile(fullPath, "utf-8");
           }
         }
@@ -306,7 +306,18 @@ export async function createExampleContext(
           root: exampleRoot,
           command: configEnv.command,
           mode: configEnv.mode,
-        });
+          isProduction: mode === "production",
+          build: { sourcemap: false },
+          define: {
+            __VUE_PROD_DEVTOOLS__: false,
+          },
+          css: { devSourcemap: false },
+          logger: {
+            warn: (msg: any) => console.warn(msg),
+            info: (msg: any) => console.log(msg),
+            error: (msg: any) => console.error(msg),
+          },
+        } as any);
       }
       if (p.buildStart) {
         await p.buildStart.apply(mockContext);
@@ -455,7 +466,30 @@ async function _runBuild(
       { ...buildConfig, root, logLevel: "silent" as const, define: TEST_DEFINES },
       overrides,
     ),
-    { build: testOverrides },
+    {
+      build: testOverrides,
+      plugins: [
+        {
+          name: "zintl-test-dedupe-plugins",
+          enforce: "pre",
+          configResolved(resolvedConfig: any) {
+            const seen = new Set<string>();
+            const filtered: any[] = [];
+            for (const p of resolvedConfig.plugins) {
+              if (p && p.name) {
+                if (seen.has(p.name)) {
+                  continue;
+                }
+                seen.add(p.name);
+              }
+              filtered.push(p);
+            }
+            resolvedConfig.plugins.length = 0;
+            resolvedConfig.plugins.push(...filtered);
+          },
+        } as any,
+      ],
+    },
   );
 
   const zintlPlugin = findZintlPlugin(config);

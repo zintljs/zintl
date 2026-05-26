@@ -69,6 +69,10 @@ export function extract(
     return extractHtml(code, filePath, fileBoundaryId, options);
   }
 
+  if (filePath.endsWith(".vue") || filePath.endsWith(".svelte")) {
+    return extractSfc(code, filePath, fileBoundaryId, options);
+  }
+
   // const activeSinks = Array.from(options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS)
   //   .concat(DEFAULT_UI_SINK_PROPERTIES)
   //   .concat(Array.from(options.uiAttributes || DEFAULT_UI_ATTRIBUTES)) as string[];
@@ -144,4 +148,164 @@ export function extract(
   };
 
   return res;
+}
+
+function extractSfc(
+  code: string,
+  filePath: string,
+  fileBoundaryId: string,
+  options: ExtractionOptions,
+): ExtractionResult {
+  let script = "";
+  let scriptLang = "ts";
+  let scriptStart = 0;
+  let scriptStartLine = 0;
+
+  const isVue = filePath.endsWith(".vue");
+  const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+
+  const scriptMatch = scriptRegex.exec(code);
+  if (scriptMatch) {
+    script = scriptMatch[1];
+    scriptStart = code.indexOf(scriptMatch[1], scriptMatch.index);
+    const codeBeforeScript = code.substring(0, scriptStart);
+    scriptStartLine = (codeBeforeScript.match(/\n/g) || []).length;
+
+    const openTag = scriptMatch[0];
+    const langMatch = /lang=["']([^"']+)["']/i.exec(openTag);
+    if (langMatch) {
+      scriptLang = langMatch[1];
+    }
+  }
+
+  const scriptExt = script.trim()
+    ? extract(
+        script,
+        filePath + (scriptLang === "ts" || scriptLang === "tsx" ? ".tsx" : ".jsx"),
+        fileBoundaryId,
+        options,
+      )
+    : null;
+
+  if (scriptExt && scriptStart > 0) {
+    if (scriptExt.messages) {
+      for (const msg of scriptExt.messages) {
+        msg.location.line += scriptStartLine;
+      }
+    }
+    if (scriptExt.transforms) {
+      for (const t of scriptExt.transforms) {
+        t.start += scriptStart;
+        t.end += scriptStart;
+      }
+    }
+    if (scriptExt.rawSinks) {
+      for (const s of scriptExt.rawSinks) {
+        s.start += scriptStart;
+        s.end += scriptStart;
+        s.line += scriptStartLine;
+        if (s.hostStart !== undefined) s.hostStart += scriptStart;
+        if (s.hostEnd !== undefined) s.hostEnd += scriptStart;
+        if (s.fragmentStart !== undefined) s.fragmentStart += scriptStart;
+        if (s.fragmentEnd !== undefined) s.fragmentEnd += scriptStart;
+        if (s.variables) {
+          for (const v of s.variables) {
+            v.start += scriptStart;
+            v.end += scriptStart;
+          }
+        }
+      }
+    }
+    if (scriptExt.rawManualTranslations) {
+      for (const t of scriptExt.rawManualTranslations) {
+        t.start += scriptStart;
+        t.end += scriptStart;
+        t.line += scriptStart;
+      }
+    }
+    if (scriptExt.anchorSites) {
+      for (const s of scriptExt.anchorSites) {
+        s.start += scriptStart;
+        s.end += scriptStart;
+        if (s.statementRange) {
+          s.statementRange.start += scriptStart;
+          s.statementRange.end += scriptStart;
+        }
+      }
+    }
+    if (scriptExt.zintlImportGroup) {
+      scriptExt.zintlImportGroup.start += scriptStart;
+      scriptExt.zintlImportGroup.end += scriptStart;
+    }
+  }
+
+  let templateHtml = code;
+  templateHtml = templateHtml.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (match) =>
+    " ".repeat(match.length),
+  );
+  templateHtml = templateHtml.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (match) =>
+    " ".repeat(match.length),
+  );
+
+  const hasTemplate = /<template\b/i.test(code) || (!isVue && code.trim().length > 0);
+  const templateExt = hasTemplate
+    ? extractHtml(templateHtml, filePath + ".html", fileBoundaryId, options)
+    : null;
+
+  const messages = [...(scriptExt?.messages || []), ...(templateExt?.messages || [])];
+  const transforms = [...(scriptExt?.transforms || []), ...(templateExt?.transforms || [])];
+  const dependencies = [...(scriptExt?.dependencies || []), ...(templateExt?.dependencies || [])];
+  const rawSinks = [...(scriptExt?.rawSinks || []), ...(templateExt?.rawSinks || [])];
+  const rawManualTranslations = [
+    ...(scriptExt?.rawManualTranslations || []),
+    ...(templateExt?.rawManualTranslations || []),
+  ];
+
+  const usedKeys = new Set<string>([
+    ...(scriptExt?.usedKeys || []),
+    ...(templateExt?.usedKeys || []),
+  ]);
+
+  const boundaryHashes = {
+    ...scriptExt?.boundaryHashes,
+    ...templateExt?.boundaryHashes,
+  };
+
+  const exportedBoundaries = {
+    ...scriptExt?.exportedBoundaries,
+    ...templateExt?.exportedBoundaries,
+  };
+
+  const internalDeps: Record<string, string[]> = {};
+  if (scriptExt?.internalDeps) {
+    for (const [k, v] of Object.entries(scriptExt.internalDeps)) {
+      internalDeps[k] = [...(internalDeps[k] || []), ...v];
+    }
+  }
+  if (templateExt?.internalDeps) {
+    for (const [k, v] of Object.entries(templateExt.internalDeps)) {
+      internalDeps[k] = [...(internalDeps[k] || []), ...v];
+    }
+  }
+
+  return {
+    messages,
+    code,
+    transforms,
+    needsLoader: (scriptExt?.needsLoader || templateExt?.needsLoader) ?? false,
+    hasZintlMacro: (scriptExt?.hasZintlMacro || templateExt?.hasZintlMacro) ?? false,
+    hasZintlMarker: (scriptExt?.hasZintlMarker || templateExt?.hasZintlMarker) ?? false,
+    anchorSites: [...(scriptExt?.anchorSites || []), ...(templateExt?.anchorSites || [])],
+    mode: scriptExt?.mode === "entry" || templateExt?.mode === "entry" ? "entry" : "boundary",
+    runtimeImports: [...(scriptExt?.runtimeImports || []), ...(templateExt?.runtimeImports || [])],
+    dependencies,
+    usedKeys,
+    boundaryHashes,
+    zintlImportGroup: scriptExt?.zintlImportGroup || templateExt?.zintlImportGroup,
+    exportedBoundaries,
+    internalDeps,
+    rawSinks,
+    rawManualTranslations,
+    htmlProjection: templateExt?.htmlProjection,
+  };
 }

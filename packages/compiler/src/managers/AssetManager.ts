@@ -17,7 +17,30 @@ export class AssetManager {
     private readonly logger: ZintlLogger,
     private readonly catalog: CatalogManager,
     private readonly options: ZintlOptions = {},
+    private readonly getDependencyGraph?: () => Record<string, any[]>,
   ) {}
+
+  private isAssetUsed(assetId: string): boolean {
+    if (!this.getDependencyGraph) return true;
+    const depGraph = this.getDependencyGraph();
+    if (!depGraph || Object.keys(depGraph).length === 0) return true;
+
+    const normAssetId = assetId.replace(/\\/g, "/");
+
+    for (const deps of Object.values(depGraph)) {
+      if (Array.isArray(deps)) {
+        for (const dep of deps) {
+          if (dep && typeof dep.id === "string") {
+            const cleanDepId = dep.id.split("?")[0].replace(/\\/g, "/");
+            if (cleanDepId === normAssetId) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Resolves the customized asset pattern configuration for a given path.
@@ -165,7 +188,7 @@ export class AssetManager {
    * Returns all registered assets.
    */
   public getRegisteredAssets(): string[] {
-    return Array.from(this.registeredAssets);
+    return Array.from(this.registeredAssets).filter((assetId) => this.isAssetUsed(assetId));
   }
 
   /**
@@ -320,8 +343,9 @@ export class AssetManager {
    * Synchronizes and emits localized static content files to disk.
    */
   public async syncAssets(_locales: string[]) {
-    this.logger.debug(`Syncing static assets (${this.registeredAssets.size} files)`);
-    for (const assetId of this.registeredAssets) {
+    const assets = this.getRegisteredAssets();
+    this.logger.debug(`Syncing static assets (${assets.length} files)`);
+    for (const assetId of assets) {
       await this.syncSingleAsset(assetId);
     }
   }
@@ -333,7 +357,7 @@ export class AssetManager {
     const paths = new Set<string>();
     const toRemove = new Set<string>();
 
-    for (const assetId of this.registeredAssets) {
+    for (const assetId of this.getRegisteredAssets()) {
       const originalPath = join(this.root, assetId);
       if (!(await this.io.exists(originalPath))) {
         toRemove.add(assetId);
@@ -372,7 +396,7 @@ export class AssetManager {
    */
   public async getAssetTranslations(locale: string): Promise<Record<string, string>> {
     const translations: Record<string, string> = {};
-    for (const assetId of this.registeredAssets) {
+    for (const assetId of this.getRegisteredAssets()) {
       const config = this.resolveAssetConfig(assetId);
       if (config?.strategy === "binary-passthrough") {
         continue;

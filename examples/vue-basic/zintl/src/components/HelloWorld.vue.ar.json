@@ -1,0 +1,18 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "بلو سكاي",
+  "Connect with us": "تواصل معنا",
+  "Count is {count}": "العدد هو { count }",
+  "Discord": "ديسكورد",
+  "Documentation": "التوثيق",
+  "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "قم بتعديل <code>src/App.vue</code> واحفظه لاختبار <code>HMR</code>",
+  "Explore Vite": "استكشف فيت",
+  "Get started": "البدء",
+  "GitHub": "غيت هاب",
+  "Join the Vite community": "انضم إلى مجتمع فيت",
+  "Learn more": "تعلم المزيد",
+  "Vite logo": "شعار فيت",
+  "Vue logo": "شعار فيو",
+  "X.com": "إكس.كوم",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

@@ -1,0 +1,19 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import HelloWorld from "./components/HelloWorld.vue";
+import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+
+const activeLang = ref(new URLSearchParams(window.location.search).get("lang") || "en");
+
+const handleSwitch = async (lang: string) => {
+  // Update activeLang ref to trigger Vue to unmount and remount components with new locale
+  activeLang.value = lang;
+};
+</script>
+
+<template>
+  <div :key="activeLang">
+    <LocaleSwitcher @switch="handleSwitch" :lang="activeLang" />
+    <HelloWorld />
+  </div>
+</template>

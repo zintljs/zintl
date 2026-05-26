@@ -45,7 +45,7 @@ describe("Macro Grammar: AST Rewrites", () => {
 
   it("should transform implicit contextual anchor: zintl()", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl(); const msg = "Welcome";`;
+    const code = `import { zintl } from "zintl"; zintl(); document.body.innerHTML = "Welcome";`;
     const result = await compiler!.transform(code, join(root, "src/implicit.ts"), "target");
 
     // Should have self-registration loaders with hashed safeIds
@@ -57,7 +57,7 @@ describe("Macro Grammar: AST Rewrites", () => {
 
   it("should handle extraction markers: import 'zintl'", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import "zintl"; const msg = "Welcome";`;
+    const code = `import "zintl"; document.body.innerHTML = "Welcome";`;
     const result = await compiler!.transform(code, join(root, "src/marker.ts"), "target");
 
     // Marker promotes to Entry. Even if no strings, it gets a handshake for potential reachable content.

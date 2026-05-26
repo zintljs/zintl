@@ -89,6 +89,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
         logLevel: logLevel as LogLevel,
+        vitePlugins: config.plugins as any,
       },
       config.root,
       config.command === "serve",

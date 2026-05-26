@@ -23,12 +23,13 @@ export const resolve: ResolveFn = (
   observation: FileObservation,
   config: ZintlConfig,
   logger: ZintlLogger,
+  filePath?: string,
 ): ResolvedPlan => {
   const diagnostics: Diagnostic[] = [];
 
   const imports = resolveImports(intents, observation);
   const prepends = resolvePrepends(intents, observation, logger);
-  const rewrites = resolveRewrites(intents, config);
+  const rewrites = resolveRewrites(intents, config, filePath || observation.fileId);
   const finalRewrites = resolveConflicts(rewrites, diagnostics);
 
   logger.debug(

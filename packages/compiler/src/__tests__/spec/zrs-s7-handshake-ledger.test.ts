@@ -49,7 +49,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
       const root = context.root!;
       const compiler = new ZintlCompiler({ sourceLocale: "en", locales: ["en", "ar"] }, root, true);
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Lazy = import("./colony");`;
+      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Main Content"; const Lazy = import("./colony");`;
       const colonyCode = `document.body.innerHTML = "Colony Content";`;
 
       await compiler.transform(colonyCode, join(root, "src/colony.ts"), "target");

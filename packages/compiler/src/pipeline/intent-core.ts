@@ -100,6 +100,28 @@ export function planAnchors(
 
     for (const bId of allHandshake) {
       const ownerId = resolveKingdom(bId, worldState);
+      let kingdomHasActiveTranslations = false;
+      for (const [fId, meta] of Object.entries(worldState.metadataGraph)) {
+        if (resolveKingdom(fId, worldState) === ownerId) {
+          if (meta.needsLoader) {
+            kingdomHasActiveTranslations = true;
+            break;
+          }
+          const deps = worldState.dependencyGraph[fId] || [];
+          const hasAsset = deps.some((d) => {
+            const cleanId = d.id?.split("?")[0] || "";
+            return cleanId.endsWith(".md") || cleanId.endsWith(".txt");
+          });
+          if (hasAsset) {
+            kingdomHasActiveTranslations = true;
+            break;
+          }
+        }
+      }
+
+      if (!kingdomHasActiveTranslations) {
+        continue;
+      }
       const safeBId = calculateSafeBoundaryId(bId, worldState.config.root, worldState.config.isDev);
       const safeId = calculateSafeBoundaryId(
         ownerId,

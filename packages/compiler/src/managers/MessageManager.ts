@@ -18,6 +18,7 @@ export class MessageManager {
   public boundaryOwnership = new Map<string, Set<string>>();
   public dirtyBoundaries = new Set<string>();
   public currentReconciliation?: ReconcileResult;
+  private lastManifestContent: string | null = null;
 
   constructor(
     private readonly io: IOManager,
@@ -29,12 +30,14 @@ export class MessageManager {
     this.logger?.debug("Loading compiler metadata...");
     if (await this.io.exists(this.io.manifestPath)) {
       try {
-        const data = JSON.parse(await this.io.readFile(this.io.manifestPath));
+        const raw = await this.io.readFile(this.io.manifestPath);
+        const data = JSON.parse(raw);
         this.internalManifest = data.manifest || {};
         this.dependencyGraph = data.graph || {};
         this.metadataGraph = data.metadata || {};
         this.lastOutputDir = data.outputDir;
         this.previousManifest = { ...this.internalManifest };
+        this.lastManifestContent = raw;
       } catch {}
     }
     if (await this.io.exists(this.io.hivePath)) {
@@ -85,7 +88,11 @@ export class MessageManager {
       outputDir,
     };
     const sortedData = sortObjectKeys(data);
-    await this.io.safeWriteFile(this.io.manifestPath, JSON.stringify(sortedData, null, 2));
+    const content = JSON.stringify(sortedData, null, 2);
+    if (this.lastManifestContent === content) return;
+    this.lastManifestContent = content;
+
+    await this.io.safeWriteFile(this.io.manifestPath, content);
     this.lastOutputDir = outputDir;
   }
 

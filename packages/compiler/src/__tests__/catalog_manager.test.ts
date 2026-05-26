@@ -48,7 +48,7 @@ describe("CatalogManager", () => {
       const graph = { nodes: new Map(), entries: new Set() };
       // Should early return and not run scan or anything
       await catalogMgr.pruneOrphanedBoundaries(graph as any, ["en", "ar"]);
-      expect(catalogMgr["lastPrunedManifestHash"]).toBeNull();
+      expect(catalogMgr["lastPrunedManifestHash"]).toBe("");
     } finally {
       process.env.VITEST = originalVitest;
       process.env.VITEST_WORKER_ID = originalVitestWorker;

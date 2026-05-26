@@ -30,7 +30,9 @@ export function bakeICU(icuString: string, locale: string, logger?: ZintlLogger)
     bakeCache.set(cacheKey, result);
     return result;
   } catch (e: any) {
-    if (logger) {
+    const hasBraces = icuString.includes("{") || icuString.includes("}");
+    const hasMustache = icuString.includes("{{") || icuString.includes("}}");
+    if (logger && hasBraces && !hasMustache) {
       logger.warn(
         `Failed to bake ICU string: "${icuString}" in locale "${locale}". Error: ${e.message}`,
       );

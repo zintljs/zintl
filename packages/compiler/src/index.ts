@@ -91,11 +91,59 @@ export class ZintlCompiler {
   private flushPromise: Promise<void> | null = null;
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
+  /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
+  private readonly confirmedOnDisk = new Set<string>();
+  private reachableCache: Set<string> | null = null;
 
   public _options: ZintlOptions;
 
   constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
-    options.targets = options.targets || ["vanilla", "react", "html"];
+    let targets = options.targets || ["auto"];
+    if (targets.includes("auto")) {
+      const detected: Extractor.TargetDescriptor[] = [];
+      const frameworks = new Set<string>();
+
+      if (options.vitePlugins && Array.isArray(options.vitePlugins)) {
+        for (const plugin of options.vitePlugins) {
+          if (plugin && plugin.name) {
+            const name = plugin.name.toLowerCase();
+            if (name.includes("vue")) frameworks.add("vue");
+            if (name.includes("react")) frameworks.add("react");
+            if (name.includes("svelte")) frameworks.add("svelte");
+          }
+        }
+      }
+
+      try {
+        const pkgPath = join(root, "package.json");
+        if (existsSync(pkgPath)) {
+          const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+          const allDeps = {
+            ...pkg.dependencies,
+            ...pkg.devDependencies,
+            ...pkg.peerDependencies,
+          };
+          if (allDeps["vue"]) frameworks.add("vue");
+          if (allDeps["react"]) frameworks.add("react");
+          if (allDeps["svelte"] || allDeps["@sveltejs/kit"]) frameworks.add("svelte");
+        }
+      } catch {}
+
+      if (frameworks.size > 0) {
+        for (const f of frameworks) {
+          detected.push(f as Extractor.TargetDescriptor);
+        }
+        detected.push("vanilla", "html");
+      } else {
+        detected.push("vanilla", "react", "html");
+      }
+
+      targets = (targets.filter((t) => t !== "auto") as Extractor.TargetDescriptor[]).concat(
+        detected,
+      );
+      targets = Array.from(new Set(targets));
+    }
+    options.targets = targets;
     options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
@@ -147,6 +195,7 @@ export class ZintlCompiler {
       this.logger.withPrefix("Assets"),
       this.catalog,
       options,
+      () => this.messages.dependencyGraph,
     );
   }
 
@@ -278,7 +327,9 @@ export class ZintlCompiler {
           filePath.endsWith(".tsx") ||
           filePath.endsWith(".js") ||
           filePath.endsWith(".jsx") ||
-          filePath.endsWith(".html"))
+          filePath.endsWith(".html") ||
+          filePath.endsWith(".vue") ||
+          filePath.endsWith(".svelte"))
       ) {
         try {
           const code = await this.io.readFile(filePath);
@@ -404,7 +455,7 @@ export class ZintlCompiler {
           if (entry.name === "node_modules" || entry.name.startsWith(".") || entry.name === "dist")
             continue;
           tasks.push(doDisc(fullPath));
-        } else if (/\.(ts|tsx|js|jsx|html)$/.test(entry.name)) {
+        } else if (/\.(ts|tsx|js|jsx|html|vue|svelte)$/.test(entry.name)) {
           tasks.push(
             (async () => {
               const code = await this.io.readFile(fullPath);
@@ -436,6 +487,7 @@ export class ZintlCompiler {
     if (force) this.graphDirty = true;
     if (!this.graphDirty && this.rebuildPromise) return this.rebuildPromise;
     this.graphDirty = false;
+    this.reachableCache = null;
     this.rebuildPromise = (async () => {
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
@@ -944,7 +996,9 @@ export class ZintlCompiler {
         !effectiveCleanId.endsWith(".tsx") &&
         !effectiveCleanId.endsWith(".js") &&
         !effectiveCleanId.endsWith(".jsx") &&
-        !effectiveCleanId.endsWith(".html")
+        !effectiveCleanId.endsWith(".html") &&
+        !effectiveCleanId.endsWith(".vue") &&
+        !effectiveCleanId.endsWith(".svelte")
       )
         return;
 
@@ -1152,7 +1206,7 @@ export class ZintlCompiler {
       world.config,
       this.logger.withPrefix("Pipeline"),
     );
-    const result = apply(code, plan, this.logger.withPrefix("Pipeline"));
+    const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id);
     if (this.isDev) {
       const validation = validate(
         result,
@@ -1256,8 +1310,20 @@ export class ZintlCompiler {
         }
       }
 
-      await this.syncGraphs();
       const activeAssetPaths = await this.assets.getActiveAssetPaths(this.locales);
+
+      // Compute reachable files ONCE and pass down — avoids DFS traversal per-call in prune/sync.
+      if (!this.reachableCache) {
+        this.reachableCache =
+          this.graph.boundaryGraph && this.graph.boundaryGraph.entries.size > 0
+            ? this.catalog.getReachableFiles(
+                this.graph.boundaryGraph.entries,
+                this.messages.dependencyGraph,
+              )
+            : null;
+      }
+      const precomputedReachable = this.reachableCache;
+
       await this.catalog.pruneOrphanedBoundaries(
         this.graph.boundaryGraph!,
         this.locales,
@@ -1266,6 +1332,7 @@ export class ZintlCompiler {
         this.graph,
         activeAssetPaths,
         this.graph.chunkGraph!,
+        precomputedReachable,
       );
       const changes = this.messages.reconcile();
       const changeCount =
@@ -1279,8 +1346,6 @@ export class ZintlCompiler {
       }
 
       await this.messages.saveManifest(this.outputDir);
-      // If reconcile moved things, we might need another sync, but usually syncGraphs handles dirtiness
-      await this.syncGraphs();
 
       const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
@@ -1289,6 +1354,51 @@ export class ZintlCompiler {
         affectedBoundaries.add(move.toBoundary);
       }
       for (const bId of Object.keys(changes.deletes)) affectedBoundaries.add(bId);
+
+      // Invalidate on-disk confirmation for any boundary that is now affected/dirty.
+      for (const bId of affectedBoundaries) this.confirmedOnDisk.delete(bId);
+
+      // Auto-recover missing catalog or schema files on disk.
+      // Only check boundaries NOT already confirmed (avoids N*M fs.stat calls on every flush).
+      if (
+        this.graph.boundaryGraph &&
+        this.confirmedOnDisk.size !== this.graph.boundaryGraph.nodes.size
+      ) {
+        for (const bId of this.graph.boundaryGraph.nodes.keys()) {
+          // Already confirmed on disk and not touched by this flush cycle — skip.
+          if (this.confirmedOnDisk.has(bId)) continue;
+
+          const hasContent = (this.messages.internalManifest[bId] || []).length > 0;
+          if (!hasContent) continue;
+
+          let missing = false;
+
+          // Check schema
+          const schemaPath = this.catalog.getSchemaPath(bId);
+          if (schemaPath && !(await this.io.exists(schemaPath))) {
+            missing = true;
+          }
+
+          // Check catalogs for all locales (except source locale)
+          if (!missing) {
+            for (const locale of this.locales) {
+              if (locale === this.sourceLocale) continue;
+              const catPath = this.catalog.getCatalogPath(bId, locale);
+              if (catPath && !(await this.io.exists(catPath))) {
+                missing = true;
+                break;
+              }
+            }
+          }
+
+          if (missing) {
+            affectedBoundaries.add(bId);
+          } else {
+            // All files present — mark confirmed so future flushes skip the stat.
+            this.confirmedOnDisk.add(bId);
+          }
+        }
+      }
 
       const groups = this.catalog.groupBoundariesByPath(affectedBoundaries, this.locales);
       for (const [path, { locales }] of groups) {
@@ -1309,6 +1419,7 @@ export class ZintlCompiler {
           this.graph.boundaryGraph!,
           this.graph.chunkGraph!,
           this.messages.dependencyGraph,
+          precomputedReachable,
         );
       }
       this.messages.dirtyBoundaries.clear();
@@ -1326,10 +1437,14 @@ export class ZintlCompiler {
           htmlMetadatas[id] = meta;
         }
       }
-      await this.html.syncHtmlProjections(htmlMetadatas, this.locales, this.messages.hive, () =>
-        this.messages.markHiveDirty(),
-      );
-      await this.assets.syncAssets(this.locales);
+      if (Object.keys(htmlMetadatas).length > 0) {
+        await this.html.syncHtmlProjections(htmlMetadatas, this.locales, this.messages.hive, () =>
+          this.messages.markHiveDirty(),
+        );
+      }
+      if (this.assets.getRegisteredAssets().length > 0) {
+        await this.assets.syncAssets(this.locales);
+      }
 
       await this.verifyIntegrity();
       this.logger.debug("Flush complete");

@@ -14,10 +14,8 @@ import { buildStartHook, buildEndHook } from "./hooks/build.js";
  * Zintl Vite Plugin
  * Handles message extraction and virtual catalog injection.
  */
-export function zintl(
-  options: ZintlOptions = {},
-): Plugin & { __compiler: any; __options: ZintlOptions } {
-  options.targets = options.targets || ["vanilla", "react", "html"];
+export function zintl(options: ZintlOptions = {}): any {
+  options.targets = options.targets || ["auto"];
   options.assetsTarget = options.assetsTarget || ["md", "txt"];
   const ctx = new ZintlPluginContext(options);
 

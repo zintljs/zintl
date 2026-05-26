@@ -107,9 +107,16 @@ export class GraphManager {
         }
       }
 
-      if (!isDictator && !hasContent) continue;
-
       const rawDeps = normalizedDeps[fileId] || [];
+
+      // Skip nodes with no content, no anchor, AND no dependencies.
+      // Nodes with deps are kept as "pass-through" so the graph walk can
+      // traverse through intermediate files (e.g. App.vue) to reach
+      // downstream content-bearing boundaries (e.g. HelloWorld.vue).
+      const isCodeFile = /\.(tsx?|jsx?|vue|svelte)$/i.test(fileId);
+      if (!isDictator && !hasContent) {
+        if (!isCodeFile || rawDeps.length === 0) continue;
+      }
       const resolvedDeps: any[] = [];
       for (const dep of rawDeps) {
         let depFileId = dep.id.startsWith(".") ? join(dirname(fileId), dep.id) : dep.id;

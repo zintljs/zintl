@@ -45,9 +45,15 @@ export type ResolveFn = (
   observation: FileObservation,
   config: ZintlConfig,
   logger: ZintlLogger,
+  filePath?: string,
 ) => ResolvedPlan;
 
-export type ApplyFn = (source: string, plan: ResolvedPlan, logger: ZintlLogger) => TransformResult;
+export type ApplyFn = (
+  source: string,
+  plan: ResolvedPlan,
+  logger: ZintlLogger,
+  filePath?: string,
+) => TransformResult;
 
 export type ValidateFn = (
   result: TransformResult,

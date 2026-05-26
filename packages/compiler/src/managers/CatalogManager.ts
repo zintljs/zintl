@@ -23,6 +23,10 @@ export class CatalogManager {
   private activeSchemaPaths = new Set<string>();
   private groupContentCache = new Map<string, string>();
 
+  /** Cached once at construction time — never changes, no per-call env lookup needed. */
+  private readonly isTestEnv =
+    typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
+
   constructor(
     private readonly io: IOManager,
     private readonly root: string,
@@ -151,7 +155,9 @@ export class CatalogManager {
     const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
     const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
     const isAsset =
-      !isHtml && /\.[a-zA-Z0-9]+$/.test(boundaryId) && !/\.(tsx?|jsx?)$/i.test(boundaryId);
+      !isHtml &&
+      /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
+      !/\.(tsx?|jsx?|vue|svelte)$/i.test(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
@@ -220,7 +226,9 @@ export class CatalogManager {
     let relativePath: string;
     const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
     const isAsset =
-      !isHtml && /\.[a-zA-Z0-9]+$/.test(boundaryId) && !/\.(tsx?|jsx?)$/i.test(boundaryId);
+      !isHtml &&
+      /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
+      !/\.(tsx?|jsx?|vue|svelte)$/i.test(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
@@ -778,6 +786,8 @@ export class CatalogManager {
     graph?: BoundaryGraph,
     chunkGraph?: any,
     dependencyGraph?: Record<string, any>,
+    /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
+    precomputedReachable?: Set<string> | null,
   ) {
     const isMulti = this.isMultilingualFormat();
     const firstBId = Array.from(bIds)[0];
@@ -791,9 +801,8 @@ export class CatalogManager {
       .catch(() => ({}));
     let anyChanged = false;
 
-    let reachableFiles: Set<string> | null = null;
-    const isTestEnv =
-      typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
+    // Use pre-computed reachable set if provided, otherwise lazily derive it once.
+    let reachableFiles: Set<string> | null = precomputedReachable ?? null;
 
     const allMessages = new Map<string, any>();
     const allCurrentKeys = new Set<string>();
@@ -802,10 +811,8 @@ export class CatalogManager {
       if (graph && dependencyGraph) {
         if (graph.entries.size === 0) {
           const isExample = this.root.replace(/\\/g, "/").includes("/examples/");
-          isActive = isTestEnv && !isExample;
+          isActive = this.isTestEnv && !isExample;
         } else {
-          // const fileId = bId.split(":")[0];
-          // const normFileId = this.io.getNormalizedId(fileId);
           if (!reachableFiles) {
             reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph);
           }
@@ -1064,15 +1071,11 @@ export class CatalogManager {
     graphManager?: any,
     activeAssetPaths?: Set<string>,
     _chunkGraph?: any,
+    /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
+    precomputedReachable?: Set<string> | null,
   ) {
     if (!this.prune) return;
-    if (
-      this.isDev &&
-      !process.env.VITEST &&
-      !process.env.VITEST_WORKER_ID &&
-      process.env.NODE_ENV !== "test"
-    )
-      return; // Skip pruning in dev mode in real environments
+    if (this.isDev && !this.isTestEnv) return; // Skip pruning in dev mode in real environments
 
     // Optimization: Skip if the graph hasn't changed since last prune
     const manifestHash =
@@ -1084,9 +1087,8 @@ export class CatalogManager {
 
     const knownPaths = new Set<string>();
 
-    let reachableFiles: Set<string> | null = null;
-    const isTestEnv =
-      typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
+    // Use pre-computed reachable set if provided, otherwise lazily derive it once.
+    let reachableFiles: Set<string> | null = precomputedReachable ?? null;
 
     // 1. Regular boundaries
     for (const bId of graph.nodes.keys()) {
@@ -1094,7 +1096,7 @@ export class CatalogManager {
       if (dependencyGraph) {
         if (graph.entries.size === 0) {
           const isExample = this.root.replace(/\\/g, "/").includes("/examples/");
-          isActive = isTestEnv && !isExample;
+          isActive = this.isTestEnv && !isExample;
         } else {
           const fileId = bId.split(":")[0];
           const normFileId = this.io.getNormalizedId(fileId);

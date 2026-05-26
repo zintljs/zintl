@@ -5,7 +5,12 @@ import { VIRTUAL_PREFIX } from "../constants.js";
 export function transformHook(ctx: ZintlPluginContext) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
-    if (id.includes("node_modules") || id.startsWith("\0")) return;
+    if (
+      id.includes("node_modules") ||
+      id.startsWith("\0") ||
+      (id.includes("?") && !id.includes("zintl-multiplex="))
+    )
+      return;
 
     const multiplexLocale = ctx.getMultiplexLocale(id);
     const cleanId = id.split("?")[0];

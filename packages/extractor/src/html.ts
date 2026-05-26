@@ -1,9 +1,11 @@
 import { ExtractionOptions, ExtractionResult, HtmlProjectionPayload } from "./types.js";
 import { ExtractionContext } from "./context.js";
+import { generateMessageId } from "./hashing.js";
 
 /**
- * Extracts translatable configuration from HTML files.
- * Supports: <title>, <meta name="description">, and module <script src="...">.
+ * Extracts translatable configuration and template strings from HTML files/templates.
+ * Supports: <title>, <meta name="description">, module <script src="...">,
+ * HTML text nodes (using stitchHTML), and translatable attributes (alt, placeholder, aria-label, title).
  */
 export function extractHtml(
   code: string,
@@ -49,23 +51,193 @@ export function extractHtml(
     projection.scripts.push(match[1]);
   }
 
+  // 4. Extract HTML Text nodes and translatable attributes from the active content block
+  let activeContent = code;
+  let contentOffset = 0;
+
+  if (filePath.includes(".vue") || filePath.includes(".svelte")) {
+    if (filePath.includes(".vue")) {
+      const templateMatch = /<template\b[^>]*>([\s\S]*?)<\/template>/i.exec(code);
+      if (templateMatch) {
+        activeContent = templateMatch[1];
+        contentOffset = code.indexOf(templateMatch[1], templateMatch.index);
+      } else {
+        activeContent = "";
+      }
+    } else {
+      activeContent = code;
+      contentOffset = 0;
+    }
+  } else if (filePath.endsWith(".html")) {
+    const bodyMatch = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(code);
+    if (bodyMatch) {
+      activeContent = bodyMatch[1];
+      contentOffset = code.indexOf(bodyMatch[1], bodyMatch.index);
+    } else {
+      activeContent = "";
+    }
+  }
+
+  if (activeContent.trim()) {
+    // Extract HTML Text nodes
+    ctx.stitchHTML(
+      activeContent,
+      (trimmed, note, passVars, start, end, tagMap) => {
+        let processedText = trimmed;
+        const variables: any[] = [];
+
+        const isVue = filePath.includes(".vue");
+        const isSvelte = filePath.includes(".svelte");
+
+        if (isVue || isSvelte) {
+          const regex = isVue ? /\{\{([\s\S]*?)\}\}/g : /\{([^{}]+)\}/g;
+          let match;
+          let offsetShift = 0;
+          let varIndex = 0;
+
+          // Find matches in the original trimmed string
+          const matches: { raw: string; expr: string; index: number }[] = [];
+          while ((match = regex.exec(trimmed)) !== null) {
+            matches.push({
+              raw: match[0],
+              expr: match[1].trim(),
+              index: match.index,
+            });
+          }
+
+          // Process and replace mustaches with {varName}
+          for (const m of matches) {
+            let varName = m.expr;
+            if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(varName)) {
+              varName = `var${varIndex++}`;
+            }
+
+            const replacement = `{${varName}}`;
+            const matchIndexInProcessed = m.index + offsetShift;
+
+            processedText =
+              processedText.substring(0, matchIndexInProcessed) +
+              replacement +
+              processedText.substring(matchIndexInProcessed + m.raw.length);
+
+            offsetShift += replacement.length - m.raw.length;
+
+            variables.push({
+              name: varName,
+              originalName: varName,
+              expression: m.expr,
+              start: contentOffset + start! + m.index,
+              end: contentOffset + start! + m.index + m.raw.length,
+            });
+          }
+        }
+
+        const stripped = processedText.replace(/\{[a-zA-Z_$][a-zA-Z0-9_$]*\}/g, "").trim();
+        if (stripped === "") {
+          return;
+        }
+
+        const msgId = generateMessageId(processedText, "HTML_TEXT", note);
+        ctx.addMessage(
+          msgId,
+          processedText,
+          "HTML_TEXT",
+          fileBoundaryId,
+          { line: 0, column: 0 },
+          variables.map((v) => v.name),
+          note,
+          "HTML_TEXT",
+          passVars,
+        );
+
+        ctx.addRawSink({
+          text: processedText,
+          sinkType: "HTML_TEXT",
+          start: contentOffset + start!,
+          end: contentOffset + end!,
+          line: 0,
+          column: 0,
+          boundaryId: fileBoundaryId,
+          variables,
+          note,
+          passVars,
+          isFragment: false,
+          tagMap,
+        });
+      },
+      undefined,
+      {},
+      (s, e) => ({ start: s, end: e }),
+    );
+
+    // Extract translatable attributes
+    const tagRegex = /<([a-zA-Z0-9:-]+)\s*([^>]*?)\/?>/g;
+    let tagMatch;
+    while ((tagMatch = tagRegex.exec(activeContent)) !== null) {
+      const _tagName = tagMatch[1].toLowerCase();
+      const attrsString = tagMatch[2];
+      if (!attrsString) continue;
+
+      // Use regex to find all attributes in this tag
+      const attrRegex = /\b([a-zA-Z0-9:-]+)\s*=\s*(?:'([^']*)'|"([^"]*)"|([^\s>]+))/gi;
+      let attrMatch;
+      const attrsIndex = tagMatch[0].indexOf(attrsString);
+      while ((attrMatch = attrRegex.exec(attrsString)) !== null) {
+        const attrName = attrMatch[1].toLowerCase();
+        const attrVal = attrMatch[2] || attrMatch[3] || attrMatch[4] || "";
+
+        if (attrVal && ctx.htmlAttributes.has(attrName)) {
+          const attrStart = contentOffset + tagMatch.index + attrsIndex + attrMatch.index;
+          const attrEnd = attrStart + attrMatch[0].length;
+
+          const msgId = generateMessageId(attrVal, "HTML_ATTR");
+          ctx.addMessage(
+            msgId,
+            attrVal,
+            "HTML_ATTR",
+            fileBoundaryId,
+            { line: 0, column: 0 },
+            [],
+            undefined,
+            `html:attr:${attrName}`,
+          );
+
+          ctx.addRawSink({
+            text: attrVal,
+            sinkType: `html:attr:${attrName}`,
+            start: attrStart,
+            end: attrEnd,
+            line: 0,
+            column: 0,
+            boundaryId: fileBoundaryId,
+            variables: [],
+            isFragment: false,
+          });
+        }
+      }
+    }
+  }
+
   return {
-    messages: [],
+    messages: Array.from(ctx.messages.values()),
     code,
-    transforms: [],
-    needsLoader: false,
-    hasZintlMacro: false,
-    hasZintlMarker: false,
-    anchorSites: [],
-    mode: "boundary",
-    runtimeImports: [],
+    transforms: ctx.transforms,
+    needsLoader: ctx.messages.size > 0 || ctx.usedKeys.size > 0,
+    hasZintlMacro: ctx.hasZintlMacro,
+    hasZintlMarker: ctx.hasZintlMarker,
+    anchorSites: ctx.anchorSites,
+    mode: ctx.mode,
+    runtimeImports: ctx.runtimeImports,
     dependencies: projection.scripts.map((s) => ({ id: s, dynamic: false })),
-    usedKeys: new Set(),
-    boundaryHashes: {},
-    exportedBoundaries: {},
-    internalDeps: {},
-    rawSinks: [],
-    rawManualTranslations: [],
-    htmlProjection: projection,
+    usedKeys: ctx.usedKeys,
+    boundaryHashes: ctx.computeBoundaryHashes(),
+    exportedBoundaries: Object.fromEntries(ctx.exportedBoundaries),
+    internalDeps: Object.fromEntries(
+      Array.from(ctx.internalDeps.entries()).map(([k, v]) => [k, Array.from(v)]),
+    ),
+    rawSinks: ctx.rawSinks,
+    rawManualTranslations: ctx.rawManualTranslations,
+    htmlProjection:
+      filePath.includes(".vue") || filePath.includes(".svelte") ? undefined : projection,
   };
 }

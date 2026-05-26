@@ -1364,6 +1364,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
     <title>Zintl | Vanilla SPA Example</title>
     <script type="module" crossorigin src="/assets/index.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-C6gV1h4h.css">
+  
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {

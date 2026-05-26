@@ -24,6 +24,7 @@ const PRIORITY = {
 export function resolveRewrites(
   intents: TransformIntent[],
   config: ZintlConfig,
+  filePath?: string,
 ): ResolvedRewrite[] {
   const rewrites: ResolvedRewrite[] = [];
 
@@ -33,13 +34,13 @@ export function resolveRewrites(
         rewrites.push(generateAnchorRewrite(intent, config));
         break;
       case "sink_wrap":
-        rewrites.push(generateSinkWrapRewrite(intent));
+        rewrites.push(generateSinkWrapRewrite(intent, filePath));
         break;
       case "manual_t_rewrite":
         rewrites.push(generateManualTRewrite(intent));
         break;
       case "baking":
-        rewrites.push(generateBakeRewrite(intent));
+        rewrites.push(generateBakeRewrite(intent, filePath));
         break;
       case "marker_removal":
         rewrites.push({
@@ -93,6 +94,29 @@ export function resolveRewrites(
               intent.sink.sinkType === "StringLiteral"
                 ? JSON.stringify(intent.sink.text)
                 : "`" + intent.sink.text + "`";
+          }
+        }
+
+        if (intent.sink.sinkType === "HTML_TEXT") {
+          const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
+          const tMap = intent.sink.tagMap || [];
+          const hasTags = hasUsedTags(replacement, tMap) || hasUsedTags(intent.sink.text, tMap);
+          if (hasVars) {
+            if (filePath && filePath.endsWith(".vue")) {
+              if (hasTags) {
+                finalReplacement = `<span v-html="${finalReplacement.replace(/"/g, "&quot;")}"></span>`;
+              } else {
+                finalReplacement = `{{ ${finalReplacement} }}`;
+              }
+            } else if (filePath && filePath.endsWith(".svelte")) {
+              if (hasTags) {
+                finalReplacement = `{@html ${finalReplacement} }`;
+              } else {
+                finalReplacement = `{ ${finalReplacement} }`;
+              }
+            }
+          } else {
+            finalReplacement = replacement;
           }
         }
 
@@ -203,7 +227,26 @@ function generateAnchorRewrite(intent: AnchorRewriteIntent, config: ZintlConfig)
   };
 }
 
-function generateSinkWrapRewrite(intent: SinkWrapIntent): ResolvedRewrite {
+function jsString(str: string, escapeCurly = false): string {
+  let escaped = str.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  if (escapeCurly) {
+    escaped = escaped.replace(/\{/g, "\\x7b").replace(/\}/g, "\\x7d");
+  }
+  return "'" + escaped + "'";
+}
+
+function hasUsedTags(text: string, tagMap?: any[]): boolean {
+  if (!text || !tagMap || !tagMap.length) return false;
+  return tagMap.some(
+    (entry: any) =>
+      text.includes(`<${entry.alias}`) ||
+      text.includes(`</${entry.alias}`) ||
+      text.includes(`<${entry.tagName}`) ||
+      text.includes(`</${entry.tagName}`),
+  );
+}
+
+function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): ResolvedRewrite {
   const params = intent.variables || [];
   const paramsObj =
     params.length > 0 ? `, { ${params.map((p) => `${p.name}: ${p.expr}`).join(", ")} }` : "";
@@ -212,25 +255,54 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent): ResolvedRewrite {
     intent.isDev && intent.sink.text ? intent.sink.text : intent.messageId || intent.sink.text;
 
   let tagsPart = "";
-  if (
-    intent.sink.text &&
-    intent.sink.text.includes("<") &&
-    intent.sink.tagMap &&
-    intent.sink.tagMap.length
-  ) {
-    const usedTags = intent.sink.tagMap.filter(
+  const isSfc = filePath && (filePath.endsWith(".vue") || filePath.endsWith(".svelte"));
+  const quoteFn = isSfc ? (s: string) => jsString(s, true) : JSON.stringify;
+
+  const tMap = intent.sink.tagMap || [];
+  const hasTags = hasUsedTags(intent.sink.text, tMap);
+
+  if (intent.sink.text && hasTags) {
+    const usedTags = tMap.filter(
       (entry: any) =>
         intent.sink.text.includes(`<${entry.alias}>`) ||
         intent.sink.text.includes(`</${entry.alias}>`) ||
         intent.sink.text.includes(`<${entry.alias}/>`),
     );
     if (usedTags.length > 0) {
-      tagsPart = `, _tags: ${JSON.stringify(usedTags)}`;
+      const tagsStr = isSfc
+        ? `JSON.parse(${jsString(JSON.stringify(usedTags), true)})`
+        : JSON.stringify(usedTags);
+      tagsPart = `, _tags: ${tagsStr}`;
     }
   }
 
-  let replacement = `_t(${JSON.stringify(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${JSON.stringify(intent.boundaryId)}${tagsPart} })`;
+  let replacement = `_t(${quoteFn(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${quoteFn(intent.boundaryId)}${tagsPart} })`;
   if (intent.sink.isFragment) replacement = `\${${replacement}}`;
+
+  // Custom HTML_TEXT and html:attr: wrapping for Vue / Svelte template syntax
+  if (intent.sink.sinkType === "HTML_TEXT") {
+    if (filePath && filePath.endsWith(".vue")) {
+      if (hasTags) {
+        const escaped = replacement.replace(/"/g, "&quot;");
+        replacement = `<span v-html="${escaped}"></span>`;
+      } else {
+        replacement = `{{ ${replacement} }}`;
+      }
+    } else if (filePath && filePath.endsWith(".svelte")) {
+      if (hasTags) {
+        replacement = `{@html ${replacement} }`;
+      } else {
+        replacement = `{ ${replacement} }`;
+      }
+    }
+  } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
+    const attrName = intent.sink.sinkType.substring("html:attr:".length);
+    if (filePath && filePath.endsWith(".vue")) {
+      replacement = `:${attrName}="${replacement}"`;
+    } else if (filePath && filePath.endsWith(".svelte")) {
+      replacement = `${attrName}={${replacement}}`;
+    }
+  }
 
   return {
     start: intent.sink.location.start,
@@ -264,21 +336,71 @@ function reconstructTags(text: string, tagMap: any[]): string {
   return result;
 }
 
-function generateBakeRewrite(intent: BakingIntent): ResolvedRewrite {
+function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedRewrite {
   let baked = bakeTranslation(
     intent.translation,
     intent.variables || [],
     intent.sink.isFragment,
     intent.tagMap,
   );
+  const tMap = intent.tagMap || intent.sink.tagMap || [];
+  const hasTags = hasUsedTags(baked, tMap) || hasUsedTags(intent.sink.text, tMap);
+
   if (
     !intent.sink.isFragment &&
-    (intent.sink.sinkType === "TemplateLiteral" ||
-      intent.sink.sinkType === "HTML" ||
-      (intent.tagMap && intent.tagMap.length > 0)) &&
+    (intent.sink.sinkType === "TemplateLiteral" || intent.sink.sinkType === "HTML" || hasTags) &&
     !baked.startsWith("`")
   ) {
     baked = "`" + (baked.startsWith('"') ? JSON.parse(baked) : baked) + "`";
+  }
+
+  // Custom HTML_TEXT and html:attr: baking for Vue / Svelte template syntax
+  if (intent.sink.sinkType === "HTML_TEXT") {
+    const hasVars = intent.variables && intent.variables.length > 0;
+    if (hasVars) {
+      if (filePath && filePath.endsWith(".vue")) {
+        if (hasTags) {
+          baked = `<span v-html="${baked.replace(/"/g, "&quot;")}"></span>`;
+        } else {
+          baked = `{{ ${baked} }}`;
+        }
+      } else if (filePath && filePath.endsWith(".svelte")) {
+        if (hasTags) {
+          baked = `{@html ${baked} }`;
+        } else {
+          baked = `{ ${baked} }`;
+        }
+      }
+    } else {
+      baked = typeof intent.translation === "string" ? intent.translation : baked;
+      if (baked.startsWith('"') && baked.endsWith('"')) {
+        baked = JSON.parse(baked);
+      } else if (baked.startsWith("'") && baked.endsWith("'")) {
+        baked = baked.slice(1, -1);
+      } else if (baked.startsWith("`") && baked.endsWith("`")) {
+        baked = baked.slice(1, -1);
+      }
+    }
+  } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
+    const attrName = intent.sink.sinkType.substring("html:attr:".length);
+    const hasVars = intent.variables && intent.variables.length > 0;
+    if (hasVars) {
+      if (filePath && filePath.endsWith(".vue")) {
+        baked = `:${attrName}="${baked}"`;
+      } else if (filePath && filePath.endsWith(".svelte")) {
+        baked = `${attrName}={${baked}}`;
+      }
+    } else {
+      let rawVal = typeof intent.translation === "string" ? intent.translation : baked;
+      if (rawVal.startsWith('"') && rawVal.endsWith('"')) {
+        rawVal = JSON.parse(rawVal);
+      } else if (rawVal.startsWith("'") && rawVal.endsWith("'")) {
+        rawVal = rawVal.slice(1, -1);
+      } else if (rawVal.startsWith("`") && rawVal.endsWith("`")) {
+        rawVal = rawVal.slice(1, -1);
+      }
+      baked = `${attrName}="${rawVal.replace(/"/g, "&quot;")}"`;
+    }
   }
 
   return {

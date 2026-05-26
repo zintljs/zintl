@@ -27,6 +27,7 @@ export interface ZintlOptions {
   multiplex?: boolean;
   targets?: TargetDescriptor[];
   assetsTarget?: (string | AssetTargetConfig)[];
+  vitePlugins?: readonly any[];
 }
 
 interface CatalogFormatContext {

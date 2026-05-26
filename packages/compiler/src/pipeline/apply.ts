@@ -19,23 +19,76 @@ export const apply: ApplyFn = (
   source: string,
   plan: ResolvedPlan,
   logger: ZintlLogger,
+  filePath?: string,
 ): TransformResult => {
   logger.debug("Applying transformation plan...");
   const ms = new MagicString(source);
   const diagnostics = [...plan.diagnostics];
 
-  // 1. Apply Prepends (Managers)
-  // These go at the very top of the file
-  for (const prepend of plan.prepends) {
-    ms.prepend(prepend.code + "\n");
+  // 1. Apply Prepends (Managers) and New Imports
+  let insertIndex = 0;
+  let needsScriptWrapper = false;
+  let sfcType: "vue" | "svelte" | null = null;
+
+  if (filePath && (filePath.endsWith(".vue") || filePath.endsWith(".svelte"))) {
+    sfcType = filePath.endsWith(".vue") ? "vue" : "svelte";
+    const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
+    const normalMatch = /<script\b[^>]*>/i.exec(source);
+    const match = setupMatch || normalMatch;
+    if (match) {
+      insertIndex = match.index + match[0].length;
+    } else {
+      needsScriptWrapper = true;
+    }
   }
 
-  // 2. Apply Imports
-  for (const imp of plan.imports) {
-    try {
+  if (sfcType) {
+    if (needsScriptWrapper) {
+      let scriptCode = "";
+      if (sfcType === "vue") {
+        scriptCode = `<script setup lang="ts">\n`;
+      } else {
+        scriptCode = `<script>\n`;
+      }
+      for (const prepend of plan.prepends) {
+        scriptCode += prepend.code + "\n";
+      }
+      for (const imp of plan.imports) {
+        if (imp.strategy === "new") {
+          scriptCode += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
+        }
+      }
+      scriptCode += `</script>\n`;
+      ms.prepend(scriptCode);
+    } else {
+      let scriptCode = "\n";
+      for (const prepend of plan.prepends) {
+        scriptCode += prepend.code + "\n";
+      }
+      for (const imp of plan.imports) {
+        if (imp.strategy === "new") {
+          scriptCode += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
+        }
+      }
+      ms.appendLeft(insertIndex, scriptCode);
+    }
+  } else {
+    // Non-SFC behavior: prepend to the top of the file
+    for (const prepend of plan.prepends) {
+      ms.prepend(prepend.code + "\n");
+    }
+    for (const imp of plan.imports) {
       if (imp.strategy === "new") {
         ms.prepend(`import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`);
-      } else if (imp.strategy === "replace" && imp.location) {
+      }
+    }
+  }
+
+  // 2. Apply Replaced/Merged Imports
+  for (const imp of plan.imports) {
+    if (imp.strategy === "new") continue;
+    try {
+      if (imp.strategy === "replace" && imp.location) {
         if (imp.location.start === imp.location.end) {
           ms.appendLeft(
             imp.location.start,

@@ -1,0 +1,18 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "与我们联系",
+  "Count is {count}": "计数为 { count }",
+  "Discord": "Discord",
+  "Documentation": "文档",
+  "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
+  "Explore Vite": "探索 Vite",
+  "Get started": "开始",
+  "GitHub": "GitHub",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "Vite logo": "Vite 图标",
+  "Vue logo": "Vue 图标",
+  "X.com": "X.com",
+  "Your questions, answered": "你的问题，已解答"
+}
