@@ -139,6 +139,8 @@ export class ZintlPluginContext {
   }
 
   getMultiplexLocale(id: string): string | undefined {
+    const matchSuffix = id.match(/\.zintl-([a-zA-Z0-9_-]+)\.(vue|svelte)/);
+    if (matchSuffix) return matchSuffix[1];
     if (!id.includes("zintl-multiplex=")) return undefined;
     const match = id.match(/zintl-multiplex=([^&]+)/);
     return match ? match[1] : undefined;

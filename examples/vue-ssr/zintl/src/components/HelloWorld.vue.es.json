@@ -1,0 +1,18 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "Conéctate con nosotros",
+  "Count is {count}": "El recuento es { count }",
+  "Discord": "Discord",
+  "Documentation": "Documentación",
+  "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+  "Explore Vite": "Explorar Vite",
+  "Get started": "Empezar",
+  "GitHub": "GitHub",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Learn more": "Aprende más",
+  "Vite logo": "Logotipo de Vite",
+  "Vue logo": "Logotipo de Vue",
+  "X.com": "X.com",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}

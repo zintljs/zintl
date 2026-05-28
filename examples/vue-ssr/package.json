@@ -1,0 +1,31 @@
+{
+  "name": "vue-ssr",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server",
+    "build": "vue-tsc -b && npm run build:client && npm run build:server",
+    "build:client": "vp build --outDir dist/client",
+    "build:server": "vp build --ssr src/entry-server.ts --outDir dist/server",
+    "preview": "cross-env NODE_ENV=production node server"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^5.2.1",
+    "sirv": "^3.0.2",
+    "vue": "^3.5.32"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/tsconfig": "^0.9.1",
+    "cross-env": "^10.1.0",
+    "typescript": "~6.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vue-tsc": "^3.2.6",
+    "zintl": "workspace:*"
+  }
+}

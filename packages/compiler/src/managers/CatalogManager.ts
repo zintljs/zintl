@@ -569,13 +569,13 @@ export class CatalogManager {
 
     let boundariesToCollect = new Set<string>(targetChunk.boundaries as Set<string>);
 
-    if (isMgr && chunkType === "entry") {
-      // For managers, we inline EVERYTHING that is statically reachable from this entry point
+    if (chunkType === "entry") {
+      // For entries, we inline EVERYTHING that is statically reachable from this entry point
       // even if it belongs to a shared or different chunk.
       const staticTree = this.getStaticTree(pathId, boundaryGraph);
       for (const bId of staticTree) boundariesToCollect.add(bId);
       this.logger?.debug(
-        `[Catalog] Expanded manager boundaries to ${boundariesToCollect.size} items`,
+        `[Catalog] Expanded entry boundaries to ${boundariesToCollect.size} items`,
       );
     }
 

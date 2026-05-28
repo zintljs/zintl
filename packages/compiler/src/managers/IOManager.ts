@@ -87,17 +87,19 @@ export class IOManager {
     if (this.normalizedIdCache.has(id)) return this.normalizedIdCache.get(id)!;
     if (id.startsWith("\0")) return id;
 
+    const targetId = id.replace(/\.zintl-[a-zA-Z0-9_-]+\.(vue|svelte)/, ".$1");
+
     let abs: string;
-    if (isAbsolute(id)) {
-      if (id.startsWith(this.root)) {
-        abs = id;
+    if (isAbsolute(targetId)) {
+      if (targetId.startsWith(this.root)) {
+        abs = targetId;
       } else {
         // Handle project-relative absolute paths (e.g. /src/main.ts in HTML)
-        const projectRelative = id.startsWith("/") ? id.slice(1) : id;
+        const projectRelative = targetId.startsWith("/") ? targetId.slice(1) : targetId;
         abs = join(this.root, projectRelative);
       }
     } else {
-      abs = join(this.root, id);
+      abs = join(this.root, targetId);
     }
 
     const rel = relative(this.root, abs).replace(/\\/g, "/");

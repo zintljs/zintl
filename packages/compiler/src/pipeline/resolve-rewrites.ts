@@ -64,7 +64,7 @@ export function resolveRewrites(
         if (replacement.includes("{")) {
           replacement = replacement.replace(
             /\{([^}]+)\}/g,
-            (match, key) => varMap.get(key) || match,
+            (match, key) => varMap.get(key.trim()) || match,
           );
         }
 
@@ -117,6 +117,26 @@ export function resolveRewrites(
             }
           } else {
             finalReplacement = replacement;
+          }
+        } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
+          // HTML attribute passthrough: the sink range covers the full `attrName="value"` match.
+          // We must reconstruct the full attribute, not just JSON-stringify the value.
+          const attrName = intent.sink.sinkType.substring("html:attr:".length);
+          const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
+          if (hasVars) {
+            // Variables present — emit a Vue/Svelte dynamic binding
+            if (filePath && filePath.endsWith(".vue")) {
+              finalReplacement = `:${attrName}="${finalReplacement}"`;
+            } else if (filePath && filePath.endsWith(".svelte")) {
+              finalReplacement = `${attrName}={${finalReplacement}}`;
+            }
+          } else {
+            // No variables — emit a plain static attribute, restoring the name
+            let rawVal = replacement;
+            if (rawVal.startsWith('"') && rawVal.endsWith('"')) rawVal = JSON.parse(rawVal);
+            else if (rawVal.startsWith("'") && rawVal.endsWith("'")) rawVal = rawVal.slice(1, -1);
+            else if (rawVal.startsWith("`") && rawVal.endsWith("`")) rawVal = rawVal.slice(1, -1);
+            finalReplacement = `${attrName}="${rawVal.replace(/"/g, "&quot;")}"`;
           }
         }
 
@@ -429,7 +449,10 @@ function bakeTranslation(
         if (v.name) varMap.set(v.name, replacementStr);
         if (expr) varMap.set(expr, replacementStr);
       }
-      replaced = translation.replace(/\{([^}]+)\}/g, (match, key) => varMap.get(key) || match);
+      replaced = translation.replace(
+        /\{([^}]+)\}/g,
+        (match, key) => varMap.get(key.trim()) || match,
+      );
     }
     if (tagMap && tagMap.length) {
       replaced = reconstructTags(replaced, tagMap);
@@ -475,7 +498,7 @@ function buildTernary(
 
   let translatedText = String(text as any).replace(
     /\{([^}]+)\}/g,
-    (match, key) => varMap.get(key) || match,
+    (match, key) => varMap.get(key.trim()) || match,
   );
   if (tagMap && tagMap.length) {
     translatedText = reconstructTags(translatedText, tagMap);

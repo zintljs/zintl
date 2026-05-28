@@ -45,6 +45,9 @@ export class GraphManager {
       for (const site of metadataGraph[k].anchorSites || []) {
         allKnownBoundaries.add(this.io.getNormalizedId(site.boundaryId));
       }
+      for (const bId of Object.values(metadataGraph[k].exportedBoundaries || {})) {
+        allKnownBoundaries.add(this.io.getNormalizedId(bId));
+      }
     }
 
     this.logger.debug(`Found ${allKnownBoundaries.size} unique boundary candidates`);

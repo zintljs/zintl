@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, isAbsolute } from "node:path";
 import type { ZintlPluginContext } from "../context.js";
 import { generateMessageId, getRuntimeCode } from "@zintl/compiler";
 import {
@@ -15,8 +15,44 @@ import {
   RUNTIME_INTERNAL_VIRTUAL_ID,
 } from "../constants.js";
 
+function injectMultiplexQuery(id: string, locale: string): string {
+  const parts = id.split("?");
+  const cleanId = parts[0];
+  if (parts.length === 1) {
+    return `${cleanId}?zintl-multiplex=${locale}`;
+  }
+
+  const query = parts[1];
+  const params = query.split("&").filter((p) => !p.startsWith("zintl-multiplex="));
+  if (params.length === 0) {
+    return `${cleanId}?zintl-multiplex=${locale}`;
+  }
+
+  const lastParam = params[params.length - 1];
+  if (lastParam && /\.(ts|tsx|js|jsx|mts|mjs|css|scss|less|html|vue|svelte)$/i.test(lastParam)) {
+    const before = params.slice(0, -1);
+    return `${cleanId}?${before.length ? before.join("&") + "&" : ""}zintl-multiplex=${locale}&${lastParam}`;
+  }
+
+  return `${cleanId}?${params.join("&")}&zintl-multiplex=${locale}`;
+}
+
 export function resolveIdHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string, importer: string | undefined) {
+    if (id.includes(".zintl-")) {
+      const cleanId = id.split("?")[0];
+      if (isAbsolute(cleanId)) {
+        return id;
+      }
+    }
+
+    if (id.startsWith(".") && importer && importer.includes(".zintl-")) {
+      const cleanId = id.split("?")[0];
+      const absolutePath = join(dirname(importer.split("?")[0]), cleanId);
+      const suffix = id.includes("?") ? "?" + id.split("?")[1] : "";
+      id = absolutePath + suffix;
+    }
+
     if (
       id === RUNTIME_VIRTUAL_ID ||
       id === RUNTIME_INTERNAL_VIRTUAL_ID ||
@@ -102,11 +138,12 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
     // Propagate multiplexing to dependencies
     if (importer) {
       const locale = ctx.getMultiplexLocale(importer);
-      if (locale && !id.includes("zintl-multiplex=")) {
+      if (locale && !id.includes("zintl-multiplex=") && !id.includes(".zintl-")) {
         const cleanId = id.split("?")[0];
         const extMatch = cleanId.match(/\.([a-zA-Z0-9]+)$/);
         const ext = extMatch ? extMatch[1].toLowerCase() : "";
-        const isEligible = !ext || ["js", "jsx", "ts", "tsx", "md", "txt"].includes(ext);
+        const isEligible =
+          !ext || ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext);
 
         if (isEligible) {
           // Resolve clean first to check for translation neutrality
@@ -149,11 +186,25 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
                     if (hasOwnContent) return true;
                   }
 
+                  const manifestKeys = Object.keys(ctx.compiler?.messages?.internalManifest || {});
+                  for (const key of manifestKeys) {
+                    if (key === cleanFileId || key.startsWith(cleanFileId + ":")) {
+                      const msgs = ctx.compiler.messages.internalManifest[key];
+                      if (msgs && msgs.length > 0) return true;
+                    }
+                  }
+
                   const deps = ctx.compiler.messages.dependencyGraph[cleanFileId];
                   if (deps) {
                     for (const dep of deps) {
                       const depId = typeof dep === "string" ? dep : dep?.id;
-                      if (depId && hasActiveZintlTransitive(depId, visited)) return true;
+                      if (depId) {
+                        const depFileId = depId.startsWith(".")
+                          ? join(dirname(cleanFileId), depId)
+                          : depId;
+                        const nDepId = ctx.compiler.getNormalizedId(depFileId);
+                        if (hasActiveZintlTransitive(nDepId, visited)) return true;
+                      }
                     }
                   }
                   return false;
@@ -169,39 +220,68 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
             }
           }
 
-          const query = id.includes("?") ? id.split("?")[1] : "";
-          const newId = `${cleanId}?${query ? query + "&" : ""}zintl-multiplex=${locale}`;
-
-          const resolved = await this.resolve(newId, importer, { skipSelf: true });
-          if (resolved) {
-            const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
-            const cleanResolvedId = resolvedId.split("?")[0];
-
-            if (cleanResolvedId.endsWith(".md") || cleanResolvedId.endsWith(".txt")) {
-              await ctx.compiler.assets.registerAsset(cleanResolvedId);
-
-              if (locale === (ctx.compiler as any).sourceLocale) {
-                return resolved;
+          const isSfc = ext === "vue" || ext === "svelte";
+          if (isSfc) {
+            const resolved = await this.resolve(id, importer, { skipSelf: true });
+            if (resolved) {
+              const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
+              const cleanResolvedId = resolvedId.split("?")[0];
+              const suffix = resolvedId.includes("?") ? "?" + resolvedId.split("?")[1] : "";
+              const finalId =
+                cleanResolvedId.replace(/\.(vue|svelte)$/, `.zintl-${locale}.$1`) + suffix;
+              if (typeof resolved === "string") {
+                return finalId;
               }
+              return {
+                ...resolved,
+                id: finalId,
+              };
+            }
+          } else {
+            const newId = injectMultiplexQuery(id, locale);
 
-              const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
-              const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
+            const resolved = await this.resolve(newId, importer, { skipSelf: true });
+            if (resolved) {
+              const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
+              const cleanResolvedId = resolvedId.split("?")[0];
 
-              if (existsSync(localizedPath)) {
-                const queries = resolvedId.split("?")[1] || "";
-                const suffix = queries ? `?${queries}` : "";
-                const finalId = localizedPath + suffix;
+              if (cleanResolvedId.endsWith(".md") || cleanResolvedId.endsWith(".txt")) {
+                await ctx.compiler.assets.registerAsset(cleanResolvedId);
 
+                if (locale === (ctx.compiler as any).sourceLocale) {
+                  return resolved;
+                }
+
+                const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
+                const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
+
+                if (existsSync(localizedPath)) {
+                  const queries = resolvedId.split("?")[1] || "";
+                  const suffix = queries ? `?${queries}` : "";
+                  const finalId = localizedPath + suffix;
+
+                  if (typeof resolved === "string") {
+                    return finalId;
+                  }
+                  return {
+                    ...resolved,
+                    id: finalId,
+                  };
+                }
+              }
+              let finalResolvedId = resolvedId;
+              if (!finalResolvedId.includes("zintl-multiplex=")) {
+                finalResolvedId = injectMultiplexQuery(resolvedId, locale);
                 if (typeof resolved === "string") {
-                  return finalId;
+                  return finalResolvedId;
                 }
                 return {
                   ...resolved,
-                  id: finalId,
+                  id: finalResolvedId,
                 };
               }
+              return resolved;
             }
-            return resolved;
           }
         }
       }
@@ -212,6 +292,20 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 export function loadHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
     const cleanId = id.split("?")[0];
+    if (
+      cleanId.includes(".zintl-") &&
+      !id.includes("?vue") &&
+      !id.includes("&vue") &&
+      !id.includes("?svelte") &&
+      !id.includes("&svelte")
+    ) {
+      const originalPath = cleanId.replace(/\.zintl-[a-zA-Z0-9_-]+\.(vue|svelte)/, ".$1");
+      if (existsSync(originalPath)) {
+        const content = readFileSync(originalPath, "utf-8");
+        this.addWatchFile(originalPath);
+        return content;
+      }
+    }
     if (cleanId.startsWith("\0virtual:zintl/runtime")) {
       const moduleName = cleanId
         .replace("\0virtual:zintl/runtime/", "")
@@ -363,8 +457,8 @@ if (import.meta.hot) {
               if (src.includes("node_modules") || src.startsWith("http") || src.startsWith("//")) {
                 return m;
               }
-              const separator = src.includes("?") ? "&" : "?";
-              return `${prefix}${src}${separator}zintl-multiplex=${matchedLocale}${suffix}`;
+              const finalSrc = injectMultiplexQuery(src, matchedLocale);
+              return `${prefix}${finalSrc}${suffix}`;
             },
           );
 

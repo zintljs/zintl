@@ -1496,6 +1496,13 @@ export class ZintlCompiler {
             !bg.entries.has(bId as string) &&
             !isChunkRoot
           ) {
+            // DEBUG: trace why owner is missing
+            // console.error(`[DEBUG] bId="${bId}" owner=${owner}`);
+            // console.error(
+            //   `[DEBUG] boundaryToOwner keys: ${Array.from(cg.boundaryToOwner.keys()).join(", ")}`,
+            // );
+            // console.error(`[DEBUG] bg.entries: ${Array.from(bg.entries).join(", ")}`);
+            // console.error(`[DEBUG] bg.nodes has?: ${bg.nodes.has(bId as string)}`);
             this.logger.warn(
               `Boundary "${bId}" in "${fileId}" is detected but has no owner chunk. It may fail to hydrate at runtime.`,
             );

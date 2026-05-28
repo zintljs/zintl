@@ -8,6 +8,10 @@ export function transformHook(ctx: ZintlPluginContext) {
     if (
       id.includes("node_modules") ||
       id.startsWith("\0") ||
+      id.includes("?vue") ||
+      id.includes("&vue") ||
+      id.includes("?svelte") ||
+      id.includes("&svelte") ||
       (id.includes("?") && !id.includes("zintl-multiplex="))
     )
       return;

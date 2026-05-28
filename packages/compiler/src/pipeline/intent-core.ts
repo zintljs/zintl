@@ -225,7 +225,17 @@ export function planSinks(observation: FileObservation, worldState: WorldState):
       continue;
     }
 
-    const translation = catalogs[sink.boundaryId]?.[sink.text];
+    let translation = catalogs[sink.boundaryId]?.[sink.text];
+    if (translation === undefined || translation === "") {
+      const trimmedText = sink.text.trim();
+      const trimmedTranslation = catalogs[sink.boundaryId]?.[trimmedText];
+      if (trimmedTranslation !== undefined && trimmedTranslation !== "") {
+        const leading = sink.text.match(/^\s*/)?.[0] || "";
+        const trailing = sink.text.match(/\s*$/)?.[0] || "";
+        translation = leading + trimmedTranslation + trailing;
+      }
+    }
+
     intents.push({
       type: "baking",
       sink,
