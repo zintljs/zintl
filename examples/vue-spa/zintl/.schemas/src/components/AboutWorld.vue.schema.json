@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "About Zintl SPA": {
+      "type": "string"
+    },
+    "Bluesky": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Discord": {
+      "type": "string"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Explore Vite": {
+      "type": "string"
+    },
+    "GitHub": {
+      "type": "string"
+    },
+    "Go back Home": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Vue logo": {
+      "type": "string"
+    },
+    "X.com": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "About Zintl SPA",
+    "Bluesky",
+    "Connect with us",
+    "Discord",
+    "Documentation",
+    "Explore Vite",
+    "GitHub",
+    "Go back Home",
+    "Join the Vite community",
+    "Learn more",
+    "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.",
+    "Vite logo",
+    "Vue logo",
+    "X.com",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

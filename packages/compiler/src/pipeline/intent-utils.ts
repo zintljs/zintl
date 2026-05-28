@@ -10,13 +10,15 @@ import type {
 function getMeta(id: string, metadataGraph: Record<string, any>) {
   if (!id) return undefined;
   if (metadataGraph[id]) return metadataGraph[id];
-  const clean = id.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  const clean = id.replace(/\.(?:ts|tsx|js|jsx|vue|svelte)$/, "");
   return (
     metadataGraph[clean] ||
     metadataGraph[`${clean}.ts`] ||
     metadataGraph[`${clean}.js`] ||
     metadataGraph[`${clean}.tsx`] ||
-    metadataGraph[`${clean}.jsx`]
+    metadataGraph[`${clean}.jsx`] ||
+    metadataGraph[`${clean}.vue`] ||
+    metadataGraph[`${clean}.svelte`]
   );
 }
 
@@ -87,7 +89,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
     if (m.hasZintlMarker && !b.includes(":")) return true;
     // A function with a zintl() call is a Kingdom (Axiom 5)
     return (m.anchorSites || []).some((s: any) => {
-      const sId = s.boundaryId.replace(/\.[^/.]+$/, "");
+      const sId = s.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
       return sId === b;
     });
   };
@@ -117,7 +119,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   );
 
   if (anchor) {
-    return anchor.boundaryId.replace(/\.[^/.]+$/, "");
+    return anchor.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
   }
 
   // 3. Fallback to Chunk Graph owner
@@ -186,7 +188,7 @@ export function findEffectiveAnchor(
       const targetHash = calculateSafeBoundaryId(ownerId, root, isDev);
 
       const sIdRaw = s.boundaryId;
-      const sId = sIdRaw.replace(/\.[^/.]+$/, "");
+      const sId = sIdRaw.replace(/\.(?:ts|tsx|js|jsx)$/, "");
       const sIdRel = sId.startsWith(root) ? sId.substring(root.length).replace(/^\/+/, "") : sId;
       const sHash = calculateSafeBoundaryId(sIdRel, root, isDev);
 
@@ -335,7 +337,7 @@ export function generateManagerUrl(
 
   let hasDynamicAnchor = false;
   for (const rId of reachableNodeIds) {
-    const normRId = rId.replace(/\.[^/.]+$/, "");
+    const normRId = rId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
     const fileId = normRId.split(":")[0];
     const meta = getMeta(fileId, worldState.metadataGraph);
     if (meta?.anchorSites?.some((s: any) => s.locale.type === "expression")) {

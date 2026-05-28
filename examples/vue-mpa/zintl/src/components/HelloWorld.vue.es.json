@@ -1,0 +1,19 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "Conéctate con nosotros",
+  "Count is {count}": "El recuento es { count }",
+  "Discord": "Discord",
+  "Documentation": "Documentación",
+  "Explore Vite": "Explorar Vite",
+  "GitHub": "GitHub",
+  "Go to About Page": "Ir a la página de información",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Learn more": "Aprende más",
+  "This is the homepage of our Vue multi-page application example.": "Esta es la página de inicio de nuestro ejemplo de aplicación multipágina en Vue.",
+  "Vite logo": "Logotipo de Vite",
+  "Vue logo": "Logotipo de Vue",
+  "Welcome to Zintl MPA Home": "Bienvenido a la página de inicio de Zintl MPA",
+  "X.com": "X.com",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}

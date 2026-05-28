@@ -1,0 +1,19 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "بلو سكاي",
+  "Connect with us": "تواصل معنا",
+  "Count is {count}": "العدد هو { count }",
+  "Discord": "ديسكورد",
+  "Documentation": "التوثيق",
+  "Explore Vite": "استكشف فيت",
+  "GitHub": "غيت هاب",
+  "Go to About Page": "الذهاب إلى صفحة حول",
+  "Join the Vite community": "انضم إلى مجتمع فيت",
+  "Learn more": "تعلم المزيد",
+  "This is the homepage of our Vue multi-page application example.": "هذه هي الصفحة الرئيسية لمثال تطبيقنا متعدد الصفحات في Vue.",
+  "Vite logo": "شعار فيت",
+  "Vue logo": "شعار فيو",
+  "Welcome to Zintl MPA Home": "مرحباً بك في صفحة Zintl MPA الرئيسية",
+  "X.com": "إكس.كوم",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

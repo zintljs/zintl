@@ -113,9 +113,10 @@ export class GraphManager {
       // Nodes with deps are kept as "pass-through" so the graph walk can
       // traverse through intermediate files (e.g. App.vue) to reach
       // downstream content-bearing boundaries (e.g. HelloWorld.vue).
-      const isCodeFile = /\.(tsx?|jsx?|vue|svelte)$/i.test(fileId);
+      // HTML files are always roots of compilation and never act as pass-through code nodes.
+      const isHtml = fileId.endsWith(".html");
       if (!isDictator && !hasContent) {
-        if (!isCodeFile || rawDeps.length === 0) continue;
+        if (isHtml || rawDeps.length === 0) continue;
       }
       const resolvedDeps: any[] = [];
       for (const dep of rawDeps) {

@@ -1,0 +1,19 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Bluesky": "Bluesky",
+  "Connect with us": "与我们联系",
+  "Count is {count}": "计数为 { count }",
+  "Discord": "Discord",
+  "Documentation": "文档",
+  "Explore Vite": "探索 Vite",
+  "GitHub": "GitHub",
+  "Go to About Page": "前往关于页面",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "This is the homepage of our Vue single-page application example.": "这是我们 Vue 单页面应用程序示例的主页。",
+  "Vite logo": "Vite 图标",
+  "Vue logo": "Vue 图标",
+  "Welcome to Zintl SPA Home": "欢迎来到 Zintl SPA 主页",
+  "X.com": "X.com",
+  "Your questions, answered": "你的问题，已解答"
+}

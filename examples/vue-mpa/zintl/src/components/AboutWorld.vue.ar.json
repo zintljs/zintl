@@ -1,0 +1,18 @@
+{
+  "$schema": "../../.schemas/src/components/AboutWorld.vue.schema.json",
+  "About Zintl MPA": "حول Zintl MPA",
+  "Bluesky": "بلو سكاي",
+  "Connect with us": "تواصل معنا",
+  "Discord": "ديسكورد",
+  "Documentation": "التوثيق",
+  "Explore Vite": "استكشف فيت",
+  "GitHub": "غيت هاب",
+  "Go back Home": "الرجوع إلى الرئيسية",
+  "Join the Vite community": "انضم إلى مجتمع فيت",
+  "Learn more": "تعلم المزيد",
+  "This page demonstrates clean MPA routing and fully isolated hydration cycles in Vue.": "توضح هذه الصفحة توجيه MPA النظيف ودورات إماهة معزولة تماماً في Vue.",
+  "Vite logo": "شعار فيت",
+  "Vue logo": "شعار فيو",
+  "X.com": "إكس.كوم",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

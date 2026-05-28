@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Bluesky": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Count is {count}": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {count}"
+    },
+    "Discord": {
+      "type": "string"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Explore Vite": {
+      "type": "string"
+    },
+    "GitHub": {
+      "type": "string"
+    },
+    "Go to About Page": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "This is the homepage of our Vue multi-page application example.": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Vue logo": {
+      "type": "string"
+    },
+    "Welcome to Zintl MPA Home": {
+      "type": "string"
+    },
+    "X.com": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Bluesky",
+    "Connect with us",
+    "Count is {count}",
+    "Discord",
+    "Documentation",
+    "Explore Vite",
+    "GitHub",
+    "Go to About Page",
+    "Join the Vite community",
+    "Learn more",
+    "This is the homepage of our Vue multi-page application example.",
+    "Vite logo",
+    "Vue logo",
+    "Welcome to Zintl MPA Home",
+    "X.com",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}
