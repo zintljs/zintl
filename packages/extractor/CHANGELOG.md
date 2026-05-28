@@ -1,5 +1,13 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- Updated external dependencies:
+  - @types/node@^24.12.4
+  - typescript@^5.9.3
+
 ## 0.1.0-alpha.3
 
 ### Minor Changes

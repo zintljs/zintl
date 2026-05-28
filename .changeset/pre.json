@@ -9,12 +9,18 @@
   "changesets": [
     "bypass-non-zintlized-transforms",
     "decouple-runtime-virtualization",
+    "exported-boundaries-reachability-fixes",
     "rebrand-to-zintl",
+    "sfc-extension-normalization-fixes",
     "sfc-vue-svelte-integration-and-flush-perf",
     "ssr-fanned-routing-and-svg-stitching",
+    "ssr-hydration-and-multiplex-resolver-fixes",
     "ssr-request-isolation",
     "universal-targets-and-assets",
     "vue-svelte-catalog-and-manager-fixes",
-    "zzz-perf-zintl-compiler"
+    "zzz-perf-zintl-compiler",
+    "zzzz-auto-deps-zintl-compiler-6sdx3bnl",
+    "zzzz-auto-deps-zintl-extractor-0f8hwvqv",
+    "zzzz-auto-deps-zintl-xae3apx0"
   ]
 }
