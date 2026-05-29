@@ -70,4 +70,50 @@ const message = t("Welcome Svelte");
     expect(welcomeT!.line).toBe(90);
     expect(code.substring(welcomeT!.start, welcomeT!.end)).toBe('t("Welcome Svelte")');
   });
+
+  it("should extract mustache expressions and translatable attributes from Vue template blocks", () => {
+    const code = `<template>
+      <div placeholder="Enter name" title="Greeting">Hello {{ name }} and {{ lastName || 'Friend' }}!</div>
+    </template>`;
+
+    const result = extract(code, "App.vue", "App.vue", {
+      targets: ["vue", "html"],
+    });
+
+    // Verify attribute extraction
+    const placeholderMsg = result.messages.find((m) => m.text === "Enter name");
+    expect(placeholderMsg).toBeDefined();
+    expect(placeholderMsg!.contexts).toContain("HTML_ATTR");
+
+    const titleMsg = result.messages.find((m) => m.text === "Greeting");
+    expect(titleMsg).toBeDefined();
+    expect(titleMsg!.contexts).toContain("HTML_ATTR");
+
+    // Verify HTML text and variable normalization
+    const textMsg = result.messages.find((m) => m.text.includes("Hello {name}"));
+    expect(textMsg).toBeDefined();
+    expect(textMsg!.text).toBe("Hello {name} and {var0}!");
+  });
+
+  it("should extract mustache expressions and translatable attributes from Svelte template blocks", () => {
+    const code = `<main>
+      <input placeholder="Search..." title="Tip" />
+      <div>Welcome {user}!</div>
+    </main>`;
+
+    const result = extract(code, "App.svelte", "App.svelte", {
+      targets: ["svelte", "html"],
+    });
+
+    // Verify attributes
+    const placeholderMsg = result.messages.find((m) => m.text === "Search...");
+    expect(placeholderMsg).toBeDefined();
+
+    const titleMsg = result.messages.find((m) => m.text === "Tip");
+    expect(titleMsg).toBeDefined();
+
+    // Verify template text with variable normalization
+    const textMsg = result.messages.find((m) => m.text === "Welcome {user}!");
+    expect(textMsg).toBeDefined();
+  });
 });

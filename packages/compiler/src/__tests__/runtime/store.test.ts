@@ -9,6 +9,7 @@ import {
   subscribe,
   getActiveInstance,
   setActiveInstance,
+  runInRequestScope,
 } from "../../runtime/store.js";
 import { registerZintlLoader } from "../../runtime/registry.js";
 
@@ -241,5 +242,117 @@ describe("I18nStore & Registry", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it("should handle localStorage throwing errors in constructor gracefully", () => {
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("localStorage", {
+      getItem: () => {
+        throw new Error("localStorage blocked");
+      },
+    });
+
+    try {
+      const store = new I18nStore();
+      expect(store.locale).toBe("");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("should run concurrent request scopes and isolate active instances", async () => {
+    const results: string[] = [];
+
+    const p1 = runInRequestScope("/ar/dashboard", ["ar", "es"], "es", async () => {
+      // Simulate async flow inside request scope
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      results.push(getActiveInstance().locale);
+    });
+
+    const p2 = runInRequestScope("/es/settings", ["ar", "es"], "es", async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      results.push(getActiveInstance().locale);
+    });
+
+    await Promise.all([p1, p2]);
+    // Since p2 resolves first (5ms vs 10ms), it should push first in execution order
+    expect(results).toEqual(["es", "ar"]);
+  });
+
+  it("should support request object input in runInRequestScope", () => {
+    const res1 = runInRequestScope(
+      { url: "/ar/test" },
+      ["ar", "es"],
+      "es",
+      () => getActiveInstance().locale,
+    );
+    const res2 = runInRequestScope(
+      { path: "/es/test" },
+      ["ar", "es"],
+      "es",
+      () => getActiveInstance().locale,
+    );
+    const res3 = runInRequestScope(
+      { url: "" },
+      ["ar", "es"],
+      "es",
+      () => getActiveInstance().locale,
+    );
+
+    expect(res1).toBe("ar");
+    expect(res2).toBe("es");
+    expect(res3).toBe("es");
+  });
+
+  it("should auto-hydrate registered loaders in request scopes", async () => {
+    let resolved = false;
+    const asyncLoader = vi.fn(async (_locale: string) => {
+      resolved = true;
+      return { b1: { hello: "hola" } };
+    });
+
+    await safeRegisterLoader("async_scoped", asyncLoader);
+
+    await runInRequestScope("/es/dashboard", ["ar", "es"], "es", async () => {
+      // Wait for loaders to run
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(getActiveInstance().catalogs["es"]?.["b1"]?.["hello"]).toBe("hola");
+    });
+    expect(resolved).toBe(true);
+  });
+
+  it("should fallback gracefully if window is defined in runInRequestScope", () => {
+    vi.stubGlobal("window", {});
+    try {
+      const result = runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
+        return "callback_result";
+      });
+      expect(result).toBe("callback_result");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("should print debug log when locale is hydrated with no active promises", async () => {
+    unregisterLoader("b1");
+    unregisterLoader("b_void");
+
+    const store = new I18nStore();
+    store.debug = true;
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+
+    await store.setLocale("en");
+    expect(debugSpy).toHaveBeenCalledWith('[Zintl] Locale "en" hydrated.');
+    debugSpy.mockRestore();
+  });
+
+  it("should inherit active instance locale in new store inside request scope constructor", () => {
+    runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
+      const parentStore = getActiveInstance();
+      expect(parentStore.locale).toBe("ar");
+
+      const childStore = new I18nStore();
+      expect(childStore.locale).toBe("ar");
+    });
   });
 });

@@ -9,11 +9,17 @@ describe("HTML Extraction", () => {
         <title>Test Title</title>
         <script type="module" src="/main.ts"></script>
       </head>
+      <body>
+        <div>Hello HTML!</div>
+      </body>
       </html>
     `;
     const result = extract(code, "index.html", "index.html");
     expect(result.htmlProjection).toBeDefined();
     expect(result.htmlProjection?.title).toBe("Test Title");
     expect(result.htmlProjection?.scripts).toContain("/main.ts");
+
+    const textMsg = result.messages.find((m) => m.text === "Hello HTML!");
+    expect(textMsg).toBeDefined();
   });
 });
