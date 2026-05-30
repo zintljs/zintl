@@ -2,6 +2,8 @@
   "name": "@zintl/extractor",
   "version": "0.1.0-alpha.4",
   "description": "AST-based message extractor for Zintl",
+  "license": "MIT",
+  "author": "Khalid FSh",
   "type": "module",
   "types": "./dist/index.d.mts",
   "exports": {

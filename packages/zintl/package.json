@@ -2,6 +2,35 @@
   "name": "zintl",
   "version": "0.1.0-alpha.4",
   "description": "Vite plugin for Zintl automation",
+  "keywords": [
+    "automation",
+    "automation-tool",
+    "hmr",
+    "i18n",
+    "i18n-compiler",
+    "i18n-tool",
+    "internationalization",
+    "intl",
+    "l10n",
+    "locale",
+    "localization",
+    "react",
+    "svelte",
+    "vite",
+    "vite-plugin",
+    "vue",
+    "zintl"
+  ],
+  "bugs": {
+    "url": "https://github.com/zintl/zintl/issues"
+  },
+  "license": "MIT",
+  "author": "Khalid FSh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zintl/zintl.git",
+    "directory": "packages/zintl"
+  },
   "type": "module",
   "exports": {
     ".": {

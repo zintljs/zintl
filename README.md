@@ -1,467 +1,198 @@
-# Vite+ Monorepo Starter
-
-A starter for creating a Vite+ monorepo.
-
-## Development
-
-- Check everything is ready:
-
-```bash
-vp run ready
-```
-
-- Run the tests:
-
-```bash
-vp run test -r
-```
-
-- Build the monorepo:
-
-```bash
-vp run build -r
-```
-
-- Run the development server:
-
-```bash
-vp run dev
-```
-
-Today we will work on the HTML support! This is a big feature!
-Before we start working on this, I want to make sure we have a solid plan.
-Lets discuss the architecture!
-
-Now, lets visit these facts!
-"""
-
-- In modern Vite/web apps, multiple HTML files are usually entry points, not internal application resources.
-
-- The main `index.html` is the root of the appshell; it defines what actually renders in the browser viewport.
-
-- Secondary HTML files (admin.html, landing.html, etc.) are treated as entirely separate "mini-apps" by Vite, which configured by `vite.config.ts` via `build.rollupOptions.input`.
-
-- They have their own module graphs, their own entry points, and can be served independently.
-  """
-
-Currently, wee are at the point where if we keep treating HTML as “just another translatable file,” the architecture will get muddy fast. I believe that HTML is not a normal catalog participant. It’s infrastructure-facing locale projection. What we are really designing is not “HTML translation.”
-It’s an HTML projection layer (think of it as config files basically but in a catalog flavored way, where the user feel like what he is doing is configuring but, without a full seperation from the concept of catalogs). That distinction matters because it gives you a clean boundary and stops feature creep.
-
-⸻
-
-First: simplify the mental model
-
-Before we started working on this, we got lost because we kept drifting into runtime mechanics. Thus, we need to strip it down.
-
-There are only 3 concerns here:
-
-1. Extraction
-
-What configurable values exist in HTML?
-
-Example:
-
-```
-<html>
-<head>
-  <title>My App</title>
-  <meta name="description" content="Hello">
-</head>
-</html>
-```
-
-Extractable config surface:
-
-```
-{
-"title": "My App",
-"description": "Hello"
-}
-```
-
-Not “translations.”
-
-These are locale projections.
-
-⸻
-
-2. Resolution
-
-For locale ar, what should each projection become?
-
-Some are explicit:
-
-```
-{
-"title": "تطبيقي"
-}
-```
-
-Some are computed:
-
-```
-{
-"dir": "rtl"
-}
-```
-
-Some fallback to source HTML.
-
-⸻
-
-3. Application ( Transformation )
-
-How do we apply it?
-
-Either:
-
-- Bake into HTML
-- Inject runtime resolver
-
-Determined by the main entry anchor.
-
-That’s it.
-
-Not multiplexing, not shadow-vassals, not sovereign diplomacy 😄
-(save the mythology for docs later).
-
-Right now we need a strict implementation contract.
-
-⸻
-
-The architecture we want
-
-Core principle
-
-HTML participates in locale generation through a Synthetic Projection Catalog
-
-Not:
-
-- virtual catalog
-- regular catalog
-- extracted module
-
-It is its own category.
-
-Call it:
-
-HtmlProjection
-
-⸻
-
-Internal representation
-
-Inside compiler:
-
-```
-type HtmlProjection = {
-id: string
-owner: ModuleId
-mode: "baked" | "runtime"
-source: HtmlSnapshot
-schema: HtmlProjectionSchema
-}
-```
-
-Where:
-
-schema
-
-```
-type HtmlProjectionSchema = {
-title?: string
-description?: string
-dir: Resolver
-}
-```
-
-dir always exists, even if absent in source. thats because dir is very important in i18n, just like `lang` but lang we can resolve it automatically from the locale inside the system and we do not want to bother the user with it, but dir we cant unliss we track all locale that uses rtl staticaly which is against our philosophy.
-
-⸻
-
-Disk catalog format
-
-should look like configuring something rather than translating
-
-`index.ar.json`:
-
-```json
-{
-  "$schema": ".schemas/index.schema.json",
-  "title": "تطبيقي",
-  "description": "منصة حديثة",
-  "dir": "rtl"
-}
-```
-
-This feels declarative. Like environment configuration.
-
-⸻
-
-Extraction rules
-
-Here we need to automatically detect the HTML surface that needs to be extracted. this is becuse our system is mentally prepared for this from the start. The user/dev start building the app for the source locale, then the Zintl system detecte all the translatable strings. Now on that stage the idea of locale projection is normal to the user, it symbioses with the normal behavior of the Zintl and the app itself.
-
-So, for the HTML surface, we need to automatically detect the HTML surface that needs to be extracted. But we need to be careful not to over-engineer this feature. lets start with a set of fixed HTML surface and we can extend it later or even make it controlable by the user. now lets make it simple for the first version, we will support only the following HTML surface:
-
-Supported:
-
-- dir
-- title
-- description
-
-⸻
-
-Missing values behavior
-
-Normal catalogs:
-
-missing => build error
-
-HTML projection:
-
-missing => fallback to source! (if no source fallback to computed resolver, or empty string for string values)
-
-Priority:
-
-1. disk catalog
-2. source html
-3. computed resolver
-
-For dir, source probably absent then compute.
-
-⸻
-
-The ownership rule
-
-This needs to be brutally simple.
-
-If HTML has multiple module scripts, choose:
-
-Rule:
-
-The big zintlied one is the winer! like if there are two module scripts one uses dynamic anchor and another uses static anchor, then the dynamic one is the winer! since it would work for both modules!
-However, we should not name this as an ownership! every anchors is completly independent and should be treated as a seperate entity! so this is just a simple selection mecanisim based on compability, **not** ownership!
-
-However, if multiple modules with deferent static anchors are found, the html anchore will uses the first one found and set its anchor type and locale based on it!
-
-Moreover, if the html file does not have any anchor in its module! then no extraction no schema/catalog generation and no transformation! it's like if an entry main that does not uses zintl() at all!
-
-⸻
-
-Runtime vs baked
-
-This is where everything clicks.
-
-Determine from owner anchor.
-
-Static
-
-zintl("ar")
-
-Result:
-
-bake HTML
-
-Output:
-
-<html lang="ar" dir="rtl">
-<title>...</title>
-
-No runtime script.
-
-⸻
-
-Dynamic
-
-zintl(locale)
-
-Result:
-
-inject resolver bootstrap
-
-Because HTML must track runtime locale.
-
-⸻
-
-The bootstrap should stay tiny when possible! like defaulting or resolver should have no runtime cost.
-For HTML projection, speed comes from zero negotiation! instead of negotiation like we do in module anchors we will use a simple state injection. The HTML should already contain everything needed, and the application should use it directly. That means the resolver must run: before first paint and before main module executes.
-So the ideal shape is: Inline blocking script in `<head>`, and placed before module scripts.
-
-```html
-<script>
-  (function () {
-    // get locale from localStorage, need to cordenite with runtime and see what we can use here!
-    const l = localStorage.getItem("zintl-locale") || "en";
-
-    function apply(l) {
-      if (document.documentElement.lang === l) return; // Optimization! no double work! in first load from runtime!
-
-      // dir, added only if one or more locale uses dir: rtl. in our case only one locale ["ar"]
-      if (["ar"].includes(l)) {
-        document.documentElement.dir = "rtl";
-      } // automatically ltr otherwise!
-
-      // lang is set manually
-      document.documentElement.lang = l;
-
-      // Store only differences from source locale. without dir
-      const D = {
-        ar: {
-          title: "تطبيقي",
-          description: "منصة حديثة",
-        },
-        fr: {
-          title: "Mon application",
-        },
-        // ... add more as needed
-      };
-      const delta = D[l];
-      if (delta) {
-        if (delta.title !== undefined) {
-          document.title = delta.title;
-        }
-        if (delta.description !== undefined) {
-          const meta = document.querySelector('meta[name="description"]');
-          if (meta) {
-            meta.content = delta.description;
-          }
-        }
-        // ... add more as needed
-      }
-    }
-
-    // make apply function available for the runtime! and we can change it later using runtime.
-    window.__zintlApplyHtml = apply;
-
-    // if source locale ("en" in our example) no need to apply anything
-    if (l !== "en") {
-      apply(l);
-    }
-  })();
-</script>
-```
-
-Then runtime can use it to change locale on demand:
-
-```
-window.__zintlApplyHtml(locale)
-```
-
-No handshake!
-No protocol!
-No runtime negotiation/dependency!
-No coordination!
-Zero async!
-Simple injection only for
-Just deterministic projection applied before main JavaScript runs.
-
-⸻
-
-Build pipeline
-
-This is probably the feature breakdown we need.
-
-Phase 1 — Extract
-
-During scan:
-
-index.html
--> parse
--> collect projection keys
--> link owner module, but we need to make sure that it does not enter the owner kingdom and it does not affect the owner anchor!
-
-⸻
-
-Phase 2 — Generate disk projections
-
-For each locale except ghost/source:
-
-Generate:
-
-.schemas/index.schema.json
-index.ar.json
-index.en.json
-
-(or whatever our disk convention is! i want to refer to `catalogFormat` config! but i am a little worry about getting lost here!)
-
-⸻
-
-Phase 3 — Resolve
-
-Merge:
-
-- source defaults
-- disk overrides
-- computed resolvers
-
-⸻
-
-Phase 4 — Transform
-
-In transformIndexHtml
-
-Apply resolved values.
-
-Static:
-direct mutate
-
-Dynamic:
-inject bootstrap + runtime script
-
-⸻
-
-Critical thing to avoid
-
-Don’t let HTML enter the normal catalog dependency graph.
-
-That would poison the model.
-
-HTML should attach to module ownership as metadata:
-
-ModuleNode
--> htmlProjection?: HtmlProjection
-
-Not:
-
-CatalogGraphNode
-
-This is the architectural line that keeps the system sane.
-
-⸻
-
-Our strongest insight here was this:
-
-html disk catalogs should feel like config rather than translation! That’s the entire feature philosophy. Build around that, and the implementation becomes much clearer.
+<p align="center">
+  <br>
+  <br>
+  <a href="https://github.com/zintl/zintl" target="_blank" rel="noopener noreferrer">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="examples/website/public/favicon.svg">
+      <source media="(prefers-color-scheme: light)" srcset="examples/website/public/favicon.svg">
+      <img alt="Zintl logo" src="examples/website/public/favicon.svg" height="80">
+    </picture>
+  </a>
+  <br>
+  <br>
+</p>
+
+<h1 align="center">Zintl ⚡</h1>
+
+<p align="center">
+  <strong>Compiler-driven internationalization system for modern web applications.</strong>
+</p>
+
+<p align="center">
+  <a href="https://npmjs.com/package/zintl"><img src="https://img.shields.io/npm/v/zintl.svg?color=863bff&label=" alt="npm package"></a>
+  <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/zintl.svg?color=6a2ee3&label=node" alt="node compatibility"></a>
+  <a href="https://github.com/zintl/zintl/actions"><img src="https://img.shields.io/badge/build-passing-success" alt="build status"></a>
+</p>
+
+<br/>
+
+Zintl (pronounced [`/tsɪntl/`]) is a compile-time internationalization engine built to provide a faster, leaner, and zero-config localization experience for modern web projects. It moves internationalization from a runtime lookup bottleneck to a compile-time optimization pipeline.
+
+It consists of two major parts:
+
+- **A Vite Plugin & Runtime:** Integrates seamlessly into Vite's module graph to perform surgical code replacement, inlining, and HMR catalog updates.
+- **A Compiler Core:** Builds dependency graphs, splits localized content into optimized translation chunks, and compiles target ICU formats into ultra-fast JS conditional branches at build time.
 
 ---
 
-ok nice! i only has one conceren!
+## Features
 
-imagine that we have 30+ locale and all locale has not set any thing in the html catalog, then we will has like `"es":{"title":""}` 30 times! while we already fallback to default if there is no es delta!
+- ⚡ **Zero-Runtime Overhead (ZCU Baking):** Compiles ICU MessageFormat expressions (plurals, select enums, nesting) into pure JavaScript conditions at build time. No heavy parsing libraries are shipped to the client.
+- 📂 **Smart Chunking & Code Splitting:** A graph-based boundary algorithm automatically partitions translations into entry-specific, lazy-loaded, and shared catalog chunks matching your bundler's code-splitting boundaries.
+- 🔍 **Zero-Config Extraction:** Automatically extracts strings from JSX, template literals, and HTML structures. No manual translation key mapping or tedious function wrappers are required.
+- 👻 **Zero-Disk Source Locale (Ghost Mode):** The source locale (typically English) is completely diskless. The compiler virtualizes it on-the-fly from the extraction manifest, eliminating redundant `{ "key": "key" }` files from your repository.
+- 🌐 **HTML Metadata Projections:** Automatically extracts and translates standard HTML head tags (`title`, `meta[name="description"]`, and directionality `dir`). It bakes translations directly for static targets or injects a minimal head-blocking bootstrap script for dynamic targets.
+- 🏷️ **Surgical Comment Directives:** Control translation behavior with inline code comments (`@zintl-ignore` with HTML tag scoping, `@zintl-note` for translator context, and `@zintl-pass` to pass grammatical context variables).
+- 🔄 **Lightning Fast HMR:** Surgical invalidation of translation catalogs. Accept hot updates in-place during development with zero page reloads.
 
-However if the locale has at leas one key set to a value (other than `dir`) then we should append it in deltas!
+---
 
-Do you aggree?
+## Core Architecture
 
-and also if deltas is actually empty, like `const deltas = {}`
-
-then we do not need to even declare it or add this part:
+Zintl operates as a **Three-Package Monorepo** separating extraction, compilation, and runtime logic:
 
 ```
-const delta = deltas[locale];
-            if (delta) {
-              if (delta?.title !== null && delta?.title?.trim() !== "") document.title = delta.title;
-              else document.title = originals.title;
-
-              if (delta?.description !== null && delta?.description?.trim() !== "") {
-                const meta = document.querySelector('meta[name="description"]');
-                if (meta) meta.content = delta.description;
-              } else {
-                const meta = document.querySelector('meta[name="description"]');
-                if (meta && originals.description !== undefined) meta.content = originals.description;
-              }
-            }
+Source Code ──▶ @zintl/extractor (AST Scan) ──▶ @zintl/compiler (Graph & Baking) ──▶ zintl (Vite Plugin & Runtime)
 ```
 
-all of this would minimize the code and it would be better for zeroing everything not needed!
+1. **`@zintl/extractor`:** A pure metadata provider. It scans code syntax using high-performance AST parsers to identify translation anchors (`zintl()`), template literals, and HTML sinks without modifying source files.
+2. **`@zintl/compiler`:** The transformation orchestrator. It builds boundary graphs, resolves file dependencies, manages Levenshtein-based typo reconciliation, and generates chunked catalogs.
+3. **`zintl`:** The developer-facing entry point. It exports the Vite plugin and runtime macros (`zintl()`, `t()`, `getLocale()`) used in code.
+
+---
+
+## Quick Start
+
+### 1. Installation
+
+Install the main Zintl package using Vite+:
+
+```bash
+vp install -D zintl
+```
+
+### 2. Configure the Vite Plugin
+
+Add the plugin to your `vite.config.ts` configuration file:
+
+```typescript
+import { defineConfig } from "vite";
+import { zintl } from "zintl";
+
+export default defineConfig({
+  plugins: [
+    zintl({
+      sourceLocale: "en",
+      locales: ["en", "ar", "fr"],
+      outputDir: "locales",
+    }),
+  ],
+});
+```
+
+### 3. Initialize in Source Code
+
+Establish a **Trust Anchor** in your application entry point. Every file or function calling `zintl()` forms an independent translation boundary with its own lazy catalog loading:
+
+```typescript
+// src/main.ts
+import { zintl } from "zintl/macro";
+
+async function initApp() {
+  const userLang = new URLSearchParams(window.location.search).get("lang") || "en";
+
+  // Sets the active locale and loads necessary catalog chunks
+  await zintl(userLang);
+
+  document.querySelector("#app")!.innerHTML = `
+    <h1>Welcome back!</h1>
+    <p>You have successfully logged in.</p>
+  `;
+}
+
+initApp();
+```
+
+---
+
+## The Comment Directive System
+
+Use comments directly in your source code (JavaScript `//`, `/* */` or HTML `<!-- -->`) to guide the compiler surgically:
+
+### `@zintl-ignore`
+
+Suppresses translation extraction for the immediate next node or HTML tag and its nested subtree:
+
+```jsx
+<div>
+  {/* @zintl-ignore */}
+  <span>This text will not be extracted</span>
+  <span>This text will be extracted</span>
+</div>
+```
+
+### `@zintl-note`
+
+Attaches translator notes that are automatically injected into the generated translation schema:
+
+```typescript
+// @zintl-note Welcome message on the user's dashboard
+const welcomeMsg = `Hello, user!`;
+```
+
+### `@zintl-pass`
+
+Binds invisible grammatical context variables (like gender, role, or counts) to the extraction scope. This allows target languages to use advanced grammatical logic (e.g., ICU Plurals or Select) even if they aren't visible in the source English text:
+
+```typescript
+// @zintl-pass role={user.role}
+const dashboardTitle = `Welcome to your dashboard!`;
+```
+
+---
+
+## The ZCU (Component-based ICU) Agreement
+
+Zintl implements a **Source Purity** philosophy. Developers do not write complex grammatical logic inside their source code. Instead, source files contain simple template literals, and grammatical variations are managed as catalog data:
+
+1. **Source Code:** Write clean, standard JS template literals:
+   ```typescript
+   const msg = `You have ${count} items in your cart`;
+   ```
+2. **Target Translation Catalog (`locales/ar.json`):** Translators write standard ICU MessageFormat syntax inside the JSON files, backed by IDE auto-complete schemas:
+   ```json
+   {
+     "$schema": "./.schemas/locales.schema.json",
+     "You have {count} items in your cart": "{count, plural, =0 {سلتك فارغة} one {لديك عنصر واحد في سلتك} other {لديك {count} عناصر في سلتك}}"
+   }
+   ```
+3. **Compilation:** At build time, the Zintl compiler parses the ICU syntax and compiles ("bakes") it into optimized JavaScript conditional logic:
+   ```javascript
+   // Compiled output (Smart Manager)
+   (params) => {
+     const { count } = params;
+     if (count === 0) return `سلتك فارغة`;
+     if (count === 1) return `لديك عنصر واحد في سلتك`;
+     return `لديك ${count} عناصر في سلتك`;
+   };
+   ```
+
+---
+
+## Packages
+
+| Package                                      | Version                                                                                                                 | Description                                              |
+| :------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------- |
+| [**`zintl`**](packages/zintl)                | [![version](https://img.shields.io/npm/v/zintl.svg?color=863bff&label=%20)](packages/zintl/CHANGELOG.md)                | Vite plugin & macro runtime library.                     |
+| [**`@zintl/compiler`**](packages/compiler)   | [![version](https://img.shields.io/npm/v/@zintl/compiler.svg?color=863bff&label=%20)](packages/compiler/CHANGELOG.md)   | Graph management, HTML projection & ICU baking compiler. |
+| [**`@zintl/extractor`**](packages/extractor) | [![version](https://img.shields.io/npm/v/@zintl/extractor.svg?color=863bff&label=%20)](packages/extractor/CHANGELOG.md) | AST-based string & dependency extraction utility.        |
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) to learn about the monorepo setup, development commands, and codebase guidelines.
+
+## License
+
+[MIT](LICENSE).
