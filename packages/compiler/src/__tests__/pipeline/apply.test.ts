@@ -231,6 +231,7 @@ function App() {
       diagnostics: [],
     };
 
+    // oxlint-disable-next-line typescript/unbound-method
     const origAppendLeft = MagicString.prototype.appendLeft;
     MagicString.prototype.appendLeft = () => {
       throw new Error("Mocked appendLeft error");
@@ -257,6 +258,7 @@ function App() {
       diagnostics: [],
     };
 
+    // oxlint-disable-next-line typescript/unbound-method
     const origOverwrite = MagicString.prototype.overwrite;
     MagicString.prototype.overwrite = () => {
       throw new Error("Mocked overwrite error");

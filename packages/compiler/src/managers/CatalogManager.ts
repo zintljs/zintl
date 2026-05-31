@@ -1086,6 +1086,10 @@ export class CatalogManager {
     this.lastPrunedManifestHash = manifestHash;
 
     const knownPaths = new Set<string>();
+    const normalizePath = (p: string) => {
+      const abs = isAbsolute(p) ? p : join(this.root, p);
+      return abs.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/+$/, "");
+    };
 
     // Use pre-computed reachable set if provided, otherwise lazily derive it once.
     let reachableFiles: Set<string> | null = precomputedReachable ?? null;
@@ -1112,16 +1116,21 @@ export class CatalogManager {
       for (const locale of locales) {
         if (locale === this.sourceLocale) continue;
         const p = this.getCatalogPath(bId, locale);
-        if (p) knownPaths.add(p);
+        if (p) knownPaths.add(normalizePath(p));
+      }
+      const sPath = this.getSchemaPath(bId);
+      if (sPath) {
+        knownPaths.add(normalizePath(sPath));
+        knownPaths.add(normalizePath(sPath.replace(/\.schema\.json$/, ".shared.schema.json")));
       }
     }
     for (const s of this.activeSchemaPaths) {
-      knownPaths.add(s);
+      knownPaths.add(normalizePath(s));
     }
 
     if (activeAssetPaths) {
       for (const p of activeAssetPaths) {
-        knownPaths.add(p);
+        knownPaths.add(normalizePath(p));
       }
     }
 
@@ -1133,10 +1142,10 @@ export class CatalogManager {
             for (const locale of locales) {
               if (locale === this.sourceLocale) continue;
               const p = this.getCatalogPath(id, locale);
-              if (p) knownPaths.add(p);
+              if (p) knownPaths.add(normalizePath(p));
             }
             const sPath = this.getSchemaPath(id);
-            if (sPath) knownPaths.add(sPath);
+            if (sPath) knownPaths.add(normalizePath(sPath));
           }
         }
       }
@@ -1147,10 +1156,10 @@ export class CatalogManager {
           for (const locale of locales) {
             if (locale === this.sourceLocale) continue;
             const p = this.getCatalogPath(id, locale);
-            if (p) knownPaths.add(p);
+            if (p) knownPaths.add(normalizePath(p));
           }
           const sPath = this.getSchemaPath(id);
-          if (sPath) knownPaths.add(sPath);
+          if (sPath) knownPaths.add(normalizePath(sPath));
         }
       }
     }
@@ -1179,7 +1188,7 @@ export class CatalogManager {
           const remaining = await this.io.readDir(full);
           if (remaining.length === 0) await this.io.rm(full);
         } else if (/\.(json|md|txt)$/.test(entry.name)) {
-          if (!knownPaths.has(full)) {
+          if (!knownPaths.has(normalizePath(full))) {
             this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
             await this.io.rm(full);
             prunedCount++;

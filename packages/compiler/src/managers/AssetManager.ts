@@ -9,6 +9,14 @@ import type { CatalogManager } from "./CatalogManager.js";
 export class AssetManager {
   private registeredAssets = new Set<string>();
 
+  public getRegisteredAssetsRaw(): string[] {
+    return Array.from(this.registeredAssets);
+  }
+
+  public setRegisteredAssets(assets: string[]) {
+    this.registeredAssets = new Set(assets);
+  }
+
   constructor(
     private readonly io: IOManager,
     private readonly root: string,

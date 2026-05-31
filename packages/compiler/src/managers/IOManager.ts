@@ -109,13 +109,42 @@ export class IOManager {
     return result;
   }
 
+  private formatJson(json: string): string {
+    let formatted = json.replace(/\[\n\s*([^\]]*?)\n\s*\]/g, (match) => {
+      try {
+        const parsed = JSON.parse(match);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((item) => typeof item !== "object" && item !== null)
+        ) {
+          const collapsed = JSON.stringify(parsed);
+          // Format with spaces after commas to match Prettier formatting: ["a", "b"]
+          const spaced = collapsed.replace(/,/g, ", ");
+          if (spaced.length < 80) {
+            return spaced;
+          }
+        }
+      } catch {}
+      return match;
+    });
+    if (!formatted.endsWith("\n")) {
+      formatted += "\n";
+    }
+    return formatted;
+  }
+
   public async safeWriteFile(path: string | null, content: string) {
     if (!path) return;
+
+    let finalContent = content;
+    if (path.endsWith(".json")) {
+      finalContent = this.formatJson(content);
+    }
 
     try {
       if (await this.exists(path)) {
         const existing = await this.readFile(path);
-        if (existing.trim().replace(/\r\n/g, "\n") === content.trim().replace(/\r\n/g, "\n")) {
+        if (existing.trim().replace(/\r\n/g, "\n") === finalContent.trim().replace(/\r\n/g, "\n")) {
           return;
         }
       }
@@ -128,7 +157,7 @@ export class IOManager {
     try {
       const dir = dirname(path);
       await mkdir(dir, { recursive: true });
-      await writeFile(path, content, "utf-8");
+      await writeFile(path, finalContent, "utf-8");
       await this.formatFile(path);
     } finally {
       setTimeout(() => {

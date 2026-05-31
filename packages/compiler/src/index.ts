@@ -1,6 +1,6 @@
 import * as Extractor from "@zintl/extractor";
 import { existsSync, readFileSync } from "node:fs";
-import { join, isAbsolute, dirname } from "node:path";
+import { join, isAbsolute, dirname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   observe,
@@ -245,6 +245,9 @@ export class ZintlCompiler {
 
   public async setup() {
     await this.messages.loadMetadata();
+    if (this.messages.registeredAssets && this.messages.registeredAssets.length > 0) {
+      this.assets.setRegisteredAssets(this.messages.registeredAssets);
+    }
     await this.catalog.harvestHive(
       this.messages.internalManifest,
       this.locales,
@@ -1301,9 +1304,16 @@ export class ZintlCompiler {
 
       // Clean up old output directory if it changed
       const lastOut = this.messages.lastOutputDir;
-      const normalize = (p?: string) => p?.replace(/\/+$/, "") || "";
-      if (this.prune && lastOut && normalize(lastOut) !== normalize(this.outputDir)) {
-        const old = isAbsolute(lastOut) ? lastOut : join(this.root, lastOut);
+      const resolvePath = (p?: string) => {
+        if (!p) return "";
+        return isAbsolute(p) ? normalize(p) : join(this.root, p);
+      };
+      const normalizePath = (p?: string) => {
+        if (!p) return "";
+        return resolvePath(p).replace(/\\/g, "/").replace(/\/+$/, "");
+      };
+      if (this.prune && lastOut && normalizePath(lastOut) !== normalizePath(this.outputDir)) {
+        const old = resolvePath(lastOut);
         if (await this.io.exists(old)) {
           await this.io.rm(old);
           this.logger.debug(`Cleaned up old output directory: ${lastOut}`);
@@ -1345,7 +1355,7 @@ export class ZintlCompiler {
         );
       }
 
-      await this.messages.saveManifest(this.outputDir);
+      await this.messages.saveManifest(this.outputDir, this.assets.getRegisteredAssetsRaw());
 
       const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
@@ -1512,6 +1522,7 @@ export class ZintlCompiler {
 
       if (!this.isDev) {
         for (const bId of fileBoundaries) {
+          if (bId === "b_assets" || (bId as string).startsWith("b_assets:")) continue;
           if (!bg.nodes.has(bId as string)) continue;
           for (const locale of this.locales) {
             if (locale === this.sourceLocale) continue;
