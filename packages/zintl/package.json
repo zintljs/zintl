@@ -43,6 +43,10 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "vp pack src/index.ts src/macro.ts --dts",
     "dev": "vp pack src/index.ts src/macro.ts --dts --watch",

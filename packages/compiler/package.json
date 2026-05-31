@@ -12,6 +12,10 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "vp pack src/index.ts --dts && vp pack src/runtime/store.ts --out-dir dist/runtime --dts && vp pack src/runtime/resolver.ts --out-dir dist/runtime --dts && vp pack src/runtime/registry.ts --out-dir dist/runtime --dts && vp pack src/runtime/internal.ts --out-dir dist/runtime --dts",
     "dev": "vp pack src/index.ts --dts --watch",
