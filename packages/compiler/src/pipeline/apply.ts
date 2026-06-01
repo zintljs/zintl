@@ -129,7 +129,7 @@ export const apply: ApplyFn = (
         }
       }
     } catch (err: any) {
-      console.error(
+      logger.error(
         `MagicString import strategy failed: strategy=${imp.strategy}, start=${imp.location?.start}, end=${imp.location?.end}, sourceLength=${source.length}`,
       );
       throw err;
@@ -142,7 +142,7 @@ export const apply: ApplyFn = (
       try {
         ms.appendLeft(rewrite.start, rewrite.replacement);
       } catch (err: any) {
-        console.error(
+        logger.error(
           `MagicString.appendLeft failed: start=${rewrite.start}, sourceLength=${source.length}, replacement=${rewrite.replacement}`,
         );
         throw err;
@@ -151,10 +151,10 @@ export const apply: ApplyFn = (
       try {
         ms.overwrite(rewrite.start, rewrite.end, rewrite.replacement);
       } catch (err: any) {
-        console.error(
+        logger.error(
           `MagicString.overwrite failed: start=${rewrite.start}, end=${rewrite.end}, sourceLength=${source.length}, replacement=${rewrite.replacement}`,
         );
-        console.error(`Full Plan Rewrites:`, JSON.stringify(plan.rewrites, null, 2));
+        logger.error(`Full Plan Rewrites:`, JSON.stringify(plan.rewrites, null, 2));
         throw err;
       }
     }
