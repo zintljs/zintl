@@ -95,12 +95,12 @@ title: أهلاً بك
 
     await writeFile(mdArPath, translatedArContent);
 
-    // Now update original markdown file: change title, add author, and change body
+    // Now update original markdown file: change title, add author, but keep body
     const mdUpdatedContent = `---
 title: Welcome
 author: Khalid
 ---
-# Welcome page updated`;
+# Welcome page`;
 
     await writeFile(mdPath, mdUpdatedContent);
 
@@ -253,5 +253,240 @@ author: Khalid
     expect(existsSync(arPath)).toBe(true);
     const content = await readFile(arPath, "utf-8");
     expect(content).toBe("[ar] HELLO CUSTOM STRATEGY");
+  });
+
+  it("should flag localized assets as outdated when source asset content changes", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const mdPath = join(root, "src/docs/notice.md");
+    await writeFile(mdPath, `---\ntitle: Notice\n---\nBody content`);
+
+    // 1. Initial discover & flush to create clean target clone
+    await compiler.discover();
+    await compiler.flush();
+
+    const mdArPath = compiler.assets.getAssetPath("src/docs/notice.md", "ar");
+    expect(existsSync(mdArPath)).toBe(true);
+
+    // Verify initial translated file matches source
+    let targetContent = await readFile(mdArPath, "utf-8");
+    expect(targetContent).toContain("Body content");
+    expect(targetContent).not.toContain("[ZINTL WARNING]");
+
+    // 2. Simulate translator providing a translation
+    await writeFile(mdArPath, `---\ntitle: إشعار\n---\nمحتوى الجسم`);
+
+    // Run setup / discover again to harvest the translated content into the Hive
+    await compiler.setup();
+    await compiler.discover();
+    await compiler.flush();
+
+    // 3. Modify source asset content (triggering sourceChanged with major rewrite)
+    await writeFile(
+      mdPath,
+      `---\ntitle: Notice\n---\nCompletely rewritten content that is not similar to the original body content.`,
+    );
+
+    // Invalidate file to trigger sync
+    await compiler.invalidateFile(mdPath);
+    await compiler.flush();
+
+    // 4. Verify target file is rewritten with warning comment and new content
+    const updatedContent = await readFile(mdArPath, "utf-8");
+    expect(updatedContent).toContain("title: Notice");
+    expect(updatedContent).toContain(
+      "<!-- [ZINTL WARNING] Source content has changed. Please re-translate. -->",
+    );
+    expect(updatedContent).toContain(
+      "Completely rewritten content that is not similar to the original body content.",
+    );
+  });
+
+  it("should support text asset move recovery from the Hive", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const mdPath = join(root, "src/docs/welcome.md");
+    await writeFile(mdPath, `---\ntitle: Welcome\n---\nThis is the welcome page.`);
+
+    // 1. Discover & sync to create the target file
+    await compiler.discover();
+    await compiler.flush();
+
+    const mdArPath = compiler.assets.getAssetPath("src/docs/welcome.md", "ar");
+    expect(existsSync(mdArPath)).toBe(true);
+
+    // 2. Translate it
+    await writeFile(mdArPath, `---\ntitle: أهلاً بك\n---\nهذه هي صفحة الترحيب.`);
+
+    // 3. Sync to harvest the translation into the Hive
+    await compiler.setup();
+    await compiler.discover();
+    await compiler.flush();
+
+    // 4. Move source file and delete original paths
+    const newMdPath = join(root, "src/docs/greeting.md");
+    await writeFile(newMdPath, `---\ntitle: Welcome\n---\nThis is the welcome page.`);
+    await rm(mdPath);
+    await rm(mdArPath);
+
+    // 5. Sync again (the compiler will prune the old target welcome.ar.md, and restore greeting.ar.md from the Hive)
+    await compiler.discover();
+    await compiler.flush();
+
+    // 6. Verify the old target is gone, and the new target is restored with translation
+    expect(existsSync(mdArPath)).toBe(false);
+    const newMdArPath = compiler.assets.getAssetPath("src/docs/greeting.md", "ar");
+    expect(existsSync(newMdArPath)).toBe(true);
+    const content = await readFile(newMdArPath, "utf-8");
+    expect(content).toContain("title: أهلاً بك");
+    expect(content).toContain("هذه هي صفحة الترحيب.");
+  });
+
+  it("should support binary asset move recovery from the Hive", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const pngPath = join(root, "src/docs/logo.png");
+    await writeFile(pngPath, Buffer.from("BINARY_LOGO_CONTENT_SOURCE"));
+
+    // 1. Discover & sync to create target
+    await compiler.discover();
+    await compiler.flush();
+
+    const pngArPath = compiler.assets.getAssetPath("src/docs/logo.png", "ar");
+    expect(existsSync(pngArPath)).toBe(true);
+
+    // 2. Translate it by writing a different buffer
+    await writeFile(pngArPath, Buffer.from("BINARY_LOGO_CONTENT_ARABIC"));
+
+    // 3. Sync to harvest the binary translation
+    await compiler.setup();
+    await compiler.discover();
+    await compiler.flush();
+
+    // 4. Move source and delete old paths
+    const newPngPath = join(root, "src/docs/brand-logo.png");
+    await writeFile(newPngPath, Buffer.from("BINARY_LOGO_CONTENT_SOURCE"));
+    await rm(pngPath);
+    await rm(pngArPath);
+
+    // 5. Sync again
+    await compiler.discover();
+    await compiler.flush();
+
+    // 6. Verify restoration
+    expect(existsSync(pngArPath)).toBe(false);
+    const newPngArPath = compiler.assets.getAssetPath("src/docs/brand-logo.png", "ar");
+    expect(existsSync(newPngArPath)).toBe(true);
+    const content = await readFile(newPngArPath);
+    expect(content.toString("utf-8")).toBe("BINARY_LOGO_CONTENT_ARABIC");
+  });
+
+  it("should support fuzzy matching and waterfall review flagging on same-path modification", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const mdPath = join(root, "src/docs/waterfall.md");
+    await writeFile(
+      mdPath,
+      `---\ntitle: Waterfall Page\n---\nThis is the body content of the waterfall page.`,
+    );
+
+    // 1. Discover & sync
+    await compiler.discover();
+    await compiler.flush();
+
+    const mdArPath = compiler.assets.getAssetPath("src/docs/waterfall.md", "ar");
+    expect(existsSync(mdArPath)).toBe(true);
+
+    // 2. Translate
+    await writeFile(mdArPath, `---\ntitle: صفحة الشلال\n---\nهذا هو محتوى جسم صفحة الشلال.`);
+
+    // 3. Harvest
+    await compiler.setup();
+    await compiler.discover();
+    await compiler.flush();
+
+    // 4. Minor modification (Fuzzy match)
+    await writeFile(
+      mdPath,
+      `---\ntitle: Waterfall Page\n---\nThis is the body content of the waterfall page!`,
+    );
+
+    await compiler.invalidateFile(mdPath);
+    await compiler.flush();
+
+    // Verify translation is preserved but with warning header
+    let content = await readFile(mdArPath, "utf-8");
+    expect(content).toContain("title: صفحة الشلال"); // Frontmatter translated value merged & preserved
+    expect(content).toContain(
+      "<!-- [ZINTL WARNING] Source content has changed slightly. Please review translation. -->",
+    );
+    expect(content).toContain("هذا هو محتوى جسم صفحة الشلال.");
+
+    // 5. Major modification (No match)
+    await writeFile(
+      mdPath,
+      `---\ntitle: Waterfall Page\n---\nCompletely different rewrite of this document body content.`,
+    );
+
+    await compiler.invalidateFile(mdPath);
+    await compiler.flush();
+
+    // Verify target is overwritten with source content and standard warning comment
+    content = await readFile(mdArPath, "utf-8");
+    expect(content).toContain("title: Waterfall Page");
+    expect(content).toContain(
+      "<!-- [ZINTL WARNING] Source content has changed. Please re-translate. -->",
+    );
+    expect(content).toContain("Completely different rewrite of this document body content.");
+  });
+
+  it("should support fuzzy matching and recovery on path moves", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const mdPath = join(root, "src/docs/fuzzy_move.md");
+    await writeFile(
+      mdPath,
+      `---\ntitle: Move Page\n---\nThis is a page that will be moved and modified slightly.`,
+    );
+
+    // 1. Discover & sync
+    await compiler.discover();
+    await compiler.flush();
+
+    const mdArPath = compiler.assets.getAssetPath("src/docs/fuzzy_move.md", "ar");
+    expect(existsSync(mdArPath)).toBe(true);
+
+    // 2. Translate
+    await writeFile(mdArPath, `---\ntitle: صفحة النقل\n---\nهذه صفحة سيتم نقلها وتعديلها قليلاً.`);
+
+    // 3. Harvest
+    await compiler.setup();
+    await compiler.discover();
+    await compiler.flush();
+
+    // 4. Move and slightly modify source
+    const newMdPath = join(root, "src/docs/fuzzy_moved.md");
+    await writeFile(
+      newMdPath,
+      `---\ntitle: Move Page\n---\nThis is a page that will be moved and modified slightly!`,
+    );
+    await rm(mdPath);
+    await rm(mdArPath);
+
+    // 5. Sync again
+    await compiler.discover();
+    await compiler.flush();
+
+    // 6. Verify restoration with warning
+    expect(existsSync(mdArPath)).toBe(false);
+    const newMdArPath = compiler.assets.getAssetPath("src/docs/fuzzy_moved.md", "ar");
+    expect(existsSync(newMdArPath)).toBe(true);
+
+    const content = await readFile(newMdArPath, "utf-8");
+    expect(content).toContain("title: صفحة النقل"); // Preserved translated title
+    expect(content).toContain(
+      "<!-- [ZINTL WARNING] Source content has changed slightly. Please review translation. -->",
+    );
+    expect(content).toContain("هذه صفحة سيتم نقلها وتعديلها قليلاً.");
   });
 });

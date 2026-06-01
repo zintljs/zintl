@@ -7,7 +7,7 @@ export { generateMessageId };
 /**
  * Standard SHA1 used for all Zintl hashing.
  */
-export function sha1(content: string) {
+export function sha1(content: string | Buffer) {
   return createHash("sha1").update(content).digest("hex");
 }
 

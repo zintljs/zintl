@@ -196,6 +196,8 @@ export class ZintlCompiler {
       this.catalog,
       options,
       () => this.messages.dependencyGraph,
+      () => this.messages.hive,
+      () => this.messages.markHiveDirty(),
     );
   }
 
@@ -515,7 +517,17 @@ export class ZintlCompiler {
         for (const loc of this.locales) {
           const locAssets = await this.assets.getAssetTranslations(loc);
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
-          Object.assign(this.messages.hive[loc], locAssets);
+
+          let changed = false;
+          for (const [k, v] of Object.entries(locAssets)) {
+            if (this.messages.hive[loc][k] !== v) {
+              this.messages.hive[loc][k] = v;
+              changed = true;
+            }
+          }
+          if (changed) {
+            this.messages.markHiveDirty();
+          }
         }
       }
 

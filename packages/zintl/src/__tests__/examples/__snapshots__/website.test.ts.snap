@@ -72,7 +72,7 @@ import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 
 import { setupCounter } from "./counter";
-import aboutTxt from "./about.txt?raw";
+import aboutTxt from "./assets/about.txt?raw";
 
 // export function setupCounter(element: HTMLButtonElement) {
 //   let counter = 0;
@@ -158,7 +158,7 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_render 1`] = `
-"import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/about.ar.txt?zintl-raw";
+"import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/assets/about.ar.txt?zintl-raw";
 export default {
     "b_src_main_render": {
       "Zintl I18n": "تدويل زينتل",
@@ -177,14 +177,14 @@ export default {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/assets/about.txt": _zintl_asset_0,
   },
   };
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/es/entry:b_src_main_render 1`] = `
-"import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/about.es.txt?zintl-raw";
+"import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/assets/about.es.txt?zintl-raw";
 export default {
     "b_src_main_render": {
       "Zintl I18n": "¡Zintl I18n",
@@ -203,14 +203,14 @@ export default {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/assets/about.txt": _zintl_asset_0,
   },
   };
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_render 1`] = `
-"import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/website/src/about.txt?zintl-raw";
+"import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/website/src/assets/about.txt?zintl-raw";
 export default { id: "b_src_main_render", loader: (locale) => {
       switch(locale) { 
         case "en":
@@ -232,7 +232,7 @@ export default { id: "b_src_main_render", loader: (locale) => {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/assets/about.txt": _zintl_asset_0,
   },
   };
                 case "ar":

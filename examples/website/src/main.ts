@@ -4,7 +4,7 @@ import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintl/macro";
 import { setupCounter } from "./counter";
-import aboutTxt from "./about.txt?raw";
+import aboutTxt from "./assets/about.txt?raw";
 
 // export function setupCounter(element: HTMLButtonElement) {
 //   let counter = 0;
