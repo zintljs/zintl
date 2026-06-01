@@ -1137,7 +1137,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[8] || (_cache[8] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var AboutWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-spa/src/components/AboutWorld.vue"]]);
+var AboutWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/AboutWorld.vue"]]);
 //#endregion
 export { AboutWorld_default as default };
 "
@@ -8136,7 +8136,7 @@ function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
 		}, [createBaseVNode("use", { href: _hoisted_1$1 })])], -1))
 	]), _cache[2] || (_cache[2] = createBaseVNode("div", { class: "ticks" }, null, -1))], 64);
 }
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-spa/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 //#region examples/vue-spa/src/App.vue?vue&type=script&setup=true&lang.ts
 var App_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -8185,7 +8185,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_: 1
 	}))]);
 }
-var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-spa/src/App.vue"]]);
+var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/App.vue"]]);
 //#endregion
 //#region examples/vue-spa/src/assets/vite.svg
 var vite_default = "/assets/vite-BF8QNONU.svg";
@@ -8425,7 +8425,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 var routes = [{
 	path: "/",
 	name: "Home",
-	component: /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-spa/src/components/HelloWorld.vue"]])
+	component: /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/HelloWorld.vue"]])
 }, {
 	path: "/about",
 	name: "About",

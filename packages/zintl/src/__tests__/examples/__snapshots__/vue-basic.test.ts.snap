@@ -5462,7 +5462,7 @@ function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[9] || (_cache[9] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-basic/src/components/HelloWorld.vue"]]);
+var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "<MONOREPO_ROOT>/examples/vue-basic/src/components/HelloWorld.vue"]]);
 //#endregion
 //#region examples/vue-basic/src/components/LocaleSwitcher.vue?vue&type=script&setup=true&lang.ts
 var LocaleSwitcher_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5543,7 +5543,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		}, [createBaseVNode("use", { href: _hoisted_1 })])], -1))
 	]), _cache[2] || (_cache[2] = createBaseVNode("div", { class: "ticks" }, null, -1))], 64);
 }
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-basic/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-basic/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 //#region examples/vue-basic/src/App.vue?vue&type=script&setup=true&lang.ts
 var App_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5575,7 +5575,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		lang: $setup.activeLang
 	}, null, 8, ["lang"]), createVNode($setup["HelloWorld"])]);
 }
-var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-basic/src/App.vue"]]);
+var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-basic/src/App.vue"]]);
 //#endregion
 //#region examples/vue-basic/src/main.ts
 async function bootstrap() {

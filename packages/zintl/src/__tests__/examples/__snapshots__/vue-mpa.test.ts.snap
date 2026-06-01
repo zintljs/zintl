@@ -5672,7 +5672,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		}, [createBaseVNode("use", { href: _hoisted_1 })])], -1))
 	]), _cache[2] || (_cache[2] = createBaseVNode("div", { class: "ticks" }, null, -1))], 64);
 }
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-mpa/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-mpa/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 export { entry_b_9e373ef8c775_default as _, hero_default as a, loadI18nInstance as b, Fragment as c, createTextVNode as d, createVNode as f, toDisplayString as g, ref as h, vue_default as i, createBaseVNode as l, openBlock as m, _plugin_vue_export_helper_default as n, vite_default as o, defineComponent as p, icons_default as r, createApp as s, LocaleSwitcher_default as t, createElementBlock as u, __vitePreload as v, _t as y };
 "
@@ -5892,7 +5892,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[8] || (_cache[8] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var AboutWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-mpa/src/components/AboutWorld.vue"]]);
+var AboutWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-mpa/src/components/AboutWorld.vue"]]);
 //#endregion
 //#region examples/vue-mpa/src/AboutApp.vue?vue&type=script&setup=true&lang.ts
 var AboutApp_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5924,7 +5924,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		lang: $setup.activeLang
 	}, null, 8, ["lang"]), createVNode($setup["AboutWorld"], { lang: $setup.activeLang }, null, 8, ["lang"])]);
 }
-var AboutApp_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutApp_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-mpa/src/AboutApp.vue"]]);
+var AboutApp_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutApp_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-mpa/src/AboutApp.vue"]]);
 //#endregion
 //#region examples/vue-mpa/src/about.ts
 async function bootstrap() {
@@ -6353,7 +6353,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[9] || (_cache[9] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-mpa/src/components/HelloWorld.vue"]]);
+var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-mpa/src/components/HelloWorld.vue"]]);
 //#endregion
 //#region examples/vue-mpa/src/App.vue?vue&type=script&setup=true&lang.ts
 var App_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -6385,7 +6385,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		lang: $setup.activeLang
 	}, null, 8, ["lang"]), createVNode($setup["HelloWorld"], { lang: $setup.activeLang }, null, 8, ["lang"])]);
 }
-var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-mpa/src/App.vue"]]);
+var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-mpa/src/App.vue"]]);
 //#endregion
 //#region examples/vue-mpa/src/main.ts
 async function bootstrap() {

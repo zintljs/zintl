@@ -244,6 +244,34 @@ export async function createExampleContext(
     return files;
   };
 
+  const sanitizeCode = (code: string): string => {
+    const escapedOverlay = overlayRoot.replace(/\\/g, "/");
+    const escapedTempOutput = tempOutputDir.replace(/\\/g, "/");
+    const escapedMonorepoRoot = MONOREPO_ROOT.replace(/\\/g, "/");
+
+    let sanitized = code;
+    sanitized = sanitized
+      .split(overlayRoot)
+      .join("<OVERLAY_ROOT>")
+      .split(escapedOverlay)
+      .join("<OVERLAY_ROOT>")
+      .split(tempOutputDir)
+      .join("<TEMP_OUTPUT_DIR>")
+      .split(escapedTempOutput)
+      .join("<TEMP_OUTPUT_DIR>")
+      .split(MONOREPO_ROOT)
+      .join("<MONOREPO_ROOT>")
+      .split(escapedMonorepoRoot)
+      .join("<MONOREPO_ROOT>");
+
+    sanitized = sanitized.replace(
+      /\.tmp\/example-[a-zA-Z0-9-]+-[a-zA-Z0-9]+/g,
+      ".tmp/example-placeholder",
+    );
+
+    return sanitized;
+  };
+
   const filterForSnapshots = (results: Record<string, string>) => {
     const filtered: Record<string, string> = {};
     for (const [path, code] of Object.entries(results)) {
@@ -251,25 +279,7 @@ export async function createExampleContext(
         (path.startsWith("src/") || path.endsWith(".html") || path.startsWith("virtual:zintl/")) &&
         !path.match(/\.(css|png|jpg|ico|svg|json)$/)
       ) {
-        const escapedOverlay = overlayRoot.replace(/\\/g, "/");
-        const escapedTempOutput = tempOutputDir.replace(/\\/g, "/");
-        let sanitizedCode = code;
-
-        sanitizedCode = sanitizedCode
-          .split(overlayRoot)
-          .join("<OVERLAY_ROOT>")
-          .split(escapedOverlay)
-          .join("<OVERLAY_ROOT>")
-          .split(tempOutputDir)
-          .join("<TEMP_OUTPUT_DIR>")
-          .split(escapedTempOutput)
-          .join("<TEMP_OUTPUT_DIR>");
-
-        sanitizedCode = sanitizedCode.replace(
-          /\.tmp\/example-[a-zA-Z0-9-]+-[a-zA-Z0-9]+/g,
-          ".tmp/example-placeholder",
-        );
-        filtered[path] = sanitizedCode;
+        filtered[path] = sanitizeCode(code);
       }
     }
     return filtered;
@@ -279,7 +289,7 @@ export async function createExampleContext(
     const filtered: Record<string, string> = {};
     for (const [path, code] of Object.entries(results)) {
       if (path.match(/\.(js|json|html)$/) && !path.endsWith(".css")) {
-        filtered[path] = code;
+        filtered[path] = sanitizeCode(code);
       }
     }
     return filtered;

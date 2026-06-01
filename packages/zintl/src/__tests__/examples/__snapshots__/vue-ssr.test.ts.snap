@@ -5257,7 +5257,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		}, [createBaseVNode("use", { href: _hoisted_1 })])], -1))
 	]), _cache[2] || (_cache[2] = createBaseVNode("div", { class: "ticks" }, null, -1))], 64);
 }
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 export { hero_default as a, Fragment as c, createTextVNode as d, createVNode as f, toDisplayString as g, ref as h, vue_default as i, createBaseVNode as l, openBlock as m, _plugin_vue_export_helper_default as n, vite_default as o, defineComponent as p, icons_default as r, createSSRApp as s, LocaleSwitcher_default as t, createElementBlock as u };
 "
@@ -5412,7 +5412,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[10] || (_cache[10] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_zintl_ar_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_ar_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/HelloWorld.zintl-ar.vue"]]);
+var HelloWorld_zintl_ar_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_ar_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.zintl-ar.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/App.zintl-ar.vue?vue&type=script&setup=true&lang.ts
 var App_zintl_ar_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5435,7 +5435,7 @@ var App_zintl_ar_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ d
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 	return openBlock(), createElementBlock(Fragment, null, [createVNode($setup["LocaleSwitcher"]), createVNode($setup["HelloWorld"])], 64);
 }
-var App_zintl_ar_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_ar_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/App.zintl-ar.vue"]]);
+var App_zintl_ar_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_ar_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.zintl-ar.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/main.ts?zintl-multiplex=ar
 function createApp() {
@@ -5598,7 +5598,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[10] || (_cache[10] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_zintl_en_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_en_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/HelloWorld.zintl-en.vue"]]);
+var HelloWorld_zintl_en_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_en_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.zintl-en.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/App.zintl-en.vue?vue&type=script&setup=true&lang.ts
 var App_zintl_en_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5621,7 +5621,7 @@ var App_zintl_en_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ d
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 	return openBlock(), createElementBlock(Fragment, null, [createVNode($setup["LocaleSwitcher"]), createVNode($setup["HelloWorld"])], 64);
 }
-var App_zintl_en_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_en_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/App.zintl-en.vue"]]);
+var App_zintl_en_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_en_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.zintl-en.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/main.ts?zintl-multiplex=en
 function createApp() {
@@ -5784,7 +5784,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[10] || (_cache[10] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_zintl_es_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/HelloWorld.zintl-es.vue"]]);
+var HelloWorld_zintl_es_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.zintl-es.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/App.zintl-es.vue?vue&type=script&setup=true&lang.ts
 var App_zintl_es_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5807,7 +5807,7 @@ var App_zintl_es_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ d
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 	return openBlock(), createElementBlock(Fragment, null, [createVNode($setup["LocaleSwitcher"]), createVNode($setup["HelloWorld"])], 64);
 }
-var App_zintl_es_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/App.zintl-es.vue"]]);
+var App_zintl_es_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.zintl-es.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/main.ts?zintl-multiplex=es
 function createApp() {
@@ -5970,7 +5970,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[10] || (_cache[10] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var HelloWorld_zintl_zh_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_zh_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/HelloWorld.zintl-zh.vue"]]);
+var HelloWorld_zintl_zh_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_zintl_zh_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.zintl-zh.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/App.zintl-zh.vue?vue&type=script&setup=true&lang.ts
 var App_zintl_zh_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -5993,7 +5993,7 @@ var App_zintl_zh_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ d
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 	return openBlock(), createElementBlock(Fragment, null, [createVNode($setup["LocaleSwitcher"]), createVNode($setup["HelloWorld"])], 64);
 }
-var App_zintl_zh_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_zh_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/App.zintl-zh.vue"]]);
+var App_zintl_zh_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_zintl_zh_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.zintl-zh.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/main.ts?zintl-multiplex=zh
 function createApp() {
@@ -6550,7 +6550,7 @@ HelloWorld_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/components/HelloWorld.vue");
 	return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
 };
-var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$2], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/HelloWorld.vue"]]);
+var HelloWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$2], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.vue"]]);
 //#endregion
 //#region packages/zintl/dist/macro.mjs
 function getLocale() {
@@ -6619,7 +6619,7 @@ LocaleSwitcher_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) 
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/components/LocaleSwitcher.vue");
 	return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
 };
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$1], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/App.vue?vue&type=script&setup=true&lang.ts
 var App_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
@@ -6651,7 +6651,7 @@ App_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/App.vue");
 	return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
 };
-var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender], ["__file", "/Users/khalid/Lingua/lingua/examples/vue-ssr/src/App.vue"]]);
+var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.vue"]]);
 //#endregion
 //#region examples/vue-ssr/src/main.ts
 function createApp() {

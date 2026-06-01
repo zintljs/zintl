@@ -7,7 +7,7 @@ import { createExampleContext } from "../helpers/examples-harness.ts";
  * This test verifies the Zintl integration in a Single Page Application context
  * with multiple independent boundaries (Header, Home, About).
  */
-describe.skip("Example Proof: website", () => {
+describe("Example Proof: website", () => {
   it("should match Development snapshots (Identity keys)", async () => {
     const ctx = await createExampleContext("website", { mode: "development" });
 
