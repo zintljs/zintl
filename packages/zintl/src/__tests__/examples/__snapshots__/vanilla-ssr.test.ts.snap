@@ -80,7 +80,7 @@ export async function render(_url: string) {
       </div>
       <div>
         <h1>\${_t("Get started", { _mgr: _zintl_mgr_b_src_entry_server_render, _bId: "b_src_entry_server_render" })}</h1>
-        <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_entry_server_render, _bId: "b_src_entry_server_render", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+        <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_entry_server_render, _bId: "b_src_entry_server_render", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }] })}</p>
       </div>
       <button id="counter" type="button" class="counter"></button>
     </section>
@@ -534,6 +534,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1100,6 +1102,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1266,9 +1270,9 @@ async function _zintl_raw_render(_url) {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46",
 		_tags: [{
-			"alias": "code",
-			"originalOpen": "<code>",
-			"tagName": "code"
+			alias: "code",
+			originalOpen: \`<code>\`,
+			tagName: "code"
 		}]
 	})}</p>
       </div>

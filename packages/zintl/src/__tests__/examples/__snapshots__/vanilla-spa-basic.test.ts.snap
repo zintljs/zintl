@@ -100,7 +100,7 @@ async function render() {
   </div>
   <div>
     <h1>\${_t("Get started", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</h1>
-    <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+    <p>\${_t("Edit <code>src/main.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }] })}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -506,6 +506,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -812,6 +814,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1052,9 +1056,9 @@ async function render() {
 		_mgr: entry_b_ae1e7cbb2f74_default,
 		_bId: "b_ae1e7cbb2f74",
 		_tags: [{
-			"alias": "code",
-			"originalOpen": "<code>",
-			"tagName": "code"
+			alias: "code",
+			originalOpen: \`<code>\`,
+			tagName: "code"
 		}]
 	})}</p>
   </div>
@@ -1291,7 +1295,7 @@ async function render() {
   </div>
   <div>
     <h1>\${_t("90e40d50", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })}</h1>
-    <p>\${_t("e2aae512", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+    <p>\${_t("e2aae512", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }] })}</p>
   </div>
   <button id="counter" type="button" class="counter"></button>
 </section>
@@ -1680,6 +1684,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}

@@ -48,6 +48,7 @@ export interface ObservedSink {
   fragmentLocation?: SourceLocation;
   hostNodeLocation?: SourceLocation;
   requiresQuoteConversion?: boolean;
+  requiresJsxBraces?: boolean;
   tagMap?: TagMapEntry[];
 }
 

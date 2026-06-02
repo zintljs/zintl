@@ -334,24 +334,49 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
 
         for (const stmt of (node as any).body) {
           if (stmt.type === "ExportNamedDeclaration") {
-            if (stmt.declaration?.type === "FunctionDeclaration" && stmt.declaration.id)
-              ctx.exportedBoundaries.set(
-                stmt.declaration.id.name,
-                ctx.scopeBoundaries.get(stmt.declaration.start) || ctx.fileBoundaryId,
-              );
-            else if (stmt.declaration?.type === "VariableDeclaration") {
-              for (const decl of stmt.declaration.declarations)
-                if (decl.id.type === "Identifier")
-                  ctx.exportedBoundaries.set(
-                    decl.id.name,
-                    (decl.init && ctx.scopeBoundaries.get(decl.init.start)) || ctx.fileBoundaryId,
-                  );
+            if (stmt.declaration) {
+              if (stmt.declaration.type === "FunctionDeclaration" && stmt.declaration.id) {
+                const name = stmt.declaration.id.name;
+                const bId =
+                  ctx.scopeBoundaries.get(stmt.declaration.start) ||
+                  ctx.localBoundaries.get(name) ||
+                  ctx.fileBoundaryId;
+                ctx.exportedBoundaries.set(name, bId);
+              } else if (stmt.declaration.type === "VariableDeclaration") {
+                for (const decl of stmt.declaration.declarations) {
+                  if (decl.id.type === "Identifier") {
+                    const name = decl.id.name;
+                    const bId =
+                      (decl.init && ctx.scopeBoundaries.get(decl.init.start)) ||
+                      ctx.localBoundaries.get(name) ||
+                      ctx.fileBoundaryId;
+                    ctx.exportedBoundaries.set(name, bId);
+                  }
+                }
+              }
+            } else if (stmt.specifiers) {
+              for (const spec of stmt.specifiers) {
+                const localName = spec.local.name;
+                const exportedName = spec.exported.name;
+                const bId = ctx.localBoundaries.get(localName) || ctx.fileBoundaryId;
+                ctx.exportedBoundaries.set(exportedName, bId);
+              }
             }
-          } else if (stmt.type === "ExportDefaultDeclaration")
-            ctx.exportedBoundaries.set(
-              "default",
-              ctx.scopeBoundaries.get(stmt.declaration.start) || ctx.fileBoundaryId,
-            );
+          } else if (stmt.type === "ExportDefaultDeclaration") {
+            let bId = ctx.fileBoundaryId;
+            const decl = stmt.declaration;
+            if (decl.type === "Identifier") {
+              bId = ctx.localBoundaries.get(decl.name) || ctx.fileBoundaryId;
+            } else if (decl.type === "FunctionDeclaration" && decl.id) {
+              bId =
+                ctx.scopeBoundaries.get(decl.start) ||
+                ctx.localBoundaries.get(decl.id.name) ||
+                ctx.fileBoundaryId;
+            } else {
+              bId = ctx.scopeBoundaries.get(decl.start) || ctx.fileBoundaryId;
+            }
+            ctx.exportedBoundaries.set("default", bId);
+          }
         }
       },
     },

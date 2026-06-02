@@ -846,6 +846,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -922,7 +924,7 @@ export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/AboutWorld.js 1`] = `
 "import { _ as _t, a as icons_default, c as createElementBlock, d as defineComponent, f as openBlock, g as entry_b_aafcf9c6fe16_default, h as toDisplayString, i as _plugin_vue_export_helper_default, l as createTextVNode, m as withCtx, n as hero_default, o as Fragment, p as resolveComponent, r as vite_default, s as createBaseVNode, t as vue_default, u as createVNode } from "./index.js";
 //#region examples/vue-spa/src/components/AboutWorld.vue?vue&type=script&setup=true&lang.ts
-var AboutWorld_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+var AboutWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "AboutWorld",
 	props: { lang: {
 		type: String,
@@ -1137,7 +1139,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 		_cache[8] || (_cache[8] = createBaseVNode("section", { id: "spacer" }, null, -1))
 	], 64);
 }
-var AboutWorld_default = /* @__PURE__ */ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/AboutWorld.vue"]]);
+var AboutWorld_default = /*#__PURE__*/ _plugin_vue_export_helper_default(AboutWorld_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/AboutWorld.vue"]]);
 //#endregion
 export { AboutWorld_default as default };
 "
@@ -1448,6 +1450,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1622,7 +1626,7 @@ var entry_b_aafcf9c6fe16_default = {
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function makeMap(str) {
 	const map = /* @__PURE__ */ Object.create(null);
 	for (const key of str.split(",")) map[key] = 1;
@@ -2761,16 +2765,16 @@ function targetTypeMap(rawType) {
 		default: return 0;
 	}
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function reactive(target) {
 	if (/* @__PURE__ */ isReadonly(target)) return target;
 	return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers, reactiveMap);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function shallowReactive(target) {
 	return createReactiveObject(target, false, shallowReactiveHandlers, shallowCollectionHandlers, shallowReactiveMap);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function readonly(target) {
 	return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers, readonlyMap);
 }
@@ -2786,24 +2790,24 @@ function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandl
 	proxyMap.set(target, proxy);
 	return proxy;
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function isReactive(value) {
 	if (/* @__PURE__ */ isReadonly(value)) return /* @__PURE__ */ isReactive(value["__v_raw"]);
 	return !!(value && value["__v_isReactive"]);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function isReadonly(value) {
 	return !!(value && value["__v_isReadonly"]);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function isShallow(value) {
 	return !!(value && value["__v_isShallow"]);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function isProxy(value) {
 	return value ? !!value["__v_raw"] : false;
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function toRaw(observed) {
 	const raw = observed && observed["__v_raw"];
 	return raw ? /* @__PURE__ */ toRaw(raw) : observed;
@@ -2814,15 +2818,15 @@ function markRaw(value) {
 }
 var toReactive = (value) => isObject(value) ? /* @__PURE__ */ reactive(value) : value;
 var toReadonly = (value) => isObject(value) ? /* @__PURE__ */ readonly(value) : value;
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function isRef(r) {
 	return r ? r["__v_isRef"] === true : false;
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function ref(value) {
 	return createRef(value, false);
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function shallowRef(value) {
 	return createRef(value, true);
 }
@@ -2930,7 +2934,7 @@ var ComputedRefImpl = class {
 		if (this.setter) this.setter(newValue);
 	}
 };
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function computed$1(getterOrOptions, debugOptions, isSSR = false) {
 	let getter;
 	let setter;
@@ -3390,9 +3394,9 @@ function setTransitionHooks(vnode, hooks) {
 		vnode.ssFallback.transition = hooks.clone(vnode.ssFallback);
 	} else vnode.transition = hooks;
 }
-/* @__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 function defineComponent(options, extraOptions) {
-	return isFunction(options) ? extend({ name: options.name }, extraOptions, { setup: options }) : options;
+	return isFunction(options) ? /* @__PURE__ */ (() => extend({ name: options.name }, extraOptions, { setup: options }))() : options;
 }
 function markAsyncBoundary(instance) {
 	instance.ids = [
@@ -6165,6 +6169,11 @@ function normalizeContainer(container) {
 }
 //#endregion
 //#region node_modules/.pnpm/vue-router@4.6.4_vue@3.5.35_typescript@6.0.3_/node_modules/vue-router/dist/devtools-EWN81iOl.mjs
+/*!
+* vue-router v4.6.4
+* (c) 2025 Eduardo San Martin Morote
+* @license MIT
+*/
 var isBrowser = typeof document !== "undefined";
 /**
 * Allows differentiating lazy components from functional components and vue-class-component
@@ -8048,7 +8057,7 @@ function useRoute(_name) {
 }
 //#endregion
 //#region examples/vue-spa/src/components/LocaleSwitcher.vue?vue&type=script&setup=true&lang.ts
-var LocaleSwitcher_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+var LocaleSwitcher_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "LocaleSwitcher",
 	props: { lang: {
 		type: String,
@@ -8136,10 +8145,10 @@ function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
 		}, [createBaseVNode("use", { href: _hoisted_1$1 })])], -1))
 	]), _cache[2] || (_cache[2] = createBaseVNode("div", { class: "ticks" }, null, -1))], 64);
 }
-var LocaleSwitcher_default = /* @__PURE__ */ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/LocaleSwitcher.vue"]]);
+var LocaleSwitcher_default = /*#__PURE__*/ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$2], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/components/LocaleSwitcher.vue"]]);
 //#endregion
 //#region examples/vue-spa/src/App.vue?vue&type=script&setup=true&lang.ts
-var App_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+var App_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "App",
 	setup(__props, { expose: __expose }) {
 		__expose();
@@ -8185,7 +8194,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
 		_: 1
 	}))]);
 }
-var App_default = /* @__PURE__ */ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/App.vue"]]);
+var App_default = /*#__PURE__*/ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-spa/src/App.vue"]]);
 //#endregion
 //#region examples/vue-spa/src/assets/vite.svg
 var vite_default = "/assets/vite-BF8QNONU.svg";
@@ -8197,7 +8206,7 @@ var hero_default = "/assets/hero-CLDdwZDr.png";
 var vue_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20aria-hidden='true'%20role='img'%20class='iconify%20iconify--logos'%20width='37.07'%20height='36'%20preserveAspectRatio='xMidYMid%20meet'%20viewBox='0%200%20256%20198'%3e%3cpath%20fill='%2341B883'%20d='M204.8%200H256L128%20220.8L0%200h97.92L128%2051.2L157.44%200h47.36Z'%3e%3c/path%3e%3cpath%20fill='%2341B883'%20d='m0%200l128%20220.8L256%200h-51.2L128%20132.48L50.56%200H0Z'%3e%3c/path%3e%3cpath%20fill='%2335495E'%20d='M50.56%200L128%20133.12L204.8%200h-47.36L128%2051.2L97.92%200H50.56Z'%3e%3c/path%3e%3c/svg%3e";
 //#endregion
 //#region examples/vue-spa/src/components/HelloWorld.vue?vue&type=script&setup=true&lang.ts
-var HelloWorld_vue_vue_type_script_setup_true_lang_default = /* @__PURE__ */ defineComponent({
+var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "HelloWorld",
 	props: { lang: {
 		type: String,
@@ -9351,6 +9360,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}

@@ -66,6 +66,17 @@ export function resolveOwner(
     if (parentOwner) return parentOwner;
   }
 
+  // Fallback for file-level boundaries: if it has exported boundaries, resolve using the first exported boundary's owner!
+  const meta = getMeta(normId, worldState.metadataGraph);
+  if (meta?.exportedBoundaries) {
+    for (const bId of Object.values(meta.exportedBoundaries)) {
+      const resolvedBId = bId as string;
+      const cleanBId = resolvedBId.includes(":") ? resolvedBId : `${normId}:${resolvedBId}`;
+      const bOwner = chunkGraph.boundaryToOwner.get(cleanBId);
+      if (bOwner) return bOwner;
+    }
+  }
+
   return normId;
 }
 
@@ -451,7 +462,22 @@ export function getReachableHandshake(
       const normDepId = depFileId.replace(/\.(?:ts|tsx|js|jsx)$/, "").replace(/^\/+/, "");
 
       if (!dep.dynamic) {
-        walk(normDepId);
+        const depMeta = getMeta(normDepId, worldState.metadataGraph);
+        if (dep.bindings?.length && depMeta?.exportedBoundaries) {
+          for (const binding of dep.bindings) {
+            const resolvedBId = depMeta.exportedBoundaries[binding];
+            if (resolvedBId) {
+              const fullBId = resolvedBId.includes(":")
+                ? resolvedBId
+                : `${normDepId}:${resolvedBId}`;
+              walk(fullBId);
+            } else {
+              walk(normDepId);
+            }
+          }
+        } else {
+          walk(normDepId);
+        }
       } else {
         // Dynamic import: check for function-level boundaries (Colonies or nested Kingdoms)
         const depMeta = getMeta(normDepId, worldState.metadataGraph);

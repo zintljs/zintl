@@ -106,15 +106,24 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
 
   const exprNodes: any[] = [];
   const tagMap: TagMapEntry[] = [];
-  const counts: Record<string, number> = {};
+  const distinctOpenTags: Record<string, string[]> = {};
 
-  // First pass: count tag occurrences
+  // First pass: count distinct tag occurrences
   function countTags(childNode: any) {
     if (ctx.handledNodes.has(childNode) || ctx.handledNodes.has(childNode.start)) return;
     if (childNode.type === "JSXElement") {
       const tagName = getJsxTagName(childNode);
       if (INLINE_PHRASING_TAGS.has(tagName)) {
-        counts[tagName] = (counts[tagName] || 0) + 1;
+        const openStart = childNode.openingElement.start;
+        const openEnd = childNode.openingElement.end;
+        const originalOpen = ctx.code.slice(openStart, openEnd);
+
+        if (!distinctOpenTags[tagName]) {
+          distinctOpenTags[tagName] = [];
+        }
+        if (!distinctOpenTags[tagName].includes(originalOpen)) {
+          distinctOpenTags[tagName].push(originalOpen);
+        }
       }
       (childNode.children || []).forEach(countTags);
     } else if (childNode.type === "JSXFragment") {
@@ -123,7 +132,6 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
   }
   children.forEach(countTags);
 
-  const currentIndices: Record<string, number> = {};
   const activeStacks: Record<string, number[]> = {};
 
   function serializeNode(childNode: any) {
@@ -161,23 +169,24 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
       ctx.handledNodes.add(childNode as any);
     } else if (childNode.type === "JSXElement") {
       const tagName = getJsxTagName(childNode);
-      const total = counts[tagName] || 0;
+      const list = distinctOpenTags[tagName] || [];
+      const totalConfigs = list.length;
 
       const isSelfClosing = childNode.openingElement.selfClosing;
       let alias = tagName;
-      if (total > 1) {
-        const idx = (currentIndices[tagName] || 0) + 1;
-        currentIndices[tagName] = idx;
+
+      const openStart = childNode.openingElement.start;
+      const openEnd = childNode.openingElement.end;
+      const originalOpen = ctx.code.slice(openStart, openEnd);
+
+      if (totalConfigs > 1) {
+        const idx = list.indexOf(originalOpen) + 1;
         if (!isSelfClosing) {
           if (!activeStacks[tagName]) activeStacks[tagName] = [];
           activeStacks[tagName].push(idx);
         }
         alias = `${tagName}${idx}`;
       }
-
-      const openStart = childNode.openingElement.start;
-      const openEnd = childNode.openingElement.end;
-      const originalOpen = ctx.code.slice(openStart, openEnd);
 
       tagMap.push({
         alias,
@@ -195,7 +204,7 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
       if (!isSelfClosing) {
         (childNode.children || []).forEach(serializeNode);
 
-        if (total > 1) {
+        if (totalConfigs > 1) {
           const stack = activeStacks[tagName] || [];
           const idx = stack.pop() || 1;
           text += `</${tagName}${idx}>`;
@@ -248,6 +257,7 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
     column: 0,
     boundaryId,
     isFragment: false,
+    requiresJsxBraces: true,
     note: comments.note,
     variables: pairs.map((pair, i) => ({
       name: pair.split(":")[0].trim(),
@@ -323,6 +333,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
         note: comments.note,
         passVars: Object.keys(comments.contextVars).length ? comments.contextVars : undefined,
         isFragment: false,
+        requiresJsxBraces: true,
       });
     },
     JSXAttribute: {
@@ -355,6 +366,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
           (node.value?.type === ("StringLiteral" as any) || node.value?.type === ("Literal" as any))
         ) {
           const text = (node.value as any).value;
+          if (!text || !text.trim()) return;
           ctx.addMessage(generateMessageId(text, attrName), text, attrName, boundaryId, {
             line: 0,
             column: 0,
@@ -369,6 +381,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
             boundaryId,
             variables: [],
             isFragment: false,
+            requiresJsxBraces: true,
           });
         }
       },
@@ -378,6 +391,28 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
     },
     JSXExpressionContainer(node: JSXExpressionContainer, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0 || ctx.handledNodes.has(node as any)) return;
+
+      const parentAttr =
+        parents[0] && parents[0].type === "JSXAttribute" ? (parents[0] as any) : null;
+      if (parentAttr) {
+        const attrName = parentAttr.name.type === "JSXIdentifier" ? parentAttr.name.name : "";
+        let isTranslatable = ctx.uiAttributes.has(attrName);
+        if (!isTranslatable) {
+          const parentElement = parents
+            .slice()
+            .reverse()
+            .find((p) => p.type === "JSXOpeningElement") as any;
+          if (parentElement && parentElement.name && parentElement.name.type === "JSXIdentifier") {
+            const elementName = parentElement.name.name;
+            const scopedAttrs = ctx.jsxElementAttributes?.get(elementName);
+            if (scopedAttrs && scopedAttrs.has(attrName)) {
+              isTranslatable = true;
+            }
+          }
+        }
+        if (!isTranslatable) return;
+      }
+
       const { id: boundaryId, active } = ctx.getActiveBoundary();
       if (!active) return;
       const expr = node.expression;
@@ -392,6 +427,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
         if (comments.ignore) return;
         ctx.findLiteralsInExpression(expr as Node, comments).forEach((source) => {
+          if (!source.text || !source.text.trim()) return;
           const id = generateMessageId(source.text, source.context, source.note);
           ctx.addMessage(
             id,

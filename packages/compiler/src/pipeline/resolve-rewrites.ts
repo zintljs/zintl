@@ -18,6 +18,39 @@ const PRIORITY = {
   quote_convert: 10,
 };
 
+const translatableAttrs = new Set([
+  "alt",
+  "title",
+  "placeholder",
+  "aria-label",
+  "aria-description",
+  "label",
+  "description",
+  "tooltip",
+]);
+
+function convertJsxToHtmlTemplate(tagOpen: string): string {
+  // Convert className to class
+  let html = tagOpen.replace(/\bclassName=/g, "class=");
+  // Convert attr={expression} to attr="${expression}"
+  html = html.replace(/([a-zA-Z0-9_-]+)=\{([^}]+)\}/g, (match, attrName, expr) => {
+    return `${attrName}="\${${expr.trim()}}"`;
+  });
+  return html;
+}
+
+function serializeTags(tags: any[], isReact: boolean): string {
+  if (!isReact) {
+    return JSON.stringify(tags);
+  }
+  const items = tags.map((entry: any) => {
+    const htmlTemplate = convertJsxToHtmlTemplate(entry.originalOpen);
+    const escapedHtml = htmlTemplate.replace(/`/g, "\\`").replace(/\bclassName=/g, "class=");
+    return `{ alias: ${JSON.stringify(entry.alias)}, originalOpen: \`${escapedHtml}\`, tagName: ${JSON.stringify(entry.tagName)} }`;
+  });
+  return `[${items.join(", ")}]`;
+}
+
 /**
  * Resolve rewrite intents into ordered operations.
  */
@@ -68,8 +101,15 @@ export function resolveRewrites(
           );
         }
 
+        const isReact = !!(
+          filePath &&
+          !filePath.endsWith(".vue") &&
+          !filePath.endsWith(".svelte") &&
+          !filePath.endsWith(".html")
+        );
+
         if (intent.sink.tagMap && intent.sink.tagMap.length) {
-          replacement = reconstructTags(replacement, intent.sink.tagMap);
+          replacement = reconstructTags(replacement, intent.sink.tagMap, isReact);
         }
 
         let finalReplacement = replacement;
@@ -97,10 +137,22 @@ export function resolveRewrites(
           }
         }
 
-        if (intent.sink.sinkType === "HTML_TEXT") {
+        const tMap = intent.sink.tagMap || [];
+        const hasTags = hasUsedTags(replacement, tMap) || hasUsedTags(intent.sink.text, tMap);
+        const isReactJsxText =
+          filePath &&
+          !filePath.endsWith(".vue") &&
+          !filePath.endsWith(".svelte") &&
+          !filePath.endsWith(".html") &&
+          intent.sink.requiresJsxBraces &&
+          hasTags &&
+          !translatableAttrs.has(intent.sink.sinkType);
+
+        if (isReactJsxText) {
+          finalReplacement = `<span dangerouslySetInnerHTML={{ __html: ${finalReplacement} }} />`;
+          finalReplacement = `{${finalReplacement}}`;
+        } else if (intent.sink.sinkType === "HTML_TEXT") {
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
-          const tMap = intent.sink.tagMap || [];
-          const hasTags = hasUsedTags(replacement, tMap) || hasUsedTags(intent.sink.text, tMap);
           if (hasVars) {
             if (filePath && filePath.endsWith(".vue")) {
               if (hasTags) {
@@ -119,24 +171,36 @@ export function resolveRewrites(
             finalReplacement = replacement;
           }
         } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
-          // HTML attribute passthrough: the sink range covers the full `attrName="value"` match.
-          // We must reconstruct the full attribute, not just JSON-stringify the value.
           const attrName = intent.sink.sinkType.substring("html:attr:".length);
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
           if (hasVars) {
-            // Variables present — emit a Vue/Svelte dynamic binding
             if (filePath && filePath.endsWith(".vue")) {
               finalReplacement = `:${attrName}="${finalReplacement}"`;
             } else if (filePath && filePath.endsWith(".svelte")) {
               finalReplacement = `${attrName}={${finalReplacement}}`;
             }
           } else {
-            // No variables — emit a plain static attribute, restoring the name
             let rawVal = replacement;
             if (rawVal.startsWith('"') && rawVal.endsWith('"')) rawVal = JSON.parse(rawVal);
             else if (rawVal.startsWith("'") && rawVal.endsWith("'")) rawVal = rawVal.slice(1, -1);
             else if (rawVal.startsWith("`") && rawVal.endsWith("`")) rawVal = rawVal.slice(1, -1);
             finalReplacement = `${attrName}="${rawVal.replace(/"/g, "&quot;")}"`;
+          }
+        } else if (intent.sink.requiresJsxBraces) {
+          const isPlainString =
+            (finalReplacement.startsWith('"') && finalReplacement.endsWith('"')) ||
+            (finalReplacement.startsWith("'") && finalReplacement.endsWith("'"));
+          const isAttribute = translatableAttrs.has(intent.sink.sinkType);
+
+          if (isPlainString) {
+            if (isAttribute) {
+              // Keep it as a plain quoted string literal
+            } else {
+              // For JSXText/children, we want the raw unquoted text
+              finalReplacement = finalReplacement.slice(1, -1);
+            }
+          } else {
+            finalReplacement = `{${finalReplacement}}`;
           }
         }
 
@@ -281,17 +345,24 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): Res
   const tMap = intent.sink.tagMap || [];
   const hasTags = hasUsedTags(intent.sink.text, tMap);
 
+  const isReact =
+    filePath &&
+    !filePath.endsWith(".vue") &&
+    !filePath.endsWith(".svelte") &&
+    !filePath.endsWith(".html");
+
   if (intent.sink.text && hasTags) {
     const usedTags = tMap.filter(
       (entry: any) =>
         intent.sink.text.includes(`<${entry.alias}>`) ||
         intent.sink.text.includes(`</${entry.alias}>`) ||
-        intent.sink.text.includes(`<${entry.alias}/>`),
+        intent.sink.text.includes(`<${entry.alias}/>`) ||
+        intent.sink.text.includes(`<${entry.alias} />`),
     );
     if (usedTags.length > 0) {
       const tagsStr = isSfc
         ? `JSON.parse(${jsString(JSON.stringify(usedTags), true)})`
-        : JSON.stringify(usedTags);
+        : serializeTags(usedTags, !!isReact);
       tagsPart = `, _tags: ${tagsStr}`;
     }
   }
@@ -323,6 +394,22 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): Res
       replacement = `${attrName}={${replacement}}`;
     }
   }
+  const isReactJsxText =
+    filePath &&
+    !filePath.endsWith(".vue") &&
+    !filePath.endsWith(".svelte") &&
+    !filePath.endsWith(".html") &&
+    intent.sink.requiresJsxBraces &&
+    hasTags &&
+    !translatableAttrs.has(intent.sink.sinkType);
+
+  if (isReactJsxText) {
+    replacement = `<span dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
+  }
+
+  if (intent.sink.requiresJsxBraces) {
+    replacement = `{${replacement}}`;
+  }
 
   return {
     start: intent.sink.location.start,
@@ -347,21 +434,34 @@ function generateManualTRewrite(intent: ManualTRewriteIntent): ResolvedRewrite {
   };
 }
 
-function reconstructTags(text: string, tagMap: any[]): string {
+function reconstructTags(text: string, tagMap: any[], isReact?: boolean): string {
   let result = text;
   for (const entry of tagMap) {
-    result = result.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+    let open = entry.originalOpen;
+    if (isReact) {
+      open = convertJsxToHtmlTemplate(open);
+    }
+    result = result.replaceAll(`<${entry.alias}/>`, open);
+    result = result.replaceAll(`<${entry.alias} />`, open);
+    result = result.replaceAll(`<${entry.alias}>`, open);
     result = result.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
   }
   return result;
 }
 
 function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedRewrite {
+  const isReact = !!(
+    filePath &&
+    !filePath.endsWith(".vue") &&
+    !filePath.endsWith(".svelte") &&
+    !filePath.endsWith(".html")
+  );
   let baked = bakeTranslation(
     intent.translation,
     intent.variables || [],
     intent.sink.isFragment,
     intent.tagMap,
+    isReact,
   );
   const tMap = intent.tagMap || intent.sink.tagMap || [];
   const hasTags = hasUsedTags(baked, tMap) || hasUsedTags(intent.sink.text, tMap);
@@ -422,6 +522,37 @@ function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedR
       baked = `${attrName}="${rawVal.replace(/"/g, "&quot;")}"`;
     }
   }
+  const isReactJsxText =
+    filePath &&
+    !filePath.endsWith(".vue") &&
+    !filePath.endsWith(".svelte") &&
+    !filePath.endsWith(".html") &&
+    intent.sink.requiresJsxBraces &&
+    hasTags &&
+    !translatableAttrs.has(intent.sink.sinkType);
+
+  if (isReactJsxText) {
+    baked = `<span dangerouslySetInnerHTML={{ __html: ${baked} }} />`;
+  }
+
+  if (intent.sink.requiresJsxBraces) {
+    const isPlainString =
+      (baked.startsWith('"') && baked.endsWith('"')) ||
+      (baked.startsWith("'") && baked.endsWith("'"));
+    const isAttribute = translatableAttrs.has(intent.sink.sinkType);
+
+    if (isPlainString) {
+      if (isAttribute) {
+        // Keep it as a plain quoted string literal (e.g. alt="translated text")
+      } else {
+        // For JSXText/children, we want the raw unquoted text (e.g. <h1>translated text</h1>)
+        baked = baked.slice(1, -1);
+      }
+    } else {
+      // If it is a template literal or ternary expression, it MUST be wrapped in curly braces
+      baked = `{${baked}}`;
+    }
+  }
 
   return {
     start: intent.sink.location.start,
@@ -437,6 +568,7 @@ function bakeTranslation(
   variables: VariableBinding[],
   isFragment: boolean = false,
   tagMap?: any[],
+  isReact?: boolean,
 ): string {
   if (typeof translation === "string") {
     let replaced = translation;
@@ -455,7 +587,7 @@ function bakeTranslation(
       );
     }
     if (tagMap && tagMap.length) {
-      replaced = reconstructTags(replaced, tagMap);
+      replaced = reconstructTags(replaced, tagMap, isReact);
     }
     return isFragment
       ? replaced
@@ -464,7 +596,7 @@ function bakeTranslation(
         : JSON.stringify(replaced);
   }
   return typeof translation === "object"
-    ? buildTernary(Object.entries(translation), variables, 0, tagMap)
+    ? buildTernary(Object.entries(translation), variables, 0, tagMap, isReact)
     : '""';
 }
 
@@ -473,6 +605,7 @@ function buildTernary(
   variables: VariableBinding[],
   index: number,
   tagMap?: any[],
+  isReact?: boolean,
 ): string {
   if (index >= entries.length) return '""';
   const [condition, text] = entries[index];
@@ -501,9 +634,9 @@ function buildTernary(
     (match, key) => varMap.get(key.trim()) || match,
   );
   if (tagMap && tagMap.length) {
-    translatedText = reconstructTags(translatedText, tagMap);
+    translatedText = reconstructTags(translatedText, tagMap, isReact);
   }
-  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1, tagMap)}`;
+  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1, tagMap, isReact)}`;
 }
 
 function parseConditionToJS(condition: string, variables: VariableBinding[]): string {

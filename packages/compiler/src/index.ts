@@ -1221,6 +1221,7 @@ export class ZintlCompiler {
       activeObservation,
       world.config,
       this.logger.withPrefix("Pipeline"),
+      effectiveCleanId,
     );
     const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id);
     if (this.isDev) {

@@ -587,6 +587,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1018,6 +1020,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}
@@ -1897,6 +1901,8 @@ function _t(key, params = {}, options) {
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
 	let interpolated = interpolate(message, restParams);
 	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
 		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
 	}

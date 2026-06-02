@@ -54,6 +54,8 @@ export function _t(
   let interpolated = interpolate(message, restParams);
   if (_tags && Array.isArray(_tags)) {
     for (const entry of _tags) {
+      interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+      interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
       interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
       interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
     }

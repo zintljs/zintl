@@ -117,6 +117,8 @@ export interface RawSink {
   passVars?: Record<string, string>;
   /** True if this is a fragment within a larger template/string (inline replacement). */
   isFragment: boolean;
+  /** True if the replacement requires JSX curly braces wrapping. */
+  requiresJsxBraces?: boolean;
   /** If fragment: start offset of the fragment sub-range. */
   fragmentStart?: number;
   /** If fragment: end offset of the fragment sub-range. */
