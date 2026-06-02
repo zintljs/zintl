@@ -35,7 +35,8 @@ import { MessageManager } from "./managers/MessageManager.js";
 import { HtmlManager } from "./managers/HtmlManager.js";
 import { AssetManager } from "./managers/AssetManager.js";
 
-export { generateMessageId } from "./utils/hashing.js";
+export { generateMessageId, sha1 } from "./utils/hashing.js";
+export { similarity } from "./reconcile.js";
 export type { ZintlOptions, ZintlLogger, LogLevel, AssetTargetConfig, AssetMergeStrategy };
 
 export class ZintlCompiler {

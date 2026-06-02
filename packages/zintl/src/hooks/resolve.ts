@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type { ZintlPluginContext } from "../context.js";
-import { generateMessageId, getRuntimeCode } from "@zintl/compiler";
+import { generateMessageId, getRuntimeCode, sha1 } from "@zintl/compiler";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,
@@ -79,7 +79,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
     }
 
     const cleanId = id.split("?")[0];
-    if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) {
+    if (ctx.compiler.assets.isSupportedAsset(cleanId)) {
       let absolutePath = cleanId;
       if (cleanId.startsWith(".") && importer) {
         absolutePath = join(dirname(importer.split("?")[0]), cleanId);
@@ -89,7 +89,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 
     if (id.includes("zintl-multiplex=")) {
       const cleanId = id.split("?")[0];
-      if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) {
+      if (ctx.compiler.assets.isSupportedAsset(cleanId)) {
         const locale = ctx.getMultiplexLocale(id);
         if (locale) {
           let absolutePath = cleanId;
@@ -111,6 +111,11 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
           }
 
           const assetId = ctx.compiler.getNormalizedId(absolutePath);
+
+          if (ctx.options.virtualAssets) {
+            return `\0virtual:zintl/asset/${locale}/${assetId}${suffix}`;
+          }
+
           const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
 
           if (existsSync(localizedPath)) {
@@ -143,7 +148,9 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
         const extMatch = cleanId.match(/\.([a-zA-Z0-9]+)$/);
         const ext = extMatch ? extMatch[1].toLowerCase() : "";
         const isEligible =
-          !ext || ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext);
+          !ext ||
+          ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext) ||
+          ctx.compiler.assets.isSupportedAsset(cleanId);
 
         if (isEligible) {
           // Resolve clean first to check for translation neutrality
@@ -164,7 +171,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 
                 const cleanFileId = fileId.split("?")[0];
                 const res = (() => {
-                  if (cleanFileId.endsWith(".md") || cleanFileId.endsWith(".txt")) return true;
+                  if (ctx.compiler.assets.isSupportedAsset(cleanFileId)) return true;
 
                   const registeredAssets = ctx.compiler?.assets?.getRegisteredAssets() || [];
                   if (
@@ -245,7 +252,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
               const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
               const cleanResolvedId = resolvedId.split("?")[0];
 
-              if (cleanResolvedId.endsWith(".md") || cleanResolvedId.endsWith(".txt")) {
+              if (ctx.compiler.assets.isSupportedAsset(cleanResolvedId)) {
                 await ctx.compiler.assets.registerAsset(cleanResolvedId);
 
                 if (locale === (ctx.compiler as any).sourceLocale) {
@@ -253,11 +260,23 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
                 }
 
                 const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
+                const queries = resolvedId.split("?")[1] || "";
+                const suffix = queries ? `?${queries}` : "";
+
+                if (ctx.options.virtualAssets) {
+                  const finalId = `\0virtual:zintl/asset/${locale}/${assetId}${suffix}`;
+                  if (typeof resolved === "string") {
+                    return finalId;
+                  }
+                  return {
+                    ...resolved,
+                    id: finalId,
+                  };
+                }
+
                 const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
 
                 if (existsSync(localizedPath)) {
-                  const queries = resolvedId.split("?")[1] || "";
-                  const suffix = queries ? `?${queries}` : "";
                   const finalId = localizedPath + suffix;
 
                   if (typeof resolved === "string") {
@@ -292,6 +311,61 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 export function loadHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
     const cleanId = id.split("?")[0];
+    if (cleanId.startsWith("\0virtual:zintl/asset/")) {
+      const rest = cleanId.slice("\0virtual:zintl/asset/".length);
+      const slashIdx = rest.indexOf("/");
+      if (slashIdx !== -1) {
+        const locale = rest.slice(0, slashIdx);
+        const assetId = rest.slice(slashIdx + 1);
+        const originalPath = join(ctx.compiler.rootDir, assetId);
+
+        if (existsSync(originalPath)) {
+          this.addWatchFile(originalPath);
+          const config = ctx.compiler.assets.resolveAssetConfig(assetId);
+
+          if (config?.strategy === "binary-passthrough") {
+            const sourceBuffer = readFileSync(originalPath);
+            const sourceHashKey = `@zintl/asset-hash:${sha1(sourceBuffer)}`;
+            const hive = (ctx.compiler as any).messages.hive;
+            const sourceLocale = ctx.options.sourceLocale || "en";
+
+            let buffer = sourceBuffer;
+            if (locale !== sourceLocale) {
+              const hiveBackup = hive?.[locale]?.[sourceHashKey];
+              if (hiveBackup) {
+                buffer = Buffer.from(hiveBackup, "base64");
+              }
+            }
+
+            const referenceId = this.emitFile({
+              type: "asset",
+              name: assetId.split("/").pop(),
+              source: buffer,
+            });
+            return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+          } else {
+            const translations = await ctx.compiler.assets.getAssetTranslations(locale);
+            const content =
+              translations[`@zintl/asset:${assetId}`] ?? readFileSync(originalPath, "utf-8");
+
+            if (id.includes("?raw") || id.includes("?zintl-raw")) {
+              let code = `export default ${JSON.stringify(content)};`;
+              if (ctx.compiler.isDev) {
+                code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
+              }
+              return code;
+            }
+
+            const referenceId = this.emitFile({
+              type: "asset",
+              name: assetId.split("/").pop(),
+              source: content,
+            });
+            return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+          }
+        }
+      }
+    }
     if (
       cleanId.includes(".zintl-") &&
       !id.includes("?vue") &&

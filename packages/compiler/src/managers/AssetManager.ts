@@ -57,7 +57,7 @@ export class AssetManager {
   /**
    * Resolves the customized asset pattern configuration for a given path.
    */
-  private resolveAssetConfig(filePath: string): {
+  public resolveAssetConfig(filePath: string): {
     targetPattern: string;
     strategy: AssetMergeStrategy;
     outputPattern?: string;
@@ -257,10 +257,14 @@ export class AssetManager {
         } else if (hiveBackup) {
           // Restore binary translation from Hive
           const buffer = Buffer.from(hiveBackup, "base64");
-          await this.io.safeWriteBuffer(destPath, buffer);
+          if (!this.options.virtualAssets) {
+            await this.io.safeWriteBuffer(destPath, buffer);
+          }
         } else if (sourceBuffer) {
           // Default: copy source buffer
-          await this.io.safeWriteBuffer(destPath, sourceBuffer);
+          if (!this.options.virtualAssets) {
+            await this.io.safeWriteBuffer(destPath, sourceBuffer);
+          }
         }
       } else {
         let merged: string;
@@ -375,7 +379,9 @@ export class AssetManager {
           merged = sourceContent;
         }
 
-        await this.io.safeWriteFile(destPath, merged);
+        if (!this.options.virtualAssets) {
+          await this.io.safeWriteFile(destPath, merged);
+        }
       }
     }
   }
@@ -620,9 +626,77 @@ export class AssetManager {
           translations[key] = await this.io.readFile(originalPath);
         }
       } else {
-        const localizedPath = this.getAssetPath(assetId, locale);
-        if (await this.io.exists(localizedPath)) {
-          translations[key] = await this.io.readFile(localizedPath);
+        if (this.options.virtualAssets) {
+          const originalPath = join(this.root, assetId);
+          if (await this.io.exists(originalPath)) {
+            const sourceContent = await this.io.readFile(originalPath);
+            const ext = this.getAssetExtension(assetId);
+            const body = this.getAssetBody(sourceContent, ext);
+            const sourceHashKey = `@zintl/asset-hash:${sha1(body)}`;
+            const hive = this.getHive?.();
+            let hiveBackup = hive?.[locale]?.[sourceHashKey];
+            let isFuzzyMatched = false;
+
+            if (!hiveBackup && hive) {
+              const threshold = this.options.similarityThreshold ?? 0.6;
+              let bestScore = 0;
+              let bestKey = "";
+
+              const sourceKeys = Object.keys(hive[this.sourceLocale] || {}).filter((k) =>
+                k.startsWith("@zintl/asset-hash:"),
+              );
+
+              const currentBody = this.getAssetBody(sourceContent, ext);
+
+              for (const key of sourceKeys) {
+                const oldSourceContent = hive[this.sourceLocale][key];
+                if (typeof oldSourceContent === "string") {
+                  const oldSourceBody = this.getAssetBody(oldSourceContent, ext);
+                  const score = similarity(oldSourceBody, currentBody);
+                  if (score >= threshold && score > bestScore) {
+                    bestScore = score;
+                    bestKey = key;
+                  }
+                }
+              }
+
+              if (bestKey) {
+                const fuzzyBackupContent = hive[locale]?.[bestKey];
+                if (fuzzyBackupContent) {
+                  hiveBackup = fuzzyBackupContent;
+                  isFuzzyMatched = true;
+                }
+              }
+            }
+
+            if (hiveBackup) {
+              if (isFuzzyMatched) {
+                const warning = "Source content has changed slightly. Please review translation.";
+                const bodyContent = this.getAssetBody(hiveBackup, ext);
+                if (ext.toLowerCase() === ".md" || ext.toLowerCase() === ".mdx") {
+                  const { frontmatter } = this.parseFrontmatter(hiveBackup);
+                  const { frontmatter: sourceFM } = this.parseFrontmatter(sourceContent);
+                  const mergedFM = this.mergeFrontmatter(sourceFM, frontmatter);
+                  const fmPrefix = this.stringifyFrontmatter(mergedFM);
+                  const cleanBody = bodyContent.replace(/^<!-- \[ZINTL WARNING\] .*? -->\n\n/, "");
+                  translations[key] =
+                    `${fmPrefix}<!-- [ZINTL WARNING] ${warning} -->\n\n${cleanBody}`;
+                } else {
+                  const cleanBody = bodyContent.replace(/^\[ZINTL WARNING:.*?\]\n\n/, "");
+                  translations[key] = `[ZINTL WARNING: ${warning}]\n\n${cleanBody}`;
+                }
+              } else {
+                translations[key] = hiveBackup;
+              }
+            } else {
+              translations[key] = sourceContent;
+            }
+          }
+        } else {
+          const localizedPath = this.getAssetPath(assetId, locale);
+          if (await this.io.exists(localizedPath)) {
+            translations[key] = await this.io.readFile(localizedPath);
+          }
         }
       }
     }

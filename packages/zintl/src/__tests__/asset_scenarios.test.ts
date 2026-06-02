@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vite-plus/test";
 import { createZintlContext } from "./helpers/harness.ts";
+import { sha1 } from "@zintl/compiler";
 
 /**
  * High-Fidelity Asset Scenarios Test Suite
@@ -205,6 +206,126 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
       expect(foundCatalogChunk).toBe(true);
     } finally {
       await nonMultiplexCtx.cleanup();
+    }
+  });
+
+  it("Scenario 5: Zero-Disk Asset Build Optimization (Zero-Disk Reference Mode)", async () => {
+    const zeroDiskCtx = await createZintlContext({
+      locales: ["en", "ar"],
+      outputDir: "./src/locales",
+      catalogFormat: "i18n.json",
+      multiplex: true,
+      virtualAssets: true,
+      assetsTarget: ["md", "txt", "png"],
+      logLevel: "silent",
+    });
+
+    try {
+      const sourceText = "Hello World Text!";
+      const translatedText = "مرحباً بالعالم نصاً!";
+      const textHash = sha1(sourceText);
+
+      const sourceImageBuffer = Buffer.from([1, 2, 3, 4]);
+      const translatedImageBuffer = Buffer.from([5, 6, 7, 8]);
+      const imageHash = sha1(sourceImageBuffer);
+
+      const files = {
+        "index.html": `
+          <!DOCTYPE html>
+          <html>
+          <body>
+            <script type="module" src="/src/main.ts"></script>
+          </body>
+          </html>
+        `,
+        "src/about.txt": sourceText,
+        "src/hero.png": sourceImageBuffer.toString("binary"),
+        "src/main.ts": `
+          import { zintl } from "zintl";
+          import aboutText from "./about.txt?raw";
+          import heroImg from "./hero.png";
+          zintl("ar");
+          console.log(aboutText, heroImg);
+        `,
+        "node_modules/.zintl/hive.json": JSON.stringify({
+          ar: {
+            [`@zintl/asset-hash:${textHash}`]: translatedText,
+            [`@zintl/asset-hash:${imageHash}`]: translatedImageBuffer.toString("base64"),
+          },
+          en: {
+            [`@zintl/asset-hash:${textHash}`]: sourceText,
+            [`@zintl/asset-hash:${imageHash}`]: sourceImageBuffer.toString("base64"),
+          },
+        }),
+      };
+
+      for (const [path, content] of Object.entries(files)) {
+        await zeroDiskCtx.setupFile(path, content);
+      }
+
+      const { build: viteBuild } = await import("vite");
+      const { zintl } = await import("../index.ts");
+
+      await viteBuild({
+        root: zeroDiskCtx.root,
+        logLevel: "silent",
+        plugins: [
+          zintl({
+            sourceLocale: "en",
+            locales: ["en", "ar"],
+            prune: false,
+            verifyIntegrity: false,
+            virtualAssets: true,
+            multiplex: true,
+            assetsTarget: ["md", "txt", "png"],
+            outputDir: "./src/locales",
+            catalogFormat: "i18n.json",
+          }),
+        ],
+        build: {
+          write: true,
+          outDir: "dist",
+          minify: false,
+          rollupOptions: {
+            output: {
+              entryFileNames: "assets/[name].js",
+              chunkFileNames: "assets/[name].js",
+              assetFileNames: "assets/[name]-[hash].[ext]",
+            },
+          },
+        },
+      });
+
+      const fs = await import("node:fs");
+      const pathModule = await import("node:path");
+
+      const physicalTextAsset = pathModule.join(zeroDiskCtx.root, "src/locales/src/about.ar.txt");
+      const physicalBinaryAsset = pathModule.join(zeroDiskCtx.root, "src/locales/src/hero.ar.png");
+
+      expect(fs.existsSync(physicalTextAsset)).toBe(false);
+      expect(fs.existsSync(physicalBinaryAsset)).toBe(false);
+
+      const distAssetsDir = pathModule.join(zeroDiskCtx.root, "dist/assets");
+      expect(fs.existsSync(distAssetsDir)).toBe(true);
+
+      const arAssetsDir = pathModule.join(distAssetsDir, "ar");
+      expect(fs.existsSync(arAssetsDir)).toBe(true);
+
+      const arFiles = fs.readdirSync(arAssetsDir);
+      const arIndexJs = arFiles.find((f) => f.startsWith("index") && f.endsWith(".js"));
+      expect(arIndexJs).toBeDefined();
+
+      const arIndexContent = fs.readFileSync(pathModule.join(arAssetsDir, arIndexJs!), "utf-8");
+      expect(arIndexContent).toContain(translatedText);
+
+      const distFiles = fs.readdirSync(distAssetsDir);
+      const emittedImageFile = distFiles.find((f) => f.startsWith("hero") && f.endsWith(".png"));
+      expect(emittedImageFile).toBeDefined();
+
+      const emittedImageBuffer = fs.readFileSync(pathModule.join(distAssetsDir, emittedImageFile!));
+      expect(emittedImageBuffer.equals(translatedImageBuffer)).toBe(true);
+    } finally {
+      await zeroDiskCtx.cleanup();
     }
   });
 });
