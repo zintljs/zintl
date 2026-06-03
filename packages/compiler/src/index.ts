@@ -46,6 +46,8 @@ export class ZintlCompiler {
   public readonly messages: MessageManager;
   public readonly html: HtmlManager;
   public readonly assets: AssetManager;
+  public readonly ssrBoundaries = new Set<string>();
+  public readonly clientBoundaries = new Set<string>();
 
   private graphDirty = true;
 
@@ -1073,6 +1075,16 @@ export class ZintlCompiler {
       for (const bId of trackedBoundaries) {
         this.messages.internalManifest[bId] = messagesByBoundary[bId] || [];
       }
+
+      if (!onlyExtract) {
+        for (const bId of trackedBoundaries) {
+          if (ssr) {
+            this.ssrBoundaries.add(bId);
+          } else {
+            this.clientBoundaries.add(bId);
+          }
+        }
+      }
     }
 
     if (!this.discoveryPhase && this.graphDirty) {
@@ -1690,7 +1702,14 @@ export class ZintlCompiler {
         this.assets,
       );
       const importsCode = imports && imports.length > 0 ? imports.join("\n") + "\n" : "";
-      let code = `${importsCode}export default ${this.catalog.serializeCatalog(cat, loc, 4, this.logger)};`;
+      const serialized = this.catalog.serializeCatalog(cat, loc, 4, this.logger);
+      let code = `${importsCode}const catalog = ${serialized};\n`;
+      if (this.isDev) {
+        code += `if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ [${JSON.stringify(loc)}]: catalog });
+}\n`;
+      }
+      code += `export default catalog;`;
       if (this.isDev) {
         code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
       }
@@ -1737,21 +1756,7 @@ export class ZintlCompiler {
 
     const loader = isStaticallyLocked
       ? `() => (${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)})`
-      : this.isDev
-        ? `(locale) => {
-      switch(locale) { 
-        case "${bakedLoc}":\n          return ${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)};
-        ${this.locales
-          .filter((l) => l !== bakedLoc)
-          .map(
-            (l) =>
-              `        case "${l}":\n          return import(${this.isDev ? "/* @vite-ignore */ " : ""}"virtual:zintl/content/${l}/${id}").then(m => m.default);`,
-          )
-          .join("\n")}
-        default: return {};
-      }
-    }`
-        : `(locale) => {
+      : `(locale) => {
       switch(locale) { 
         case "${bakedLoc}":\n          return ${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)};
         ${this.locales
@@ -1764,18 +1769,29 @@ export class ZintlCompiler {
         default: return {};
       }
     }`;
-    const hmrCode = this.isDev
-      ? `\nif (import.meta.hot) {
+    const mgrImportsCode = mgrImports && mgrImports.length > 0 ? mgrImports.join("\n") + "\n" : "";
+    const managerObj = `{ id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader} }`;
+    let code = mgrImportsCode;
+    if (this.isDev) {
+      code += `export default (() => {
+  const manager = ${managerObj};
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();`;
+      code += `\nif (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
       globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
     }
   });
-}`
-      : "";
-    const mgrImportsCode = mgrImports && mgrImports.length > 0 ? mgrImports.join("\n") + "\n" : "";
+}`;
+    } else {
+      code += `export default ${managerObj};`;
+    }
     return {
-      code: `${mgrImportsCode}export default { id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader} };${hmrCode}`,
+      code,
       watchedFiles: [],
     };
   }

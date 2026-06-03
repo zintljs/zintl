@@ -156,4 +156,41 @@ describe("HMR Integration", () => {
     // Entry point SHOULD be present
     expect(resultIds).toContain(mainPath);
   });
+
+  it("should handle Vue SFC source code changes and invalidate localized counterparts and the manager", async () => {
+    const vuePath = "/root/src/components/HelloWorld.vue";
+    const localizedVuePath = "/root/src/components/HelloWorld.zintl-ar.vue";
+    const managerId = "\0virtual:zintl/manager/none/entry:b1";
+    const modules = [{ id: vuePath, file: vuePath, importers: new Set() }];
+
+    mockServer.moduleGraph.idToModuleMap.set(vuePath, modules[0]);
+    mockServer.moduleGraph.idToModuleMap.set(localizedVuePath, {
+      id: localizedVuePath,
+      file: localizedVuePath,
+      importers: new Set(),
+    });
+    mockServer.moduleGraph.idToModuleMap.set(managerId, {
+      id: managerId,
+      importers: new Set(),
+    });
+
+    mockCtx.compiler.invalidateFile.mockImplementation((file: string) => {
+      if (file === vuePath) return ["b1"];
+      return [];
+    });
+
+    const hook = handleHotUpdateHook(mockCtx);
+    const result = await hook({
+      file: vuePath,
+      timestamp: Date.now(),
+      modules: modules as any,
+      read: async () => "",
+      server: mockServer,
+    });
+
+    const resultIds = (result as any[]).map((m) => m.id);
+    expect(resultIds).toContain(vuePath);
+    expect(resultIds).toContain(localizedVuePath);
+    expect(resultIds).toContain(managerId);
+  });
 });

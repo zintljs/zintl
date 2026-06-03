@@ -4,11 +4,11 @@ import type { ZintlPluginContext } from "../context.js";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 
 export function handleHotUpdateHook(ctx: ZintlPluginContext) {
-  return async function ({ file, server, modules }: HmrContext) {
+  return async function ({ file, server, modules, timestamp }: HmrContext) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (ctx.compiler.isWritingFile(file)) return;
 
-    const isSource = /\.(ts|tsx|js|jsx|html)$/.test(file);
+    const isSource = /\.(ts|tsx|js|jsx|html|vue|svelte)$/.test(file);
     const isJson = file.endsWith(".json");
     const isAsset = file.endsWith(".md") || file.endsWith(".txt");
 
@@ -18,6 +18,15 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
     const invalidatedModules = new Set<ModuleNode>();
     let invalidatedBoundaries: string[] = [];
 
+    const mg = server.moduleGraph;
+    const invalidate = (mod: ModuleNode) => {
+      mg.invalidateModule(mod);
+      if (timestamp !== undefined) {
+        mod.lastHMRTimestamp = timestamp;
+      }
+      invalidatedModules.add(mod);
+    };
+
     if (isJson || isAsset) {
       if (isAsset) {
         await ctx.compiler.assets.registerAsset(file);
@@ -26,9 +35,9 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
       for (const b of inv) invalidatedBoundaries.push(b);
 
       if (inv.length === 0 && isJson) {
-        for (const [id, mod] of server.moduleGraph.idToModuleMap) {
+        for (const [id, mod] of mg.idToModuleMap) {
           if (id.includes("virtual:zintl") && id.includes("/manager/")) {
-            invalidatedModules.add(mod);
+            invalidate(mod);
           }
         }
       }
@@ -45,14 +54,12 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
       const isBaseAsset = isAsset && mod.file === file && !mod.id?.includes("?");
       if (isBaseJson || isBaseAsset) continue;
 
-      server.moduleGraph.invalidateModule(mod);
-      invalidatedModules.add(mod);
+      invalidate(mod);
 
-      if (mod.importers) {
+      if (!isSource && mod.importers) {
         for (const importer of mod.importers) {
           if (importer.id && !importer.id.includes("node_modules")) {
-            server.moduleGraph.invalidateModule(importer);
-            invalidatedModules.add(importer);
+            invalidate(importer);
           }
         }
       }
@@ -61,8 +68,6 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
     // 2. Invalidate affected boundaries
     const boundaryIds = new Set(invalidatedBoundaries);
     if (isSource) boundaryIds.add(ctx.compiler.getNormalizedId(file));
-
-    const mg = server.moduleGraph;
 
     for (const boundaryId of boundaryIds) {
       if (boundaryId === "b_assets" && ctx.compiler.graph.boundaryGraph) {
@@ -78,8 +83,7 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
                 normalizedId.endsWith(n.filePath) ||
                 idNoExt.endsWith(n.filePath)
               ) {
-                mg.invalidateModule(mod);
-                invalidatedModules.add(mod);
+                invalidate(mod);
               }
             }
           }
@@ -90,8 +94,7 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
       for (const chunkModuleId of affectedChunkIds) {
         for (const [id, mod] of mg.idToModuleMap) {
           if (id.includes(chunkModuleId) && id.includes("virtual:zintl")) {
-            mg.invalidateModule(mod);
-            invalidatedModules.add(mod);
+            invalidate(mod);
           }
         }
       }
@@ -120,8 +123,7 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
               : Array.isArray(sourceMods) && (sourceMods as any[]).length > 0)
           ) {
             for (const mod of sourceMods as Iterable<ModuleNode>) {
-              mg.invalidateModule(mod);
-              invalidatedModules.add(mod);
+              invalidate(mod);
             }
           }
         }
@@ -130,8 +132,7 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
         if (typeof mg.getModuleById === "function") {
           const vMod = mg.getModuleById(virtualId);
           if (vMod) {
-            mg.invalidateModule(vMod);
-            invalidatedModules.add(vMod);
+            invalidate(vMod);
           }
         }
 
@@ -141,13 +142,14 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
         const relPathNoExt = relPath.replace(/\.[a-z0-9]+$/i, "");
 
         for (const [id, mod] of mg.idToModuleMap) {
-          const normalizedId = id.split("?")[0];
+          const cleanModuleId = id.replace(/\.zintl-[a-zA-Z0-9_-]+\.(vue|svelte)/, ".$1");
+          const normalizedId = cleanModuleId.split("?")[0];
           const normalizedIdNoExt = normalizedId.replace(/\.[a-z0-9]+$/i, "");
 
           const isMatch =
-            id === relPath ||
-            id === fileId ||
-            id.endsWith(fileId) ||
+            cleanModuleId === relPath ||
+            cleanModuleId === fileId ||
+            cleanModuleId.endsWith(fileId) ||
             normalizedId.endsWith(fileId) ||
             normalizedId === relPath ||
             normalizedId === fileId ||
@@ -156,8 +158,42 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
             normalizedIdNoExt.endsWith(fileIdNoExt);
 
           if (isMatch && !id.includes("virtual:zintl")) {
-            mg.invalidateModule(mod);
-            invalidatedModules.add(mod);
+            const absFileId = isAbsolute(fileId) ? fileId : join(ctx.compiler.rootDir, fileId);
+            if (mod.file !== absFileId) {
+              if (mg.fileToModulesMap) {
+                const map = mg.fileToModulesMap;
+                const hasGet = typeof map.get === "function";
+                const hasSet = typeof map.set === "function";
+
+                if (mod.file) {
+                  if (hasGet) {
+                    const oldSet = map.get(mod.file);
+                    if (oldSet) oldSet.delete(mod);
+                  } else {
+                    const oldSet = (map as any)[mod.file];
+                    if (oldSet) oldSet.delete(mod);
+                  }
+                }
+
+                if (hasGet && hasSet) {
+                  let set = map.get(absFileId);
+                  if (!set) {
+                    set = new Set();
+                    map.set(absFileId, set);
+                  }
+                  set.add(mod);
+                } else if (!hasGet && !hasSet) {
+                  let set = (map as any)[absFileId];
+                  if (!set) {
+                    set = new Set();
+                    (map as any)[absFileId] = set;
+                  }
+                  set.add(mod);
+                }
+              }
+              mod.file = absFileId;
+            }
+            invalidate(mod);
           }
         }
       }
@@ -165,6 +201,21 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
       if (boundaryId.endsWith(".html")) {
         server.ws.send({ type: "full-reload", path: "*" });
       }
+    }
+
+    let hasServerOnlyUpdate = false;
+    for (const boundaryId of boundaryIds) {
+      const isSsr = ctx.compiler.ssrBoundaries?.has(boundaryId);
+      const isClient = ctx.compiler.clientBoundaries?.has(boundaryId);
+      if (isSsr && !isClient) {
+        hasServerOnlyUpdate = true;
+        break;
+      }
+    }
+
+    if (hasServerOnlyUpdate) {
+      vLogger.debug("Server-only boundary update detected, triggering full-reload");
+      server.ws.send({ type: "full-reload", path: "*" });
     }
 
     if (invalidatedModules.size > 0) {

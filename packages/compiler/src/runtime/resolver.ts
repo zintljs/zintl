@@ -20,24 +20,29 @@ export function _t(
 
   // Scoped Lookup (Flattened: catalogs[locale][targetId][key])
   const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : undefined;
-  const message = boundaryCatalog ? boundaryCatalog[key] : undefined;
+  let message = boundaryCatalog ? boundaryCatalog[key] : undefined;
 
   if (message === undefined) {
     if (mgr) {
       // Self-registration: If a manager is passed and ID is missing, register it.
       void instance.registerLoader(mgr.id, mgr.loader);
-      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
-        console.warn(
-          `[Zintl] Missing key "${key}" in boundary "${boundaryId}". Triggering hydration...`,
-        );
+      const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : undefined;
+      message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : undefined;
+      if (message === undefined) {
+        if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+          console.warn(
+            `[Zintl] Missing key "${key}" in boundary "${boundaryId}". Triggering hydration...`,
+          );
+        }
+        // We still return fallback because loader is async, but this triggers the network.
+        return ``;
       }
-      // We still return fallback because loader is async, but this triggers the network.
+    } else {
+      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+        console.warn(`[Zintl] Missing key "${key}" and no manager provided.`);
+      }
       return ``;
     }
-    if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
-      console.warn(`[Zintl] Missing key "${key}" and no manager provided.`);
-    }
-    return ``;
   }
 
   if (typeof message === "function") {

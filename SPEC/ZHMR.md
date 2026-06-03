@@ -29,6 +29,7 @@ The `handleHotUpdate` hook in the Vite plugin receives the changed file and quer
 1. **Direct Invalidation**: The changed source module itself is invalidated by Vite.
 2. **Affected Chunks**: The compiler returns a list of virtual IDs (e.g., `virtual:zintl/content/...`, `virtual:zintl/manager/...`) that are impacted by the change.
 3. **Entry Point Cascading**: Crucially, the compiler identifies all **Entry Points** (e.g., `main.ts`) that depend on the changed boundary. These are added to the invalidation set to force a re-registration of translation loaders.
+4. **Timestamp Propagation**: The Vite plugin sets the current HMR `timestamp` on all invalidated modules' `lastHMRTimestamp` property, forcing Vite's `importAnalysis` to rewrite module imports with updated timestamp query parameters (`?t=...`).
 
 ---
 
@@ -42,8 +43,8 @@ Zintl uses virtual modules to decouple the source code from the translation data
 - **Role**: Serves as the "Smart Manager". It knows how to load catalogs for every locale.
 - **HMR Behavior**:
   - The manager includes an `import.meta.hot.accept()` block.
-  - When invalidated, it re-fetches its internal state and re-executes.
-  - It triggers a call to the runtime's `registerLoader` to update the global registry with its new reference.
+  - In development mode, the manager is exported as an Immediately Invoked Function Expression (IIFE) to perform **Synchronous Self-Registration** (`globalThis.__zintl_active.registerLoader`) upon module evaluation.
+  - When invalidated, it re-fetches its internal state, re-executes, and registers its new loader. This synchronous self-registration executes before importing components run, ensuring catalogs are populated in time.
 
 ### §3.2 — The Content Module
 
@@ -55,9 +56,9 @@ Zintl uses virtual modules to decouple the source code from the translation data
 
 ---
 
-## §4 — Fast Replacement vs. Hard Reload
+## §4 — Fast Replacement vs. Hard Reload vs. SSR Auto-Refresh
 
-Zintl prioritizes **Fast Replacement** to maintain developer flow.
+Zintl prioritizes **Fast Replacement** to maintain developer flow, with selective fallbacks for SSR environments.
 
 ### §4.1 — Fast Replacement (The Warm Path)
 
@@ -81,6 +82,15 @@ Triggered when:
 **Mechanism**:
 In these cases, the structural integrity of the graph has changed. Vite's standard HMR bubbling will eventually trigger a hard reload if the change cannot be safely hot-replaced at the entry level.
 
+### §4.3 — Server-Side Auto-Refresh (The SSR Path)
+
+Triggered when:
+
+- A server-only boundary (e.g., `entry-server.ts`) or its server-side disk catalogs are modified.
+
+**Mechanism**:
+Since browser-based HMR cannot execute HMR updates for modules not imported in the client graph, server-only updates are untracked by the browser. To resolve this, Zintl tracks SSR vs client transformations. If an update affects a boundary in `ssrBoundaries` but not `clientBoundaries`, Zintl sends a `{ type: 'full-reload', path: '*' }` WebSocket message to the browser, prompting a full page refresh to fetch the newly server-rendered HTML.
+
 ---
 
 ## §5 — Asset HMR ($AS$)
@@ -99,6 +109,7 @@ Static assets participate in a specialized HMR track.
 - **504 Outdated Dep**: Often caused by Vite trying to optimize virtual modules. Zintl explicitly excludes itself from optimization to prevent this.
 - **Missing Update**: Check if the file is correctly categorized (Anchor, Marker, Sink). If a file has no Zintl symbols, it is a Vassal and its updates bubble to the nearest parent Kingdom.
 - **Flicker**: Ensure `import.meta.hot.accept()` is correctly present in the generated manager code.
+- **Blank/Empty Rendering on First HMR Update**: Check if the translation resolver (`_t`) returns an empty string fallback before a newly registered synchronous loader updates the catalogs. Ensure that `_t` immediately re-evaluates the catalog lookup right after executing `registerLoader` to recover the resolved message on the first render tick.
 
 ---
 

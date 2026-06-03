@@ -159,7 +159,7 @@ if (import.meta.hot) {
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_render 1`] = `
 "import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/assets/about.ar.txt?zintl-raw";
-export default {
+const catalog = {
     "b_src_main_render": {
       "Zintl I18n": "تدويل زينتل",
       "Compiler-driven internationalization for the modern web.": "التدويل الموجه بالمعالجة للويب الحديث.",
@@ -180,12 +180,16 @@ export default {
     "@zintl/asset:src/assets/about.txt": _zintl_asset_0,
   },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/content/es/entry:b_src_main_render 1`] = `
 "import _zintl_asset_0 from "<OVERLAY_ROOT>/.tmp/locales/src/assets/about.es.txt?zintl-raw";
-export default {
+const catalog = {
     "b_src_main_render": {
       "Zintl I18n": "¡Zintl I18n",
       "Compiler-driven internationalization for the modern web.": "La internacionalización impulsada por el compilador para la web moderna.",
@@ -206,12 +210,17 @@ export default {
     "@zintl/asset:src/assets/about.txt": _zintl_asset_0,
   },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: website > should match Development snapshots (Identity keys) > website/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_render 1`] = `
 "import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/website/src/assets/about.txt?zintl-raw";
-export default { id: "b_src_main_render", loader: (locale) => {
+export default (() => {
+  const manager = { id: "b_src_main_render", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -242,6 +251,11 @@ export default { id: "b_src_main_render", loader: (locale) => {
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -441,13 +455,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}

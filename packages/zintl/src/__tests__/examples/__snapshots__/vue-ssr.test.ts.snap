@@ -247,7 +247,7 @@ export function createApp() {
 `;
 
 exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Get started": "البدء",
       "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "قم بتعديل <code>src/App.vue</code> واحفظه لاختبار <code>HMR</code>",
@@ -269,11 +269,15 @@ exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/d
       "Vite logo": "شعار فيت",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Get started": "Empezar",
       "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
@@ -295,11 +299,15 @@ exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/d
       "Vite logo": "Logotipo de Vite",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Get started": "开始",
       "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
@@ -321,11 +329,16 @@ exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/d
       "Vite logo": "Vite 图标",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_client 1`] = `
-"export default { id: "b_src_entry_client", loader: (locale) => {
+"export default (() => {
+  const manager = { id: "b_src_entry_client", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -359,6 +372,11 @@ exports[`Example Proof: vue-ssr > should match Development snapshots > vue-ssr/d
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -558,13 +576,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}
@@ -6103,7 +6124,7 @@ exports[`Example Proof: vue-ssr > should match Final Client Production Build (di
 
 exports[`Example Proof: vue-ssr > should match Final Server SSR Build (dist/server) snapshots > vue-ssr/dist-server/assets/entry_b_764631960fa9.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_07f886859652": {
+var catalog = { "b_07f886859652": {
 	"90e40d50": "البدء",
 	"6c65d65b": "قم بتعديل <code>src/App.vue</code> واحفظه لاختبار <code>HMR</code>",
 	"aa624128": (params) => {
@@ -6124,13 +6145,13 @@ var entry_b_764631960fa9_default = { "b_07f886859652": {
 	"3473a536": "شعار فيت"
 } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vue-ssr > should match Final Server SSR Build (dist/server) snapshots > vue-ssr/dist-server/assets/entry_b_764631960fa92.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_07f886859652": {
+var catalog = { "b_07f886859652": {
 	"90e40d50": "Empezar",
 	"6c65d65b": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
 	"aa624128": (params) => {
@@ -6151,13 +6172,13 @@ var entry_b_764631960fa9_default = { "b_07f886859652": {
 	"3473a536": "Logotipo de Vite"
 } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vue-ssr > should match Final Server SSR Build (dist/server) snapshots > vue-ssr/dist-server/assets/entry_b_764631960fa93.js 1`] = `
 "//#region \\0virtual:zintl/content/zh/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_07f886859652": {
+var catalog = { "b_07f886859652": {
 	"90e40d50": "开始",
 	"6c65d65b": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
 	"aa624128": (params) => {
@@ -6178,7 +6199,7 @@ var entry_b_764631960fa9_default = { "b_07f886859652": {
 	"3473a536": "Vite 图标"
 } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
@@ -6345,14 +6366,13 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
-			return \`\`;
-		}
-		return \`\`;
-	}
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) return \`\`;
+	} else return \`\`;
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;

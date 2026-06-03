@@ -448,7 +448,7 @@ router.beforeEach((to, from, next) => {
 `;
 
 exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_bootstrap 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Welcome to Zintl SPA Home": "مرحباً بك في صفحة Zintl SPA الرئيسية",
       "This is the homepage of our Vue single-page application example.": "هذه هي الصفحة الرئيسية لمثال تطبيقنا أحادي الصفحة في Vue.",
@@ -488,11 +488,15 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
       "Vite logo": "شعار فيت",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/dev-transforms/virtual:zintl/content/es/entry:b_src_main_bootstrap 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Welcome to Zintl SPA Home": "Bienvenido a la página de inicio de Zintl SPA",
       "This is the homepage of our Vue single-page application example.": "Esta es la página de inicio de nuestro ejemplo de aplicación de una sola página en Vue.",
@@ -532,11 +536,15 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
       "Vite logo": "Logotipo de Vite",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/dev-transforms/virtual:zintl/content/zh/entry:b_src_main_bootstrap 1`] = `
-"export default {
+"const catalog = {
     "b_src_components_HelloWorld_vue": {
       "Welcome to Zintl SPA Home": "欢迎来到 Zintl SPA 主页",
       "This is the homepage of our Vue single-page application example.": "这是我们 Vue 单页面应用程序示例的主页。",
@@ -576,11 +584,16 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
       "Vite logo": "Vite 图标",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_bootstrap 1`] = `
-"export default { id: "b_src_main_bootstrap", loader: (locale) => {
+"export default (() => {
+  const manager = { id: "b_src_main_bootstrap", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -632,6 +645,11 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -831,13 +849,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}
@@ -1147,7 +1168,7 @@ export { AboutWorld_default as default };
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe16.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_aafcf9c6fe16
-var entry_b_aafcf9c6fe16_default = {
+var catalog = {
 	"b_07f886859652": {
 		"2217c56a": "مرحباً بك في صفحة Zintl SPA الرئيسية",
 		"5b3967d7": "هذه هي الصفحة الرئيسية لمثال تطبيقنا أحادي الصفحة في Vue.",
@@ -1188,13 +1209,13 @@ var entry_b_aafcf9c6fe16_default = {
 	}
 };
 //#endregion
-export { entry_b_aafcf9c6fe16_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe162.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_aafcf9c6fe16
-var entry_b_aafcf9c6fe16_default = {
+var catalog = {
 	"b_07f886859652": {
 		"2217c56a": "Bienvenido a la página de inicio de Zintl SPA",
 		"5b3967d7": "Esta es la página de inicio de nuestro ejemplo de aplicación de una sola página en Vue.",
@@ -1235,13 +1256,13 @@ var entry_b_aafcf9c6fe16_default = {
 	}
 };
 //#endregion
-export { entry_b_aafcf9c6fe16_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe163.js 1`] = `
 "//#region \\0virtual:zintl/content/zh/entry:b_aafcf9c6fe16
-var entry_b_aafcf9c6fe16_default = {
+var catalog = {
 	"b_07f886859652": {
 		"2217c56a": "欢迎来到 Zintl SPA 主页",
 		"5b3967d7": "这是我们 Vue 单页面应用程序示例的主页。",
@@ -1282,7 +1303,7 @@ var entry_b_aafcf9c6fe16_default = {
 	}
 };
 //#endregion
-export { entry_b_aafcf9c6fe16_default as default };
+export { catalog as default };
 "
 `;
 
@@ -1437,14 +1458,13 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
-			return \`\`;
-		}
-		return \`\`;
-	}
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) return \`\`;
+	} else return \`\`;
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
@@ -8972,7 +8992,7 @@ router.beforeEach((to, from, next) => {
 `;
 
 exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/prod-transforms/virtual:zintl/content/ar/entry:b_aafcf9c6fe16 1`] = `
-"export default {
+"const catalog = {
     "b_07f886859652": {
       "2217c56a": "مرحباً بك في صفحة Zintl SPA الرئيسية",
       "5b3967d7": "هذه هي الصفحة الرئيسية لمثال تطبيقنا أحادي الصفحة في Vue.",
@@ -9011,11 +9031,12 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
       "7d8158dc": "شعار فيو",
       "3473a536": "شعار فيت",
     },
-  };"
+  };
+export default catalog;"
 `;
 
 exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/prod-transforms/virtual:zintl/content/es/entry:b_aafcf9c6fe16 1`] = `
-"export default {
+"const catalog = {
     "b_07f886859652": {
       "2217c56a": "Bienvenido a la página de inicio de Zintl SPA",
       "5b3967d7": "Esta es la página de inicio de nuestro ejemplo de aplicación de una sola página en Vue.",
@@ -9054,11 +9075,12 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
       "7d8158dc": "Logotipo de Vue",
       "3473a536": "Logotipo de Vite",
     },
-  };"
+  };
+export default catalog;"
 `;
 
 exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/prod-transforms/virtual:zintl/content/zh/entry:b_aafcf9c6fe16 1`] = `
-"export default {
+"const catalog = {
     "b_07f886859652": {
       "2217c56a": "欢迎来到 Zintl SPA 主页",
       "5b3967d7": "这是我们 Vue 单页面应用程序示例的主页。",
@@ -9097,7 +9119,8 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
       "7d8158dc": "Vue 图标",
       "3473a536": "Vite 图标",
     },
-  };"
+  };
+export default catalog;"
 `;
 
 exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/prod-transforms/virtual:zintl/manager/none/entry:b_aafcf9c6fe16 1`] = `
@@ -9345,13 +9368,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}

@@ -147,7 +147,7 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/content/ar/entry:b_src_main 1`] = `
-"export default {
+"const catalog = {
     "b_src_main": {
       "Get started": "ابدأ الآن",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
@@ -165,11 +165,15 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/content/es/entry:b_src_main 1`] = `
-"export default {
+"const catalog = {
     "b_src_main": {
       "Get started": "Empezar",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
@@ -187,11 +191,15 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/content/zh/entry:b_src_main 1`] = `
-"export default {
+"const catalog = {
     "b_src_main": {
       "Get started": "开始使用",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
@@ -209,11 +217,16 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapshots (Identity keys) > vanilla-spa-i18n-baked/dev-transforms/virtual:zintl/manager/none/entry:b_src_main 1`] = `
-"export default { id: "b_src_main", loader: (locale) => {
+"export default (() => {
+  const manager = { id: "b_src_main", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -243,6 +256,11 @@ exports[`Example Proof: vanilla-spa-i18n-baked > should match Development snapsh
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -442,13 +460,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}

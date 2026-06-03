@@ -166,7 +166,7 @@ export function LocaleSwitcher(_url: string) {
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_counter_setupCounter": {
       "Count is {counter}": (params) => {
     const { counter } = params;
@@ -174,11 +174,15 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_server_render 1`] = `
-"export default {
+"const catalog = {
     "b_src_entry_server_render": {
       "Get started": "ابدأ الآن",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
@@ -194,11 +198,15 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
       "Bluesky": "Bluesky",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_counter_setupCounter": {
       "Count is {counter}": (params) => {
     const { counter } = params;
@@ -206,11 +214,15 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_server_render 1`] = `
-"export default {
+"const catalog = {
     "b_src_entry_server_render": {
       "Get started": "Empezar",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
@@ -226,11 +238,15 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
       "Bluesky": "Bluesky",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_client 1`] = `
-"export default {
+"const catalog = {
     "b_src_counter_setupCounter": {
       "Count is {counter}": (params) => {
     const { counter } = params;
@@ -238,11 +254,15 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
   },
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_server_render 1`] = `
-"export default {
+"const catalog = {
     "b_src_entry_server_render": {
       "Get started": "开始使用",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
@@ -258,11 +278,16 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
       "Bluesky": "Bluesky",
     },
   };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_client 1`] = `
-"export default { id: "b_src_entry_client", loader: (locale) => {
+"export default (() => {
+  const manager = { id: "b_src_entry_client", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -282,6 +307,11 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -292,7 +322,8 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identity keys) > vanilla-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_server_render 1`] = `
-"export default { id: "b_src_entry_server_render", loader: (locale) => {
+"export default (() => {
+  const manager = { id: "b_src_entry_server_render", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -320,6 +351,11 @@ exports[`Example Proof: vanilla-ssr > should match Development snapshots (Identi
         default: return {};
       }
     } };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
@@ -519,13 +555,16 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) {
 			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${boundaryId}". Triggering hydration...\`);
 			return \`\`;
 		}
+	} else {
 		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
 		return \`\`;
 	}
@@ -834,40 +873,40 @@ exports[`Example Proof: vanilla-ssr > should match Final Client Production Build
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_764631960fa9.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
+var catalog = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
 	const { counter } = params;
 	return \`العدد هو \${params["counter"]}\`;
 } } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_764631960fa92.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
+var catalog = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
 	const { counter } = params;
 	return \`La cuenta es \${params["counter"]}\`;
 } } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_764631960fa93.js 1`] = `
 "//#region \\0virtual:zintl/content/zh/entry:b_764631960fa9
-var entry_b_764631960fa9_default = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
+var catalog = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
 	const { counter } = params;
 	return \`计数为 \${params["counter"]}\`;
 } } };
 //#endregion
-export { entry_b_764631960fa9_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_f0c6267f2b46.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_f0c6267f2b46
-var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
+var catalog = { "b_f0c6267f2b46": {
 	"90e40d50": "ابدأ الآن",
 	"e2aae512": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
 	"9e9cf322": "وثائق",
@@ -882,13 +921,13 @@ var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
 	"daf16c03": "Bluesky"
 } };
 //#endregion
-export { entry_b_f0c6267f2b46_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_f0c6267f2b462.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_f0c6267f2b46
-var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
+var catalog = { "b_f0c6267f2b46": {
 	"90e40d50": "Empezar",
 	"e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
 	"9e9cf322": "Documentación",
@@ -903,13 +942,13 @@ var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
 	"daf16c03": "Bluesky"
 } };
 //#endregion
-export { entry_b_f0c6267f2b46_default as default };
+export { catalog as default };
 "
 `;
 
 exports[`Example Proof: vanilla-ssr > should match Final Server SSR Build (dist/server) snapshots > vanilla-ssr/dist-server/assets/entry_b_f0c6267f2b463.js 1`] = `
 "//#region \\0virtual:zintl/content/zh/entry:b_f0c6267f2b46
-var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
+var catalog = { "b_f0c6267f2b46": {
 	"90e40d50": "开始使用",
 	"e2aae512": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
 	"9e9cf322": "文档",
@@ -924,7 +963,7 @@ var entry_b_f0c6267f2b46_default = { "b_f0c6267f2b46": {
 	"daf16c03": "Bluesky"
 } };
 //#endregion
-export { entry_b_f0c6267f2b46_default as default };
+export { catalog as default };
 "
 `;
 
@@ -1089,14 +1128,13 @@ function _t(key, params = {}, options) {
 	const boundaryId = mgr?.id;
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	const message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) {
-		if (mgr) {
-			instance.registerLoader(mgr.id, mgr.loader);
-			return \`\`;
-		}
-		return \`\`;
-	}
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) return \`\`;
+	} else return \`\`;
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;

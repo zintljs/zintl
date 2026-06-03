@@ -65,7 +65,7 @@ describe("Flow: Client-Side SPA", () => {
 
     // Verify loading the virtual module
     const loaded = await ctx.plugin.load(resolved);
-    expect(loaded).toContain("export default {");
+    expect(loaded).toContain("export default");
     ctx.matchers.toRegisterMessage(loaded, "Welcome", "Welcome");
   });
 });

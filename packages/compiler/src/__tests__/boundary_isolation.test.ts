@@ -108,6 +108,5 @@ describe("Zintl Compiler: Boundary Isolation", () => {
 
     // The manager should contain the @vite-ignore comment for dynamic imports
     expect(mod.code).toContain("/* @vite-ignore */");
-    // expect(mod.code).toContain("?t=");
   });
 });
