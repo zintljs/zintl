@@ -28,7 +28,7 @@ The `handleHotUpdate` hook in the Vite plugin receives the changed file and quer
 
 1. **Direct Invalidation**: The changed source module itself is invalidated by Vite.
 2. **Affected Chunks**: The compiler returns a list of virtual IDs (e.g., `virtual:zintl/content/...`, `virtual:zintl/manager/...`) that are impacted by the change.
-3. **Entry Point Cascading**: Crucially, the compiler identifies all **Entry Points** (e.g., `main.ts`) that depend on the changed boundary. These are added to the invalidation set to force a re-registration of translation loaders.
+3. **Entry Point Cascading**: Crucially, the compiler identifies all **Entry Points** (e.g., `main.ts`) that depend on the changed boundary. Because shared or lazy component boundaries are isolated into their own shared/lazy chunks, their boundaries won't match direct entry chunk boundaries. The compiler solves this by mapping the boundary ID back to its physical file path/ID and traversing the `BoundaryGraph` via reachability checks to trace back to all importing entry points, ensuring their virtual managers are invalidated.
 4. **Timestamp Propagation**: The Vite plugin sets the current HMR `timestamp` on all invalidated modules' `lastHMRTimestamp` property, forcing Vite's `importAnalysis` to rewrite module imports with updated timestamp query parameters (`?t=...`).
 
 ---
@@ -110,6 +110,7 @@ Static assets participate in a specialized HMR track.
 - **Missing Update**: Check if the file is correctly categorized (Anchor, Marker, Sink). If a file has no Zintl symbols, it is a Vassal and its updates bubble to the nearest parent Kingdom.
 - **Flicker**: Ensure `import.meta.hot.accept()` is correctly present in the generated manager code.
 - **Blank/Empty Rendering on First HMR Update**: Check if the translation resolver (`_t`) returns an empty string fallback before a newly registered synchronous loader updates the catalogs. Ensure that `_t` immediately re-evaluates the catalog lookup right after executing `registerLoader` to recover the resolved message on the first render tick.
+- **Shared/Lazy Component HMR Invalidation Failures**: If a component template update propagates to the browser but the browser shows old or empty text, verify that `getAffectedChunks` translates the boundary ID to its physical file path before testing graph reachability. Otherwise, Vite won't detect dependencies and the virtual manager won't invalidate.
 
 ---
 

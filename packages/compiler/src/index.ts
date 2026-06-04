@@ -390,6 +390,22 @@ export class ZintlCompiler {
     return foundBoundaryIds;
   }
 
+  private isReachable(fromId: string, toId: string, visited = new Set<string>()): boolean {
+    if (fromId === toId) return true;
+    if (visited.has(fromId)) return false;
+    visited.add(fromId);
+
+    const node = this.graph.boundaryGraph?.nodes.get(fromId);
+    if (!node) return false;
+
+    for (const dep of node.deps) {
+      if (this.isReachable(dep.id, toId, visited)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public getAffectedChunks(boundaryId: string): string[] {
     const affected = new Set<string>();
     if (!this.graph.chunkGraph) return [];
@@ -399,6 +415,29 @@ export class ZintlCompiler {
         if (chunk.type === "entry") {
           const splitIdx = id.indexOf("_");
           affected.add(`${id.substring(0, splitIdx)}:${id.substring(splitIdx + 1)}`);
+        }
+      }
+    }
+
+    if (this.isDev && this.graph.boundaryGraph) {
+      let targetFileId = boundaryId;
+      let node = this.graph.boundaryGraph.nodes.get(boundaryId);
+      if (!node) {
+        for (const [nid, n] of this.graph.boundaryGraph.nodes.entries()) {
+          if (this.io.getSafeBoundaryId(nid) === boundaryId) {
+            node = n;
+            break;
+          }
+        }
+      }
+      if (node && node.filePath) {
+        targetFileId = node.filePath;
+      }
+      const entryPoints = this.graph.boundaryGraph.entries;
+      for (const entryId of entryPoints) {
+        if (this.isReachable(entryId, targetFileId)) {
+          const safeEntryId = this.io.getSafeBoundaryId(entryId);
+          affected.add(`entry:${safeEntryId}`);
         }
       }
     }

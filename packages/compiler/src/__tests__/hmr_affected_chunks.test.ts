@@ -77,4 +77,35 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
     expect(affected).toContain("entry:b_src_shared_getMsg");
     expect(affected).toContain(`boundary:${safeSharedId}`);
   });
+
+  it("should return the entry point manager for non-entry components that contain translations", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    await writeFile(
+      join(root, "src/main.ts"),
+      'import { zintl } from "zintl"; import "./Component.vue"; zintl();',
+    );
+    await writeFile(
+      join(root, "src/Component.vue"),
+      "<template><div>translate me</div></template>",
+    );
+
+    await compiler.transform(
+      await readFile(join(root, "src/main.ts"), "utf-8"),
+      join(root, "src/main.ts"),
+    );
+    await compiler.transform(
+      await readFile(join(root, "src/Component.vue"), "utf-8"),
+      join(root, "src/Component.vue"),
+    );
+
+    await compiler.discover();
+    await compiler.syncGraphs(true);
+
+    const componentBoundaryId = "b_src_Component_vue";
+    const mainEntrySafeId = compiler.getSafeBoundaryId("src/main.ts");
+
+    const affected = compiler.getAffectedChunks(componentBoundaryId);
+    expect(affected).toContain(`entry:${mainEntrySafeId}`);
+  });
 });
