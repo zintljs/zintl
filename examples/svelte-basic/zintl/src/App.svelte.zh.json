@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/src/App.svelte.schema.json",
+  "Connect with us": "与我们联系",
+  "Documentation": "文档",
+  "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "编辑 <code>src/App.svelte</code> 并保存以测试 <code>HMR</code>",
+  "Explore Vite": "探索 Vite",
+  "Get started": "开始",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "Svelte logo": "Svelte 图标",
+  "Vite logo": "Vite 图标",
+  "Your questions, answered": "您的问题已解答"
+}

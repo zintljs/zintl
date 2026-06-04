@@ -90,6 +90,7 @@ export class ZintlCompiler {
 
   private hashCache: Record<string, any> = {};
   private observationCache: Record<string, any> = {};
+  private readonly boundaryRevisions = new Map<string, number>();
   private rebuildPromise: Promise<void> | null = null;
   private flushPromise: Promise<void> | null = null;
   private autoFlushTimeout: NodeJS.Timeout | null = null;
@@ -383,6 +384,7 @@ export class ZintlCompiler {
 
     for (const bId of foundBoundaryIds) {
       delete this.catalog.getCache()[bId];
+      this.boundaryRevisions.set(bId, (this.boundaryRevisions.get(bId) || 0) + 1);
     }
     if (foundBoundaryIds.length === 0 && filePath.endsWith(".json")) {
       this.catalog.setCache({});
@@ -1347,8 +1349,41 @@ export class ZintlCompiler {
       }
     }
 
-    if (this.isDev && this.messages.metadataGraph[fileId].anchorSites.length > 0) {
-      finalCode += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+    if (this.isDev) {
+      if (this.messages.metadataGraph[fileId].anchorSites.length > 0) {
+        const hmrCode = `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+        const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+        if (scriptCloseIdx !== -1) {
+          finalCode =
+            finalCode.substring(0, scriptCloseIdx) +
+            hmrCode +
+            "\n" +
+            finalCode.substring(scriptCloseIdx);
+        } else {
+          finalCode += hmrCode;
+        }
+      }
+
+      let hmrToken = 0;
+      const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
+      if (fileBoundaries) {
+        for (const bId of fileBoundaries) {
+          hmrToken += this.boundaryRevisions.get(bId) || 0;
+        }
+      }
+      if (hmrToken > 0) {
+        const tokenCode = `\n\n// Zintl HMR Token: ${hmrToken}`;
+        const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+        if (scriptCloseIdx !== -1) {
+          finalCode =
+            finalCode.substring(0, scriptCloseIdx) +
+            tokenCode +
+            "\n" +
+            finalCode.substring(scriptCloseIdx);
+        } else {
+          finalCode += tokenCode;
+        }
+      }
     }
 
     return finalCode !== code ? { code: finalCode, map: result.map } : undefined;

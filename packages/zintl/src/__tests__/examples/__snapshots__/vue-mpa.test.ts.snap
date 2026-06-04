@@ -414,6 +414,13 @@ const handleSwitch = async (lang: string) => {
   await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_about_bootstrap"]: _zintl_mgr_b_src_about_bootstrap.loader } }));
   emit("switch", lang);
 };
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/components/LocaleSwitcher.vue");
+  });
+}
 </script>
 
 <template>
@@ -436,14 +443,7 @@ const handleSwitch = async (lang: string) => {
     </div>
   </section>
   <div class="ticks"></div>
-</template>
-
-
-if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/components/LocaleSwitcher.vue");
-  });
-}"
+</template>"
 `;
 
 exports[`Example Proof: vue-mpa > should match Development snapshots > vue-mpa/dev-transforms/src/env.d.ts 1`] = `

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Explore Vite": {
+      "type": "string"
+    },
+    "Get started": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "Svelte logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Connect with us",
+    "Documentation",
+    "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>",
+    "Explore Vite",
+    "Get started",
+    "Join the Vite community",
+    "Learn more",
+    "Svelte logo",
+    "Vite logo",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

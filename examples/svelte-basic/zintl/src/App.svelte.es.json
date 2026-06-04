@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/src/App.svelte.schema.json",
+  "Connect with us": "Conéctate con nosotros",
+  "Documentation": "Documentación",
+  "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "Edite <code>src/App.svelte</code> y guarde para probar <code>HMR</code>",
+  "Explore Vite": "Explorar Vite",
+  "Get started": "Comenzar",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Learn more": "Aprender más",
+  "Svelte logo": "Logo de Svelte",
+  "Vite logo": "Logo de Vite",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}
