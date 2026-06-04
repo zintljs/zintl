@@ -142,4 +142,86 @@ describe("Catalog HMR Integration", () => {
     expect(returnedIds).toContain("/src/main.ts");
     expect(returnedIds).toContain("virtual:zintl/content/ar/entry:b_src_main");
   });
+
+  it("should invalidate the nested entry manager in a React-like bootstrap setup when a component catalog is updated", async () => {
+    const { root, plugin } = ctx;
+    const compiler = (plugin as any).__compiler;
+
+    // 1. Setup src/main.tsx with bootstrap zintl call, and src/App.tsx with text
+    const mainCode = `
+      import { zintl } from "zintl";
+      import { App } from "./App";
+      async function bootstrap() {
+        await zintl("en");
+        console.log(App);
+      }
+      bootstrap();
+    `;
+    const appCode = `
+      import { t } from "zintl";
+      export function App() {
+        return <div>{t("Hello World")}</div>;
+      }
+    `;
+
+    await ctx.setupFile("src/main.tsx", mainCode);
+    await ctx.setupFile("src/App.tsx", appCode);
+
+    await compiler.discover();
+    const mainPath = join(root, "src/main.tsx");
+    const appPath = join(root, "src/App.tsx");
+
+    await compiler.transform(mainCode, mainPath);
+    await compiler.transform(appCode, appPath);
+    await compiler.flush();
+    compiler.io.writingFiles.clear();
+
+    const catalogPath = compiler.catalog.getCatalogPath("src/App:App", "ar");
+    expect(await compiler.io.exists(catalogPath)).toBe(true);
+
+    // 2. Setup mock module graph
+    const mockAppMod = { id: "/src/App.tsx", file: appPath };
+    const mockManagerMod = {
+      id: "virtual:zintl/manager/none/entry:b_src_main_bootstrap",
+      file: null,
+    };
+    const mockContentMod = {
+      id: "virtual:zintl/content/ar/entry:b_src_main_bootstrap",
+      file: null,
+    };
+
+    const moduleMap = new Map<string, any>([
+      ["/src/App.tsx", mockAppMod],
+      ["virtual:zintl/manager/none/entry:b_src_main_bootstrap", mockManagerMod],
+      ["virtual:zintl/content/ar/entry:b_src_main_bootstrap", mockContentMod],
+    ]);
+
+    const mockServer = {
+      config: { root },
+      moduleGraph: {
+        idToModuleMap: moduleMap,
+        getModuleById: vi.fn(),
+        invalidateModule: vi.fn(),
+      },
+      ws: { send: vi.fn() },
+    };
+
+    // 3. Trigger HMR on catalog update of App
+    let result: any[] = [];
+    if (plugin.handleHotUpdate) {
+      result = (await plugin.handleHotUpdate({
+        file: catalogPath,
+        timestamp: Date.now(),
+        modules: [],
+        read: () => "",
+        server: mockServer as any,
+      })) as any[];
+    }
+
+    const returnedIds = result.map((m) => m.id);
+    expect(returnedIds).toContain("virtual:zintl/manager/none/entry:b_src_main_bootstrap");
+    expect(returnedIds).toContain("virtual:zintl/content/ar/entry:b_src_main_bootstrap");
+    expect(mockServer.moduleGraph.invalidateModule).toHaveBeenCalledWith(mockManagerMod);
+    expect(mockServer.moduleGraph.invalidateModule).toHaveBeenCalledWith(mockContentMod);
+  });
 });

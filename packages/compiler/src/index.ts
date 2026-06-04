@@ -398,6 +398,8 @@ export class ZintlCompiler {
     const node = this.graph.boundaryGraph?.nodes.get(fromId);
     if (!node) return false;
 
+    if (node.filePath === toId) return true;
+
     for (const dep of node.deps) {
       if (this.isReachable(dep.id, toId, visited)) {
         return true;

@@ -91,6 +91,18 @@ Triggered when:
 **Mechanism**:
 Since browser-based HMR cannot execute HMR updates for modules not imported in the client graph, server-only updates are untracked by the browser. To resolve this, Zintl tracks SSR vs client transformations. If an update affects a boundary in `ssrBoundaries` but not `clientBoundaries`, Zintl sends a `{ type: 'full-reload', path: '*' }` WebSocket message to the browser, prompting a full page refresh to fetch the newly server-rendered HTML.
 
+### §4.4 — Synchronous HMR Catalog Injection (Framework Agnostic HMR)
+
+Zintl supports instant, framework-agnostic HMR updates without requiring components to subscribe to store notifications.
+
+**Mechanism**:
+
+1. When a source component or catalog JSON file is updated, Vite invalidates the component file, the entry manager, and the affected virtual content modules (`virtual:zintl/content/...`).
+2. Vite's HMR client fetches and executes the updated virtual content module in the browser.
+3. The content module's evaluation code synchronously invokes `globalThis.__zintl_active.addCatalogs({ [locale]: catalog })`, updating the active store immediately.
+4. Because module evaluation completes _before_ Vite executes HMR updates inside the components (e.g. React Fast Refresh or Vue SFC updates), the Zintl store is already fully hydrated with the new translations by the time the component re-renders.
+5. Consequently, the translation resolver `_t` retrieves the updated translations on the very first render tick.
+
 ---
 
 ## §5 — Asset HMR ($AS$)
@@ -110,7 +122,7 @@ Static assets participate in a specialized HMR track.
 - **Missing Update**: Check if the file is correctly categorized (Anchor, Marker, Sink). If a file has no Zintl symbols, it is a Vassal and its updates bubble to the nearest parent Kingdom.
 - **Flicker**: Ensure `import.meta.hot.accept()` is correctly present in the generated manager code.
 - **Blank/Empty Rendering on First HMR Update**: Check if the translation resolver (`_t`) returns an empty string fallback before a newly registered synchronous loader updates the catalogs. Ensure that `_t` immediately re-evaluates the catalog lookup right after executing `registerLoader` to recover the resolved message on the first render tick.
-- **Shared/Lazy Component HMR Invalidation Failures**: If a component template update propagates to the browser but the browser shows old or empty text, verify that `getAffectedChunks` translates the boundary ID to its physical file path before testing graph reachability. Otherwise, Vite won't detect dependencies and the virtual manager won't invalidate.
+- **Shared/Lazy Component HMR Invalidation Failures / Nested Anchor Invalidation**: If component or catalog updates do not trigger manager invalidation, verify the boundary graph reachability traversal (`isReachable`). Reachability checking must support mapping boundary IDs back to file paths and matching them correctly, ensuring that nested entry anchors (like `bootstrap()` functions) propagate HMR invalidations from dependencies back to their virtual manager modules.
 
 ---
 
