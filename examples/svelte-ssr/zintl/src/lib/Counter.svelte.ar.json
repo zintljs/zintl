@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/lib/Counter.svelte.schema.json",
+  "Count is {count}": "العدد هو {count}"
+}

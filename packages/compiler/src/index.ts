@@ -1118,14 +1118,22 @@ export class ZintlCompiler {
       for (const bId of trackedBoundaries) {
         this.messages.internalManifest[bId] = messagesByBoundary[bId] || [];
       }
+    }
 
-      if (!onlyExtract) {
-        for (const bId of trackedBoundaries) {
-          if (ssr) {
-            this.ssrBoundaries.add(bId);
-          } else {
-            this.clientBoundaries.add(bId);
-          }
+    if (!onlyExtract && observation) {
+      const bIds = new Set<string>();
+      observation.sinks.forEach((s: any) => bIds.add(s.boundaryId || fileId));
+      observation.manualTranslations.forEach((m: any) => bIds.add(m.boundaryId || fileId));
+      observation.anchors.forEach((a: any) => bIds.add(a.boundaryId));
+      const meta = this.messages.metadataGraph[fileId];
+      if (meta && (meta.isEntry || meta.htmlProjection)) {
+        bIds.add(fileId);
+      }
+      for (const bId of bIds) {
+        if (ssr) {
+          this.ssrBoundaries.add(bId);
+        } else {
+          this.clientBoundaries.add(bId);
         }
       }
     }

@@ -1,0 +1,43 @@
+<script lang="ts">
+  interface Props {
+    lang: string;
+  }
+
+  let { lang }: Props = $props();
+
+  const locales = [
+    { id: "en", name: "English" },
+    { id: "ar", name: "العربية" },
+    { id: "es", name: "Español" },
+    { id: "zh", name: "中文" },
+  ];
+
+  const handleSwitch = async (targetLang: string) => {
+    const url = new URL(window.location.href);
+    const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
+    url.pathname = `/${targetLang}${path === "/" ? "/" : path}`;
+    window.history.pushState({}, "", url.pathname + url.search);
+    location.reload();
+  };
+</script>
+
+<!-- @zintl-ignore -->
+<section id="header">
+  <div id="switcher" class="switcher">
+    {#each locales as l}
+      <button
+        class={lang === l.id ? "active" : ""}
+        onclick={() => handleSwitch(l.id)}
+      >
+        {l.name}
+      </button>
+    {/each}
+  </div>
+  <div class="vertical-ticks"></div>
+  <div class="icon-border">
+    <svg class="icon" role="img" aria-hidden="true">
+      <use href="/icons.svg#translate-icon"></use>
+    </svg>
+  </div>
+</section>
+<div class="ticks"></div>
