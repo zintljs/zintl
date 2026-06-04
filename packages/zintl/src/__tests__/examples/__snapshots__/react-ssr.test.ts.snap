@@ -1,49 +1,31 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/index.html 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/index.html 1`] = `
 "<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>react-basic</title>
-  <!--zintl-bootstrap-->
-    <script id="zintl-projection">
-      (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
-        const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
-        function apply(locale) {
-          if (document.documentElement.lang === locale) return;
-          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
-          document.documentElement.lang = locale;
-        }
-        window.__zintlApplyHtml = apply;
-        if (l !== 'en') {
-          apply(l);
-        }
-      })();
-    </script>
+    <title>react-ssr</title>
+    <!--app-head-->
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
   </body>
 </html>"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/src/App.tsx 1`] = `
-"import { _t } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/App.tsx 1`] = `
+"import { _t, getLocale } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
+
 
 const locales = [
   { id: "en", name: "English" },
@@ -52,24 +34,26 @@ const locales = [
   { id: "zh", name: "中文" },
 ];
 
-interface AppProps {
-  lang: string;
-  onSwitch: (newLang: string) => void;
-}
+function LocaleSwitcher() {
+  const locale = getLocale() || "en";
 
-function App({ lang, onSwitch }: AppProps) {
-  const [count, setCount] = useState(0);
+  const handleSwitch = (lang: string) => {
+    const url = new URL(window.location.href);
+    const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+    url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+    window.history.pushState({}, "", url.pathname + url.search);
+    location.reload();
+  };
 
   return (
-    <div key={lang} style={{ display: "contents" }}>
-      {/* @zintl-ignore */}
+    <>
       <section id="header">
         <div id="switcher" className="switcher">
           {locales.map((l) => (
             <button
               key={l.id}
-              className={lang === l.id ? "active" : ""}
-              onClick={() => onSwitch(l.id)}
+              className={locale === l.id ? "active" : ""}
+              onClick={() => handleSwitch(l.id)}
             >
               {l.name}
             </button>
@@ -82,20 +66,28 @@ function App({ lang, onSwitch }: AppProps) {
           </svg>
         </div>
       </section>
-
       <div className="ticks"></div>
+    </>
+  );
+}
 
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <LocaleSwitcher />
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt={_t("React logo", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })} />
-          <img src={viteLogo} className="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })} />
+          <img src={reactLogo} className="framework" alt={_t("React logo", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })} />
+          <img src={viteLogo} className="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })} />
         </div>
         <div>
-          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</h1>
-          <p>{<span dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
+          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h1>
+          <p>{<span dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
         </div>
-        <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</button>
+        <button className="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</button>
       </section>
 
       <div className="ticks"></div>
@@ -105,14 +97,14 @@ function App({ lang, onSwitch }: AppProps) {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</h2>
-          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</p>
+          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h2>
+          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
           </ul>
         </div>
@@ -120,8 +112,8 @@ function App({ lang, onSwitch }: AppProps) {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#social-icon"></use>
           </svg>
-          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</h2>
-          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</p>
+          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h2>
+          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</p>
           {/* @zintl-ignore */}
           <ul>
             <li>
@@ -162,63 +154,68 @@ function App({ lang, onSwitch }: AppProps) {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </div>
+    </>
   );
 }
 
 export default App;"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/src/main.tsx 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/entry-client.tsx 1`] = `
 "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
 import "./index.css";
-import App from "./App.tsx";
-import { useState } from "react";
+import { StrictMode } from "react";
+import { hydrateRoot } from "react-dom/client";
+import App from "./App";
 
-
-function Main() {
-  const [lang, setLang] = useState(() => {
-    return new URLSearchParams(window.location.search).get("lang") || "en";
-  });
-
-  const handleSwitch = async (newLang: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", newLang);
-    window.history.pushState({}, "", url);
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
-    setLang(newLang);
-  };
-
-  return <App lang={lang} onSwitch={handleSwitch} />;
-}
 
 async function bootstrap() {
-  // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
-  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-
-  // 2. Await Zintl catalog loading and hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
-  // 3. Render the React tree only when translations are ready
-  createRoot(document.getElementById("root")!).render(
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_bootstrap"]: _zintl_mgr_b_src_entry_client_bootstrap.loader } }));
+  hydrateRoot(
+    document.getElementById("root") as HTMLElement,
     <StrictMode>
-      <Main />
+      <App />
     </StrictMode>,
   );
 }
-void bootstrap(); // touch to trigger re-transform
+void bootstrap();
 
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/main");
+    console.debug("[Zintl] HMR update accepted for: src/entry-client");
   });
 }"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_main_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/entry-server.tsx 1`] = `
+"import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import { StrictMode } from "react";
+import { renderToString } from "react-dom/server";
+import App from "./App";
+
+
+export async function render(_url: string) {
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_bootstrap"]: _zintl_mgr_b_src_entry_client_bootstrap.loader } }));
+  const html = renderToString(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+  return { html };
+}
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/entry-server");
+  });
+}"
+`;
+
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_client_bootstrap 1`] = `
 "const catalog = {
     "b_src_App_App": {
       "React logo": "شعار رياكت",
@@ -244,16 +241,16 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_main_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_client_bootstrap 1`] = `
 "const catalog = {
     "b_src_App_App": {
-      "React logo": "Logotipo de React",
-      "Vite logo": "Logotipo de Vite",
-      "Get started": "Empezar",
-      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+      "React logo": "Logo de React",
+      "Vite logo": "Logo de Vite",
+      "Get started": "Comenzar",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edite <code>src/App.tsx</code> y guarde para probar <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
-    return \`El recuento es \${params['count']}\`;
+    return \`El valor es \${params['count']}\`;
   },
       "Documentation": "Documentación",
       "Your questions, answered": "Tus preguntas, respondidas",
@@ -270,7 +267,7 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_main_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_client_bootstrap 1`] = `
 "const catalog = {
     "b_src_App_App": {
       "React logo": "React 图标",
@@ -282,7 +279,7 @@ exports[`Example Proof: react-basic > should match Development snapshots > react
     return \`计数为 \${params['count']}\`;
   },
       "Documentation": "文档",
-      "Your questions, answered": "您的问题，已有解答",
+      "Your questions, answered": "您的问题已解答",
       "<img/> Explore Vite": "<img/> 探索 Vite",
       "<img/> Learn more": "<img/> 了解更多",
       "Connect with us": "与我们联系",
@@ -296,9 +293,9 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_main_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap 1`] = `
 "export default (() => {
-  const manager = { id: "b_src_main_bootstrap", loader: (locale) => {
+  const manager = { id: "b_src_entry_client_bootstrap", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
@@ -320,11 +317,11 @@ exports[`Example Proof: react-basic > should match Development snapshots > react
     },
   };
                 case "ar":
-          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_entry_client_bootstrap").then(m => m.default);
         case "es":
-          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_entry_client_bootstrap").then(m => m.default);
         case "zh":
-          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_main_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_entry_client_bootstrap").then(m => m.default);
         default: return {};
       }
     } };
@@ -342,7 +339,7 @@ if (import.meta.hot) {
 }"
 `;
 
-exports[`Example Proof: react-basic > should match Development snapshots > react-basic/dev-transforms/virtual:zintl/runtime/internal 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/runtime/internal 1`] = `
 "//#region src/runtime/store.ts
 let storeStorage = null;
 if (typeof window === "undefined" && typeof process !== "undefined") try {
@@ -625,76 +622,1332 @@ async function loadI18nInstance(config = {}) {
 export { _t, _t as t, addCatalogs, getLocale, loadI18nInstance, registerLoader, registerZintlLoader, runInRequestScope, setLocale, subscribe, unregisterLoader as unregisterZintlLoader, zintl };"
 `;
 
-exports[`Example Proof: react-basic > should match Final Production Build (dist) snapshots > react-basic/dist/assets/entry_b_aafcf9c6fe16.js 1`] = `
-"//#region \\0virtual:zintl/content/ar/entry:b_aafcf9c6fe16
-var catalog = { "b_4a89874656dd": {
-	"c41e657d": "شعار رياكت",
-	"3473a536": "شعار فيت",
-	"90e40d50": "البدء",
-	"9fd2f187": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`العدد هو \${params["count"]}\`;
-	},
-	"9e9cf322": "التوثيق",
-	"d0f7666b": "تمت الإجابة على أسئلتك",
-	"924cea3c": "<img/> استكشف فيت",
-	"8cc85295": "<img/> تعلم المزيد",
-	"65ac13a7": "تواصل معنا",
-	"15545bc4": "انضم إلى مجتمع فيت"
-} };
-//#endregion
-export { catalog as default };
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/ar/index.html 1`] = `
+"<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>react-ssr</title>
+    <!--app-head-->
+    <script type="module" crossorigin src="/assets/ar/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-dev-runtime.js">
+    <link rel="stylesheet" crossorigin href="/assets/jsx-dev-runtime-isocXI4e.css">
+  </head>
+  <body>
+    <div id="root"><!--app-html--></div>
+  </body>
+</html>
 "
 `;
 
-exports[`Example Proof: react-basic > should match Final Production Build (dist) snapshots > react-basic/dist/assets/entry_b_aafcf9c6fe162.js 1`] = `
-"//#region \\0virtual:zintl/content/es/entry:b_aafcf9c6fe16
-var catalog = { "b_4a89874656dd": {
-	"c41e657d": "Logotipo de React",
-	"3473a536": "Logotipo de Vite",
-	"90e40d50": "Empezar",
-	"9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`El recuento es \${params["count"]}\`;
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/assets/ar/index.js 1`] = `
+"import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+//#region examples/react-ssr/src/App.tsx?zintl-multiplex=ar
+var import_client = require_client();
+var import_react = require_react();
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx?zintl-multiplex=ar";
+var locales = [
+	{
+		id: "en",
+		name: "English"
 	},
-	"9e9cf322": "Documentación",
-	"d0f7666b": "Tus preguntas, respondidas",
-	"924cea3c": "<img/> Explorar Vite",
-	"8cc85295": "<img/> Aprender más",
-	"65ac13a7": "Conéctate con nosotros",
-	"15545bc4": "Únete a la comunidad de Vite"
-} };
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 32,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 30,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 41,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 44,
+						columnNumber: 13
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 43,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 42,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 48,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 28,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = (0, import_react.useState)(0);
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 58,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+					className: "hero",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 61,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: react_default,
+							className: "framework",
+							alt: "شعار رياكت"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: vite_default,
+							className: "vite",
+							alt: "شعار فيت"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 63,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 60,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "البدء" }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>\` } }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 65,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: \`العدد هو \${count}\`
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 69,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 72,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 77,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 76,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "التوثيق" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 79,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "تمت الإجابة على أسئلتك" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="logo" src="\${vite_default}" alt="" /> استكشف فيت\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 83,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="button-icon" src="\${react_default}" alt="" /> تعلم المزيد\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 86,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 85,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 75,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 92,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 91,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "تواصل معنا" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 94,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "انضم إلى مجتمع فيت" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 101,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 100,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 98,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 109,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 108,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 106,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 117,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 116,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 114,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 125,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 124,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 122,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 97,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 90,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 74,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 134,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 57,
+		columnNumber: 5
+	}, this);
+}
 //#endregion
-export { catalog as default };
+//#region examples/react-ssr/src/entry-client.tsx?zintl-multiplex=ar
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-client.tsx?zintl-multiplex=ar";
+async function bootstrap() {
+	(0, import_client.hydrateRoot)(document.getElementById("root"), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 12,
+		columnNumber: 7
+	}, this) }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 5
+	}, this));
+}
+bootstrap();
+//#endregion
 "
 `;
 
-exports[`Example Proof: react-basic > should match Final Production Build (dist) snapshots > react-basic/dist/assets/entry_b_aafcf9c6fe163.js 1`] = `
-"//#region \\0virtual:zintl/content/zh/entry:b_aafcf9c6fe16
-var catalog = { "b_4a89874656dd": {
-	"c41e657d": "React 图标",
-	"3473a536": "Vite 图标",
-	"90e40d50": "开始",
-	"9fd2f187": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`计数为 \${params["count"]}\`;
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/assets/en/index.js 1`] = `
+"import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+//#region examples/react-ssr/src/App.tsx?zintl-multiplex=en
+var import_client = require_client();
+var import_react = require_react();
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx?zintl-multiplex=en";
+var locales = [
+	{
+		id: "en",
+		name: "English"
 	},
-	"9e9cf322": "文档",
-	"d0f7666b": "您的问题，已有解答",
-	"924cea3c": "<img/> 探索 Vite",
-	"8cc85295": "<img/> 了解更多",
-	"65ac13a7": "与我们联系",
-	"15545bc4": "加入 Vite 社区"
-} };
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 32,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 30,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 41,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 44,
+						columnNumber: 13
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 43,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 42,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 48,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 28,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = (0, import_react.useState)(0);
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 58,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+					className: "hero",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 61,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: react_default,
+							className: "framework",
+							alt: "React logo"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: vite_default,
+							className: "vite",
+							alt: "Vite logo"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 63,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 60,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "Get started" }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`Edit <code>src/App.tsx</code> and save to test <code>HMR</code>\` } }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 65,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: \`Count is \${count}\`
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 69,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 72,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 77,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 76,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Documentation" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 79,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Your questions, answered" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="logo" src="\${vite_default}" alt="" /> Explore Vite\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 83,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="button-icon" src="\${react_default}" alt="" /> Learn more\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 86,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 85,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 75,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 92,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 91,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Connect with us" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 94,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Join the Vite community" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 101,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 100,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 98,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 109,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 108,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 106,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 117,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 116,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 114,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 125,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 124,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 122,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 97,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 90,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 74,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 134,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 57,
+		columnNumber: 5
+	}, this);
+}
 //#endregion
-export { catalog as default };
+//#region examples/react-ssr/src/entry-client.tsx?zintl-multiplex=en
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-client.tsx?zintl-multiplex=en";
+async function bootstrap() {
+	(0, import_client.hydrateRoot)(document.getElementById("root"), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 12,
+		columnNumber: 7
+	}, this) }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 5
+	}, this));
+}
+bootstrap();
+//#endregion
 "
 `;
 
-exports[`Example Proof: react-basic > should match Final Production Build (dist) snapshots > react-basic/dist/assets/index.js 1`] = `
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/assets/es/index.js 1`] = `
+"import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+//#region examples/react-ssr/src/App.tsx?zintl-multiplex=es
+var import_client = require_client();
+var import_react = require_react();
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx?zintl-multiplex=es";
+var locales = [
+	{
+		id: "en",
+		name: "English"
+	},
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 32,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 30,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 41,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 44,
+						columnNumber: 13
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 43,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 42,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 48,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 28,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = (0, import_react.useState)(0);
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 58,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+					className: "hero",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 61,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: react_default,
+							className: "framework",
+							alt: "Logo de React"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: vite_default,
+							className: "vite",
+							alt: "Logo de Vite"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 63,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 60,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "Comenzar" }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`Edite <code>src/App.tsx</code> y guarde para probar <code>HMR</code>\` } }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 65,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: \`El valor es \${count}\`
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 69,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 72,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 77,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 76,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Documentación" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 79,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Tus preguntas, respondidas" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="logo" src="\${vite_default}" alt="" /> Explorar Vite\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 83,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="button-icon" src="\${react_default}" alt="" /> Aprender más\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 86,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 85,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 75,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 92,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 91,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Conéctate con nosotros" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 94,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Únete a la comunidad de Vite" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 101,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 100,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 98,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 109,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 108,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 106,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 117,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 116,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 114,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 125,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 124,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 122,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 97,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 90,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 74,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 134,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 57,
+		columnNumber: 5
+	}, this);
+}
+//#endregion
+//#region examples/react-ssr/src/entry-client.tsx?zintl-multiplex=es
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-client.tsx?zintl-multiplex=es";
+async function bootstrap() {
+	(0, import_client.hydrateRoot)(document.getElementById("root"), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 12,
+		columnNumber: 7
+	}, this) }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 5
+	}, this));
+}
+bootstrap();
+//#endregion
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/assets/jsx-dev-runtime.js 1`] = `
 "//#region \\0rolldown/runtime.js
 var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 //#endregion
@@ -728,283 +1981,6 @@ var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).expor
 		fetch(link.href, fetchOpts);
 	}
 })();
-//#endregion
-//#region \\0virtual:zintl/runtime/internal
-var I18nStore = class {
-	locale = "";
-	catalogs = {};
-	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
-	pendingBoundaries = /* @__PURE__ */ new Set();
-	listeners = /* @__PURE__ */ new Set();
-	constructor() {
-		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
-		if (!this.locale && typeof window !== "undefined") try {
-			this.locale = localStorage.getItem("zintl-locale") || "";
-		} catch {}
-		if (!this.locale);
-	}
-	subscribe(listener) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-	notify() {
-		this.listeners.forEach((l) => l());
-	}
-	addCatalogs(newCatalogs) {
-		let changed = false;
-		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
-			if (!this.catalogs[locale]) this.catalogs[locale] = {};
-			for (const [boundaryId, messages] of Object.entries(boundaries)) {
-				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
-				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
-					this.catalogs[locale][boundaryId][key] = value;
-					changed = true;
-				}
-			}
-		}
-		if (changed) this.notify();
-	}
-	async setLocale(locale) {
-		if (!locale) return;
-		if (typeof window !== "undefined") {
-			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-			try {
-				localStorage.setItem("zintl-locale", locale);
-			} catch {}
-		}
-		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
-		this.locale = locale;
-		const activePromises = [];
-		for (const [boundaryId, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				this.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) {
-				this.pendingBoundaries.add(boundaryId);
-				activePromises.push(result.then((res) => {
-					processResult(res);
-					this.pendingBoundaries.delete(boundaryId);
-				}));
-			} else processResult(result);
-		} catch (err) {}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.notify();
-		} else this.notify();
-	}
-	registerLoader(boundaryId, loader) {
-		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
-		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-};
-var globalRegistry = /* @__PURE__ */ new Map();
-var currentInstance = new I18nStore();
-function getActiveInstance() {
-	return currentInstance;
-}
-function setActiveInstance(instance) {
-	currentInstance = instance;
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) return result.then((res) => {
-			processResult(res);
-		});
-		else processResult(result);
-	} catch (err) {}
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-function _t(key, params = {}, options) {
-	const instance = getActiveInstance();
-	const catalogs = instance.catalogs;
-	const locale = instance.locale;
-	const effectiveParams = options ? {
-		...params,
-		...options
-	} : params;
-	const mgr = effectiveParams._mgr;
-	const boundaryId = mgr?.id;
-	const targetBId = effectiveParams._bId || boundaryId;
-	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		instance.registerLoader(mgr.id, mgr.loader);
-		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-		if (message === void 0) return \`\`;
-	} else return \`\`;
-	if (typeof message === "function") return message(params);
-	if (typeof message !== "string") return "";
-	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
-	let interpolated = interpolate(message, restParams);
-	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
-	}
-	return interpolated;
-}
-function interpolate(message, params) {
-	if (message === null || message === void 0) return "";
-	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
-		return params[key]?.toString() ?? match;
-	});
-}
-/**
-* Loads and configures the i18n instance for a boundary.
-* Registers loaders and merges new catalogs into the existing state.
-*
-* INTERNAL: Targeted by the compiler after zintl() macro expansion.
-*/
-async function loadI18nInstance(config = {}) {
-	const store = new I18nStore();
-	setActiveInstance(store);
-	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-	try {
-		if (config.debug !== void 0) store.debug = config.debug;
-		if (config.locale) store.locale = config.locale;
-		if (config.catalogs) store.addCatalogs(config.catalogs);
-		const promises = [];
-		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
-			const res = registerLoader(boundaryId, loader);
-			if (res && typeof res.then === "function") promises.push(res);
-		}
-		if (config.locale) promises.push(store.setLocale(config.locale));
-		if (promises.length > 0) await Promise.all(promises);
-	} finally {}
-	return {
-		locale: store.locale,
-		get debug() {
-			return store.debug;
-		},
-		set debug(value) {
-			store.debug = value;
-		},
-		setLocale: (l) => store.setLocale(l),
-		subscribe: (cb) => store.subscribe(cb),
-		t: (key, params) => {
-			const prev = getActiveInstance();
-			setActiveInstance(store);
-			try {
-				return _t(key, params);
-			} finally {
-				setActiveInstance(prev);
-			}
-		}
-	};
-}
-//#endregion
-//#region \\0vite/preload-helper.js
-var scriptRel = "modulepreload";
-var assetsURL = function(dep) {
-	return "/" + dep;
-};
-var seen = {};
-var __vitePreload = function preload(baseModule, deps, importerUrl) {
-	let promise = Promise.resolve();
-	if (deps && deps.length > 0) {
-		const links = document.getElementsByTagName("link");
-		const cspNonceMeta = document.querySelector("meta[property=csp-nonce]");
-		const cspNonce = cspNonceMeta?.nonce || cspNonceMeta?.getAttribute("nonce");
-		function allSettled(promises) {
-			return Promise.all(promises.map((p) => Promise.resolve(p).then((value) => ({
-				status: "fulfilled",
-				value
-			}), (reason) => ({
-				status: "rejected",
-				reason
-			}))));
-		}
-		promise = allSettled(deps.map((dep) => {
-			dep = assetsURL(dep, importerUrl);
-			if (dep in seen) return;
-			seen[dep] = true;
-			const isCss = dep.endsWith(".css");
-			const cssSelector = isCss ? "[rel=\\"stylesheet\\"]" : "";
-			if (!!importerUrl) for (let i = links.length - 1; i >= 0; i--) {
-				const link = links[i];
-				if (link.href === dep && (!isCss || link.rel === "stylesheet")) return;
-			}
-			else if (document.querySelector(\`link[href="\${dep}"]\${cssSelector}\`)) return;
-			const link = document.createElement("link");
-			link.rel = isCss ? "stylesheet" : scriptRel;
-			if (!isCss) link.as = "script";
-			link.crossOrigin = "";
-			link.href = dep;
-			if (cspNonce) link.setAttribute("nonce", cspNonce);
-			document.head.appendChild(link);
-			if (isCss) return new Promise((res, rej) => {
-				link.addEventListener("load", res);
-				link.addEventListener("error", () => rej(/* @__PURE__ */ new Error(\`Unable to preload CSS for \${dep}\`)));
-			});
-		}));
-	}
-	function handlePreloadError(err) {
-		const e = new Event("vite:preloadError", { cancelable: true });
-		e.payload = err;
-		window.dispatchEvent(e);
-		if (!e.defaultPrevented) throw err;
-	}
-	return promise.then((res) => {
-		for (const item of res || []) {
-			if (item.status !== "rejected") continue;
-			handlePreloadError(item.reason);
-		}
-		return baseModule().catch(handlePreloadError);
-	});
-};
-//#endregion
-//#region \\0virtual:zintl/manager/none/entry:b_aafcf9c6fe16
-var entry_b_aafcf9c6fe16_default = {
-	id: "b_aafcf9c6fe16",
-	loader: (locale) => {
-		switch (locale) {
-			case "en": return { "b_4a89874656dd": {
-				"c41e657d": "React logo",
-				"3473a536": "Vite logo",
-				"90e40d50": "Get started",
-				"9fd2f187": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
-				"aa624128": (params) => {
-					const { count } = params;
-					return \`Count is \${params["count"]}\`;
-				},
-				"9e9cf322": "Documentation",
-				"d0f7666b": "Your questions, answered",
-				"924cea3c": "<img/> Explore Vite",
-				"8cc85295": "<img/> Learn more",
-				"65ac13a7": "Connect with us",
-				"15545bc4": "Join the Vite community"
-			} };
-			case "ar": return __vitePreload(() => import("./entry_b_aafcf9c6fe16.js").then((m) => m.default), []);
-			case "es": return __vitePreload(() => import("./entry_b_aafcf9c6fe162.js").then((m) => m.default), []);
-			case "zh": return __vitePreload(() => import("./entry_b_aafcf9c6fe163.js").then((m) => m.default), []);
-			default: return {};
-		}
-	}
-};
 //#endregion
 //#region node_modules/.pnpm/react@19.2.7/node_modules/react/cjs/react.production.js
 /**
@@ -10841,14 +11817,25 @@ var require_react_dom_client_production = /* @__PURE__ */ __commonJSMin(((export
 			rendererID = hook$jscomp$inline_2348.inject(internals$jscomp$inline_2347), injectedHook = hook$jscomp$inline_2348;
 		} catch (err) {}
 	}
-	exports.createRoot = function(container, options) {
+	exports.hydrateRoot = function(container, initialChildren, options) {
 		if (!isValidContainer(container)) throw Error(formatProdErrorMessage(299));
-		var isStrictMode = !1, identifierPrefix = "", onUncaughtError = defaultOnUncaughtError, onCaughtError = defaultOnCaughtError, onRecoverableError = defaultOnRecoverableError;
-		null !== options && void 0 !== options && (!0 === options.unstable_strictMode && (isStrictMode = !0), void 0 !== options.identifierPrefix && (identifierPrefix = options.identifierPrefix), void 0 !== options.onUncaughtError && (onUncaughtError = options.onUncaughtError), void 0 !== options.onCaughtError && (onCaughtError = options.onCaughtError), void 0 !== options.onRecoverableError && (onRecoverableError = options.onRecoverableError));
-		options = createFiberRoot(container, 1, !1, null, null, isStrictMode, identifierPrefix, null, onUncaughtError, onCaughtError, onRecoverableError, defaultOnDefaultTransitionIndicator);
-		container[internalContainerInstanceKey] = options.current;
+		var isStrictMode = !1, identifierPrefix = "", onUncaughtError = defaultOnUncaughtError, onCaughtError = defaultOnCaughtError, onRecoverableError = defaultOnRecoverableError, formState = null;
+		null !== options && void 0 !== options && (!0 === options.unstable_strictMode && (isStrictMode = !0), void 0 !== options.identifierPrefix && (identifierPrefix = options.identifierPrefix), void 0 !== options.onUncaughtError && (onUncaughtError = options.onUncaughtError), void 0 !== options.onCaughtError && (onCaughtError = options.onCaughtError), void 0 !== options.onRecoverableError && (onRecoverableError = options.onRecoverableError), void 0 !== options.formState && (formState = options.formState));
+		initialChildren = createFiberRoot(container, 1, !0, initialChildren, null != options ? options : null, isStrictMode, identifierPrefix, formState, onUncaughtError, onCaughtError, onRecoverableError, defaultOnDefaultTransitionIndicator);
+		initialChildren.context = getContextForSubtree(null);
+		options = initialChildren.current;
+		isStrictMode = requestUpdateLane();
+		isStrictMode = getBumpedLaneForHydrationByLane(isStrictMode);
+		identifierPrefix = createUpdate(isStrictMode);
+		identifierPrefix.callback = null;
+		enqueueUpdate(options, identifierPrefix, isStrictMode);
+		options = isStrictMode;
+		initialChildren.current.lanes = options;
+		markRootUpdated$1(initialChildren, options);
+		ensureRootIsScheduled(initialChildren);
+		container[internalContainerInstanceKey] = initialChildren.current;
 		listenToAllSupportedEvents(container);
-		return new ReactDOMRoot(options);
+		return new ReactDOMHydrationRoot(initialChildren);
 	};
 }));
 //#endregion
@@ -10866,17 +11853,106 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_dom_client_production();
 }));
 //#endregion
-//#region examples/react-basic/src/index.css
-var import_react = require_react();
-var import_client = require_client();
+//#region \\0virtual:zintl/runtime/internal
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	listeners = /* @__PURE__ */ new Set();
+	constructor() {
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale);
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	notify() {
+		this.listeners.forEach((l) => l());
+	}
+	addCatalogs(newCatalogs) {
+		let changed = false;
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		if (changed) this.notify();
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (typeof window !== "undefined") {
+			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+			try {
+				localStorage.setItem("zintl-locale", locale);
+			} catch {}
+		}
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {}
+		if (activePromises.length > 0) {
+			await Promise.all(activePromises);
+			this.notify();
+		} else this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		const result = loader(this.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [this.locale]: res });
+		};
+		if (isThenable(result)) {
+			this.pendingBoundaries.add(boundaryId);
+			return result.then((res) => {
+				processResult(res);
+				this.pendingBoundaries.delete(boundaryId);
+			});
+		} else processResult(result);
+	}
+};
+var globalRegistry = /* @__PURE__ */ new Map();
+var currentInstance = new I18nStore();
+function getActiveInstance() {
+	return currentInstance;
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
 //#endregion
-//#region examples/react-basic/src/assets/react.svg
+//#region examples/react-ssr/src/assets/react.svg
 var react_default = "/assets/react-CHdo91hT.svg";
 //#endregion
-//#region examples/react-basic/src/assets/vite.svg
+//#region examples/react-ssr/src/assets/vite.svg
 var vite_default = "/assets/vite-BF8QNONU.svg";
 //#endregion
-//#region examples/react-basic/src/assets/hero.png
+//#region examples/react-ssr/src/assets/hero.png
 var hero_default = "/assets/hero-CLDdwZDr.png";
 //#endregion
 //#region node_modules/.pnpm/react@19.2.7/node_modules/react/cjs/react-jsx-dev-runtime.production.js
@@ -10890,14 +11966,26 @@ var hero_default = "/assets/hero-CLDdwZDr.png";
 * LICENSE file in the root directory of this source tree.
 */
 var require_react_jsx_dev_runtime_production = /* @__PURE__ */ __commonJSMin(((exports) => {
+	exports.Fragment = Symbol.for("react.fragment");
 	exports.jsxDEV = void 0;
 }));
 //#endregion
-//#region examples/react-basic/src/App.tsx
-var import_jsx_dev_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
+//#region node_modules/.pnpm/react@19.2.7/node_modules/react/jsx-dev-runtime.js
+var require_jsx_dev_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_dev_runtime_production();
-})))();
-var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-basic/src/App.tsx";
+}));
+//#endregion
+export { getLocale as a, react_default as i, hero_default as n, require_client as o, vite_default as r, require_react as s, require_jsx_dev_runtime as t };
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/assets/zh/index.js 1`] = `
+"import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+//#region examples/react-ssr/src/App.tsx?zintl-multiplex=zh
+var import_client = require_client();
+var import_react = require_react();
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx?zintl-multiplex=zh";
 var locales = [
 	{
 		id: "en",
@@ -10916,474 +12004,408 @@ var locales = [
 		name: "中文"
 	}
 ];
-function App({ lang, onSwitch }) {
-	const [count, setCount] = (0, import_react.useState)(0);
-	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-		style: { display: "contents" },
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
-				id: "header",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-						id: "switcher",
-						className: "switcher",
-						children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
-							className: lang === l.id ? "active" : "",
-							onClick: () => onSwitch(l.id),
-							children: l.name
-						}, l.id, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 30,
-							columnNumber: 13
-						}, this))
-					}, void 0, false, {
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 32,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 30,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 41,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 28,
-						columnNumber: 9
-					}, this),
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 39,
-						columnNumber: 9
-					}, this),
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-						className: "icon-border",
-						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-							className: "icon",
-							role: "img",
-							"aria-hidden": "true",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 42,
-								columnNumber: 13
-							}, this)
-						}, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 41,
-							columnNumber: 11
-						}, this)
-					}, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 40,
-						columnNumber: 9
+						lineNumber: 44,
+						columnNumber: 13
 					}, this)
-				]
-			}, void 0, true, {
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 43,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
 				fileName: _jsxFileName$1,
-				lineNumber: 27,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
-				fileName: _jsxFileName$1,
-				lineNumber: 47,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
-				id: "center",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-						className: "hero",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
-								src: hero_default,
-								className: "base",
-								width: "170",
-								height: "179",
-								alt: ""
-							}, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 51,
-								columnNumber: 11
-							}, this),
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
-								src: react_default,
-								className: "framework",
-								alt: _t("c41e657d", {
-									_mgr: entry_b_aafcf9c6fe16_default,
-									_bId: "b_4a89874656dd"
-								})
-							}, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 52,
-								columnNumber: 11
-							}, this),
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
-								src: vite_default,
-								className: "vite",
-								alt: _t("3473a536", {
-									_mgr: entry_b_aafcf9c6fe16_default,
-									_bId: "b_4a89874656dd"
-								})
-							}, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 53,
-								columnNumber: 11
-							}, this)
-						]
-					}, void 0, true, {
-						fileName: _jsxFileName$1,
-						lineNumber: 50,
-						columnNumber: 9
-					}, this),
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: _t("90e40d50", {
-						_mgr: entry_b_aafcf9c6fe16_default,
-						_bId: "b_4a89874656dd"
-					}) }, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 56,
-						columnNumber: 11
-					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("9fd2f187", {
-						_mgr: entry_b_aafcf9c6fe16_default,
-						_bId: "b_4a89874656dd",
-						_tags: [{
-							alias: "code",
-							originalOpen: \`<code>\`,
-							tagName: "code"
-						}, {
-							alias: "code",
-							originalOpen: \`<code>\`,
-							tagName: "code"
-						}]
-					}) } }, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 57,
-						columnNumber: 15
-					}, this) }, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 57,
-						columnNumber: 11
-					}, this)] }, void 0, true, {
-						fileName: _jsxFileName$1,
-						lineNumber: 55,
-						columnNumber: 9
-					}, this),
-					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
-						type: "button",
-						className: "counter",
-						onClick: () => setCount((count) => count + 1),
-						children: _t("aa624128", { count }, {
-							_mgr: entry_b_aafcf9c6fe16_default,
-							_bId: "b_4a89874656dd"
-						})
-					}, void 0, false, {
-						fileName: _jsxFileName$1,
-						lineNumber: 59,
-						columnNumber: 9
-					}, this)
-				]
-			}, void 0, true, {
-				fileName: _jsxFileName$1,
-				lineNumber: 49,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
-				fileName: _jsxFileName$1,
-				lineNumber: 62,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
-				id: "next-steps",
-				children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-					id: "docs",
+				lineNumber: 42,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 48,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 28,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = (0, import_react.useState)(0);
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 58,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+					className: "hero",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-							className: "icon",
-							role: "presentation",
-							"aria-hidden": "true",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 67,
-								columnNumber: 13
-							}, this)
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 66,
+							lineNumber: 61,
 							columnNumber: 11
 						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: _t("9e9cf322", {
-							_mgr: entry_b_aafcf9c6fe16_default,
-							_bId: "b_4a89874656dd"
-						}) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 69,
-							columnNumber: 11
-						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: _t("d0f7666b", {
-							_mgr: entry_b_aafcf9c6fe16_default,
-							_bId: "b_4a89874656dd"
-						}) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 70,
-							columnNumber: 11
-						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-							href: "https://vite.dev/",
-							target: "_blank",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("924cea3c", {
-								_mgr: entry_b_aafcf9c6fe16_default,
-								_bId: "b_4a89874656dd",
-								_tags: [{
-									alias: "img",
-									originalOpen: \`<img class="logo" src="\${vite_default}" alt="" />\`,
-									tagName: "img"
-								}]
-							}) } }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 73,
-								columnNumber: 60
-							}, this)
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: react_default,
+							className: "framework",
+							alt: "React 图标"
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 73,
-							columnNumber: 15
-						}, this) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 72,
-							columnNumber: 13
-						}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-							href: "https://react.dev/",
-							target: "_blank",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("8cc85295", {
-								_mgr: entry_b_aafcf9c6fe16_default,
-								_bId: "b_4a89874656dd",
-								_tags: [{
-									alias: "img",
-									originalOpen: \`<img class="button-icon" src="\${react_default}" alt="" />\`,
-									tagName: "img"
-								}]
-							}) } }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 76,
-								columnNumber: 61
-							}, this)
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: vite_default,
+							className: "vite",
+							alt: "Vite 图标"
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 76,
-							columnNumber: 15
-						}, this) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 75,
-							columnNumber: 13
-						}, this)] }, void 0, true, {
-							fileName: _jsxFileName$1,
-							lineNumber: 71,
+							lineNumber: 63,
 							columnNumber: 11
 						}, this)
 					]
 				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 60,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "开始" }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>\` } }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
 					fileName: _jsxFileName$1,
 					lineNumber: 65,
 					columnNumber: 9
-				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
-					id: "social",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-							className: "icon",
-							role: "presentation",
-							"aria-hidden": "true",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 82,
-								columnNumber: 13
-							}, this)
-						}, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 81,
-							columnNumber: 11
-						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: _t("65ac13a7", {
-							_mgr: entry_b_aafcf9c6fe16_default,
-							_bId: "b_4a89874656dd"
-						}) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 84,
-							columnNumber: 11
-						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: _t("15545bc4", {
-							_mgr: entry_b_aafcf9c6fe16_default,
-							_bId: "b_4a89874656dd"
-						}) }, void 0, false, {
-							fileName: _jsxFileName$1,
-							lineNumber: 85,
-							columnNumber: 11
-						}, this),
-						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-								href: "https://github.com/vitejs/vite",
-								target: "_blank",
-								children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-									className: "button-icon",
-									role: "presentation",
-									"aria-hidden": "true",
-									children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
-										fileName: _jsxFileName$1,
-										lineNumber: 91,
-										columnNumber: 19
-									}, this)
-								}, void 0, false, {
-									fileName: _jsxFileName$1,
-									lineNumber: 90,
-									columnNumber: 17
-								}, this), "GitHub"]
-							}, void 0, true, {
-								fileName: _jsxFileName$1,
-								lineNumber: 89,
-								columnNumber: 15
-							}, this) }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 88,
-								columnNumber: 13
-							}, this),
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-								href: "https://chat.vite.dev/",
-								target: "_blank",
-								children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-									className: "button-icon",
-									role: "presentation",
-									"aria-hidden": "true",
-									children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
-										fileName: _jsxFileName$1,
-										lineNumber: 99,
-										columnNumber: 19
-									}, this)
-								}, void 0, false, {
-									fileName: _jsxFileName$1,
-									lineNumber: 98,
-									columnNumber: 17
-								}, this), "Discord"]
-							}, void 0, true, {
-								fileName: _jsxFileName$1,
-								lineNumber: 97,
-								columnNumber: 15
-							}, this) }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 96,
-								columnNumber: 13
-							}, this),
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-								href: "https://x.com/vite_js",
-								target: "_blank",
-								children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-									className: "button-icon",
-									role: "presentation",
-									"aria-hidden": "true",
-									children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
-										fileName: _jsxFileName$1,
-										lineNumber: 107,
-										columnNumber: 19
-									}, this)
-								}, void 0, false, {
-									fileName: _jsxFileName$1,
-									lineNumber: 106,
-									columnNumber: 17
-								}, this), "X.com"]
-							}, void 0, true, {
-								fileName: _jsxFileName$1,
-								lineNumber: 105,
-								columnNumber: 15
-							}, this) }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 104,
-								columnNumber: 13
-							}, this),
-							/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
-								href: "https://bsky.app/profile/vite.dev",
-								target: "_blank",
-								children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
-									className: "button-icon",
-									role: "presentation",
-									"aria-hidden": "true",
-									children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
-										fileName: _jsxFileName$1,
-										lineNumber: 115,
-										columnNumber: 19
-									}, this)
-								}, void 0, false, {
-									fileName: _jsxFileName$1,
-									lineNumber: 114,
-									columnNumber: 17
-								}, this), "Bluesky"]
-							}, void 0, true, {
-								fileName: _jsxFileName$1,
-								lineNumber: 113,
-								columnNumber: 15
-							}, this) }, void 0, false, {
-								fileName: _jsxFileName$1,
-								lineNumber: 112,
-								columnNumber: 13
-							}, this)
-						] }, void 0, true, {
-							fileName: _jsxFileName$1,
-							lineNumber: 87,
-							columnNumber: 11
-						}, this)
-					]
-				}, void 0, true, {
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: \`计数为 \${count}\`
+				}, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 80,
+					lineNumber: 69,
 					columnNumber: 9
-				}, this)]
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 72,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 77,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 76,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "文档" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 79,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "您的问题已解答" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="logo" src="\${vite_default}" alt="" /> 探索 Vite\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 83,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: \`<img class="button-icon" src="\${react_default}" alt="" /> 了解更多\` } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 86,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 85,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this)
+				]
 			}, void 0, true, {
 				fileName: _jsxFileName$1,
-				lineNumber: 64,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+				lineNumber: 75,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 92,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 91,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "与我们联系" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 94,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "加入 Vite 社区" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 101,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 100,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 98,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 109,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 108,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 106,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 117,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 116,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 114,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 125,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 124,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 122,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 97,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
 				fileName: _jsxFileName$1,
-				lineNumber: 124,
-				columnNumber: 7
-			}, this),
-			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
-				fileName: _jsxFileName$1,
-				lineNumber: 125,
-				columnNumber: 7
-			}, this)
-		]
-	}, lang, true, {
+				lineNumber: 90,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 74,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 134,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
 		fileName: _jsxFileName$1,
-		lineNumber: 25,
+		lineNumber: 57,
 		columnNumber: 5
 	}, this);
 }
 //#endregion
-//#region examples/react-basic/src/main.tsx
-var _jsxFileName = "<MONOREPO_ROOT>/examples/react-basic/src/main.tsx";
-function Main() {
-	const [lang, setLang] = (0, import_react.useState)(() => {
-		return new URLSearchParams(window.location.search).get("lang") || "en";
-	});
-	const handleSwitch = async (newLang) => {
-		const url = new URL(window.location.href);
-		url.searchParams.set("lang", newLang);
-		window.history.pushState({}, "", url);
-		await (globalThis.__zintl_inst = loadI18nInstance({
-			locale: newLang,
-			loaders: { ["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader }
-		}));
-		setLang(newLang);
-	};
-	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {
-		lang,
-		onSwitch: handleSwitch
-	}, void 0, false, {
-		fileName: _jsxFileName,
-		lineNumber: 23,
-		columnNumber: 10
-	}, this);
-}
+//#region examples/react-ssr/src/entry-client.tsx?zintl-multiplex=zh
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-client.tsx?zintl-multiplex=zh";
 async function bootstrap() {
-	const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-	await (globalThis.__zintl_inst = loadI18nInstance({
-		locale: lang,
-		loaders: { ["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader }
-	}));
-	(0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Main, {}, void 0, false, {
+	(0, import_client.hydrateRoot)(document.getElementById("root"), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {}, void 0, false, {
 		fileName: _jsxFileName,
-		lineNumber: 35,
+		lineNumber: 12,
 		columnNumber: 7
 	}, this) }, void 0, false, {
 		fileName: _jsxFileName,
-		lineNumber: 34,
+		lineNumber: 11,
 		columnNumber: 5
 	}, this));
 }
@@ -11392,100 +12414,957 @@ bootstrap();
 "
 `;
 
-exports[`Example Proof: react-basic > should match Final Production Build (dist) snapshots > react-basic/dist/index.html 1`] = `
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/en/index.html 1`] = `
 "<!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>react-basic</title>
-    <script type="module" crossorigin src="/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CrkWZCnn.css">
-  
-  <!--zintl-bootstrap-->
-    <script id="zintl-projection">
-      (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
-        const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
-        const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
-        }
-        function apply(locale) {
-          if (document.documentElement.lang === locale) return;
-          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
-          document.documentElement.lang = locale;
-        }
-        window.__zintlApplyHtml = apply;
-        if (l !== 'en') {
-          apply(l);
-          preload(l);
-        }
-      })();
-    </script>
+    <title>react-ssr</title>
+    <!--app-head-->
+    <script type="module" crossorigin src="/assets/en/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-dev-runtime.js">
+    <link rel="stylesheet" crossorigin href="/assets/jsx-dev-runtime-isocXI4e.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><!--app-html--></div>
   </body>
 </html>
 "
 `;
 
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/index.html 1`] = `
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/es/index.html 1`] = `
+"<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>react-ssr</title>
+    <!--app-head-->
+    <script type="module" crossorigin src="/assets/es/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-dev-runtime.js">
+    <link rel="stylesheet" crossorigin href="/assets/jsx-dev-runtime-isocXI4e.css">
+  </head>
+  <body>
+    <div id="root"><!--app-html--></div>
+  </body>
+</html>
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/index.html 1`] = `
+"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script id="zintl-multiplex-redirect">
+      (function() {
+        try {
+          const lang = (navigator.language || 'en').split('-')[0];
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const target = supported.includes(lang) ? lang : 'en';
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
+        } catch (e) {
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/en/' + path);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Client Production Build (dist) snapshots > react-ssr/dist/zh/index.html 1`] = `
+"<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>react-ssr</title>
+    <!--app-head-->
+    <script type="module" crossorigin src="/assets/zh/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-dev-runtime.js">
+    <link rel="stylesheet" crossorigin href="/assets/jsx-dev-runtime-isocXI4e.css">
+  </head>
+  <body>
+    <div id="root"><!--app-html--></div>
+  </body>
+</html>
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e079.js 1`] = `
+"//#region \\0virtual:zintl/content/ar/entry:b_429b1674e079
+var catalog = { "b_4a89874656dd": {
+	"c41e657d": "شعار رياكت",
+	"3473a536": "شعار فيت",
+	"90e40d50": "البدء",
+	"9fd2f187": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
+	"aa624128": (params) => {
+		const { count } = params;
+		return \`العدد هو \${params["count"]}\`;
+	},
+	"9e9cf322": "التوثيق",
+	"d0f7666b": "تمت الإجابة على أسئلتك",
+	"924cea3c": "<img/> استكشف فيت",
+	"8cc85295": "<img/> تعلم المزيد",
+	"65ac13a7": "تواصل معنا",
+	"15545bc4": "انضم إلى مجتمع فيت"
+} };
+//#endregion
+export { catalog as default };
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e0792.js 1`] = `
+"//#region \\0virtual:zintl/content/es/entry:b_429b1674e079
+var catalog = { "b_4a89874656dd": {
+	"c41e657d": "Logo de React",
+	"3473a536": "Logo de Vite",
+	"90e40d50": "Comenzar",
+	"9fd2f187": "Edite <code>src/App.tsx</code> y guarde para probar <code>HMR</code>",
+	"aa624128": (params) => {
+		const { count } = params;
+		return \`El valor es \${params["count"]}\`;
+	},
+	"9e9cf322": "Documentación",
+	"d0f7666b": "Tus preguntas, respondidas",
+	"924cea3c": "<img/> Explorar Vite",
+	"8cc85295": "<img/> Aprender más",
+	"65ac13a7": "Conéctate con nosotros",
+	"15545bc4": "Únete a la comunidad de Vite"
+} };
+//#endregion
+export { catalog as default };
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e0793.js 1`] = `
+"//#region \\0virtual:zintl/content/zh/entry:b_429b1674e079
+var catalog = { "b_4a89874656dd": {
+	"c41e657d": "React 图标",
+	"3473a536": "Vite 图标",
+	"90e40d50": "开始",
+	"9fd2f187": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
+	"aa624128": (params) => {
+		const { count } = params;
+		return \`计数为 \${params["count"]}\`;
+	},
+	"9e9cf322": "文档",
+	"d0f7666b": "您的问题已解答",
+	"924cea3c": "<img/> 探索 Vite",
+	"8cc85295": "<img/> 了解更多",
+	"65ac13a7": "与我们联系",
+	"15545bc4": "加入 Vite 社区"
+} };
+//#endregion
+export { catalog as default };
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry-server.js 1`] = `
+"import { StrictMode, useState } from "react";
+import { renderToString } from "react-dom/server";
+import { Fragment, jsxDEV } from "react/jsx-dev-runtime";
+//#region \\0virtual:zintl/runtime/internal
+var storeStorage = null;
+if (typeof window === "undefined" && typeof process !== "undefined") try {
+	const asyncHooks = await import("node:async_hooks");
+	if (asyncHooks && asyncHooks.AsyncLocalStorage) storeStorage = new asyncHooks.AsyncLocalStorage();
+} catch {}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	listeners = /* @__PURE__ */ new Set();
+	constructor() {
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	notify() {
+		this.listeners.forEach((l) => l());
+	}
+	addCatalogs(newCatalogs) {
+		let changed = false;
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		if (changed) this.notify();
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (typeof window !== "undefined") {
+			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+			try {
+				localStorage.setItem("zintl-locale", locale);
+			} catch {}
+		}
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {}
+		if (activePromises.length > 0) {
+			await Promise.all(activePromises);
+			this.notify();
+		} else this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		const result = loader(this.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [this.locale]: res });
+		};
+		if (isThenable(result)) {
+			this.pendingBoundaries.add(boundaryId);
+			return result.then((res) => {
+				processResult(res);
+				this.pendingBoundaries.delete(boundaryId);
+			});
+		} else processResult(result);
+	}
+};
+var globalRegistry = /* @__PURE__ */ new Map();
+var currentInstance = new I18nStore();
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	currentInstance = instance;
+}
+function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
+	if (typeof window === "undefined" && storeStorage) {
+		let locale = defaultLocale;
+		if (urlOrReq) {
+			let pathname = "";
+			if (typeof urlOrReq === "string") pathname = urlOrReq;
+			else if (typeof urlOrReq === "object") pathname = urlOrReq.url || urlOrReq.path || "";
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
+		}
+		const store = new I18nStore();
+		store.locale = locale;
+		return storeStorage.run(store, () => {
+			for (const [, loader] of globalRegistry.entries()) try {
+				const result = loader(locale);
+				const processResult = (res) => {
+					if (!res) return;
+					store.addCatalogs({ [locale]: res });
+				};
+				if (isThenable(result)) result.then(processResult);
+				else processResult(result);
+			} catch {}
+			return callback();
+		});
+	}
+	return callback();
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	try {
+		const result = loader(instance.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [instance.locale]: res });
+		};
+		if (isThenable(result)) return result.then((res) => {
+			processResult(res);
+		});
+		else processResult(result);
+	} catch (err) {}
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+function _t(key, params = {}, options) {
+	const instance = getActiveInstance();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		instance.registerLoader(mgr.id, mgr.loader);
+		const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+		message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+		if (message === void 0) return \`\`;
+	} else return \`\`;
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) store.addCatalogs(config.catalogs);
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = registerLoader(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+//#region \\0virtual:zintl/manager/none/entry:b_429b1674e079
+var entry_b_429b1674e079_default = {
+	id: "b_429b1674e079",
+	loader: (locale) => {
+		switch (locale) {
+			case "en": return { "b_4a89874656dd": {
+				"c41e657d": "React logo",
+				"3473a536": "Vite logo",
+				"90e40d50": "Get started",
+				"9fd2f187": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
+				"aa624128": (params) => {
+					const { count } = params;
+					return \`Count is \${params["count"]}\`;
+				},
+				"9e9cf322": "Documentation",
+				"d0f7666b": "Your questions, answered",
+				"924cea3c": "<img/> Explore Vite",
+				"8cc85295": "<img/> Learn more",
+				"65ac13a7": "Connect with us",
+				"15545bc4": "Join the Vite community"
+			} };
+			case "ar": return import("./entry_b_429b1674e079.js").then((m) => m.default);
+			case "es": return import("./entry_b_429b1674e0792.js").then((m) => m.default);
+			case "zh": return import("./entry_b_429b1674e0793.js").then((m) => m.default);
+			default: return {};
+		}
+	}
+};
+//#endregion
+//#region examples/react-ssr/src/assets/react.svg
+var react_default = "/assets/react-CHdo91hT.svg";
+//#endregion
+//#region examples/react-ssr/src/assets/vite.svg
+var vite_default = "/assets/vite-BF8QNONU.svg";
+//#endregion
+//#region examples/react-ssr/src/assets/hero.png
+var hero_default = "/assets/hero-CLDdwZDr.png";
+//#endregion
+//#region examples/react-ssr/src/App.tsx
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx";
+var locales = [
+	{
+		id: "en",
+		name: "English"
+	},
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ jsxDEV(Fragment, { children: [/* @__PURE__ */ jsxDEV("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ jsxDEV("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ jsxDEV("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 33,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 31,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ jsxDEV("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 42,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ jsxDEV("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ jsxDEV("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 45,
+						columnNumber: 13
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 44,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 43,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 30,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ jsxDEV("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 49,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = useState(0);
+	return /* @__PURE__ */ jsxDEV(Fragment, { children: [
+		/* @__PURE__ */ jsxDEV(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ jsxDEV("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ jsxDEV("div", {
+					className: "hero",
+					children: [
+						/* @__PURE__ */ jsxDEV("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ jsxDEV("img", {
+							src: react_default,
+							className: "framework",
+							alt: _t("c41e657d", {
+								_mgr: entry_b_429b1674e079_default,
+								_bId: "b_4a89874656dd"
+							})
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 63,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ jsxDEV("img", {
+							src: vite_default,
+							className: "vite",
+							alt: _t("3473a536", {
+								_mgr: entry_b_429b1674e079_default,
+								_bId: "b_4a89874656dd"
+							})
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 64,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 61,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ jsxDEV("div", { children: [/* @__PURE__ */ jsxDEV("h1", { children: _t("90e40d50", {
+					_mgr: entry_b_429b1674e079_default,
+					_bId: "b_4a89874656dd"
+				}) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ jsxDEV("p", { children: /* @__PURE__ */ jsxDEV("span", { dangerouslySetInnerHTML: { __html: _t("9fd2f187", {
+					_mgr: entry_b_429b1674e079_default,
+					_bId: "b_4a89874656dd",
+					_tags: [{
+						alias: "code",
+						originalOpen: \`<code>\`,
+						tagName: "code"
+					}, {
+						alias: "code",
+						originalOpen: \`<code>\`,
+						tagName: "code"
+					}]
+				}) } }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 68,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 68,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ jsxDEV("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: _t("aa624128", { count }, {
+						_mgr: entry_b_429b1674e079_default,
+						_bId: "b_4a89874656dd"
+					})
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 70,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 60,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ jsxDEV("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 73,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ jsxDEV("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ jsxDEV("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ jsxDEV("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 78,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 77,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("h2", { children: _t("9e9cf322", {
+						_mgr: entry_b_429b1674e079_default,
+						_bId: "b_4a89874656dd"
+					}) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("p", { children: _t("d0f7666b", {
+						_mgr: entry_b_429b1674e079_default,
+						_bId: "b_4a89874656dd"
+					}) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("ul", { children: [/* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ jsxDEV("span", { dangerouslySetInnerHTML: { __html: _t("924cea3c", {
+							_mgr: entry_b_429b1674e079_default,
+							_bId: "b_4a89874656dd",
+							_tags: [{
+								alias: "img",
+								originalOpen: \`<img class="logo" src="\${vite_default}" alt="" />\`,
+								tagName: "img"
+							}]
+						}) } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 84,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 84,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ jsxDEV("span", { dangerouslySetInnerHTML: { __html: _t("8cc85295", {
+							_mgr: entry_b_429b1674e079_default,
+							_bId: "b_4a89874656dd",
+							_tags: [{
+								alias: "img",
+								originalOpen: \`<img class="button-icon" src="\${react_default}" alt="" />\`,
+								tagName: "img"
+							}]
+						}) } }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 87,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 87,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 76,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ jsxDEV("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ jsxDEV("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 93,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 92,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("h2", { children: _t("65ac13a7", {
+						_mgr: entry_b_429b1674e079_default,
+						_bId: "b_4a89874656dd"
+					}) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("p", { children: _t("15545bc4", {
+						_mgr: entry_b_429b1674e079_default,
+						_bId: "b_4a89874656dd"
+					}) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 96,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ jsxDEV("ul", { children: [
+						/* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ jsxDEV("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 102,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 101,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 100,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ jsxDEV("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 110,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 109,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 108,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ jsxDEV("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 118,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 117,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 116,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ jsxDEV("li", { children: /* @__PURE__ */ jsxDEV("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ jsxDEV("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ jsxDEV("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 126,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 125,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 124,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 98,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 91,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 75,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ jsxDEV("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ jsxDEV("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 136,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 58,
+		columnNumber: 5
+	}, this);
+}
+//#endregion
+//#region examples/react-ssr/src/entry-server.tsx
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-server.tsx";
+async function _zintl_raw_render(_url) {
+	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_429b1674e079"]: entry_b_429b1674e079_default.loader } }));
+	return { html: renderToString(/* @__PURE__ */ jsxDEV(StrictMode, { children: /* @__PURE__ */ jsxDEV(App, {}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 12,
+		columnNumber: 7
+	}, this) }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 5
+	}, this)) };
+}
+async function render(urlOrReq, ...args) {
+	return runInRequestScope(urlOrReq, [
+		"en",
+		"ar",
+		"es",
+		"zh"
+	], "en", () => _zintl_raw_render(urlOrReq, ...args));
+}
+//#endregion
+export { render };
+"
+`;
+
+exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/index.html 1`] = `
 "<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>react-basic</title>
-  <!--zintl-bootstrap-->
-    <script id="zintl-projection">
-      (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
-        const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
-        function apply(locale) {
-          if (document.documentElement.lang === locale) return;
-          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
-          document.documentElement.lang = locale;
-        }
-        window.__zintlApplyHtml = apply;
-        if (l !== 'en') {
-          apply(l);
-        }
-      })();
-    </script>
+    <title>react-ssr</title>
+    <!--app-head-->
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
   </body>
 </html>"
 `;
 
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/src/App.tsx 1`] = `
-"import { _t } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/src/App.tsx 1`] = `
+"import { getLocale } from "virtual:zintl/runtime/internal";
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
+
 
 const locales = [
   { id: "en", name: "English" },
@@ -11494,24 +13373,26 @@ const locales = [
   { id: "zh", name: "中文" },
 ];
 
-interface AppProps {
-  lang: string;
-  onSwitch: (newLang: string) => void;
-}
+function LocaleSwitcher() {
+  const locale = getLocale() || "en";
 
-function App({ lang, onSwitch }: AppProps) {
-  const [count, setCount] = useState(0);
+  const handleSwitch = (lang: string) => {
+    const url = new URL(window.location.href);
+    const path = url.pathname.replace(/^\\/(?:en|ar|es|zh)/, "") || "/";
+    url.pathname = \`/\${lang}\${path === "/" ? "/" : path}\`;
+    window.history.pushState({}, "", url.pathname + url.search);
+    location.reload();
+  };
 
   return (
-    <div key={lang} style={{ display: "contents" }}>
-      {/* @zintl-ignore */}
+    <>
       <section id="header">
         <div id="switcher" className="switcher">
           {locales.map((l) => (
             <button
               key={l.id}
-              className={lang === l.id ? "active" : ""}
-              onClick={() => onSwitch(l.id)}
+              className={locale === l.id ? "active" : ""}
+              onClick={() => handleSwitch(l.id)}
             >
               {l.name}
             </button>
@@ -11524,20 +13405,28 @@ function App({ lang, onSwitch }: AppProps) {
           </svg>
         </div>
       </section>
-
       <div className="ticks"></div>
+    </>
+  );
+}
 
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <LocaleSwitcher />
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt={_t("c41e657d", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })} />
-          <img src={viteLogo} className="vite" alt={_t("3473a536", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })} />
+          <img src={reactLogo} className="framework" alt="React logo" />
+          <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</h1>
-          <p>{<span dangerouslySetInnerHTML={{ __html: _t("9fd2f187", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
+          <h1>Get started</h1>
+          <p>{<span dangerouslySetInnerHTML={{ __html: \`Edit <code>src/App.tsx</code> and save to test <code>HMR</code>\` }} />}</p>
         </div>
-        <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>{_t("aa624128", { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</button>
+        <button className="counter" onClick={() => setCount((count) => count + 1)}>{\`Count is \${count}\`}</button>
       </section>
 
       <div className="ticks"></div>
@@ -11547,14 +13436,14 @@ function App({ lang, onSwitch }: AppProps) {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("9e9cf322", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</h2>
-          <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</p>
+          <h2>Documentation</h2>
+          <p>Your questions, answered</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: \`<img class="logo" src="\${viteLogo}" alt="" /> Explore Vite\` }} />}</a>
             </li>
             <li>
-              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("8cc85295", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: \`<img class="button-icon" src="\${reactLogo}" alt="" /> Learn more\` }} />}</a>
             </li>
           </ul>
         </div>
@@ -11562,8 +13451,8 @@ function App({ lang, onSwitch }: AppProps) {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#social-icon"></use>
           </svg>
-          <h2>{_t("65ac13a7", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</h2>
-          <p>{_t("15545bc4", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</p>
+          <h2>Connect with us</h2>
+          <p>Join the Vite community</p>
           {/* @zintl-ignore */}
           <ul>
             <li>
@@ -11604,155 +13493,50 @@ function App({ lang, onSwitch }: AppProps) {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </div>
+    </>
   );
 }
 
 export default App;"
 `;
 
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/src/main.tsx 1`] = `
-"import { loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/src/entry-client.tsx 1`] = `
+"import "./index.css";
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
-import { useState } from "react";
+import { hydrateRoot } from "react-dom/client";
+import App from "./App";
 
-
-function Main() {
-  const [lang, setLang] = useState(() => {
-    return new URLSearchParams(window.location.search).get("lang") || "en";
-  });
-
-  const handleSwitch = async (newLang: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", newLang);
-    window.history.pushState({}, "", url);
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
-    setLang(newLang);
-  };
-
-  return <App lang={lang} onSwitch={handleSwitch} />;
-}
 
 async function bootstrap() {
-  // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
-  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-
-  // 2. Await Zintl catalog loading and hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
-  // 3. Render the React tree only when translations are ready
-  createRoot(document.getElementById("root")!).render(
+  
+  hydrateRoot(
+    document.getElementById("root") as HTMLElement,
     <StrictMode>
-      <Main />
+      <App />
     </StrictMode>,
   );
 }
-void bootstrap(); // touch to trigger re-transform"
+void bootstrap();"
 `;
 
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/virtual:zintl/content/ar/entry:b_aafcf9c6fe16 1`] = `
-"const catalog = {
-    "b_4a89874656dd": {
-      "c41e657d": "شعار رياكت",
-      "3473a536": "شعار فيت",
-      "90e40d50": "البدء",
-      "9fd2f187": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
-      "aa624128": (params) => {
-    const { count } = params;
-    return \`العدد هو \${params['count']}\`;
-  },
-      "9e9cf322": "التوثيق",
-      "d0f7666b": "تمت الإجابة على أسئلتك",
-      "924cea3c": "<img/> استكشف فيت",
-      "8cc85295": "<img/> تعلم المزيد",
-      "65ac13a7": "تواصل معنا",
-      "15545bc4": "انضم إلى مجتمع فيت",
-    },
-  };
-export default catalog;"
+exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/src/entry-server.tsx 1`] = `
+"import { StrictMode } from "react";
+import { renderToString } from "react-dom/server";
+import App from "./App";
+
+
+export async function render(_url: string) {
+  
+  const html = renderToString(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+  return { html };
+}"
 `;
 
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/virtual:zintl/content/es/entry:b_aafcf9c6fe16 1`] = `
-"const catalog = {
-    "b_4a89874656dd": {
-      "c41e657d": "Logotipo de React",
-      "3473a536": "Logotipo de Vite",
-      "90e40d50": "Empezar",
-      "9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
-      "aa624128": (params) => {
-    const { count } = params;
-    return \`El recuento es \${params['count']}\`;
-  },
-      "9e9cf322": "Documentación",
-      "d0f7666b": "Tus preguntas, respondidas",
-      "924cea3c": "<img/> Explorar Vite",
-      "8cc85295": "<img/> Aprender más",
-      "65ac13a7": "Conéctate con nosotros",
-      "15545bc4": "Únete a la comunidad de Vite",
-    },
-  };
-export default catalog;"
-`;
-
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/virtual:zintl/content/zh/entry:b_aafcf9c6fe16 1`] = `
-"const catalog = {
-    "b_4a89874656dd": {
-      "c41e657d": "React 图标",
-      "3473a536": "Vite 图标",
-      "90e40d50": "开始",
-      "9fd2f187": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
-      "aa624128": (params) => {
-    const { count } = params;
-    return \`计数为 \${params['count']}\`;
-  },
-      "9e9cf322": "文档",
-      "d0f7666b": "您的问题，已有解答",
-      "924cea3c": "<img/> 探索 Vite",
-      "8cc85295": "<img/> 了解更多",
-      "65ac13a7": "与我们联系",
-      "15545bc4": "加入 Vite 社区",
-    },
-  };
-export default catalog;"
-`;
-
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/virtual:zintl/manager/none/entry:b_aafcf9c6fe16 1`] = `
-"export default { id: "b_aafcf9c6fe16", loader: (locale) => {
-      switch(locale) { 
-        case "en":
-          return {
-    "b_4a89874656dd": {
-      "c41e657d": "React logo",
-      "3473a536": "Vite logo",
-      "90e40d50": "Get started",
-      "9fd2f187": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
-      "aa624128": (params) => {
-    const { count } = params;
-    return \`Count is \${params['count']}\`;
-  },
-      "9e9cf322": "Documentation",
-      "d0f7666b": "Your questions, answered",
-      "924cea3c": "<img/> Explore Vite",
-      "8cc85295": "<img/> Learn more",
-      "65ac13a7": "Connect with us",
-      "15545bc4": "Join the Vite community",
-    },
-  };
-                case "ar":
-          return import("virtual:zintl/content/ar/entry:b_aafcf9c6fe16").then(m => m.default);
-        case "es":
-          return import("virtual:zintl/content/es/entry:b_aafcf9c6fe16").then(m => m.default);
-        case "zh":
-          return import("virtual:zintl/content/zh/entry:b_aafcf9c6fe16").then(m => m.default);
-        default: return {};
-      }
-    } };"
-`;
-
-exports[`Example Proof: react-basic > should match Production snapshots > react-basic/prod-transforms/virtual:zintl/runtime/internal 1`] = `
+exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/virtual:zintl/runtime/internal 1`] = `
 "//#region src/runtime/store.ts
 let storeStorage = null;
 if (typeof window === "undefined" && typeof process !== "undefined") try {

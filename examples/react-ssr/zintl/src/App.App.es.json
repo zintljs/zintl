@@ -1,0 +1,14 @@
+{
+  "$schema": "../.schemas/src/App.App.schema.json",
+  "<img/> Explore Vite": "<img/> Explorar Vite",
+  "<img/> Learn more": "<img/> Aprender más",
+  "Connect with us": "Conéctate con nosotros",
+  "Count is {count}": "El valor es {count}",
+  "Documentation": "Documentación",
+  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edite <code>src/App.tsx</code> y guarde para probar <code>HMR</code>",
+  "Get started": "Comenzar",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "React logo": "Logo de React",
+  "Vite logo": "Logo de Vite",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}
