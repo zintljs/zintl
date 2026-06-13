@@ -27,6 +27,8 @@ export class CatalogManager {
   private readonly isTestEnv =
     typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !!process.env.VITEST);
 
+  private readonly extensions: string[];
+
   constructor(
     private readonly io: IOManager,
     private readonly root: string,
@@ -36,8 +38,10 @@ export class CatalogManager {
     private readonly catalogFormat: string | ((ctx: any) => string) | undefined,
     private readonly logger: ZintlLogger,
     public prune: boolean = true,
+    extensions?: string[],
   ) {
     this._outputDir = outputDir;
+    this.extensions = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
   }
 
   private _outputDir: string;
@@ -157,7 +161,7 @@ export class CatalogManager {
     const isAsset =
       !isHtml &&
       /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
-      !/\.(tsx?|jsx?|vue|svelte)$/i.test(boundaryId);
+      !this.extensions.some((ext) => boundaryId.toLowerCase().endsWith(ext.toLowerCase()));
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
@@ -228,7 +232,7 @@ export class CatalogManager {
     const isAsset =
       !isHtml &&
       /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
-      !/\.(tsx?|jsx?|vue|svelte)$/i.test(boundaryId);
+      !this.extensions.some((ext) => boundaryId.toLowerCase().endsWith(ext.toLowerCase()));
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;

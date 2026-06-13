@@ -114,8 +114,8 @@ export class GraphManager {
 
       // Skip nodes with no content, no anchor, AND no dependencies.
       // Nodes with deps are kept as "pass-through" so the graph walk can
-      // traverse through intermediate files (e.g. App.vue) to reach
-      // downstream content-bearing boundaries (e.g. HelloWorld.vue).
+      // traverse through intermediate files (e.g. parent modules or wrapper layout templates) to reach
+      // downstream content-bearing boundaries.
       // HTML files are always roots of compilation and never act as pass-through code nodes.
       const isHtml = fileId.endsWith(".html");
       if (!isDictator && !hasContent) {

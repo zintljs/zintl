@@ -21,6 +21,8 @@ export class IOManager {
   private detectedFormatter: { bin: string; args: string[] } | null = null;
   private readonly boundaryIdCache = new Map<string, string>();
   private readonly normalizedIdCache = new Map<string, string>();
+  private readonly extensions: string[];
+  private readonly adapters?: any[];
 
   constructor(
     private readonly root: string,
@@ -28,6 +30,8 @@ export class IOManager {
     private readonly logger: ZintlLogger,
     _options: ZintlOptions,
   ) {
+    this.extensions = _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+    this.adapters = _options.adapters;
     const metaDir = _options.metadataDir
       ? isAbsolute(_options.metadataDir)
         ? _options.metadataDir
@@ -87,7 +91,11 @@ export class IOManager {
     if (this.normalizedIdCache.has(id)) return this.normalizedIdCache.get(id)!;
     if (id.startsWith("\0")) return id;
 
-    const targetId = id.replace(/\.zintl-[a-zA-Z0-9_-]+\.(vue|svelte)/, ".$1");
+    const exts = this.extensions
+      .map((e) => (e.startsWith(".") ? e.slice(1) : e))
+      .map((e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"));
+    const regex = new RegExp(`\\.zintl-[a-zA-Z0-9_-]+\\.(${exts.join("|")})`);
+    const targetId = id.replace(regex, ".$1");
 
     let abs: string;
     if (isAbsolute(targetId)) {
@@ -103,7 +111,22 @@ export class IOManager {
     }
 
     const rel = relative(this.root, abs).replace(/\\/g, "/");
-    const hasSourceExtension = /\.(tsx?|jsx?|mts|mjs|cts|cjs)$/i.test(rel);
+
+    const sfcExts = (this.adapters || [])
+      .filter((a) => a.sfc)
+      .map((a) => {
+        return this.extensions.filter((ext) => a.match("dummy" + ext));
+      })
+      .flat();
+    const keepExts = [".html", ...sfcExts];
+    const stripExts = this.extensions.filter(
+      (ext) => !keepExts.some((k) => k.toLowerCase() === ext.toLowerCase()),
+    );
+
+    const escapedStripExts = stripExts
+      .map((e) => (e.startsWith(".") ? e.slice(1) : e))
+      .map((e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"));
+    const hasSourceExtension = new RegExp(`\\.(?:${escapedStripExts.join("|")})$`, "i").test(rel);
     const result = hasSourceExtension ? rel.replace(/\.[^/.]+$/, "") : rel;
     this.normalizedIdCache.set(id, result);
     return result;

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vite-plus/test";
 import { ZintlPluginContext } from "../context.js";
+import { configResolvedHook } from "../hooks/config.js";
 
 let mockExistsSync: any = null;
 let mockReadFileSync: any = null;
@@ -205,6 +206,52 @@ describe("ZintlPluginContext", () => {
       const ctx = new ZintlPluginContext({ locales: ["en"] });
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(false);
+    });
+  });
+
+  describe("configResolvedHook Target Resolution", () => {
+    it("should detect vue from package.json dependencies", () => {
+      mockExistsSync = (path: string) => path.endsWith("package.json");
+      mockReadFileSync = (path: string) => {
+        if (path.endsWith("package.json")) {
+          return JSON.stringify({
+            dependencies: { vue: "^3.0.0" },
+          });
+        }
+        return "";
+      };
+
+      const ctx = new ZintlPluginContext({ locales: ["en", "ar"] });
+      const hook = configResolvedHook(ctx);
+      hook({
+        root: "/mock-root",
+        command: "build",
+        plugins: [],
+      } as any);
+
+      expect(ctx.compiler._options.targets).toContain("vue");
+      expect(ctx.compiler._options.targets).toContain("vanilla");
+      expect(ctx.compiler._options.targets).toContain("html");
+      expect(ctx.compiler._options.targets).not.toContain("react");
+      expect(ctx.compiler._options.targets).not.toContain("svelte");
+    });
+
+    it("should detect frameworks from vitePlugins/plugins option", () => {
+      mockExistsSync = () => false;
+
+      const ctx = new ZintlPluginContext({ locales: ["en", "ar"] });
+      const hook = configResolvedHook(ctx);
+      hook({
+        root: "/mock-root",
+        command: "serve",
+        plugins: [{ name: "vite:react-jsx" }, { name: "vite-plugin-svelte" }],
+      } as any);
+
+      expect(ctx.compiler._options.targets).toContain("react");
+      expect(ctx.compiler._options.targets).toContain("svelte");
+      expect(ctx.compiler._options.targets).toContain("vanilla");
+      expect(ctx.compiler._options.targets).toContain("html");
+      expect(ctx.compiler._options.targets).not.toContain("vue");
     });
   });
 });

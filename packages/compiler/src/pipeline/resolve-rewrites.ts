@@ -8,7 +8,16 @@ import type {
   BakingIntent,
   VariableBinding,
   ZintlConfig,
+  TargetAdapter,
 } from "../types/index.js";
+
+function findAdapter(
+  filePath: string | undefined,
+  adapters: TargetAdapter[] | undefined,
+): TargetAdapter | undefined {
+  if (!filePath || !adapters) return undefined;
+  return adapters.find((a) => a.match(filePath));
+}
 
 const PRIORITY = {
   bake: 100,
@@ -67,13 +76,13 @@ export function resolveRewrites(
         rewrites.push(generateAnchorRewrite(intent, config));
         break;
       case "sink_wrap":
-        rewrites.push(generateSinkWrapRewrite(intent, filePath));
+        rewrites.push(generateSinkWrapRewrite(intent, config, filePath));
         break;
       case "manual_t_rewrite":
         rewrites.push(generateManualTRewrite(intent));
         break;
       case "baking":
-        rewrites.push(generateBakeRewrite(intent, filePath));
+        rewrites.push(generateBakeRewrite(intent, config, filePath));
         break;
       case "marker_removal":
         rewrites.push({
@@ -101,12 +110,8 @@ export function resolveRewrites(
           );
         }
 
-        const isReact = !!(
-          filePath &&
-          !filePath.endsWith(".vue") &&
-          !filePath.endsWith(".svelte") &&
-          !filePath.endsWith(".html")
-        );
+        const adapter = findAdapter(filePath, config.adapters);
+        const isReact = adapter ? !!adapter.jsx : false;
 
         if (intent.sink.tagMap && intent.sink.tagMap.length) {
           replacement = reconstructTags(replacement, intent.sink.tagMap, isReact);
@@ -140,10 +145,7 @@ export function resolveRewrites(
         const tMap = intent.sink.tagMap || [];
         const hasTags = hasUsedTags(replacement, tMap) || hasUsedTags(intent.sink.text, tMap);
         const isReactJsxText =
-          filePath &&
-          !filePath.endsWith(".vue") &&
-          !filePath.endsWith(".svelte") &&
-          !filePath.endsWith(".html") &&
+          isReact &&
           intent.sink.requiresJsxBraces &&
           hasTags &&
           !translatableAttrs.has(intent.sink.sinkType);
@@ -154,18 +156,8 @@ export function resolveRewrites(
         } else if (intent.sink.sinkType === "HTML_TEXT") {
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
           if (hasVars) {
-            if (filePath && filePath.endsWith(".vue")) {
-              if (hasTags) {
-                finalReplacement = `<span v-html="${finalReplacement.replace(/"/g, "&quot;")}"></span>`;
-              } else {
-                finalReplacement = `{{ ${finalReplacement} }}`;
-              }
-            } else if (filePath && filePath.endsWith(".svelte")) {
-              if (hasTags) {
-                finalReplacement = `{@html ${finalReplacement} }`;
-              } else {
-                finalReplacement = `{ ${finalReplacement} }`;
-              }
+            if (adapter && adapter.wrapHtmlText) {
+              finalReplacement = adapter.wrapHtmlText(finalReplacement, hasTags, hasVars);
             }
           } else {
             finalReplacement = replacement;
@@ -174,10 +166,8 @@ export function resolveRewrites(
           const attrName = intent.sink.sinkType.substring("html:attr:".length);
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
           if (hasVars) {
-            if (filePath && filePath.endsWith(".vue")) {
-              finalReplacement = `:${attrName}="${finalReplacement}"`;
-            } else if (filePath && filePath.endsWith(".svelte")) {
-              finalReplacement = `${attrName}={${finalReplacement}}`;
+            if (adapter && adapter.wrapHtmlAttribute) {
+              finalReplacement = adapter.wrapHtmlAttribute(attrName, finalReplacement, hasVars);
             }
           } else {
             let rawVal = replacement;
@@ -330,7 +320,11 @@ function hasUsedTags(text: string, tagMap?: any[]): boolean {
   );
 }
 
-function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): ResolvedRewrite {
+function generateSinkWrapRewrite(
+  intent: SinkWrapIntent,
+  config: ZintlConfig,
+  filePath?: string,
+): ResolvedRewrite {
   const params = intent.variables || [];
   const paramsObj =
     params.length > 0 ? `, { ${params.map((p) => `${p.name}: ${p.expr}`).join(", ")} }` : "";
@@ -339,17 +333,14 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): Res
     intent.isDev && intent.sink.text ? intent.sink.text : intent.messageId || intent.sink.text;
 
   let tagsPart = "";
-  const isSfc = filePath && (filePath.endsWith(".vue") || filePath.endsWith(".svelte"));
+  const adapter = findAdapter(filePath, config.adapters);
+  const isSfc = adapter ? !!adapter.sfc : false;
   const quoteFn = isSfc ? (s: string) => jsString(s, true) : JSON.stringify;
 
   const tMap = intent.sink.tagMap || [];
   const hasTags = hasUsedTags(intent.sink.text, tMap);
 
-  const isReact =
-    filePath &&
-    !filePath.endsWith(".vue") &&
-    !filePath.endsWith(".svelte") &&
-    !filePath.endsWith(".html");
+  const isReact = adapter ? !!adapter.jsx : false;
 
   if (intent.sink.text && hasTags) {
     const usedTags = tMap.filter(
@@ -372,33 +363,17 @@ function generateSinkWrapRewrite(intent: SinkWrapIntent, filePath?: string): Res
 
   // Custom HTML_TEXT and html:attr: wrapping for Vue / Svelte template syntax
   if (intent.sink.sinkType === "HTML_TEXT") {
-    if (filePath && filePath.endsWith(".vue")) {
-      if (hasTags) {
-        const escaped = replacement.replace(/"/g, "&quot;");
-        replacement = `<span v-html="${escaped}"></span>`;
-      } else {
-        replacement = `{{ ${replacement} }}`;
-      }
-    } else if (filePath && filePath.endsWith(".svelte")) {
-      if (hasTags) {
-        replacement = `{@html ${replacement} }`;
-      } else {
-        replacement = `{ ${replacement} }`;
-      }
+    if (adapter && adapter.wrapHtmlText) {
+      replacement = adapter.wrapHtmlText(replacement, hasTags, true);
     }
   } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
     const attrName = intent.sink.sinkType.substring("html:attr:".length);
-    if (filePath && filePath.endsWith(".vue")) {
-      replacement = `:${attrName}="${replacement}"`;
-    } else if (filePath && filePath.endsWith(".svelte")) {
-      replacement = `${attrName}={${replacement}}`;
+    if (adapter && adapter.wrapHtmlAttribute) {
+      replacement = adapter.wrapHtmlAttribute(attrName, replacement, true);
     }
   }
   const isReactJsxText =
-    filePath &&
-    !filePath.endsWith(".vue") &&
-    !filePath.endsWith(".svelte") &&
-    !filePath.endsWith(".html") &&
+    isReact &&
     intent.sink.requiresJsxBraces &&
     hasTags &&
     !translatableAttrs.has(intent.sink.sinkType);
@@ -449,13 +424,13 @@ function reconstructTags(text: string, tagMap: any[], isReact?: boolean): string
   return result;
 }
 
-function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedRewrite {
-  const isReact = !!(
-    filePath &&
-    !filePath.endsWith(".vue") &&
-    !filePath.endsWith(".svelte") &&
-    !filePath.endsWith(".html")
-  );
+function generateBakeRewrite(
+  intent: BakingIntent,
+  config: ZintlConfig,
+  filePath?: string,
+): ResolvedRewrite {
+  const adapter = findAdapter(filePath, config.adapters);
+  const isReact = adapter ? !!adapter.jsx : false;
   let baked = bakeTranslation(
     intent.translation,
     intent.variables || [],
@@ -478,18 +453,8 @@ function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedR
   if (intent.sink.sinkType === "HTML_TEXT") {
     const hasVars = intent.variables && intent.variables.length > 0;
     if (hasVars) {
-      if (filePath && filePath.endsWith(".vue")) {
-        if (hasTags) {
-          baked = `<span v-html="${baked.replace(/"/g, "&quot;")}"></span>`;
-        } else {
-          baked = `{{ ${baked} }}`;
-        }
-      } else if (filePath && filePath.endsWith(".svelte")) {
-        if (hasTags) {
-          baked = `{@html ${baked} }`;
-        } else {
-          baked = `{ ${baked} }`;
-        }
+      if (adapter && adapter.wrapHtmlText) {
+        baked = adapter.wrapHtmlText(baked, hasTags, hasVars);
       }
     } else {
       baked = typeof intent.translation === "string" ? intent.translation : baked;
@@ -505,10 +470,8 @@ function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedR
     const attrName = intent.sink.sinkType.substring("html:attr:".length);
     const hasVars = intent.variables && intent.variables.length > 0;
     if (hasVars) {
-      if (filePath && filePath.endsWith(".vue")) {
-        baked = `:${attrName}="${baked}"`;
-      } else if (filePath && filePath.endsWith(".svelte")) {
-        baked = `${attrName}={${baked}}`;
+      if (adapter && adapter.wrapHtmlAttribute) {
+        baked = adapter.wrapHtmlAttribute(attrName, baked, hasVars);
       }
     } else {
       let rawVal = typeof intent.translation === "string" ? intent.translation : baked;
@@ -523,10 +486,7 @@ function generateBakeRewrite(intent: BakingIntent, filePath?: string): ResolvedR
     }
   }
   const isReactJsxText =
-    filePath &&
-    !filePath.endsWith(".vue") &&
-    !filePath.endsWith(".svelte") &&
-    !filePath.endsWith(".html") &&
+    isReact &&
     intent.sink.requiresJsxBraces &&
     hasTags &&
     !translatableAttrs.has(intent.sink.sinkType);

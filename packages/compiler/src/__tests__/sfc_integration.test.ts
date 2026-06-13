@@ -8,6 +8,52 @@ import { runInRequestScope, I18nStore, getActiveInstance } from "../runtime/stor
 
 type LocalContext = TestContext & { compiler?: ZintlCompiler };
 
+const vueAdapter = {
+  name: "vue",
+  match: (filePath: string) => filePath.endsWith(".vue"),
+  sfc: true,
+  wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
+  wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
+    if (hasVars) {
+      if (hasTags) {
+        return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;
+      } else {
+        return `{{ ${replacement} }}`;
+      }
+    }
+    return replacement;
+  },
+  wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
+    if (hasVars) {
+      return `:${attrName}="${replacement}"`;
+    }
+    return replacement;
+  },
+};
+
+const svelteAdapter = {
+  name: "svelte",
+  match: (filePath: string) => filePath.endsWith(".svelte"),
+  sfc: true,
+  wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
+  wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
+    if (hasVars) {
+      if (hasTags) {
+        return `{@html ${replacement} }`;
+      } else {
+        return `{ ${replacement} }`;
+      }
+    }
+    return replacement;
+  },
+  wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
+    if (hasVars) {
+      return `${attrName}={${replacement}}`;
+    }
+    return replacement;
+  },
+};
+
 describe("SFC Integration Tests", () => {
   beforeEach(async (context: LocalContext) => {
     const root = await createTestDir("sfc-integration-");
@@ -15,7 +61,13 @@ describe("SFC Integration Tests", () => {
     await mkdir(join(root, "src"), { recursive: true });
     await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintl"; zintl("en");');
     context.compiler = new ZintlCompiler(
-      { sourceLocale: "en", locales: ["en", "ar"], outputDir: "locales" },
+      {
+        sourceLocale: "en",
+        locales: ["en", "ar"],
+        outputDir: "locales",
+        adapters: [vueAdapter, svelteAdapter],
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue", ".svelte"],
+      },
       root,
       true, // isDev
     );
@@ -62,7 +114,13 @@ zintl({ locale: "en" });
     it("should bake Vue SFC elements in Production Mode", async (context: LocalContext) => {
       const { root } = context;
       const prodCompiler = new ZintlCompiler(
-        { sourceLocale: "en", locales: ["en", "ar"], outputDir: "locales" },
+        {
+          sourceLocale: "en",
+          locales: ["en", "ar"],
+          outputDir: "locales",
+          adapters: [vueAdapter],
+          extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
+        },
         root!,
         false, // Production
       );
@@ -148,7 +206,13 @@ zintl("en");
     it("should bake Svelte SFC elements in Production Mode", async (context: LocalContext) => {
       const { root } = context;
       const prodCompiler = new ZintlCompiler(
-        { sourceLocale: "en", locales: ["en", "ar"], outputDir: "locales" },
+        {
+          sourceLocale: "en",
+          locales: ["en", "ar"],
+          outputDir: "locales",
+          adapters: [svelteAdapter],
+          extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".svelte"],
+        },
         root!,
         false, // Production
       );
@@ -194,7 +258,12 @@ zintl("ar");
     it("should handle condition parsing with less than (<) operator in baking", async (context: LocalContext) => {
       const { root } = context;
       const prodCompiler = new ZintlCompiler(
-        { sourceLocale: "en", locales: ["en", "ar"], outputDir: "locales" },
+        {
+          sourceLocale: "en",
+          locales: ["en", "ar"],
+          outputDir: "locales",
+          extensions: [".ts", ".tsx", ".js", ".jsx", ".html"],
+        },
         root!,
         false, // Production
       );

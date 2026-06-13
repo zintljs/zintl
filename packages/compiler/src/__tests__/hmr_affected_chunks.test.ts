@@ -11,10 +11,17 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
     const root = await createTestDir("zintl-hmr-chunks-test-");
     context.root = root;
     await mkdir(join(root, "src"), { recursive: true });
+    const vueAdapter = {
+      name: "vue",
+      match: (filePath: string) => filePath.endsWith(".vue"),
+      sfc: true,
+    };
     context.compiler = new ZintlCompiler(
       {
         locales: ["en", "ar"],
         outputDir: "locales",
+        adapters: [vueAdapter],
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
       },
       root,
       true, // isDev

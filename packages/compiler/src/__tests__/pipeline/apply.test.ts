@@ -10,6 +10,29 @@ const mockLogger = {
   error: () => {},
 } as any;
 
+const vueAdapter = {
+  name: "vue",
+  match: (filePath: string) => filePath.endsWith(".vue"),
+  sfc: true,
+  wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
+};
+
+const svelteAdapter = {
+  name: "svelte",
+  match: (filePath: string) => filePath.endsWith(".svelte"),
+  sfc: true,
+  wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
+};
+
+const mockConfig = {
+  sourceLocale: "en",
+  locales: ["en"],
+  outputDir: "locales",
+  isDev: true,
+  root: "/root",
+  adapters: [vueAdapter, svelteAdapter],
+};
+
 describe("Pipeline Phase 4: apply()", () => {
   it("should apply multiple transformations correctly", () => {
     // 01234567890123456789012345678901
@@ -69,7 +92,7 @@ function App() {
       diagnostics: [],
     };
 
-    const result = apply(source, plan, mockLogger, "Component.vue");
+    const result = apply(source, plan, mockLogger, "Component.vue", mockConfig);
     expect(result.code).toContain(
       '<script setup lang="ts">\nconst a = 1;\nimport { t } from "zintl";',
     );
@@ -153,13 +176,13 @@ function App() {
       diagnostics: [],
     };
 
-    const vueResult = apply(vueSource, plan, mockLogger, "Component.vue");
+    const vueResult = apply(vueSource, plan, mockLogger, "Component.vue", mockConfig);
     expect(vueResult.code).toContain('<script setup lang="ts">');
     expect(vueResult.code).toContain("const a = 1;");
     expect(vueResult.code).toContain('import { t } from "zintl";');
     expect(vueResult.code).toContain("</script>");
 
-    const svelteResult = apply(svelteSource, plan, mockLogger, "Component.svelte");
+    const svelteResult = apply(svelteSource, plan, mockLogger, "Component.svelte", mockConfig);
     expect(svelteResult.code).toContain("<script>");
     expect(svelteResult.code).toContain("const a = 1;");
     expect(svelteResult.code).toContain('import { t } from "zintl";');

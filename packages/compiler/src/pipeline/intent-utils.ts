@@ -7,19 +7,43 @@ import type {
   VariableBinding,
 } from "../types/index.js";
 
-function getMeta(id: string, metadataGraph: Record<string, any>) {
+function stripExtensions(id: string, extensions?: string[], adapters?: any[]): string {
+  const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+  const sfcExts = (adapters || [])
+    .filter((a) => a.sfc)
+    .map((a) => {
+      return exts.filter((ext) => a.match("dummy" + ext));
+    })
+    .flat();
+  const keepExts = [".html", ...sfcExts];
+  const stripExts = exts.filter(
+    (ext) => !keepExts.some((k) => k.toLowerCase() === ext.toLowerCase()),
+  );
+
+  const escapedExts = stripExts
+    .map((e) => (e.startsWith(".") ? e.slice(1) : e))
+    .map((e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"));
+  if (escapedExts.length === 0) return id;
+  const regex = new RegExp(`\\.(?:${escapedExts.join("|")})$`);
+  return id.replace(regex, "");
+}
+
+function getMeta(
+  id: string,
+  metadataGraph: Record<string, any>,
+  extensions?: string[],
+  adapters?: any[],
+) {
   if (!id) return undefined;
   if (metadataGraph[id]) return metadataGraph[id];
-  const clean = id.replace(/\.(?:ts|tsx|js|jsx|vue|svelte)$/, "");
-  return (
-    metadataGraph[clean] ||
-    metadataGraph[`${clean}.ts`] ||
-    metadataGraph[`${clean}.js`] ||
-    metadataGraph[`${clean}.tsx`] ||
-    metadataGraph[`${clean}.jsx`] ||
-    metadataGraph[`${clean}.vue`] ||
-    metadataGraph[`${clean}.svelte`]
-  );
+  const clean = stripExtensions(id, extensions, adapters);
+  if (metadataGraph[clean]) return metadataGraph[clean];
+  const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+  for (const ext of exts) {
+    const suffix = ext.startsWith(".") ? ext : `.${ext}`;
+    if (metadataGraph[clean + suffix]) return metadataGraph[clean + suffix];
+  }
+  return undefined;
 }
 
 /**
@@ -47,7 +71,10 @@ export function resolveOwner(
   const relativeId = normalizedId.startsWith(config.root)
     ? normalizedId.substring(config.root.length).replace(/^\/+/, "")
     : normalizedId;
-  const normId = relativeId.replace(/\.(?:ts|tsx|js|jsx)$/, "").replace(/^\/+/, "");
+  const normId = stripExtensions(relativeId, config.extensions, config.adapters).replace(
+    /^\/+/,
+    "",
+  );
 
   const owner = chunkGraph.boundaryToOwner.get(normId);
   if (owner) return owner;
@@ -67,7 +94,7 @@ export function resolveOwner(
   }
 
   // Fallback for file-level boundaries: if it has exported boundaries, resolve using the first exported boundary's owner!
-  const meta = getMeta(normId, worldState.metadataGraph);
+  const meta = getMeta(normId, worldState.metadataGraph, config.extensions, config.adapters);
   if (meta?.exportedBoundaries) {
     for (const bId of Object.values(meta.exportedBoundaries)) {
       const resolvedBId = bId as string;
@@ -90,17 +117,17 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   const relativeId = boundaryId.startsWith(config.root)
     ? boundaryId.substring(config.root.length).replace(/^\/+/, "")
     : boundaryId;
-  const normId = relativeId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  const normId = stripExtensions(relativeId, config.extensions, config.adapters);
 
   const isKingdom = (b: string) => {
     const fId = b.split(":")[0];
-    const m = getMeta(fId, metadataGraph);
+    const m = getMeta(fId, metadataGraph, config.extensions, config.adapters);
     if (!m) return false;
     // A file with zintl-marker is a Kingdom (Axiom 5)
     if (m.hasZintlMarker && !b.includes(":")) return true;
     // A function with a zintl() call is a Kingdom (Axiom 5)
     return (m.anchorSites || []).some((s: any) => {
-      const sId = s.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+      const sId = stripExtensions(s.boundaryId, config.extensions, config.adapters);
       return sId === b;
     });
   };
@@ -115,7 +142,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   }
 
   // 2. Trace back through dynamic/static imports
-  const normMeta = getMeta(normId.split(":")[0], metadataGraph);
+  const normMeta = getMeta(normId.split(":")[0], metadataGraph, config.extensions, config.adapters);
   const anchor = findEffectiveAnchor(
     boundaryId,
     worldState,
@@ -130,7 +157,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   );
 
   if (anchor) {
-    return anchor.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+    return stripExtensions(anchor.boundaryId, config.extensions, config.adapters);
   }
 
   // 3. Fallback to Chunk Graph owner
@@ -139,7 +166,8 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
 
   // 4. Final fallback: If the owner is a file that is an entry, it's the kingdom
   const ownerFileId = owner.split(":")[0];
-  if (getMeta(ownerFileId, metadataGraph)?.isEntry) return owner;
+  if (getMeta(ownerFileId, metadataGraph, config.extensions, config.adapters)?.isEntry)
+    return owner;
 
   return owner;
 }
@@ -162,12 +190,12 @@ export function findEffectiveAnchor(
   const relativeId = boundaryId.startsWith(config.root)
     ? boundaryId.substring(config.root.length).replace(/^\/+/, "")
     : boundaryId;
-  const normId = relativeId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  const normId = stripExtensions(relativeId, config.extensions, config.adapters);
 
   let currentId = normId;
   while (true) {
     const local = observation.anchors.find((a) => {
-      const aId = a.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+      const aId = stripExtensions(a.boundaryId, config.extensions, config.adapters);
       return aId === currentId;
     });
     if (local) {
@@ -199,7 +227,7 @@ export function findEffectiveAnchor(
       const targetHash = calculateSafeBoundaryId(ownerId, root, isDev);
 
       const sIdRaw = s.boundaryId;
-      const sId = sIdRaw.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+      const sId = stripExtensions(sIdRaw, config.extensions, config.adapters);
       const sIdRel = sId.startsWith(root) ? sId.substring(root.length).replace(/^\/+/, "") : sId;
       const sHash = calculateSafeBoundaryId(sIdRel, root, isDev);
 
@@ -233,7 +261,12 @@ export function findEffectiveAnchor(
   }
 
   // Fallback: If the owner itself is an entry point, check its metadata directly
-  const ownerMeta = getMeta(ownerId.split(":")[0], worldState.metadataGraph);
+  const ownerMeta = getMeta(
+    ownerId.split(":")[0],
+    worldState.metadataGraph,
+    worldState.config.extensions,
+    worldState.config.adapters,
+  );
   if (ownerMeta?.isEntry && ownerMeta.anchorSites?.length > 0) {
     const site = ownerMeta.anchorSites[0];
     let locale = site.locale;
@@ -254,7 +287,12 @@ export function findEffectiveAnchor(
         return depOwner === ownerId || depOwner.split(":")[0] === ownerId.split(":")[0];
       })
     ) {
-      const parentObservation = getMeta(parentId, worldState.metadataGraph) as any;
+      const parentObservation = getMeta(
+        parentId,
+        worldState.metadataGraph,
+        worldState.config.extensions,
+        worldState.config.adapters,
+      ) as any;
       if (parentObservation) {
         // Recursively find the anchor for the parent
         // Use a simple observation mock since we only care about the metadata graph part
@@ -300,18 +338,31 @@ function isLiveOwner(ownerId: string, worldState: WorldState): boolean {
     }
   }
 
-  const normPathId = pathId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  const normPathId = stripExtensions(
+    pathId,
+    worldState.config.extensions,
+    worldState.config.adapters,
+  );
   const resolvedOwnerId = chunkGraph.boundaryToOwner.get(normPathId);
   if (!resolvedOwnerId) return false;
 
-  const meta = getMeta(resolvedOwnerId, worldState.metadataGraph);
+  const meta = getMeta(
+    resolvedOwnerId,
+    worldState.metadataGraph,
+    worldState.config.extensions,
+    worldState.config.adapters,
+  );
   if (meta?.hasZintlMarker) return true;
 
   if (meta?.anchorSites && meta.anchorSites.some((a: any) => a.originalName !== "implicit-anchor"))
     return true;
   for (const chunk of chunkGraph.chunks.values()) {
     for (const bId of chunk.boundaries) {
-      const normBId = bId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+      const normBId = stripExtensions(
+        bId,
+        worldState.config.extensions,
+        worldState.config.adapters,
+      );
       const bOwner = chunkGraph.boundaryToOwner.get(normBId);
       if (bOwner === resolvedOwnerId) {
         if ((manifest[normBId]?.length || 0) > 0) return true;
@@ -348,9 +399,14 @@ export function generateManagerUrl(
 
   let hasDynamicAnchor = false;
   for (const rId of reachableNodeIds) {
-    const normRId = rId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+    const normRId = stripExtensions(rId, worldState.config.extensions, worldState.config.adapters);
     const fileId = normRId.split(":")[0];
-    const meta = getMeta(fileId, worldState.metadataGraph);
+    const meta = getMeta(
+      fileId,
+      worldState.metadataGraph,
+      worldState.config.extensions,
+      worldState.config.adapters,
+    );
     if (meta?.anchorSites?.some((s: any) => s.locale.type === "expression")) {
       hasDynamicAnchor = true;
       break;
@@ -358,12 +414,25 @@ export function generateManagerUrl(
   }
 
   if (!hasDynamicAnchor) {
-    const normOwnerId = ownerId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+    const normOwnerId = stripExtensions(
+      ownerId,
+      worldState.config.extensions,
+      worldState.config.adapters,
+    );
     const entryId = normOwnerId.includes(":") ? normOwnerId.split(":")[0] : normOwnerId;
-    const meta = getMeta(entryId, worldState.metadataGraph);
+    const meta = getMeta(
+      entryId,
+      worldState.metadataGraph,
+      worldState.config.extensions,
+      worldState.config.adapters,
+    );
     if (meta?.anchorSites) {
       const site = meta.anchorSites.find((s: any) => {
-        const normSId = s.boundaryId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+        const normSId = stripExtensions(
+          s.boundaryId,
+          worldState.config.extensions,
+          worldState.config.adapters,
+        );
         return normSId === normOwnerId;
       });
       if (site?.locale.type === "literal") {
@@ -372,7 +441,10 @@ export function generateManagerUrl(
     }
   }
 
-  return `virtual:zintl/manager/${syncLocale}/${chunkType}:${encodeURIComponent(stableId)}`;
+  const rawPath = `virtual:zintl/manager/${syncLocale}/${chunkType}:${encodeURIComponent(stableId)}`;
+  return worldState.config.resolveVirtualPath
+    ? worldState.config.resolveVirtualPath(rawPath)
+    : rawPath;
 }
 
 export function mapVariables(sink: ObservedSink): VariableBinding[] {
@@ -420,7 +492,12 @@ export function getReachableHandshake(
     if (isLiveOwner(owner, worldState)) {
       reachable.add(owner);
       const fileId = owner.includes(":") ? owner.split(":")[0] : owner;
-      const meta = getMeta(fileId, worldState.metadataGraph);
+      const meta = getMeta(
+        fileId,
+        worldState.metadataGraph,
+        worldState.config.extensions,
+        worldState.config.adapters,
+      );
       if (meta?.anchorSites?.length || meta?.hasZintlMarker) {
         handshake.add(owner);
       } else {
@@ -429,7 +506,12 @@ export function getReachableHandshake(
     }
 
     const fileId = id.includes(":") ? id.split(":")[0] : id;
-    const fileMeta = getMeta(fileId, worldState.metadataGraph);
+    const fileMeta = getMeta(
+      fileId,
+      worldState.metadataGraph,
+      worldState.config.extensions,
+      worldState.config.adapters,
+    );
 
     // Collect all dependencies for this ID and its file-level siblings
     const allDeps: any[] = [...(worldState.dependencyGraph[fileId] || [])];
@@ -459,10 +541,19 @@ export function getReachableHandshake(
           depFileId = depFileId.replace(/[^/]+\/\.\.\//, "");
         }
       }
-      const normDepId = depFileId.replace(/\.(?:ts|tsx|js|jsx)$/, "").replace(/^\/+/, "");
+      const normDepId = stripExtensions(
+        depFileId,
+        worldState.config.extensions,
+        worldState.config.adapters,
+      ).replace(/^\/+/, "");
 
       if (!dep.dynamic) {
-        const depMeta = getMeta(normDepId, worldState.metadataGraph);
+        const depMeta = getMeta(
+          normDepId,
+          worldState.metadataGraph,
+          worldState.config.extensions,
+          worldState.config.adapters,
+        );
         if (dep.bindings?.length && depMeta?.exportedBoundaries) {
           for (const binding of dep.bindings) {
             const resolvedBId = depMeta.exportedBoundaries[binding];
@@ -480,7 +571,12 @@ export function getReachableHandshake(
         }
       } else {
         // Dynamic import: check for function-level boundaries (Colonies or nested Kingdoms)
-        const depMeta = getMeta(normDepId, worldState.metadataGraph);
+        const depMeta = getMeta(
+          normDepId,
+          worldState.metadataGraph,
+          worldState.config.extensions,
+          worldState.config.adapters,
+        );
         if (depMeta?.exportedBoundaries && Object.keys(depMeta.exportedBoundaries).length > 0) {
           for (const [, bIdRaw] of Object.entries(depMeta.exportedBoundaries)) {
             const bId = bIdRaw as string;
@@ -490,7 +586,12 @@ export function getReachableHandshake(
 
             // Only add to handshake if it has its own anchor (Kingdom), not if it's a Colony
             const bFileId = fullBId.split(":")[0];
-            const bMeta = getMeta(bFileId, worldState.metadataGraph);
+            const bMeta = getMeta(
+              bFileId,
+              worldState.metadataGraph,
+              worldState.config.extensions,
+              worldState.config.adapters,
+            );
             if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
               handshake.add(depOwner);
             } else {
@@ -501,7 +602,12 @@ export function getReachableHandshake(
           const depOwner = resolveOwner(normDepId, worldState);
           reachable.add(depOwner);
 
-          const bMeta = getMeta(normDepId, worldState.metadataGraph);
+          const bMeta = getMeta(
+            normDepId,
+            worldState.metadataGraph,
+            worldState.config.extensions,
+            worldState.config.adapters,
+          );
           if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
             handshake.add(depOwner);
           } else {

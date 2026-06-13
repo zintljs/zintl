@@ -5,6 +5,7 @@ import type { FileObservation } from "./observation.js";
 import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
+import type { TargetAdapter } from "./compiler.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -33,6 +34,10 @@ export interface ZintlConfig {
   debug?: boolean | string;
   bakedLocale?: string;
   multiplex?: boolean;
+  adapters?: TargetAdapter[];
+  extensions?: string[];
+  resolveVirtualPath?: (id: string) => string;
+  dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 
 export type FormIntentFn = (
@@ -53,6 +58,7 @@ export type ApplyFn = (
   plan: ResolvedPlan,
   logger: ZintlLogger,
   filePath?: string,
+  config?: ZintlConfig,
 ) => TransformResult;
 
 export type ValidateFn = (

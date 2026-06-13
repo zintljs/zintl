@@ -13,6 +13,16 @@ export interface AssetTargetConfig {
   outputPattern?: string;
 }
 
+export interface TargetAdapter {
+  name: string;
+  match: (filePath: string) => boolean;
+  jsx?: boolean;
+  sfc?: boolean;
+  wrapHtmlText?: (replacement: string, hasTags: boolean, hasVars: boolean) => string;
+  wrapHtmlAttribute?: (attrName: string, replacement: string, hasVars: boolean) => string;
+  wrapSfcScript?: (code: string) => string;
+}
+
 export interface ZintlOptions {
   sourceLocale?: string;
   locales?: string[];
@@ -29,6 +39,18 @@ export interface ZintlOptions {
   assetsTarget?: (string | AssetTargetConfig)[];
   vitePlugins?: readonly any[];
   virtualAssets?: boolean;
+  extensions?: string[];
+  adapters?: TargetAdapter[];
+  hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
+  ssrWrapCode?: (params: {
+    code: string;
+    fileId: string;
+    isEntry: boolean;
+    locales: string[];
+    sourceLocale: string;
+  }) => string | undefined;
+  resolveVirtualPath?: (id: string) => string;
+  dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 
 interface CatalogFormatContext {

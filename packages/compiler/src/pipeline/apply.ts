@@ -10,7 +10,7 @@
  */
 
 import MagicString from "magic-string";
-import type { ResolvedPlan, TransformResult, ApplyFn, ZintlLogger } from "./types.js";
+import type { ResolvedPlan, TransformResult, ApplyFn, ZintlLogger, ZintlConfig } from "./types.js";
 
 /**
  * Apply a resolved transformation plan to source code.
@@ -20,6 +20,7 @@ export const apply: ApplyFn = (
   plan: ResolvedPlan,
   logger: ZintlLogger,
   filePath?: string,
+  config?: ZintlConfig,
 ): TransformResult => {
   logger.debug("Applying transformation plan...");
   const ms = new MagicString(source);
@@ -28,37 +29,36 @@ export const apply: ApplyFn = (
   // 1. Apply Prepends (Managers) and New Imports
   let insertIndex = 0;
   let needsScriptWrapper = false;
-  let sfcType: "vue" | "svelte" | null = null;
+  let sfcAdapter: any = null;
 
-  if (filePath && (filePath.endsWith(".vue") || filePath.endsWith(".svelte"))) {
-    sfcType = filePath.endsWith(".vue") ? "vue" : "svelte";
-    const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
-    const normalMatch = /<script\b[^>]*>/i.exec(source);
-    const match = setupMatch || normalMatch;
-    if (match) {
-      insertIndex = match.index + match[0].length;
-    } else {
-      needsScriptWrapper = true;
+  if (filePath && config?.adapters) {
+    sfcAdapter = config.adapters.find((a) => a.match(filePath) && a.sfc);
+    if (sfcAdapter) {
+      const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
+      const normalMatch = /<script\b[^>]*>/i.exec(source);
+      const match = setupMatch || normalMatch;
+      if (match) {
+        insertIndex = match.index + match[0].length;
+      } else {
+        needsScriptWrapper = true;
+      }
     }
   }
 
-  if (sfcType) {
+  if (sfcAdapter) {
     if (needsScriptWrapper) {
-      let scriptCode = "";
-      if (sfcType === "vue") {
-        scriptCode = `<script setup lang="ts">\n`;
-      } else {
-        scriptCode = `<script>\n`;
-      }
+      let scriptContent = "";
       for (const prepend of plan.prepends) {
-        scriptCode += prepend.code + "\n";
+        scriptContent += prepend.code + "\n";
       }
       for (const imp of plan.imports) {
         if (imp.strategy === "new") {
-          scriptCode += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
+          scriptContent += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
         }
       }
-      scriptCode += `</script>\n`;
+      const scriptCode = sfcAdapter.wrapSfcScript
+        ? sfcAdapter.wrapSfcScript(scriptContent)
+        : scriptContent;
       ms.prepend(scriptCode);
     } else {
       let scriptCode = "\n";

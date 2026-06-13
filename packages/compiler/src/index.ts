@@ -50,6 +50,7 @@ export class ZintlCompiler {
   public readonly clientBoundaries = new Set<string>();
 
   private graphDirty = true;
+  private readonly extensions: string[];
 
   private readonly sourceLocale: string;
   private readonly locales: string[];
@@ -102,54 +103,14 @@ export class ZintlCompiler {
   public _options: ZintlOptions;
 
   constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
-    let targets = options.targets || ["auto"];
+    let targets = options.targets || ["vanilla", "react", "html"];
     if (targets.includes("auto")) {
-      const detected: Extractor.TargetDescriptor[] = [];
-      const frameworks = new Set<string>();
-
-      if (options.vitePlugins && Array.isArray(options.vitePlugins)) {
-        for (const plugin of options.vitePlugins) {
-          if (plugin && plugin.name) {
-            const name = plugin.name.toLowerCase();
-            if (name.includes("vue")) frameworks.add("vue");
-            if (name.includes("react")) frameworks.add("react");
-            if (name.includes("svelte")) frameworks.add("svelte");
-          }
-        }
-      }
-
-      try {
-        const pkgPath = join(root, "package.json");
-        if (existsSync(pkgPath)) {
-          const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-          const allDeps = {
-            ...pkg.dependencies,
-            ...pkg.devDependencies,
-            ...pkg.peerDependencies,
-          };
-          if (allDeps["vue"]) frameworks.add("vue");
-          if (allDeps["react"]) frameworks.add("react");
-          if (allDeps["svelte"] || allDeps["@sveltejs/kit"]) frameworks.add("svelte");
-        }
-      } catch {}
-
-      if (frameworks.size > 0) {
-        for (const f of frameworks) {
-          detected.push(f as Extractor.TargetDescriptor);
-        }
-        detected.push("vanilla", "html");
-      } else {
-        detected.push("vanilla", "react", "html");
-      }
-
-      targets = (targets.filter((t) => t !== "auto") as Extractor.TargetDescriptor[]).concat(
-        detected,
-      );
-      targets = Array.from(new Set(targets));
+      targets = ["vanilla", "react", "html"];
     }
     options.targets = targets;
     options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
+    this.extensions = options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
     this.root = root;
@@ -177,6 +138,7 @@ export class ZintlCompiler {
       options.catalogFormat,
       this.logger.withPrefix("Catalog"),
       this._prune,
+      this.extensions,
     );
     this.messages = new MessageManager(
       this.io,
@@ -207,6 +169,20 @@ export class ZintlCompiler {
 
   public getWorldState(): WorldState {
     return this.createWorldState();
+  }
+
+  public resolveVirtualPath(id: string): string {
+    if (this._options.resolveVirtualPath) {
+      return this._options.resolveVirtualPath(id);
+    }
+    return id;
+  }
+
+  public generateDynamicImport(path: string): string {
+    if (this._options.dynamicImportTemplate) {
+      return this._options.dynamicImportTemplate(path, this.isDev);
+    }
+    return `import(${this.isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
   }
 
   public get internalManifest() {
@@ -330,16 +306,7 @@ export class ZintlCompiler {
     const fileId = this.io.getNormalizedId(filePath);
     const boundaries = (this.messages as any).boundaryOwnership.get(fileId);
     if (boundaries) {
-      if (
-        this.isDev &&
-        (filePath.endsWith(".ts") ||
-          filePath.endsWith(".tsx") ||
-          filePath.endsWith(".js") ||
-          filePath.endsWith(".jsx") ||
-          filePath.endsWith(".html") ||
-          filePath.endsWith(".vue") ||
-          filePath.endsWith(".svelte"))
-      ) {
+      if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
           const code = await this.io.readFile(filePath);
           await this.transform(code, filePath, undefined, true);
@@ -506,7 +473,7 @@ export class ZintlCompiler {
           if (entry.name === "node_modules" || entry.name.startsWith(".") || entry.name === "dist")
             continue;
           tasks.push(doDisc(fullPath));
-        } else if (/\.(ts|tsx|js|jsx|html|vue|svelte)$/.test(entry.name)) {
+        } else if (this.extensions.some((ext) => entry.name.endsWith(ext))) {
           tasks.push(
             (async () => {
               const code = await this.io.readFile(fullPath);
@@ -1000,8 +967,8 @@ export class ZintlCompiler {
     // Detect and redirect fanned HTML files to their original physical file
     for (const loc of this.locales) {
       const prefixProd = loc + "/";
-      const prefixDev = `virtual:zintl-multiplex-html:${loc}/`;
-      const prefixDevBare = `virtual:zintl-multiplex-html:${loc}`;
+      const prefixDev = this.resolveVirtualPath(`virtual:zintl-multiplex-html:${loc}/`);
+      const prefixDevBare = this.resolveVirtualPath(`virtual:zintl-multiplex-html:${loc}`);
 
       if (fileId.startsWith(prefixProd) && fileId.endsWith(".html")) {
         const relativeHtml = fileId.substring(prefixProd.length);
@@ -1052,16 +1019,7 @@ export class ZintlCompiler {
       this.graphDirty = true;
       this.hashCache[effectiveCleanId] = fileHash;
 
-      if (
-        !effectiveCleanId.endsWith(".ts") &&
-        !effectiveCleanId.endsWith(".tsx") &&
-        !effectiveCleanId.endsWith(".js") &&
-        !effectiveCleanId.endsWith(".jsx") &&
-        !effectiveCleanId.endsWith(".html") &&
-        !effectiveCleanId.endsWith(".vue") &&
-        !effectiveCleanId.endsWith(".svelte")
-      )
-        return;
+      if (!this.extensions.some((ext) => effectiveCleanId.endsWith(ext))) return;
 
       observation = observe(
         codeToUse,
@@ -1286,7 +1244,7 @@ export class ZintlCompiler {
       this.logger.withPrefix("Pipeline"),
       effectiveCleanId,
     );
-    const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id);
+    const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id, world.config);
     if (this.isDev) {
       const validation = validate(
         result,
@@ -1302,7 +1260,18 @@ export class ZintlCompiler {
     if (this.isDev) this.scheduleFlush();
 
     let finalCode = result.code;
-    if (
+    if (ssr && this._options.ssrWrapCode) {
+      const wrapped = this._options.ssrWrapCode({
+        code: finalCode,
+        fileId,
+        isEntry: this.isEntry(fileId),
+        locales: this.locales,
+        sourceLocale: this.sourceLocale,
+      });
+      if (wrapped !== undefined) {
+        finalCode = wrapped;
+      }
+    } else if (
       ssr &&
       (this.isEntry(fileId) ||
         fileId.endsWith("entry-server") ||
@@ -1316,13 +1285,14 @@ export class ZintlCompiler {
         const localesStr = JSON.stringify(this.locales);
         const defaultLocaleStr = JSON.stringify(this.sourceLocale || "en");
 
+        const runtimeInternal = this.resolveVirtualPath("virtual:zintl/runtime/internal");
         const funcRegex = /export\s+(async\s+)?function\s+render\b/;
         if (funcRegex.test(finalCode)) {
           finalCode = finalCode.replace(
             /export\s+(async\s+)?function\s+render\b/,
             "async function _zintl_raw_render",
           );
-          finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+          finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
         } else {
           const exportBlockRegex = /export\s*\{([^}]+)\}/g;
           let match;
@@ -1347,7 +1317,7 @@ export class ZintlCompiler {
                 if (found) {
                   const newBlock = `export { ${parts.join(", ")} }`;
                   finalCode = finalCode.replace(match[0], newBlock);
-                  finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+                  finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
                   break;
                 }
               }
@@ -1358,38 +1328,61 @@ export class ZintlCompiler {
     }
 
     if (this.isDev) {
-      if (this.messages.metadataGraph[fileId].anchorSites.length > 0) {
-        const hmrCode = `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
-        const scriptCloseIdx = finalCode.lastIndexOf("</script>");
-        if (scriptCloseIdx !== -1) {
-          finalCode =
-            finalCode.substring(0, scriptCloseIdx) +
-            hmrCode +
-            "\n" +
-            finalCode.substring(scriptCloseIdx);
-        } else {
-          finalCode += hmrCode;
+      if (this._options.hmrInjectionCode) {
+        let hmrToken = 0;
+        const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
+        if (fileBoundaries) {
+          for (const bId of fileBoundaries) {
+            hmrToken += this.boundaryRevisions.get(bId) || 0;
+          }
         }
-      }
+        const hmrCode = this._options.hmrInjectionCode(fileId, hmrToken);
+        if (hmrCode) {
+          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+          if (scriptCloseIdx !== -1) {
+            finalCode =
+              finalCode.substring(0, scriptCloseIdx) +
+              hmrCode +
+              "\n" +
+              finalCode.substring(scriptCloseIdx);
+          } else {
+            finalCode += hmrCode;
+          }
+        }
+      } else {
+        if (this.messages.metadataGraph[fileId].anchorSites.length > 0) {
+          const hmrCode = `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+          if (scriptCloseIdx !== -1) {
+            finalCode =
+              finalCode.substring(0, scriptCloseIdx) +
+              hmrCode +
+              "\n" +
+              finalCode.substring(scriptCloseIdx);
+          } else {
+            finalCode += hmrCode;
+          }
+        }
 
-      let hmrToken = 0;
-      const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
-      if (fileBoundaries) {
-        for (const bId of fileBoundaries) {
-          hmrToken += this.boundaryRevisions.get(bId) || 0;
+        let hmrToken = 0;
+        const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
+        if (fileBoundaries) {
+          for (const bId of fileBoundaries) {
+            hmrToken += this.boundaryRevisions.get(bId) || 0;
+          }
         }
-      }
-      if (hmrToken > 0) {
-        const tokenCode = `\n\n// Zintl HMR Token: ${hmrToken}`;
-        const scriptCloseIdx = finalCode.lastIndexOf("</script>");
-        if (scriptCloseIdx !== -1) {
-          finalCode =
-            finalCode.substring(0, scriptCloseIdx) +
-            tokenCode +
-            "\n" +
-            finalCode.substring(scriptCloseIdx);
-        } else {
-          finalCode += tokenCode;
+        if (hmrToken > 0) {
+          const tokenCode = `\n\n// Zintl HMR Token: ${hmrToken}`;
+          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+          if (scriptCloseIdx !== -1) {
+            finalCode =
+              finalCode.substring(0, scriptCloseIdx) +
+              tokenCode +
+              "\n" +
+              finalCode.substring(scriptCloseIdx);
+          } else {
+            finalCode += tokenCode;
+          }
         }
       }
     }
@@ -1721,6 +1714,10 @@ export class ZintlCompiler {
         debug: this.debug,
         bakedLocale,
         multiplex: this._options.multiplex ?? true,
+        adapters: this._options.adapters,
+        extensions: this.extensions,
+        resolveVirtualPath: this._options.resolveVirtualPath,
+        dynamicImportTemplate: this._options.dynamicImportTemplate,
       },
       catalogs,
       logger: this.logger,
@@ -1736,7 +1733,8 @@ export class ZintlCompiler {
     if (!this.graph.chunkGraph || this.graphDirty) await this.syncGraphs();
     const boundaryGraph = this.graph.boundaryGraph!;
     const chunkGraph = this.graph.chunkGraph!;
-    const isManagerPath = id.startsWith("virtual:zintl/manager/");
+    const managerPrefix = this.resolveVirtualPath("virtual:zintl/manager/");
+    const isManagerPath = isMgr || id.startsWith(managerPrefix);
 
     if (loc === undefined && isManagerPath) {
       const parts = id.split("/");
@@ -1845,10 +1843,10 @@ export class ZintlCompiler {
         case "${bakedLoc}":\n          return ${this.catalog.serializeCatalog(catData, bakedLoc, 4, this.logger)};
         ${this.locales
           .filter((l) => l !== bakedLoc)
-          .map(
-            (l) =>
-              `        case "${l}":\n          return import(${this.isDev ? "/* @vite-ignore */ " : ""}"virtual:zintl/content/${l}/${id}").then(m => m.default);`,
-          )
+          .map((l) => {
+            const contentPath = this.resolveVirtualPath(`virtual:zintl/content/${l}/${id}`);
+            return `        case "${l}":\n          return ${this.generateDynamicImport(contentPath)}.then(m => m.default);`;
+          })
           .join("\n")}
         default: return {};
       }
