@@ -38,7 +38,13 @@ function injectMultiplexQuery(id: string, locale: string): string {
 }
 
 export function resolveIdHook(ctx: ZintlPluginContext) {
-  return async function (this: any, id: string, importer: string | undefined) {
+  return async function (
+    this: any,
+    id: string,
+    importer: string | undefined,
+    options?: { ssr?: boolean },
+  ) {
+    const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     if (id.includes(".zintl-")) {
       const cleanId = id.split("?")[0];
       if (isAbsolute(cleanId)) {
@@ -154,7 +160,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 
         if (isEligible) {
           // Resolve clean first to check for translation neutrality
-          const resolvedClean = await this.resolve(id, importer, { skipSelf: true });
+          const resolvedClean = await this.resolve(id, importer, { skipSelf: true, ssr: isSsr });
           if (resolvedClean) {
             const cleanResolvedId = (
               typeof resolvedClean === "string" ? resolvedClean : resolvedClean.id
@@ -229,7 +235,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 
           const isSfc = ext === "vue" || ext === "svelte";
           if (isSfc) {
-            const resolved = await this.resolve(id, importer, { skipSelf: true });
+            const resolved = await this.resolve(id, importer, { skipSelf: true, ssr: isSsr });
             if (resolved) {
               const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
               const cleanResolvedId = resolvedId.split("?")[0];
@@ -247,7 +253,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
           } else {
             const newId = injectMultiplexQuery(id, locale);
 
-            const resolved = await this.resolve(newId, importer, { skipSelf: true });
+            const resolved = await this.resolve(newId, importer, { skipSelf: true, ssr: isSsr });
             if (resolved) {
               const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
               const cleanResolvedId = resolvedId.split("?")[0];
@@ -310,6 +316,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
 
 export function loadHook(ctx: ZintlPluginContext) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
+    const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {
       const rest = cleanId.slice("\0virtual:zintl/asset/".length);
@@ -388,7 +395,7 @@ export function loadHook(ctx: ZintlPluginContext) {
         .withPrefix("Vite")
         .debug(`Loading virtual runtime module: ${moduleName}`);
       let code = getRuntimeCode(moduleName as any);
-      if (!options?.ssr) {
+      if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");
       }
       return code;

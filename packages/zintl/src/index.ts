@@ -95,6 +95,7 @@ export function zintl(options: ZintlOptions = {}): any {
     transform: transformHook(ctx),
     transformIndexHtml: transformIndexHtmlHook(ctx),
     handleHotUpdate: handleHotUpdateHook(ctx),
+    hotUpdate: handleHotUpdateHook(ctx),
     buildEnd: buildEndHook(ctx),
   };
 
@@ -127,6 +128,7 @@ export function zintl(options: ZintlOptions = {}): any {
     "transform",
     "transformIndexHtml",
     "handleHotUpdate",
+    "hotUpdate",
     "buildEnd",
   ];
 

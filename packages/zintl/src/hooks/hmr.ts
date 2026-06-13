@@ -1,10 +1,10 @@
-import type { HmrContext, ModuleNode } from "vite";
+import type { ModuleNode } from "vite";
 import { isAbsolute, join } from "node:path";
 import type { ZintlPluginContext } from "../context.js";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 
 export function handleHotUpdateHook(ctx: ZintlPluginContext) {
-  return async function ({ file, server, modules, timestamp }: HmrContext) {
+  return async function (this: any, { file, server, modules, timestamp }: any) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (ctx.compiler.isWritingFile(file)) return;
 
@@ -18,7 +18,7 @@ export function handleHotUpdateHook(ctx: ZintlPluginContext) {
     const invalidatedModules = new Set<ModuleNode>();
     let invalidatedBoundaries: string[] = [];
 
-    const mg = server.moduleGraph;
+    const mg = this && this.environment ? this.environment.moduleGraph : server.moduleGraph;
     const invalidate = (mod: ModuleNode) => {
       mg.invalidateModule(mod);
       if (timestamp !== undefined) {

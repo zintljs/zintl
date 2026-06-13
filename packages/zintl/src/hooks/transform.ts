@@ -4,6 +4,8 @@ import { VIRTUAL_PREFIX } from "../constants.js";
 
 export function transformHook(ctx: ZintlPluginContext) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
+    const isSsr =
+      this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (
       id.includes("node_modules") ||
@@ -25,20 +27,21 @@ export function transformHook(ctx: ZintlPluginContext) {
       VIRTUAL_PREFIX,
       false,
       multiplexLocale,
-      options?.ssr,
+      isSsr,
     );
 
-    if (ctx.server && !id.startsWith("\0")) {
+    const mg = this && this.environment ? this.environment.moduleGraph : ctx.server?.moduleGraph;
+    if (mg && !id.startsWith("\0")) {
       const boundaryId = ctx.compiler.getNormalizedId(id);
       const affectedChunkIds = ctx.compiler.getAffectedChunks(boundaryId);
 
       if (affectedChunkIds.length > 0) {
         vLogger.debug(`Invalidating ${affectedChunkIds.length} affected chunks for ${boundaryId}`);
         for (const chunkModuleId of affectedChunkIds) {
-          for (const [modId, mod] of ctx.server.moduleGraph.idToModuleMap) {
+          for (const [modId, mod] of mg.idToModuleMap) {
             if (modId.includes(chunkModuleId) && modId.includes("virtual:zintl")) {
               vLogger.debug(`[HMR] Invalidating virtual module: ${modId}`);
-              ctx.server.moduleGraph.invalidateModule(mod);
+              mg.invalidateModule(mod);
             }
           }
         }
