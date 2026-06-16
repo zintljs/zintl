@@ -11,21 +11,21 @@
     "preview": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
-    "compression": "^1.8.1",
-    "express": "^5.2.1",
-    "sirv": "^3.0.2",
-    "vue": "^3.5.35"
+    "compression": "catalog:",
+    "express": "catalog:",
+    "sirv": "catalog:",
+    "vue": "catalog:"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.9.2",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vue/tsconfig": "^0.9.1",
-    "cross-env": "^10.1.0",
-    "typescript": "~6.0.3",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/tsconfig": "catalog:",
+    "cross-env": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
-    "vue-tsc": "^3.3.3",
+    "vue-tsc": "catalog:",
     "zintl": "workspace:*"
   }
 }

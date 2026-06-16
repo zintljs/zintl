@@ -12,19 +12,19 @@
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
-    "compression": "^1.8.1",
-    "express": "^5.2.1",
-    "sirv": "^3.0.2"
+    "compression": "catalog:",
+    "express": "catalog:",
+    "sirv": "catalog:"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@tsconfig/svelte": "^5.0.8",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.9.2",
-    "cross-env": "^10.1.0",
-    "svelte": "^5.56.2",
-    "svelte-check": "^4.6.0",
-    "typescript": "~6.0.3",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tsconfig/svelte": "catalog:",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "cross-env": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "zintl": "workspace:*"

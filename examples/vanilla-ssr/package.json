@@ -11,14 +11,14 @@
     "preview": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
-    "compression": "^1.8.1",
-    "express": "^5.2.1",
-    "sirv": "^3.0.2"
+    "compression": "catalog:",
+    "express": "catalog:",
+    "sirv": "catalog:"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.9.2",
-    "cross-env": "^10.1.0",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "cross-env": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",

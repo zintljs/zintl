@@ -695,7 +695,7 @@ exports[`Example Proof: svelte-ssr > should match Final Client Production Build 
 	}
 })();
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/shared/utils.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/shared/utils.js
 var is_array = Array.isArray;
 var index_of = Array.prototype.indexOf;
 var includes = Array.prototype.includes;
@@ -773,7 +773,7 @@ var STALE_REACTION = new class StaleReactionError extends Error {
 }();
 var IS_XHTML = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/shared/errors.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/shared/errors.js
 /**
 * An invariant violation occurred, meaning Svelte's internal assumptions were flawed. This is a bug in Svelte, not your app — please open an issue at https://github.com/sveltejs/svelte, citing the following message: "%message%"
 * @param {string} message
@@ -787,7 +787,7 @@ function invariant_violation(message) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/errors.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/errors.js
 /**
 * Cannot create a \`$derived(...)\` with an \`await\` expression outside of an effect tree
 * @returns {never}
@@ -943,13 +943,13 @@ function svelte_boundary_reset_onerror() {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/constants.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
 var UNINITIALIZED = Symbol("uninitialized");
 var FILENAME = Symbol("filename");
 var NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/warnings.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/warnings.js
 var bold = "font-weight: bold";
 var normal = "font-weight: normal";
 /**
@@ -1003,7 +1003,7 @@ function svelte_boundary_reset_noop() {
 	console.warn(\`%c[svelte] svelte_boundary_reset_noop\\n%cA \\\`<svelte:boundary>\\\` \\\`reset\\\` function only resets the boundary the first time it is called\\nhttps://svelte.dev/e/svelte_boundary_reset_noop\`, bold, normal);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/hydration.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/hydration.js
 /** @import { TemplateNode } from '#client' */
 /**
 * Use this variable to guard everything related to hydration code so it can be treeshaken out
@@ -1082,7 +1082,7 @@ function read_hydration_instruction(node) {
 	return node.data;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/equality.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/equality.js
 /** @import { Equals } from '#client' */
 /** @type {Equals} */
 function equals(value) {
@@ -1101,7 +1101,7 @@ function safe_equals(value) {
 	return !safe_not_equal(value, this.v);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/flags/index.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/flags/index.js
 /** True if experimental.async=true */
 var async_mode_flag = false;
 /** True if we're not certain that we only have Svelte 5 code in the compilation */
@@ -1109,7 +1109,7 @@ var legacy_mode_flag = false;
 /** True if $inspect.trace is used */
 var tracing_mode_flag = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dev/tracing.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dev/tracing.js
 /**
 * @typedef {{
 *   traces: Error[];
@@ -1135,7 +1135,7 @@ function tag_proxy(value, label) {
 	return value;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/shared/dev.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/shared/dev.js
 /**
 * @param {string} label
 * @returns {Error & { stack: string } | null}
@@ -1178,7 +1178,7 @@ function invariant(condition, message) {
 	if (!condition) invariant_violation(message);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/context.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/context.js
 /** @import { ComponentContext, DevStackEntry, Effect } from '#client' */
 /** @type {ComponentContext | null} */
 var component_context = null;
@@ -1280,7 +1280,7 @@ function is_runes() {
 	return !legacy_mode_flag || component_context !== null && component_context.l === null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/task.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/task.js
 /** @type {Array<() => void>} */
 var micro_tasks = [];
 function run_micro_tasks() {
@@ -1301,7 +1301,7 @@ function queue_micro_task(fn) {
 	micro_tasks.push(fn);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/error-handling.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/error-handling.js
 /** @import { Derived, Effect } from '#client' */
 /** @import { Boundary } from './dom/blocks/boundary.js' */
 var adjustments = /* @__PURE__ */ new WeakMap();
@@ -1326,6 +1326,7 @@ function handle_error(error) {
 * @param {Effect | null} effect
 */
 function invoke_error_boundary(error, effect) {
+	if (effect !== null && (effect.f & 16384) !== 0) return;
 	while (effect !== null) {
 		if ((effect.f & 128) !== 0) {
 			if ((effect.f & 32768) === 0) throw error;
@@ -1372,7 +1373,7 @@ function apply_adjustments(error) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/status.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/status.js
 /** @import { Derived, Signal } from '#client' */
 var STATUS_MASK = ~(DIRTY | MAYBE_DIRTY | CLEAN);
 /**
@@ -1391,7 +1392,7 @@ function update_derived_status(derived) {
 	else set_signal_status(derived, MAYBE_DIRTY);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/utils.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/utils.js
 /** @import { Derived, Effect, Value } from '#client' */
 /**
 * @param {Value[] | null} deps
@@ -1419,14 +1420,14 @@ function defer_effect(effect, dirty_effects, maybe_dirty_effects) {
 	set_signal_status(effect, CLEAN);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/store.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/store.js
 /**
 * We set this to \`true\` when updating a store so that we correctly
 * schedule effects if the update takes place inside a \`$:\` effect
 */
 var legacy_is_updating_store = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/reactivity/create-subscriber.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/reactivity/create-subscriber.js
 /**
 * Returns a \`subscribe\` function that integrates external event-based systems with Svelte's reactivity.
 * It's particularly useful for integrating with web APIs like \`MediaQuery\`, \`IntersectionObserver\`, or \`WebSocket\`.
@@ -1500,7 +1501,7 @@ function createSubscriber(start) {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
 /** @import { Effect, Source, TemplateNode, } from '#client' */
 /**
 * @typedef {{
@@ -1843,7 +1844,7 @@ var Boundary = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/async.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/async.js
 /** @import { Blocker, Effect, Source, Value } from '#client' */
 /**
 * @param {Blocker[]} blockers
@@ -1940,7 +1941,7 @@ function increment_pending() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/deriveds.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/deriveds.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @import { Batch } from './batch.js'; */
 /** @import { Boundary } from '../dom/blocks/boundary.js'; */
@@ -2182,7 +2183,7 @@ function unfreeze_derived_effects(derived) {
 	for (const e of derived.effects) if (e.teardown && e.fn !== null) update_effect(e);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/batch.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/batch.js
 /** @import { Fork } from 'svelte' */
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @type {Batch | null} */
@@ -2909,7 +2910,7 @@ function reset_all(effect) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/sources.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/sources.js
 /** @import { Derived, Effect, Source, Value } from '#client' */
 /** @type {Set<Effect>} */
 var eager_effects = /* @__PURE__ */ new Set();
@@ -3089,7 +3090,7 @@ function mark_reactions(signal, status, updated_during_traversal) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/proxy.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/proxy.js
 /** @import { Source } from '#client' */
 var regex_is_valid_identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 /**
@@ -3325,7 +3326,7 @@ function inspectable_array(array) {
 	} });
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dev/equality.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dev/equality.js
 function init_array_prototype_warnings() {
 	const array_prototype = Array.prototype;
 	const cleanup = Array.__svelte_cleanup;
@@ -3380,7 +3381,7 @@ function strict_equals(a, b, equal = true) {
 	return a === b === equal;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/operations.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/operations.js
 /** @import { Effect, TemplateNode } from '#client' */
 /** @type {Window} */
 var $window;
@@ -3560,7 +3561,7 @@ function merge_text_nodes(text) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
 /**
 * @template T
 * @param {() => T} fn
@@ -3578,7 +3579,7 @@ function without_reactive_context(fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/reactivity/effects.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/reactivity/effects.js
 /** @import { Blocker, ComponentContext, ComponentContextLegacy, Derived, Effect, TemplateNode, TransitionManager } from '#client' */
 /**
 * @param {Effect} effect
@@ -3928,14 +3929,14 @@ function move_effect(effect, fragment) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/legacy.js
 /**
 * @type {Set<Value> | null}
 * @deprecated
 */
 var captured_signals = null;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/runtime.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/runtime.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 var is_updating_effect = false;
 var is_destroying_effect = false;
@@ -4324,7 +4325,7 @@ function is_passive_event(name) {
 	return PASSIVE_EVENTS.includes(name);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dev/elements.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dev/elements.js
 /** @import { SourceLocation } from '#client' */
 /**
 * @param {any} fn
@@ -4374,7 +4375,7 @@ function assign_locations(node, filename, locations) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/elements/events.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/elements/events.js
 /**
 * Used on elements, as a map of event type -> event handler,
 * and on events themselves to track which element handled an event
@@ -4474,7 +4475,7 @@ function handle_event_propagation(event) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/reconciler.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/reconciler.js
 var policy = globalThis?.window?.trustedTypes && /* @__PURE__ */ globalThis.window.trustedTypes.createPolicy("svelte-trusted-html", { 
 /** @param {string} html */
 createHTML: (html) => {
@@ -4493,7 +4494,7 @@ function create_fragment_from_html(html) {
 	return elem.content;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/template.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/template.js
 /** @import { Effect, EffectNodes, TemplateNode } from '#client' */
 /** @import { TemplateStructure } from './types' */
 /**
@@ -4719,7 +4720,7 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
 */
 var mounted_components = /* @__PURE__ */ new WeakMap();
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dev/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dev/legacy.js
 /** @param {Function & { [FILENAME]: string }} target */
 function check_target(target) {
 	if (target) component_api_invalid_new(target[FILENAME] ?? "a component", target.name);
@@ -4737,7 +4738,7 @@ function legacy_api() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/blocks/branches.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/blocks/branches.js
 /** @import { Effect, TemplateNode } from '#client' */
 /**
 * @typedef {{ effect: Effect, fragment: DocumentFragment }} Branch
@@ -4884,7 +4885,7 @@ var BranchManager = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/blocks/key.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/blocks/key.js
 /** @import { TemplateNode } from '#client' */
 var NAN = Symbol("NaN");
 /**
@@ -4906,7 +4907,7 @@ function key(node, get_key, render_fn) {
 	});
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/blocks/each.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/blocks/each.js
 /** @import { EachItem, EachOutroGroup, EachState, Effect, EffectNodes, MaybeSource, Source, TemplateNode, TransitionManager, Value } from '#client' */
 /** @import { Batch } from '../../reactivity/batch.js'; */
 /**
@@ -5360,7 +5361,7 @@ function clsx$1() {
 	return n;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/shared/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/shared/attributes.js
 /**
 * Small wrapper around clsx to preserve Svelte's (weird) handling of falsy values.
 * TODO Svelte 6 revisit this, and likely turn all falsy values into the empty string (what clsx also does)
@@ -5395,7 +5396,7 @@ function to_class(value, hash, directives) {
 	return classname === "" ? null : classname;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/elements/class.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/elements/class.js
 /**
 * @param {Element} dom
 * @param {boolean | number} is_html
@@ -5420,7 +5421,7 @@ function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
 	return next_classes;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/dom/elements/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/dom/elements/attributes.js
 /** @import { Blocker, Effect } from '#client' */
 var IS_CUSTOM_ELEMENT = Symbol("is custom element");
 var IS_HTML = Symbol("is html");
@@ -5536,7 +5537,7 @@ if (typeof HTMLElement === "function");
 	throw_rune_error("$bindable");
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/disclose-version.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/disclose-version.js
 if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 //#endregion
 //#region \\0virtual:zintl/runtime/internal
@@ -7046,10 +7047,10 @@ var entry_b_429b1674e079_default = {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/constants.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/constants.js
 var FILENAME = Symbol("filename");
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/escaping.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/escaping.js
 var ATTR_REGEX = /[&"<]/g;
 var CONTENT_REGEX = /[&<]/g;
 /**
@@ -7112,7 +7113,7 @@ function deferred() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/shared/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/shared/attributes.js
 /**
 * \`<div translate={false}>\` should be rendered as \`<div translate="no">\` and _not_
 * \`<div translate="false">\`, which is equivalent to \`<div translate="yes">\`. There
@@ -7251,7 +7252,7 @@ function to_style(value, styles) {
 	return value == null ? null : String(value);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/client/constants.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/client/constants.js
 var CLEAN = 1024;
 var DIRTY = 2048;
 var MAYBE_DIRTY = 4096;
@@ -7268,17 +7269,17 @@ var STALE_REACTION = new class StaleReactionError extends Error {
 }();
 globalThis.document?.contentType;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/flags/index.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/flags/index.js
 /** True if experimental.async=true */
 var async_mode_flag = false;
 ~(DIRTY | MAYBE_DIRTY | CLEAN);
 EFFECT_TRANSPARENT | EFFECT_PRESERVED;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/hydration.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/hydration.js
 var BLOCK_OPEN = \`<!--[-->\`;
 var BLOCK_CLOSE = \`<!--]-->\`;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/utils.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/utils.js
 var regex_return_characters = /\\r/g;
 /**
 * @param {string} str
@@ -7333,7 +7334,7 @@ function is_boolean_attribute(name) {
 }
 [...DOM_BOOLEAN_ATTRIBUTES];
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/abort-signal.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/abort-signal.js
 /** @type {AbortController | null} */
 var controller = null;
 function abort() {
@@ -7341,7 +7342,7 @@ function abort() {
 	controller = null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/errors.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/errors.js
 /**
 * The node API \`AsyncLocalStorage\` is not available, but is required to use async server rendering.
 * @returns {never}
@@ -7397,7 +7398,7 @@ function server_context_required() {
 	throw error;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/context.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/context.js
 /** @import { SSRContext } from '#server' */
 /** @type {SSRContext | null} */
 var ssr_context = null;
@@ -7421,7 +7422,7 @@ function pop() {
 	ssr_context = ssr_context.p;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/warnings.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/warnings.js
 var bold = "font-weight: bold";
 var normal = "font-weight: normal";
 /**
@@ -7439,7 +7440,7 @@ The \\\`hydratable\\\` was initialized in:
 \${stack}\\nhttps://svelte.dev/e/unresolved_hydratable\`, bold, normal);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/render-context.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/render-context.js
 /** @import { AsyncLocalStorage } from 'node:async_hooks' */
 /** @import { RenderContext } from '#server' */
 /** @type {Promise<void> | null} */
@@ -7495,7 +7496,7 @@ function in_webcontainer() {
 	return !!globalThis.process?.versions?.webcontainer;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/crypto.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/crypto.js
 var text_encoder;
 var crypto;
 /** @param {string} module_name */
@@ -7959,7 +7960,7 @@ function stringify_primitive(thing) {
 	return str;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/renderer.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/renderer.js
 /** @import { Component } from 'svelte' */
 /** @import { Csp, HydratableContext, RenderOutput, SSRContext, SyncRenderOutput, Sha256Source } from './types.js' */
 /** @import { MaybePromise } from '#shared' */
@@ -8643,7 +8644,7 @@ var SSRState = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/blocks/html.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/blocks/html.js
 /**
 * @param {string} value
 */
@@ -8882,7 +8883,7 @@ function is_tag_valid_with_parent(child_tag, parent_tag, child_loc, parent_loc) 
 	return null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/dev.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/dev.js
 /** @import { SSRContext } from '#server' */
 /**
 * @typedef {{
@@ -8953,7 +8954,7 @@ function pop_element() {
 	);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.2/node_modules/svelte/src/internal/server/index.js
+//#region node_modules/.pnpm/svelte@5.56.3/node_modules/svelte/src/internal/server/index.js
 var INVALID_ATTR_NAME_CHAR_REGEX = /[\\s'">/=\\u{FDD0}-\\u{FDEF}\\u{FFFE}\\u{FFFF}\\u{1FFFE}\\u{1FFFF}\\u{2FFFE}\\u{2FFFF}\\u{3FFFE}\\u{3FFFF}\\u{4FFFE}\\u{4FFFF}\\u{5FFFE}\\u{5FFFF}\\u{6FFFE}\\u{6FFFF}\\u{7FFFE}\\u{7FFFF}\\u{8FFFE}\\u{8FFFF}\\u{9FFFE}\\u{9FFFF}\\u{AFFFE}\\u{AFFFF}\\u{BFFFE}\\u{BFFFF}\\u{CFFFE}\\u{CFFFF}\\u{DFFFE}\\u{DFFFF}\\u{EFFFE}\\u{EFFFF}\\u{FFFFE}\\u{FFFFF}\\u{10FFFE}\\u{10FFFF}]/u;
 /**
 * Only available on the server and when compiling with the \`server\` option.
