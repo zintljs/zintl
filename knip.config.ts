@@ -22,7 +22,7 @@ const config: KnipConfig = {
   ignoreBinaries: [
     "vpx", // vite-plus companion binary, ships with vite-plus package
   ],
-  ignoreFiles: ["scripts/budget-reporter.ts"],
+  ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
   vitest: true,
   vite: true,
 };

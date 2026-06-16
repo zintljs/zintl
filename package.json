@@ -10,6 +10,7 @@
     "ready": "vp lint && knip && vp run build && vp test  && vp fmt && vp run bench ",
     "dev": "pnpm run -F '@zintl/*' -F 'zintl' -F 'website' --parallel dev ",
     "build": "vp run -r build",
+    "test:examples": "vp test --config=vitest.examples.config.ts",
     "bench:write": "WRITE_BASELINE=1 NODE_OPTIONS=\"--expose-gc\" vp test bench --run",
     "bench": "NODE_OPTIONS=\"--expose-gc\" vp test bench --run",
     "deps": "vpx taze@latest -Ilwr",

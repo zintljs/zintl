@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-
+import { configDefaults } from "vitest/config";
 export default defineConfig({
   run: {
     tasks: {
@@ -34,10 +34,10 @@ export default defineConfig({
   lint: { options: { typeAware: true, typeCheck: true } },
   test: {
     globalSetup: "./scripts/cleanup-test.ts",
+    exclude: [...configDefaults.exclude, "**/__tests__/examples/**"],
     coverage: {
       exclude: [
-        "**/dist/**",
-        "**/node_modules/**",
+        ...configDefaults.exclude,
         "**/*.test.ts",
         "**/*.spec.ts",
         "**/*.bench.ts",
