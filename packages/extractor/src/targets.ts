@@ -1,4 +1,4 @@
-import type { TargetDescriptor, TargetPlugin } from "./types.js";
+import type { TargetDescriptor, TargetPlugin, SfcRule, SuppressionRule } from "./types.js";
 
 export interface ResolvedTargets {
   jsxAttributes: Set<string>;
@@ -9,6 +9,15 @@ export interface ResolvedTargets {
   plugins: TargetPlugin[];
   fastPathHints: string[];
   uniqueHints: string[];
+  /** Pre-built regex for file-level fast-path gating. Derived from uniqueHints + core tokens. */
+  fastPathRegex: RegExp;
+  /** True when at least one dom:prop target is configured (e.g. innerHTML). */
+  hasDomSinks: boolean;
+  /** True when at least one jsx: target is configured. */
+  hasJsxSinks: boolean;
+  sfcRules: SfcRule[];
+  suppressionRules: SuppressionRule[];
+  mustacheRegex?: RegExp | null;
 }
 
 export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
@@ -22,6 +31,21 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "dom:prop:ariaLabel",
   ],
   react: [
+    "jsx:*:aria-label",
+    "jsx:*:alt",
+    "jsx:*:title",
+    "jsx:*:placeholder",
+    "jsx:*:aria-description",
+    "jsx:*:label",
+    "jsx:*:description",
+    "jsx:*:tooltip",
+    "obj:field:label",
+    "obj:field:title",
+    "obj:field:description",
+    "obj:field:text",
+    "obj:field:tooltip",
+  ],
+  nextjs: [
     "jsx:*:aria-label",
     "jsx:*:alt",
     "jsx:*:title",
@@ -94,6 +118,93 @@ function getTargetKey(t: TargetDescriptor): string {
 }
 
 const targetsCache = new Map<string, ResolvedTargets>();
+
+export interface TargetMetadata {
+  sfcRules?: SfcRule[];
+  suppressionRules?: SuppressionRule[];
+  mustacheRegex?: RegExp;
+}
+
+export const TARGET_METADATA: Record<string, TargetMetadata> = {
+  vue: {
+    sfcRules: [
+      {
+        extensions: [".vue"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "template",
+            pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
+            action: "html",
+            isActiveContent: true,
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
+  },
+  svelte: {
+    sfcRules: [
+      {
+        extensions: [".svelte"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{([^{}]+)\}/g,
+  },
+  nextjs: {
+    suppressionRules: [
+      {
+        targets: ["nextjs"],
+        match: {
+          types: ["FunctionDeclaration", "VariableDeclarator"],
+          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
+          isTopLevel: true,
+        },
+        bypassIf: "hasAnchor",
+      },
+    ],
+  },
+};
+
+export const DEFAULT_SFC_RULES: SfcRule[] = [
+  ...TARGET_METADATA.vue.sfcRules!,
+  ...TARGET_METADATA.svelte.sfcRules!,
+];
+
+export const DEFAULT_SUPPRESSION_RULES: SuppressionRule[] = [
+  ...TARGET_METADATA.nextjs.suppressionRules!,
+];
 
 export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
   const cacheKey = targets.map(getTargetKey).join("|");
@@ -176,7 +287,39 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
 
   const uniqueHints = Array.from(new Set(fastPathHints));
 
-  const resolved = {
+  // Derive fast-path capabilities from what has been configured.
+  // This regex is built once per unique target combination and cached.
+  const hasDomSinks = domProperties.size > 0;
+  const hasJsxSinks = jsxAttributes.size > 0 || jsxElementAttributes.size > 0;
+  const hasHtmlSinks = htmlAttributes.size > 0;
+
+  const patternParts: string[] = [
+    // Zintl-core tokens always included — they are framework-agnostic
+    "zintl",
+    "loadI18nInstance",
+    "t\\(",
+    // All resolved sink hints (aria-label, innerHTML, title, …)
+    ...uniqueHints.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+  ];
+  // Only include '<' when JSX or HTML templates are a configured target
+  if (hasJsxSinks || hasHtmlSinks) patternParts.push("<");
+
+  const fastPathRegex = new RegExp(patternParts.join("|"));
+
+  const sfcRules: SfcRule[] = [];
+  const suppressionRules: SuppressionRule[] = [];
+  let mustacheRegex: RegExp | null = null;
+
+  for (const t of targets) {
+    if (typeof t === "string" && TARGET_METADATA[t]) {
+      const meta = TARGET_METADATA[t];
+      if (meta.sfcRules) sfcRules.push(...meta.sfcRules);
+      if (meta.suppressionRules) suppressionRules.push(...meta.suppressionRules);
+      if (meta.mustacheRegex) mustacheRegex = meta.mustacheRegex;
+    }
+  }
+
+  const resolved: ResolvedTargets = {
     jsxAttributes,
     jsxElementAttributes,
     domProperties,
@@ -185,6 +328,12 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
     plugins,
     fastPathHints,
     uniqueHints,
+    fastPathRegex,
+    hasDomSinks,
+    hasJsxSinks,
+    sfcRules,
+    suppressionRules,
+    mustacheRegex,
   };
 
   targetsCache.set(cacheKey, resolved);

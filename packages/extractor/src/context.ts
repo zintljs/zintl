@@ -14,6 +14,8 @@ import {
   RawSink,
   RawManualT,
   TagMapEntry,
+  SfcRule,
+  SuppressionRule,
 } from "./types.js";
 import { parseZintlComments, parseHTMLDirectives } from "./comments.js";
 import { logger as defaultLogger, type ZintlLogger } from "./logger.js";
@@ -34,6 +36,15 @@ const VOID_ELEMENTS = new Set([
   "track",
   "wbr",
 ]);
+
+const EXTENSION_METADATA: Record<string, { mustacheRegex?: RegExp }> = {
+  ".vue": {
+    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
+  },
+  ".svelte": {
+    mustacheRegex: /\{([^{}]+)\}/g,
+  },
+};
 
 function getTagName(token: string): string {
   const match = token.match(/^<\/?([a-zA-Z0-9:-]+)/);
@@ -352,6 +363,15 @@ export class ExtractionContext {
   public logger: ZintlLogger;
   public isIgnoredFile = false;
   public suppressionLevel = 0;
+  /** Pre-built fast-path regex derived from the active target configuration. */
+  public readonly fastPathRegex: RegExp;
+  /** True when at least one dom:prop target is configured (e.g. innerHTML). */
+  public readonly hasDomSinks: boolean;
+  /** True when at least one jsx: target is configured. */
+  public readonly hasJsxSinks: boolean;
+  public readonly sfcRules: SfcRule[];
+  public readonly suppressionRules: SuppressionRule[];
+  public readonly mustacheRegex: RegExp | null;
 
   constructor(
     public code: string,
@@ -384,6 +404,35 @@ export class ExtractionContext {
     this.jsxElementAttributes = resolved.jsxElementAttributes;
     this.htmlAttributes = resolved.htmlAttributes;
     this.targetPlugins = resolved.plugins;
+    this.hasDomSinks = resolved.hasDomSinks;
+    this.hasJsxSinks = resolved.hasJsxSinks;
+    this.sfcRules = [...resolved.sfcRules, ...(options.sfcRules || [])];
+    this.suppressionRules = [...resolved.suppressionRules, ...(options.suppressionRules || [])];
+    let mustacheRegex = resolved.mustacheRegex ?? null;
+    if (!mustacheRegex) {
+      for (const [ext, meta] of Object.entries(EXTENSION_METADATA)) {
+        if (filePath.includes(ext) && meta.mustacheRegex) {
+          mustacheRegex = meta.mustacheRegex;
+          break;
+        }
+      }
+    }
+    this.mustacheRegex = mustacheRegex;
+
+    const extraHints = [
+      ...(options.uiObjectFields || []),
+      ...(options.uiSinkProperties || []),
+      ...(options.uiAttributes || []),
+    ];
+    if (extraHints.length > 0) {
+      const parts = [
+        ...resolved.fastPathRegex.source.split("|"),
+        ...extraHints.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      ];
+      this.fastPathRegex = new RegExp(parts.join("|"));
+    } else {
+      this.fastPathRegex = resolved.fastPathRegex;
+    }
 
     this.isZeroConfig = options.isZeroConfig ?? true;
     this.boundaryStack = [{ id: fileBoundaryId, active: true }];

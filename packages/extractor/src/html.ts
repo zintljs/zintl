@@ -55,19 +55,12 @@ export function extractHtml(
   let activeContent = code;
   let contentOffset = 0;
 
-  if (filePath.includes(".vue") || filePath.includes(".svelte")) {
-    if (filePath.includes(".vue")) {
-      const templateMatch = /<template\b[^>]*>([\s\S]*?)<\/template>/i.exec(code);
-      if (templateMatch) {
-        activeContent = templateMatch[1];
-        contentOffset = code.indexOf(templateMatch[1], templateMatch.index);
-      } else {
-        activeContent = "";
-      }
-    } else {
-      activeContent = code;
-      contentOffset = 0;
-    }
+  if (options.activeRange) {
+    activeContent = code.substring(options.activeRange.start, options.activeRange.end);
+    contentOffset = options.activeRange.start;
+  } else if (options.isSfcTemplate) {
+    activeContent = code;
+    contentOffset = 0;
   } else if (filePath.endsWith(".html")) {
     const bodyMatch = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(code);
     if (bodyMatch) {
@@ -76,6 +69,9 @@ export function extractHtml(
     } else {
       activeContent = "";
     }
+  } else {
+    activeContent = code;
+    contentOffset = 0;
   }
 
   if (activeContent.trim()) {
@@ -86,11 +82,9 @@ export function extractHtml(
         let processedText = trimmed;
         const variables: any[] = [];
 
-        const isVue = filePath.includes(".vue");
-        const isSvelte = filePath.includes(".svelte");
-
-        if (isVue || isSvelte) {
-          const regex = isVue ? /\{\{([\s\S]*?)\}\}/g : /\{([^{}]+)\}/g;
+        if (ctx.mustacheRegex) {
+          const regex = ctx.mustacheRegex;
+          regex.lastIndex = 0;
           let match;
           let offsetShift = 0;
           let varIndex = 0;
@@ -237,7 +231,6 @@ export function extractHtml(
     ),
     rawSinks: ctx.rawSinks,
     rawManualTranslations: ctx.rawManualTranslations,
-    htmlProjection:
-      filePath.includes(".vue") || filePath.includes(".svelte") ? undefined : projection,
+    htmlProjection: options.isSfcTemplate ? undefined : projection,
   };
 }

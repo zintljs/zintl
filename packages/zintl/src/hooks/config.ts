@@ -98,6 +98,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
             if (name.includes("vue")) frameworks.add("vue");
             if (name.includes("react")) frameworks.add("react");
             if (name.includes("svelte")) frameworks.add("svelte");
+            if (name.includes("next") || name.includes("vinext")) frameworks.add("nextjs");
           }
         }
       }
@@ -114,6 +115,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
           if (allDeps["vue"]) frameworks.add("vue");
           if (allDeps["react"]) frameworks.add("react");
           if (allDeps["svelte"] || allDeps["@sveltejs/kit"]) frameworks.add("svelte");
+          if (allDeps["next"] || allDeps["vinext"]) frameworks.add("nextjs");
         }
       } catch {}
 
@@ -181,7 +183,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       });
     }
 
-    if (targets.includes("react")) {
+    if (targets.includes("react") || targets.includes("nextjs")) {
       adapters.push({
         name: "react",
         match: (filePath: string) =>

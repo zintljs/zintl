@@ -1,13 +1,12 @@
 import { parseSync } from "oxc-parser";
 import type { Statement } from "@oxc-project/types";
 import { ExtractionContext } from "./context.js";
-import { ExtractionOptions, ExtractionResult } from "./types.js";
+import { ExtractionOptions, ExtractionResult, SfcRule } from "./types.js";
 import { createCombinedVisitor } from "./visitors/index.js";
 import { walk } from "./walker.js";
 
 import { extractHtml } from "./html.js";
-import { ZINTL_MACRO } from "./constants.ts";
-import { resolveTargets } from "./targets.js";
+import { resolveTargets, DEFAULT_SFC_RULES } from "./targets.js";
 
 export function extract(
   code: string,
@@ -20,27 +19,19 @@ export function extract(
   const targets = options.targets || ["vanilla", "react", "html"];
   const resolved = resolveTargets(targets);
 
-  let hints = resolved.uniqueHints;
-  if (options.uiObjectFields || options.uiSinkProperties || options.uiAttributes) {
-    const hintsSet = new Set(resolved.uniqueHints);
-    if (options.uiObjectFields) {
-      for (const f of options.uiObjectFields) hintsSet.add(f);
+  const sfcRules = [...resolved.sfcRules, ...(options.sfcRules || [])];
+  const ext = "." + filePath.split(".").pop();
+  if (!sfcRules.some((r) => r.extensions.includes(ext))) {
+    const defaultRule = DEFAULT_SFC_RULES.find((r) => r.extensions.includes(ext));
+    if (defaultRule) {
+      sfcRules.push(defaultRule);
     }
-    if (options.uiSinkProperties) {
-      for (const p of options.uiSinkProperties) hintsSet.add(p);
-    }
-    if (options.uiAttributes) {
-      for (const a of options.uiAttributes) hintsSet.add(a);
-    }
-    hints = Array.from(hintsSet);
   }
+  const sfcRule = sfcRules.find((rule) => rule.extensions.includes(ext));
 
   // Fast-Path Heuristic: Skip files that are statistically unlikely to contain translatable logic.
-  const isLikelyUI =
-    code.includes(ZINTL_MACRO) ||
-    code.includes("t(") ||
-    code.includes("<") ||
-    hints.some((s) => code.includes(s));
+  // The regex is derived entirely from the configured targets — no hardcoded framework strings here.
+  const isLikelyUI = resolved.fastPathRegex.test(code);
 
   // we do not want to skip modules that may has imported another modules that use zintl() or has ui sinks
   const isLikelyBridge = code.includes("import");
@@ -69,8 +60,8 @@ export function extract(
     return extractHtml(code, filePath, fileBoundaryId, options);
   }
 
-  if (filePath.endsWith(".vue") || filePath.endsWith(".svelte")) {
-    return extractSfc(code, filePath, fileBoundaryId, options);
+  if (sfcRule) {
+    return extractSfc(code, filePath, fileBoundaryId, options, sfcRule);
   }
 
   // const activeSinks = Array.from(options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS)
@@ -155,135 +146,181 @@ function extractSfc(
   filePath: string,
   fileBoundaryId: string,
   options: ExtractionOptions,
+  rule: SfcRule,
 ): ExtractionResult {
-  let script = "";
-  let scriptLang = "ts";
-  let scriptStart = 0;
-  let scriptStartLine = 0;
+  const jsBlocks: {
+    id: string;
+    content: string;
+    start: number;
+    startLine: number;
+    virtualExt: string;
+  }[] = [];
 
-  const isVue = filePath.endsWith(".vue");
-  const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  const ignoreMatches: { start: number; end: number }[] = [];
+  const htmlMatches: { start: number; end: number; isActive: boolean }[] = [];
 
-  const scriptMatch = scriptRegex.exec(code);
-  if (scriptMatch) {
-    script = scriptMatch[1];
-    scriptStart = code.indexOf(scriptMatch[1], scriptMatch.index);
-    const codeBeforeScript = code.substring(0, scriptStart);
-    scriptStartLine = (codeBeforeScript.match(/\n/g) || []).length;
+  for (const block of rule.blocks) {
+    block.pattern.lastIndex = 0;
+    let match;
+    while ((match = block.pattern.exec(code)) !== null) {
+      let attrs = "";
+      let blockContent = "";
 
-    const openTag = scriptMatch[0];
-    const langMatch = /lang=["']([^"']+)["']/i.exec(openTag);
-    if (langMatch) {
-      scriptLang = langMatch[1];
+      if (match.length >= 3) {
+        attrs = match[1] || "";
+        blockContent = match[2] || "";
+      } else if (match.length === 2) {
+        blockContent = match[1] || "";
+      } else {
+        blockContent = match[0] || "";
+      }
+
+      const matchStart = code.indexOf(blockContent, match.index);
+      const matchEnd = matchStart + blockContent.length;
+
+      if (block.action === "javascript") {
+        const codeBefore = code.substring(0, matchStart);
+        const startLine = (codeBefore.match(/\n/g) || []).length;
+        const virtualExt = block.resolveVirtualExtension
+          ? block.resolveVirtualExtension(attrs)
+          : ".ts";
+
+        jsBlocks.push({
+          id: block.id,
+          content: blockContent,
+          start: matchStart,
+          startLine,
+          virtualExt,
+        });
+        ignoreMatches.push({ start: match.index, end: match.index + match[0].length });
+      } else if (block.action === "ignore") {
+        ignoreMatches.push({ start: match.index, end: match.index + match[0].length });
+      } else if (block.action === "html") {
+        htmlMatches.push({
+          start: matchStart,
+          end: matchEnd,
+          isActive: block.isActiveContent || false,
+        });
+      }
     }
   }
 
-  const scriptExt = script.trim()
-    ? extract(
-        script,
-        filePath + (scriptLang === "ts" || scriptLang === "tsx" ? ".tsx" : ".jsx"),
-        fileBoundaryId,
-        options,
-      )
-    : null;
-
-  if (scriptExt && scriptStart > 0) {
-    if (scriptExt.messages) {
-      for (const msg of scriptExt.messages) {
-        msg.location.line += scriptStartLine;
+  // 1. Process JS blocks
+  const jsResults: ExtractionResult[] = [];
+  for (const block of jsBlocks) {
+    if (!block.content.trim()) continue;
+    const res = extract(block.content, filePath + block.virtualExt, fileBoundaryId, options);
+    // Align offsets relative to original document
+    if (res.messages) {
+      for (const msg of res.messages) {
+        msg.location.line += block.startLine;
       }
     }
-    if (scriptExt.transforms) {
-      for (const t of scriptExt.transforms) {
-        t.start += scriptStart;
-        t.end += scriptStart;
+    if (res.transforms) {
+      for (const t of res.transforms) {
+        t.start += block.start;
+        t.end += block.start;
       }
     }
-    if (scriptExt.rawSinks) {
-      for (const s of scriptExt.rawSinks) {
-        s.start += scriptStart;
-        s.end += scriptStart;
-        s.line += scriptStartLine;
-        if (s.hostStart !== undefined) s.hostStart += scriptStart;
-        if (s.hostEnd !== undefined) s.hostEnd += scriptStart;
-        if (s.fragmentStart !== undefined) s.fragmentStart += scriptStart;
-        if (s.fragmentEnd !== undefined) s.fragmentEnd += scriptStart;
+    if (res.rawSinks) {
+      for (const s of res.rawSinks) {
+        s.start += block.start;
+        s.end += block.start;
+        s.line += block.startLine;
+        if (s.hostStart !== undefined) s.hostStart += block.start;
+        if (s.hostEnd !== undefined) s.hostEnd += block.start;
+        if (s.fragmentStart !== undefined) s.fragmentStart += block.start;
+        if (s.fragmentEnd !== undefined) s.fragmentEnd += block.start;
         if (s.variables) {
           for (const v of s.variables) {
-            v.start += scriptStart;
-            v.end += scriptStart;
+            v.start += block.start;
+            v.end += block.start;
           }
         }
       }
     }
-    if (scriptExt.rawManualTranslations) {
-      for (const t of scriptExt.rawManualTranslations) {
-        t.start += scriptStart;
-        t.end += scriptStart;
-        t.line += scriptStart;
+    if (res.rawManualTranslations) {
+      for (const t of res.rawManualTranslations) {
+        t.start += block.start;
+        t.end += block.start;
+        t.line += block.start;
       }
     }
-    if (scriptExt.anchorSites) {
-      for (const s of scriptExt.anchorSites) {
-        s.start += scriptStart;
-        s.end += scriptStart;
+    if (res.anchorSites) {
+      for (const s of res.anchorSites) {
+        s.start += block.start;
+        s.end += block.start;
         if (s.statementRange) {
-          s.statementRange.start += scriptStart;
-          s.statementRange.end += scriptStart;
+          s.statementRange.start += block.start;
+          s.statementRange.end += block.start;
         }
       }
     }
-    if (scriptExt.zintlImportGroup) {
-      scriptExt.zintlImportGroup.start += scriptStart;
-      scriptExt.zintlImportGroup.end += scriptStart;
+    if (res.zintlImportGroup) {
+      res.zintlImportGroup.start += block.start;
+      res.zintlImportGroup.end += block.start;
     }
+    jsResults.push(res);
   }
 
+  // 2. Process HTML template content.
   let templateHtml = code;
-  templateHtml = templateHtml.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (match) =>
-    " ".repeat(match.length),
-  );
-  templateHtml = templateHtml.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (match) =>
-    " ".repeat(match.length),
-  );
+  const sortedIgnores = [...ignoreMatches].sort((a, b) => b.start - a.start);
+  for (const m of sortedIgnores) {
+    const len = m.end - m.start;
+    templateHtml =
+      templateHtml.substring(0, m.start) + " ".repeat(len) + templateHtml.substring(m.end);
+  }
 
-  const hasTemplate = /<template\b/i.test(code) || (!isVue && code.trim().length > 0);
-  const templateExt = hasTemplate
-    ? extractHtml(templateHtml, filePath + ".html", fileBoundaryId, options)
-    : null;
+  const activeHtml = htmlMatches.find((m) => m.isActive);
 
-  const messages = [...(scriptExt?.messages || []), ...(templateExt?.messages || [])];
-  const transforms = [...(scriptExt?.transforms || []), ...(templateExt?.transforms || [])];
-  const dependencies = [...(scriptExt?.dependencies || []), ...(templateExt?.dependencies || [])];
-  const rawSinks = [...(scriptExt?.rawSinks || []), ...(templateExt?.rawSinks || [])];
+  const templateExt = extractHtml(templateHtml, filePath + ".html", fileBoundaryId, {
+    ...options,
+    isSfcTemplate: true,
+    activeRange: activeHtml ? { start: activeHtml.start, end: activeHtml.end } : undefined,
+  });
+
+  // Combine results
+  const messages = [...jsResults.flatMap((r) => r.messages), ...(templateExt?.messages || [])];
+  const transforms = [
+    ...jsResults.flatMap((r) => r.transforms),
+    ...(templateExt?.transforms || []),
+  ];
+  const dependencies = [
+    ...jsResults.flatMap((r) => r.dependencies),
+    ...(templateExt?.dependencies || []),
+  ];
+  const rawSinks = [...jsResults.flatMap((r) => r.rawSinks), ...(templateExt?.rawSinks || [])];
   const rawManualTranslations = [
-    ...(scriptExt?.rawManualTranslations || []),
+    ...jsResults.flatMap((r) => r.rawManualTranslations),
     ...(templateExt?.rawManualTranslations || []),
   ];
 
   const usedKeys = new Set<string>([
-    ...(scriptExt?.usedKeys || []),
+    ...jsResults.flatMap((r) => Array.from(r.usedKeys)),
     ...(templateExt?.usedKeys || []),
   ]);
 
-  const boundaryHashes = {
-    ...scriptExt?.boundaryHashes,
-    ...templateExt?.boundaryHashes,
-  };
+  const boundaryHashes = {};
+  for (const r of jsResults) {
+    Object.assign(boundaryHashes, r.boundaryHashes);
+  }
+  if (templateExt) {
+    Object.assign(boundaryHashes, templateExt.boundaryHashes);
+  }
 
-  const exportedBoundaries = {
-    ...scriptExt?.exportedBoundaries,
-    ...templateExt?.exportedBoundaries,
-  };
+  const exportedBoundaries = {};
+  for (const r of jsResults) {
+    Object.assign(exportedBoundaries, r.exportedBoundaries);
+  }
+  if (templateExt) {
+    Object.assign(exportedBoundaries, templateExt.exportedBoundaries);
+  }
 
   const internalDeps: Record<string, string[]> = {};
-  if (scriptExt?.internalDeps) {
-    for (const [k, v] of Object.entries(scriptExt.internalDeps)) {
-      internalDeps[k] = [...(internalDeps[k] || []), ...v];
-    }
-  }
-  if (templateExt?.internalDeps) {
-    for (const [k, v] of Object.entries(templateExt.internalDeps)) {
+  const allDeps = [...jsResults.map((r) => r.internalDeps), templateExt?.internalDeps || {}];
+  for (const deps of allDeps) {
+    for (const [k, v] of Object.entries(deps)) {
       internalDeps[k] = [...(internalDeps[k] || []), ...v];
     }
   }
@@ -292,16 +329,24 @@ function extractSfc(
     messages,
     code,
     transforms,
-    needsLoader: (scriptExt?.needsLoader || templateExt?.needsLoader) ?? false,
-    hasZintlMacro: (scriptExt?.hasZintlMacro || templateExt?.hasZintlMacro) ?? false,
-    hasZintlMarker: (scriptExt?.hasZintlMarker || templateExt?.hasZintlMarker) ?? false,
-    anchorSites: [...(scriptExt?.anchorSites || []), ...(templateExt?.anchorSites || [])],
-    mode: scriptExt?.mode === "entry" || templateExt?.mode === "entry" ? "entry" : "boundary",
-    runtimeImports: [...(scriptExt?.runtimeImports || []), ...(templateExt?.runtimeImports || [])],
+    needsLoader: jsResults.some((r) => r.needsLoader) || (templateExt?.needsLoader ?? false),
+    hasZintlMacro: jsResults.some((r) => r.hasZintlMacro) || (templateExt?.hasZintlMacro ?? false),
+    hasZintlMarker:
+      jsResults.some((r) => r.hasZintlMarker) || (templateExt?.hasZintlMarker ?? false),
+    anchorSites: [...jsResults.flatMap((r) => r.anchorSites), ...(templateExt?.anchorSites || [])],
+    mode:
+      jsResults.some((r) => r.mode === "entry") || templateExt?.mode === "entry"
+        ? "entry"
+        : "boundary",
+    runtimeImports: [
+      ...jsResults.flatMap((r) => r.runtimeImports),
+      ...(templateExt?.runtimeImports || []),
+    ],
     dependencies,
     usedKeys,
     boundaryHashes,
-    zintlImportGroup: scriptExt?.zintlImportGroup || templateExt?.zintlImportGroup,
+    zintlImportGroup:
+      jsResults.find((r) => r.zintlImportGroup)?.zintlImportGroup || templateExt?.zintlImportGroup,
     exportedBoundaries,
     internalDeps,
     rawSinks,

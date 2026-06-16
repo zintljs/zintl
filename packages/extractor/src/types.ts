@@ -208,6 +208,7 @@ export interface Transform {
 export type TargetDescriptor =
   | "auto"
   | "react"
+  | "nextjs"
   | "vue"
   | "svelte"
   | "html"
@@ -227,6 +228,29 @@ export interface TargetPlugin {
   fastPathHint?: string | string[];
 }
 
+export interface SfcBlockRule {
+  id: string;
+  pattern: RegExp;
+  action: "javascript" | "html" | "ignore";
+  resolveVirtualExtension?: (attributes: string) => string;
+  isActiveContent?: boolean;
+}
+
+export interface SfcRule {
+  extensions: string[];
+  blocks: SfcBlockRule[];
+}
+
+export interface SuppressionRule {
+  targets?: string[];
+  match: {
+    types: string[];
+    names: string[];
+    isTopLevel?: boolean;
+  };
+  bypassIf?: "hasAnchor";
+}
+
 import type { ZintlLogger, LogLevel } from "./logger.js";
 export type { ZintlLogger, LogLevel };
 export interface ExtractionOptions {
@@ -237,4 +261,8 @@ export interface ExtractionOptions {
   targets?: TargetDescriptor[];
   logger?: ZintlLogger;
   isZeroConfig?: boolean;
+  sfcRules?: SfcRule[];
+  suppressionRules?: SuppressionRule[];
+  activeRange?: { start: number; end: number };
+  isSfcTemplate?: boolean;
 }

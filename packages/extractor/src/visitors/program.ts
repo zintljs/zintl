@@ -17,6 +17,53 @@ const GLOBALS = new Set([
   "console",
 ]);
 
+function checkSuppression(
+  node: any,
+  ctx: ExtractionContext,
+  parents: any[],
+  isInitStart?: number,
+): boolean {
+  if (ctx.suppressionRules.length === 0) return false;
+  if (!node.id || node.id.type !== "Identifier") return false;
+
+  const name = node.id.name;
+
+  for (const rule of ctx.suppressionRules) {
+    if (!rule.match.types.includes(node.type)) continue;
+    if (!rule.match.names.includes(name)) continue;
+    if (rule.match.isTopLevel && !isTopLevelDecl(parents)) continue;
+
+    if (rule.bypassIf === "hasAnchor") {
+      const initStart = isInitStart !== undefined ? isInitStart : node.start;
+      const hasAnchor =
+        ctx.hasTopLevelAnchor ||
+        ((ctx.hasZintlMacro || ctx.hasZintlMarker) &&
+          (ctx.scopeBoundaries.has(node.start) || ctx.scopeBoundaries.has(initStart)));
+      if (hasAnchor) {
+        continue;
+      }
+    }
+
+    return true;
+  }
+  return false;
+}
+
+function isTopLevelDecl(parents: Node[]): boolean {
+  for (const p of parents) {
+    if (
+      p.type === "FunctionDeclaration" ||
+      p.type === "FunctionExpression" ||
+      p.type === "ArrowFunctionExpression" ||
+      p.type === "MethodDefinition" ||
+      p.type === "ClassBody"
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const SCOPE_TYPES = new Set([
   "Program",
   "FunctionDeclaration",
@@ -156,10 +203,14 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
       enter(node: Node, ctx: ExtractionContext) {
         if (ctx.isZeroConfig) ctx.boundaryStack[0].active = true;
 
-        const hasMaybeUI = /zintl|loadI18nInstance|t\(|<|innerHTML/.test(ctx.code);
-        if (!hasMaybeUI) {
+        // Fast-path: If the file has no tokens that could produce sinks or anchors,
+        // skip the expensive recursive walk entirely.
+        // The regex is derived from the active target configuration — no hardcoded framework strings.
+        const hasMaybeUI = ctx.fastPathRegex.test(ctx.code);
+        const hasDynamicImport = ctx.code.includes("import(");
+        if (!hasMaybeUI && !hasDynamicImport) {
           // Fast-path: Still identify top-level functions for potential cross-file references,
-          // but skip the expensive recursive walk for sinks and anchors.
+          // and extract imports/dependencies, but skip the expensive recursive walk for sinks and anchors.
           for (const stmt of (node as any).body) {
             const register = (fn: any, name: string) => {
               if (
@@ -175,7 +226,36 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
                 }
               }
             };
-            if (stmt.type === "FunctionDeclaration" && stmt.id) register(stmt, stmt.id.name);
+            if (stmt.type === "ImportDeclaration") {
+              if (["StringLiteral", "Literal"].includes(stmt.source.type)) {
+                const sourceVal = (stmt.source as any).value,
+                  bindings: string[] = [];
+                if (stmt.specifiers)
+                  for (const spec of stmt.specifiers) {
+                    if (spec.type === "ImportSpecifier")
+                      bindings.push((spec.imported as any).name || (spec.imported as any).value);
+                    else if (spec.type === "ImportDefaultSpecifier") bindings.push("default");
+                  }
+                if (
+                  [
+                    ZINTL_MACRO,
+                    "zintl",
+                    "zintl/internal",
+                    "zintl/macro",
+                    "virtual:zintl/runtime/internal",
+                    ctx.runtimePackage,
+                  ].includes(sourceVal)
+                ) {
+                  ctx.zintlImportGroup = { start: stmt.start, end: stmt.end, source: sourceVal };
+                  for (const name of bindings) ctx.runtimeImports.push(name);
+                  if (!stmt.specifiers?.length) {
+                    ctx.mode = "entry";
+                    ctx.hasZintlMarker = true;
+                  }
+                }
+                ctx.addDependency(sourceVal, false, bindings);
+              }
+            } else if (stmt.type === "FunctionDeclaration" && stmt.id) register(stmt, stmt.id.name);
             else if (stmt.type === "ExportNamedDeclaration" && stmt.declaration) {
               const decl = stmt.declaration;
               if (decl.type === "FunctionDeclaration" && decl.id) {
@@ -208,6 +288,7 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
               const isLoader =
                 child.callee.type === "Identifier" && child.callee.name === "loadI18nInstance";
               if (isZintl || isLoader) {
+                if (isZintl) _ctx.hasZintlMacro = true;
                 const anchorInfo = getAnchorInfo(child, parents);
                 if (anchorInfo.isAnchor) {
                   if (anchorInfo.isTopLevel) topLevelAnchors.push(child);
@@ -229,83 +310,6 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
           ctx,
         );
 
-        const hasSinksOrCalls = (node: any, seen = new Set()): boolean => {
-          if (!node || typeof node !== "object" || seen.has(node)) return false;
-          seen.add(node);
-          if (
-            node.type === "CallExpression" &&
-            node.callee.type === "Identifier" &&
-            node.callee.name === "t"
-          )
-            return true;
-          if (node.type === "JSXElement" || node.type === "JSXFragment") return true;
-          if (
-            node.type === "AssignmentExpression" &&
-            node.left?.type === "MemberExpression" &&
-            ["innerHTML", "innerText"].includes(node.left.property?.name)
-          )
-            return true;
-          const childrenProps = [
-            "body",
-            "statements",
-            "argument",
-            "declarations",
-            "init",
-            "expression",
-            "callee",
-            "arguments",
-            "properties",
-            "elements",
-            "left",
-            "right",
-            "value",
-          ];
-          for (const prop of childrenProps) {
-            const val = node[prop];
-            if (!val) continue;
-            if (Array.isArray(val)) {
-              if (val.some((v) => hasSinksOrCalls(v, seen))) return true;
-            } else if (hasSinksOrCalls(val, seen)) return true;
-          }
-          return false;
-        };
-
-        const topLevelFunctions = new Map<any, string>();
-        const registerIfFunction = (node: any, name: string) => {
-          if (
-            node &&
-            ["FunctionDeclaration", "ArrowFunctionExpression", "FunctionExpression"].includes(
-              node.type,
-            )
-          ) {
-            topLevelFunctions.set(node, name);
-          }
-        };
-
-        for (const stmt of (node as any).body) {
-          if (stmt.type === "FunctionDeclaration" && stmt.id) {
-            registerIfFunction(stmt, stmt.id.name);
-          } else if (stmt.type === "ExportNamedDeclaration" && stmt.declaration) {
-            if (stmt.declaration.type === "FunctionDeclaration" && stmt.declaration.id) {
-              registerIfFunction(stmt.declaration, stmt.declaration.id.name);
-            } else if (stmt.declaration.type === "VariableDeclaration") {
-              for (const decl of stmt.declaration.declarations) {
-                if (decl.id.type === "Identifier" && decl.init) {
-                  registerIfFunction(decl.init, decl.id.name);
-                }
-              }
-            }
-          } else if (stmt.type === "ExportDefaultDeclaration") {
-            registerIfFunction(stmt.declaration, "default");
-          } else if (stmt.type === "VariableDeclaration") {
-            for (const decl of stmt.declarations) {
-              if (decl.id.type === "Identifier" && decl.init) {
-                registerIfFunction(decl.init, decl.id.name);
-              }
-            }
-          }
-        }
-
         for (const { node: anchorNode, fnParent } of functionalAnchors) {
           let fnId =
             (fnParent.type === "FunctionDeclaration" && fnParent.id?.name) ||
@@ -319,11 +323,51 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
             ctx.localBoundaries.set(fnParent.id.name, bId);
         }
 
-        for (const [fnNode, fnId] of topLevelFunctions.entries()) {
-          if (!ctx.scopeBoundaries.has(fnNode.start) && hasSinksOrCalls(fnNode)) {
-            const bId = `${ctx.fileBoundaryId}:${fnId}`;
-            ctx.scopeBoundaries.set(fnNode.start, bId);
-            ctx.localBoundaries.set(fnId, bId);
+        // Structural boundary assignment — no sink speculation, no recursive walk.
+        //
+        // Rule: every top-level EXPORTED function gets its own sub-boundary so that
+        // the compiler's binding tracker can attribute strings precisely when a
+        // consumer imports only a subset of the file's exports.
+        // In zero-config mode ALL top-level functions get boundaries (mirrors the
+        // fast-path registration that runs when !hasMaybeUI).
+        const assignBoundary = (fn: any, name: string) => {
+          if (
+            !fn ||
+            !["FunctionDeclaration", "ArrowFunctionExpression", "FunctionExpression"].includes(
+              fn.type,
+            )
+          )
+            return;
+          if (ctx.scopeBoundaries.has(fn.start)) return; // already set by a functional anchor
+          const bId = `${ctx.fileBoundaryId}:${name}`;
+          ctx.scopeBoundaries.set(fn.start, bId);
+          ctx.localBoundaries.set(name, bId);
+        };
+
+        for (const stmt of (node as any).body) {
+          if (stmt.type === "ExportNamedDeclaration" && stmt.declaration) {
+            if (stmt.declaration.type === "FunctionDeclaration" && stmt.declaration.id) {
+              assignBoundary(stmt.declaration, stmt.declaration.id.name);
+            } else if (stmt.declaration.type === "VariableDeclaration") {
+              for (const decl of stmt.declaration.declarations) {
+                if (decl.id.type === "Identifier" && decl.init) {
+                  assignBoundary(decl.init, decl.id.name);
+                }
+              }
+            }
+          } else if (stmt.type === "ExportDefaultDeclaration") {
+            assignBoundary(stmt.declaration, "default");
+          } else if (ctx.isZeroConfig) {
+            // Zero-config: also register non-exported top-level functions
+            if (stmt.type === "FunctionDeclaration" && stmt.id) {
+              assignBoundary(stmt, stmt.id.name);
+            } else if (stmt.type === "VariableDeclaration") {
+              for (const decl of stmt.declarations) {
+                if (decl.id.type === "Identifier" && decl.init) {
+                  assignBoundary(decl.init, decl.id.name);
+                }
+              }
+            }
           }
         }
 
@@ -384,12 +428,22 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
       enter(node: any, ctx: ExtractionContext, parents: Node[]) {
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
         if (comments.ignore) ctx.pushSuppression(comments);
+
+        const isMetadata = checkSuppression(node, ctx, parents);
+        if (isMetadata) {
+          ctx.suppressionLevel++;
+          node.__zintl_suppressed = true;
+        }
+
         const pb = ctx.getActiveBoundary(),
           id = ctx.scopeBoundaries.get(node.start);
         ctx.boundaryStack.push({ id: id || pb.id, active: id ? true : pb.active });
       },
       exit(node: any, ctx: ExtractionContext, parents: Node[]) {
         ctx.popSuppression(getAttachedComments(node, parents, ctx.trivias, ctx.code));
+        if (node.__zintl_suppressed) {
+          ctx.suppressionLevel--;
+        }
         ctx.boundaryStack.pop();
       },
     },
@@ -417,6 +471,20 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
       exit(node: any, ctx: ExtractionContext, parents: Node[]) {
         ctx.popSuppression(getAttachedComments(node, parents, ctx.trivias, ctx.code));
         ctx.boundaryStack.pop();
+      },
+    },
+    VariableDeclarator: {
+      enter(node: any, ctx: ExtractionContext, parents: Node[]) {
+        const isMetadata = checkSuppression(node, ctx, parents, node.init?.start);
+        if (isMetadata) {
+          ctx.suppressionLevel++;
+          node.__zintl_suppressed = true;
+        }
+      },
+      exit(node: any, ctx: ExtractionContext, _parents: Node[]) {
+        if (node.__zintl_suppressed) {
+          ctx.suppressionLevel--;
+        }
       },
     },
     CallExpression(node: CallExpression, ctx: ExtractionContext, parents: Node[]) {

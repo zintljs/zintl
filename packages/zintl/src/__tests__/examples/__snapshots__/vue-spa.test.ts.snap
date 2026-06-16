@@ -392,7 +392,7 @@ async function bootstrap() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
 
   // 2. Await zintl locale loading and catalog hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_components_AboutWorld"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_components_AboutWorld_vue"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_components_AboutWorld_vue"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
 
   // 3. Mount Vue App after translations are active
   const app = createApp(App);
@@ -8436,7 +8436,6 @@ async function bootstrap() {
 		locale: lang,
 		loaders: {
 			["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader,
-			["b_22d6afbaf438"]: entry_b_aafcf9c6fe16_default.loader,
 			["b_13b9cb21366d"]: entry_b_aafcf9c6fe16_default.loader
 		}
 	}));
@@ -8896,7 +8895,7 @@ async function bootstrap() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
 
   // 2. Await zintl locale loading and catalog hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader, ["b_22d6afbaf438"]: _zintl_mgr_b_aafcf9c6fe16.loader, ["b_13b9cb21366d"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader, ["b_13b9cb21366d"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
 
   // 3. Mount Vue App after translations are active
   const app = createApp(App);

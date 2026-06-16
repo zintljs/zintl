@@ -14,12 +14,17 @@ export function createCombinedVisitor(ctx: ExtractionContext): Visitors {
     }
   }
 
-  // Heuristic: If there are no strings, no JSX, and no t() calls, we can skip the heavy visitors.
-  // This is safe because sinks and messages ALWAYS require a string literal or JSX element.
-  const hasMaybeUI = /['"`]|<|zintl|t\(|innerHTML/.test(ctx.code);
+  // Heuristic: mount the heavy JSX + bindings visitors only when the active target
+  // configuration makes it plausible that sinks exist in this file.
+  // fastPathRegex is built from resolved targets \u2014 no hardcoded framework strings.
+  const hasMaybeUI = ctx.fastPathRegex.test(ctx.code);
 
   const visitors = hasMaybeUI
-    ? [createJsxVisitor(ctx), createBindingVisitor(ctx), createProgramVisitor(ctx)]
+    ? [
+        ...(ctx.hasJsxSinks ? [createJsxVisitor(ctx)] : []),
+        createBindingVisitor(ctx),
+        createProgramVisitor(ctx),
+      ]
     : [createProgramVisitor(ctx)];
 
   if ((ctx as any).targetPlugins) {

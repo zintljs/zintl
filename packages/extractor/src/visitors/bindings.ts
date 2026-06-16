@@ -40,7 +40,7 @@ function resolveBoundaryId(ctx: ExtractionContext, sourcePath: string): string |
     resolved = base ? `${base}/${name}` : name;
   }
 
-  return resolved.replace(/\.(tsx?|jsx?|vue)$/, "");
+  return resolved.replace(/\.(tsx?|jsx?)$/, "");
 }
 
 function extractRawVariables(source: LiteralSource, ctx: ExtractionContext): RawVariable[] {
@@ -148,8 +148,8 @@ function processSinkSource(
 
 // ─── Visitor ────────────────────────────────────────────────────────────────
 
-export function createBindingVisitor(_ctx: ExtractionContext) {
-  return {
+export function createBindingVisitor(ctx: ExtractionContext) {
+  const visitor: any = {
     ImportDeclaration(node: ImportDeclaration, ctx: ExtractionContext) {
       if (node.source.type !== ("StringLiteral" as any) && node.source.type !== ("Literal" as any))
         return;
@@ -193,7 +193,28 @@ export function createBindingVisitor(_ctx: ExtractionContext) {
       }
     },
 
-    AssignmentExpression(node: AssignmentExpression, ctx: ExtractionContext, parents: Node[]) {
+    VariableDeclaration: {
+      enter(node: any, ctx: ExtractionContext, parents: Node[]) {
+        const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
+        if (comments.ignore) {
+          ctx.suppressionLevel++;
+        }
+      },
+      exit(node: any, ctx: ExtractionContext, parents: Node[]) {
+        const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
+        if (comments.ignore) {
+          ctx.suppressionLevel--;
+        }
+      },
+    },
+  };
+
+  if (ctx.hasDomSinks) {
+    visitor.AssignmentExpression = function (
+      node: AssignmentExpression,
+      ctx: ExtractionContext,
+      parents: Node[],
+    ) {
       if (ctx.suppressionLevel > 0) return;
       const { id: boundaryId, active } = ctx.getActiveBoundary();
       if (!active || node.left.type !== "MemberExpression") return;
@@ -209,9 +230,11 @@ export function createBindingVisitor(_ctx: ExtractionContext) {
       sources.forEach((source) =>
         processSinkSource(source, prop, boundaryId, parents[0]?.start ?? node.start, ctx),
       );
-    },
+    };
+  }
 
-    Property(node: Property, ctx: ExtractionContext, parents: Node[]) {
+  if (ctx.uiObjectFields.size > 0) {
+    visitor.Property = function (node: Property, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0) return;
       if (ctx.handledNodes.has(node.start)) return;
       const { id: boundaryId, active } = ctx.getActiveBoundary();
@@ -235,21 +258,8 @@ export function createBindingVisitor(_ctx: ExtractionContext) {
       sources.forEach((source) =>
         processSinkSource(source, keyName, boundaryId, parents[0]?.start ?? node.start, ctx),
       );
-    },
+    };
+  }
 
-    VariableDeclaration: {
-      enter(node: any, ctx: ExtractionContext, parents: Node[]) {
-        const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
-        if (comments.ignore) {
-          ctx.suppressionLevel++;
-        }
-      },
-      exit(node: any, ctx: ExtractionContext, parents: Node[]) {
-        const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
-        if (comments.ignore) {
-          ctx.suppressionLevel--;
-        }
-      },
-    },
-  };
+  return visitor;
 }
