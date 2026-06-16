@@ -30,15 +30,32 @@ export class AssetManager {
     private readonly getDependencyGraph?: () => Record<string, any[]>,
     private readonly getHive?: () => Record<string, Record<string, any>>,
     private readonly markHiveDirty?: () => void,
+    private readonly getBoundaryGraph?: () => {
+      entries: Set<string>;
+      nodes: Map<string, any>;
+    } | null,
   ) {}
 
   private isAssetUsed(assetId: string): boolean {
     if (!this.getDependencyGraph) return true;
     const depGraph = this.getDependencyGraph();
+
+    // When the dep graph is empty we have no Vite module-graph context.
+    // Fall back to the original "assume used" behaviour so that the compiler
+    // works correctly in isolated mode (unit tests, programmatic API calls
+    // without a Vite instance).
     if (!depGraph || Object.keys(depGraph).length === 0) return true;
 
-    const normAssetId = assetId.replace(/\\/g, "/");
+    // We have real Vite module dependency information.  Apply the anchor
+    // reachability guard: if the project has no trust anchors at all, no asset
+    // can legitimately be "in use" for localisation.  This is the same guard
+    // applied in verifyIntegrity() and prevents phantom assets (e.g. a root
+    // README.md that the bundler never imported) from producing output files.
+    const bg = this.getBoundaryGraph?.();
+    if (bg && bg.entries.size === 0) return false;
 
+    // Asset is "used" if it appears in the Vite dependency graph of any module.
+    const normAssetId = assetId.replace(/\\/g, "/");
     for (const deps of Object.values(depGraph)) {
       if (Array.isArray(deps)) {
         for (const dep of deps) {
@@ -150,6 +167,14 @@ export class AssetManager {
    * Synchronizes a single asset's localized targets to disk.
    */
   public async syncSingleAsset(assetId: string) {
+    // Write-time guard: only localize assets that are actually reachable from
+    // a trust anchor.  This blocks phantom assets (e.g. a README.md discovered
+    // by the filesystem scan that was never imported by anchored code) from
+    // producing localized output files, regardless of how registerAsset() was
+    // called.  isAssetUsed() checks both the boundary graph entry count and the
+    // Vite module dependency graph.
+    if (!this.isAssetUsed(assetId)) return;
+
     const config = this.resolveAssetConfig(assetId);
     if (!config) return;
 

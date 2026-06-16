@@ -164,6 +164,7 @@ export class ZintlCompiler {
       () => this.messages.dependencyGraph,
       () => this.messages.hive,
       () => this.messages.markHiveDirty(),
+      () => this.graph.boundaryGraph,
     );
   }
 
@@ -481,6 +482,8 @@ export class ZintlCompiler {
             })(),
           );
         } else if (this.assets.isSupportedAsset(fullPath)) {
+          // Register for watch tracking; actual localized writes are gated
+          // inside syncSingleAsset() by the anchor-reachability check.
           tasks.push(this.assets.registerAsset(fullPath));
         }
       }
@@ -1573,11 +1576,39 @@ export class ZintlCompiler {
     const cg = this.graph.chunkGraph;
     if (!bg) return;
 
+    // If the project has no trust anchors at all, there is nothing to verify.
+    // Phantom boundaries from aggressive stitching (e.g. a Next.js layout.tsx
+    // whose template literals were extracted without any zintl() anchor anywhere)
+    // must not cause integrity failures — they are simply unreachable dead weight.
+    if (bg.entries.size === 0) return;
+
+    // Pre-compute all boundaries reachable (statically) from every entry point.
+    // Only boundaries in this set are subject to integrity checks — a file that
+    // has extracted sinks but is NOT in the dependency chain of any anchor is a
+    // phantom and should be silently skipped.
+    const reachableFromEntry = new Set<string>();
+    for (const entryId of bg.entries) {
+      const tree = this.graph.getStaticDependencyTree(entryId, bg);
+      for (const id of tree) reachableFromEntry.add(id);
+    }
+    // Also include dynamically-imported boundaries so lazy colonies are covered.
+    for (const node of bg.nodes.values()) {
+      for (const dep of node.deps) {
+        if (dep.dynamic) {
+          const tree = this.graph.getStaticDependencyTree(dep.id, bg);
+          for (const id of tree) reachableFromEntry.add(id);
+        }
+      }
+    }
+
     for (const [fileId, meta] of Object.entries(this.messages.metadataGraph)) {
       const fileBoundaries =
         (this.messages as any).boundaryOwnership.get(fileId) ||
         new Set([this.io.getNormalizedId(fileId)]);
-      const isReachable = Array.from(fileBoundaries).some((b) => bg.nodes.has(b as string));
+      // Only integrity-check boundaries that are genuinely reachable from an anchor.
+      const isReachable = Array.from(fileBoundaries).some((b) =>
+        reachableFromEntry.has(b as string),
+      );
 
       if (!isReachable) continue;
 

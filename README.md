@@ -196,3 +196,35 @@ Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md)
 ## License
 
 [MIT](LICENSE).
+
+---
+
+## What's genuinely brilliant
+
+**The Boundary Graph is a paradigm shift.** Most i18n systems are flat dictionaries. Zintl treats translations as a _dependency graph problem_ — the same mental model bundlers use for code splitting. The idea that "a file with a `zintl()` call becomes a trust anchor, and only strings reachable from that anchor need to be translated" is deeply correct and eliminates an entire class of bloat that ships in every other i18n library.
+
+**Ghost Mode (Zero-Disk Source Locale) is elegant.** Generating `{ "key": "key" }` for English is genuinely redundant — the AST already has the strings. Virtualizing the source locale from the extraction manifest instead of materializing it to disk is the kind of insight that only comes from thinking about the problem correctly from first principles.
+
+**The Intelligent Stitching engine** — treating template literals, JSX fragments, and HTML strings as _logical units_ rather than raw strings — is what separates Zintl from simple `i18next.t()` wrappers. Most systems make you manually wrap every string. Zintl reads intent from structure.
+
+**Hive (translation memory) with fuzzy recovery** is seriously underrated. The idea that a minor edit to a source string should forward-port the existing translation (with a warning) instead of wiping it is exactly how professional translators think. Most tools just orphan translations on source changes.
+
+---
+
+## Where I see real risk
+
+**The phantom boundary class of bugs is a structural vulnerability.** The aggressive extraction heuristic (`/zintl|loadI18nInstance|t\(|<|innerHTML/.test(ctx.code)`) runs on every file before the graph is built. The fix we applied today — gating at `verifyIntegrity` and `syncSingleAsset` — is correct, but it means phantom extractions _exist silently in the manifest_ even when they're eventually blocked from writing. In a large project with many non-anchored files, this is unneeded memory and CPU pressure on every build. The longer-term fix would be to not extract at all when there are no entries — but that requires knowing the graph before extracting, which is a chicken-and-egg problem with the current sequential pipeline.
+
+**The `resolve.ts` hook is doing too much.** That file is 636 lines handling multiplexing, asset registration, SFC proxy files, HTML fanning, virtual module resolution, AND the translation-neutrality traversal. It's a load-bearing monolith. Any new framework (vinext, Nuxt, Astro) that has a slightly different module resolution model will cause subtle bugs here. Each concern deserves its own hook.
+
+**The "special cases" are accumulating.** HTML projections, SSR boundaries, HTML fanning, zero-config mode, zintl markers vs. macros vs. anchors — each is individually justified, but the interaction surface is growing. The test suite is the only thing holding this together right now, and there are already 5 skipped tests.
+
+---
+
+## The meta-observation
+
+Zintl is solving the _right_ problem — most i18n tools treat internationalization as a runtime lookup problem, when it's actually a **compilation and bundling problem**. The strings that need to be translated are known at build time. The code-splitting boundary that determines which strings load when is known at build time. Zintl is the only system I know of that treats both of these facts seriously.
+
+The risk is that the implementation complexity is approaching the complexity of the problem it's solving. That's usually a sign that the abstraction layer needs a checkpoint — either a stricter API surface (fewer escape hatches), or a cleaner separation between the extractor (which should be dumb and greedy), the compiler (which should be the authority on what's "real"), and the runtime (which should be minimal and trust the compiler completely).
+
+The bones are exceptional. The muscle needs careful discipline as the feature surface grows.
