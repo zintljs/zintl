@@ -278,6 +278,14 @@ const compiler = new ZintlCompiler(
 4.  **Zero-Runtime Guarantee**: Macro baking must be aggressive and cross-boundary.
 5.  **Clean & Visual Proofs**: Test files are the source of truth. Keep fixtures linear, readable, and visual to ensure the "Identity of the Output" is always the star of the show.
 
+## Agent Safeguards
+
+### Repetitive Response & Loop Prevention
+
+- **No Periodic Repetition**: Do not output the same status, instructions, warnings, or message sequences across multiple turns.
+- **Self-Termination Guard**: If you observe that your previous 2 turns generated identical or highly similar messages, instructions, or planning statuses, immediately halt execution and output a single message asking the user for manual guidance.
+- **Duplicate Tool Calls**: Do not execute the same tool with identical arguments more than twice in the same conversation thread.
+
 ### Mantras Picking
 
 you can pick one of the following mantras to use in your responses:

@@ -25,6 +25,7 @@ dist-ssr
 
 .tmp
 .bench-project
-.gemini
+.gemini/antigravity
 .perf-bench*
 coverage
+.antigravitycli
