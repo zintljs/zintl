@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../.schemas/src/app/[locale]/page.Home.schema.json",
+  ":": ":",
+  "<image/> Deploy Now": "<image/> Desplegar ahora",
+  "Documentationn": "Documentación",
+  "Looking for a starting point or more instructions? Head over to{input} <a1> Templates </a1>{input2} or the{input3} <a2> Learning </a2>{input4} center.": "¿Buscas un punto de partida o más instrucciones? Dirígete a {input} <a1> Plantillas </a1> {input2} o al centro de {input3} <a2> Aprendizaje </a2> {input4}.",
+  "Next.js logo": "Logo de Next.js",
+  "To get started, edit the page.tsx file.": "Para comenzar, edite el archivo page.tsx.",
+  "Vercel logomark": "Logomarca de Vercel",
+  "Zintl(i18n)": "Zintl(i18n)",
+  "x": "x"
+}

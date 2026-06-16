@@ -1,0 +1,33 @@
+{
+  "name": "vinext-basic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
+    "deploy": "vinext deploy"
+  },
+  "dependencies": {
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitejs/plugin-rsc": "catalog:",
+    "babel-plugin-react-compiler": "1.0.0",
+    "react-server-dom-webpack": "catalog:",
+    "tailwindcss": "^4.3.1",
+    "typescript": "catalog:",
+    "vinext": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "zintl": "workspace:*"
+  }
+}

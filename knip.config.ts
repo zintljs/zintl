@@ -2,6 +2,10 @@ import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
   workspaces: {
+    "examples/vinext-basic": {
+      next: true,
+      ignore: [".vinext/**"],
+    },
     "examples/**": {
       entry: ["src/{about,main,entry-client,entry-server}.{ts,tsx}"],
       project: ["src/**/*.{ts,tsx}"],

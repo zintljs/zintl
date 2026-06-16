@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../.schemas/src/app/[locale]/page.Home.schema.json",
+  ":": ":",
+  "<image/> Deploy Now": "<image/> 立即部署",
+  "Documentationn": "文档",
+  "Looking for a starting point or more instructions? Head over to{input} <a1> Templates </a1>{input2} or the{input3} <a2> Learning </a2>{input4} center.": "寻找起点或更多说明？前往 {input} <a1> 模板 </a1> {input2} 或 {input3} <a2> 学习 </a2> {input4} 中心。",
+  "Next.js logo": "Next.js 标志",
+  "To get started, edit the page.tsx file.": "要开始使用，请编辑 page.tsx 文件。",
+  "Vercel logomark": "Vercel 品牌标识",
+  "Zintl(i18n)": "Zintl(i18n)",
+  "x": "x"
+}

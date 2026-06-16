@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    ":": {
+      "type": "string"
+    },
+    "<image/> Deploy Now": {
+      "type": "string"
+    },
+    "Documentationn": {
+      "type": "string"
+    },
+    "Looking for a starting point or more instructions? Head over to{input} <a1> Templates </a1>{input2} or the{input3} <a2> Learning </a2>{input4} center.": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {input}, {input2}, {input3}, {input4}"
+    },
+    "Next.js logo": {
+      "type": "string"
+    },
+    "To get started, edit the page.tsx file.": {
+      "type": "string"
+    },
+    "Vercel logomark": {
+      "type": "string"
+    },
+    "Zintl(i18n)": {
+      "type": "string"
+    },
+    "x": {
+      "type": "string"
+    }
+  },
+  "required": [
+    ":",
+    "<image/> Deploy Now",
+    "Documentationn",
+    "Looking for a starting point or more instructions? Head over to{input} <a1> Templates </a1>{input2} or the{input3} <a2> Learning </a2>{input4} center.",
+    "Next.js logo",
+    "To get started, edit the page.tsx file.",
+    "Vercel logomark",
+    "x",
+    "Zintl(i18n)"
+  ],
+  "additionalProperties": false
+}
