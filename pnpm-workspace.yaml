@@ -8,11 +8,10 @@ catalog:
   typescript: ^6.0.3
   knip: latest
   "@changesets/cli": latest
-  vite: npm:@voidzero-dev/vite-plus-core@^0.1.24
-  vitest: npm:@voidzero-dev/vite-plus-test@latest
-  vite-plus: latest
-  "@vitest/coverage-v8": latest
-  "@vitest/ui": latest
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.0
+  vite-plus: 0.2.0
+  "@vitest/coverage-v8": 4.1.9
+  "@vitest/ui": 4.1.9
 
   magic-string: ^0.30.21
   "@formatjs/icu-messageformat-parser": ^3.5.11
@@ -51,14 +50,11 @@ catalogMode: prefer
 
 overrides:
   vite: "catalog:"
-  vitest: "catalog:"
 peerDependencyRules:
   allowAny:
     - vite
-    - vitest
   allowedVersions:
     vite: "*"
-    vitest: "*"
 
 minimumReleaseAge: 720
 

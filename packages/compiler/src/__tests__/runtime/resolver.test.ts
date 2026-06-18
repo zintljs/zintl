@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vite-plus/test";
 import { _t } from "../../runtime/resolver.js";
 import { setActiveInstance, I18nStore } from "../../runtime/store.js";
 

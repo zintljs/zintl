@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-import { configDefaults } from "vitest/config";
+import { configDefaults } from "vite-plus/test/config";
 export default defineConfig({
   run: {
     tasks: {

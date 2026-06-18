@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vite-plus/test";
 import { handleHotUpdateHook } from "../hooks/hmr.js";
 
 describe("HMR Integration", () => {

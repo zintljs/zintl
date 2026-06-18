@@ -32,9 +32,12 @@ const config: KnipConfig = {
     "vpx", // vite-plus companion binary, ships with vite-plus package
     "vpr",
   ],
+  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
+  exclude: ["catalog"],
   ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
   vitest: true,
   vite: true,
+  pnpm: true,
 };
 
 export default config;
