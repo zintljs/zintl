@@ -8,6 +8,9 @@
  * Usage: Configured in vite.config.ts under test.benchmark.reporters
  */
 
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import path from "node:path";
+
 // Performance budgets (mean latency in milliseconds on a baseline machine)
 const BUDGETS: Record<string, number> = {
   // --- Compiler Pipeline ---
@@ -22,6 +25,8 @@ const BUDGETS: Record<string, number> = {
   "Fast-Path (No Translations/Sinks)": 0.05,
   "Fast-Path (Non-UI Logic)": 0.002,
 };
+const PERF_CHANGESET_DIR = ".changeset";
+const REFERENCE_CALIBRATION_BENCHMARK_NAME = "Reference Calibration (No-Op)";
 
 const GOLDEN_REFERENCE = 0.0165; // ~16.5μs for pure JS math calibration loop on baseline machine
 
@@ -149,16 +154,13 @@ export default class BudgetReporter {
   }
 
   private writeBaseline(testModules: ReadonlyArray<TestModule>) {
-    const fs = require("node:fs");
-    const path = require("node:path");
-
     const baselinePath = "bench-baseline.json";
     let oldBaseline: any = null;
 
     // 1. Read existing baseline if present
-    if (fs.existsSync(baselinePath)) {
+    if (existsSync(baselinePath)) {
       try {
-        oldBaseline = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
+        oldBaseline = JSON.parse(readFileSync(baselinePath, "utf-8"));
       } catch (e) {
         const errorMsg = e instanceof Error ? e.message : String(e);
         console.warn(`[PERF] Failed to parse existing baseline: ${errorMsg}`);
@@ -201,7 +203,7 @@ export default class BudgetReporter {
     };
 
     // 4. Write new baseline
-    fs.writeFileSync(baselinePath, JSON.stringify(results, null, 2));
+    writeFileSync(baselinePath, JSON.stringify(results, null, 2));
     console.log(
       `\n\x1b[32m[PERF] Baseline written to bench-baseline.json (with relative paths)\x1b[0m\n`,
     );
@@ -213,8 +215,8 @@ export default class BudgetReporter {
         const pkgDir = parts[1];
         try {
           const packageJsonPath = path.join(process.cwd(), "packages", pkgDir, "package.json");
-          if (fs.existsSync(packageJsonPath)) {
-            const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+          if (existsSync(packageJsonPath)) {
+            const pkgJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
             if (pkgJson.name) {
               return pkgJson.name;
             }
@@ -233,7 +235,7 @@ export default class BudgetReporter {
       for (const file of oldBaseline.files) {
         for (const group of file.groups || []) {
           const calBench = (group.benchmarks || []).find(
-            (b: any) => b.name === "Reference Calibration (No-Op)",
+            (b: any) => b.name === REFERENCE_CALIBRATION_BENCHMARK_NAME,
           );
           if (calBench && typeof calBench.mean === "number" && calBench.mean > 0) {
             oldCalSum += calBench.mean;
@@ -249,7 +251,7 @@ export default class BudgetReporter {
     for (const file of results.files) {
       for (const group of file.groups) {
         const calBench = group.benchmarks.find(
-          (b: any) => b.name === "Reference Calibration (No-Op)",
+          (b: any) => b.name === REFERENCE_CALIBRATION_BENCHMARK_NAME,
         );
         if (calBench && typeof calBench.mean === "number" && calBench.mean > 0) {
           newCalSum += calBench.mean;
@@ -284,7 +286,7 @@ export default class BudgetReporter {
           if (bench.mean === undefined || bench.mean === null) continue;
 
           // Skip the calibration benchmark itself from the changesets table since it is just calibration
-          if (bench.name === "Reference Calibration (No-Op)") continue;
+          if (bench.name === REFERENCE_CALIBRATION_BENCHMARK_NAME) continue;
 
           const key = `${file.filepath} > ${group.fullName} > ${bench.name}`;
           const oldMean = oldMeans.get(key) ?? null;
@@ -329,9 +331,9 @@ export default class BudgetReporter {
       benchmarkedPackages.add(getPackageNameForFile(file.filepath));
     }
 
-    const changesetDir = path.join(process.cwd(), ".changeset");
-    if (!fs.existsSync(changesetDir)) {
-      fs.mkdirSync(changesetDir, { recursive: true });
+    const changesetDir = path.join(process.cwd(), PERF_CHANGESET_DIR);
+    if (!existsSync(changesetDir)) {
+      mkdirSync(changesetDir, { recursive: true });
     }
 
     const getPackageSlug = (pkg: string): string => {
@@ -384,15 +386,15 @@ export default class BudgetReporter {
         }
         bodyText += "\n";
 
-        fs.writeFileSync(changesetPath, frontmatter + bodyText);
+        writeFileSync(changesetPath, frontmatter + bodyText);
         console.log(
           `\x1b[32m[PERF] Performance changeset written/updated at .changeset/zzz-perf-${slug}.md\x1b[0m\n`,
         );
       } else {
         // Clean up changeset if stable
-        if (fs.existsSync(changesetPath)) {
+        if (existsSync(changesetPath)) {
           try {
-            fs.unlinkSync(changesetPath);
+            unlinkSync(changesetPath);
             console.log(
               `\x1b[33m[PERF] Performance returned to stable for ${pkgName}. Cleaned up obsolete changeset at .changeset/zzz-perf-${slug}.md\x1b[0m\n`,
             );

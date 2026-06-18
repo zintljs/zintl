@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "knip": "catalog:",

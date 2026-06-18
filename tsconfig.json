@@ -4,6 +4,10 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "lib": ["ESNext"],
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": ["scripts/**/*"]
 }
