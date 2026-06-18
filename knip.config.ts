@@ -4,11 +4,16 @@ const config: KnipConfig = {
   workspaces: {
     "examples/vinext-basic": {
       next: true,
-      ignore: [".vinext/**"],
+      // ignore: [".vinext/**"],
     },
     "examples/**": {
       entry: ["src/{about,main,entry-client,entry-server}.{ts,tsx}"],
       project: ["src/**/*.{ts,tsx}"],
+    },
+    "examples/vue-*": {
+      entry: ["src/{about,main,entry-client,entry-server}.ts"],
+      vue: true,
+      ignoreFiles: ["src/**.d.ts"],
     },
     "packages/compiler": {
       entry: ["src/index.ts", "src/runtime/*.ts"],
@@ -25,6 +30,7 @@ const config: KnipConfig = {
   },
   ignoreBinaries: [
     "vpx", // vite-plus companion binary, ships with vite-plus package
+    "vpr",
   ],
   ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
   vitest: true,
