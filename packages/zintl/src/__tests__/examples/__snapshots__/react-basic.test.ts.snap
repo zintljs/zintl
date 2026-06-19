@@ -93,7 +93,7 @@ function App({ lang, onSwitch }: AppProps) {
         </div>
         <div>
           <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</h1>
-          <p>{<span dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
         </div>
         <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</button>
       </section>
@@ -109,10 +109,10 @@ function App({ lang, onSwitch }: AppProps) {
           <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://react.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
           </ul>
         </div>
@@ -11032,19 +11032,22 @@ function App({ lang, onSwitch }) {
 						fileName: _jsxFileName$1,
 						lineNumber: 56,
 						columnNumber: 11
-					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("9fd2f187", {
-						_mgr: entry_b_aafcf9c6fe16_default,
-						_bId: "b_4a89874656dd",
-						_tags: [{
-							alias: "code",
-							originalOpen: \`<code>\`,
-							tagName: "code"
-						}, {
-							alias: "code",
-							originalOpen: \`<code>\`,
-							tagName: "code"
-						}]
-					}) } }, void 0, false, {
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+						style: { display: "contents" },
+						dangerouslySetInnerHTML: { __html: _t("9fd2f187", {
+							_mgr: entry_b_aafcf9c6fe16_default,
+							_bId: "b_4a89874656dd",
+							_tags: [{
+								alias: "code",
+								originalOpen: \`<code>\`,
+								tagName: "code"
+							}, {
+								alias: "code",
+								originalOpen: \`<code>\`,
+								tagName: "code"
+							}]
+						}) }
+					}, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 57,
 						columnNumber: 15
@@ -11119,15 +11122,18 @@ function App({ lang, onSwitch }) {
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
 							href: "https://vite.dev/",
 							target: "_blank",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("924cea3c", {
-								_mgr: entry_b_aafcf9c6fe16_default,
-								_bId: "b_4a89874656dd",
-								_tags: [{
-									alias: "img",
-									originalOpen: \`<img class="logo" src="\${vite_default}" alt="" />\`,
-									tagName: "img"
-								}]
-							}) } }, void 0, false, {
+							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+								style: { display: "contents" },
+								dangerouslySetInnerHTML: { __html: _t("924cea3c", {
+									_mgr: entry_b_aafcf9c6fe16_default,
+									_bId: "b_4a89874656dd",
+									_tags: [{
+										alias: "img",
+										originalOpen: \`<img class="logo" src="\${vite_default}" alt="" />\`,
+										tagName: "img"
+									}]
+								}) }
+							}, void 0, false, {
 								fileName: _jsxFileName$1,
 								lineNumber: 73,
 								columnNumber: 60
@@ -11143,15 +11149,18 @@ function App({ lang, onSwitch }) {
 						}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
 							href: "https://react.dev/",
 							target: "_blank",
-							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { dangerouslySetInnerHTML: { __html: _t("8cc85295", {
-								_mgr: entry_b_aafcf9c6fe16_default,
-								_bId: "b_4a89874656dd",
-								_tags: [{
-									alias: "img",
-									originalOpen: \`<img class="button-icon" src="\${react_default}" alt="" />\`,
-									tagName: "img"
-								}]
-							}) } }, void 0, false, {
+							children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+								style: { display: "contents" },
+								dangerouslySetInnerHTML: { __html: _t("8cc85295", {
+									_mgr: entry_b_aafcf9c6fe16_default,
+									_bId: "b_4a89874656dd",
+									_tags: [{
+										alias: "img",
+										originalOpen: \`<img class="button-icon" src="\${react_default}" alt="" />\`,
+										tagName: "img"
+									}]
+								}) }
+							}, void 0, false, {
 								fileName: _jsxFileName$1,
 								lineNumber: 76,
 								columnNumber: 61
@@ -11535,7 +11544,7 @@ function App({ lang, onSwitch }: AppProps) {
         </div>
         <div>
           <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</h1>
-          <p>{<span dangerouslySetInnerHTML={{ __html: _t("9fd2f187", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("9fd2f187", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
         </div>
         <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>{_t("aa624128", { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</button>
       </section>
@@ -11551,10 +11560,10 @@ function App({ lang, onSwitch }: AppProps) {
           <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://react.dev/" target="_blank">{<span dangerouslySetInnerHTML={{ __html: _t("8cc85295", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://react.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("8cc85295", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_4a89874656dd", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
           </ul>
         </div>

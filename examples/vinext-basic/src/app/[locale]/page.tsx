@@ -9,7 +9,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <div className="w-full">
-          :{locale}
           <div className="w-full flex flex-row items-baseline gap-2.5 flex-wrap">
             <Image
               className="dark:invert"
@@ -19,6 +18,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
               height={20}
               priority
             />
+            {/* @zintl-ignore */}
             <span>x</span>
             <span className="font-bold text-2xl">Zintl(i18n)</span>
           </div>

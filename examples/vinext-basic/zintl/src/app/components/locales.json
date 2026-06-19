@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../.schemas/src/app/components/locales.shared.schema.json",
+  "languages": {
+    "ar": "اللغات",
+    "es": "idiomas",
+    "zh": "语言"
+  }
+}

@@ -7,6 +7,7 @@ export default defineConfig({
     zintl({
       sourceLocale: "en",
       locales: ["en", "ar", "es", "zh"],
+      catalogFormat: "[path].json",
     }),
     vinext(),
   ],

@@ -1,0 +1,38 @@
+{
+  "$schema": "../../../.schemas/src/app/[locale]/page.shared.schema.json",
+  "<image/> Deploy Now": {
+    "ar": "<image/> انشر الآن",
+    "es": "<image/> Desplegar ahora",
+    "zh": "<image/> 立即部署"
+  },
+  "Documentationn": {
+    "ar": "التوثيق",
+    "es": "Documentación",
+    "zh": "文档"
+  },
+  "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.": {
+    "ar": "هل تبحث عن نقطة بداية أو المزيد من التعليمات؟ توجه إلى <a1> القوالب </a1> أو مركز <a2> التعلم </a2>.",
+    "es": "¿Buscas un punto de partida o más instrucciones? Dirígete a <a1> Plantillas </a1> o al centro de <a2> Aprendizaje </a2>.",
+    "zh": "寻找起点或更多说明？前往 <a1> 模板 </a1> 或 <a2> 学习 </a2> 中心。"
+  },
+  "Next.js logo": {
+    "ar": "شعار Next.js",
+    "es": "Logo de Next.js",
+    "zh": "Next.js 标志"
+  },
+  "To get started, edit the page.tsx file.": {
+    "ar": "للبدء، قم بتحرير ملف page.tsx.",
+    "es": "Para comenzar, edite el archivo page.tsx.",
+    "zh": "要开始使用，请编辑 page.tsx 文件。"
+  },
+  "Vercel logomark": {
+    "ar": "شعار Vercel",
+    "es": "Logomarca de Vercel",
+    "zh": "Vercel 品牌标识"
+  },
+  "Zintl(i18n)": {
+    "ar": "Zintl(i18n)",
+    "es": "Zintl(i18n)",
+    "zh": "Zintl(i18n)"
+  }
+}
