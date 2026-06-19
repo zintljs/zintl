@@ -151,7 +151,7 @@ export function resolveRewrites(
           !translatableAttrs.has(intent.sink.sinkType);
 
         if (isReactJsxText) {
-          finalReplacement = `<span dangerouslySetInnerHTML={{ __html: ${finalReplacement} }} />`;
+          finalReplacement = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${finalReplacement} }} />`;
           finalReplacement = `{${finalReplacement}}`;
         } else if (intent.sink.sinkType === "HTML_TEXT") {
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
@@ -379,7 +379,7 @@ function generateSinkWrapRewrite(
     !translatableAttrs.has(intent.sink.sinkType);
 
   if (isReactJsxText) {
-    replacement = `<span dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
+    replacement = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
   }
 
   if (intent.sink.requiresJsxBraces) {
@@ -492,7 +492,7 @@ function generateBakeRewrite(
     !translatableAttrs.has(intent.sink.sinkType);
 
   if (isReactJsxText) {
-    baked = `<span dangerouslySetInnerHTML={{ __html: ${baked} }} />`;
+    baked = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${baked} }} />`;
   }
 
   if (intent.sink.requiresJsxBraces) {
