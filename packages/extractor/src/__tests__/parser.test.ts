@@ -143,4 +143,16 @@ describe("Zintl Extractor", () => {
     const site = result.anchorSites[0];
     expect(site.statementRange).toBeDefined();
   });
+
+  it("should extract html dir attribute", () => {
+    const code = `
+      function App() {
+        return <html dir="ltr" />
+      }
+    `;
+    const result = extract(code, "App.tsx", "App");
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].text).toBe("ltr");
+    expect(result.messages[0].contexts).toContain("dir");
+  });
 });

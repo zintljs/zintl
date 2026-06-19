@@ -39,6 +39,7 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "jsx:*:label",
     "jsx:*:description",
     "jsx:*:tooltip",
+    "jsx:html:dir",
     "obj:field:label",
     "obj:field:title",
     "obj:field:description",
@@ -54,6 +55,7 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "jsx:*:label",
     "jsx:*:description",
     "jsx:*:tooltip",
+    "jsx:html:dir",
     "obj:field:label",
     "obj:field:title",
     "obj:field:description",
@@ -69,6 +71,7 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "jsx:*:label",
     "jsx:*:description",
     "jsx:*:tooltip",
+    "jsx:html:dir",
     "obj:field:label",
     "obj:field:title",
     "obj:field:description",
@@ -87,6 +90,7 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "jsx:*:label",
     "jsx:*:description",
     "jsx:*:tooltip",
+    "jsx:html:dir",
     "obj:field:label",
     "obj:field:title",
     "obj:field:description",
@@ -96,7 +100,13 @@ export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
     "obj:field:placeholder",
     "obj:field:aria-label",
   ],
-  html: ["html:attr:alt", "html:attr:aria-label", "html:attr:title", "html:attr:placeholder"],
+  html: [
+    "html:attr:alt",
+    "html:attr:aria-label",
+    "html:attr:title",
+    "html:attr:placeholder",
+    "html:attr:dir",
+  ],
 };
 
 let pluginIdCounter = 0;

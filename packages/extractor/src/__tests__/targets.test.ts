@@ -9,6 +9,7 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
     // React preset
     expect(resolved.jsxAttributes.has("aria-label")).toBe(true);
     expect(resolved.jsxAttributes.has("alt")).toBe(true);
+    expect(resolved.jsxElementAttributes.get("html")?.has("dir")).toBe(true);
     expect(resolved.objectFields.has("label")).toBe(true);
     expect(resolved.objectFields.has("title")).toBe(true);
 
@@ -17,6 +18,7 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
     expect(resolved.htmlAttributes.has("aria-label")).toBe(true);
     expect(resolved.htmlAttributes.has("title")).toBe(true);
     expect(resolved.htmlAttributes.has("placeholder")).toBe(true);
+    expect(resolved.htmlAttributes.has("dir")).toBe(true);
 
     // Vanilla preset should not be here since it wasn't requested
     expect(resolved.domProperties.has("innerHTML")).toBe(false);
