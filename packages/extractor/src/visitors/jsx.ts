@@ -143,6 +143,17 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
       const expr = childNode.expression;
       if (expr.type === "JSXEmptyExpression") return;
 
+      // Inline static string literals directly into the message text.
+      // e.g. {" "} becomes a space in the message rather than an {input} variable.
+      const isStringLiteral =
+        expr.type === "StringLiteral" ||
+        (expr.type === "Literal" && typeof (expr as any).value === "string");
+      if (isStringLiteral) {
+        text += (expr as any).value;
+        ctx.handledNodes.add(childNode as any);
+        return;
+      }
+
       let vName = `var${variables.length}`;
       if (expr.type === "Identifier") vName = expr.name;
       else if (expr.type === "MemberExpression") {
