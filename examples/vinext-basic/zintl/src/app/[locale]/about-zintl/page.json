@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../../.schemas/src/app/[locale]/about-zintl/page.shared.schema.json",
+  "About Zintl Translation System": {
+    "ar": "حول نظام ترجمة Zintl",
+    "es": "Sobre el Sistema de Traducción Zintl",
+    "zh": "关于 Zintl 翻译系统"
+  },
+  "Current Locale: {locale}": {
+    "ar": "اللغة الحالية: {locale}",
+    "es": "Localización actual: {locale}",
+    "zh": "当前语言环境: {locale}"
+  },
+  "Zintl is a compiler-driven internationalization system for modern web applications.": {
+    "ar": "Zintl هو نظام دولنة مدفوع بالمترجم لتطبيقات الويب الحديثة.",
+    "es": "Zintl es un sistema de internacionalización impulsado por compilador para aplicaciones web modernas.",
+    "zh": "Zintl 是一个面向现代 Web 应用程序的编译器驱动的国际化系统。"
+  }
+}

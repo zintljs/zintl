@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { zintl } from "zintl/macro";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
@@ -20,7 +21,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             />
             {/* @zintl-ignore */}
             <span>x</span>
-            <span className="font-bold text-2xl">Zintl(i18n)</span>
+            <Link href={`/${locale}/about-zintl`} className="font-bold text-2xl">
+              Zintl(i18n)
+            </Link>
           </div>
         </div>
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">

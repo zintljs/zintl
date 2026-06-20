@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "About Zintl Translation System": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Current Locale: {locale}": {
+      "additionalProperties": false,
+      "description": "Variables: {locale}",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Zintl is a compiler-driven internationalization system for modern web applications.": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "About Zintl Translation System",
+    "Current Locale: {locale}",
+    "Zintl is a compiler-driven internationalization system for modern web applications."
+  ],
+  "additionalProperties": false
+}
