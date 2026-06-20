@@ -49,6 +49,9 @@ export interface ZintlOptions {
     locales: string[];
     sourceLocale: string;
   }) => string | undefined;
+  ssrEntryTargets?: (string | RegExp | ((id: string) => boolean))[];
+  ssrWrapExports?: string[];
+  ssrWrapDefault?: boolean | "fetch";
   resolveVirtualPath?: (id: string) => string;
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }

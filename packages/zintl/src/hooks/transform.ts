@@ -7,9 +7,10 @@ export function transformHook(ctx: ZintlPluginContext) {
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
+    const isTargetSsrEntry = ctx.compiler?.isSsrEntryTarget?.(id);
     if (
       id.includes("node_modules") ||
-      id.startsWith("\0") ||
+      (id.startsWith("\0") && !isTargetSsrEntry) ||
       id.includes("?vue") ||
       id.includes("&vue") ||
       id.includes("?svelte") ||

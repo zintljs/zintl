@@ -89,6 +89,24 @@ export class ZintlCompiler {
     this.io.setMetadataDir(dir);
   }
 
+  public isSsrEntryTarget(id: string): boolean {
+    const targets = this._options?.ssrEntryTargets;
+    if (!targets || targets.length === 0) return false;
+    const cleanId = id.startsWith("\0") ? id.slice(1) : id;
+    return targets.some((target) => {
+      if (typeof target === "string") {
+        return cleanId.includes(target) || id.includes(target);
+      }
+      if (target instanceof RegExp) {
+        return target.test(cleanId) || target.test(id);
+      }
+      if (typeof target === "function") {
+        return target(id) || target(cleanId);
+      }
+      return false;
+    });
+  }
+
   private hashCache: Record<string, any> = {};
   private observationCache: Record<string, any> = {};
   private readonly boundaryRevisions = new Map<string, number>();
@@ -956,7 +974,8 @@ export class ZintlCompiler {
     multiplexLocale?: string,
     ssr?: boolean,
   ): Promise<{ code: string; map: any } | undefined> {
-    if (id.includes("node_modules") || id.startsWith("\0")) return;
+    const isTargetSsrEntry = this.isSsrEntryTarget(id);
+    if (id.includes("node_modules") || (id.startsWith("\0") && !isTargetSsrEntry)) return;
     code = code.replace(/\r\n/g, "\n");
     if (code.includes('id="zintl-multiplex-redirect"')) return;
     const multiplexMatch = id.match(/[?&]zintl-multiplex=([^&]+)/);
@@ -1022,62 +1041,91 @@ export class ZintlCompiler {
       this.graphDirty = true;
       this.hashCache[effectiveCleanId] = fileHash;
 
-      if (!this.extensions.some((ext) => effectiveCleanId.endsWith(ext))) return;
+      if (!isTargetSsrEntry && !this.extensions.some((ext) => effectiveCleanId.endsWith(ext)))
+        return;
 
-      observation = observe(
-        codeToUse,
-        effectiveCleanId,
-        fileId,
-        this.logger.withPrefix("Extractor"),
-        { targets: this._options.targets },
-      );
-      this.observationCache[effectiveCleanId] = observation;
+      if (isTargetSsrEntry) {
+        observation = {
+          fileId,
+          hasZintlMarker: false,
+          hasZintlMacro: false,
+          anchors: [],
+          sinks: [],
+          manualTranslations: [],
+          dependencies: [],
+          internalDependencies: [],
+          exportedBoundaries: [],
+        };
+        this.observationCache[effectiveCleanId] = observation;
+        this.messages.dependencyGraph[fileId] = [];
+        this.messages.metadataGraph[fileId] = {
+          hasZintlMarker: false,
+          hasZintlMacro: false,
+          isEntry: true,
+          anchorSites: [],
+          needsLoader: false,
+          exportedBoundaries: [],
+          internalDependencies: [],
+          htmlProjection: undefined,
+        };
+        this.messages.trackBoundaryChange(fileId, new Set([fileId]));
+        this.messages.internalManifest[fileId] = [];
+      } else {
+        observation = observe(
+          codeToUse,
+          effectiveCleanId,
+          fileId,
+          this.logger.withPrefix("Extractor"),
+          { targets: this._options.targets },
+        );
+        this.observationCache[effectiveCleanId] = observation;
 
-      this.messages.dependencyGraph[fileId] = observation.dependencies;
-      this.messages.metadataGraph[fileId] = {
-        hasZintlMarker: observation.hasZintlMarker,
-        hasZintlMacro: observation.hasZintlMacro,
-        isEntry: observation.hasZintlMarker || observation.anchors.length > 0,
-        anchorSites: observation.anchors,
-        needsLoader: observation.sinks.length > 0 || observation.manualTranslations.length > 0,
-        exportedBoundaries: observation.exportedBoundaries,
-        internalDependencies: observation.internalDependencies,
-        htmlProjection: observation.htmlProjection,
-      };
+        this.messages.dependencyGraph[fileId] = observation.dependencies;
+        this.messages.metadataGraph[fileId] = {
+          hasZintlMarker: observation.hasZintlMarker,
+          hasZintlMacro: observation.hasZintlMacro,
+          isEntry: observation.hasZintlMarker || observation.anchors.length > 0,
+          anchorSites: observation.anchors,
+          needsLoader: observation.sinks.length > 0 || observation.manualTranslations.length > 0,
+          exportedBoundaries: observation.exportedBoundaries,
+          internalDependencies: observation.internalDependencies,
+          htmlProjection: observation.htmlProjection,
+        };
 
-      const messagesByBoundary: Record<string, any[]> = {};
-      const processMsg = (msg: any) => {
-        if (!messagesByBoundary[msg.boundaryId]) messagesByBoundary[msg.boundaryId] = [];
-        messagesByBoundary[msg.boundaryId].push({
-          id: generateMessageId(msg.text),
-          text: msg.text,
-          boundaryId: msg.boundaryId,
-          location: msg.location,
-          note: msg.note,
-          variables: [
-            ...new Set([
-              ...(msg.variables?.map((v: any) => v.name) || []),
-              ...Object.keys(msg.passVars || {}),
-            ]),
-          ],
-        });
-      };
-      observation.sinks.forEach(processMsg);
-      observation.manualTranslations.forEach((m: any) =>
-        processMsg({ text: m.key, boundaryId: m.boundaryId }),
-      );
+        const messagesByBoundary: Record<string, any[]> = {};
+        const processMsg = (msg: any) => {
+          if (!messagesByBoundary[msg.boundaryId]) messagesByBoundary[msg.boundaryId] = [];
+          messagesByBoundary[msg.boundaryId].push({
+            id: generateMessageId(msg.text),
+            text: msg.text,
+            boundaryId: msg.boundaryId,
+            location: msg.location,
+            note: msg.note,
+            variables: [
+              ...new Set([
+                ...(msg.variables?.map((v: any) => v.name) || []),
+                ...Object.keys(msg.passVars || {}),
+              ]),
+            ],
+          });
+        };
+        observation.sinks.forEach(processMsg);
+        observation.manualTranslations.forEach((m: any) =>
+          processMsg({ text: m.key, boundaryId: m.boundaryId }),
+        );
 
-      const trackedBoundaries = new Set(Object.keys(messagesByBoundary));
-      observation.anchors.forEach((a: any) => trackedBoundaries.add(a.boundaryId));
-      if (
-        this.messages.metadataGraph[fileId].isEntry ||
-        this.messages.metadataGraph[fileId].htmlProjection
-      )
-        trackedBoundaries.add(fileId);
-      this.messages.trackBoundaryChange(fileId, trackedBoundaries);
+        const trackedBoundaries = new Set(Object.keys(messagesByBoundary));
+        observation.anchors.forEach((a: any) => trackedBoundaries.add(a.boundaryId));
+        if (
+          this.messages.metadataGraph[fileId].isEntry ||
+          this.messages.metadataGraph[fileId].htmlProjection
+        )
+          trackedBoundaries.add(fileId);
+        this.messages.trackBoundaryChange(fileId, trackedBoundaries);
 
-      for (const bId of trackedBoundaries) {
-        this.messages.internalManifest[bId] = messagesByBoundary[bId] || [];
+        for (const bId of trackedBoundaries) {
+          this.messages.internalManifest[bId] = messagesByBoundary[bId] || [];
+        }
       }
     }
 
@@ -1109,7 +1157,8 @@ export class ZintlCompiler {
       observation.sinks.length > 0 ||
       observation.manualTranslations.length > 0 ||
       observation.hasZintlMarker ||
-      observation.hasZintlMacro;
+      observation.hasZintlMacro ||
+      isTargetSsrEntry;
 
     if (!needsTransform && !onlyExtract) return;
 
@@ -1263,20 +1312,26 @@ export class ZintlCompiler {
     if (this.isDev) this.scheduleFlush();
 
     let finalCode = result.code;
+    let ssrWrapped = false;
     if (ssr && this._options.ssrWrapCode) {
       const wrapped = this._options.ssrWrapCode({
         code: finalCode,
         fileId,
-        isEntry: this.isEntry(fileId),
+        isEntry: this.isEntry(fileId) || isTargetSsrEntry,
         locales: this.locales,
         sourceLocale: this.sourceLocale,
       });
       if (wrapped !== undefined) {
         finalCode = wrapped;
+        ssrWrapped = true;
       }
-    } else if (
+    }
+
+    if (
       ssr &&
+      !ssrWrapped &&
       (this.isEntry(fileId) ||
+        isTargetSsrEntry ||
         fileId.endsWith("entry-server") ||
         fileId.endsWith("entry-server.ts") ||
         fileId.endsWith("entry-server.js"))
@@ -1287,8 +1342,9 @@ export class ZintlCompiler {
       ) {
         const localesStr = JSON.stringify(this.locales);
         const defaultLocaleStr = JSON.stringify(this.sourceLocale || "en");
-
         const runtimeInternal = this.resolveVirtualPath("virtual:zintl/runtime/internal");
+
+        // 1. Classic render wrapping
         const funcRegex = /export\s+(async\s+)?function\s+render\b/;
         if (funcRegex.test(finalCode)) {
           finalCode = finalCode.replace(
@@ -1324,6 +1380,82 @@ export class ZintlCompiler {
                   break;
                 }
               }
+            }
+          }
+        }
+
+        // 2. Generic Default Export Wrapping
+        if (this._options.ssrWrapDefault) {
+          const defaultExportRegex = /(^|\n)export\s+default\b/;
+          if (defaultExportRegex.test(finalCode)) {
+            finalCode = finalCode.replace(defaultExportRegex, "$1const _zintl_raw_default = ");
+            finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport default function _zintl_wrapped_default(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => {\n    if (typeof _zintl_raw_default === "function") return _zintl_raw_default(urlOrReq, ...args);\n    if (_zintl_raw_default && typeof _zintl_raw_default.fetch === "function") return _zintl_raw_default.fetch(urlOrReq, ...args);\n    return _zintl_raw_default;\n  });\n}`;
+          }
+        }
+
+        // 3. Generic Named Exports Wrapping
+        if (this._options.ssrWrapExports && this._options.ssrWrapExports.length > 0) {
+          let hasImport = false;
+          for (const name of this._options.ssrWrapExports) {
+            let wrappedExport = false;
+
+            // Syntax 1: export (async )?function name
+            const namedFuncRegex = new RegExp(
+              `(^|\\n)export\\s+(async\\s+)?function\\s+${name}\\b`,
+            );
+            if (namedFuncRegex.test(finalCode)) {
+              finalCode = finalCode.replace(namedFuncRegex, `$1async function _zintl_raw_${name}`);
+              wrappedExport = true;
+            }
+
+            // Syntax 2: export const/let/var name = ...
+            if (!wrappedExport) {
+              const constRegex = new RegExp(`(^|\\n)export\\s+(const|let|var)\\s+${name}\\b`);
+              if (constRegex.test(finalCode)) {
+                finalCode = finalCode.replace(constRegex, `$1$2 _zintl_raw_${name}`);
+                wrappedExport = true;
+              }
+            }
+
+            // Syntax 3: export { ... name ... }
+            if (!wrappedExport) {
+              const exportBlockRegex = /export\s*\{([^}]+)\}/g;
+              let match;
+              while ((match = exportBlockRegex.exec(finalCode)) !== null) {
+                const content = match[1];
+                if (new RegExp(`\\b${name}\\b`).test(content)) {
+                  const parts = content.split(",").map((p) => p.trim());
+                  const index = parts.findIndex(
+                    (p) => p === name || p.startsWith(`${name} as `) || p.endsWith(` as ${name}`),
+                  );
+                  if (index !== -1) {
+                    const part = parts[index];
+                    if (part === name) {
+                      parts[index] = `${name} as _zintl_raw_${name}`;
+                      wrappedExport = true;
+                    } else if (part.endsWith(` as ${name}`)) {
+                      const localName = part
+                        .substring(0, part.length - ` as ${name}`.length)
+                        .trim();
+                      parts[index] = `${localName} as _zintl_raw_${name}`;
+                      wrappedExport = true;
+                    }
+                    if (wrappedExport) {
+                      const newBlock = `export { ${parts.join(", ")} }`;
+                      finalCode = finalCode.replace(match[0], newBlock);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+
+            if (wrappedExport) {
+              if (!hasImport) {
+                finalCode += `\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";`;
+                hasImport = true;
+              }
+              finalCode += `\nexport async function ${name}(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_${name}(urlOrReq, ...args));\n}`;
             }
           }
         }

@@ -33,6 +33,56 @@ describe("Example Proof: vinext-basic", () => {
     await ctx.cleanup();
   }, 30000);
 
+  it("should wrap Vinext virtual entry points with runInRequestScope", async () => {
+    const ctx = await createExampleContext("vinext-basic");
+    const compiler = (ctx.plugin as any).__compiler;
+
+    // Test default export wrapping for virtual:vinext-rsc-entry
+    const rscCode = `
+export default __createAppRscHandler({
+  render() { return "hello"; }
+});
+    `;
+    const rscResult = await compiler.transform(
+      rscCode,
+      "\0virtual:vinext-rsc-entry",
+      undefined,
+      false,
+      undefined,
+      true,
+    );
+    expect(rscResult).toBeDefined();
+    expect(rscResult.code).toContain("const _zintl_raw_default = ");
+    expect(rscResult.code).toContain("export default function _zintl_wrapped_default(");
+    expect(rscResult.code).toContain("runInRequestScope");
+
+    // Test named export wrapping for virtual:vinext-server-entry
+    const serverCode = `
+export async function renderPage(request, url, manifest, ctx) {
+  return "renderPage";
+}
+export async function handleApiRoute(request, url, ctx) {
+  return "handleApi";
+}
+    `;
+    const serverResult = await compiler.transform(
+      serverCode,
+      "\0virtual:vinext-server-entry",
+      undefined,
+      false,
+      undefined,
+      true,
+    );
+    expect(serverResult).toBeDefined();
+    expect(serverResult.code).toContain("async function _zintl_raw_renderPage(");
+    expect(serverResult.code).toContain("export async function renderPage(");
+    expect(serverResult.code).toContain("async function _zintl_raw_handleApiRoute(");
+    expect(serverResult.code).toContain("export async function handleApiRoute(");
+    expect(serverResult.code).toContain("runInRequestScope");
+
+    await ctx.cleanup();
+  });
+
   it.skip("should match Final Production Build (dist) snapshots", async () => {
     const ctx = await createExampleContext("vinext-basic");
 

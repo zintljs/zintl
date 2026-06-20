@@ -204,10 +204,33 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
     }
     const extensions = ctx.options.extensions || [...defaultExtensions, ...extraExtensions];
 
+    let ssrEntryTargets = ctx.options.ssrEntryTargets;
+    let ssrWrapDefault = ctx.options.ssrWrapDefault;
+    let ssrWrapExports = ctx.options.ssrWrapExports;
+
+    if (targets.includes("nextjs")) {
+      if (ssrEntryTargets === undefined) {
+        ssrEntryTargets = [
+          "virtual:vinext-rsc-entry",
+          "virtual:vinext-server-entry",
+          "virtual:vinext-app-ssr-entry",
+        ];
+      }
+      if (ssrWrapDefault === undefined) {
+        ssrWrapDefault = "fetch";
+      }
+      if (ssrWrapExports === undefined) {
+        ssrWrapExports = ["renderPage", "handleApiRoute", "runMiddleware"];
+      }
+    }
+
     ctx.compiler = new ZintlCompiler(
       {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
+        ssrEntryTargets,
+        ssrWrapDefault,
+        ssrWrapExports,
         targets,
         adapters,
         extensions,
@@ -228,7 +251,12 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
           }
           return code;
         },
-        ssrWrapCode: ({ code, fileId, isEntry, locales, sourceLocale }) => {
+        ssrWrapCode: (params) => {
+          if (ctx.options.ssrWrapCode) {
+            const userWrapped = ctx.options.ssrWrapCode(params);
+            if (userWrapped !== undefined) return userWrapped;
+          }
+          const { code, fileId, isEntry, locales, sourceLocale } = params;
           if (
             isEntry ||
             fileId.endsWith("entry-server") ||
