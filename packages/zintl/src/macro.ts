@@ -42,6 +42,21 @@ export function getLocale(): string {
   return "";
 }
 
+export function setLocale(_locale?: string | null): Promise<any> {
+  return Promise.resolve();
+}
+
+export function subscribe(_listener: () => void): () => void {
+  return () => {};
+}
+
+export function getStoreVersion(): number {
+  if (typeof globalThis !== "undefined" && (globalThis as any).__zintl_active) {
+    return (globalThis as any).__zintl_active.version;
+  }
+  return 0;
+}
+
 export type Catalogs = Record<string, Record<string, Record<string, string | Function>>>;
 export type Loader = (locale: string) => any;
 export interface I18nInstanceConfig {

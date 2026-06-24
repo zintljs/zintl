@@ -21,13 +21,25 @@ export function resolveImports(
 
   const needsT = intents.some((i) => i.type === "sink_wrap" || i.type === "manual_t_rewrite");
   const needsLoader = intents.some((i) => i.type === "anchor_rewrite");
+  const autoClientReactivity =
+    observation.isClientComponent &&
+    observation.componentFunctions &&
+    observation.componentFunctions.length > 0;
 
-  if (needsT || needsLoader) {
+  if (needsT || needsLoader || autoClientReactivity) {
     if (!specifiersBySource[RUNTIME_INTERNAL_PACKAGE]) {
       specifiersBySource[RUNTIME_INTERNAL_PACKAGE] = new Set();
     }
     if (needsT) specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("_t");
     if (needsLoader) specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("loadI18nInstance");
+    if (autoClientReactivity) {
+      specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("subscribe");
+      specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("getStoreVersion");
+      if (!specifiersBySource["react"]) {
+        specifiersBySource["react"] = new Set();
+      }
+      specifiersBySource["react"].add("useSyncExternalStore");
+    }
   }
 
   for (const intent of intents) {
@@ -65,6 +77,7 @@ export function resolveImports(
             s.imported === "setLocale" ||
             s.imported === "subscribe" ||
             s.imported === "addCatalogs" ||
+            s.imported === "getStoreVersion" ||
             s.imported === "registerZintlLoader")
         ) {
           if (!specifiersBySource[RUNTIME_INTERNAL_PACKAGE]) {

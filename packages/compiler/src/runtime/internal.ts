@@ -9,6 +9,7 @@ import {
   setActiveInstance,
   I18nStore,
   runInRequestScope,
+  getStoreVersion,
   type Catalogs,
   type Loader,
 } from "./store.js";
@@ -62,6 +63,10 @@ export async function loadI18nInstance(config: I18nInstanceConfig = {}) {
     // 3. Merge hardcoded catalogs (Synchronous)
     if (config.catalogs) {
       store.addCatalogs(config.catalogs);
+      const active = getActiveInstance();
+      if (active && active !== store) {
+        active.addCatalogs(config.catalogs);
+      }
     }
 
     // 4. Register loaders (Synchronous Boost)
@@ -119,4 +124,5 @@ export {
   registerLoader,
   unregisterLoader as unregisterZintlLoader,
   runInRequestScope,
+  getStoreVersion,
 };

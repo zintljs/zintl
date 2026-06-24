@@ -285,8 +285,9 @@ function processJsxChildren(node: JSXElement | JSXFragment, ctx: ExtractionConte
 export function createJsxVisitor(_ctx: ExtractionContext) {
   return {
     JSXElement: {
-      enter(node: JSXElement, ctx: ExtractionContext) {
+      enter(node: JSXElement, ctx: ExtractionContext, parents: Node[]) {
         if (ctx.handledNodes.has(node as any) || ctx.handledNodes.has(node.start)) return;
+        ctx.registerComponentFunction(parents);
         const comments = parseZintlComments(node.start, ctx.trivias, ctx.code);
         if (comments.ignore) {
           ctx.pushSuppression(comments);
@@ -299,8 +300,9 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
       },
     },
     JSXFragment: {
-      enter(node: JSXFragment, ctx: ExtractionContext) {
+      enter(node: JSXFragment, ctx: ExtractionContext, parents: Node[]) {
         if (ctx.handledNodes.has(node as any) || ctx.handledNodes.has(node.start)) return;
+        ctx.registerComponentFunction(parents);
         const comments = parseZintlComments(node.start, ctx.trivias, ctx.code);
         if (comments.ignore) {
           ctx.pushSuppression(comments);
@@ -314,6 +316,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
     },
     JSXText(node: JSXText, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0 || ctx.handledNodes.has(node as any)) return;
+      ctx.registerComponentFunction(parents);
       const { id: boundaryId, active } = ctx.getActiveBoundary();
       if (!active) return;
       const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
@@ -350,6 +353,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
     JSXAttribute: {
       enter(node: JSXAttribute, ctx: ExtractionContext, parents: Node[]) {
         if (ctx.suppressionLevel > 0 || ctx.handledNodes.has(node.start)) return;
+        ctx.registerComponentFunction(parents);
         const { id: boundaryId, active } = ctx.getActiveBoundary();
         if (!active) return;
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
@@ -402,6 +406,7 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
     },
     JSXExpressionContainer(node: JSXExpressionContainer, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0 || ctx.handledNodes.has(node as any)) return;
+      ctx.registerComponentFunction(parents);
 
       const parentAttr =
         parents[0] && parents[0].type === "JSXAttribute" ? (parents[0] as any) : null;

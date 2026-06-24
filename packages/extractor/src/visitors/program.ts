@@ -547,6 +547,7 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
         });
         ctx.getActiveBoundary().active = true;
       } else if (node.callee.type === "Identifier" && node.callee.name === "t") {
+        ctx.registerComponentFunction(parents);
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
         if (comments.ignore) return;
         if (node.arguments[0] && ["StringLiteral", "Literal"].includes(node.arguments[0].type)) {

@@ -29,6 +29,7 @@ export default function LocaleSwitcher({ locale }: { locale: string }) {
           height={12}
         />
       </div>
+      <p>languages</p>
       {locales.map((l) => (
         <Link
           key={l.id}

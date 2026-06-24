@@ -279,20 +279,20 @@ describe("I18nStore & Registry", () => {
     expect(results).toEqual(["es", "ar"]);
   });
 
-  it("should support request object input in runInRequestScope", () => {
-    const res1 = runInRequestScope(
+  it("should support request object input in runInRequestScope", async () => {
+    const res1 = await runInRequestScope(
       { url: "/ar/test" },
       ["ar", "es"],
       "es",
       () => getActiveInstance().locale,
     );
-    const res2 = runInRequestScope(
+    const res2 = await runInRequestScope(
       { path: "/es/test" },
       ["ar", "es"],
       "es",
       () => getActiveInstance().locale,
     );
-    const res3 = runInRequestScope(
+    const res3 = await runInRequestScope(
       { url: "" },
       ["ar", "es"],
       "es",
@@ -321,10 +321,10 @@ describe("I18nStore & Registry", () => {
     expect(resolved).toBe(true);
   });
 
-  it("should fallback gracefully if window is defined in runInRequestScope", () => {
+  it("should fallback gracefully if window is defined in runInRequestScope", async () => {
     vi.stubGlobal("window", {});
     try {
-      const result = runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
+      const result = await runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
         return "callback_result";
       });
       expect(result).toBe("callback_result");
@@ -346,13 +346,139 @@ describe("I18nStore & Registry", () => {
     debugSpy.mockRestore();
   });
 
-  it("should inherit active instance locale in new store inside request scope constructor", () => {
-    runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
+  it("should inherit active instance locale in new store inside request scope constructor", async () => {
+    await runInRequestScope("/ar/test", ["ar", "es"], "es", () => {
       const parentStore = getActiveInstance();
       expect(parentStore.locale).toBe("ar");
 
       const childStore = new I18nStore();
       expect(childStore.locale).toBe("ar");
     });
+  });
+
+  describe("Static HTML Baking", () => {
+    it("should inject serialized baked catalogs into HTML string inside runInRequestScope", async () => {
+      const htmlResult = await runInRequestScope("/ar/test", ["ar"], "en", () => {
+        const store = getActiveInstance();
+        store.addCatalogs({
+          ar: {
+            b_test: {
+              greeting: "مرحبا",
+              func: (params: any) => `Hello ${params.name}`,
+            },
+          },
+        });
+        return "<html><head></head><body></body></html>";
+      });
+
+      expect(htmlResult).toContain('<script id="zintl-baked-catalogs">');
+      expect(htmlResult).toContain("window.__zintl_baked_catalogs =");
+      expect(htmlResult).toContain('"greeting":"مرحبا"');
+      expect(htmlResult).toContain("(params) => `Hello ${params.name}`");
+      expect(htmlResult).toContain("</body>");
+    });
+
+    it("should inject catalogs into async rendering promise results", async () => {
+      const htmlResultPromise = runInRequestScope("/es/test", ["es"], "en", async () => {
+        const store = getActiveInstance();
+        store.addCatalogs({
+          es: {
+            b_test: { welcome: "bienvenido" },
+          },
+        });
+        return "<html><head></head><body></body></html>";
+      });
+
+      const htmlResult = await htmlResultPromise;
+      expect(htmlResult).toContain("window.__zintl_baked_catalogs =");
+      expect(htmlResult).toContain('"welcome":"bienvenido"');
+    });
+
+    it("should inject serialized baked catalogs into a ReadableStream inside runInRequestScope", async () => {
+      const streamResult = runInRequestScope("/ar/test", ["ar"], "en", () => {
+        const store = getActiveInstance();
+        store.addCatalogs({
+          ar: {
+            b_test: {
+              greeting: "مرحبا",
+            },
+          },
+        });
+        const encoder = new TextEncoder();
+        return new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode("<html><head></head>"));
+            controller.enqueue(encoder.encode("<body></body></html>"));
+            controller.close();
+          },
+        });
+      });
+
+      expect(streamResult).toBeInstanceOf(ReadableStream);
+      const reader = streamResult.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value);
+      }
+
+      expect(text).toContain('<script id="zintl-baked-catalogs">');
+      expect(text).toContain("window.__zintl_baked_catalogs =");
+      expect(text).toContain('"greeting":"مرحبا"');
+      expect(text).toContain("window.__zintl_locales =");
+      expect(text).toContain("</body>");
+    });
+  });
+
+  it("should hydrate from window.__zintl_baked_catalogs in client constructor and skip registerLoader", () => {
+    const bakedCatalogs = {
+      fr: {
+        b_baked: { hello: "bonjour" },
+      },
+    };
+
+    vi.stubGlobal("window", {
+      __zintl_baked_catalogs: bakedCatalogs,
+    });
+
+    try {
+      const store = new I18nStore();
+      store.locale = "fr";
+      expect(store.catalogs["fr"]?.["b_baked"]?.["hello"]).toBe("bonjour");
+
+      const loader = vi.fn((_locale: string) => {
+        return { b_baked: { hello: "ignored" } };
+      });
+
+      // Test global registerLoader (or store.registerLoader)
+      // Since getActiveInstance() returns the active instance, let's set active first
+      setActiveInstance(store);
+      void registerLoader("b_baked", loader);
+
+      // Should not have called loader because it's already in the catalogs
+      expect(loader).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("should await async loaders and populate catalogs before calling callback in runInRequestScope", async () => {
+    let loaderCalled = false;
+    const asyncLoader = async (_: string) => {
+      loaderCalled = true;
+      return { b_async_ssr: { text: "Success" } };
+    };
+
+    registeredLoaders.add("b_async_ssr");
+    await registerLoader("b_async_ssr", asyncLoader);
+
+    await runInRequestScope("/zh/test", ["zh"], "en", () => {
+      const active = getActiveInstance();
+      // Assert that catalog is already populated synchronously when callback runs
+      expect(active.catalogs["zh"]?.["b_async_ssr"]?.["text"]).toBe("Success");
+    });
+    expect(loaderCalled).toBe(true);
   });
 });

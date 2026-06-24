@@ -75,6 +75,8 @@ export interface ExtractionResult {
   rawSinks: RawSink[];
   /** Explicit t() calls captured at the visitor level. */
   rawManualTranslations: RawManualT[];
+  /** Component function insertion positions (e.g. function body block starts). */
+  componentFunctions?: number[];
 
   /** HTML-specific projection data (for .html files). */
   htmlProjection?: HtmlProjectionPayload;

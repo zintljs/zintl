@@ -9,7 +9,7 @@ export function transformHook(ctx: ZintlPluginContext) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     const isTargetSsrEntry = ctx.compiler?.isSsrEntryTarget?.(id);
     if (
-      id.includes("node_modules") ||
+      (id.includes("node_modules") && !isTargetSsrEntry) ||
       (id.startsWith("\0") && !isTargetSsrEntry) ||
       id.includes("?vue") ||
       id.includes("&vue") ||

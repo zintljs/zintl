@@ -30,6 +30,23 @@ export const resolve: ResolveFn = (
   const imports = resolveImports(intents, observation);
   const prepends = resolvePrepends(intents, observation, logger);
   const rewrites = resolveRewrites(intents, config, filePath || observation.fileId);
+
+  if (
+    observation.isClientComponent &&
+    observation.componentFunctions &&
+    observation.componentFunctions.length > 0
+  ) {
+    for (const pos of observation.componentFunctions) {
+      rewrites.push({
+        start: pos,
+        end: pos,
+        replacement: "\n  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);\n",
+        kind: "client_reactivity",
+        priority: 90,
+      });
+    }
+  }
+
   const finalRewrites = resolveConflicts(rewrites, diagnostics);
 
   logger.debug(

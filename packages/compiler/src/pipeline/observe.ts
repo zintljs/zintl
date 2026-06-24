@@ -161,6 +161,8 @@ function adaptExtractionResult(
     hasZintlMarker: result.hasZintlMarker,
     hasZintlMacro: result.hasZintlMacro,
     contentHash: sha1(code),
+    componentFunctions: result.componentFunctions || [],
+    isClientComponent: code.includes('"use client"') || code.includes("'use client'"),
     zintlImportLocation: result.zintlImportGroup
       ? loc(result.zintlImportGroup.start, result.zintlImportGroup.end, {
           line: 0,

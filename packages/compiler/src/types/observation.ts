@@ -25,6 +25,8 @@ export interface FileObservation {
   hasZintlMarker: boolean;
   hasZintlMacro: boolean;
   contentHash: string;
+  componentFunctions?: number[];
+  isClientComponent?: boolean;
   zintlImportLocation?: SourceLocation;
   existingRuntimeImports: string[];
   exportedBoundaries: Record<string, string>;

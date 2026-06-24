@@ -214,13 +214,14 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
           "virtual:vinext-rsc-entry",
           "virtual:vinext-server-entry",
           "virtual:vinext-app-ssr-entry",
+          "app-ssr-entry",
         ];
       }
       if (ssrWrapDefault === undefined) {
         ssrWrapDefault = "fetch";
       }
       if (ssrWrapExports === undefined) {
-        ssrWrapExports = ["renderPage", "handleApiRoute", "runMiddleware"];
+        ssrWrapExports = ["renderPage", "handleApiRoute", "runMiddleware", "handleSsr"];
       }
     }
 
@@ -273,7 +274,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
                   /export\s+(async\s+)?function\s+render\b/,
                   "async function _zintl_raw_render",
                 );
-                res += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+                res += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
                 return res;
               } else {
                 const exportBlockRegex = /export\s*\{([^}]+)\}/g;
@@ -303,7 +304,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
                       if (found) {
                         const newBlock = `export { ${parts.join(", ")} }`;
                         res = res.replace(match[0], newBlock);
-                        res += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+                        res += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "virtual:zintl/runtime/internal";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
                         break;
                       }
                     }

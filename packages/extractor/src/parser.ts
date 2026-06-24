@@ -136,6 +136,7 @@ export function extract(
       dynamic,
       bindings: Array.from(ctx.dependencyBindings.get(id) || []),
     })),
+    componentFunctions: Array.from(ctx.componentFunctions),
   };
 
   return res;
@@ -351,6 +352,10 @@ function extractSfc(
     internalDeps,
     rawSinks,
     rawManualTranslations,
+    componentFunctions: [
+      ...jsResults.flatMap((r) => r.componentFunctions || []),
+      ...(templateExt?.componentFunctions || []),
+    ],
     htmlProjection: templateExt?.htmlProjection,
   };
 }

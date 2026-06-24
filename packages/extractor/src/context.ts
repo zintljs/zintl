@@ -290,6 +290,16 @@ export class ExtractionContext {
   public isZeroConfig: boolean = true;
   public mode: "entry" | "boundary" = "boundary";
   public zintlImportGroup?: { start: number; end: number; source: string };
+  public componentFunctions = new Set<number>();
+
+  public registerComponentFunction(parents: Node[]) {
+    const funcNode = parents.find((p) =>
+      ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(p.type),
+    );
+    if (funcNode && (funcNode as any).body && (funcNode as any).body.type === "BlockStatement") {
+      this.componentFunctions.add((funcNode as any).body.start + 1);
+    }
+  }
 
   private _rawSinks?: RawSink[];
   private _seenSinks?: Set<string>;

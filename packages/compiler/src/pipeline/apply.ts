@@ -74,12 +74,31 @@ export const apply: ApplyFn = (
     }
   } else {
     // Non-SFC behavior: prepend to the top of the file
-    for (const prepend of plan.prepends) {
-      ms.prepend(prepend.code + "\n");
+    let clientDirectiveIndex = -1;
+    const clientMatch = /^(?:\s|\/\/.*|\/\*[\s\S]*?\*\/)*['"]use client['"];?/i.exec(source);
+    if (clientMatch) {
+      clientDirectiveIndex = clientMatch[0].length;
     }
-    for (const imp of plan.imports) {
-      if (imp.strategy === "new") {
-        ms.prepend(`import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`);
+
+    if (clientDirectiveIndex !== -1) {
+      let prepCode = "\n";
+      for (const prepend of plan.prepends) {
+        prepCode += prepend.code + "\n";
+      }
+      for (const imp of plan.imports) {
+        if (imp.strategy === "new") {
+          prepCode += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
+        }
+      }
+      ms.appendLeft(clientDirectiveIndex, prepCode);
+    } else {
+      for (const prepend of plan.prepends) {
+        ms.prepend(prepend.code + "\n");
+      }
+      for (const imp of plan.imports) {
+        if (imp.strategy === "new") {
+          ms.prepend(`import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`);
+        }
       }
     }
   }

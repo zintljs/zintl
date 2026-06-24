@@ -975,7 +975,11 @@ export class ZintlCompiler {
     ssr?: boolean,
   ): Promise<{ code: string; map: any } | undefined> {
     const isTargetSsrEntry = this.isSsrEntryTarget(id);
-    if (id.includes("node_modules") || (id.startsWith("\0") && !isTargetSsrEntry)) return;
+    if (
+      (id.includes("node_modules") && !isTargetSsrEntry) ||
+      (id.startsWith("\0") && !isTargetSsrEntry)
+    )
+      return;
     code = code.replace(/\r\n/g, "\n");
     if (code.includes('id="zintl-multiplex-redirect"')) return;
     const multiplexMatch = id.match(/[?&]zintl-multiplex=([^&]+)/);
@@ -1347,11 +1351,8 @@ export class ZintlCompiler {
         // 1. Classic render wrapping
         const funcRegex = /export\s+(async\s+)?function\s+render\b/;
         if (funcRegex.test(finalCode)) {
-          finalCode = finalCode.replace(
-            /export\s+(async\s+)?function\s+render\b/,
-            "async function _zintl_raw_render",
-          );
-          finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+          finalCode = finalCode.replace(funcRegex, "async function _zintl_raw_render");
+          finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
         } else {
           const exportBlockRegex = /export\s*\{([^}]+)\}/g;
           let match;
@@ -1376,7 +1377,7 @@ export class ZintlCompiler {
                 if (found) {
                   const newBlock = `export { ${parts.join(", ")} }`;
                   finalCode = finalCode.replace(match[0], newBlock);
-                  finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
+                  finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport async function render(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_render(urlOrReq, ...args));\n}`;
                   break;
                 }
               }
@@ -1387,17 +1388,57 @@ export class ZintlCompiler {
         // 2. Generic Default Export Wrapping
         if (this._options.ssrWrapDefault) {
           const defaultExportRegex = /(^|\n)export\s+default\b/;
-          if (defaultExportRegex.test(finalCode)) {
+          const exportBlockRegex = /export\s*\{([^}]+)\}/g;
+          let hasDefault = defaultExportRegex.test(finalCode);
+          let wrappedDefault = false;
+
+          if (hasDefault) {
             finalCode = finalCode.replace(defaultExportRegex, "$1const _zintl_raw_default = ");
-            finalCode += `\n\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";\nexport default function _zintl_wrapped_default(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => {\n    if (typeof _zintl_raw_default === "function") return _zintl_raw_default(urlOrReq, ...args);\n    if (_zintl_raw_default && typeof _zintl_raw_default.fetch === "function") return _zintl_raw_default.fetch(urlOrReq, ...args);\n    return _zintl_raw_default;\n  });\n}`;
+            wrappedDefault = true;
+          } else {
+            // Check for export { ... as default ... }
+            let match;
+            exportBlockRegex.lastIndex = 0;
+            while ((match = exportBlockRegex.exec(finalCode)) !== null) {
+              const content = match[1];
+              if (/\bdefault\b/.test(content)) {
+                const parts = content.split(",").map((p) => p.trim());
+                const index = parts.findIndex((p) => p === "default" || p.endsWith(" as default"));
+                if (index !== -1) {
+                  const part = parts[index];
+                  if (part === "default") {
+                    const fullExportStr = match[0];
+                    parts[index] = "default as _zintl_raw_default";
+                    const newBlock = `export { ${parts.join(", ")} }`;
+                    finalCode = finalCode.replace(fullExportStr, newBlock);
+                    wrappedDefault = true;
+                    break;
+                  } else if (part.endsWith(" as default")) {
+                    const localName = part.substring(0, part.length - " as default".length).trim();
+                    parts[index] = `${localName} as _zintl_raw_default`;
+                    const newBlock = `export { ${parts.join(", ")} }`;
+                    finalCode = finalCode.replace(match[0], newBlock);
+                    wrappedDefault = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          if (wrappedDefault) {
+            if (!finalCode.includes("import { runInRequestScope as _zintl_runInRequestScope }")) {
+              finalCode += `\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";`;
+            }
+            finalCode += `\nexport default function _zintl_wrapped_default(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => {\n    if (typeof _zintl_raw_default === "function") return _zintl_raw_default(urlOrReq, ...args);\n    if (_zintl_raw_default && typeof _zintl_raw_default.fetch === "function") return _zintl_raw_default.fetch(urlOrReq, ...args);\n    return _zintl_raw_default;\n  });\n}`;
           }
         }
 
         // 3. Generic Named Exports Wrapping
         if (this._options.ssrWrapExports && this._options.ssrWrapExports.length > 0) {
-          let hasImport = false;
           for (const name of this._options.ssrWrapExports) {
             let wrappedExport = false;
+            let wrapType: "rename" | "alias" = "rename";
 
             // Syntax 1: export (async )?function name
             const namedFuncRegex = new RegExp(
@@ -1406,6 +1447,7 @@ export class ZintlCompiler {
             if (namedFuncRegex.test(finalCode)) {
               finalCode = finalCode.replace(namedFuncRegex, `$1async function _zintl_raw_${name}`);
               wrappedExport = true;
+              wrapType = "rename";
             }
 
             // Syntax 2: export const/let/var name = ...
@@ -1414,6 +1456,7 @@ export class ZintlCompiler {
               if (constRegex.test(finalCode)) {
                 finalCode = finalCode.replace(constRegex, `$1$2 _zintl_raw_${name}`);
                 wrappedExport = true;
+                wrapType = "rename";
               }
             }
 
@@ -1431,14 +1474,13 @@ export class ZintlCompiler {
                   if (index !== -1) {
                     const part = parts[index];
                     if (part === name) {
-                      parts[index] = `${name} as _zintl_raw_${name}`;
+                      parts[index] = `_zintl_wrapped_${name} as ${name}`;
                       wrappedExport = true;
+                      wrapType = "alias";
                     } else if (part.endsWith(` as ${name}`)) {
-                      const localName = part
-                        .substring(0, part.length - ` as ${name}`.length)
-                        .trim();
-                      parts[index] = `${localName} as _zintl_raw_${name}`;
+                      parts[index] = `_zintl_wrapped_${name} as ${name}`;
                       wrappedExport = true;
+                      wrapType = "alias";
                     }
                     if (wrappedExport) {
                       const newBlock = `export { ${parts.join(", ")} }`;
@@ -1451,11 +1493,14 @@ export class ZintlCompiler {
             }
 
             if (wrappedExport) {
-              if (!hasImport) {
+              if (!finalCode.includes("import { runInRequestScope as _zintl_runInRequestScope }")) {
                 finalCode += `\nimport { runInRequestScope as _zintl_runInRequestScope } from "${runtimeInternal}";`;
-                hasImport = true;
               }
-              finalCode += `\nexport async function ${name}(urlOrReq, ...args) {\n  return _zintl_runInRequestScope(urlOrReq, ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_${name}(urlOrReq, ...args));\n}`;
+              if (wrapType === "rename") {
+                finalCode += `\nexport async function ${name}(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => _zintl_raw_${name}(urlOrReq, ...args));\n}`;
+              } else {
+                finalCode += `\nasync function _zintl_wrapped_${name}(urlOrReq, ...args) {\n  return _zintl_runInRequestScope([urlOrReq, ...args], ${localesStr}, ${defaultLocaleStr}, () => ${name}(urlOrReq, ...args));\n}`;
+              }
             }
           }
         }
@@ -1499,6 +1544,8 @@ export class ZintlCompiler {
           }
         }
 
+        // Disable HMR revision token comments to see if full reloads fix hydration graph mismatches
+        /*
         let hmrToken = 0;
         const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
         if (fileBoundaries) {
@@ -1519,6 +1566,7 @@ export class ZintlCompiler {
             finalCode += tokenCode;
           }
         }
+        */
       }
     }
 
@@ -2015,7 +2063,8 @@ export class ZintlCompiler {
       }
     }`;
     const mgrImportsCode = mgrImports && mgrImports.length > 0 ? mgrImports.join("\n") + "\n" : "";
-    const managerObj = `{ id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader} }`;
+    const messages = this.getMessages(bId);
+    const managerObj = `{ id: "${this.io.getSafeBoundaryId(bId)}", loader: ${loader}, manifest: ${JSON.stringify(messages)} }`;
     let code = mgrImportsCode;
     if (this.isDev) {
       code += `export default (() => {

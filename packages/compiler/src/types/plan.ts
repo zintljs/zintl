@@ -25,7 +25,14 @@ export interface ResolvedRewrite {
   start: number;
   end: number;
   replacement: string;
-  kind: "anchor" | "sink_wrap" | "manual_t" | "bake" | "quote_convert" | "passthrough";
+  kind:
+    | "anchor"
+    | "sink_wrap"
+    | "manual_t"
+    | "bake"
+    | "quote_convert"
+    | "passthrough"
+    | "client_reactivity";
   priority: number;
 }
 

@@ -24,17 +24,35 @@ export function _t(
 
   if (message === undefined) {
     if (mgr) {
-      // Self-registration: If a manager is passed and ID is missing, register it.
-      void instance.registerLoader(mgr.id, mgr.loader);
-      const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : undefined;
-      message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : undefined;
+      if (typeof window === "undefined") {
+        if (mgr.loader) {
+          try {
+            const result = mgr.loader(locale);
+            if (result && typeof (result as any).then !== "function") {
+              instance.addCatalogs({ [locale]: result } as any);
+              const boundaryCatalogAfter = targetBId
+                ? instance.catalogs[locale]?.[targetBId]
+                : undefined;
+              message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : undefined;
+            } else if (result && typeof (result as any).then === "function") {
+              void instance.loadLazyBoundary(mgr.id, mgr.loader);
+            }
+          } catch {}
+        }
+      } else {
+        if (mgr.loader) {
+          void Promise.resolve().then(() => {
+            instance.loadLazyBoundary(mgr.id, mgr.loader);
+          });
+        }
+      }
+
       if (message === undefined) {
         if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
           console.warn(
-            `[Zintl] Missing key "${key}" in boundary "${boundaryId}". Triggering hydration...`,
+            `[Zintl] Missing key "${key}" in boundary "${targetBId || boundaryId}". Triggering hydration...`,
           );
         }
-        // We still return fallback because loader is async, but this triggers the network.
         return ``;
       }
     } else {
