@@ -6599,7 +6599,7 @@ function normalizeContainer(container) {
 	return container;
 }
 //#endregion
-//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.0_@types+node@24.13.2_jiti@2.7.0_ters_3c2462813db1bd856bdf50dc330ce1db/node_modules/vue-router/dist/useApi-s_02lHjl.js
+//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.1_@types+node@24.13.2_jiti@2.7.0_ters_77dd7deb730dc67cbc1ac27ffe1a6716/node_modules/vue-router/dist/useApi-s_02lHjl.js
 /*!
 * vue-router v5.1.0
 * (c) 2026 Eduardo San Martin Morote
@@ -6707,7 +6707,7 @@ function useRoute(_name) {
 	return inject(routeLocationKey);
 }
 //#endregion
-//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.0_@types+node@24.13.2_jiti@2.7.0_ters_3c2462813db1bd856bdf50dc330ce1db/node_modules/vue-router/dist/devtools-DCoWQoU_.js
+//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.1_@types+node@24.13.2_jiti@2.7.0_ters_77dd7deb730dc67cbc1ac27ffe1a6716/node_modules/vue-router/dist/devtools-DCoWQoU_.js
 /*!
 * vue-router v5.1.0
 * (c) 2026 Eduardo San Martin Morote
@@ -7200,7 +7200,7 @@ function extractChangingRecords(to, from) {
 	];
 }
 //#endregion
-//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.0_@types+node@24.13.2_jiti@2.7.0_ters_3c2462813db1bd856bdf50dc330ce1db/node_modules/vue-router/dist/vue-router.js
+//#region node_modules/.pnpm/vue-router@5.1.0_@voidzero-dev+vite-plus-core@0.2.1_@types+node@24.13.2_jiti@2.7.0_ters_77dd7deb730dc67cbc1ac27ffe1a6716/node_modules/vue-router/dist/vue-router.js
 /*!
 * vue-router v5.1.0
 * (c) 2026 Eduardo San Martin Morote
