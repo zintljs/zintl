@@ -1,6 +1,6 @@
 {
   "name": "@zintl/compiler",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "Bundler-agnostic compiler intelligence for Zintl",
   "license": "MIT",
   "author": "Khalid FSh",

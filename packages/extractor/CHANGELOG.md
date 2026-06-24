@@ -1,5 +1,46 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.5
+
+### Patch Changes
+
+- 85504fe: Refactor extractor fast-path and boundary assignment to be fully driven by configuration and structure, removing all sink-based speculation.
+
+  **Fast-path & Target-Driven Optimizations**:
+
+  - **`types.ts`**: Added `"nextjs"` as a supported `TargetDescriptor`.
+  - **`targets.ts`**: Introduced the `"nextjs"` target preset (which inherits standard JSX/object field rules). Completely eliminated framework-specific target flags (`isReactTarget`, `isVueTarget`, `isSvelteTarget`, `isNextjsTarget`) from `ResolvedTargets`.
+  - **`context.ts`**: Removed the target boolean flags from `ExtractionContext`, resolving rule sets (like `mustacheRegex`) dynamically using configuration target presets and extension-based fallbacks.
+  - **`parser.ts`**: Replaced the hardcoded `isLikelyUI` check with `resolved.fastPathRegex.test(code)`.
+  - **`visitors/index.ts`**: Conditionally mount the JsxVisitor only when JSX targets are active.
+  - **`visitors/bindings.ts`**: Conditionally register AST hooks for `AssignmentExpression` (only if DOM targets are active) and `Property` (only if object fields are configured), bypassing expensive node checks.
+  - **`visitors/program.ts`**: Decoupled Next.js metadata/viewport export suppression logic from standard React projects, gating it dynamically via the target suppression metadata rules.
+  - **`html.ts`**: Optimized mustache template parsing by using target flags, and refined SFC template checks using path extensions combined with targets to prevent stripping the `htmlProjection` metadata on top-level static HTML entry pages (like `index.html`).
+  - **`hooks/config.ts`**: Added auto-detection for the `"nextjs"` framework when `"next"` or `"vinext"` is detected in package dependencies or plugin lists.
+
+  **Declarative Extractor Languages (Knowledge Zeroing)**:
+
+  - **SFC Segmentation Language**: Added `SfcRule` and `SfcBlockRule` interfaces. Extractor now splits Vue, Svelte, and Astro SFC files using fully custom, declarative regex-based block segmentation rules instead of hardcoded splitters.
+  - **AST Suppression Language**: Added `SuppressionRule` interface. Extractor AST walker checks nodes generically against configurable suppression criteria (matching types, names, and root-level scopes) to bypass zero-config extraction on server-only subtrees.
+  - **Generic Parsers**: HTML extraction and AST visitors are decoupled from framework file extension checks, dynamically utilizing the resolved rules (such as `mustacheRegex` and `activeRange`/`isSfcTemplate` for HTML template stitching).
+
+  **Boundary assignment (structural)**:
+
+  - **Removed `hasSinksOrCalls`**: The recursive subtree walk that speculatively assigned sub-boundaries to any function with UI sinks is gone. It was a second tree traversal inside the first walk and relied on framework-specific hardcoded checks (`["innerHTML", "innerText"]`, unconditional JSX node checks).
+  - **Replaced with structural rule**: Every top-level **exported** function gets its own sub-boundary deterministically — no sink scan required. The compiler's binding tracker uses these to attribute strings precisely when a consumer imports only a subset of a file's exports. In zero-config mode, all top-level functions (including non-exported) get sub-boundaries, mirroring the existing fast-path behavior.
+  - **Local functions** (non-exported, no explicit `zintl()` anchor) now correctly collapse to the file's root boundary. The compiler's boundary graph handles reachability at the file level.
+
+  **Effect**: The extractor now has two sources of truth for boundaries — explicit `zintl()` anchors and structural exports — with no guessing about sink content. Framework knowledge lives entirely in `ExtractionOptions.targets`.
+
+- 0bd00a8: Fix evaluation of dynamic attributes, tag replacement, and boundary resolution in JSX/SFC compilation:
+
+  - **Export and Import Boundary Resolution**:
+    - In `@zintl/extractor`: Maps default and named exports of components to their precise function-level boundary IDs (e.g., `src/App:App` instead of the file boundary `src/App`) in the program visitor.
+    - In `@zintl/compiler`: Resolves static import bindings to their precise exported function-level boundary IDs when walking the dependency graph in `intent-utils.ts`, and adds file-level fallback resolution to ownership mapping checks.
+  - **Dynamic JSX Attribute Evaluation**: Serializes `_tags` for JSX components as raw JavaScript array literals rather than JSON strings, allowing local scope variables (like imported assets) to be correctly evaluated at runtime.
+  - **JSX to HTML Attribute Mapping**: Automatically maps `className` to `class`, and JSX attribute expressions like `src={logo}` to template literal interpolations `src="${logo}"` for elements inside translated templates.
+  - **Self-Closing Tag Placeholders**: Extends the runtime key resolver and compile-time baking to support self-closing tags (both `<tag/>` and `<tag />`) when replacing translatable element placeholders.
+
 ## 0.1.0-alpha.4
 
 ### Patch Changes
@@ -28,6 +69,7 @@
 ### Patch Changes
 
 - 18a7166: Added support for inline SVG elements during HTML/JSX parsing and resolved fanned routing redirect intercepts in development mode:
+
   - **SVG Phrasing Elements Support**: Added common SVG child tags (`use`, `path`, `circle`, `rect`, `g`, etc.) to the list of inline phrasing tags. This prevents HTML/JSX text stitching from partitioning at unrecognized sub-tags, eliminating unmatched closing tag validation errors and schema warnings during catalog compilation.
   - **Fanned Routing Support in Dev Mode**: Updated the Vite development index HTML interception logic to inspect both the filesystem path and request path. This prevents custom SSR development servers from rendering empty redirect shells when navigating fanned localized routes.
   - **Request-Scoped SSR Compilation**: Restricted contextual anchor locale baking in the compiler transform when performing server-side builds. This ensures that multi-locale Express/custom SSR servers can generate request-scoped translations dynamically.
@@ -42,6 +84,7 @@
 ### Patch Changes
 
 - Introduce universal target presets, configurable assets mapping, and testing suites:
+
   - **Target Preset Customization**: Added framework target presets (`react`, `vanilla`, `html`) and a Target DSL in the extractor, allowing developers to configure translatable attributes, sinks, and object property targets.
   - **Universal Asset Targets (`assetsTarget`)**: Added support in the compiler for glob-based asset routing configurations, supporting strategy overrides (such as binary pass-through, text pass-through, frontmatter) and custom strategy callbacks.
   - **Catalog Group-by Path Routing**: Grouped asset catalogs by locale and original relative paths to prevent collisions across multiple files sharing identical basenames.
