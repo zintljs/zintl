@@ -176,24 +176,24 @@ describe("Catalog HMR Integration", () => {
     await compiler.flush();
     compiler.io.writingFiles.clear();
 
-    const catalogPath = compiler.catalog.getCatalogPath("src/App:App", "ar");
+    const catalogPath = compiler.catalog.getCatalogPath("src/App.tsx:App", "ar");
     expect(await compiler.io.exists(catalogPath)).toBe(true);
 
     // 2. Setup mock module graph
     const mockAppMod = { id: "/src/App.tsx", file: appPath };
     const mockManagerMod = {
-      id: "virtual:zintl/manager/none/entry:b_src_main_bootstrap",
+      id: "virtual:zintl/manager/none/entry:b_src_main_tsx_bootstrap",
       file: null,
     };
     const mockContentMod = {
-      id: "virtual:zintl/content/ar/entry:b_src_main_bootstrap",
+      id: "virtual:zintl/content/ar/entry:b_src_main_tsx_bootstrap",
       file: null,
     };
 
     const moduleMap = new Map<string, any>([
       ["/src/App.tsx", mockAppMod],
-      ["virtual:zintl/manager/none/entry:b_src_main_bootstrap", mockManagerMod],
-      ["virtual:zintl/content/ar/entry:b_src_main_bootstrap", mockContentMod],
+      ["virtual:zintl/manager/none/entry:b_src_main_tsx_bootstrap", mockManagerMod],
+      ["virtual:zintl/content/ar/entry:b_src_main_tsx_bootstrap", mockContentMod],
     ]);
 
     const mockServer = {
@@ -219,8 +219,8 @@ describe("Catalog HMR Integration", () => {
     }
 
     const returnedIds = result.map((m) => m.id);
-    expect(returnedIds).toContain("virtual:zintl/manager/none/entry:b_src_main_bootstrap");
-    expect(returnedIds).toContain("virtual:zintl/content/ar/entry:b_src_main_bootstrap");
+    expect(returnedIds).toContain("virtual:zintl/manager/none/entry:b_src_main_tsx_bootstrap");
+    expect(returnedIds).toContain("virtual:zintl/content/ar/entry:b_src_main_tsx_bootstrap");
     expect(mockServer.moduleGraph.invalidateModule).toHaveBeenCalledWith(mockManagerMod);
     expect(mockServer.moduleGraph.invalidateModule).toHaveBeenCalledWith(mockContentMod);
   });

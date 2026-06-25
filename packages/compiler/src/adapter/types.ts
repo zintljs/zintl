@@ -108,7 +108,7 @@ export interface BundlerAdapter {
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /** HMR injection code generation (appended to transformed files in dev) */
-  hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
+  hmrInjectionCode?: (fileId: string, hmrToken: number, hasAnchors?: boolean) => string;
   /** Multiplex detection override (scans entry files for zintl("*") or zintl()) */
   isMultiplex?: (context: MultiplexDetectionContext) => boolean | undefined;
   /** Build input fanning for MPA multiplex (expands index.html → en/index.html, ar/index.html, etc.) */
@@ -252,7 +252,9 @@ export interface MergedAdapterHooks {
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
   /** Resolved HMR injection code generator (undefined if no HMR adapter) */
-  hmrInjectionCode: ((fileId: string, hmrToken: number) => string) | undefined;
+  hmrInjectionCode:
+    | ((fileId: string, hmrToken: number, hasAnchors?: boolean) => string)
+    | undefined;
   /** Resolved multiplex detector (undefined to use default scan logic) */
   isMultiplex: ((context: MultiplexDetectionContext) => boolean | undefined) | undefined;
   /** Resolved build input fanner (undefined if no MPA adapter) */

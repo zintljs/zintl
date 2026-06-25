@@ -10,7 +10,6 @@ import type {
   SsrWrapParams,
   LocaleDetectionContext,
   MultiplexDetectionContext,
-  TagMapEntry,
 } from "./types.js";
 import type { TargetDescriptor } from "@zintl/extractor";
 
@@ -374,30 +373,24 @@ export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): Resolve
     flatAdapters.push(...expandInput(input));
   }
 
+  // Deduplicate adapters by name to prevent conflict errors from duplicate presets/registrations
+  const uniqueAdapters: ZintlAdapter[] = [];
+  const seen = new Set<string>();
+  for (const a of flatAdapters) {
+    if (!seen.has(a.name)) {
+      seen.add(a.name);
+      uniqueAdapters.push(a);
+    }
+  }
+
   const state = createEmptyState();
-  for (const adapter of flatAdapters) {
+  for (const adapter of uniqueAdapters) {
     mergeAdapter(state, adapter);
   }
 
   return {
     capabilities: stateToCapabilities(state),
     hooks: stateToHooks(state),
-    adapters: flatAdapters,
+    adapters: uniqueAdapters,
   };
 }
-
-// Re-export types that consumers need
-export type {
-  ZintlAdapter,
-  ExtractionAdapter,
-  CodegenAdapter,
-  SsrAdapter,
-  RuntimeAdapter,
-  BundlerAdapter,
-  ResolvedCapabilities,
-  MergedAdapterHooks,
-  SsrWrapParams,
-  LocaleDetectionContext,
-  MultiplexDetectionContext,
-  TagMapEntry,
-};

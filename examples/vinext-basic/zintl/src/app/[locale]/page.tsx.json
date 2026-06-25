@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../.schemas/src/app/[locale]/page.shared.schema.json",
+  "$schema": "../../../.schemas/src/app/[locale]/page.tsx.shared.schema.json",
   "<image/> Deploy Now": {
     "ar": "<image/> انشر الآن",
     "es": "<image/> Desplegar ahora",

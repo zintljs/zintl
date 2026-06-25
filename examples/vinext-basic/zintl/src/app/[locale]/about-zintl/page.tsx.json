@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../.schemas/src/app/[locale]/about-zintl/page.shared.schema.json",
+  "$schema": "../../../../.schemas/src/app/[locale]/about-zintl/page.tsx.shared.schema.json",
   "About Zintl Translation System": {
     "ar": "حول نظام ترجمة Zintl",
     "es": "Sobre el Sistema de Traducción Zintl",

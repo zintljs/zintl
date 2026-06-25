@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../.schemas/src/app/[locale]/layout.shared.schema.json",
+  "$schema": "../../../.schemas/src/app/[locale]/layout.tsx.shared.schema.json",
   "Create Next App {locale}": {
     "ar": "إنشاء تطبيق Next {locale}",
     "es": "Crear aplicación Next {locale}",

@@ -42,9 +42,8 @@ export function calculateSafeBoundaryId(
       ? relative(root, boundaryId)
       : boundaryId
     : boundaryId;
-
-  // Strip extensions for stability across JS/TS moves
-  stableId = stableId.replace(/\.(?:ts|tsx|js|jsx)$/, "");
+  // Strip logic extensions (ts/js) for stability across JS/TS moves, but keep jsx/tsx/vue/svelte
+  stableId = stableId.replace(/\.(?:ts|js)$/, "");
 
   if (isDev) {
     // If it's already a safe ID (prefixed with b_), return as is

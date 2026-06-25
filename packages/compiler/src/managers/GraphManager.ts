@@ -10,7 +10,6 @@ import {
 } from "../types/index.js";
 import { type ZintlLogger } from "@zintl/extractor";
 import type { IOManager } from "./IOManager.js";
-
 /**
  * Manages boundary and chunk graphs.
  */
@@ -27,6 +26,31 @@ export class GraphManager {
     private readonly logger: ZintlLogger,
     private readonly locales: string[] = ["en"],
   ) {}
+
+  private resolveDependencyFileId(
+    depFileId: string,
+    ownerId: string,
+    dependencyGraph: Record<string, any>,
+  ): string {
+    let resolved = depFileId.startsWith(".") ? join(dirname(ownerId), depFileId) : depFileId;
+    const clean = this.io.getNormalizedId(resolved);
+    if (this.lastMetadata[clean] !== undefined) return clean;
+    if (this.lastManifest[clean] !== undefined) return clean;
+    if (dependencyGraph[clean] !== undefined) return clean;
+
+    const extensions = [".tsx", ".jsx", ".ts", ".js", ".vue", ".svelte", ".html"];
+    for (const ext of extensions) {
+      const candidate = clean + ext;
+      if (
+        this.lastMetadata[candidate] !== undefined ||
+        this.lastManifest[candidate] !== undefined ||
+        dependencyGraph[candidate] !== undefined
+      ) {
+        return candidate;
+      }
+    }
+    return clean;
+  }
 
   public buildBoundaryGraph(
     internalManifest: Record<string, any[]>,
@@ -82,9 +106,8 @@ export class GraphManager {
       normalizedDeps[nOwnerId] = ownerDeps;
       for (const dep of ownerDeps) {
         if (!dep.dynamic) continue;
-        let depId = dep.id;
-        if (depId.startsWith(".")) depId = join(dirname(ownerId), depId);
-        inverseDynamicDependencies.add(this.io.getNormalizedId(depId));
+        const resolvedDepId = this.resolveDependencyFileId(dep.id, ownerId, dependencyGraph);
+        inverseDynamicDependencies.add(resolvedDepId);
       }
     }
 
@@ -123,8 +146,7 @@ export class GraphManager {
       }
       const resolvedDeps: any[] = [];
       for (const dep of rawDeps) {
-        let depFileId = dep.id.startsWith(".") ? join(dirname(fileId), dep.id) : dep.id;
-        const cleanDepFileId = this.io.getNormalizedId(depFileId);
+        const cleanDepFileId = this.resolveDependencyFileId(dep.id, fileId, dependencyGraph);
         const depMeta = normalizedMetadata[cleanDepFileId];
 
         if (dep.bindings?.length && depMeta?.exportedBoundaries) {
@@ -554,8 +576,7 @@ export class GraphManager {
     }
 
     for (const dep of deps) {
-      const depFileId = dep.id.startsWith(".") ? join(dirname(fileId), dep.id) : dep.id;
-      const nDepId = this.io.getNormalizedId(depFileId);
+      const nDepId = this.resolveDependencyFileId(dep.id, fileId, dependencyGraph);
 
       // 1. Recurse
       const depResult = this.leadsToBoundary(nDepId, dependencyGraph, metadataGraph, visited);

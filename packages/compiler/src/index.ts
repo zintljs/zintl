@@ -27,7 +27,12 @@ import {
   type AssetTargetConfig,
   type AssetMergeStrategy,
 } from "./types/index.js";
-import { resolveAdapters, type ResolvedAdapters, type ZintlAdapter } from "./adapter/index.js";
+import {
+  resolveAdapters,
+  type ResolvedAdapters,
+  type ZintlAdapter,
+  type ResolvedCapabilities,
+} from "./adapter/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -41,12 +46,35 @@ export { similarity } from "./reconcile.js";
 export type { ZintlOptions, ZintlLogger, LogLevel, AssetTargetConfig, AssetMergeStrategy };
 export type {
   ZintlAdapter,
+  ExtractionAdapter,
+  CodegenAdapter,
+  SsrAdapter,
+  RuntimeAdapter,
+  BundlerAdapter,
   ResolvedCapabilities,
   MergedAdapterHooks,
   ResolvedAdapters,
+  SsrWrapParams,
+  LocaleDetectionContext,
+  MultiplexDetectionContext,
+  TagMapEntry,
 } from "./adapter/index.js";
-export { resolveAdapters, registerPreset } from "./adapter/index.js";
-export * from "./adapter/presets/index.js";
+export {
+  resolveAdapters,
+  registerPreset,
+  vanillaExtractionAdapter,
+  reactExtractionAdapter,
+  reactCodegenAdapter,
+  vueExtractionAdapter,
+  vueCodegenAdapter,
+  svelteExtractionAdapter,
+  svelteCodegenAdapter,
+  htmlExtractionAdapter,
+  nextjsSsrAdapter,
+  ssrRuntimeAdapter,
+  clientSpaRuntimeAdapter,
+  viteBundlerAdapter,
+} from "./adapter/index.js";
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -144,6 +172,13 @@ export class ZintlCompiler {
     // ── Resolve Adapters ──────────────────────────────────────────────────────
     // Build the adapter input list. Start with user-provided adapters.
     const adapterInputs: (string | ZintlAdapter)[] = [...(options.adapters || [])];
+    if (adapterInputs.length === 0 && options.targets) {
+      for (const t of options.targets) {
+        if (typeof t === "string") {
+          adapterInputs.push(t);
+        }
+      }
+    }
 
     // Auto-wrap legacy top-level options into a custom "legacy-options" adapter.
     // This keeps backward compat while emitting deprecation guidance.
@@ -228,7 +263,14 @@ export class ZintlCompiler {
     this._outputDir = options.outputDir || DEFAULT_OUTPUT_DIR;
     this._prune = options.prune ?? true;
     this._verifyIntegrity = options.verifyIntegrity ?? false;
-    this.io = new IOManager(root, isDev, this.logger.withPrefix("IO"), options);
+    this.io = new IOManager(
+      root,
+      isDev,
+      this.logger.withPrefix("IO"),
+      options,
+      this.extensions,
+      this._resolved.adapters,
+    );
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
     this.catalog = new CatalogManager(
       this.io,
@@ -1595,7 +1637,9 @@ export class ZintlCompiler {
       }
 
       if (hmrFn) {
-        const hmrCode = hmrFn(fileId, hmrToken);
+        const fileMeta = (this.messages as any)?.metadataGraph?.[fileId];
+        const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
+        const hmrCode = hmrFn(fileId, hmrToken, hasAnchors);
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
           if (scriptCloseIdx !== -1) {
@@ -2153,10 +2197,35 @@ export class ZintlCompiler {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export function getRuntimeCode(moduleName: "store" | "resolver" | "registry" | "internal"): string {
+export function getRuntimeCode(
+  moduleName:
+    | "store"
+    | "resolver"
+    | "registry"
+    | "internal"
+    | "store-core"
+    | "store-client"
+    | "store-server",
+  capabilities?: ResolvedCapabilities,
+  isSsr?: boolean,
+): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
+
+  if (cleanName === "store" && capabilities) {
+    let code = `export * from "./store-core.js";\n`;
+    if (capabilities.clientLocaleSync) {
+      code += `import "./store-client.js";\n`;
+    }
+    if (capabilities.serverRequestScope && (isSsr === undefined || isSsr)) {
+      code += `import "./store-server.js";\n`;
+    }
+    return code;
+  }
+
   const mjsPath = join(__dirname, "runtime", `${cleanName}.mjs`);
-  const path = existsSync(mjsPath) ? mjsPath : join(__dirname, "runtime", `${cleanName}.js`);
+  const jsPath = join(__dirname, "runtime", `${cleanName}.js`);
+  const tsPath = join(__dirname, "runtime", `${cleanName}.ts`);
+  const path = existsSync(mjsPath) ? mjsPath : existsSync(jsPath) ? jsPath : tsPath;
   if (!existsSync(path)) {
     throw new Error(`[Zintl] Runtime module not found: ${moduleName} (resolved to ${path})`);
   }

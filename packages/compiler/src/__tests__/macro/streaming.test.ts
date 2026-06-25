@@ -37,7 +37,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
     await compiler.transform(code, filePath, "target");
 
     // Pre-seed translation to avoid integrity error
-    const arPath = compiler.getCatalogPath("src/server.App", "ar")!;
+    const arPath = compiler.getCatalogPath("src/server.tsx:App", "ar")!;
     await mkdir(dirname(arPath), { recursive: true });
     await writeFile(arPath, JSON.stringify({ Welcome: "مرحباً" }));
 
@@ -69,7 +69,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
     await compiler.transform(code, filePath, "target");
 
     // Pre-seed translation to avoid integrity error
-    const arPath = compiler.getCatalogPath("src/counter.Counter", "ar")!;
+    const arPath = compiler.getCatalogPath("src/counter.tsx:Counter", "ar")!;
     await mkdir(dirname(arPath), { recursive: true });
     await writeFile(arPath, JSON.stringify({ "Count is {counter}": "placeholder" }));
 
@@ -108,7 +108,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
     await compiler.transform(code, filePath, "target");
 
     // Pre-seed translation to avoid integrity error
-    const arPath = compiler.getCatalogPath("src/jsx.App", "ar")!;
+    const arPath = compiler.getCatalogPath("src/jsx.tsx:App", "ar")!;
     await mkdir(dirname(arPath), { recursive: true });
     await writeFile(arPath, JSON.stringify({ Submit: "إرسال", "Click me": "انقر هنا" }));
 

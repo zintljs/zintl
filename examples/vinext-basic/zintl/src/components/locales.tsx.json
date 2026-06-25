@@ -1,5 +1,5 @@
 {
-  "$schema": "../../.schemas/src/components/locales.shared.schema.json",
+  "$schema": "../../.schemas/src/components/locales.tsx.shared.schema.json",
   "languages": {
     "ar": "اللغات",
     "es": "idiomas",

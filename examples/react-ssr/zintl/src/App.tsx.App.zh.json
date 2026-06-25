@@ -1,5 +1,5 @@
 {
-  "$schema": "../.schemas/src/App.App.schema.json",
+  "$schema": "../.schemas/src/App.tsx.App.schema.json",
   "<img/> Explore Vite": "<img/> 探索 Vite",
   "<img/> Learn more": "<img/> 了解更多",
   "Connect with us": "与我们联系",
@@ -10,5 +10,5 @@
   "Join the Vite community": "加入 Vite 社区",
   "React logo": "React 图标",
   "Vite logo": "Vite 图标",
-  "Your questions, answered": "您的问题，已有解答"
+  "Your questions, answered": "您的问题已解答"
 }

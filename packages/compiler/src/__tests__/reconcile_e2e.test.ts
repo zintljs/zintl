@@ -39,8 +39,8 @@ describe("ZintlCompiler - End-to-End Key Reconciliation", () => {
     await compiler.flush();
 
     // Verify initial file written for target locales ONLY
-    const enCatalogPathV1 = compiler.getCatalogPath("src/components/Banner:Banner", "en");
-    const esCatalogPathV1 = compiler.getCatalogPath("src/components/Banner:Banner", "es");
+    const enCatalogPathV1 = compiler.getCatalogPath("src/components/Banner.tsx:Banner", "en");
+    const esCatalogPathV1 = compiler.getCatalogPath("src/components/Banner.tsx:Banner", "es");
 
     // Ghost Mode: English disk file should not exist, Spanish should
     const { stat } = await import("node:fs/promises");

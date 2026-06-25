@@ -162,8 +162,6 @@ zintl("ar");
       await prodCompiler.flush();
 
       const result = await prodCompiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
-      if (!result) console.log("[DEBUG] transform returned undefined");
-      else console.log("[DEBUG] result.code:", result.code.slice(0, 300));
       expect(result).toBeDefined();
 
       const transformedCode = result!.code;

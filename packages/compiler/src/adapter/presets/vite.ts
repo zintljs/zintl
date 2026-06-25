@@ -17,11 +17,11 @@ const viteBundlerAdapter: ZintlAdapter = {
     dynamicImportTemplate: (path: string, isDev: boolean): string => {
       return `import(${isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
     },
-    hmrInjectionCode: (fileId: string, hmrToken: number): string => {
-      // HMR injection is handled at the plugin level in @zintl/zintl transform hook.
-      // This stub enables the capability flag; the actual injection logic remains
-      // in the Vite plugin's transform hook which has access to the Vite context.
+    hmrInjectionCode: (fileId: string, hmrToken: number, hasAnchors?: boolean): string => {
       let code = "";
+      if (hasAnchors) {
+        code += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+      }
       if (hmrToken > 0) {
         code += `\n\n// Zintl HMR Token: ${hmrToken}`;
       }

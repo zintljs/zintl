@@ -394,7 +394,7 @@ export function loadHook(ctx: ZintlPluginContext) {
       ctx.compiler._logger
         .withPrefix("Vite")
         .debug(`Loading virtual runtime module: ${moduleName}`);
-      let code = getRuntimeCode(moduleName as any);
+      let code = getRuntimeCode(moduleName as any, ctx.compiler._resolved.capabilities, isSsr);
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");
       }

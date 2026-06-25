@@ -27,9 +27,6 @@ export interface TargetAdapter {
   wrapSfcScript?: (code: string) => string;
 }
 
-// Re-export the canonical adapter types from the adapter module
-export type { ZintlAdapter, ResolvedCapabilities, MergedAdapterHooks } from "../adapter/index.js";
-
 export interface ZintlOptions {
   sourceLocale?: string;
   locales?: string[];

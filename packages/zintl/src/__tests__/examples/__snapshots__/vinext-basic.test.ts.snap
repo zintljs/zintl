@@ -2,21 +2,21 @@
 
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/src/app/[locale]/about-zintl/page.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_AboutZintl";
+import _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl";
 
 export const generateStaticParams = async () => {
   return ["en", "ar", "es", "zh"].map((locale) => ({ locale }));
 };
 export default async function AboutZintl({ params }: PageProps<"/[locale]/about-zintl">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_tsx_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl.loader } }));
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black p-16">
-      <h1 className="text-3xl font-semibold text-black dark:text-zinc-50">{_t("About Zintl Translation System", { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_AboutZintl" })}</h1>
-      <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">{_t("Zintl is a compiler-driven internationalization system for modern web applications.", { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_AboutZintl" })}</p>
+      <h1 className="text-3xl font-semibold text-black dark:text-zinc-50">{_t("About Zintl Translation System", { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_tsx_AboutZintl" })}</h1>
+      <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">{_t("Zintl is a compiler-driven internationalization system for modern web applications.", { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_tsx_AboutZintl" })}</p>
       <div className="mt-8 p-4 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
-        <p className="text-sm font-mono text-zinc-500">{_t("Current Locale: {locale}", { locale: locale }, { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_AboutZintl" })}</p>
+        <p className="text-sm font-mono text-zinc-500">{_t("Current Locale: {locale}", { locale: locale }, { _mgr: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl, _bId: "b_src_app__locale__about_zintl_page_tsx_AboutZintl" })}</p>
       </div>
     </div>
   );
@@ -25,17 +25,17 @@ export default async function AboutZintl({ params }: PageProps<"/[locale]/about-
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/about-zintl/page");
+    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/about-zintl/page.tsx");
   });
 }"
 `;
 
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/src/app/[locale]/layout.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_app__locale__page_Home from "virtual:zintl/manager/none/entry:b_src_app__locale__page_Home";
-import _zintl_mgr_b_src_app__locale__layout_f_625 from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_f_625";
-import _zintl_mgr_b_src_app__locale__layout_RootLayout from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_RootLayout";
-import _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_AboutZintl";
+import _zintl_mgr_b_src_app__locale__page_tsx_Home from "virtual:zintl/manager/none/entry:b_src_app__locale__page_tsx_Home";
+import _zintl_mgr_b_src_app__locale__layout_tsx_f_625 from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_tsx_f_625";
+import _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_tsx_RootLayout";
+import _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -57,21 +57,21 @@ export const generateStaticParams = async () => {
 
 export const generateMetadata = async ({ params }: LayoutProps<"/[locale]">): Promise<Metadata> => {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl.loader, ["b_src_app__locale__layout_RootLayout"]: _zintl_mgr_b_src_app__locale__layout_RootLayout.loader, ["b_src_app__locale__layout_f_625"]: _zintl_mgr_b_src_app__locale__layout_f_625.loader, ["b_src_app__locale__page_Home"]: _zintl_mgr_b_src_app__locale__page_Home.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_tsx_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl.loader, ["b_src_app__locale__layout_tsx_RootLayout"]: _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout.loader, ["b_src_app__locale__layout_tsx_f_625"]: _zintl_mgr_b_src_app__locale__layout_tsx_f_625.loader, ["b_src_app__locale__page_tsx_Home"]: _zintl_mgr_b_src_app__locale__page_tsx_Home.loader } }));
 
   return {
-    title: _t("Create Next App {locale}", { locale: locale }, { _mgr: _zintl_mgr_b_src_app__locale__layout_f_625, _bId: "b_src_app__locale__layout_f_625" }),
-    description: _t("Generated by create next app", { _mgr: _zintl_mgr_b_src_app__locale__layout_f_625, _bId: "b_src_app__locale__layout_f_625" }),
+    title: _t("Create Next App {locale}", { locale: locale }, { _mgr: _zintl_mgr_b_src_app__locale__layout_tsx_f_625, _bId: "b_src_app__locale__layout_tsx_f_625" }),
+    description: _t("Generated by create next app", { _mgr: _zintl_mgr_b_src_app__locale__layout_tsx_f_625, _bId: "b_src_app__locale__layout_tsx_f_625" }),
   };
 };
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl.loader, ["b_src_app__locale__layout_RootLayout"]: _zintl_mgr_b_src_app__locale__layout_RootLayout.loader, ["b_src_app__locale__layout_f_625"]: _zintl_mgr_b_src_app__locale__layout_f_625.loader, ["b_src_app__locale__page_Home"]: _zintl_mgr_b_src_app__locale__page_Home.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_tsx_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl.loader, ["b_src_app__locale__layout_tsx_RootLayout"]: _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout.loader, ["b_src_app__locale__layout_tsx_f_625"]: _zintl_mgr_b_src_app__locale__layout_tsx_f_625.loader, ["b_src_app__locale__page_tsx_Home"]: _zintl_mgr_b_src_app__locale__page_tsx_Home.loader } }));
   return (
     <html
       lang={locale}
-      dir={_t("ltr", { _mgr: _zintl_mgr_b_src_app__locale__layout_RootLayout, _bId: "b_src_app__locale__layout_RootLayout" })}
+      dir={_t("ltr", { _mgr: _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout, _bId: "b_src_app__locale__layout_tsx_RootLayout" })}
       className={\`\${geistSans.variable} \${geistMono.variable} h-full antialiased\`}
     >
       <body className="min-h-full flex flex-col">
@@ -85,22 +85,22 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/layout");
+    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/layout.tsx");
   });
 }"
 `;
 
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/src/app/[locale]/page.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_app__locale__page_Home from "virtual:zintl/manager/none/entry:b_src_app__locale__page_Home";
-import _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_AboutZintl";
+import _zintl_mgr_b_src_app__locale__page_tsx_Home from "virtual:zintl/manager/none/entry:b_src_app__locale__page_tsx_Home";
+import _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl from "virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl";
 import Image from "next/image";
 import Link from "next/link";
 
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_AboutZintl.loader, ["b_src_app__locale__page_Home"]: _zintl_mgr_b_src_app__locale__page_Home.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_src_app__locale__about_zintl_page_tsx_AboutZintl"]: _zintl_mgr_b_src_app__locale__about_zintl_page_tsx_AboutZintl.loader, ["b_src_app__locale__page_tsx_Home"]: _zintl_mgr_b_src_app__locale__page_tsx_Home.loader } }));
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -110,19 +110,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             <Image
               className="dark:invert"
               src="/next.svg"
-              alt={_t("Next.js logo", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home" })}
+              alt={_t("Next.js logo", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home" })}
               width={100}
               height={20}
               priority
             />
             {/* @zintl-ignore */}
             <span>x</span>
-            <Link href={\`/\${locale}/about-zintl\`} className="font-bold text-2xl">{_t("Zintl(i18n)", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home" })}</Link>
+            <Link href={\`/\${locale}/about-zintl\`} className="font-bold text-2xl">{_t("Zintl(i18n)", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home" })}</Link>
           </div>
         </div>
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-start">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">{_t("To get started, edit the page.tsx file.", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home" })}</h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home", _tags: [{ alias: "a1", originalOpen: \`<a
+          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">{_t("To get started, edit the page.tsx file.", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home" })}</h1>
+          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home", _tags: [{ alias: "a1", originalOpen: \`<a
               href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
               class="font-medium text-zinc-950 dark:text-zinc-50"
             >\`, tagName: "a" }, { alias: "a2", originalOpen: \`<a
@@ -136,7 +136,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
-          >{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<image/> Deploy Now", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home", _tags: [{ alias: "image", originalOpen: \`<Image
+          >{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<image/> Deploy Now", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home", _tags: [{ alias: "image", originalOpen: \`<Image
               class="dark:invert"
               src="/vercel.svg"
               alt="Vercel logomark"
@@ -148,7 +148,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
-          >{_t("Documentationn", { _mgr: _zintl_mgr_b_src_app__locale__page_Home, _bId: "b_src_app__locale__page_Home" })}</a>
+          >{_t("Documentationn", { _mgr: _zintl_mgr_b_src_app__locale__page_tsx_Home, _bId: "b_src_app__locale__page_tsx_Home" })}</a>
         </div>
       </main>
     </div>
@@ -158,7 +158,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/page");
+    console.debug("[Zintl] HMR update accepted for: src/app/[locale]/page.tsx");
   });
 }"
 `;
@@ -216,7 +216,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/src/components/locales.tsx 1`] = `
 ""use client";
-import _zintl_mgr_b_src_app__locale__layout_RootLayout from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_RootLayout";
+import _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout from "virtual:zintl/manager/none/entry:b_src_app__locale__layout_tsx_RootLayout";
 import { useSyncExternalStore } from "react";
 import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
@@ -247,12 +247,12 @@ export default function LocaleSwitcher({ locale }: { locale: string }) {
         <Image
           className="w-4 h-4 text-foreground shrink-0 opacity-60 dark:invert "
           src="/languages.svg"
-          alt={_t("languages", { _mgr: _zintl_mgr_b_src_app__locale__layout_RootLayout, _bId: "b_src_components_locales_default" })}
+          alt={_t("languages", { _mgr: _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout, _bId: "b_src_components_locales_tsx_default" })}
           width={12}
           height={12}
         />
       </div>
-      <p>{_t("languages", { _mgr: _zintl_mgr_b_src_app__locale__layout_RootLayout, _bId: "b_src_components_locales_default" })}</p>
+      <p>{_t("languages", { _mgr: _zintl_mgr_b_src_app__locale__layout_tsx_RootLayout, _bId: "b_src_components_locales_tsx_default" })}</p>
       {locales.map((l) => (
         <Link
           key={l.id}
@@ -319,6 +319,24 @@ export const config = {
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__about_zintl_page_AboutZintl 1`] = `
 "const catalog = {
     "b_src_app__locale__about_zintl_page_AboutZintl": {
+      "About Zintl Translation System": "حول نظام ترجمة Zintl",
+      "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl هو نظام دولنة مدفوع بالمترجم لتطبيقات الويب الحديثة.",
+      "Current Locale: {locale}": (params) => {
+    const { locale } = params;
+    return \`اللغة الحالية: \${params['locale']}\`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl 1`] = `
+"const catalog = {
+    "b_src_app__locale__about_zintl_page_tsx_AboutZintl": {
       "About Zintl Translation System": "حول نظام ترجمة Zintl",
       "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl هو نظام دولنة مدفوع بالمترجم لتطبيقات الويب الحديثة.",
       "Current Locale: {locale}": (params) => {
@@ -407,9 +425,64 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__layout_tsx_RootLayout 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_RootLayout": {
+      "ltr": "rtl",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "اللغات",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__layout_tsx_f_625 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_f_625": {
+      "Create Next App {locale}": (params) => {
+    const { locale } = params;
+    return \`إنشاء تطبيق Next \${params['locale']}\`;
+  },
+      "Generated by create next app": "تم إنشاؤه بواسطة create next app",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "اللغات",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__page_Home 1`] = `
 "const catalog = {
     "b_src_app__locale__page_Home": {
+      "Next.js logo": "شعار Next.js",
+      "Zintl(i18n)": "Zintl(i18n)",
+      "To get started, edit the page.tsx file.": "للبدء، قم بتحرير ملف page.tsx.",
+      "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.": "هل تبحث عن نقطة بداية أو المزيد من التعليمات؟ توجه إلى <a1> القوالب </a1> أو مركز <a2> التعلم </a2>.",
+      "<image/> Deploy Now": "<image/> انشر الآن",
+      "Vercel logomark": "شعار Vercel",
+      "Documentationn": "التوثيق",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/ar/entry:b_src_app__locale__page_tsx_Home 1`] = `
+"const catalog = {
+    "b_src_app__locale__page_tsx_Home": {
       "Next.js logo": "شعار Next.js",
       "Zintl(i18n)": "Zintl(i18n)",
       "To get started, edit the page.tsx file.": "للبدء، قم بتحرير ملف page.tsx.",
@@ -442,6 +515,24 @@ if (import.meta.hot) { import.meta.hot.accept(); }"
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__about_zintl_page_AboutZintl 1`] = `
 "const catalog = {
     "b_src_app__locale__about_zintl_page_AboutZintl": {
+      "About Zintl Translation System": "Sobre el Sistema de Traducción Zintl",
+      "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl es un sistema de internacionalización impulsado por compilador para aplicaciones web modernas.",
+      "Current Locale: {locale}": (params) => {
+    const { locale } = params;
+    return \`Localización actual: \${params['locale']}\`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl 1`] = `
+"const catalog = {
+    "b_src_app__locale__about_zintl_page_tsx_AboutZintl": {
       "About Zintl Translation System": "Sobre el Sistema de Traducción Zintl",
       "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl es un sistema de internacionalización impulsado por compilador para aplicaciones web modernas.",
       "Current Locale: {locale}": (params) => {
@@ -530,9 +621,64 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__layout_tsx_RootLayout 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_RootLayout": {
+      "ltr": "ltr",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "idiomas",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__layout_tsx_f_625 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_f_625": {
+      "Create Next App {locale}": (params) => {
+    const { locale } = params;
+    return \`Crear aplicación Next \${params['locale']}\`;
+  },
+      "Generated by create next app": "Generado por create next app",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "idiomas",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__page_Home 1`] = `
 "const catalog = {
     "b_src_app__locale__page_Home": {
+      "Next.js logo": "Logo de Next.js",
+      "Zintl(i18n)": "Zintl(i18n)",
+      "To get started, edit the page.tsx file.": "Para comenzar, edite el archivo page.tsx.",
+      "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.": "¿Buscas un punto de partida o más instrucciones? Dirígete a <a1> Plantillas </a1> o al centro de <a2> Aprendizaje </a2>.",
+      "<image/> Deploy Now": "<image/> Desplegar ahora",
+      "Vercel logomark": "Logomarca de Vercel",
+      "Documentationn": "Documentación",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/es/entry:b_src_app__locale__page_tsx_Home 1`] = `
+"const catalog = {
+    "b_src_app__locale__page_tsx_Home": {
       "Next.js logo": "Logo de Next.js",
       "Zintl(i18n)": "Zintl(i18n)",
       "To get started, edit the page.tsx file.": "Para comenzar, edite el archivo page.tsx.",
@@ -565,6 +711,24 @@ if (import.meta.hot) { import.meta.hot.accept(); }"
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__about_zintl_page_AboutZintl 1`] = `
 "const catalog = {
     "b_src_app__locale__about_zintl_page_AboutZintl": {
+      "About Zintl Translation System": "关于 Zintl 翻译系统",
+      "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl 是一个面向现代 Web 应用程序的编译器驱动的国际化系统。",
+      "Current Locale: {locale}": (params) => {
+    const { locale } = params;
+    return \`当前语言环境: \${params['locale']}\`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl 1`] = `
+"const catalog = {
+    "b_src_app__locale__about_zintl_page_tsx_AboutZintl": {
       "About Zintl Translation System": "关于 Zintl 翻译系统",
       "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl 是一个面向现代 Web 应用程序的编译器驱动的国际化系统。",
       "Current Locale: {locale}": (params) => {
@@ -653,9 +817,64 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__layout_tsx_RootLayout 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_RootLayout": {
+      "ltr": "ltr",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "语言 Test",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__layout_tsx_f_625 1`] = `
+"const catalog = {
+    "b_src_app__locale__layout_tsx_f_625": {
+      "Create Next App {locale}": (params) => {
+    const { locale } = params;
+    return \`创建 Next 应用 \${params['locale']}\`;
+  },
+      "Generated by create next app": "由 create next app 生成",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "语言 Test",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__page_Home 1`] = `
 "const catalog = {
     "b_src_app__locale__page_Home": {
+      "Next.js logo": "Next.js 标志",
+      "Zintl(i18n)": "Zintl(i18n)",
+      "To get started, edit the page.tsx file.": "要开始使用，请编辑 page.tsx 文件。",
+      "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.": "寻找起点或更多说明？前往 <a1> 模板 </a1> 或 <a2> 学习 </a2> 中心。",
+      "<image/> Deploy Now": "<image/> 立即部署",
+      "Vercel logomark": "Vercel 品牌标识",
+      "Documentationn": "文档",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/content/zh/entry:b_src_app__locale__page_tsx_Home 1`] = `
+"const catalog = {
+    "b_src_app__locale__page_tsx_Home": {
       "Next.js logo": "Next.js 标志",
       "Zintl(i18n)": "Zintl(i18n)",
       "To get started, edit the page.tsx file.": "要开始使用，请编辑 page.tsx 文件。",
@@ -706,6 +925,44 @@ exports[`Example Proof: vinext-basic > should match Development snapshots > vine
           return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__about_zintl_page_AboutZintl").then(m => m.default);
         case "zh":
           return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__about_zintl_page_AboutZintl").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl 1`] = `
+"export default (() => {
+  const manager = { id: "b_src_app__locale__about_zintl_page_tsx_AboutZintl", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_app__locale__about_zintl_page_tsx_AboutZintl": {
+      "About Zintl Translation System": "About Zintl Translation System",
+      "Zintl is a compiler-driven internationalization system for modern web applications.": "Zintl is a compiler-driven internationalization system for modern web applications.",
+      "Current Locale: {locale}": (params) => {
+    const { locale } = params;
+    return \`Current Locale: \${params['locale']}\`;
+  },
+    },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl").then(m => m.default);
+        case "zh":
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__about_zintl_page_tsx_AboutZintl").then(m => m.default);
         default: return {};
       }
     }, manifest: [] };
@@ -876,6 +1133,82 @@ if (import.meta.hot) {
 }"
 `;
 
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_app__locale__layout_tsx_RootLayout 1`] = `
+"export default (() => {
+  const manager = { id: "b_src_app__locale__layout_tsx_RootLayout", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_app__locale__layout_tsx_RootLayout": {
+      "ltr": "ltr",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "languages",
+    },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_app__locale__layout_tsx_RootLayout").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__layout_tsx_RootLayout").then(m => m.default);
+        case "zh":
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__layout_tsx_RootLayout").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_app__locale__layout_tsx_f_625 1`] = `
+"export default (() => {
+  const manager = { id: "b_src_app__locale__layout_tsx_f_625", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_app__locale__layout_tsx_f_625": {
+      "Create Next App {locale}": (params) => {
+    const { locale } = params;
+    return \`Create Next App \${params['locale']}\`;
+  },
+      "Generated by create next app": "Generated by create next app",
+    },
+    "b_src_components_locales_tsx_default": {
+      "languages": "languages",
+    },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_app__locale__layout_tsx_f_625").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__layout_tsx_f_625").then(m => m.default);
+        case "zh":
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__layout_tsx_f_625").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
+`;
+
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_app__locale__page_Home 1`] = `
 "export default (() => {
   const manager = { id: "b_src_app__locale__page_Home", loader: (locale) => {
@@ -898,6 +1231,45 @@ exports[`Example Proof: vinext-basic > should match Development snapshots > vine
           return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__page_Home").then(m => m.default);
         case "zh":
           return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__page_Home").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}"
+`;
+
+exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/manager/none/entry:b_src_app__locale__page_tsx_Home 1`] = `
+"export default (() => {
+  const manager = { id: "b_src_app__locale__page_tsx_Home", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_app__locale__page_tsx_Home": {
+      "Next.js logo": "Next.js logo",
+      "Zintl(i18n)": "Zintl(i18n)",
+      "To get started, edit the page.tsx file.": "To get started, edit the page.tsx file.",
+      "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.": "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.",
+      "<image/> Deploy Now": "<image/> Deploy Now",
+      "Vercel logomark": "Vercel logomark",
+      "Documentationn": "Documentationn",
+    },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_app__locale__page_tsx_Home").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_app__locale__page_tsx_Home").then(m => m.default);
+        case "zh":
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_app__locale__page_tsx_Home").then(m => m.default);
         default: return {};
       }
     }, manifest: [] };
@@ -949,516 +1321,9 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: vinext-basic > should match Development snapshots > vinext-basic/dev-transforms/virtual:zintl/runtime/internal 1`] = `
-"//#region src/runtime/store.ts
-let storeStorage = null;
-if (typeof window === "undefined" && typeof process !== "undefined") try {
-	const asyncHooks = null;
-	if (asyncHooks && asyncHooks.AsyncLocalStorage) if (typeof globalThis !== "undefined") {
-		if (!globalThis.__zintl_storage) globalThis.__zintl_storage = new asyncHooks.AsyncLocalStorage();
-		storeStorage = globalThis.__zintl_storage;
-	} else storeStorage = new asyncHooks.AsyncLocalStorage();
-} catch {}
-var I18nStore = class {
-	locale = "";
-	catalogs = {};
-	locales = [];
-	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
-	pendingBoundaries = /* @__PURE__ */ new Set();
-	pendingPromises = [];
-	version = 0;
-	listeners = /* @__PURE__ */ new Set();
-	constructor() {
-		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
-		if (!this.locale && typeof window !== "undefined") try {
-			this.locale = localStorage.getItem("zintl-locale") || "";
-		} catch {}
-		if (!this.locale) try {
-			if (storeStorage) {
-				const active = storeStorage.getStore();
-				if (active && active !== this) this.locale = active.locale;
-			}
-		} catch {}
-		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
-	}
-	getLocales() {
-		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
-		return this.locales;
-	}
-	subscribe(listener) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-	notify() {
-		this.listeners.forEach((l) => l());
-	}
-	addCatalogs(newCatalogs) {
-		let changed = false;
-		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
-			if (!this.catalogs[locale]) this.catalogs[locale] = {};
-			for (const [boundaryId, messages] of Object.entries(boundaries)) {
-				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
-				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
-					this.catalogs[locale][boundaryId][key] = value;
-					changed = true;
-				}
-			}
-		}
-		if (changed) {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug("[Zintl] Catalogs updated:", Object.keys(newCatalogs).flatMap((l) => Object.keys(newCatalogs[l]).map((b) => \`\${l}/\${b}\`)));
-			this.notify();
-		}
-	}
-	async setLocale(locale) {
-		if (!locale) return;
-		if (typeof window !== "undefined") {
-			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-			try {
-				localStorage.setItem("zintl-locale", locale);
-			} catch {}
-		}
-		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Switching to locale: \${locale}\`);
-		this.locale = locale;
-		const activePromises = [];
-		for (const [boundaryId, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				this.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) {
-				this.pendingBoundaries.add(boundaryId);
-				activePromises.push(result.then((res) => {
-					processResult(res);
-					this.pendingBoundaries.delete(boundaryId);
-				}));
-			} else processResult(result);
-		} catch (err) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load catalog for boundary "\${boundaryId}" (\${locale})\`, err);
-		}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		} else {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		}
-	}
-	registerLoader(boundaryId, loader) {
-		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
-		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-	loadLazyBoundary(boundaryId, loader) {
-		if (this.catalogs[this.locale]?.[boundaryId]) return;
-		if (this.pendingBoundaries.has(boundaryId)) return;
-		this.pendingBoundaries.add(boundaryId);
-		try {
-			const result = loader(this.locale);
-			const processResult = (res) => {
-				this.pendingBoundaries.delete(boundaryId);
-				if (!res) return;
-				this.addCatalogs({ [this.locale]: res });
-			};
-			if (isThenable(result)) {
-				const p = result.then((res) => {
-					processResult(res);
-				}).catch(() => {
-					this.pendingBoundaries.delete(boundaryId);
-				});
-				this.pendingPromises.push(p);
-				return p;
-			} else processResult(result);
-		} catch {
-			this.pendingBoundaries.delete(boundaryId);
-		}
-	}
-};
-let globalRegistry;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
-	globalRegistry = globalThis.__zintl_registry;
-} else globalRegistry = /* @__PURE__ */ new Map();
-let defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
-	defaultInstance = globalThis.__zintl_default_instance;
-} else defaultInstance = new I18nStore();
-let currentInstance = defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
-	currentInstance = globalThis.__zintl_current_instance;
-}
-function getActiveInstance() {
-	if (storeStorage) {
-		const store = storeStorage.getStore();
-		if (store) return store;
-	}
-	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
-	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
-	if (typeof window !== "undefined") {
-		const inst = currentInstance;
-		const locales = inst.getLocales();
-		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
-		let targetLocale = "";
-		const pathname = window.location ? window.location.pathname : "";
-		if (pathname && locales.length > 0) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
-		}
-		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
-		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
-	}
-	return currentInstance;
-}
-function setActiveInstance(instance) {
-	currentInstance = instance;
-	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
-}
-function serializeValue(val) {
-	if (typeof val === "function") return val.toString();
-	if (val === null) return "null";
-	if (val === void 0) return "undefined";
-	if (typeof val === "string") return JSON.stringify(val);
-	if (typeof val === "number" || typeof val === "boolean") return val.toString();
-	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
-	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => \`\${JSON.stringify(k)}:\${serializeValue(v)}\`).join(",") + "}";
-	return "null";
-}
-function injectIntoStream(stream, store) {
-	const reader = stream.getReader();
-	const encoder = new TextEncoder();
-	const decoder = new TextDecoder();
-	let injected = false;
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { done, value } = await reader.read();
-				if (done) {
-					if (!injected) {
-						const catalogs = store.catalogs;
-						if (Object.keys(catalogs).length > 0) {
-							const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-							controller.enqueue(encoder.encode(script));
-						}
-						injected = true;
-					}
-					controller.close();
-					return;
-				}
-				let chunkText = "";
-				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
-				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</body>", \`\${script}</body>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</html>", \`\${script}</html>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-			} catch (err) {
-				controller.error(err);
-			}
-		},
-		cancel(reason) {
-			return reader.cancel(reason);
-		}
-	});
-}
-function injectBakedCatalogs(result, store) {
-	if (!result || !store) return result;
-	if (typeof Response !== "undefined" && result instanceof Response) {
-		if (result.body && typeof result.body.getReader === "function") {
-			const transformedBody = injectIntoStream(result.body, store);
-			return new Response(transformedBody, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		}
-		return result.text().then((html) => {
-			if (html.includes("</body>") || html.includes("</html>")) {
-				const modifiedHtml = injectBakedCatalogs(html, store);
-				return new Response(modifiedHtml, {
-					status: result.status,
-					statusText: result.statusText,
-					headers: result.headers
-				});
-			}
-			return new Response(html, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		});
-	}
-	if (typeof result === "string") {
-		const catalogs = store.catalogs;
-		if (Object.keys(catalogs).length > 0) {
-			const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-			if (result.includes("</body>")) return result.replace("</body>", \`\${script}</body>\`);
-			if (result.includes("</html>")) return result.replace("</html>", \`\${script}</html>\`);
-			const lower = result.toLowerCase();
-			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
-			return result;
-		}
-	}
-	if (typeof result === "object") {
-		if (typeof result.getReader === "function") return injectIntoStream(result, store);
-		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
-		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
-		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
-		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
-	}
-	return result;
-}
-function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
-	if (typeof window === "undefined" && storeStorage) {
-		let locale = defaultLocale;
-		if (urlOrReq) {
-			let pathname = "";
-			const extractPath = (val) => {
-				if (!val) return "";
-				if (typeof val === "string") return val;
-				if (typeof val === "object") {
-					if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
-					if (typeof val.path === "string") return val.path;
-					if (typeof val.pathname === "string") return val.pathname;
-					if (val.navigationContext) {
-						const nav = val.navigationContext;
-						if (typeof nav.pathname === "string") return nav.pathname;
-					}
-				}
-				return "";
-			};
-			if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
-				pathname = extractPath(arg);
-				if (pathname) break;
-			}
-			else pathname = extractPath(urlOrReq);
-			if (pathname) {
-				pathname = pathname.split("?")[0].split("#")[0];
-				if (pathname.includes("://")) try {
-					pathname = new URL(pathname).pathname;
-				} catch {
-					pathname = pathname.replace(/^https?:\\/\\/[^/]+/, "");
-				}
-				else {
-					pathname = pathname.replace(/^[^/]+:\\d+/, "");
-					pathname = pathname.replace(/^[^/]+\\.[^/]+/, "");
-				}
-				const parts = pathname.split("/").filter(Boolean);
-				if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
-			}
-		}
-		const store = new I18nStore();
-		store.locale = locale;
-		store.locales = locales;
-		if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-		const promises = [];
-		for (const [_, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				store.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) promises.push(result.then((res) => {
-				processResult(res);
-			}));
-			else processResult(result);
-		} catch {}
-		const runCallback = () => {
-			return storeStorage.run(store, () => {
-				const result = callback();
-				const processStorePromisesAndInject = (resolvedResult) => {
-					if (store.pendingPromises.length > 0) {
-						const currentPromises = [...store.pendingPromises];
-						store.pendingPromises = [];
-						return Promise.all(currentPromises).then(() => {
-							return processStorePromisesAndInject(resolvedResult);
-						});
-					}
-					return injectBakedCatalogs(resolvedResult, store);
-				};
-				if (result && typeof result.then === "function") return result.then((resolvedResult) => {
-					return processStorePromisesAndInject(resolvedResult);
-				});
-				if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
-				return injectBakedCatalogs(result, store);
-			});
-		};
-		if (promises.length > 0) return Promise.all(promises).then(runCallback);
-		return runCallback();
-	}
-	return callback();
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
-			if (instance.pendingPromises) instance.pendingPromises.push(p);
-			return p;
-		} else processResult(result);
-	} catch (err) {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load initial catalog for boundary "\${boundaryId}"\`, err);
-	}
-}
-function unregisterLoader(boundaryId) {
-	globalRegistry.delete(boundaryId);
-}
-function setLocale(locale) {
-	return getActiveInstance().setLocale(locale);
-}
-function getLocale() {
-	return getActiveInstance().locale;
-}
-function subscribe(listener) {
-	return getActiveInstance().subscribe(listener);
-}
-function addCatalogs(catalogs) {
-	return getActiveInstance().addCatalogs(catalogs);
-}
-function getStoreVersion() {
-	return getActiveInstance().version;
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
-			}
-		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
-	window.addEventListener("popstate", syncLocale);
-	const origPush = window.history.pushState;
-	if (origPush) window.history.pushState = function(...args) {
-		origPush.apply(this, args);
-		syncLocale();
-	};
-	const origReplace = window.history.replaceState;
-	if (origReplace) window.history.replaceState = function(...args) {
-		origReplace.apply(this, args);
-		syncLocale();
-	};
-	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
-		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
-	}).observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ["lang"]
-	});
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
-	else syncLocale();
-}
-//#endregion
-//#region src/runtime/resolver.ts
-function _t(key, params = {}, options) {
-	const instance = getActiveInstance();
-	const catalogs = instance.catalogs;
-	const locale = instance.locale;
-	const effectiveParams = options ? {
-		...params,
-		...options
-	} : params;
-	const mgr = effectiveParams._mgr;
-	const boundaryId = mgr?.id;
-	const targetBId = effectiveParams._bId || boundaryId;
-	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = mgr.loader(locale);
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader) Promise.resolve().then(() => {
-			instance.loadLazyBoundary(mgr.id, mgr.loader);
-		});
-		if (message === void 0) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${targetBId || boundaryId}". Triggering hydration...\`);
-			return \`\`;
-		}
-	} else {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
-		return \`\`;
-	}
-	if (typeof message === "function") return message(params);
-	if (typeof message !== "string") return "";
-	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
-	let interpolated = interpolate(message, restParams);
-	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
-	}
-	return interpolated;
-}
-function interpolate(message, params) {
-	if (message === null || message === void 0) return "";
-	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
-		return params[key]?.toString() ?? match;
-	});
-}
-//#endregion
-//#region src/runtime/registry.ts
-/**
-* A helper for the Zintl compiler to register a boundary loader.
-* This is designed to be called with a minimal footprint in the transformed source.
-*/
-function registerZintlLoader(boundaryId, loader) {
-	return registerLoader(boundaryId, loader);
-}
-//#endregion
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, getStoreVersion, registerLoader, runInRequestScope, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.js";
+import { _t } from "./resolver.js";
+import { registerZintlLoader } from "./registry.js";
 //#region src/runtime/internal.ts
 async function zintl(locale) {
 	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
@@ -1517,21 +1382,21 @@ export { _t, _t as t, addCatalogs, getLocale, getStoreVersion, loadI18nInstance,
 
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/src/app/[locale]/about-zintl/page.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_3980facabe09 from "virtual:zintl/manager/none/entry:b_3980facabe09";
+import _zintl_mgr_b_02a11533e756 from "virtual:zintl/manager/none/entry:b_02a11533e756";
 
 export const generateStaticParams = async () => {
   return ["en", "ar", "es", "zh"].map((locale) => ({ locale }));
 };
 export default async function AboutZintl({ params }: PageProps<"/[locale]/about-zintl">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_3980facabe09"]: _zintl_mgr_b_3980facabe09.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_02a11533e756"]: _zintl_mgr_b_02a11533e756.loader } }));
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black p-16">
-      <h1 className="text-3xl font-semibold text-black dark:text-zinc-50">{_t("c7168961", { _mgr: _zintl_mgr_b_3980facabe09, _bId: "b_3980facabe09" })}</h1>
-      <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">{_t("a64cb175", { _mgr: _zintl_mgr_b_3980facabe09, _bId: "b_3980facabe09" })}</p>
+      <h1 className="text-3xl font-semibold text-black dark:text-zinc-50">{_t("c7168961", { _mgr: _zintl_mgr_b_02a11533e756, _bId: "b_02a11533e756" })}</h1>
+      <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">{_t("a64cb175", { _mgr: _zintl_mgr_b_02a11533e756, _bId: "b_02a11533e756" })}</p>
       <div className="mt-8 p-4 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
-        <p className="text-sm font-mono text-zinc-500">{_t("a737c418", { locale: locale }, { _mgr: _zintl_mgr_b_3980facabe09, _bId: "b_3980facabe09" })}</p>
+        <p className="text-sm font-mono text-zinc-500">{_t("a737c418", { locale: locale }, { _mgr: _zintl_mgr_b_02a11533e756, _bId: "b_02a11533e756" })}</p>
       </div>
     </div>
   );
@@ -1540,10 +1405,10 @@ export default async function AboutZintl({ params }: PageProps<"/[locale]/about-
 
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/src/app/[locale]/layout.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_a744357e6e46 from "virtual:zintl/manager/none/entry:b_a744357e6e46";
-import _zintl_mgr_b_d4553e81db29 from "virtual:zintl/manager/none/entry:b_d4553e81db29";
-import _zintl_mgr_b_d50387e8cba4 from "virtual:zintl/manager/none/entry:b_d50387e8cba4";
-import _zintl_mgr_b_3980facabe09 from "virtual:zintl/manager/none/entry:b_3980facabe09";
+import _zintl_mgr_b_a6663540fa75 from "virtual:zintl/manager/none/entry:b_a6663540fa75";
+import _zintl_mgr_b_0419d17f58bd from "virtual:zintl/manager/none/entry:b_0419d17f58bd";
+import _zintl_mgr_b_ddb9a942c2c8 from "virtual:zintl/manager/none/entry:b_ddb9a942c2c8";
+import _zintl_mgr_b_02a11533e756 from "virtual:zintl/manager/none/entry:b_02a11533e756";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -1565,21 +1430,21 @@ export const generateStaticParams = async () => {
 
 export const generateMetadata = async ({ params }: LayoutProps<"/[locale]">): Promise<Metadata> => {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_3980facabe09"]: _zintl_mgr_b_3980facabe09.loader, ["b_d50387e8cba4"]: _zintl_mgr_b_d50387e8cba4.loader, ["b_d4553e81db29"]: _zintl_mgr_b_d4553e81db29.loader, ["b_a744357e6e46"]: _zintl_mgr_b_a744357e6e46.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_02a11533e756"]: _zintl_mgr_b_02a11533e756.loader, ["b_ddb9a942c2c8"]: _zintl_mgr_b_ddb9a942c2c8.loader, ["b_0419d17f58bd"]: _zintl_mgr_b_0419d17f58bd.loader, ["b_a6663540fa75"]: _zintl_mgr_b_a6663540fa75.loader } }));
 
   return {
-    title: _t("f26ebb92", { locale: locale }, { _mgr: _zintl_mgr_b_d4553e81db29, _bId: "b_d4553e81db29" }),
-    description: _t("a2995064", { _mgr: _zintl_mgr_b_d4553e81db29, _bId: "b_d4553e81db29" }),
+    title: _t("f26ebb92", { locale: locale }, { _mgr: _zintl_mgr_b_0419d17f58bd, _bId: "b_0419d17f58bd" }),
+    description: _t("a2995064", { _mgr: _zintl_mgr_b_0419d17f58bd, _bId: "b_0419d17f58bd" }),
   };
 };
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_3980facabe09"]: _zintl_mgr_b_3980facabe09.loader, ["b_d50387e8cba4"]: _zintl_mgr_b_d50387e8cba4.loader, ["b_d4553e81db29"]: _zintl_mgr_b_d4553e81db29.loader, ["b_a744357e6e46"]: _zintl_mgr_b_a744357e6e46.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_02a11533e756"]: _zintl_mgr_b_02a11533e756.loader, ["b_ddb9a942c2c8"]: _zintl_mgr_b_ddb9a942c2c8.loader, ["b_0419d17f58bd"]: _zintl_mgr_b_0419d17f58bd.loader, ["b_a6663540fa75"]: _zintl_mgr_b_a6663540fa75.loader } }));
   return (
     <html
       lang={locale}
-      dir={_t("61ac44aa", { _mgr: _zintl_mgr_b_d50387e8cba4, _bId: "b_d50387e8cba4" })}
+      dir={_t("61ac44aa", { _mgr: _zintl_mgr_b_ddb9a942c2c8, _bId: "b_ddb9a942c2c8" })}
       className={\`\${geistSans.variable} \${geistMono.variable} h-full antialiased\`}
     >
       <body className="min-h-full flex flex-col">
@@ -1593,15 +1458,15 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
 
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/src/app/[locale]/page.tsx 1`] = `
 "import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_a744357e6e46 from "virtual:zintl/manager/none/entry:b_a744357e6e46";
-import _zintl_mgr_b_3980facabe09 from "virtual:zintl/manager/none/entry:b_3980facabe09";
+import _zintl_mgr_b_a6663540fa75 from "virtual:zintl/manager/none/entry:b_a6663540fa75";
+import _zintl_mgr_b_02a11533e756 from "virtual:zintl/manager/none/entry:b_02a11533e756";
 import Image from "next/image";
 import Link from "next/link";
 
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_3980facabe09"]: _zintl_mgr_b_3980facabe09.loader, ["b_a744357e6e46"]: _zintl_mgr_b_a744357e6e46.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_02a11533e756"]: _zintl_mgr_b_02a11533e756.loader, ["b_a6663540fa75"]: _zintl_mgr_b_a6663540fa75.loader } }));
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -1611,19 +1476,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             <Image
               className="dark:invert"
               src="/next.svg"
-              alt={_t("6680ed51", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46" })}
+              alt={_t("6680ed51", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75" })}
               width={100}
               height={20}
               priority
             />
             {/* @zintl-ignore */}
             <span>x</span>
-            <Link href={\`/\${locale}/about-zintl\`} className="font-bold text-2xl">{_t("f18b8fe7", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46" })}</Link>
+            <Link href={\`/\${locale}/about-zintl\`} className="font-bold text-2xl">{_t("f18b8fe7", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75" })}</Link>
           </div>
         </div>
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-start">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">{_t("6a0fa24d", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46" })}</h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("7fa24745", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46", _tags: [{ alias: "a1", originalOpen: \`<a
+          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">{_t("6a0fa24d", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75" })}</h1>
+          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("7fa24745", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75", _tags: [{ alias: "a1", originalOpen: \`<a
               href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
               class="font-medium text-zinc-950 dark:text-zinc-50"
             >\`, tagName: "a" }, { alias: "a2", originalOpen: \`<a
@@ -1637,7 +1502,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
-          >{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("b75c70e0", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46", _tags: [{ alias: "image", originalOpen: \`<Image
+          >{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("b75c70e0", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75", _tags: [{ alias: "image", originalOpen: \`<Image
               class="dark:invert"
               src="/vercel.svg"
               alt="Vercel logomark"
@@ -1649,7 +1514,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
-          >{_t("215fd18f", { _mgr: _zintl_mgr_b_a744357e6e46, _bId: "b_a744357e6e46" })}</a>
+          >{_t("215fd18f", { _mgr: _zintl_mgr_b_a6663540fa75, _bId: "b_a6663540fa75" })}</a>
         </div>
       </main>
     </div>
@@ -1710,7 +1575,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/src/components/locales.tsx 1`] = `
 ""use client";
-import _zintl_mgr_b_d50387e8cba4 from "virtual:zintl/manager/none/entry:b_d50387e8cba4";
+import _zintl_mgr_b_ddb9a942c2c8 from "virtual:zintl/manager/none/entry:b_ddb9a942c2c8";
 import { useSyncExternalStore } from "react";
 import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
@@ -1741,12 +1606,12 @@ export default function LocaleSwitcher({ locale }: { locale: string }) {
         <Image
           className="w-4 h-4 text-foreground shrink-0 opacity-60 dark:invert "
           src="/languages.svg"
-          alt={_t("0265a28b", { _mgr: _zintl_mgr_b_d50387e8cba4, _bId: "b_c8bb4bbab82d" })}
+          alt={_t("0265a28b", { _mgr: _zintl_mgr_b_ddb9a942c2c8, _bId: "b_cc8306270a50" })}
           width={12}
           height={12}
         />
       </div>
-      <p>{_t("0265a28b", { _mgr: _zintl_mgr_b_d50387e8cba4, _bId: "b_c8bb4bbab82d" })}</p>
+      <p>{_t("0265a28b", { _mgr: _zintl_mgr_b_ddb9a942c2c8, _bId: "b_cc8306270a50" })}</p>
       {locales.map((l) => (
         <Link
           key={l.id}
@@ -1810,6 +1675,36 @@ export const config = {
 };"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_02a11533e756 1`] = `
+"const catalog = {
+    "b_02a11533e756": {
+      "c7168961": "حول نظام ترجمة Zintl",
+      "a64cb175": "Zintl هو نظام دولنة مدفوع بالمترجم لتطبيقات الويب الحديثة.",
+      "a737c418": (params) => {
+    const { locale } = params;
+    return \`اللغة الحالية: \${params['locale']}\`;
+  },
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_0419d17f58bd 1`] = `
+"const catalog = {
+    "b_0419d17f58bd": {
+      "f26ebb92": (params) => {
+    const { locale } = params;
+    return \`إنشاء تطبيق Next \${params['locale']}\`;
+  },
+      "a2995064": "تم إنشاؤه بواسطة create next app",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "اللغات",
+    },
+  };
+export default catalog;"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_0964b259833d 1`] = `
 "const catalog = {
     "b_0964b259833d": {
@@ -1864,6 +1759,21 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
 export default catalog;"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_a6663540fa75 1`] = `
+"const catalog = {
+    "b_a6663540fa75": {
+      "6680ed51": "شعار Next.js",
+      "f18b8fe7": "Zintl(i18n)",
+      "6a0fa24d": "للبدء، قم بتحرير ملف page.tsx.",
+      "7fa24745": "هل تبحث عن نقطة بداية أو المزيد من التعليمات؟ توجه إلى <a1> القوالب </a1> أو مركز <a2> التعلم </a2>.",
+      "b75c70e0": "<image/> انشر الآن",
+      "3b888a01": "شعار Vercel",
+      "215fd18f": "التوثيق",
+    },
+  };
+export default catalog;"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_d4553e81db29 1`] = `
 "const catalog = {
     "b_d4553e81db29": {
@@ -1900,6 +1810,48 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
     return \`إنشاء تطبيق Next \${params['locale']}\`;
   },
       "a2995064": "تم إنشاؤه بواسطة create next app",
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/ar/entry:b_ddb9a942c2c8 1`] = `
+"const catalog = {
+    "b_ddb9a942c2c8": {
+      "61ac44aa": "rtl",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "اللغات",
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/es/entry:b_02a11533e756 1`] = `
+"const catalog = {
+    "b_02a11533e756": {
+      "c7168961": "Sobre el Sistema de Traducción Zintl",
+      "a64cb175": "Zintl es un sistema de internacionalización impulsado por compilador para aplicaciones web modernas.",
+      "a737c418": (params) => {
+    const { locale } = params;
+    return \`Localización actual: \${params['locale']}\`;
+  },
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/es/entry:b_0419d17f58bd 1`] = `
+"const catalog = {
+    "b_0419d17f58bd": {
+      "f26ebb92": (params) => {
+    const { locale } = params;
+    return \`Crear aplicación Next \${params['locale']}\`;
+  },
+      "a2995064": "Generado por create next app",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "idiomas",
     },
   };
 export default catalog;"
@@ -1959,6 +1911,21 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
 export default catalog;"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/es/entry:b_a6663540fa75 1`] = `
+"const catalog = {
+    "b_a6663540fa75": {
+      "6680ed51": "Logo de Next.js",
+      "f18b8fe7": "Zintl(i18n)",
+      "6a0fa24d": "Para comenzar, edite el archivo page.tsx.",
+      "7fa24745": "¿Buscas un punto de partida o más instrucciones? Dirígete a <a1> Plantillas </a1> o al centro de <a2> Aprendizaje </a2>.",
+      "b75c70e0": "<image/> Desplegar ahora",
+      "3b888a01": "Logomarca de Vercel",
+      "215fd18f": "Documentación",
+    },
+  };
+export default catalog;"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/es/entry:b_d4553e81db29 1`] = `
 "const catalog = {
     "b_d4553e81db29": {
@@ -1995,6 +1962,48 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
     return \`Crear aplicación Next \${params['locale']}\`;
   },
       "a2995064": "Generado por create next app",
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/es/entry:b_ddb9a942c2c8 1`] = `
+"const catalog = {
+    "b_ddb9a942c2c8": {
+      "61ac44aa": "ltr",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "idiomas",
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/zh/entry:b_02a11533e756 1`] = `
+"const catalog = {
+    "b_02a11533e756": {
+      "c7168961": "关于 Zintl 翻译系统",
+      "a64cb175": "Zintl 是一个面向现代 Web 应用程序的编译器驱动的国际化系统。",
+      "a737c418": (params) => {
+    const { locale } = params;
+    return \`当前语言环境: \${params['locale']}\`;
+  },
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/zh/entry:b_0419d17f58bd 1`] = `
+"const catalog = {
+    "b_0419d17f58bd": {
+      "f26ebb92": (params) => {
+    const { locale } = params;
+    return \`创建 Next 应用 \${params['locale']}\`;
+  },
+      "a2995064": "由 create next app 生成",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "语言 Test",
     },
   };
 export default catalog;"
@@ -2054,6 +2063,21 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
 export default catalog;"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/zh/entry:b_a6663540fa75 1`] = `
+"const catalog = {
+    "b_a6663540fa75": {
+      "6680ed51": "Next.js 标志",
+      "f18b8fe7": "Zintl(i18n)",
+      "6a0fa24d": "要开始使用，请编辑 page.tsx 文件。",
+      "7fa24745": "寻找起点或更多说明？前往 <a1> 模板 </a1> 或 <a2> 学习 </a2> 中心。",
+      "b75c70e0": "<image/> 立即部署",
+      "3b888a01": "Vercel 品牌标识",
+      "215fd18f": "文档",
+    },
+  };
+export default catalog;"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/zh/entry:b_d4553e81db29 1`] = `
 "const catalog = {
     "b_d4553e81db29": {
@@ -2093,6 +2117,70 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
     },
   };
 export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/content/zh/entry:b_ddb9a942c2c8 1`] = `
+"const catalog = {
+    "b_ddb9a942c2c8": {
+      "61ac44aa": "ltr",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "语言 Test",
+    },
+  };
+export default catalog;"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_02a11533e756 1`] = `
+"export default { id: "b_02a11533e756", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_02a11533e756": {
+      "c7168961": "About Zintl Translation System",
+      "a64cb175": "Zintl is a compiler-driven internationalization system for modern web applications.",
+      "a737c418": (params) => {
+    const { locale } = params;
+    return \`Current Locale: \${params['locale']}\`;
+  },
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_02a11533e756").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_02a11533e756").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_02a11533e756").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };"
+`;
+
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_0419d17f58bd 1`] = `
+"export default { id: "b_0419d17f58bd", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_0419d17f58bd": {
+      "f26ebb92": (params) => {
+    const { locale } = params;
+    return \`Create Next App \${params['locale']}\`;
+  },
+      "a2995064": "Generated by create next app",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "languages",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_0419d17f58bd").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_0419d17f58bd").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_0419d17f58bd").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };"
 `;
 
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_0964b259833d 1`] = `
@@ -2193,6 +2281,32 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
     }, manifest: [] };"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_a6663540fa75 1`] = `
+"export default { id: "b_a6663540fa75", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_a6663540fa75": {
+      "6680ed51": "Next.js logo",
+      "f18b8fe7": "Zintl(i18n)",
+      "6a0fa24d": "To get started, edit the page.tsx file.",
+      "7fa24745": "Looking for a starting point or more instructions? Head over to <a1> Templates </a1> or the <a2> Learning </a2> center.",
+      "b75c70e0": "<image/> Deploy Now",
+      "3b888a01": "Vercel logomark",
+      "215fd18f": "Documentationn",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_a6663540fa75").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_a6663540fa75").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_a6663540fa75").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_d4553e81db29 1`] = `
 "export default { id: "b_d4553e81db29", loader: (locale) => {
       switch(locale) { 
@@ -2267,517 +2381,33 @@ exports[`Example Proof: vinext-basic > should match Production snapshots > vinex
     } };"
 `;
 
+exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/manager/none/entry:b_ddb9a942c2c8 1`] = `
+"export default { id: "b_ddb9a942c2c8", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_ddb9a942c2c8": {
+      "61ac44aa": "ltr",
+    },
+    "b_cc8306270a50": {
+      "0265a28b": "languages",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_ddb9a942c2c8").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_ddb9a942c2c8").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_ddb9a942c2c8").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };"
+`;
+
 exports[`Example Proof: vinext-basic > should match Production snapshots > vinext-basic/prod-transforms/virtual:zintl/runtime/internal 1`] = `
-"//#region src/runtime/store.ts
-let storeStorage = null;
-if (typeof window === "undefined" && typeof process !== "undefined") try {
-	const asyncHooks = null;
-	if (asyncHooks && asyncHooks.AsyncLocalStorage) if (typeof globalThis !== "undefined") {
-		if (!globalThis.__zintl_storage) globalThis.__zintl_storage = new asyncHooks.AsyncLocalStorage();
-		storeStorage = globalThis.__zintl_storage;
-	} else storeStorage = new asyncHooks.AsyncLocalStorage();
-} catch {}
-var I18nStore = class {
-	locale = "";
-	catalogs = {};
-	locales = [];
-	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
-	pendingBoundaries = /* @__PURE__ */ new Set();
-	pendingPromises = [];
-	version = 0;
-	listeners = /* @__PURE__ */ new Set();
-	constructor() {
-		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
-		if (!this.locale && typeof window !== "undefined") try {
-			this.locale = localStorage.getItem("zintl-locale") || "";
-		} catch {}
-		if (!this.locale) try {
-			if (storeStorage) {
-				const active = storeStorage.getStore();
-				if (active && active !== this) this.locale = active.locale;
-			}
-		} catch {}
-		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
-	}
-	getLocales() {
-		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
-		return this.locales;
-	}
-	subscribe(listener) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-	notify() {
-		this.listeners.forEach((l) => l());
-	}
-	addCatalogs(newCatalogs) {
-		let changed = false;
-		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
-			if (!this.catalogs[locale]) this.catalogs[locale] = {};
-			for (const [boundaryId, messages] of Object.entries(boundaries)) {
-				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
-				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
-					this.catalogs[locale][boundaryId][key] = value;
-					changed = true;
-				}
-			}
-		}
-		if (changed) {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug("[Zintl] Catalogs updated:", Object.keys(newCatalogs).flatMap((l) => Object.keys(newCatalogs[l]).map((b) => \`\${l}/\${b}\`)));
-			this.notify();
-		}
-	}
-	async setLocale(locale) {
-		if (!locale) return;
-		if (typeof window !== "undefined") {
-			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-			try {
-				localStorage.setItem("zintl-locale", locale);
-			} catch {}
-		}
-		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Switching to locale: \${locale}\`);
-		this.locale = locale;
-		const activePromises = [];
-		for (const [boundaryId, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				this.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) {
-				this.pendingBoundaries.add(boundaryId);
-				activePromises.push(result.then((res) => {
-					processResult(res);
-					this.pendingBoundaries.delete(boundaryId);
-				}));
-			} else processResult(result);
-		} catch (err) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load catalog for boundary "\${boundaryId}" (\${locale})\`, err);
-		}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		} else {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		}
-	}
-	registerLoader(boundaryId, loader) {
-		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
-		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-	loadLazyBoundary(boundaryId, loader) {
-		if (this.catalogs[this.locale]?.[boundaryId]) return;
-		if (this.pendingBoundaries.has(boundaryId)) return;
-		this.pendingBoundaries.add(boundaryId);
-		try {
-			const result = loader(this.locale);
-			const processResult = (res) => {
-				this.pendingBoundaries.delete(boundaryId);
-				if (!res) return;
-				this.addCatalogs({ [this.locale]: res });
-			};
-			if (isThenable(result)) {
-				const p = result.then((res) => {
-					processResult(res);
-				}).catch(() => {
-					this.pendingBoundaries.delete(boundaryId);
-				});
-				this.pendingPromises.push(p);
-				return p;
-			} else processResult(result);
-		} catch {
-			this.pendingBoundaries.delete(boundaryId);
-		}
-	}
-};
-let globalRegistry;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
-	globalRegistry = globalThis.__zintl_registry;
-} else globalRegistry = /* @__PURE__ */ new Map();
-let defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
-	defaultInstance = globalThis.__zintl_default_instance;
-} else defaultInstance = new I18nStore();
-let currentInstance = defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
-	currentInstance = globalThis.__zintl_current_instance;
-}
-function getActiveInstance() {
-	if (storeStorage) {
-		const store = storeStorage.getStore();
-		if (store) return store;
-	}
-	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
-	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
-	if (typeof window !== "undefined") {
-		const inst = currentInstance;
-		const locales = inst.getLocales();
-		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
-		let targetLocale = "";
-		const pathname = window.location ? window.location.pathname : "";
-		if (pathname && locales.length > 0) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
-		}
-		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
-		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
-	}
-	return currentInstance;
-}
-function setActiveInstance(instance) {
-	currentInstance = instance;
-	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
-}
-function serializeValue(val) {
-	if (typeof val === "function") return val.toString();
-	if (val === null) return "null";
-	if (val === void 0) return "undefined";
-	if (typeof val === "string") return JSON.stringify(val);
-	if (typeof val === "number" || typeof val === "boolean") return val.toString();
-	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
-	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => \`\${JSON.stringify(k)}:\${serializeValue(v)}\`).join(",") + "}";
-	return "null";
-}
-function injectIntoStream(stream, store) {
-	const reader = stream.getReader();
-	const encoder = new TextEncoder();
-	const decoder = new TextDecoder();
-	let injected = false;
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { done, value } = await reader.read();
-				if (done) {
-					if (!injected) {
-						const catalogs = store.catalogs;
-						if (Object.keys(catalogs).length > 0) {
-							const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-							controller.enqueue(encoder.encode(script));
-						}
-						injected = true;
-					}
-					controller.close();
-					return;
-				}
-				let chunkText = "";
-				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
-				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</body>", \`\${script}</body>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</html>", \`\${script}</html>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-			} catch (err) {
-				controller.error(err);
-			}
-		},
-		cancel(reason) {
-			return reader.cancel(reason);
-		}
-	});
-}
-function injectBakedCatalogs(result, store) {
-	if (!result || !store) return result;
-	if (typeof Response !== "undefined" && result instanceof Response) {
-		if (result.body && typeof result.body.getReader === "function") {
-			const transformedBody = injectIntoStream(result.body, store);
-			return new Response(transformedBody, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		}
-		return result.text().then((html) => {
-			if (html.includes("</body>") || html.includes("</html>")) {
-				const modifiedHtml = injectBakedCatalogs(html, store);
-				return new Response(modifiedHtml, {
-					status: result.status,
-					statusText: result.statusText,
-					headers: result.headers
-				});
-			}
-			return new Response(html, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		});
-	}
-	if (typeof result === "string") {
-		const catalogs = store.catalogs;
-		if (Object.keys(catalogs).length > 0) {
-			const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-			if (result.includes("</body>")) return result.replace("</body>", \`\${script}</body>\`);
-			if (result.includes("</html>")) return result.replace("</html>", \`\${script}</html>\`);
-			const lower = result.toLowerCase();
-			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
-			return result;
-		}
-	}
-	if (typeof result === "object") {
-		if (typeof result.getReader === "function") return injectIntoStream(result, store);
-		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
-		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
-		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
-		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
-	}
-	return result;
-}
-function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
-	if (typeof window === "undefined" && storeStorage) {
-		let locale = defaultLocale;
-		if (urlOrReq) {
-			let pathname = "";
-			const extractPath = (val) => {
-				if (!val) return "";
-				if (typeof val === "string") return val;
-				if (typeof val === "object") {
-					if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
-					if (typeof val.path === "string") return val.path;
-					if (typeof val.pathname === "string") return val.pathname;
-					if (val.navigationContext) {
-						const nav = val.navigationContext;
-						if (typeof nav.pathname === "string") return nav.pathname;
-					}
-				}
-				return "";
-			};
-			if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
-				pathname = extractPath(arg);
-				if (pathname) break;
-			}
-			else pathname = extractPath(urlOrReq);
-			if (pathname) {
-				pathname = pathname.split("?")[0].split("#")[0];
-				if (pathname.includes("://")) try {
-					pathname = new URL(pathname).pathname;
-				} catch {
-					pathname = pathname.replace(/^https?:\\/\\/[^/]+/, "");
-				}
-				else {
-					pathname = pathname.replace(/^[^/]+:\\d+/, "");
-					pathname = pathname.replace(/^[^/]+\\.[^/]+/, "");
-				}
-				const parts = pathname.split("/").filter(Boolean);
-				if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
-			}
-		}
-		const store = new I18nStore();
-		store.locale = locale;
-		store.locales = locales;
-		if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-		const promises = [];
-		for (const [_, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				store.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) promises.push(result.then((res) => {
-				processResult(res);
-			}));
-			else processResult(result);
-		} catch {}
-		const runCallback = () => {
-			return storeStorage.run(store, () => {
-				const result = callback();
-				const processStorePromisesAndInject = (resolvedResult) => {
-					if (store.pendingPromises.length > 0) {
-						const currentPromises = [...store.pendingPromises];
-						store.pendingPromises = [];
-						return Promise.all(currentPromises).then(() => {
-							return processStorePromisesAndInject(resolvedResult);
-						});
-					}
-					return injectBakedCatalogs(resolvedResult, store);
-				};
-				if (result && typeof result.then === "function") return result.then((resolvedResult) => {
-					return processStorePromisesAndInject(resolvedResult);
-				});
-				if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
-				return injectBakedCatalogs(result, store);
-			});
-		};
-		if (promises.length > 0) return Promise.all(promises).then(runCallback);
-		return runCallback();
-	}
-	return callback();
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
-			if (instance.pendingPromises) instance.pendingPromises.push(p);
-			return p;
-		} else processResult(result);
-	} catch (err) {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load initial catalog for boundary "\${boundaryId}"\`, err);
-	}
-}
-function unregisterLoader(boundaryId) {
-	globalRegistry.delete(boundaryId);
-}
-function setLocale(locale) {
-	return getActiveInstance().setLocale(locale);
-}
-function getLocale() {
-	return getActiveInstance().locale;
-}
-function subscribe(listener) {
-	return getActiveInstance().subscribe(listener);
-}
-function addCatalogs(catalogs) {
-	return getActiveInstance().addCatalogs(catalogs);
-}
-function getStoreVersion() {
-	return getActiveInstance().version;
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
-			}
-		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
-	window.addEventListener("popstate", syncLocale);
-	const origPush = window.history.pushState;
-	if (origPush) window.history.pushState = function(...args) {
-		origPush.apply(this, args);
-		syncLocale();
-	};
-	const origReplace = window.history.replaceState;
-	if (origReplace) window.history.replaceState = function(...args) {
-		origReplace.apply(this, args);
-		syncLocale();
-	};
-	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
-		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
-	}).observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ["lang"]
-	});
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
-	else syncLocale();
-}
-//#endregion
-//#region src/runtime/resolver.ts
-function _t(key, params = {}, options) {
-	const instance = getActiveInstance();
-	const catalogs = instance.catalogs;
-	const locale = instance.locale;
-	const effectiveParams = options ? {
-		...params,
-		...options
-	} : params;
-	const mgr = effectiveParams._mgr;
-	const boundaryId = mgr?.id;
-	const targetBId = effectiveParams._bId || boundaryId;
-	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = mgr.loader(locale);
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader) Promise.resolve().then(() => {
-			instance.loadLazyBoundary(mgr.id, mgr.loader);
-		});
-		if (message === void 0) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${targetBId || boundaryId}". Triggering hydration...\`);
-			return \`\`;
-		}
-	} else {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
-		return \`\`;
-	}
-	if (typeof message === "function") return message(params);
-	if (typeof message !== "string") return "";
-	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
-	let interpolated = interpolate(message, restParams);
-	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
-	}
-	return interpolated;
-}
-function interpolate(message, params) {
-	if (message === null || message === void 0) return "";
-	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
-		return params[key]?.toString() ?? match;
-	});
-}
-//#endregion
-//#region src/runtime/registry.ts
-/**
-* A helper for the Zintl compiler to register a boundary loader.
-* This is designed to be called with a minimal footprint in the transformed source.
-*/
-function registerZintlLoader(boundaryId, loader) {
-	return registerLoader(boundaryId, loader);
-}
-//#endregion
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, getStoreVersion, registerLoader, runInRequestScope, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.js";
+import { _t } from "./resolver.js";
+import { registerZintlLoader } from "./registry.js";
 //#region src/runtime/internal.ts
 async function zintl(locale) {
 	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");

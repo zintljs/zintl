@@ -37,7 +37,7 @@ describe("Zintl Compiler - Directives Integration", () => {
     await compiler.transform(code, filePath);
     await compiler.flush();
 
-    const schemaPath = compiler.getSchemaPath("src/App:App");
+    const schemaPath = compiler.getSchemaPath("src/App.tsx:App");
     if (!schemaPath) throw new Error("Schema path not found");
 
     const schemaContent = await readFile(schemaPath, "utf-8");
@@ -66,7 +66,7 @@ describe("Zintl Compiler - Directives Integration", () => {
     await compiler.flush();
 
     // 1. Check Schema
-    const schemaPath = compiler.getSchemaPath("src/App:App");
+    const schemaPath = compiler.getSchemaPath("src/App.tsx:App");
     if (!schemaPath) throw new Error("Schema path not found");
     const schemaContent = await readFile(schemaPath, "utf-8");
     const schema = JSON.parse(schemaContent);

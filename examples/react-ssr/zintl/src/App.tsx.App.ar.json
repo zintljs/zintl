@@ -1,5 +1,5 @@
 {
-  "$schema": "../.schemas/src/App.App.schema.json",
+  "$schema": "../.schemas/src/App.tsx.App.schema.json",
   "<img/> Explore Vite": "<img/> استكشف فيت",
   "<img/> Learn more": "<img/> تعلم المزيد",
   "Connect with us": "تواصل معنا",

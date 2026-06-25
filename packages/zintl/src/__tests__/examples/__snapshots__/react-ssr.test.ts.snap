@@ -19,7 +19,7 @@ exports[`Example Proof: react-ssr > should match Development snapshots > react-s
 
 exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/App.tsx 1`] = `
 "import { _t, getLocale } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import _zintl_mgr_b_src_entry_client_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_tsx_bootstrap";
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
@@ -80,14 +80,14 @@ function App() {
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt={_t("React logo", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })} />
-          <img src={viteLogo} className="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })} />
+          <img src={reactLogo} className="framework" alt={_t("React logo", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })} />
+          <img src={viteLogo} className="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })} />
         </div>
         <div>
-          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h1>
-          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
+          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h1>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "code", originalOpen: \`<code>\`, tagName: "code" }, { alias: "code", originalOpen: \`<code>\`, tagName: "code" }] }) }} />}</p>
         </div>
-        <button className="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</button>
+        <button className="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</button>
       </section>
 
       <div className="ticks"></div>
@@ -97,14 +97,14 @@ function App() {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h2>
-          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</p>
+          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h2>
+          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: \`<img class="logo" src="\${viteLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://react.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
+              <a href="https://react.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: \`<img class="button-icon" src="\${reactLogo}" alt="" />\`, tagName: "img" }] }) }} />}</a>
             </li>
           </ul>
         </div>
@@ -112,8 +112,8 @@ function App() {
           <svg className="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#social-icon"></use>
           </svg>
-          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</h2>
-          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: "b_src_App_App" })}</p>
+          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h2>
+          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_entry_client_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</p>
           {/* @zintl-ignore */}
           <ul>
             <li>
@@ -163,7 +163,7 @@ export default App;"
 
 exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/entry-client.tsx 1`] = `
 "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import _zintl_mgr_b_src_entry_client_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_tsx_bootstrap";
 import "./index.css";
 import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
@@ -171,7 +171,7 @@ import App from "./App";
 
 
 async function bootstrap() {
-  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_bootstrap"]: _zintl_mgr_b_src_entry_client_bootstrap.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_tsx_bootstrap"]: _zintl_mgr_b_src_entry_client_tsx_bootstrap.loader } }));
   hydrateRoot(
     document.getElementById("root") as HTMLElement,
     <StrictMode>
@@ -184,21 +184,21 @@ void bootstrap();
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/entry-client");
+    console.debug("[Zintl] HMR update accepted for: src/entry-client.tsx");
   });
 }"
 `;
 
 exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/src/entry-server.tsx 1`] = `
 "import { loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import _zintl_mgr_b_src_entry_client_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_tsx_bootstrap";
 import { StrictMode } from "react";
 import { renderToString } from "react-dom/server";
 import App from "./App";
 
 
 export async function render(_url: string) {
-  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_bootstrap"]: _zintl_mgr_b_src_entry_client_bootstrap.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_tsx_bootstrap"]: _zintl_mgr_b_src_entry_client_tsx_bootstrap.loader } }));
   const html = renderToString(
     <StrictMode>
       <App />
@@ -210,14 +210,14 @@ export async function render(_url: string) {
 
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/entry-server");
+    console.debug("[Zintl] HMR update accepted for: src/entry-server.tsx");
   });
 }"
 `;
 
-exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_client_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/ar/entry:b_src_entry_client_tsx_bootstrap 1`] = `
 "const catalog = {
-    "b_src_App_App": {
+    "b_src_App_tsx_App": {
       "React logo": "شعار رياكت",
       "Vite logo": "شعار فيت",
       "Get started": "البدء",
@@ -241,9 +241,9 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_client_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/es/entry:b_src_entry_client_tsx_bootstrap 1`] = `
 "const catalog = {
-    "b_src_App_App": {
+    "b_src_App_tsx_App": {
       "React logo": "Logo de React",
       "Vite logo": "Logo de Vite",
       "Get started": "Comenzar",
@@ -267,9 +267,9 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_client_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/content/zh/entry:b_src_entry_client_tsx_bootstrap 1`] = `
 "const catalog = {
-    "b_src_App_App": {
+    "b_src_App_tsx_App": {
       "React logo": "React 图标",
       "Vite logo": "Vite 图标",
       "Get started": "开始",
@@ -293,13 +293,13 @@ export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }"
 `;
 
-exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap 1`] = `
+exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/manager/none/entry:b_src_entry_client_tsx_bootstrap 1`] = `
 "export default (() => {
-  const manager = { id: "b_src_entry_client_bootstrap", loader: (locale) => {
+  const manager = { id: "b_src_entry_client_tsx_bootstrap", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
-    "b_src_App_App": {
+    "b_src_App_tsx_App": {
       "React logo": "React logo",
       "Vite logo": "Vite logo",
       "Get started": "Get started",
@@ -317,11 +317,11 @@ exports[`Example Proof: react-ssr > should match Development snapshots > react-s
     },
   };
                 case "ar":
-          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_entry_client_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         case "es":
-          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_entry_client_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         case "zh":
-          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_entry_client_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         default: return {};
       }
     }, manifest: [] };
@@ -340,516 +340,9 @@ if (import.meta.hot) {
 `;
 
 exports[`Example Proof: react-ssr > should match Development snapshots > react-ssr/dev-transforms/virtual:zintl/runtime/internal 1`] = `
-"//#region src/runtime/store.ts
-let storeStorage = null;
-if (typeof window === "undefined" && typeof process !== "undefined") try {
-	const asyncHooks = null;
-	if (asyncHooks && asyncHooks.AsyncLocalStorage) if (typeof globalThis !== "undefined") {
-		if (!globalThis.__zintl_storage) globalThis.__zintl_storage = new asyncHooks.AsyncLocalStorage();
-		storeStorage = globalThis.__zintl_storage;
-	} else storeStorage = new asyncHooks.AsyncLocalStorage();
-} catch {}
-var I18nStore = class {
-	locale = "";
-	catalogs = {};
-	locales = [];
-	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
-	pendingBoundaries = /* @__PURE__ */ new Set();
-	pendingPromises = [];
-	version = 0;
-	listeners = /* @__PURE__ */ new Set();
-	constructor() {
-		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
-		if (!this.locale && typeof window !== "undefined") try {
-			this.locale = localStorage.getItem("zintl-locale") || "";
-		} catch {}
-		if (!this.locale) try {
-			if (storeStorage) {
-				const active = storeStorage.getStore();
-				if (active && active !== this) this.locale = active.locale;
-			}
-		} catch {}
-		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
-	}
-	getLocales() {
-		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
-		return this.locales;
-	}
-	subscribe(listener) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-	notify() {
-		this.listeners.forEach((l) => l());
-	}
-	addCatalogs(newCatalogs) {
-		let changed = false;
-		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
-			if (!this.catalogs[locale]) this.catalogs[locale] = {};
-			for (const [boundaryId, messages] of Object.entries(boundaries)) {
-				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
-				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
-					this.catalogs[locale][boundaryId][key] = value;
-					changed = true;
-				}
-			}
-		}
-		if (changed) {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug("[Zintl] Catalogs updated:", Object.keys(newCatalogs).flatMap((l) => Object.keys(newCatalogs[l]).map((b) => \`\${l}/\${b}\`)));
-			this.notify();
-		}
-	}
-	async setLocale(locale) {
-		if (!locale) return;
-		if (typeof window !== "undefined") {
-			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-			try {
-				localStorage.setItem("zintl-locale", locale);
-			} catch {}
-		}
-		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Switching to locale: \${locale}\`);
-		this.locale = locale;
-		const activePromises = [];
-		for (const [boundaryId, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				this.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) {
-				this.pendingBoundaries.add(boundaryId);
-				activePromises.push(result.then((res) => {
-					processResult(res);
-					this.pendingBoundaries.delete(boundaryId);
-				}));
-			} else processResult(result);
-		} catch (err) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load catalog for boundary "\${boundaryId}" (\${locale})\`, err);
-		}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		} else {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		}
-	}
-	registerLoader(boundaryId, loader) {
-		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
-		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-	loadLazyBoundary(boundaryId, loader) {
-		if (this.catalogs[this.locale]?.[boundaryId]) return;
-		if (this.pendingBoundaries.has(boundaryId)) return;
-		this.pendingBoundaries.add(boundaryId);
-		try {
-			const result = loader(this.locale);
-			const processResult = (res) => {
-				this.pendingBoundaries.delete(boundaryId);
-				if (!res) return;
-				this.addCatalogs({ [this.locale]: res });
-			};
-			if (isThenable(result)) {
-				const p = result.then((res) => {
-					processResult(res);
-				}).catch(() => {
-					this.pendingBoundaries.delete(boundaryId);
-				});
-				this.pendingPromises.push(p);
-				return p;
-			} else processResult(result);
-		} catch {
-			this.pendingBoundaries.delete(boundaryId);
-		}
-	}
-};
-let globalRegistry;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
-	globalRegistry = globalThis.__zintl_registry;
-} else globalRegistry = /* @__PURE__ */ new Map();
-let defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
-	defaultInstance = globalThis.__zintl_default_instance;
-} else defaultInstance = new I18nStore();
-let currentInstance = defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
-	currentInstance = globalThis.__zintl_current_instance;
-}
-function getActiveInstance() {
-	if (storeStorage) {
-		const store = storeStorage.getStore();
-		if (store) return store;
-	}
-	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
-	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
-	if (typeof window !== "undefined") {
-		const inst = currentInstance;
-		const locales = inst.getLocales();
-		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
-		let targetLocale = "";
-		const pathname = window.location ? window.location.pathname : "";
-		if (pathname && locales.length > 0) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
-		}
-		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
-		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
-	}
-	return currentInstance;
-}
-function setActiveInstance(instance) {
-	currentInstance = instance;
-	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
-}
-function serializeValue(val) {
-	if (typeof val === "function") return val.toString();
-	if (val === null) return "null";
-	if (val === void 0) return "undefined";
-	if (typeof val === "string") return JSON.stringify(val);
-	if (typeof val === "number" || typeof val === "boolean") return val.toString();
-	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
-	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => \`\${JSON.stringify(k)}:\${serializeValue(v)}\`).join(",") + "}";
-	return "null";
-}
-function injectIntoStream(stream, store) {
-	const reader = stream.getReader();
-	const encoder = new TextEncoder();
-	const decoder = new TextDecoder();
-	let injected = false;
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { done, value } = await reader.read();
-				if (done) {
-					if (!injected) {
-						const catalogs = store.catalogs;
-						if (Object.keys(catalogs).length > 0) {
-							const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-							controller.enqueue(encoder.encode(script));
-						}
-						injected = true;
-					}
-					controller.close();
-					return;
-				}
-				let chunkText = "";
-				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
-				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</body>", \`\${script}</body>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</html>", \`\${script}</html>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-			} catch (err) {
-				controller.error(err);
-			}
-		},
-		cancel(reason) {
-			return reader.cancel(reason);
-		}
-	});
-}
-function injectBakedCatalogs(result, store) {
-	if (!result || !store) return result;
-	if (typeof Response !== "undefined" && result instanceof Response) {
-		if (result.body && typeof result.body.getReader === "function") {
-			const transformedBody = injectIntoStream(result.body, store);
-			return new Response(transformedBody, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		}
-		return result.text().then((html) => {
-			if (html.includes("</body>") || html.includes("</html>")) {
-				const modifiedHtml = injectBakedCatalogs(html, store);
-				return new Response(modifiedHtml, {
-					status: result.status,
-					statusText: result.statusText,
-					headers: result.headers
-				});
-			}
-			return new Response(html, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		});
-	}
-	if (typeof result === "string") {
-		const catalogs = store.catalogs;
-		if (Object.keys(catalogs).length > 0) {
-			const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-			if (result.includes("</body>")) return result.replace("</body>", \`\${script}</body>\`);
-			if (result.includes("</html>")) return result.replace("</html>", \`\${script}</html>\`);
-			const lower = result.toLowerCase();
-			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
-			return result;
-		}
-	}
-	if (typeof result === "object") {
-		if (typeof result.getReader === "function") return injectIntoStream(result, store);
-		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
-		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
-		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
-		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
-	}
-	return result;
-}
-function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
-	if (typeof window === "undefined" && storeStorage) {
-		let locale = defaultLocale;
-		if (urlOrReq) {
-			let pathname = "";
-			const extractPath = (val) => {
-				if (!val) return "";
-				if (typeof val === "string") return val;
-				if (typeof val === "object") {
-					if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
-					if (typeof val.path === "string") return val.path;
-					if (typeof val.pathname === "string") return val.pathname;
-					if (val.navigationContext) {
-						const nav = val.navigationContext;
-						if (typeof nav.pathname === "string") return nav.pathname;
-					}
-				}
-				return "";
-			};
-			if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
-				pathname = extractPath(arg);
-				if (pathname) break;
-			}
-			else pathname = extractPath(urlOrReq);
-			if (pathname) {
-				pathname = pathname.split("?")[0].split("#")[0];
-				if (pathname.includes("://")) try {
-					pathname = new URL(pathname).pathname;
-				} catch {
-					pathname = pathname.replace(/^https?:\\/\\/[^/]+/, "");
-				}
-				else {
-					pathname = pathname.replace(/^[^/]+:\\d+/, "");
-					pathname = pathname.replace(/^[^/]+\\.[^/]+/, "");
-				}
-				const parts = pathname.split("/").filter(Boolean);
-				if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
-			}
-		}
-		const store = new I18nStore();
-		store.locale = locale;
-		store.locales = locales;
-		if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-		const promises = [];
-		for (const [_, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				store.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) promises.push(result.then((res) => {
-				processResult(res);
-			}));
-			else processResult(result);
-		} catch {}
-		const runCallback = () => {
-			return storeStorage.run(store, () => {
-				const result = callback();
-				const processStorePromisesAndInject = (resolvedResult) => {
-					if (store.pendingPromises.length > 0) {
-						const currentPromises = [...store.pendingPromises];
-						store.pendingPromises = [];
-						return Promise.all(currentPromises).then(() => {
-							return processStorePromisesAndInject(resolvedResult);
-						});
-					}
-					return injectBakedCatalogs(resolvedResult, store);
-				};
-				if (result && typeof result.then === "function") return result.then((resolvedResult) => {
-					return processStorePromisesAndInject(resolvedResult);
-				});
-				if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
-				return injectBakedCatalogs(result, store);
-			});
-		};
-		if (promises.length > 0) return Promise.all(promises).then(runCallback);
-		return runCallback();
-	}
-	return callback();
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
-			if (instance.pendingPromises) instance.pendingPromises.push(p);
-			return p;
-		} else processResult(result);
-	} catch (err) {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load initial catalog for boundary "\${boundaryId}"\`, err);
-	}
-}
-function unregisterLoader(boundaryId) {
-	globalRegistry.delete(boundaryId);
-}
-function setLocale(locale) {
-	return getActiveInstance().setLocale(locale);
-}
-function getLocale() {
-	return getActiveInstance().locale;
-}
-function subscribe(listener) {
-	return getActiveInstance().subscribe(listener);
-}
-function addCatalogs(catalogs) {
-	return getActiveInstance().addCatalogs(catalogs);
-}
-function getStoreVersion() {
-	return getActiveInstance().version;
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
-			}
-		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
-	window.addEventListener("popstate", syncLocale);
-	const origPush = window.history.pushState;
-	if (origPush) window.history.pushState = function(...args) {
-		origPush.apply(this, args);
-		syncLocale();
-	};
-	const origReplace = window.history.replaceState;
-	if (origReplace) window.history.replaceState = function(...args) {
-		origReplace.apply(this, args);
-		syncLocale();
-	};
-	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
-		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
-	}).observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ["lang"]
-	});
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
-	else syncLocale();
-}
-//#endregion
-//#region src/runtime/resolver.ts
-function _t(key, params = {}, options) {
-	const instance = getActiveInstance();
-	const catalogs = instance.catalogs;
-	const locale = instance.locale;
-	const effectiveParams = options ? {
-		...params,
-		...options
-	} : params;
-	const mgr = effectiveParams._mgr;
-	const boundaryId = mgr?.id;
-	const targetBId = effectiveParams._bId || boundaryId;
-	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = mgr.loader(locale);
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader) Promise.resolve().then(() => {
-			instance.loadLazyBoundary(mgr.id, mgr.loader);
-		});
-		if (message === void 0) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${targetBId || boundaryId}". Triggering hydration...\`);
-			return \`\`;
-		}
-	} else {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
-		return \`\`;
-	}
-	if (typeof message === "function") return message(params);
-	if (typeof message !== "string") return "";
-	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
-	let interpolated = interpolate(message, restParams);
-	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
-	}
-	return interpolated;
-}
-function interpolate(message, params) {
-	if (message === null || message === void 0) return "";
-	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
-		return params[key]?.toString() ?? match;
-	});
-}
-//#endregion
-//#region src/runtime/registry.ts
-/**
-* A helper for the Zintl compiler to register a boundary loader.
-* This is designed to be called with a minimal footprint in the transformed source.
-*/
-function registerZintlLoader(boundaryId, loader) {
-	return registerLoader(boundaryId, loader);
-}
-//#endregion
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, getStoreVersion, registerLoader, runInRequestScope, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.js";
+import { _t } from "./resolver.js";
+import { registerZintlLoader } from "./registry.js";
 //#region src/runtime/internal.ts
 async function zintl(locale) {
 	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
@@ -12164,7 +11657,8 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_dom_client_production();
 }));
 //#endregion
-//#region \\0virtual:zintl/runtime/internal
+//#region \\0virtual:zintl/runtime/store-core
+var storeStorage = null;
 var I18nStore = class {
 	locale = "";
 	catalogs = {};
@@ -12179,7 +11673,12 @@ var I18nStore = class {
 		if (!this.locale && typeof window !== "undefined") try {
 			this.locale = localStorage.getItem("zintl-locale") || "";
 		} catch {}
-		if (!this.locale);
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
 		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
 	}
 	getLocales() {
@@ -12300,6 +11799,10 @@ if (typeof globalThis !== "undefined") {
 	currentInstance = globalThis.__zintl_current_instance;
 }
 function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
 	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
 	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
 	if (typeof window !== "undefined") {
@@ -12323,26 +11826,28 @@ function getLocale() {
 function isThenable(obj) {
 	return obj && typeof obj.then === "function";
 }
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
+//#endregion
+//#region \\0virtual:zintl/runtime/store-client
+var syncLocale = () => {
+	const inst = getActiveInstance();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
 			}
 		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
 	window.addEventListener("popstate", syncLocale);
 	const origPush = window.history.pushState;
 	if (origPush) window.history.pushState = function(...args) {
@@ -12933,9 +12438,9 @@ exports[`Example Proof: react-ssr > should match Final Client Production Build (
 "
 `;
 
-exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e079.js 1`] = `
-"//#region \\0virtual:zintl/content/ar/entry:b_429b1674e079
-var catalog = { "b_4a89874656dd": {
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_36b4b9e8c51f.js 1`] = `
+"//#region \\0virtual:zintl/content/ar/entry:b_36b4b9e8c51f
+var catalog = { "b_46b46a617b3e": {
 	"c41e657d": "شعار رياكت",
 	"3473a536": "شعار فيت",
 	"90e40d50": "البدء",
@@ -12956,9 +12461,9 @@ export { catalog as default };
 "
 `;
 
-exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e0792.js 1`] = `
-"//#region \\0virtual:zintl/content/es/entry:b_429b1674e079
-var catalog = { "b_4a89874656dd": {
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_36b4b9e8c51f2.js 1`] = `
+"//#region \\0virtual:zintl/content/es/entry:b_36b4b9e8c51f
+var catalog = { "b_46b46a617b3e": {
 	"c41e657d": "Logo de React",
 	"3473a536": "Logo de Vite",
 	"90e40d50": "Comenzar",
@@ -12979,9 +12484,9 @@ export { catalog as default };
 "
 `;
 
-exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_429b1674e0793.js 1`] = `
-"//#region \\0virtual:zintl/content/zh/entry:b_429b1674e079
-var catalog = { "b_4a89874656dd": {
+exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry_b_36b4b9e8c51f3.js 1`] = `
+"//#region \\0virtual:zintl/content/zh/entry:b_36b4b9e8c51f
+var catalog = { "b_46b46a617b3e": {
 	"c41e657d": "React 图标",
 	"3473a536": "Vite 图标",
 	"90e40d50": "开始",
@@ -13003,18 +12508,15 @@ export { catalog as default };
 `;
 
 exports[`Example Proof: react-ssr > should match Final Server SSR Build (dist/server) snapshots > react-ssr/dist-server/assets/entry-server.js 1`] = `
-"import { StrictMode, useState } from "react";
+"import { AsyncLocalStorage } from "node:async_hooks";
+import { StrictMode, useState } from "react";
 import { renderToString } from "react-dom/server";
 import { Fragment, jsxDEV } from "react/jsx-dev-runtime";
-//#region \\0virtual:zintl/runtime/internal
+//#region \\0virtual:zintl/runtime/store-core
 var storeStorage = null;
-if (typeof window === "undefined" && typeof process !== "undefined") try {
-	const asyncHooks = await import("node:async_hooks");
-	if (asyncHooks && asyncHooks.AsyncLocalStorage) if (typeof globalThis !== "undefined") {
-		if (!globalThis.__zintl_storage) globalThis.__zintl_storage = new asyncHooks.AsyncLocalStorage();
-		storeStorage = globalThis.__zintl_storage;
-	} else storeStorage = new asyncHooks.AsyncLocalStorage();
-} catch {}
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
 var I18nStore = class {
 	locale = "";
 	catalogs = {};
@@ -13180,6 +12682,74 @@ function setActiveInstance(instance) {
 	currentInstance = instance;
 	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
 }
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
+	try {
+		const result = loader(instance.locale);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [instance.locale]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then((res) => {
+				processResult(res);
+			});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {}
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+//#region \\0virtual:zintl/runtime/store-client
+var syncLocale = () => {
+	const inst = getActiveInstance();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+setStoreStorage(new AsyncLocalStorage());
 function serializeValue(val) {
 	if (typeof val === "function") return val.toString();
 	if (val === null) return "null";
@@ -13284,151 +12854,8 @@ function injectBakedCatalogs(result, store) {
 	}
 	return result;
 }
-function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
-	if (typeof window === "undefined" && storeStorage) {
-		let locale = defaultLocale;
-		if (urlOrReq) {
-			let pathname = "";
-			const extractPath = (val) => {
-				if (!val) return "";
-				if (typeof val === "string") return val;
-				if (typeof val === "object") {
-					if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
-					if (typeof val.path === "string") return val.path;
-					if (typeof val.pathname === "string") return val.pathname;
-					if (val.navigationContext) {
-						const nav = val.navigationContext;
-						if (typeof nav.pathname === "string") return nav.pathname;
-					}
-				}
-				return "";
-			};
-			if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
-				pathname = extractPath(arg);
-				if (pathname) break;
-			}
-			else pathname = extractPath(urlOrReq);
-			if (pathname) {
-				pathname = pathname.split("?")[0].split("#")[0];
-				if (pathname.includes("://")) try {
-					pathname = new URL(pathname).pathname;
-				} catch {
-					pathname = pathname.replace(/^https?:\\/\\/[^/]+/, "");
-				}
-				else {
-					pathname = pathname.replace(/^[^/]+:\\d+/, "");
-					pathname = pathname.replace(/^[^/]+\\.[^/]+/, "");
-				}
-				const parts = pathname.split("/").filter(Boolean);
-				if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
-			}
-		}
-		const store = new I18nStore();
-		store.locale = locale;
-		store.locales = locales;
-		if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-		const promises = [];
-		for (const [_, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				store.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) promises.push(result.then((res) => {
-				processResult(res);
-			}));
-			else processResult(result);
-		} catch {}
-		const runCallback = () => {
-			return storeStorage.run(store, () => {
-				const result = callback();
-				const processStorePromisesAndInject = (resolvedResult) => {
-					if (store.pendingPromises.length > 0) {
-						const currentPromises = [...store.pendingPromises];
-						store.pendingPromises = [];
-						return Promise.all(currentPromises).then(() => {
-							return processStorePromisesAndInject(resolvedResult);
-						});
-					}
-					return injectBakedCatalogs(resolvedResult, store);
-				};
-				if (result && typeof result.then === "function") return result.then((resolvedResult) => {
-					return processStorePromisesAndInject(resolvedResult);
-				});
-				if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
-				return injectBakedCatalogs(result, store);
-			});
-		};
-		if (promises.length > 0) return Promise.all(promises).then(runCallback);
-		return runCallback();
-	}
-	return callback();
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
-			if (instance.pendingPromises) instance.pendingPromises.push(p);
-			return p;
-		} else processResult(result);
-	} catch (err) {}
-}
-function getLocale() {
-	return getActiveInstance().locale;
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
-			}
-		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
-	window.addEventListener("popstate", syncLocale);
-	const origPush = window.history.pushState;
-	if (origPush) window.history.pushState = function(...args) {
-		origPush.apply(this, args);
-		syncLocale();
-	};
-	const origReplace = window.history.replaceState;
-	if (origReplace) window.history.replaceState = function(...args) {
-		origReplace.apply(this, args);
-		syncLocale();
-	};
-	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
-		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
-	}).observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ["lang"]
-	});
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
-	else syncLocale();
-}
+//#endregion
+//#region \\0virtual:zintl/runtime/resolver
 function _t(key, params = {}, options) {
 	const instance = getActiveInstance();
 	const catalogs = instance.catalogs;
@@ -13475,6 +12902,8 @@ function interpolate(message, params) {
 		return params[key]?.toString() ?? match;
 	});
 }
+//#endregion
+//#region \\0virtual:zintl/runtime/internal
 /**
 * Loads and configures the i18n instance for a boundary.
 * Registers loaders and merges new catalogs into the existing state.
@@ -13523,12 +12952,12 @@ async function loadI18nInstance(config = {}) {
 	};
 }
 //#endregion
-//#region \\0virtual:zintl/manager/none/entry:b_429b1674e079
-var entry_b_429b1674e079_default = {
-	id: "b_429b1674e079",
+//#region \\0virtual:zintl/manager/none/entry:b_36b4b9e8c51f
+var entry_b_36b4b9e8c51f_default = {
+	id: "b_36b4b9e8c51f",
 	loader: (locale) => {
 		switch (locale) {
-			case "en": return { "b_4a89874656dd": {
+			case "en": return { "b_46b46a617b3e": {
 				"c41e657d": "React logo",
 				"3473a536": "Vite logo",
 				"90e40d50": "Get started",
@@ -13544,9 +12973,9 @@ var entry_b_429b1674e079_default = {
 				"65ac13a7": "Connect with us",
 				"15545bc4": "Join the Vite community"
 			} };
-			case "ar": return import("./entry_b_429b1674e079.js").then((m) => m.default);
-			case "es": return import("./entry_b_429b1674e0792.js").then((m) => m.default);
-			case "zh": return import("./entry_b_429b1674e0793.js").then((m) => m.default);
+			case "ar": return import("./entry_b_36b4b9e8c51f.js").then((m) => m.default);
+			case "es": return import("./entry_b_36b4b9e8c51f2.js").then((m) => m.default);
+			case "zh": return import("./entry_b_36b4b9e8c51f3.js").then((m) => m.default);
 			default: return {};
 		}
 	},
@@ -13681,8 +13110,8 @@ function App() {
 							src: react_default,
 							className: "framework",
 							alt: _t("c41e657d", {
-								_mgr: entry_b_429b1674e079_default,
-								_bId: "b_4a89874656dd"
+								_mgr: entry_b_36b4b9e8c51f_default,
+								_bId: "b_46b46a617b3e"
 							})
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
@@ -13693,8 +13122,8 @@ function App() {
 							src: vite_default,
 							className: "vite",
 							alt: _t("3473a536", {
-								_mgr: entry_b_429b1674e079_default,
-								_bId: "b_4a89874656dd"
+								_mgr: entry_b_36b4b9e8c51f_default,
+								_bId: "b_46b46a617b3e"
 							})
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
@@ -13708,8 +13137,8 @@ function App() {
 					columnNumber: 9
 				}, this),
 				/* @__PURE__ */ jsxDEV("div", { children: [/* @__PURE__ */ jsxDEV("h1", { children: _t("90e40d50", {
-					_mgr: entry_b_429b1674e079_default,
-					_bId: "b_4a89874656dd"
+					_mgr: entry_b_36b4b9e8c51f_default,
+					_bId: "b_46b46a617b3e"
 				}) }, void 0, false, {
 					fileName: _jsxFileName$1,
 					lineNumber: 67,
@@ -13717,8 +13146,8 @@ function App() {
 				}, this), /* @__PURE__ */ jsxDEV("p", { children: /* @__PURE__ */ jsxDEV("span", {
 					style: { display: "contents" },
 					dangerouslySetInnerHTML: { __html: _t("9fd2f187", {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd",
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e",
 						_tags: [{
 							alias: "code",
 							originalOpen: \`<code>\`,
@@ -13746,8 +13175,8 @@ function App() {
 					className: "counter",
 					onClick: () => setCount((count) => count + 1),
 					children: _t("aa624128", { count }, {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd"
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e"
 					})
 				}, void 0, false, {
 					fileName: _jsxFileName$1,
@@ -13785,16 +13214,16 @@ function App() {
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ jsxDEV("h2", { children: _t("9e9cf322", {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd"
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e"
 					}) }, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 80,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ jsxDEV("p", { children: _t("d0f7666b", {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd"
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e"
 					}) }, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 81,
@@ -13806,8 +13235,8 @@ function App() {
 						children: /* @__PURE__ */ jsxDEV("span", {
 							style: { display: "contents" },
 							dangerouslySetInnerHTML: { __html: _t("924cea3c", {
-								_mgr: entry_b_429b1674e079_default,
-								_bId: "b_4a89874656dd",
+								_mgr: entry_b_36b4b9e8c51f_default,
+								_bId: "b_46b46a617b3e",
 								_tags: [{
 									alias: "img",
 									originalOpen: \`<img class="logo" src="\${vite_default}" alt="" />\`,
@@ -13833,8 +13262,8 @@ function App() {
 						children: /* @__PURE__ */ jsxDEV("span", {
 							style: { display: "contents" },
 							dangerouslySetInnerHTML: { __html: _t("8cc85295", {
-								_mgr: entry_b_429b1674e079_default,
-								_bId: "b_4a89874656dd",
+								_mgr: entry_b_36b4b9e8c51f_default,
+								_bId: "b_46b46a617b3e",
 								_tags: [{
 									alias: "img",
 									originalOpen: \`<img class="button-icon" src="\${react_default}" alt="" />\`,
@@ -13882,16 +13311,16 @@ function App() {
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ jsxDEV("h2", { children: _t("65ac13a7", {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd"
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e"
 					}) }, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 95,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ jsxDEV("p", { children: _t("15545bc4", {
-						_mgr: entry_b_429b1674e079_default,
-						_bId: "b_4a89874656dd"
+						_mgr: entry_b_36b4b9e8c51f_default,
+						_bId: "b_46b46a617b3e"
 					}) }, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 96,
@@ -14037,8 +13466,8 @@ function App() {
 //#endregion
 //#region examples/react-ssr/src/entry-server.tsx
 var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-server.tsx";
-async function _zintl_raw_render(_url) {
-	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_429b1674e079"]: entry_b_429b1674e079_default.loader } }));
+async function render(_url) {
+	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_36b4b9e8c51f"]: entry_b_36b4b9e8c51f_default.loader } }));
 	return { html: renderToString(/* @__PURE__ */ jsxDEV(StrictMode, { children: /* @__PURE__ */ jsxDEV(App, {}, void 0, false, {
 		fileName: _jsxFileName,
 		lineNumber: 12,
@@ -14048,14 +13477,6 @@ async function _zintl_raw_render(_url) {
 		lineNumber: 11,
 		columnNumber: 5
 	}, this)) };
-}
-async function render(urlOrReq, ...args) {
-	return runInRequestScope([urlOrReq, ...args], [
-		"en",
-		"ar",
-		"es",
-		"zh"
-	], "en", () => _zintl_raw_render(urlOrReq, ...args));
 }
 //#endregion
 export { render };
@@ -14259,516 +13680,9 @@ export async function render(_url: string) {
 `;
 
 exports[`Example Proof: react-ssr > should match Production snapshots > react-ssr/prod-transforms/virtual:zintl/runtime/internal 1`] = `
-"//#region src/runtime/store.ts
-let storeStorage = null;
-if (typeof window === "undefined" && typeof process !== "undefined") try {
-	const asyncHooks = null;
-	if (asyncHooks && asyncHooks.AsyncLocalStorage) if (typeof globalThis !== "undefined") {
-		if (!globalThis.__zintl_storage) globalThis.__zintl_storage = new asyncHooks.AsyncLocalStorage();
-		storeStorage = globalThis.__zintl_storage;
-	} else storeStorage = new asyncHooks.AsyncLocalStorage();
-} catch {}
-var I18nStore = class {
-	locale = "";
-	catalogs = {};
-	locales = [];
-	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;
-	pendingBoundaries = /* @__PURE__ */ new Set();
-	pendingPromises = [];
-	version = 0;
-	listeners = /* @__PURE__ */ new Set();
-	constructor() {
-		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
-		if (!this.locale && typeof window !== "undefined") try {
-			this.locale = localStorage.getItem("zintl-locale") || "";
-		} catch {}
-		if (!this.locale) try {
-			if (storeStorage) {
-				const active = storeStorage.getStore();
-				if (active && active !== this) this.locale = active.locale;
-			}
-		} catch {}
-		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
-	}
-	getLocales() {
-		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
-		return this.locales;
-	}
-	subscribe(listener) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-	notify() {
-		this.listeners.forEach((l) => l());
-	}
-	addCatalogs(newCatalogs) {
-		let changed = false;
-		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
-			if (!this.catalogs[locale]) this.catalogs[locale] = {};
-			for (const [boundaryId, messages] of Object.entries(boundaries)) {
-				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
-				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
-					this.catalogs[locale][boundaryId][key] = value;
-					changed = true;
-				}
-			}
-		}
-		if (changed) {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug("[Zintl] Catalogs updated:", Object.keys(newCatalogs).flatMap((l) => Object.keys(newCatalogs[l]).map((b) => \`\${l}/\${b}\`)));
-			this.notify();
-		}
-	}
-	async setLocale(locale) {
-		if (!locale) return;
-		if (typeof window !== "undefined") {
-			if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-			try {
-				localStorage.setItem("zintl-locale", locale);
-			} catch {}
-		}
-		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Switching to locale: \${locale}\`);
-		this.locale = locale;
-		const activePromises = [];
-		for (const [boundaryId, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				this.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) {
-				this.pendingBoundaries.add(boundaryId);
-				activePromises.push(result.then((res) => {
-					processResult(res);
-					this.pendingBoundaries.delete(boundaryId);
-				}));
-			} else processResult(result);
-		} catch (err) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load catalog for boundary "\${boundaryId}" (\${locale})\`, err);
-		}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		} else {
-			this.version++;
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) console.debug(\`[Zintl] Locale "\${locale}" hydrated.\`);
-			this.notify();
-		}
-	}
-	registerLoader(boundaryId, loader) {
-		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
-		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-	loadLazyBoundary(boundaryId, loader) {
-		if (this.catalogs[this.locale]?.[boundaryId]) return;
-		if (this.pendingBoundaries.has(boundaryId)) return;
-		this.pendingBoundaries.add(boundaryId);
-		try {
-			const result = loader(this.locale);
-			const processResult = (res) => {
-				this.pendingBoundaries.delete(boundaryId);
-				if (!res) return;
-				this.addCatalogs({ [this.locale]: res });
-			};
-			if (isThenable(result)) {
-				const p = result.then((res) => {
-					processResult(res);
-				}).catch(() => {
-					this.pendingBoundaries.delete(boundaryId);
-				});
-				this.pendingPromises.push(p);
-				return p;
-			} else processResult(result);
-		} catch {
-			this.pendingBoundaries.delete(boundaryId);
-		}
-	}
-};
-let globalRegistry;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
-	globalRegistry = globalThis.__zintl_registry;
-} else globalRegistry = /* @__PURE__ */ new Map();
-let defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
-	defaultInstance = globalThis.__zintl_default_instance;
-} else defaultInstance = new I18nStore();
-let currentInstance = defaultInstance;
-if (typeof globalThis !== "undefined") {
-	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
-	currentInstance = globalThis.__zintl_current_instance;
-}
-function getActiveInstance() {
-	if (storeStorage) {
-		const store = storeStorage.getStore();
-		if (store) return store;
-	}
-	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
-	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
-	if (typeof window !== "undefined") {
-		const inst = currentInstance;
-		const locales = inst.getLocales();
-		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
-		let targetLocale = "";
-		const pathname = window.location ? window.location.pathname : "";
-		if (pathname && locales.length > 0) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
-		}
-		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
-		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
-	}
-	return currentInstance;
-}
-function setActiveInstance(instance) {
-	currentInstance = instance;
-	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
-}
-function serializeValue(val) {
-	if (typeof val === "function") return val.toString();
-	if (val === null) return "null";
-	if (val === void 0) return "undefined";
-	if (typeof val === "string") return JSON.stringify(val);
-	if (typeof val === "number" || typeof val === "boolean") return val.toString();
-	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
-	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => \`\${JSON.stringify(k)}:\${serializeValue(v)}\`).join(",") + "}";
-	return "null";
-}
-function injectIntoStream(stream, store) {
-	const reader = stream.getReader();
-	const encoder = new TextEncoder();
-	const decoder = new TextDecoder();
-	let injected = false;
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { done, value } = await reader.read();
-				if (done) {
-					if (!injected) {
-						const catalogs = store.catalogs;
-						if (Object.keys(catalogs).length > 0) {
-							const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-							controller.enqueue(encoder.encode(script));
-						}
-						injected = true;
-					}
-					controller.close();
-					return;
-				}
-				let chunkText = "";
-				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
-				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</body>", \`\${script}</body>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\` : "";
-					chunkText = chunkText.replace("</html>", \`\${script}</html>\`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-			} catch (err) {
-				controller.error(err);
-			}
-		},
-		cancel(reason) {
-			return reader.cancel(reason);
-		}
-	});
-}
-function injectBakedCatalogs(result, store) {
-	if (!result || !store) return result;
-	if (typeof Response !== "undefined" && result instanceof Response) {
-		if (result.body && typeof result.body.getReader === "function") {
-			const transformedBody = injectIntoStream(result.body, store);
-			return new Response(transformedBody, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		}
-		return result.text().then((html) => {
-			if (html.includes("</body>") || html.includes("</html>")) {
-				const modifiedHtml = injectBakedCatalogs(html, store);
-				return new Response(modifiedHtml, {
-					status: result.status,
-					statusText: result.statusText,
-					headers: result.headers
-				});
-			}
-			return new Response(html, {
-				status: result.status,
-				statusText: result.statusText,
-				headers: result.headers
-			});
-		});
-	}
-	if (typeof result === "string") {
-		const catalogs = store.catalogs;
-		if (Object.keys(catalogs).length > 0) {
-			const script = \`<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = \${serializeValue(catalogs)};window.__zintl_locales = \${JSON.stringify(store.locales)};<\\/script>\`;
-			if (result.includes("</body>")) return result.replace("</body>", \`\${script}</body>\`);
-			if (result.includes("</html>")) return result.replace("</html>", \`\${script}</html>\`);
-			const lower = result.toLowerCase();
-			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
-			return result;
-		}
-	}
-	if (typeof result === "object") {
-		if (typeof result.getReader === "function") return injectIntoStream(result, store);
-		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
-		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
-		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
-		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
-	}
-	return result;
-}
-function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
-	if (typeof window === "undefined" && storeStorage) {
-		let locale = defaultLocale;
-		if (urlOrReq) {
-			let pathname = "";
-			const extractPath = (val) => {
-				if (!val) return "";
-				if (typeof val === "string") return val;
-				if (typeof val === "object") {
-					if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
-					if (typeof val.path === "string") return val.path;
-					if (typeof val.pathname === "string") return val.pathname;
-					if (val.navigationContext) {
-						const nav = val.navigationContext;
-						if (typeof nav.pathname === "string") return nav.pathname;
-					}
-				}
-				return "";
-			};
-			if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
-				pathname = extractPath(arg);
-				if (pathname) break;
-			}
-			else pathname = extractPath(urlOrReq);
-			if (pathname) {
-				pathname = pathname.split("?")[0].split("#")[0];
-				if (pathname.includes("://")) try {
-					pathname = new URL(pathname).pathname;
-				} catch {
-					pathname = pathname.replace(/^https?:\\/\\/[^/]+/, "");
-				}
-				else {
-					pathname = pathname.replace(/^[^/]+:\\d+/, "");
-					pathname = pathname.replace(/^[^/]+\\.[^/]+/, "");
-				}
-				const parts = pathname.split("/").filter(Boolean);
-				if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
-			}
-		}
-		const store = new I18nStore();
-		store.locale = locale;
-		store.locales = locales;
-		if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
-		const promises = [];
-		for (const [_, loader] of globalRegistry.entries()) try {
-			const result = loader(locale);
-			const processResult = (res) => {
-				if (!res) return;
-				store.addCatalogs({ [locale]: res });
-			};
-			if (isThenable(result)) promises.push(result.then((res) => {
-				processResult(res);
-			}));
-			else processResult(result);
-		} catch {}
-		const runCallback = () => {
-			return storeStorage.run(store, () => {
-				const result = callback();
-				const processStorePromisesAndInject = (resolvedResult) => {
-					if (store.pendingPromises.length > 0) {
-						const currentPromises = [...store.pendingPromises];
-						store.pendingPromises = [];
-						return Promise.all(currentPromises).then(() => {
-							return processStorePromisesAndInject(resolvedResult);
-						});
-					}
-					return injectBakedCatalogs(resolvedResult, store);
-				};
-				if (result && typeof result.then === "function") return result.then((resolvedResult) => {
-					return processStorePromisesAndInject(resolvedResult);
-				});
-				if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
-				return injectBakedCatalogs(result, store);
-			});
-		};
-		if (promises.length > 0) return Promise.all(promises).then(runCallback);
-		return runCallback();
-	}
-	return callback();
-}
-function registerLoader(boundaryId, loader) {
-	globalRegistry.set(boundaryId, loader);
-	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
-	try {
-		const result = loader(instance.locale);
-		const processResult = (res) => {
-			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
-		};
-		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
-			if (instance.pendingPromises) instance.pendingPromises.push(p);
-			return p;
-		} else processResult(result);
-	} catch (err) {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.error(\`[Zintl] Failed to load initial catalog for boundary "\${boundaryId}"\`, err);
-	}
-}
-function unregisterLoader(boundaryId) {
-	globalRegistry.delete(boundaryId);
-}
-function setLocale(locale) {
-	return getActiveInstance().setLocale(locale);
-}
-function getLocale() {
-	return getActiveInstance().locale;
-}
-function subscribe(listener) {
-	return getActiveInstance().subscribe(listener);
-}
-function addCatalogs(catalogs) {
-	return getActiveInstance().addCatalogs(catalogs);
-}
-function getStoreVersion() {
-	return getActiveInstance().version;
-}
-function isThenable(obj) {
-	return obj && typeof obj.then === "function";
-}
-if (typeof window !== "undefined") {
-	const syncLocale = () => {
-		const inst = getActiveInstance();
-		const locales = inst.getLocales();
-		if (locales.length === 0) return;
-		const pathname = window.location.pathname;
-		if (pathname) {
-			const parts = pathname.split("/").filter(Boolean);
-			if (parts.length > 0 && locales.includes(parts[0])) {
-				if (inst.locale !== parts[0]) {
-					inst.setLocale(parts[0]);
-					return;
-				}
-			}
-		}
-		if (typeof document !== "undefined" && document.documentElement) {
-			const docLang = document.documentElement.lang;
-			if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
-		}
-	};
-	window.addEventListener("popstate", syncLocale);
-	const origPush = window.history.pushState;
-	if (origPush) window.history.pushState = function(...args) {
-		origPush.apply(this, args);
-		syncLocale();
-	};
-	const origReplace = window.history.replaceState;
-	if (origReplace) window.history.replaceState = function(...args) {
-		origReplace.apply(this, args);
-		syncLocale();
-	};
-	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
-		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
-	}).observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ["lang"]
-	});
-	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
-	else syncLocale();
-}
-//#endregion
-//#region src/runtime/resolver.ts
-function _t(key, params = {}, options) {
-	const instance = getActiveInstance();
-	const catalogs = instance.catalogs;
-	const locale = instance.locale;
-	const effectiveParams = options ? {
-		...params,
-		...options
-	} : params;
-	const mgr = effectiveParams._mgr;
-	const boundaryId = mgr?.id;
-	const targetBId = effectiveParams._bId || boundaryId;
-	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
-	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = mgr.loader(locale);
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader) Promise.resolve().then(() => {
-			instance.loadLazyBoundary(mgr.id, mgr.loader);
-		});
-		if (message === void 0) {
-			if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" in boundary "\${targetBId || boundaryId}". Triggering hydration...\`);
-			return \`\`;
-		}
-	} else {
-		if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") console.warn(\`[Zintl] Missing key "\${key}" and no manager provided.\`);
-		return \`\`;
-	}
-	if (typeof message === "function") return message(params);
-	if (typeof message !== "string") return "";
-	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
-	let interpolated = interpolate(message, restParams);
-	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}/>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias} />\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`<\${entry.alias}>\`, entry.originalOpen);
-		interpolated = interpolated.replaceAll(\`</\${entry.alias}>\`, \`</\${entry.tagName}>\`);
-	}
-	return interpolated;
-}
-function interpolate(message, params) {
-	if (message === null || message === void 0) return "";
-	return String(message).replace(/\\{(\\w+)\\}/g, (match, key) => {
-		return params[key]?.toString() ?? match;
-	});
-}
-//#endregion
-//#region src/runtime/registry.ts
-/**
-* A helper for the Zintl compiler to register a boundary loader.
-* This is designed to be called with a minimal footprint in the transformed source.
-*/
-function registerZintlLoader(boundaryId, loader) {
-	return registerLoader(boundaryId, loader);
-}
-//#endregion
+"import { I18nStore, addCatalogs, getActiveInstance, getLocale, getStoreVersion, registerLoader, runInRequestScope, setActiveInstance, setLocale, subscribe, unregisterLoader } from "./store.js";
+import { _t } from "./resolver.js";
+import { registerZintlLoader } from "./registry.js";
 //#region src/runtime/internal.ts
 async function zintl(locale) {
 	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");

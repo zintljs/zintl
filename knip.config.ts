@@ -34,7 +34,7 @@ const config: KnipConfig = {
     "vpr",
   ],
   ignoreDependencies: ["vite", "@vitest/coverage-v8"],
-  exclude: ["catalog", "exports", "types"],
+  exclude: ["catalog"],
   ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
   vitest: true,
   vite: true,

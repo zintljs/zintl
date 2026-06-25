@@ -90,6 +90,31 @@ class ZintlCompiler {
 - Ensures translation stability across file moves/renames
 - Generated using SHA-1 of file path + content
 
+## Adapter Architecture
+
+Zintl decouples framework-specific and toolchain-specific capabilities into a modular, conflict-free **Adapter Architecture**. Rather than using scattered framework conditionals and booleans, behavior is resolved at compiler instantiation by combining discrete adapters.
+
+### Core Principles
+
+- **Discrete Concerns**: System capabilities are separated by concern, not bundled together (e.g., `["react", "ssr", "vite", "client-spa"]` rather than a monolith React-SSR adapter).
+- **Sub-Interfaces**: Subsystems define narrow interfaces to avoid interface bloat:
+  - `ExtractionAdapter`: Defines targets and files to scan.
+  - `CodegenAdapter`: Implements per-file string wrapping and JSX conversions (matched via `match()`).
+  - `SsrAdapter`: Implements server-side render function wrapping and request-scoped executions.
+  - `RuntimeAdapter`: Declares active runtime capabilities (like client-side auto-sync or server-side store-scoping).
+  - `BundlerAdapter`: Integrates with the build tool (e.g. virtual path resolution, dynamic imports, HMR injection).
+- **Conflict Detection**: Array and boolean capabilities are merged via Union/OR, while function hooks use first-contributor-wins with conflict detection. If two adapters claim the same file extension or provide conflicting bundler hooks, Zintl throws an error.
+
+### Runtime Splitting
+
+To optimize client-side bundle sizes and avoid shipping environment-specific code to vanilla environments, the core reactive store is split into:
+
+1. `store-core.ts`: Contains the standard reactive store logic, loaders registry, and translation resolver.
+2. `store-client.ts`: Contains client-side SPA history popstate monkeypatches and `MutationObserver` for syncing language changes. Gated by the `clientLocaleSync` capability.
+3. `store-server.ts`: Contains Node.js `AsyncLocalStorage`-based request scoping and HTML response/stream injector. Gated by the `serverRequestScope` capability.
+
+The compiler's `getRuntimeCode()` dynamically composes `store.js` exports at runtime based on these resolved capabilities.
+
 ## Development Workflow
 
 ### Using Vite+, the Unified Toolchain for the Web

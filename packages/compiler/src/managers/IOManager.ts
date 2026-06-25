@@ -10,6 +10,7 @@ import {
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
 import type { ZintlOptions, ZintlLogger } from "../types/index.js";
+import { resolveAdapters } from "../adapter/resolve.js";
 
 /**
  * Handles all I/O operations, formatting, and hashing.
@@ -29,9 +30,12 @@ export class IOManager {
     private readonly isDev: boolean,
     private readonly logger: ZintlLogger,
     _options: ZintlOptions,
+    resolvedExtensions?: string[],
+    resolvedAdapters?: any[],
   ) {
-    this.extensions = _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
-    this.adapters = _options.adapters;
+    this.extensions = resolvedExtensions ||
+      _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+    this.adapters = resolvedAdapters || resolveAdapters(_options.adapters).adapters;
     const metaDir = _options.metadataDir
       ? isAbsolute(_options.metadataDir)
         ? _options.metadataDir
@@ -122,7 +126,7 @@ export class IOManager {
         return this.extensions.filter((ext) => matchFn("dummy" + ext));
       })
       .flat();
-    const keepExts = [".html", ...sfcExts];
+    const keepExts = [".html", ".tsx", ".jsx", ...sfcExts];
     const stripExts = this.extensions.filter(
       (ext) => !keepExts.some((k) => k.toLowerCase() === ext.toLowerCase()),
     );
@@ -162,7 +166,6 @@ export class IOManager {
 
   public async safeWriteFile(path: string | null, content: string) {
     if (!path) return;
-
     let finalContent = content;
     if (path.endsWith(".json")) {
       finalContent = this.formatJson(content);

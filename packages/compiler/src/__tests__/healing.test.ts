@@ -33,7 +33,7 @@ describe("Quantum Variable Healing", () => {
     await compiler.transform(codeV1, filePath, "virtual:zintl/content");
 
     // 2. Add an Arabic translation using '{name}'
-    const bId = "src/Hero:Hero";
+    const bId = "src/Hero.tsx:Hero";
     const arPath = compiler.getCatalogPath(bId, "ar")!;
     await mkdir(dirname(arPath), { recursive: true });
     await writeFile(arPath, JSON.stringify({ "Hello {name}": "أهلاً {name}" }));
