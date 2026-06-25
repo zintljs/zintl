@@ -8,15 +8,19 @@ import type {
   BakingIntent,
   VariableBinding,
   ZintlConfig,
-  TargetAdapter,
 } from "../types/index.js";
+import type { CodegenAdapter } from "../adapter/types.js";
 
-function findAdapter(
+/**
+ * Find the codegen adapter for a given file path.
+ * Uses the resolved adapter hooks — never the old TargetAdapter array.
+ */
+function findCodegen(
   filePath: string | undefined,
-  adapters: TargetAdapter[] | undefined,
-): TargetAdapter | undefined {
-  if (!filePath || !adapters) return undefined;
-  return adapters.find((a) => a.match(filePath));
+  config: ZintlConfig,
+): CodegenAdapter | undefined {
+  if (!filePath || !config.hooks?.codegenAdapters) return undefined;
+  return config.hooks.codegenAdapters.find((a) => a.match(filePath));
 }
 
 const PRIORITY = {
@@ -38,26 +42,14 @@ const translatableAttrs = new Set([
   "tooltip",
 ]);
 
-function convertJsxToHtmlTemplate(tagOpen: string): string {
-  // Convert className to class
-  let html = tagOpen.replace(/\bclassName=/g, "class=");
-  // Convert attr={expression} to attr="${expression}"
-  html = html.replace(/([a-zA-Z0-9_-]+)=\{([^}]+)\}/g, (match, attrName, expr) => {
-    return `${attrName}="\${${expr.trim()}}"`;
-  });
-  return html;
+/** Default tag serialization when no codegen adapter provides serializeTags. */
+function defaultSerializeTags(tags: any[]): string {
+  return JSON.stringify(tags);
 }
 
-function serializeTags(tags: any[], isReact: boolean): string {
-  if (!isReact) {
-    return JSON.stringify(tags);
-  }
-  const items = tags.map((entry: any) => {
-    const htmlTemplate = convertJsxToHtmlTemplate(entry.originalOpen);
-    const escapedHtml = htmlTemplate.replace(/`/g, "\\`").replace(/\bclassName=/g, "class=");
-    return `{ alias: ${JSON.stringify(entry.alias)}, originalOpen: \`${escapedHtml}\`, tagName: ${JSON.stringify(entry.tagName)} }`;
-  });
-  return `[${items.join(", ")}]`;
+/** Default convertToHtmlTemplate when no codegen adapter provides one. */
+function defaultConvertToHtmlTemplate(tagOpen: string): string {
+  return tagOpen;
 }
 
 /**
@@ -110,11 +102,16 @@ export function resolveRewrites(
           );
         }
 
-        const adapter = findAdapter(filePath, config.adapters);
-        const isReact = adapter ? !!adapter.jsx : false;
+        const adapter = findCodegen(filePath, config);
+        const isJsxRichText = !!adapter?.wrapJsxRichText;
+        const convertFn = adapter?.convertToHtmlTemplate ?? defaultConvertToHtmlTemplate;
 
         if (intent.sink.tagMap && intent.sink.tagMap.length) {
-          replacement = reconstructTags(replacement, intent.sink.tagMap, isReact);
+          replacement = reconstructTags(
+            replacement,
+            intent.sink.tagMap,
+            isJsxRichText ? convertFn : undefined,
+          );
         }
 
         let finalReplacement = replacement;
@@ -144,14 +141,14 @@ export function resolveRewrites(
 
         const tMap = intent.sink.tagMap || [];
         const hasTags = hasUsedTags(replacement, tMap) || hasUsedTags(intent.sink.text, tMap);
-        const isReactJsxText =
-          isReact &&
+        const isJsxRichTextPassthrough =
+          isJsxRichText &&
           intent.sink.requiresJsxBraces &&
           hasTags &&
           !translatableAttrs.has(intent.sink.sinkType);
 
-        if (isReactJsxText) {
-          finalReplacement = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${finalReplacement} }} />`;
+        if (isJsxRichTextPassthrough) {
+          finalReplacement = adapter!.wrapJsxRichText!(finalReplacement);
           finalReplacement = `{${finalReplacement}}`;
         } else if (intent.sink.sinkType === "HTML_TEXT") {
           const hasVars = intent.sink.variables && intent.sink.variables.length > 0;
@@ -333,14 +330,14 @@ function generateSinkWrapRewrite(
     intent.isDev && intent.sink.text ? intent.sink.text : intent.messageId || intent.sink.text;
 
   let tagsPart = "";
-  const adapter = findAdapter(filePath, config.adapters);
-  const isSfc = adapter ? !!adapter.sfc : false;
-  const quoteFn = isSfc ? (s: string) => jsString(s, true) : JSON.stringify;
+  const adapter = findCodegen(filePath, config);
+  const isSfc = !!adapter?.wrapSfcScript;
+  const quoteFn = adapter?.quoteLiteral ?? JSON.stringify;
 
   const tMap = intent.sink.tagMap || [];
   const hasTags = hasUsedTags(intent.sink.text, tMap);
 
-  const isReact = adapter ? !!adapter.jsx : false;
+  const isJsxRichText = !!adapter?.wrapJsxRichText;
 
   if (intent.sink.text && hasTags) {
     const usedTags = tMap.filter(
@@ -351,9 +348,10 @@ function generateSinkWrapRewrite(
         intent.sink.text.includes(`<${entry.alias} />`),
     );
     if (usedTags.length > 0) {
+      const serializeFn = adapter?.serializeTags ?? defaultSerializeTags;
       const tagsStr = isSfc
         ? `JSON.parse(${jsString(JSON.stringify(usedTags), true)})`
-        : serializeTags(usedTags, !!isReact);
+        : serializeFn(usedTags);
       tagsPart = `, _tags: ${tagsStr}`;
     }
   }
@@ -372,14 +370,14 @@ function generateSinkWrapRewrite(
       replacement = adapter.wrapHtmlAttribute(attrName, replacement, true);
     }
   }
-  const isReactJsxText =
-    isReact &&
+  const isJsxRichTextSink =
+    isJsxRichText &&
     intent.sink.requiresJsxBraces &&
     hasTags &&
     !translatableAttrs.has(intent.sink.sinkType);
 
-  if (isReactJsxText) {
-    replacement = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
+  if (isJsxRichTextSink) {
+    replacement = adapter!.wrapJsxRichText!(replacement);
   }
 
   if (intent.sink.requiresJsxBraces) {
@@ -409,12 +407,16 @@ function generateManualTRewrite(intent: ManualTRewriteIntent): ResolvedRewrite {
   };
 }
 
-function reconstructTags(text: string, tagMap: any[], isReact?: boolean): string {
+function reconstructTags(
+  text: string,
+  tagMap: any[],
+  convertFn?: (tagOpen: string) => string,
+): string {
   let result = text;
   for (const entry of tagMap) {
     let open = entry.originalOpen;
-    if (isReact) {
-      open = convertJsxToHtmlTemplate(open);
+    if (convertFn) {
+      open = convertFn(open);
     }
     result = result.replaceAll(`<${entry.alias}/>`, open);
     result = result.replaceAll(`<${entry.alias} />`, open);
@@ -429,14 +431,15 @@ function generateBakeRewrite(
   config: ZintlConfig,
   filePath?: string,
 ): ResolvedRewrite {
-  const adapter = findAdapter(filePath, config.adapters);
-  const isReact = adapter ? !!adapter.jsx : false;
+  const adapter = findCodegen(filePath, config);
+  const isJsxRichText = !!adapter?.wrapJsxRichText;
+  const convertFn = adapter?.convertToHtmlTemplate ?? defaultConvertToHtmlTemplate;
   let baked = bakeTranslation(
     intent.translation,
     intent.variables || [],
     intent.sink.isFragment,
     intent.tagMap,
-    isReact,
+    isJsxRichText ? convertFn : undefined,
   );
   const tMap = intent.tagMap || intent.sink.tagMap || [];
   const hasTags = hasUsedTags(baked, tMap) || hasUsedTags(intent.sink.text, tMap);
@@ -485,14 +488,14 @@ function generateBakeRewrite(
       baked = `${attrName}="${rawVal.replace(/"/g, "&quot;")}"`;
     }
   }
-  const isReactJsxText =
-    isReact &&
+  const isJsxRichTextBake =
+    isJsxRichText &&
     intent.sink.requiresJsxBraces &&
     hasTags &&
     !translatableAttrs.has(intent.sink.sinkType);
 
-  if (isReactJsxText) {
-    baked = `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${baked} }} />`;
+  if (isJsxRichTextBake) {
+    baked = adapter!.wrapJsxRichText!(baked);
   }
 
   if (intent.sink.requiresJsxBraces) {
@@ -528,7 +531,7 @@ function bakeTranslation(
   variables: VariableBinding[],
   isFragment: boolean = false,
   tagMap?: any[],
-  isReact?: boolean,
+  convertFn?: (tagOpen: string) => string,
 ): string {
   if (typeof translation === "string") {
     let replaced = translation;
@@ -547,7 +550,7 @@ function bakeTranslation(
       );
     }
     if (tagMap && tagMap.length) {
-      replaced = reconstructTags(replaced, tagMap, isReact);
+      replaced = reconstructTags(replaced, tagMap, convertFn);
     }
     return isFragment
       ? replaced
@@ -556,7 +559,7 @@ function bakeTranslation(
         : JSON.stringify(replaced);
   }
   return typeof translation === "object"
-    ? buildTernary(Object.entries(translation), variables, 0, tagMap, isReact)
+    ? buildTernary(Object.entries(translation), variables, 0, tagMap, convertFn)
     : '""';
 }
 
@@ -565,7 +568,7 @@ function buildTernary(
   variables: VariableBinding[],
   index: number,
   tagMap?: any[],
-  isReact?: boolean,
+  convertFn?: (tagOpen: string) => string,
 ): string {
   if (index >= entries.length) return '""';
   const [condition, text] = entries[index];
@@ -594,9 +597,9 @@ function buildTernary(
     (match, key) => varMap.get(key.trim()) || match,
   );
   if (tagMap && tagMap.length) {
-    translatedText = reconstructTags(translatedText, tagMap, isReact);
+    translatedText = reconstructTags(translatedText, tagMap, convertFn);
   }
-  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1, tagMap, isReact)}`;
+  return `(${jsCondition}) ? \`${translatedText}\` : ${buildTernary(entries, variables, index + 1, tagMap, convertFn)}`;
 }
 
 function parseConditionToJS(condition: string, variables: VariableBinding[]): string {

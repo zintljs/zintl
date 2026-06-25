@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { apply } from "../../pipeline/apply.js";
+import { resolveAdapters } from "../../adapter/resolve.js";
 import MagicString from "magic-string";
 import type { ResolvedPlan } from "../../pipeline/types.js";
 
@@ -12,17 +13,23 @@ const mockLogger = {
 
 const vueAdapter = {
   name: "vue",
-  match: (filePath: string) => filePath.endsWith(".vue"),
-  sfc: true,
-  wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
+  codegen: {
+    extensions: [".vue"],
+    match: (filePath: string) => filePath.endsWith(".vue"),
+    wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
+  },
 };
 
 const svelteAdapter = {
   name: "svelte",
-  match: (filePath: string) => filePath.endsWith(".svelte"),
-  sfc: true,
-  wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
+  codegen: {
+    extensions: [".svelte"],
+    match: (filePath: string) => filePath.endsWith(".svelte"),
+    wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
+  },
 };
+
+const { capabilities, hooks } = resolveAdapters([vueAdapter, svelteAdapter]);
 
 const mockConfig = {
   sourceLocale: "en",
@@ -30,7 +37,9 @@ const mockConfig = {
   outputDir: "locales",
   isDev: true,
   root: "/root",
-  adapters: [vueAdapter, svelteAdapter],
+  adapters: [vueAdapter, svelteAdapter] as any[],
+  capabilities,
+  hooks,
 };
 
 describe("Pipeline Phase 4: apply()", () => {

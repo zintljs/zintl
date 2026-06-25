@@ -13,6 +13,10 @@ export interface AssetTargetConfig {
   outputPattern?: string;
 }
 
+/**
+ * @deprecated Use ZintlAdapter from the adapter system instead.
+ * This legacy type is kept for backward compatibility and will be removed in the next release.
+ */
 export interface TargetAdapter {
   name: string;
   match: (filePath: string) => boolean;
@@ -22,6 +26,9 @@ export interface TargetAdapter {
   wrapHtmlAttribute?: (attrName: string, replacement: string, hasVars: boolean) => string;
   wrapSfcScript?: (code: string) => string;
 }
+
+// Re-export the canonical adapter types from the adapter module
+export type { ZintlAdapter, ResolvedCapabilities, MergedAdapterHooks } from "../adapter/index.js";
 
 export interface ZintlOptions {
   sourceLocale?: string;
@@ -40,8 +47,18 @@ export interface ZintlOptions {
   vitePlugins?: readonly any[];
   virtualAssets?: boolean;
   extensions?: string[];
-  adapters?: TargetAdapter[];
-  hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
+  /**
+   * Adapter list. Accepts preset name strings ("react", "vue", "vite", etc.)
+   * or ZintlAdapter objects for custom behavior.
+   * @example adapters: ["react", "vite", "client-spa"]
+   */
+  adapters?: (string | import("../adapter/index.js").ZintlAdapter)[];
+
+  // ── Legacy options (deprecated — migrate to adapters) ───────────────────
+  // These are auto-wrapped into a "legacy-options" custom adapter on construction
+  // and a deprecation warning is emitted in dev mode.
+
+  /** @deprecated Move ssrWrapCode into a ZintlAdapter with an ssr.wrapCode hook */
   ssrWrapCode?: (params: {
     code: string;
     fileId: string;
@@ -49,10 +66,17 @@ export interface ZintlOptions {
     locales: string[];
     sourceLocale: string;
   }) => string | undefined;
+  /** @deprecated Move ssrEntryTargets into a ZintlAdapter with an ssr.entryTargets array */
   ssrEntryTargets?: (string | RegExp | ((id: string) => boolean))[];
+  /** @deprecated Move ssrWrapExports into a ZintlAdapter with an ssr.wrapExports array */
   ssrWrapExports?: string[];
+  /** @deprecated Move ssrWrapDefault into a ZintlAdapter with an ssr.wrapDefault field */
   ssrWrapDefault?: boolean | "fetch";
+  /** @deprecated Move hmrInjectionCode into a ZintlAdapter with a bundler.hmrInjectionCode hook */
+  hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
+  /** @deprecated Move resolveVirtualPath into a ZintlAdapter with a bundler.resolveVirtualPath hook */
   resolveVirtualPath?: (id: string) => string;
+  /** @deprecated Move dynamicImportTemplate into a ZintlAdapter with a bundler.dynamicImportTemplate hook */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 

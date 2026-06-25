@@ -9,48 +9,52 @@ import { runInRequestScope, I18nStore, getActiveInstance } from "../runtime/stor
 type LocalContext = TestContext & { compiler?: ZintlCompiler };
 
 const vueAdapter = {
-  name: "vue",
-  match: (filePath: string) => filePath.endsWith(".vue"),
-  sfc: true,
-  wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
-  wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
-    if (hasVars) {
-      if (hasTags) {
-        return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;
-      } else {
-        return `{{ ${replacement} }}`;
+  name: "vue-test",
+  codegen: {
+    extensions: [".vue"],
+    match: (filePath: string) => filePath.endsWith(".vue"),
+    wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
+    wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
+      if (hasVars) {
+        if (hasTags) {
+          return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;
+        } else {
+          return `{{ ${replacement} }}`;
+        }
       }
-    }
-    return replacement;
-  },
-  wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
-    if (hasVars) {
-      return `:${attrName}="${replacement}"`;
-    }
-    return replacement;
+      return replacement;
+    },
+    wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
+      if (hasVars) {
+        return `:${attrName}="${replacement}"`;
+      }
+      return replacement;
+    },
   },
 };
 
 const svelteAdapter = {
-  name: "svelte",
-  match: (filePath: string) => filePath.endsWith(".svelte"),
-  sfc: true,
-  wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
-  wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
-    if (hasVars) {
-      if (hasTags) {
-        return `{@html ${replacement} }`;
-      } else {
-        return `{ ${replacement} }`;
+  name: "svelte-test",
+  codegen: {
+    extensions: [".svelte"],
+    match: (filePath: string) => filePath.endsWith(".svelte"),
+    wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
+    wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
+      if (hasVars) {
+        if (hasTags) {
+          return `{@html ${replacement} }`;
+        } else {
+          return `{ ${replacement} }`;
+        }
       }
-    }
-    return replacement;
-  },
-  wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
-    if (hasVars) {
-      return `${attrName}={${replacement}}`;
-    }
-    return replacement;
+      return replacement;
+    },
+    wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
+      if (hasVars) {
+        return `${attrName}={${replacement}}`;
+      }
+      return replacement;
+    },
   },
 };
 
@@ -158,6 +162,8 @@ zintl("ar");
       await prodCompiler.flush();
 
       const result = await prodCompiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
+      if (!result) console.log("[DEBUG] transform returned undefined");
+      else console.log("[DEBUG] result.code:", result.code.slice(0, 300));
       expect(result).toBeDefined();
 
       const transformedCode = result!.code;

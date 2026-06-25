@@ -31,8 +31,23 @@ export const apply: ApplyFn = (
   let needsScriptWrapper = false;
   let sfcAdapter: any = null;
 
-  if (filePath && config?.adapters) {
-    sfcAdapter = config.adapters.find((a) => a.match(filePath) && a.sfc);
+  if (filePath && config?.hooks?.codegenAdapters) {
+    sfcAdapter = config.hooks.codegenAdapters.find((a) => a.match(filePath) && !!a.wrapSfcScript);
+    if (sfcAdapter) {
+      const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
+      const normalMatch = /<script\b[^>]*>/i.exec(source);
+      const match = setupMatch || normalMatch;
+      if (match) {
+        insertIndex = match.index + match[0].length;
+      } else {
+        needsScriptWrapper = true;
+      }
+    }
+  } else if (filePath && config?.adapters) {
+    // Legacy fallback: old TargetAdapter[] shape (deprecated)
+    sfcAdapter = (config.adapters as any[]).find(
+      (a) => typeof a.match === "function" && a.match(filePath) && a.sfc,
+    );
     if (sfcAdapter) {
       const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
       const normalMatch = /<script\b[^>]*>/i.exec(source);

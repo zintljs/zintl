@@ -10,9 +10,13 @@ import type {
 function stripExtensions(id: string, extensions?: string[], adapters?: any[]): string {
   const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
   const sfcExts = (adapters || [])
-    .filter((a) => a.sfc)
     .map((a) => {
-      return exts.filter((ext) => a.match("dummy" + ext));
+      const codegen = a.codegen || a;
+      const isSfc = a.codegen ? !!a.codegen.wrapSfcScript : !!a.sfc;
+      if (!isSfc) return [];
+      const matchFn = codegen.match || a.match;
+      if (!matchFn) return [];
+      return exts.filter((ext) => matchFn("dummy" + ext));
     })
     .flat();
   const keepExts = [".html", ...sfcExts];

@@ -27,6 +27,7 @@ import {
   type AssetTargetConfig,
   type AssetMergeStrategy,
 } from "./types/index.js";
+import { resolveAdapters, type ResolvedAdapters, type ZintlAdapter } from "./adapter/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -38,6 +39,14 @@ import { AssetManager } from "./managers/AssetManager.js";
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
 export type { ZintlOptions, ZintlLogger, LogLevel, AssetTargetConfig, AssetMergeStrategy };
+export type {
+  ZintlAdapter,
+  ResolvedCapabilities,
+  MergedAdapterHooks,
+  ResolvedAdapters,
+} from "./adapter/index.js";
+export { resolveAdapters, registerPreset } from "./adapter/index.js";
+export * from "./adapter/presets/index.js";
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -48,6 +57,9 @@ export class ZintlCompiler {
   public readonly assets: AssetManager;
   public readonly ssrBoundaries = new Set<string>();
   public readonly clientBoundaries = new Set<string>();
+
+  /** Pre-resolved adapter capabilities + hooks. Set in constructor. */
+  public readonly _resolved: ResolvedAdapters;
 
   private graphDirty = true;
   private readonly extensions: string[];
@@ -90,7 +102,7 @@ export class ZintlCompiler {
   }
 
   public isSsrEntryTarget(id: string): boolean {
-    const targets = this._options?.ssrEntryTargets;
+    const targets = this._resolved.hooks.ssrEntryTargets;
     if (!targets || targets.length === 0) return false;
     const cleanId = id.startsWith("\0") ? id.slice(1) : id;
     return targets.some((target) => {
@@ -128,7 +140,78 @@ export class ZintlCompiler {
     options.targets = targets;
     options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
-    this.extensions = options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+
+    // ── Resolve Adapters ──────────────────────────────────────────────────────
+    // Build the adapter input list. Start with user-provided adapters.
+    const adapterInputs: (string | ZintlAdapter)[] = [...(options.adapters || [])];
+
+    // Auto-wrap legacy top-level options into a custom "legacy-options" adapter.
+    // This keeps backward compat while emitting deprecation guidance.
+    const hasLegacy =
+      options.ssrWrapCode ||
+      options.ssrEntryTargets?.length ||
+      options.ssrWrapExports?.length ||
+      options.ssrWrapDefault !== undefined ||
+      options.hmrInjectionCode ||
+      options.resolveVirtualPath ||
+      options.dynamicImportTemplate;
+
+    if (hasLegacy) {
+      // Only warn in dev or non-production.
+      if (isDev || process.env.NODE_ENV !== "production") {
+        const legacyFields = [
+          options.ssrWrapCode && "ssrWrapCode",
+          options.ssrEntryTargets?.length && "ssrEntryTargets",
+          options.ssrWrapExports?.length && "ssrWrapExports",
+          options.ssrWrapDefault !== undefined && "ssrWrapDefault",
+          options.hmrInjectionCode && "hmrInjectionCode",
+          options.resolveVirtualPath && "resolveVirtualPath",
+          options.dynamicImportTemplate && "dynamicImportTemplate",
+        ]
+          .filter(Boolean)
+          .join(", ");
+        console.warn(
+          `[Zintl] Deprecation: The following options have moved to the adapter system: ${legacyFields}.\n` +
+            `  Migrate them into a ZintlAdapter object passed to the 'adapters' option.\n` +
+            `  These legacy fields will be removed in the next release.`,
+        );
+      }
+
+      const legacyAdapter: ZintlAdapter = {
+        name: "legacy-options",
+        ...(options.ssrWrapCode ||
+        options.ssrEntryTargets ||
+        options.ssrWrapExports ||
+        options.ssrWrapDefault !== undefined
+          ? {
+              ssr: {
+                entryTargets: options.ssrEntryTargets,
+                wrapCode: options.ssrWrapCode as any,
+                wrapExports: options.ssrWrapExports,
+                wrapDefault: options.ssrWrapDefault,
+              },
+            }
+          : {}),
+        ...(options.hmrInjectionCode || options.resolveVirtualPath || options.dynamicImportTemplate
+          ? {
+              bundler: {
+                hmrInjectionCode: options.hmrInjectionCode,
+                resolveVirtualPath: options.resolveVirtualPath,
+                dynamicImportTemplate: options.dynamicImportTemplate,
+              },
+            }
+          : {}),
+      };
+      adapterInputs.push(legacyAdapter);
+    }
+
+    this._resolved = resolveAdapters(adapterInputs);
+    // ──────────────────────────────────────────────────────────────────
+
+    this.extensions =
+      options.extensions || this._resolved.hooks.extensions.length > 0
+        ? options.extensions || this._resolved.hooks.extensions
+        : [".ts", ".tsx", ".js", ".jsx", ".html"];
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
     this.root = root;
@@ -191,17 +274,11 @@ export class ZintlCompiler {
   }
 
   public resolveVirtualPath(id: string): string {
-    if (this._options.resolveVirtualPath) {
-      return this._options.resolveVirtualPath(id);
-    }
-    return id;
+    return this._resolved.hooks.resolveVirtualPath(id);
   }
 
   public generateDynamicImport(path: string): string {
-    if (this._options.dynamicImportTemplate) {
-      return this._options.dynamicImportTemplate(path, this.isDev);
-    }
-    return `import(${this.isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
+    return this._resolved.hooks.dynamicImportTemplate(path, this.isDev);
   }
 
   public get internalManifest() {
@@ -1317,8 +1394,8 @@ export class ZintlCompiler {
 
     let finalCode = result.code;
     let ssrWrapped = false;
-    if (ssr && this._options.ssrWrapCode) {
-      const wrapped = this._options.ssrWrapCode({
+    if (ssr && this._resolved.hooks.ssrWrapCode) {
+      const wrapped = this._resolved.hooks.ssrWrapCode({
         code: finalCode,
         fileId,
         isEntry: this.isEntry(fileId) || isTargetSsrEntry,
@@ -1386,7 +1463,7 @@ export class ZintlCompiler {
         }
 
         // 2. Generic Default Export Wrapping
-        if (this._options.ssrWrapDefault) {
+        if (this._resolved.hooks.ssrWrapDefault) {
           const defaultExportRegex = /(^|\n)export\s+default\b/;
           const exportBlockRegex = /export\s*\{([^}]+)\}/g;
           let hasDefault = defaultExportRegex.test(finalCode);
@@ -1435,8 +1512,8 @@ export class ZintlCompiler {
         }
 
         // 3. Generic Named Exports Wrapping
-        if (this._options.ssrWrapExports && this._options.ssrWrapExports.length > 0) {
-          for (const name of this._options.ssrWrapExports) {
+        if (this._resolved.hooks.ssrWrapExports && this._resolved.hooks.ssrWrapExports.length > 0) {
+          for (const name of this._resolved.hooks.ssrWrapExports) {
             let wrappedExport = false;
             let wrapType: "rename" | "alias" = "rename";
 
@@ -1508,15 +1585,17 @@ export class ZintlCompiler {
     }
 
     if (this.isDev) {
-      if (this._options.hmrInjectionCode) {
-        let hmrToken = 0;
-        const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
-        if (fileBoundaries) {
-          for (const bId of fileBoundaries) {
-            hmrToken += this.boundaryRevisions.get(bId) || 0;
-          }
+      const hmrFn = this._resolved.hooks.hmrInjectionCode;
+      let hmrToken = 0;
+      const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
+      if (fileBoundaries) {
+        for (const bId of fileBoundaries) {
+          hmrToken += this.boundaryRevisions.get(bId) || 0;
         }
-        const hmrCode = this._options.hmrInjectionCode(fileId, hmrToken);
+      }
+
+      if (hmrFn) {
+        const hmrCode = hmrFn(fileId, hmrToken);
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
           if (scriptCloseIdx !== -1) {
@@ -1543,30 +1622,6 @@ export class ZintlCompiler {
             finalCode += hmrCode;
           }
         }
-
-        // Disable HMR revision token comments to see if full reloads fix hydration graph mismatches
-        /*
-        let hmrToken = 0;
-        const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
-        if (fileBoundaries) {
-          for (const bId of fileBoundaries) {
-            hmrToken += this.boundaryRevisions.get(bId) || 0;
-          }
-        }
-        if (hmrToken > 0) {
-          const tokenCode = `\n\n// Zintl HMR Token: ${hmrToken}`;
-          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
-          if (scriptCloseIdx !== -1) {
-            finalCode =
-              finalCode.substring(0, scriptCloseIdx) +
-              tokenCode +
-              "\n" +
-              finalCode.substring(scriptCloseIdx);
-          } else {
-            finalCode += tokenCode;
-          }
-        }
-        */
       }
     }
 
@@ -1925,10 +1980,14 @@ export class ZintlCompiler {
         debug: this.debug,
         bakedLocale,
         multiplex: this._options.multiplex ?? true,
-        adapters: this._options.adapters,
         extensions: this.extensions,
-        resolveVirtualPath: this._options.resolveVirtualPath,
-        dynamicImportTemplate: this._options.dynamicImportTemplate,
+        // Resolved adapter state — subsystems read these
+        capabilities: this._resolved.capabilities,
+        hooks: this._resolved.hooks,
+        // Legacy compat — kept until pipeline stages are fully migrated
+        adapters: this._options.adapters as any,
+        resolveVirtualPath: this._resolved.hooks.resolveVirtualPath,
+        dynamicImportTemplate: this._resolved.hooks.dynamicImportTemplate,
       },
       catalogs,
       logger: this.logger,

@@ -113,9 +113,13 @@ export class IOManager {
     const rel = relative(this.root, abs).replace(/\\/g, "/");
 
     const sfcExts = (this.adapters || [])
-      .filter((a) => a.sfc)
       .map((a) => {
-        return this.extensions.filter((ext) => a.match("dummy" + ext));
+        const codegen = a.codegen || a;
+        const isSfc = a.codegen ? !!a.codegen.wrapSfcScript : !!a.sfc;
+        if (!isSfc) return [];
+        const matchFn = codegen.match || a.match;
+        if (!matchFn) return [];
+        return this.extensions.filter((ext) => matchFn("dummy" + ext));
       })
       .flat();
     const keepExts = [".html", ...sfcExts];

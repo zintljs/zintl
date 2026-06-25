@@ -6,6 +6,7 @@ import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
 import type { TargetAdapter } from "./compiler.js";
+import type { ResolvedCapabilities, MergedAdapterHooks } from "../adapter/index.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -34,9 +35,26 @@ export interface ZintlConfig {
   debug?: boolean | string;
   bakedLocale?: string;
   multiplex?: boolean;
-  adapters?: TargetAdapter[];
   extensions?: string[];
+
+  // ── Resolved Adapter State (Phase 2+) ────────────────────────────────
+  /**
+   * Pre-resolved capability flags. Subsystems read this — never raw adapters.
+   * Populated by ZintlCompiler constructor after resolveAdapters() call.
+   */
+  capabilities: ResolvedCapabilities;
+  /**
+   * Merged, ready-to-call hooks. Subsystems call these — never raw adapters.
+   * Populated by ZintlCompiler constructor after resolveAdapters() call.
+   */
+  hooks: MergedAdapterHooks;
+
+  // ── Legacy fields (still used by older codepaths during migration) ───────
+  /** @deprecated Query capabilities.jsx / hooks.codegenAdapters instead. */
+  adapters?: TargetAdapter[];
+  /** @deprecated Use hooks.resolveVirtualPath instead. */
   resolveVirtualPath?: (id: string) => string;
+  /** @deprecated Use hooks.dynamicImportTemplate instead. */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 
