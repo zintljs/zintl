@@ -1,4 +1,4 @@
-import type { TargetDescriptor } from "@zintl/extractor";
+import type { TargetDescriptor, SfcRule, SuppressionRule, MustacheRule } from "@zintl/extractor";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-Interfaces
@@ -13,6 +13,12 @@ export interface ExtractionAdapter {
   targets: TargetDescriptor[];
   /** Additional file extensions to scan (e.g. [".vue", ".svelte"]) */
   extensions?: string[];
+  /** SFC rules for block extraction */
+  sfcRules?: SfcRule[];
+  /** Suppression rules for ignored functions/vars */
+  suppressionRules?: SuppressionRule[];
+  /** Mustache variable parsing pattern */
+  mustacheRegex?: RegExp;
 }
 
 /**
@@ -233,6 +239,12 @@ export interface MergedAdapterHooks {
   extractionTargets: TargetDescriptor[];
   /** Unified file extensions from all adapters */
   extensions: string[];
+  /** SFC rules from all adapters */
+  sfcRules: SfcRule[];
+  /** Suppression rules from all adapters */
+  suppressionRules: SuppressionRule[];
+  /** Mustache regex rules from all adapters */
+  mustacheRules: MustacheRule[];
 
   // ── SSR hooks (merged, first-contributor-wins for functions) ──
 

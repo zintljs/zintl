@@ -29,7 +29,7 @@ import {
 } from "./types/index.js";
 import {
   resolveAdapters,
-  type ResolvedAdapters,
+  type ResolvedCompilerState,
   type ZintlAdapter,
   type ResolvedCapabilities,
 } from "./adapter/index.js";
@@ -54,6 +54,7 @@ export type {
   ResolvedCapabilities,
   MergedAdapterHooks,
   ResolvedAdapters,
+  ResolvedCompilerState,
   SsrWrapParams,
   LocaleDetectionContext,
   MultiplexDetectionContext,
@@ -87,7 +88,7 @@ export class ZintlCompiler {
   public readonly clientBoundaries = new Set<string>();
 
   /** Pre-resolved adapter capabilities + hooks. Set in constructor. */
-  public readonly _resolved: ResolvedAdapters;
+  public readonly _resolved: ResolvedCompilerState;
 
   private graphDirty = true;
   private readonly extensions: string[];
@@ -172,9 +173,9 @@ export class ZintlCompiler {
     // ── Resolve Adapters ──────────────────────────────────────────────────────
     // Build the adapter input list. Start with user-provided adapters.
     const adapterInputs: (string | ZintlAdapter)[] = [...(options.adapters || [])];
-    if (adapterInputs.length === 0 && options.targets) {
+    if (options.targets) {
       for (const t of options.targets) {
-        if (typeof t === "string") {
+        if (typeof t === "string" && !adapterInputs.includes(t)) {
           adapterInputs.push(t);
         }
       }
@@ -1199,7 +1200,7 @@ export class ZintlCompiler {
           effectiveCleanId,
           fileId,
           this.logger.withPrefix("Extractor"),
-          { targets: this._options.targets },
+          { compiledState: this._resolved.extraction },
         );
         this.observationCache[effectiveCleanId] = observation;
 

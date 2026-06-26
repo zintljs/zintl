@@ -118,4 +118,20 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
     expect(resolved.uniqueHints).toContain("hint-3");
     expect(resolved.uniqueHints).toContain("data-my-dom-attr");
   });
+  it("should support extraction using a pre-resolved compiledState option", () => {
+    const code = `
+      const config = {
+        label: "Extract Label",
+      };
+    `;
+
+    const compiledState = resolveTargets(["obj:field:label"]);
+
+    const result = extract(code, "App.tsx", "App", {
+      compiledState,
+    });
+
+    const messages = result.messages.map((m) => m.text);
+    expect(messages).toContain("Extract Label");
+  });
 });

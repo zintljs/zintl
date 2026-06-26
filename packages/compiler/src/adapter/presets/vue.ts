@@ -19,6 +19,35 @@ const vueExtractionAdapter: ZintlAdapter = {
       "obj:field:tooltip",
     ],
     extensions: [".vue"],
+    sfcRules: [
+      {
+        extensions: [".vue"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "template",
+            pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
+            action: "html",
+            isActiveContent: true,
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
   },
 };
 

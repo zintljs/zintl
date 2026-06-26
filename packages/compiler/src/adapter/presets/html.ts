@@ -19,6 +19,7 @@ const htmlExtractionAdapter: ZintlAdapter = {
       "html:attr:label",
       "html:attr:description",
       "html:attr:tooltip",
+      "html:attr:dir",
     ],
     extensions: [".html"],
   },

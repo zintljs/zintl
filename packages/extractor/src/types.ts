@@ -255,6 +255,30 @@ export interface SuppressionRule {
 
 import type { ZintlLogger, LogLevel } from "./logger.js";
 export type { ZintlLogger, LogLevel };
+
+export interface MustacheRule {
+  extensions: string[];
+  pattern: RegExp;
+}
+
+export interface CompiledExtractionState {
+  jsxAttributes: Set<string>;
+  jsxElementAttributes: Map<string, Set<string>>;
+  domProperties: Set<string>;
+  objectFields: Set<string>;
+  htmlAttributes: Set<string>;
+  plugins: TargetPlugin[];
+  fastPathHints: string[];
+  uniqueHints: string[];
+  fastPathRegex: RegExp;
+  hasDomSinks: boolean;
+  hasJsxSinks: boolean;
+  sfcRules: SfcRule[];
+  suppressionRules: SuppressionRule[];
+  mustacheRegex?: RegExp | null;
+  mustacheRules?: MustacheRule[];
+}
+
 export interface ExtractionOptions {
   runtimePackage?: string; // default: "zintl"
   uiAttributes?: Set<string>;
@@ -267,4 +291,5 @@ export interface ExtractionOptions {
   suppressionRules?: SuppressionRule[];
   activeRange?: { start: number; end: number };
   isSfcTemplate?: boolean;
+  compiledState?: CompiledExtractionState;
 }

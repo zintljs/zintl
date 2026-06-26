@@ -1,24 +1,12 @@
-import type { TargetDescriptor, TargetPlugin, SfcRule, SuppressionRule } from "./types.js";
+import type {
+  TargetDescriptor,
+  TargetPlugin,
+  SfcRule,
+  SuppressionRule,
+  CompiledExtractionState,
+} from "./types.js";
 
-export interface ResolvedTargets {
-  jsxAttributes: Set<string>;
-  jsxElementAttributes: Map<string, Set<string>>;
-  domProperties: Set<string>;
-  objectFields: Set<string>;
-  htmlAttributes: Set<string>;
-  plugins: TargetPlugin[];
-  fastPathHints: string[];
-  uniqueHints: string[];
-  /** Pre-built regex for file-level fast-path gating. Derived from uniqueHints + core tokens. */
-  fastPathRegex: RegExp;
-  /** True when at least one dom:prop target is configured (e.g. innerHTML). */
-  hasDomSinks: boolean;
-  /** True when at least one jsx: target is configured. */
-  hasJsxSinks: boolean;
-  sfcRules: SfcRule[];
-  suppressionRules: SuppressionRule[];
-  mustacheRegex?: RegExp | null;
-}
+export type ResolvedTargets = CompiledExtractionState;
 
 export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
   vanilla: [

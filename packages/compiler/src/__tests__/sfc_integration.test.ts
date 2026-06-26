@@ -5,11 +5,56 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
 import { bakeICU } from "../utils/icu-baker.js";
 import { runInRequestScope, I18nStore, getActiveInstance } from "../runtime/store.js";
+import type { ZintlAdapter } from "../adapter/types.js";
 
 type LocalContext = TestContext & { compiler?: ZintlCompiler };
 
-const vueAdapter = {
+const vueAdapter: ZintlAdapter = {
   name: "vue-test",
+  extraction: {
+    targets: [
+      "dom:prop:innerHTML",
+      "dom:prop:textContent",
+      "jsx:*:aria-label",
+      "jsx:*:aria-description",
+      "jsx:*:title",
+      "jsx:*:alt",
+      "jsx:*:placeholder",
+      "obj:field:label",
+      "obj:field:description",
+      "obj:field:tooltip",
+    ],
+    extensions: [".vue"],
+    sfcRules: [
+      {
+        extensions: [".vue"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs: string) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "template",
+            pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
+            action: "html",
+            isActiveContent: true,
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
+  },
   codegen: {
     extensions: [".vue"],
     match: (filePath: string) => filePath.endsWith(".vue"),
@@ -33,8 +78,45 @@ const vueAdapter = {
   },
 };
 
-const svelteAdapter = {
+const svelteAdapter: ZintlAdapter = {
   name: "svelte-test",
+  extraction: {
+    targets: [
+      "dom:prop:innerHTML",
+      "dom:prop:textContent",
+      "jsx:*:aria-label",
+      "jsx:*:aria-description",
+      "jsx:*:title",
+      "jsx:*:alt",
+      "jsx:*:placeholder",
+      "obj:field:label",
+      "obj:field:description",
+    ],
+    extensions: [".svelte"],
+    sfcRules: [
+      {
+        extensions: [".svelte"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs: string) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{([^{}]+)\}/g,
+  },
   codegen: {
     extensions: [".svelte"],
     match: (filePath: string) => filePath.endsWith(".svelte"),

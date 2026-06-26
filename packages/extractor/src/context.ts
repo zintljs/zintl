@@ -37,15 +37,6 @@ const VOID_ELEMENTS = new Set([
   "wbr",
 ]);
 
-const EXTENSION_METADATA: Record<string, { mustacheRegex?: RegExp }> = {
-  ".vue": {
-    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
-  },
-  ".svelte": {
-    mustacheRegex: /\{([^{}]+)\}/g,
-  },
-};
-
 function getTagName(token: string): string {
   const match = token.match(/^<\/?([a-zA-Z0-9:-]+)/);
   return match ? match[1].toLowerCase() : "";
@@ -398,33 +389,38 @@ export class ExtractionContext {
     this.htmlAttributes = new Set();
     this.targetPlugins = [];
 
-    const targets = options.targets || ["vanilla", "react", "html"];
-    const resolved = resolveTargets(targets);
-    for (const attr of resolved.jsxAttributes) {
+    const compiledState =
+      options.compiledState ?? resolveTargets(options.targets || ["vanilla", "react", "html"]);
+    options.compiledState = compiledState;
+
+    for (const attr of compiledState.jsxAttributes) {
       this.uiAttributes.add(attr);
     }
-    for (const field of resolved.objectFields) {
+    for (const field of compiledState.objectFields) {
       this.uiObjectFields.add(field);
     }
-    for (const prop of resolved.domProperties) {
+    for (const prop of compiledState.domProperties) {
       if (!this.uiSinkProperties.includes(prop)) {
         this.uiSinkProperties.push(prop);
       }
     }
-    this.jsxElementAttributes = resolved.jsxElementAttributes;
-    this.htmlAttributes = resolved.htmlAttributes;
-    this.targetPlugins = resolved.plugins;
-    this.hasDomSinks = resolved.hasDomSinks;
-    this.hasJsxSinks = resolved.hasJsxSinks;
-    this.sfcRules = [...resolved.sfcRules, ...(options.sfcRules || [])];
-    this.suppressionRules = [...resolved.suppressionRules, ...(options.suppressionRules || [])];
-    let mustacheRegex = resolved.mustacheRegex ?? null;
-    if (!mustacheRegex) {
-      for (const [ext, meta] of Object.entries(EXTENSION_METADATA)) {
-        if (filePath.includes(ext) && meta.mustacheRegex) {
-          mustacheRegex = meta.mustacheRegex;
-          break;
-        }
+    this.jsxElementAttributes = compiledState.jsxElementAttributes;
+    this.htmlAttributes = compiledState.htmlAttributes;
+    this.targetPlugins = compiledState.plugins;
+    this.hasDomSinks = compiledState.hasDomSinks;
+    this.hasJsxSinks = compiledState.hasJsxSinks;
+    this.sfcRules = [...compiledState.sfcRules, ...(options.sfcRules || [])];
+    this.suppressionRules = [
+      ...compiledState.suppressionRules,
+      ...(options.suppressionRules || []),
+    ];
+    let mustacheRegex = compiledState.mustacheRegex ?? null;
+    if (!mustacheRegex && compiledState.mustacheRules) {
+      const rule = compiledState.mustacheRules.find((r) =>
+        r.extensions.some((ext) => filePath.endsWith(ext) || filePath.includes(ext + ".")),
+      );
+      if (rule) {
+        mustacheRegex = rule.pattern;
       }
     }
     this.mustacheRegex = mustacheRegex;
@@ -436,12 +432,12 @@ export class ExtractionContext {
     ];
     if (extraHints.length > 0) {
       const parts = [
-        ...resolved.fastPathRegex.source.split("|"),
+        ...compiledState.fastPathRegex.source.split("|"),
         ...extraHints.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
       ];
       this.fastPathRegex = new RegExp(parts.join("|"));
     } else {
-      this.fastPathRegex = resolved.fastPathRegex;
+      this.fastPathRegex = compiledState.fastPathRegex;
     }
 
     this.isZeroConfig = options.isZeroConfig ?? true;

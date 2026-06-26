@@ -18,6 +18,29 @@ const svelteExtractionAdapter: ZintlAdapter = {
       "obj:field:description",
     ],
     extensions: [".svelte"],
+    sfcRules: [
+      {
+        extensions: [".svelte"],
+        blocks: [
+          {
+            id: "script",
+            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+            action: "javascript",
+            resolveVirtualExtension: (attrs) => {
+              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
+              const lang = langMatch ? langMatch[1] : "js";
+              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
+            },
+          },
+          {
+            id: "style",
+            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+            action: "ignore",
+          },
+        ],
+      },
+    ],
+    mustacheRegex: /\{([^{}]+)\}/g,
   },
 };
 

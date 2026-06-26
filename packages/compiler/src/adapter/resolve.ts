@@ -11,7 +11,14 @@ import type {
   LocaleDetectionContext,
   MultiplexDetectionContext,
 } from "./types.js";
-import type { TargetDescriptor } from "@zintl/extractor";
+import {
+  resolveTargets,
+  type CompiledExtractionState,
+  type TargetDescriptor,
+  type SfcRule,
+  type SuppressionRule,
+  type MustacheRule,
+} from "@zintl/extractor";
 
 // Preset registry — populated by presets/index.ts to avoid circular imports
 const presetRegistry = new Map<string, () => ZintlAdapter[]>();
@@ -102,6 +109,9 @@ interface MergeState {
   codegenAdapters: CodegenAdapter[];
   extractionTargets: TargetDescriptor[];
   extensions: string[];
+  sfcRules: SfcRule[];
+  suppressionRules: SuppressionRule[];
+  mustacheRules: MustacheRule[];
 
   // SSR
   ssrEntryTargets: (string | RegExp | ((id: string) => boolean))[];
@@ -136,6 +146,9 @@ function createEmptyState(): MergeState {
     codegenAdapters: [],
     extractionTargets: [],
     extensions: [],
+    sfcRules: [],
+    suppressionRules: [],
+    mustacheRules: [],
     ssrEntryTargets: [],
     ssrWrapCode: undefined,
     ssrWrapCodeProvider: "",
@@ -173,6 +186,18 @@ function mergeAdapter(state: MergeState, adapter: ZintlAdapter): void {
       if (!state.extensions.includes(e)) {
         state.extensions.push(e);
       }
+    }
+    if (ext.sfcRules) {
+      state.sfcRules.push(...ext.sfcRules);
+    }
+    if (ext.suppressionRules) {
+      state.suppressionRules.push(...ext.suppressionRules);
+    }
+    if (ext.mustacheRegex) {
+      state.mustacheRules.push({
+        extensions: ext.extensions || [],
+        pattern: ext.mustacheRegex,
+      });
     }
   }
 
@@ -325,6 +350,9 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
     codegenAdapters: state.codegenAdapters,
     extractionTargets: state.extractionTargets,
     extensions: state.extensions,
+    sfcRules: state.sfcRules,
+    suppressionRules: state.suppressionRules,
+    mustacheRules: state.mustacheRules,
 
     ssrEntryTargets: state.ssrEntryTargets,
     ssrWrapCode: state.ssrWrapCode,
@@ -345,14 +373,18 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ResolvedAdapters {
+export interface ResolvedCompilerState {
   /** Pre-resolved capability flags — subsystems query this, never raw adapters */
   capabilities: ResolvedCapabilities;
   /** Merged, ready-to-call hooks — subsystems call these, never raw adapters */
   hooks: MergedAdapterHooks;
   /** The flat list of adapters after preset expansion (for debugging/introspection) */
   adapters: ZintlAdapter[];
+  /** Pre-resolved extraction configuration */
+  extraction: CompiledExtractionState;
 }
+
+export type ResolvedAdapters = ResolvedCompilerState;
 
 /**
  * Resolve a list of adapter inputs (preset names or adapter objects) into
@@ -367,7 +399,7 @@ export interface ResolvedAdapters {
  * // resolved.capabilities.hmr === true
  * // resolved.hooks.dynamicImportTemplate("./foo", true) === "import(/* @vite-ignore *\/ \"./foo\")"
  */
-export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): ResolvedAdapters {
+export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): ResolvedCompilerState {
   const flatAdapters: ZintlAdapter[] = [];
   for (const input of inputs) {
     flatAdapters.push(...expandInput(input));
@@ -388,9 +420,30 @@ export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): Resolve
     mergeAdapter(state, adapter);
   }
 
+  const capabilities = stateToCapabilities(state);
+  const hooks = stateToHooks(state);
+
+  const targetDescriptors = [...hooks.extractionTargets];
+  for (const input of inputs) {
+    if (typeof input === "string") {
+      if (!targetDescriptors.includes(input as any)) {
+        targetDescriptors.push(input as any);
+      }
+    }
+  }
+
+  // Resolve target descriptors through extractor's resolveTargets
+  const extraction = resolveTargets(targetDescriptors);
+
+  // Framework rules flow downward from compiler adapters directly to the extraction state
+  extraction.sfcRules = hooks.sfcRules;
+  extraction.suppressionRules = hooks.suppressionRules;
+  extraction.mustacheRules = hooks.mustacheRules;
+
   return {
-    capabilities: stateToCapabilities(state),
-    hooks: stateToHooks(state),
+    capabilities,
+    hooks,
     adapters: uniqueAdapters,
+    extraction,
   };
 }

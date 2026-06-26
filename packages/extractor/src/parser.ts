@@ -16,10 +16,14 @@ export function extract(
 ): ExtractionResult {
   code = code.replace(/\r\n/g, "\n");
 
-  const targets = options.targets || ["vanilla", "react", "html"];
-  const resolved = resolveTargets(targets);
+  const compiledState =
+    options.compiledState ?? resolveTargets(options.targets ?? ["vanilla", "react", "html"]);
+  const normalizedOptions: ExtractionOptions = {
+    ...options,
+    compiledState,
+  };
 
-  const sfcRules = [...resolved.sfcRules, ...(options.sfcRules || [])];
+  const sfcRules = [...compiledState.sfcRules, ...(normalizedOptions.sfcRules || [])];
   const ext = "." + filePath.split(".").pop();
   if (!sfcRules.some((r) => r.extensions.includes(ext))) {
     const defaultRule = DEFAULT_SFC_RULES.find((r) => r.extensions.includes(ext));
@@ -31,7 +35,7 @@ export function extract(
 
   // Fast-Path Heuristic: Skip files that are statistically unlikely to contain translatable logic.
   // The regex is derived entirely from the configured targets — no hardcoded framework strings here.
-  const isLikelyUI = resolved.fastPathRegex.test(code);
+  const isLikelyUI = compiledState.fastPathRegex.test(code);
 
   // we do not want to skip modules that may has imported another modules that use zintl() or has ui sinks
   const isLikelyBridge = code.includes("import");
@@ -57,18 +61,18 @@ export function extract(
   }
 
   if (filePath.endsWith(".html")) {
-    return extractHtml(code, filePath, fileBoundaryId, options);
+    return extractHtml(code, filePath, fileBoundaryId, normalizedOptions);
   }
 
   if (sfcRule) {
-    return extractSfc(code, filePath, fileBoundaryId, options, sfcRule);
+    return extractSfc(code, filePath, fileBoundaryId, normalizedOptions, sfcRule);
   }
 
   // const activeSinks = Array.from(options.uiObjectFields || DEFAULT_UI_OBJECT_FIELDS)
   //   .concat(DEFAULT_UI_SINK_PROPERTIES)
   //   .concat(Array.from(options.uiAttributes || DEFAULT_UI_ATTRIBUTES)) as string[];
 
-  const ctx = new ExtractionContext(code, filePath, fileBoundaryId, options);
+  const ctx = new ExtractionContext(code, filePath, fileBoundaryId, normalizedOptions);
   ctx.logger.debug(`Extracting messages from ${filePath}`);
 
   // Parse with OXC - Force .tsx if we detect JSX patterns to ensure robust extraction in tests

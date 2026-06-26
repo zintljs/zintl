@@ -79,6 +79,16 @@ const nextjsSsrAdapter: ZintlAdapter = {
   extraction: {
     targets: ["jsx:*:aria-label", "jsx:*:aria-description"],
     extensions: [],
+    suppressionRules: [
+      {
+        match: {
+          types: ["FunctionDeclaration", "VariableDeclarator"],
+          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
+          isTopLevel: true,
+        },
+        bypassIf: "hasAnchor",
+      },
+    ],
   },
   ssr: {
     entryTargets: [

@@ -33,7 +33,7 @@ export type {
   TagMapEntry,
 } from "./types.js";
 // Re-export for convenience — resolver types are also from resolve.ts
-export type { ResolvedAdapters } from "./resolve.js";
+export type { ResolvedAdapters, ResolvedCompilerState } from "./resolve.js";
 
 // Built-in preset adapters (for programmatic use / testing)
 export { vanillaExtractionAdapter } from "./presets/vanilla.js";
