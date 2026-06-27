@@ -1,4 +1,13 @@
-import type { TargetDescriptor, SfcRule, SuppressionRule, MustacheRule } from "@zintl/extractor";
+import type {
+  TargetDescriptor,
+  SfcRule,
+  SuppressionRule,
+  MustacheRule,
+  HtmlProjectionPayload,
+} from "@zintl/extractor";
+import type { IOManager } from "../managers/IOManager.js";
+import type { CatalogManager } from "../managers/CatalogManager.js";
+import type { ZintlLogger } from "../types/compiler.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-Interfaces
@@ -171,6 +180,8 @@ export interface ZintlAdapter {
 
   /** How this adapter integrates with the build tool */
   bundler?: BundlerAdapter;
+  /** How this adapter handles content/asset/HTML lifecycle compilation */
+  content?: ContentAdapter;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -278,6 +289,11 @@ export interface MergedAdapterHooks {
 
   /** Chained locale detection (first non-undefined result wins) */
   detectLocale: ((context: LocaleDetectionContext) => string | undefined) | undefined;
+
+  // ── Content hooks ──
+
+  /** All registered content adapters */
+  contentAdapters: ContentAdapter[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,4 +332,37 @@ export interface TagMapEntry {
   alias: string;
   originalOpen: string;
   tagName: string;
+}
+
+export interface CompilerContext {
+  root: string;
+  outputDir: string;
+  sourceLocale: string;
+  locales: string[];
+  isDev: boolean;
+  io: IOManager;
+  logger: ZintlLogger;
+  catalog: CatalogManager;
+  getDependencyGraph: () => Record<string, any[]>;
+  getHive: () => Record<string, Record<string, any>>;
+  markHiveDirty: () => void;
+  getBoundaryGraph: () => { entries: Set<string>; nodes: Map<string, any> } | null;
+  getHtmlProjections: () => Record<string, { htmlProjection: HtmlProjectionPayload }>;
+  assetsManager?: any;
+  htmlManager?: any;
+}
+
+export interface ContentAdapter {
+  name?: string;
+  match: (filePath: string, context: CompilerContext) => boolean;
+  setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
+  discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
+  flush?: (context: CompilerContext) => Promise<void> | void;
+  getTranslations?: (
+    locale: string,
+    context: CompilerContext,
+  ) => Promise<Record<string, string>> | Record<string, string>;
+  isLocalizedOutput?: (filePath: string, context: CompilerContext) => Promise<boolean> | boolean;
+  getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
+  getStateToSave?: (context: CompilerContext) => any;
 }

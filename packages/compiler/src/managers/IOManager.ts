@@ -10,7 +10,7 @@ import {
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
 import type { ZintlOptions, ZintlLogger } from "../types/index.js";
-import { resolveAdapters } from "../adapter/resolve.js";
+import { resolveAdapters } from "../adapter/index.js";
 
 /**
  * Handles all I/O operations, formatting, and hashing.

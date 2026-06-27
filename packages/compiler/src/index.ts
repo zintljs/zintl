@@ -32,18 +32,27 @@ import {
   type ResolvedCompilerState,
   type ZintlAdapter,
   type ResolvedCapabilities,
+  type CompilerContext,
 } from "./adapter/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
-import { HtmlManager } from "./managers/HtmlManager.js";
-import { AssetManager } from "./managers/AssetManager.js";
+import { HtmlManager } from "./adapter/presets/html.js";
+import { AssetManager } from "./adapter/presets/assets.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
-export type { ZintlOptions, ZintlLogger, LogLevel, AssetTargetConfig, AssetMergeStrategy };
+import type { HtmlProjectionPayload } from "@zintl/extractor";
+export type {
+  ZintlOptions,
+  ZintlLogger,
+  LogLevel,
+  AssetTargetConfig,
+  AssetMergeStrategy,
+  HtmlProjectionPayload,
+};
 export type {
   ZintlAdapter,
   ExtractionAdapter,
@@ -59,6 +68,7 @@ export type {
   LocaleDetectionContext,
   MultiplexDetectionContext,
   TagMapEntry,
+  ContentAdapter,
 } from "./adapter/index.js";
 export {
   resolveAdapters,
@@ -75,6 +85,8 @@ export {
   ssrRuntimeAdapter,
   clientSpaRuntimeAdapter,
   viteBundlerAdapter,
+  createAssetAdapter,
+  createHtmlProjectionAdapter,
 } from "./adapter/index.js";
 
 export class ZintlCompiler {
@@ -312,6 +324,40 @@ export class ZintlCompiler {
     );
   }
 
+  private getCompilerContext(): CompilerContext {
+    return {
+      root: this.root,
+      outputDir: this._outputDir,
+      sourceLocale: this.sourceLocale,
+      locales: this.locales,
+      isDev: this.isDev,
+      io: this.io,
+      logger: this.logger,
+      catalog: this.catalog,
+      getDependencyGraph: () => this.messages.dependencyGraph,
+      getHive: () => this.messages.hive,
+      markHiveDirty: () => this.messages.markHiveDirty(),
+      getBoundaryGraph: () => this.graph.boundaryGraph,
+      getHtmlProjections: () => {
+        const htmlMetadatas: Record<string, any> = {};
+        for (const [id, meta] of Object.entries(this.messages.metadataGraph)) {
+          if (!meta.htmlProjection) continue;
+          const check = this.graph.leadsToBoundary(
+            id,
+            this.messages.dependencyGraph,
+            this.messages.metadataGraph,
+          );
+          if (check.leads) {
+            htmlMetadatas[id] = meta;
+          }
+        }
+        return htmlMetadatas;
+      },
+      assetsManager: this.assets,
+      htmlManager: this.html,
+    };
+  }
+
   public getWorldState(): WorldState {
     return this.createWorldState();
   }
@@ -366,8 +412,11 @@ export class ZintlCompiler {
 
   public async setup() {
     await this.messages.loadMetadata();
-    if (this.messages.registeredAssets && this.messages.registeredAssets.length > 0) {
-      this.assets.setRegisteredAssets(this.messages.registeredAssets);
+    const context = this.getCompilerContext();
+    for (const adapter of this._resolved.hooks.contentAdapters) {
+      if (adapter.setup) {
+        await adapter.setup(this.messages.registeredAssets, context);
+      }
     }
     await this.catalog.harvestHive(
       this.messages.internalManifest,
@@ -427,11 +476,23 @@ export class ZintlCompiler {
 
     // If it's a supported asset (md, txt, json, etc) and NOT inside the output dir
     // OR if it's a localized asset inside the output dir
-    if (
-      (!isInsideOutputDir && this.assets.isSupportedAsset(filePath)) ||
-      (isInsideOutputDir && (await this.assets.isLocalizedAsset(filePath)))
-    ) {
-      if (!isInsideOutputDir) await this.assets.registerAsset(filePath);
+    const context = this.getCompilerContext();
+    let matchedAdapter = this._resolved.hooks.contentAdapters.find((a) =>
+      a.match(filePath, context),
+    );
+    if (isInsideOutputDir) {
+      for (const adapter of this._resolved.hooks.contentAdapters) {
+        if (adapter.isLocalizedOutput && (await adapter.isLocalizedOutput(filePath, context))) {
+          matchedAdapter = adapter;
+          break;
+        }
+      }
+    }
+
+    if (matchedAdapter) {
+      if (!isInsideOutputDir && matchedAdapter.discover) {
+        await matchedAdapter.discover(filePath, context);
+      }
       if (this.isDev) {
         this.scheduleFlush();
         return ["b_assets"];
@@ -619,10 +680,14 @@ export class ZintlCompiler {
               await this.transform(code, fullPath, undefined, true);
             })(),
           );
-        } else if (this.assets.isSupportedAsset(fullPath)) {
-          // Register for watch tracking; actual localized writes are gated
-          // inside syncSingleAsset() by the anchor-reachability check.
-          tasks.push(this.assets.registerAsset(fullPath));
+        } else {
+          const context = this.getCompilerContext();
+          const matched = this._resolved.hooks.contentAdapters.find((a) =>
+            a.match(fullPath, context),
+          );
+          if (matched && matched.discover) {
+            tasks.push(Promise.resolve(matched.discover(fullPath, context)));
+          }
         }
       }
       await Promise.all(tasks);
@@ -650,7 +715,14 @@ export class ZintlCompiler {
     this.rebuildPromise = (async () => {
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
-        const assetTranslations = await this.assets.getAssetTranslations(this.sourceLocale);
+        const context = this.getCompilerContext();
+        const assetTranslations: Record<string, string> = {};
+        for (const adapter of this._resolved.hooks.contentAdapters) {
+          if (adapter.getTranslations) {
+            const tr = await adapter.getTranslations(this.sourceLocale, context);
+            Object.assign(assetTranslations, tr);
+          }
+        }
         const assetKeys = Object.keys(assetTranslations).map((text) => ({
           text,
           id: "asset",
@@ -669,7 +741,13 @@ export class ZintlCompiler {
         }
 
         for (const loc of this.locales) {
-          const locAssets = await this.assets.getAssetTranslations(loc);
+          const locAssets: Record<string, string> = {};
+          for (const adapter of this._resolved.hooks.contentAdapters) {
+            if (adapter.getTranslations) {
+              const tr = await adapter.getTranslations(loc, context);
+              Object.assign(locAssets, tr);
+            }
+          }
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
 
           let changed = false;
@@ -1706,7 +1784,16 @@ export class ZintlCompiler {
         }
       }
 
-      const activeAssetPaths = await this.assets.getActiveAssetPaths(this.locales);
+      const activeAssetPaths = new Set<string>();
+      const context = this.getCompilerContext();
+      for (const adapter of this._resolved.hooks.contentAdapters) {
+        if (adapter.getActiveOutputPaths) {
+          const paths = await adapter.getActiveOutputPaths(context);
+          for (const p of paths) {
+            activeAssetPaths.add(p);
+          }
+        }
+      }
 
       // Compute reachable files ONCE and pass down — avoids DFS traversal per-call in prune/sync.
       if (!this.reachableCache) {
@@ -1741,7 +1828,14 @@ export class ZintlCompiler {
         );
       }
 
-      await this.messages.saveManifest(this.outputDir, this.assets.getRegisteredAssetsRaw());
+      let contentStateToSave: any = undefined;
+      const assetsAdapter = this._resolved.hooks.contentAdapters.find(
+        (a) => a.name === "system-static-assets",
+      );
+      if (assetsAdapter?.getStateToSave) {
+        contentStateToSave = assetsAdapter.getStateToSave(context);
+      }
+      await this.messages.saveManifest(this.outputDir, contentStateToSave);
 
       const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
@@ -1820,26 +1914,12 @@ export class ZintlCompiler {
       }
       this.messages.dirtyBoundaries.clear();
 
-      // Sync HTML Projections
-      const htmlMetadatas: Record<string, any> = {};
-      for (const [id, meta] of Object.entries(this.messages.metadataGraph)) {
-        if (!meta.htmlProjection) continue;
-        const check = this.graph.leadsToBoundary(
-          id,
-          this.messages.dependencyGraph,
-          this.messages.metadataGraph,
-        );
-        if (check.leads) {
-          htmlMetadatas[id] = meta;
+      // Run flush on all content adapters
+      const flushCtx = this.getCompilerContext();
+      for (const adapter of this._resolved.hooks.contentAdapters) {
+        if (adapter.flush) {
+          await adapter.flush(flushCtx);
         }
-      }
-      if (Object.keys(htmlMetadatas).length > 0) {
-        await this.html.syncHtmlProjections(htmlMetadatas, this.locales, this.messages.hive, () =>
-          this.messages.markHiveDirty(),
-        );
-      }
-      if (this.assets.getRegisteredAssets().length > 0) {
-        await this.assets.syncAssets(this.locales);
       }
 
       await this.verifyIntegrity();

@@ -10,6 +10,7 @@ import type {
   SsrWrapParams,
   LocaleDetectionContext,
   MultiplexDetectionContext,
+  ContentAdapter,
 } from "./types.js";
 import {
   resolveTargets,
@@ -112,6 +113,7 @@ interface MergeState {
   sfcRules: SfcRule[];
   suppressionRules: SuppressionRule[];
   mustacheRules: MustacheRule[];
+  contentAdapters: ContentAdapter[];
 
   // SSR
   ssrEntryTargets: (string | RegExp | ((id: string) => boolean))[];
@@ -149,6 +151,7 @@ function createEmptyState(): MergeState {
     sfcRules: [],
     suppressionRules: [],
     mustacheRules: [],
+    contentAdapters: [],
     ssrEntryTargets: [],
     ssrWrapCode: undefined,
     ssrWrapCodeProvider: "",
@@ -199,6 +202,12 @@ function mergeAdapter(state: MergeState, adapter: ZintlAdapter): void {
         pattern: ext.mustacheRegex,
       });
     }
+  }
+
+  // ── Content (union) ──
+  if (adapter.content) {
+    adapter.content.name = adapter.name;
+    state.contentAdapters.push(adapter.content);
   }
 
   // ── Codegen (per-file, conflict detection) ──
@@ -353,6 +362,7 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
     sfcRules: state.sfcRules,
     suppressionRules: state.suppressionRules,
     mustacheRules: state.mustacheRules,
+    contentAdapters: state.contentAdapters,
 
     ssrEntryTargets: state.ssrEntryTargets,
     ssrWrapCode: state.ssrWrapCode,
@@ -401,7 +411,26 @@ export type ResolvedAdapters = ResolvedCompilerState;
  */
 export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): ResolvedCompilerState {
   const flatAdapters: ZintlAdapter[] = [];
-  for (const input of inputs) {
+
+  // Expose configuration and auto-inject baseline content adapters if not explicitly provided
+  const baseInputs = [...inputs];
+  const hasAssetsPreset = inputs.some(
+    (i) => i === "assets" || (typeof i === "object" && i.name === "system-static-assets"),
+  );
+  if (!hasAssetsPreset) {
+    baseInputs.push("assets");
+  }
+  const hasHtmlPreset = inputs.some(
+    (i) =>
+      i === "html" ||
+      (typeof i === "object" &&
+        (i.name === "html-extraction" || i.name === "system-html-projection")),
+  );
+  if (!hasHtmlPreset) {
+    baseInputs.push("html");
+  }
+
+  for (const input of baseInputs) {
     flatAdapters.push(...expandInput(input));
   }
 

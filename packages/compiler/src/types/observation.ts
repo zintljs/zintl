@@ -1,5 +1,6 @@
 import type { HtmlProjectionPayload, TagMapEntry } from "@zintl/extractor";
-export type { HtmlProjectionPayload, TagMapEntry };
+
+export type { TagMapEntry };
 import type { SourceLocation, ImportSpecifier } from "./ast.js";
 
 /**

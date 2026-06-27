@@ -14,3 +14,4 @@ export * from "./nextjs.js";
 export * from "./ssr.js";
 export * from "./client-spa.js";
 export * from "./vite.js";
+export * from "./assets.js";

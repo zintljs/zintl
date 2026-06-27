@@ -1,12 +1,16 @@
 import { join, isAbsolute, relative } from "node:path";
-import { IOManager } from "./IOManager.js";
-import type { ZintlLogger, ZintlOptions, AssetMergeStrategy } from "../types/index.js";
-import type { CatalogManager } from "./CatalogManager.js";
-import { sha1 } from "../utils/hashing.js";
-import { similarity } from "../reconcile.js";
+import type { ZintlAdapter, CompilerContext } from "../types.js";
+import { registerPreset } from "../resolve.js";
+import { IOManager } from "../../managers/IOManager.js";
+import type { CatalogManager } from "../../managers/CatalogManager.js";
+import type { ZintlLogger } from "@zintl/extractor";
+import type { ZintlOptions, AssetMergeStrategy } from "../../types/compiler.js";
+import { sha1 } from "../../utils/hashing.js";
+import { similarity } from "../../reconcile.js";
 
 /**
  * Manages translation for static assets like Markdown (.md) and Text (.txt) files.
+ * Internal class wrapped by the system content adapter.
  */
 export class AssetManager {
   private registeredAssets = new Set<string>();
@@ -40,21 +44,11 @@ export class AssetManager {
     if (!this.getDependencyGraph) return true;
     const depGraph = this.getDependencyGraph();
 
-    // When the dep graph is empty we have no Vite module-graph context.
-    // Fall back to the original "assume used" behaviour so that the compiler
-    // works correctly in isolated mode (unit tests, programmatic API calls
-    // without a Vite instance).
     if (!depGraph || Object.keys(depGraph).length === 0) return true;
 
-    // We have real Vite module dependency information.  Apply the anchor
-    // reachability guard: if the project has no trust anchors at all, no asset
-    // can legitimately be "in use" for localisation.  This is the same guard
-    // applied in verifyIntegrity() and prevents phantom assets (e.g. a root
-    // README.md that the bundler never imported) from producing output files.
     const bg = this.getBoundaryGraph?.();
     if (bg && bg.entries.size === 0) return false;
 
-    // Asset is "used" if it appears in the Vite dependency graph of any module.
     const normAssetId = assetId.replace(/\\/g, "/");
     for (const deps of Object.values(depGraph)) {
       if (Array.isArray(deps)) {
@@ -71,9 +65,6 @@ export class AssetManager {
     return false;
   }
 
-  /**
-   * Resolves the customized asset pattern configuration for a given path.
-   */
   public resolveAssetConfig(filePath: string): {
     targetPattern: string;
     strategy: AssetMergeStrategy;
@@ -139,9 +130,6 @@ export class AssetManager {
     return null;
   }
 
-  /**
-   * Registers a discovered static asset.
-   */
   public async registerAsset(filePath: string) {
     const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
       ? this.catalog.outputDir
@@ -159,20 +147,10 @@ export class AssetManager {
     const normalizedId = this.io.getNormalizedId(filePath);
     this.registeredAssets.add(normalizedId);
 
-    // Synchronize localized target files immediately in dev mode and build
     await this.syncSingleAsset(normalizedId);
   }
 
-  /**
-   * Synchronizes a single asset's localized targets to disk.
-   */
   public async syncSingleAsset(assetId: string) {
-    // Write-time guard: only localize assets that are actually reachable from
-    // a trust anchor.  This blocks phantom assets (e.g. a README.md discovered
-    // by the filesystem scan that was never imported by anchored code) from
-    // producing localized output files, regardless of how registerAsset() was
-    // called.  isAssetUsed() checks both the boundary graph entry count and the
-    // Vite module dependency graph.
     if (!this.isAssetUsed(assetId)) return;
 
     const config = this.resolveAssetConfig(assetId);
@@ -218,7 +196,6 @@ export class AssetManager {
       let isFuzzyMatched = false;
 
       if (!hiveBackup && hive && config.strategy !== "binary-passthrough") {
-        // Perform fuzzy similarity search on text assets
         const threshold = this.options.similarityThreshold ?? 0.6;
         let bestScore = 0;
         let bestKey = "";
@@ -258,7 +235,6 @@ export class AssetManager {
         }
 
         if (targetBuffer) {
-          // Harvest binary translation to Hive if it differs from source buffer
           if (sourceBuffer && !targetBuffer.equals(sourceBuffer)) {
             if (hive) {
               let dirty = false;
@@ -280,13 +256,11 @@ export class AssetManager {
             }
           }
         } else if (hiveBackup) {
-          // Restore binary translation from Hive
           const buffer = Buffer.from(hiveBackup, "base64");
           if (!this.options.virtualAssets) {
             await this.io.safeWriteBuffer(destPath, buffer);
           }
         } else if (sourceBuffer) {
-          // Default: copy source buffer
           if (!this.options.virtualAssets) {
             await this.io.safeWriteBuffer(destPath, sourceBuffer);
           }
@@ -299,7 +273,6 @@ export class AssetManager {
         }
 
         if (existingContent) {
-          // Harvest text translation to Hive if it is translated
           const isTranslated =
             existingContent.trim() !== "" &&
             existingContent !== sourceContent &&
@@ -369,7 +342,6 @@ export class AssetManager {
             } else if (config.strategy === "text-passthrough") {
               merged = existingContent;
             } else {
-              // frontmatter merge
               merged = this.mergeContent(
                 sourceContent,
                 existingContent,
@@ -379,7 +351,6 @@ export class AssetManager {
             }
           }
         } else if (hiveBackup) {
-          // Restore translation from Hive
           if (isFuzzyMatched) {
             const ext = this.getAssetExtension(assetId).toLowerCase();
             const warning = "Source content has changed slightly. Please review translation.";
@@ -400,7 +371,6 @@ export class AssetManager {
             merged = hiveBackup;
           }
         } else {
-          // Default: copy source content
           merged = sourceContent;
         }
 
@@ -411,38 +381,23 @@ export class AssetManager {
     }
   }
 
-  /**
-   * Returns all registered assets.
-   */
   public getRegisteredAssets(): string[] {
     return Array.from(this.registeredAssets).filter((assetId) => this.isAssetUsed(assetId));
   }
 
-  /**
-   * Checks if a file path is a supported static asset.
-   */
   public isSupportedAsset(filePath: string): boolean {
     return this.resolveAssetConfig(filePath) !== null;
   }
 
-  /**
-   * Returns the file extension for a given asset ID.
-   */
   public getAssetExtension(id: string): string {
     const idx = id.lastIndexOf(".");
     return idx !== -1 ? id.substring(idx) : ".txt";
   }
 
-  /**
-   * Returns only the translated content, preserving frontmatter.
-   */
   public getTranslationOnly(content: string, _ext: string): string {
     return content;
   }
 
-  /**
-   * Resolves the customized physical file path for the localized static content file.
-   */
   public getAssetPath(id: string, locale: string): string {
     const ext = this.getAssetExtension(id);
     const config = this.resolveAssetConfig(id);
@@ -499,9 +454,6 @@ export class AssetManager {
     return content.trim();
   }
 
-  /**
-   * Parses standard YAML-like frontmatter.
-   */
   private parseFrontmatter(content: string): { frontmatter: Record<string, string>; body: string } {
     const match = content.match(/^---\n([\s\S]*?)\n---\n/);
     if (match) {
@@ -522,9 +474,6 @@ export class AssetManager {
     return { frontmatter: {}, body: content };
   }
 
-  /**
-   * Stringifies frontmatter dictionary back to YAML block.
-   */
   private stringifyFrontmatter(frontmatter: Record<string, string>): string {
     if (Object.keys(frontmatter).length === 0) return "";
     let yaml = "---\n";
@@ -535,9 +484,6 @@ export class AssetManager {
     return yaml;
   }
 
-  /**
-   * Merges original/source and target frontmatter properties.
-   */
   private mergeFrontmatter(
     source: Record<string, string>,
     target: Record<string, string>,
@@ -551,9 +497,6 @@ export class AssetManager {
     return merged;
   }
 
-  /**
-   * Merges content by preserving existing translation while keeping frontmatter keys in sync.
-   */
   public mergeContent(
     sourceBody: string,
     targetFullContent: string,
@@ -574,9 +517,6 @@ export class AssetManager {
     return `${fmPrefix}${targetBody}`;
   }
 
-  /**
-   * Synchronizes and emits localized static content files to disk.
-   */
   public async syncAssets(_locales: string[]) {
     const assets = this.getRegisteredAssets();
     this.logger.debug(`Syncing static assets (${assets.length} files)`);
@@ -585,9 +525,6 @@ export class AssetManager {
     }
   }
 
-  /**
-   * Returns a list of all active localized asset file paths for the given locales.
-   */
   public async getActiveAssetPaths(locales: string[]): Promise<Set<string>> {
     const paths = new Set<string>();
     const toRemove = new Set<string>();
@@ -621,9 +558,6 @@ export class AssetManager {
     return paths;
   }
 
-  /**
-   * Checks if a file path is a localized version of a registered asset.
-   */
   public async isLocalizedAsset(filePath: string): Promise<boolean> {
     const normalized = this.io.getNormalizedId(filePath);
     const paths = await this.getActiveAssetPaths(this.locales);
@@ -634,9 +568,6 @@ export class AssetManager {
     return false;
   }
 
-  /**
-   * Returns all asset translations for a given locale.
-   */
   public async getAssetTranslations(locale: string): Promise<Record<string, string>> {
     const translations: Record<string, string> = {};
     for (const assetId of this.getRegisteredAssets()) {
@@ -728,3 +659,66 @@ export class AssetManager {
     return translations;
   }
 }
+
+/**
+ * Exposes the system static assets adapter preset.
+ */
+export function createAssetAdapter(options: ZintlOptions): ZintlAdapter {
+  let manager: AssetManager;
+
+  const getManager = (context: CompilerContext) => {
+    if ((context as any).assetsManager) {
+      return (context as any).assetsManager;
+    }
+    if (!manager) {
+      manager = new AssetManager(
+        context.io,
+        context.root,
+        context.sourceLocale,
+        context.locales,
+        context.logger,
+        context.catalog,
+        options,
+        context.getDependencyGraph,
+        context.getHive,
+        context.markHiveDirty,
+        context.getBoundaryGraph,
+      );
+    }
+    return manager;
+  };
+
+  return {
+    name: "system-static-assets",
+    content: {
+      match(filePath: string, context: CompilerContext) {
+        return getManager(context).isSupportedAsset(filePath);
+      },
+      setup(savedState: any, context: CompilerContext) {
+        if (savedState && Array.isArray(savedState)) {
+          getManager(context).setRegisteredAssets(savedState);
+        }
+      },
+      async discover(filePath: string, context: CompilerContext) {
+        await getManager(context).registerAsset(filePath);
+      },
+      async flush(context: CompilerContext) {
+        await getManager(context).syncAssets(context.locales);
+      },
+      async getTranslations(locale: string, context: CompilerContext) {
+        return getManager(context).getAssetTranslations(locale);
+      },
+      async isLocalizedOutput(filePath: string, context: CompilerContext) {
+        return getManager(context).isLocalizedAsset(filePath);
+      },
+      async getActiveOutputPaths(context: CompilerContext) {
+        return getManager(context).getActiveAssetPaths(context.locales);
+      },
+      getStateToSave(context: CompilerContext) {
+        return getManager(context).getRegisteredAssetsRaw();
+      },
+    },
+  };
+}
+
+registerPreset("assets", (options: ZintlOptions = {}) => [createAssetAdapter(options)]);

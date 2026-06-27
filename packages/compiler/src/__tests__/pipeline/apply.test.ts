@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { apply } from "../../pipeline/apply.js";
-import { resolveAdapters } from "../../adapter/resolve.js";
+import { resolveAdapters } from "../../adapter/index.js";
 import MagicString from "magic-string";
 import type { ResolvedPlan } from "../../pipeline/types.js";
 

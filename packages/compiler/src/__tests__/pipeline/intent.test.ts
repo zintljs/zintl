@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { formIntent } from "../../pipeline/intent.js";
-import { resolveAdapters } from "../../adapter/resolve.js";
+import { resolveAdapters } from "../../adapter/index.js";
 import type { FileObservation, WorldState, ZintlConfig } from "../../pipeline/types.js";
 
 const { capabilities, hooks } = resolveAdapters([]);

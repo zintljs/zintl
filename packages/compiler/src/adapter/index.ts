@@ -31,6 +31,8 @@ export type {
   LocaleDetectionContext,
   MultiplexDetectionContext,
   TagMapEntry,
+  CompilerContext,
+  ContentAdapter,
 } from "./types.js";
 // Re-export for convenience — resolver types are also from resolve.ts
 export type { ResolvedAdapters, ResolvedCompilerState } from "./resolve.js";
@@ -40,8 +42,9 @@ export { vanillaExtractionAdapter } from "./presets/vanilla.js";
 export { reactExtractionAdapter, reactCodegenAdapter } from "./presets/react.js";
 export { vueExtractionAdapter, vueCodegenAdapter } from "./presets/vue.js";
 export { svelteExtractionAdapter, svelteCodegenAdapter } from "./presets/svelte.js";
-export { htmlExtractionAdapter } from "./presets/html.js";
+export { htmlExtractionAdapter, createHtmlProjectionAdapter } from "./presets/html.js";
 export { nextjsSsrAdapter } from "./presets/nextjs.js";
 export { ssrRuntimeAdapter } from "./presets/ssr.js";
 export { clientSpaRuntimeAdapter } from "./presets/client-spa.js";
 export { viteBundlerAdapter } from "./presets/vite.js";
+export { createAssetAdapter } from "./presets/assets.js";
