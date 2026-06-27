@@ -39,8 +39,6 @@ import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
-import { HtmlManager } from "./adapter/presets/html.js";
-import { AssetManager } from "./adapter/presets/assets.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
@@ -94,13 +92,31 @@ export class ZintlCompiler {
   public readonly graph: GraphManager;
   public readonly catalog: CatalogManager;
   public readonly messages: MessageManager;
-  public readonly html: HtmlManager;
-  public readonly assets: AssetManager;
   public readonly ssrBoundaries = new Set<string>();
   public readonly clientBoundaries = new Set<string>();
 
   /** Pre-resolved adapter capabilities + hooks. Set in constructor. */
   public readonly _resolved: ResolvedCompilerState;
+
+  public get assets(): any {
+    const adapter = this._resolved?.hooks.contentAdapters.find(
+      (a) => a.name === "system-static-assets",
+    );
+    if (adapter && (adapter as any).getManagerInstance) {
+      return (adapter as any).getManagerInstance(this.getCompilerContext());
+    }
+    return undefined;
+  }
+
+  public get html(): any {
+    const adapter = this._resolved?.hooks.contentAdapters.find(
+      (a) => a.name === "system-html-projection",
+    );
+    if (adapter && (adapter as any).getManagerInstance) {
+      return (adapter as any).getManagerInstance(this.getCompilerContext());
+    }
+    return undefined;
+  }
 
   private graphDirty = true;
   private readonly extensions: string[];
@@ -253,7 +269,7 @@ export class ZintlCompiler {
       adapterInputs.push(legacyAdapter);
     }
 
-    this._resolved = resolveAdapters(adapterInputs);
+    this._resolved = resolveAdapters(adapterInputs, options);
     // ──────────────────────────────────────────────────────────────────
 
     this.extensions =
@@ -295,32 +311,13 @@ export class ZintlCompiler {
       this.logger.withPrefix("Catalog"),
       this._prune,
       this.extensions,
+      this._resolved.hooks.virtualBoundaries,
+      this._resolved.hooks.contentAdapters,
     );
     this.messages = new MessageManager(
       this.io,
       options.similarityThreshold,
       this.logger.withPrefix("Messages"),
-    );
-    this.html = new HtmlManager(
-      this.io,
-      root,
-      this._outputDir,
-      this.sourceLocale,
-      this.logger.withPrefix("HTML"),
-      this.catalog,
-    );
-    this.assets = new AssetManager(
-      this.io,
-      root,
-      this.sourceLocale,
-      this.locales,
-      this.logger.withPrefix("Assets"),
-      this.catalog,
-      options,
-      () => this.messages.dependencyGraph,
-      () => this.messages.hive,
-      () => this.messages.markHiveDirty(),
-      () => this.graph.boundaryGraph,
     );
   }
 
@@ -338,23 +335,11 @@ export class ZintlCompiler {
       getHive: () => this.messages.hive,
       markHiveDirty: () => this.messages.markHiveDirty(),
       getBoundaryGraph: () => this.graph.boundaryGraph,
-      getHtmlProjections: () => {
-        const htmlMetadatas: Record<string, any> = {};
-        for (const [id, meta] of Object.entries(this.messages.metadataGraph)) {
-          if (!meta.htmlProjection) continue;
-          const check = this.graph.leadsToBoundary(
-            id,
-            this.messages.dependencyGraph,
-            this.messages.metadataGraph,
-          );
-          if (check.leads) {
-            htmlMetadatas[id] = meta;
-          }
-        }
-        return htmlMetadatas;
-      },
-      assetsManager: this.assets,
-      htmlManager: this.html,
+      getMetadataGraph: () => this.messages.metadataGraph,
+      leadsToBoundary: (startId, depGraph, metaGraph) =>
+        this.graph.leadsToBoundary(startId, depGraph, metaGraph),
+      transform: (code, id, virtualInjectionTarget, isDev) =>
+        this.transform(code, id, virtualInjectionTarget, isDev),
     };
   }
 
@@ -415,7 +400,10 @@ export class ZintlCompiler {
     const context = this.getCompilerContext();
     for (const adapter of this._resolved.hooks.contentAdapters) {
       if (adapter.setup) {
-        await adapter.setup(this.messages.registeredAssets, context);
+        const savedState =
+          this.messages.savedContentStates[adapter.name || ""] ||
+          (adapter.name === "system-static-assets" ? this.messages.registeredAssets : undefined);
+        await adapter.setup(savedState, context);
       }
     }
     await this.catalog.harvestHive(
@@ -535,13 +523,11 @@ export class ZintlCompiler {
       }
     }
 
-    // 3. Check if it's an HTML catalog file
-    for (const bId of Object.keys(this.messages.metadataGraph)) {
-      if (!this.messages.metadataGraph[bId].htmlProjection) continue;
-      if (foundBoundaryIds.includes(bId)) continue;
-      for (const locale of this.locales) {
-        const catPath = this.html.getCatalogPath(bId, locale);
-        if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
+    // 3. Check if it's a localized output of a content adapter
+    for (const adapter of this._resolved.hooks.contentAdapters) {
+      if (adapter.getBoundaryForLocalizedOutput) {
+        const bId = await adapter.getBoundaryForLocalizedOutput(filePath, context);
+        if (bId && !foundBoundaryIds.includes(bId)) {
           foundBoundaryIds.push(bId);
           this.messages.dirtyBoundaries.add(bId);
           break;
@@ -581,7 +567,7 @@ export class ZintlCompiler {
     const affected = new Set<string>();
     if (!this.graph.chunkGraph) return [];
 
-    if (boundaryId === "b_assets") {
+    if (this._resolved.hooks.virtualBoundaries.includes(boundaryId)) {
       for (const [id, chunk] of this.graph.chunkGraph.chunks.entries()) {
         if (chunk.type === "entry") {
           const splitIdx = id.indexOf("_");
@@ -713,9 +699,9 @@ export class ZintlCompiler {
     this.graphDirty = false;
     this.reachableCache = null;
     this.rebuildPromise = (async () => {
+      const context = this.getCompilerContext();
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
-        const context = this.getCompilerContext();
         const assetTranslations: Record<string, string> = {};
         for (const adapter of this._resolved.hooks.contentAdapters) {
           if (adapter.getTranslations) {
@@ -770,12 +756,16 @@ export class ZintlCompiler {
         this.messages.internalManifest,
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
+        this._resolved.hooks.virtualBoundaries,
+        this._resolved.hooks.contentAdapters,
+        context,
       );
       this.graph.propagateActiveLocales(g);
       const c = this.graph.computeTranslationChunks(
         g,
         this.messages.internalManifest,
         this.messages.metadataGraph,
+        this._resolved.hooks.virtualBoundaries,
       );
       this.graph.boundaryGraph = g;
       this.graph.chunkGraph = c;
@@ -784,384 +774,18 @@ export class ZintlCompiler {
     return this.rebuildPromise;
   }
 
-  /**
-   * Transforms an HTML file by applying localized projections (title, description, dir).
-   * Depending on the owner anchor tier, it either bakes values or injects a bootstrap script.
-   */
   public async transformHtml(
     html: string,
     id: string,
     preloads?: Record<string, string[]>,
   ): Promise<string> {
-    let fileId = this.io.getNormalizedId(id);
-    let fannedLocale: string | undefined;
-
-    // Normalize fanned directory requests (e.g. "en" or "en/") to "en/index.html"
-    const dirParts = fileId.split("/");
-    if (dirParts.length === 1 && this.locales.includes(dirParts[0])) {
-      fileId = `${dirParts[0]}/index.html`;
-    } else if (dirParts.length > 1 && this.locales.includes(dirParts[dirParts.length - 1])) {
-      fileId = `${fileId}/index.html`;
-    }
-
-    const physicalPath = join(this.root, fileId);
-    if (await this.io.exists(physicalPath)) {
-      const stats = await this.io.stat(physicalPath);
-      if (stats.isDirectory()) {
-        return html;
+    const context = this.getCompilerContext();
+    for (const adapter of this._resolved.hooks.contentAdapters) {
+      if (adapter.transformHtml) {
+        return await adapter.transformHtml(html, id, context, preloads);
       }
     }
-
-    if (fileId.endsWith(".html")) {
-      const parts = fileId.split("/");
-      for (const loc of this.locales) {
-        if (parts.includes(loc) || fileId.includes(`:${loc}`) || fileId.includes(`/${loc}`)) {
-          fannedLocale = loc;
-          break;
-        }
-      }
-      if (fannedLocale) {
-        const filteredParts = parts.filter((p) => p !== fannedLocale);
-        fileId = filteredParts.join("/");
-      }
-    }
-
-    let meta = this.metadataGraph[fileId];
-
-    if (!meta || this.isDev) {
-      this.logger.debug(`Refreshing HTML metadata: ${fileId}`);
-      let sourceHtml = html;
-      let sourcePath = id;
-
-      const physicalPath = join(this.root, fileId);
-      if (await this.io.exists(physicalPath)) {
-        sourceHtml = await this.io.readFile(physicalPath);
-        sourcePath = physicalPath;
-      }
-
-      await this.transform(sourceHtml, sourcePath, undefined, true);
-      meta = this.metadataGraph[fileId];
-    }
-
-    if (!meta || !meta.htmlProjection) return html;
-
-    // 1. Identify the "Winning" owner script by tracing the tree
-    let winningCheck: { leads: boolean; dynamic: boolean; bakedLocale?: string } | undefined;
-
-    const scripts = meta.htmlProjection.scripts;
-    for (const script of scripts) {
-      let scriptRel = script;
-      if (scriptRel.startsWith("/")) scriptRel = scriptRel.substring(1);
-      const scriptPath = join(this.root, scriptRel);
-      const scriptId = this.io.getNormalizedId(scriptPath);
-
-      if (!this.messages.metadataGraph[scriptId]) {
-        if (await this.io.exists(scriptPath)) {
-          this.logger.debug(`JIT extraction for script: ${scriptId}`);
-          try {
-            const scriptCode = await this.io.readFile(scriptPath);
-            await this.transform(scriptCode, scriptPath, undefined, true);
-          } catch {}
-        }
-      }
-
-      const check = this.graph.leadsToBoundary(
-        scriptId,
-        this.messages.dependencyGraph,
-        this.messages.metadataGraph,
-      );
-
-      if (check.leads) {
-        if (!winningCheck || (check.dynamic && !winningCheck.dynamic)) {
-          winningCheck = check;
-        }
-      }
-    }
-
-    if (!winningCheck) return html;
-
-    // 2. Determine base projection values
-    const isLiteral = !winningCheck.dynamic;
-    const targetLocale =
-      (isLiteral && fannedLocale) ||
-      (isLiteral ? winningCheck.bakedLocale || this.sourceLocale : this.sourceLocale);
-
-    if (targetLocale === "*") {
-      const existingRedirectRe = /<script id="zintl-sovereign-redirect">[\s\S]*?<\/script>/gi;
-      const cleanedHtml = html.replace(existingRedirectRe, "");
-
-      const localesStr = JSON.stringify(this.locales);
-      const defaultLocale = this.sourceLocale || "en";
-      const redirectScript = `<script id="zintl-sovereign-redirect">
-      (function() {
-        const lang = (navigator.language || '${defaultLocale}').split('-')[0];
-        const supported = ${localesStr};
-        const target = supported.includes(lang) ? lang : '${defaultLocale}';
-        window.location.replace('/' + target + '/');
-      })();
-    </script>`;
-
-      if (cleanedHtml.includes("</head>")) {
-        return cleanedHtml.replace(/<\/head>/i, `  ${redirectScript}\n  </head>`);
-      }
-      return `<head>\n  ${redirectScript}\n</head>\n${cleanedHtml}`;
-    }
-
-    let title = meta.htmlProjection.title;
-    let description = meta.htmlProjection.description;
-    let dir = meta.htmlProjection.dir;
-    if (isLiteral && !dir) {
-      dir = ["ar", "he", "iw", "fa", "ur", "yi"].includes(targetLocale) ? "rtl" : "ltr";
-    }
-
-    if (isLiteral && targetLocale !== "none") {
-      const catalogPath = this.html.getCatalogPath(fileId, targetLocale);
-      if (await this.io.exists(catalogPath)) {
-        try {
-          const catalog = JSON.parse(await this.io.readFile(catalogPath));
-          const catalogTitle = this.isMultilingualFormat()
-            ? catalog.title?.[targetLocale]
-            : catalog.title;
-          const catalogDesc = this.isMultilingualFormat()
-            ? catalog.description?.[targetLocale]
-            : catalog.description;
-          const catalogDir = this.isMultilingualFormat()
-            ? catalog.dir?.[targetLocale]
-            : catalog.dir;
-
-          title = catalogTitle !== undefined ? catalogTitle : title;
-          description = catalogDesc !== undefined ? catalogDesc : description;
-          dir = catalogDir !== undefined ? catalogDir : dir;
-        } catch {}
-      }
-    }
-
-    // console.log("[Zintl Debug] transformHtml:", {
-    //   fileId,
-    //   id,
-    //   fannedLocale,
-    //   isLiteral,
-    //   targetLocale,
-    //   dir,
-    // });
-
-    // 3. Apply Projection
-    let mutated = html;
-    mutated = mutated.replace(/<html([^>]*)>/i, (m, attrs) => {
-      let newAttrs = attrs;
-      if (!/lang=/i.test(attrs)) newAttrs += ` lang="${targetLocale}"`;
-      else newAttrs = newAttrs.replace(/lang=["'][^"']*["']/i, `lang="${targetLocale}"`);
-
-      if (dir) {
-        if (!/dir=/i.test(attrs)) newAttrs += ` dir="${dir}"`;
-        else newAttrs = newAttrs.replace(/dir=["'][^"']*["']/i, `dir="${dir}"`);
-      } else {
-        newAttrs = newAttrs.replace(/\s*dir=["'][^"']*["']/i, "");
-      }
-
-      return `<html${newAttrs}>`;
-    });
-
-    if (title) {
-      mutated = mutated.replace(/<title[^>]*>([\s\S]*?)<\/title>/i, `<title>${title}</title>`);
-    }
-    if (description) {
-      mutated = mutated.replace(
-        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i,
-        `<meta name="description" content="${description}">`,
-      );
-      mutated = mutated.replace(
-        /<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["'][^>]*>/i,
-        `<meta name="description" content="${description}">`,
-      );
-    }
-
-    // 4. Inject Bootstrap for Dynamic Anchors
-    if (!isLiteral) {
-      const existingRe =
-        /<!--zintl-bootstrap-->\s*<script id="zintl-projection">[\s\S]*?<\/script>/gi;
-      mutated = mutated.replace(existingRe, "");
-
-      let winningDetection: string | undefined;
-      let winningVar: string | undefined;
-
-      for (const script of scripts) {
-        let scriptRel = script;
-        if (scriptRel.startsWith("/")) scriptRel = scriptRel.substring(1);
-        const scriptId = scriptRel.replace(/\.[^/.]+$/, "");
-        const scriptMeta = this.messages.metadataGraph[scriptId];
-        if (scriptMeta?.anchorSites) {
-          const dynamicAnchor = scriptMeta.anchorSites.find((a: any) => a.detectionCode);
-          if (dynamicAnchor) {
-            winningDetection = dynamicAnchor.detectionCode;
-            winningVar =
-              dynamicAnchor.locale.type === "expression" ? dynamicAnchor.locale.source : undefined;
-            break;
-          }
-        }
-      }
-
-      const rtlLocales: string[] = [];
-      const deltas: Record<string, any> = {};
-
-      const isMultilingual = this.isMultilingualFormat();
-      let multiCatalog: any;
-      if (isMultilingual) {
-        const catalogPath = this.html.getCatalogPath(fileId, this.locales[0]);
-        if (await this.io.exists(catalogPath)) {
-          try {
-            multiCatalog = JSON.parse(await this.io.readFile(catalogPath));
-          } catch {}
-        }
-      }
-
-      for (const locale of this.locales) {
-        const catalogPath = isMultilingual ? "" : this.html.getCatalogPath(fileId, locale);
-        if (multiCatalog || (catalogPath && (await this.io.exists(catalogPath)))) {
-          try {
-            const catalog = multiCatalog || JSON.parse(await this.io.readFile(catalogPath));
-            const catalogDir = isMultilingual ? catalog.dir?.[locale] : catalog.dir;
-            const catalogTitle = isMultilingual ? catalog.title?.[locale] : catalog.title;
-            const catalogDesc = isMultilingual
-              ? catalog.description?.[locale]
-              : catalog.description;
-
-            if (catalogDir === "rtl") rtlLocales.push(locale);
-            else if (locale === this.sourceLocale && dir === "rtl") rtlLocales.push(locale);
-
-            if (locale !== this.sourceLocale) {
-              const delta: Record<string, string> = {};
-              if (title && catalogTitle?.trim() && catalogTitle !== meta.htmlProjection.title) {
-                delta.title = catalogTitle;
-              }
-              if (
-                description &&
-                catalogDesc?.trim() &&
-                catalogDesc !== meta.htmlProjection.description
-              ) {
-                delta.description = catalogDesc;
-              }
-              if (Object.keys(delta).length > 0) deltas[locale] = delta;
-            }
-          } catch {}
-        } else if (locale === this.sourceLocale && dir === "rtl") {
-          rtlLocales.push(locale);
-        }
-      }
-
-      const hasDeltas = Object.keys(deltas).length > 0;
-      const hasPreloads = Object.keys(preloads || {}).length > 0;
-      const hasRtl = rtlLocales.length > 0;
-
-      // build
-      const rtlChunk = hasRtl ? `const rtl = ${JSON.stringify(rtlLocales)};` : "";
-
-      const deltasChunk = hasDeltas ? `const deltas = ${JSON.stringify(deltas)};` : "";
-      const preloadsChunk = hasPreloads
-        ? `const preloads = ${JSON.stringify(preloads)};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
-        }`
-        : "";
-
-      const originalsChunk =
-        title || description
-          ? `
-        const originals = {
-          ${title ? "title: document.title," : ""}
-          ${description ? `description: document.querySelector('meta[name="description"]')?.content,` : ""}
-        };`
-          : "";
-
-      const applyChunk = hasDeltas
-        ? `
-          const hasText = v => typeof v === "string" && v.trim();
-
-          ${description ? `const meta = document.querySelector('meta[name="description"]');` : ""}
-          const delta = deltas[locale];
-
-          if (delta) {
-            ${
-              title
-                ? `
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;`
-                : ""
-            }
-
-            ${
-              description
-                ? `
-                if (meta && originals.description !== undefined) {
-                  meta.content = hasText(delta.description)
-                    ? delta.description
-                    : originals.description;
-                }`
-                : ""
-            }
-          } else {
-            ${title ? "document.title = originals.title;" : ""}
-            ${
-              description
-                ? "if (meta && originals.description !== undefined) meta.content = originals.description;"
-                : ""
-            }
-          }`
-        : "";
-
-      const dirChunk = hasRtl
-        ? `document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';`
-        : "";
-
-      const bootstrap = `<!--zintl-bootstrap-->
-    <script id="zintl-projection">
-      (function() {
-        ${winningDetection ? winningDetection.replace(/\n/g, "\n        ") + "\n        " : ""}
-        const l = ${winningDetection ? winningVar + " || " : ""}localStorage.getItem('zintl-locale') || '${this.sourceLocale}';
-        ${rtlChunk}
-        ${deltasChunk}
-        ${originalsChunk}
-        ${preloadsChunk}
-
-        function apply(locale) {
-          if (document.documentElement.lang === locale) return;
-
-          ${dirChunk}
-          document.documentElement.lang = locale;
-
-          ${applyChunk}
-        }
-
-        window.__zintlApplyHtml = apply;
-
-        if (l !== '${this.sourceLocale}') {
-          apply(l);
-          ${hasPreloads ? "preload(l);" : ""}
-        }
-      })();
-    </script>`
-        .replace(/\n\s*\n+/g, "\n")
-        .trim();
-      // check if the mutated has </title>
-      // thats not going to works for descrption orginal too!
-      // lets place it before `<script type="module".../>` or `<script type="module" src="/"...></script>`
-      const scriptRe = /<script\s+[^>]*type="module"[^>]*src="\/"[^>]*>\s*<\/script>/i;
-      const match = mutated.match(scriptRe);
-      if (match) {
-        mutated = mutated.replace(match[0], bootstrap + "\n    " + match[0]);
-      } else {
-        mutated = mutated.replace(/<\/head>/i, `${bootstrap}\n  </head>`);
-      }
-    }
-
-    return mutated;
+    return html;
   }
 
   async transform(
@@ -1784,13 +1408,13 @@ export class ZintlCompiler {
         }
       }
 
-      const activeAssetPaths = new Set<string>();
+      const activeContentPaths = new Set<string>();
       const context = this.getCompilerContext();
       for (const adapter of this._resolved.hooks.contentAdapters) {
         if (adapter.getActiveOutputPaths) {
           const paths = await adapter.getActiveOutputPaths(context);
           for (const p of paths) {
-            activeAssetPaths.add(p);
+            activeContentPaths.add(p);
           }
         }
       }
@@ -1813,7 +1437,7 @@ export class ZintlCompiler {
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
         this.graph,
-        activeAssetPaths,
+        activeContentPaths,
         this.graph.chunkGraph!,
         precomputedReachable,
       );
@@ -1828,14 +1452,13 @@ export class ZintlCompiler {
         );
       }
 
-      let contentStateToSave: any = undefined;
-      const assetsAdapter = this._resolved.hooks.contentAdapters.find(
-        (a) => a.name === "system-static-assets",
-      );
-      if (assetsAdapter?.getStateToSave) {
-        contentStateToSave = assetsAdapter.getStateToSave(context);
+      const contentStatesToSave: Record<string, any> = {};
+      for (const adapter of this._resolved.hooks.contentAdapters) {
+        if (adapter.getStateToSave && adapter.name) {
+          contentStatesToSave[adapter.name] = adapter.getStateToSave(context);
+        }
       }
-      await this.messages.saveManifest(this.outputDir, contentStateToSave);
+      await this.messages.saveManifest(this.outputDir, contentStatesToSave);
 
       const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
@@ -2072,6 +1695,9 @@ export class ZintlCompiler {
       this.messages.internalManifest,
       this.messages.metadataGraph,
       this.messages.dependencyGraph,
+      this._resolved.hooks.virtualBoundaries,
+      this._resolved.hooks.contentAdapters,
+      this.getCompilerContext(),
     );
   }
   public _computeUsageCounts(graph: any) {
@@ -2082,6 +1708,7 @@ export class ZintlCompiler {
       graph,
       this.messages.internalManifest,
       this.messages.metadataGraph,
+      this._resolved.hooks.virtualBoundaries,
     );
   }
 
@@ -2176,7 +1803,8 @@ export class ZintlCompiler {
         this.messages.currentReconciliation,
         false,
         reachableColonies,
-        this.assets,
+        this._resolved.hooks.contentAdapters,
+        this.getCompilerContext(),
       );
       const importsCode = imports && imports.length > 0 ? imports.join("\n") + "\n" : "";
       const serialized = this.catalog.serializeCatalog(cat, loc, 4, this.logger);
@@ -2222,7 +1850,8 @@ export class ZintlCompiler {
       this.messages.currentReconciliation,
       true,
       reachableColonies,
-      this.assets,
+      this._resolved.hooks.contentAdapters,
+      this.getCompilerContext(),
     );
 
     const isStaticallyLocked =

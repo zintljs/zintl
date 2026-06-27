@@ -1,18 +1,19 @@
 import { join, isAbsolute, relative } from "node:path";
+import { existsSync } from "node:fs";
 import type { ZintlAdapter, CompilerContext } from "../types.js";
 import { registerPreset } from "../resolve.js";
 import { IOManager } from "../../managers/IOManager.js";
 import type { CatalogManager } from "../../managers/CatalogManager.js";
 import type { ZintlLogger } from "@zintl/extractor";
 import type { ZintlOptions, AssetMergeStrategy } from "../../types/compiler.js";
-import { sha1 } from "../../utils/hashing.js";
+import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { similarity } from "../../reconcile.js";
 
 /**
  * Manages translation for static assets like Markdown (.md) and Text (.txt) files.
  * Internal class wrapped by the system content adapter.
  */
-export class AssetManager {
+class AssetManager {
   private registeredAssets = new Set<string>();
 
   public getRegisteredAssetsRaw(): string[] {
@@ -667,9 +668,6 @@ export function createAssetAdapter(options: ZintlOptions): ZintlAdapter {
   let manager: AssetManager;
 
   const getManager = (context: CompilerContext) => {
-    if ((context as any).assetsManager) {
-      return (context as any).assetsManager;
-    }
     if (!manager) {
       manager = new AssetManager(
         context.io,
@@ -691,6 +689,10 @@ export function createAssetAdapter(options: ZintlOptions): ZintlAdapter {
   return {
     name: "system-static-assets",
     content: {
+      getManagerInstance(context: CompilerContext) {
+        return getManager(context);
+      },
+      virtualBoundaries: ["b_assets"],
       match(filePath: string, context: CompilerContext) {
         return getManager(context).isSupportedAsset(filePath);
       },
@@ -716,6 +718,37 @@ export function createAssetAdapter(options: ZintlOptions): ZintlAdapter {
       },
       getStateToSave(context: CompilerContext) {
         return getManager(context).getRegisteredAssetsRaw();
+      },
+      async getBoundaryForLocalizedOutput(filePath: string, context: CompilerContext) {
+        const mgr = getManager(context);
+        if (await mgr.isLocalizedAsset(filePath)) {
+          return "b_assets";
+        }
+        return null;
+      },
+      async getChunkContributions(locale: string, context: CompilerContext) {
+        const mgr = getManager(context);
+        const registeredAssets = mgr.getRegisteredAssets();
+        const imports: string[] = [];
+        const catalog: Record<string, any> = {};
+        let assetCounter = 0;
+        for (const assetId of registeredAssets) {
+          const isSource = locale === context.sourceLocale;
+          const localizedPath = isSource
+            ? join(context.root, assetId)
+            : mgr.getAssetPath(assetId, locale);
+          if (existsSync(localizedPath)) {
+            const varName = `_zintl_asset_${assetCounter++}`;
+            imports.push(
+              `import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`,
+            );
+            const assetKey = context.isDev
+              ? `@zintl/asset:${assetId}`
+              : generateMessageId(`@zintl/asset:${assetId}`);
+            catalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
+          }
+        }
+        return { imports, boundaryId: "b_assets", catalog };
       },
     },
   };

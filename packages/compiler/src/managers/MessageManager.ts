@@ -15,6 +15,7 @@ export class MessageManager {
   public hiveDirty = false;
   public lastOutputDir?: string;
   public registeredAssets: string[] = [];
+  public savedContentStates: Record<string, any> = {};
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   public boundaryOwnership = new Map<string, Set<string>>();
   public dirtyBoundaries = new Set<string>();
@@ -38,6 +39,10 @@ export class MessageManager {
         this.metadataGraph = data.metadata || {};
         this.lastOutputDir = data.outputDir;
         this.registeredAssets = data.assets || [];
+        this.savedContentStates = data.contentStates || {};
+        if (data.assets && !this.savedContentStates["system-static-assets"]) {
+          this.savedContentStates["system-static-assets"] = data.assets;
+        }
         this.previousManifest = { ...this.internalManifest };
         this.lastManifestContent = raw;
       } catch {}
@@ -81,14 +86,15 @@ export class MessageManager {
     this.hiveDirty = false;
   }
 
-  public async saveManifest(outputDir?: string, assets?: string[]) {
+  public async saveManifest(outputDir?: string, contentStates?: Record<string, any>) {
     this.logger?.debug("Saving compiler manifest...");
     const data = {
       manifest: this.internalManifest,
       graph: this.dependencyGraph,
       metadata: this.metadataGraph,
       outputDir,
-      assets: assets || this.registeredAssets,
+      assets: contentStates?.["system-static-assets"] || this.registeredAssets,
+      contentStates: contentStates || this.savedContentStates,
     };
     const sortedData = sortObjectKeys(data);
     const content = JSON.stringify(sortedData, null, 2);

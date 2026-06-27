@@ -21,14 +21,19 @@ import {
   type MustacheRule,
 } from "@zintl/extractor";
 
+import type { ZintlOptions } from "../types/compiler.js";
+
 // Preset registry — populated by presets/index.ts to avoid circular imports
-const presetRegistry = new Map<string, () => ZintlAdapter[]>();
+const presetRegistry = new Map<string, (options?: ZintlOptions) => ZintlAdapter[]>();
 
 /**
  * Register a named preset. Called by each preset file on load.
  * Presets expand to one or more adapters (e.g. "react" → [reactExtraction, reactCodegen]).
  */
-export function registerPreset(name: string, factory: () => ZintlAdapter[]): void {
+export function registerPreset(
+  name: string,
+  factory: (options?: ZintlOptions) => ZintlAdapter[],
+): void {
   presetRegistry.set(name, factory);
 }
 
@@ -36,7 +41,7 @@ export function registerPreset(name: string, factory: () => ZintlAdapter[]): voi
  * Expand a preset name or pass-through a ZintlAdapter object.
  * Throws a helpful error for unknown preset names.
  */
-function expandInput(input: string | ZintlAdapter): ZintlAdapter[] {
+function expandInput(input: string | ZintlAdapter, options?: ZintlOptions): ZintlAdapter[] {
   if (typeof input === "string") {
     const factory = presetRegistry.get(input);
     if (!factory) {
@@ -46,7 +51,7 @@ function expandInput(input: string | ZintlAdapter): ZintlAdapter[] {
           `Pass a ZintlAdapter object for custom adapters.`,
       );
     }
-    return factory();
+    return factory(options);
   }
   return [input];
 }
@@ -355,6 +360,13 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
           return undefined;
         };
 
+  const virtualBoundaries: string[] = [];
+  for (const adapter of state.contentAdapters) {
+    if (adapter.virtualBoundaries) {
+      virtualBoundaries.push(...adapter.virtualBoundaries);
+    }
+  }
+
   return {
     codegenAdapters: state.codegenAdapters,
     extractionTargets: state.extractionTargets,
@@ -363,6 +375,7 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
     suppressionRules: state.suppressionRules,
     mustacheRules: state.mustacheRules,
     contentAdapters: state.contentAdapters,
+    virtualBoundaries,
 
     ssrEntryTargets: state.ssrEntryTargets,
     ssrWrapCode: state.ssrWrapCode,
@@ -409,7 +422,10 @@ export type ResolvedAdapters = ResolvedCompilerState;
  * // resolved.capabilities.hmr === true
  * // resolved.hooks.dynamicImportTemplate("./foo", true) === "import(/* @vite-ignore *\/ \"./foo\")"
  */
-export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): ResolvedCompilerState {
+export function resolveAdapters(
+  inputs: (string | ZintlAdapter)[] = [],
+  options?: ZintlOptions,
+): ResolvedCompilerState {
   const flatAdapters: ZintlAdapter[] = [];
 
   // Expose configuration and auto-inject baseline content adapters if not explicitly provided
@@ -431,7 +447,7 @@ export function resolveAdapters(inputs: (string | ZintlAdapter)[] = []): Resolve
   }
 
   for (const input of baseInputs) {
-    flatAdapters.push(...expandInput(input));
+    flatAdapters.push(...expandInput(input, options));
   }
 
   // Deduplicate adapters by name to prevent conflict errors from duplicate presets/registrations

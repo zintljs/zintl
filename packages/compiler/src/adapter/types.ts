@@ -1,10 +1,4 @@
-import type {
-  TargetDescriptor,
-  SfcRule,
-  SuppressionRule,
-  MustacheRule,
-  HtmlProjectionPayload,
-} from "@zintl/extractor";
+import type { TargetDescriptor, SfcRule, SuppressionRule, MustacheRule } from "@zintl/extractor";
 import type { IOManager } from "../managers/IOManager.js";
 import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "../types/compiler.js";
@@ -294,6 +288,8 @@ export interface MergedAdapterHooks {
 
   /** All registered content adapters */
   contentAdapters: ContentAdapter[];
+  /** All registered virtual content boundaries (e.g. ['b_assets']) */
+  virtualBoundaries: string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -347,13 +343,23 @@ export interface CompilerContext {
   getHive: () => Record<string, Record<string, any>>;
   markHiveDirty: () => void;
   getBoundaryGraph: () => { entries: Set<string>; nodes: Map<string, any> } | null;
-  getHtmlProjections: () => Record<string, { htmlProjection: HtmlProjectionPayload }>;
-  assetsManager?: any;
-  htmlManager?: any;
+  getMetadataGraph: () => Record<string, any>;
+  leadsToBoundary: (
+    startId: string,
+    dependencyGraph: Record<string, any>,
+    metadataGraph: Record<string, any>,
+  ) => { leads: boolean; dynamic: boolean; bakedLocale?: string };
+  transform: (
+    code: string,
+    id: string,
+    virtualInjectionTarget?: string,
+    isDev?: boolean,
+  ) => Promise<any>;
 }
 
 export interface ContentAdapter {
   name?: string;
+  getManagerInstance?: (context: CompilerContext) => any;
   match: (filePath: string, context: CompilerContext) => boolean;
   setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
   discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
@@ -365,4 +371,23 @@ export interface ContentAdapter {
   isLocalizedOutput?: (filePath: string, context: CompilerContext) => Promise<boolean> | boolean;
   getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
   getStateToSave?: (context: CompilerContext) => any;
+  virtualBoundaries?: string[];
+  getBoundaryForLocalizedOutput?: (
+    filePath: string,
+    context: CompilerContext,
+  ) => Promise<string | null> | string | null;
+  getChunkContributions?: (
+    locale: string,
+    context: CompilerContext,
+  ) =>
+    | Promise<{ imports: string[]; boundaryId: string; catalog: Record<string, any> } | null>
+    | { imports: string[]; boundaryId: string; catalog: Record<string, any> }
+    | null;
+  isContentBoundary?: (boundaryId: string, context: CompilerContext) => boolean;
+  transformHtml?: (
+    html: string,
+    id: string,
+    context: CompilerContext,
+    preloads?: Record<string, string[]>,
+  ) => Promise<string> | string;
 }

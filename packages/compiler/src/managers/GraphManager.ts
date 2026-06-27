@@ -19,6 +19,7 @@ export class GraphManager {
 
   private lastManifest: Record<string, any[]> = {};
   private lastMetadata: Record<string, BoundaryMetadata> = {};
+  private readonly isContentCache = new Map<string, boolean>();
 
   constructor(
     private readonly io: IOManager,
@@ -56,8 +57,12 @@ export class GraphManager {
     internalManifest: Record<string, any[]>,
     metadataGraph: Record<string, BoundaryMetadata>,
     dependencyGraph: Record<string, ObservedDependency[]>,
+    virtualBoundaries?: string[],
+    contentAdapters: any[] = [],
+    context?: any,
   ): BoundaryGraph {
     this.logger.debug("Starting boundary graph construction...");
+    const vbList = virtualBoundaries || (this.isDev ? ["b_assets"] : []);
     const nodes = new Map<string, Boundary>();
     const entries = new Set<string>();
 
@@ -126,7 +131,13 @@ export class GraphManager {
           )
         : hasTopLevelA || !!meta?.hasZintlMarker;
 
-      if (fileId.endsWith(".html") && meta?.htmlProjection) {
+      let isContent = this.isContentCache.get(fileId);
+      if (isContent === undefined) {
+        isContent = context ? contentAdapters.some((a) => a.match(fileId, context)) : false;
+        this.isContentCache.set(fileId, isContent);
+      }
+
+      if (isContent) {
         const check = this.leadsToBoundary(fileId, dependencyGraph, metadataGraph);
         if (check.leads) {
           isDictator = true;
@@ -139,10 +150,8 @@ export class GraphManager {
       // Nodes with deps are kept as "pass-through" so the graph walk can
       // traverse through intermediate files (e.g. parent modules or wrapper layout templates) to reach
       // downstream content-bearing boundaries.
-      // HTML files are always roots of compilation and never act as pass-through code nodes.
-      const isHtml = fileId.endsWith(".html");
       if (!isDictator && !hasContent) {
-        if (isHtml || rawDeps.length === 0) continue;
+        if (isContent || rawDeps.length === 0) continue;
       }
       const resolvedDeps: any[] = [];
       for (const dep of rawDeps) {
@@ -237,9 +246,11 @@ export class GraphManager {
       }
 
       const allDeps = [...resolvedDeps, ...uniqueNestedAnchors, ...resolvedInternalDeps];
-      // In dev mode, every entry depends on b_assets to ensure localized assets are available
+      // In dev mode, every entry depends on virtual boundaries to ensure localized content is available
       if (mode === "entry" && this.isDev) {
-        allDeps.push({ id: "b_assets", dynamic: false });
+        for (const vb of vbList) {
+          allDeps.push({ id: vb, dynamic: false });
+        }
       }
 
       nodes.set(normalizedBId, {
@@ -254,16 +265,20 @@ export class GraphManager {
       if (mode === "entry") entries.add(normalizedBId);
     }
 
-    // Ensure b_assets itself exists in the graph in dev mode
-    if (this.isDev && !nodes.has("b_assets")) {
-      nodes.set("b_assets", {
-        id: "b_assets",
-        mode: "boundary" as any,
-        deps: [],
-        usageCount: 1,
-        filePath: "assets",
-        activeLocales: "all",
-      });
+    // Ensure virtual boundaries exist in the graph in dev mode
+    if (this.isDev) {
+      for (const vb of vbList) {
+        if (!nodes.has(vb)) {
+          nodes.set(vb, {
+            id: vb,
+            mode: "boundary" as any,
+            deps: [],
+            usageCount: 1,
+            filePath: "virtual-content",
+            activeLocales: "all",
+          });
+        }
+      }
     }
 
     return { nodes, entries };
@@ -312,8 +327,10 @@ export class GraphManager {
     graph: BoundaryGraph,
     internalManifest: Record<string, any[]>,
     metadataGraph: Record<string, BoundaryMetadata>,
+    virtualBoundaries?: string[],
   ): ChunkGraph {
     this.logger.debug("Computing translation chunks...");
+    const vbList = virtualBoundaries || (this.isDev ? ["b_assets"] : []);
     const chunks = new Map<string, ChunkInfo>();
     const entryChunks = new Map<string, string>();
     const lazyChunks = new Set<string>();
@@ -370,7 +387,7 @@ export class GraphManager {
 
     const sharedBoundaries = new Set<string>();
     for (const [id, count] of usageCounts.entries()) {
-      if (count > 1 && !entryPoints.has(id) && id !== "b_assets") {
+      if (count > 1 && !entryPoints.has(id) && !vbList.includes(id)) {
         sharedBoundaries.add(this.io.getNormalizedId(id));
         const chunkId = `shared_${this.io.getSafeBoundaryId(id)}`;
         chunks.set(chunkId, {

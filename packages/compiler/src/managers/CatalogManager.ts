@@ -1,12 +1,11 @@
 import { join, dirname, relative, basename, isAbsolute } from "node:path";
-import { existsSync } from "node:fs";
+
 import { type ReconcileResult } from "../reconcile.js";
 import { bakeICU } from "../utils/icu-baker.js";
 import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
 import type { IOManager } from "./IOManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
-import { generateMessageId } from "../utils/hashing.js";
 
 /**
  * Manages translation catalogs and JSON schemas.
@@ -39,6 +38,8 @@ export class CatalogManager {
     private readonly logger: ZintlLogger,
     public prune: boolean = true,
     extensions?: string[],
+    private readonly virtualBoundaries: string[] = [],
+    private readonly contentAdapters: any[] = [],
   ) {
     this._outputDir = outputDir;
     this.extensions = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
@@ -95,7 +96,7 @@ export class CatalogManager {
     const isMulti = this.isMultilingualFormat();
 
     for (const bId of boundaryIds) {
-      if (bId === "b_assets") continue;
+      if (this.virtualBoundaries.includes(bId)) continue;
       if (isMulti) {
         const path = this.getCatalogPath(bId, locales[0]);
         if (path) {
@@ -130,12 +131,32 @@ export class CatalogManager {
   ): Set<string> {
     const bIds = new Set<string>();
     for (const bId of Object.keys(internalManifest)) {
-      if (bId === "b_assets") continue;
+      if (this.virtualBoundaries.includes(bId)) continue;
       if (this.getCatalogPath(bId, locale) === path) {
         bIds.add(bId);
       }
     }
     return bIds;
+  }
+
+  private readonly isContentCache = new Map<string, boolean>();
+  private isContentBoundary(boundaryId: string): boolean {
+    const cached = this.isContentCache.get(boundaryId);
+    if (cached !== undefined) return cached;
+
+    const result =
+      this.virtualBoundaries.includes(boundaryId) ||
+      this.contentAdapters.some((a) =>
+        a.match?.(boundaryId, { root: this.root, io: this.io } as any),
+      ) ||
+      (/\.[a-zA-Z0-9]+$/.test(boundaryId) &&
+        !this.extensions.some((ext) => {
+          const cleanBId = boundaryId.split(":")[0];
+          return cleanBId.toLowerCase().endsWith(ext.toLowerCase());
+        }));
+
+    this.isContentCache.set(boundaryId, result);
+    return result;
   }
 
   public getCatalogPath(boundaryId: string, locale: string): string | null {
@@ -157,15 +178,11 @@ export class CatalogManager {
     const bId = boundaryId;
 
     const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
-    const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
-    const isAsset =
-      !isHtml &&
-      /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
-      !this.extensions.some((ext) => boundaryId.toLowerCase().endsWith(ext.toLowerCase()));
+    const isContent = this.isContentBoundary(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
-      if ((isHtml || isAsset) && typeof format === "string" && !this.isBoundarySpecific(format)) {
+      if (isContent && typeof format === "string" && !this.isBoundarySpecific(format)) {
         // Compound format detected for HTML/Assets. Inject [path] to avoid collisions.
         const parts = format.split("/");
         const last = parts[parts.length - 1];
@@ -228,15 +245,11 @@ export class CatalogManager {
     const bId = boundaryId;
 
     let relativePath: string;
-    const isHtml = boundaryId.endsWith(".html") || boundaryId.includes(".html:");
-    const isAsset =
-      !isHtml &&
-      /\.[a-zA-Z0-9]+$/.test(boundaryId) &&
-      !this.extensions.some((ext) => boundaryId.toLowerCase().endsWith(ext.toLowerCase()));
+    const isContent = this.isContentBoundary(boundaryId);
 
     if (this.catalogFormat) {
       let format = this.catalogFormat;
-      if ((isHtml || isAsset) && typeof format === "string" && !this.isBoundarySpecific(format)) {
+      if (isContent && typeof format === "string" && !this.isBoundarySpecific(format)) {
         const parts = format.split("/");
         const last = parts[parts.length - 1];
         if (last.includes("[locale]")) {
@@ -516,7 +529,8 @@ export class CatalogManager {
     reconciliation?: ReconcileResult,
     isMgr = false,
     colonyBoundaries: string[] = [],
-    assetManager?: any,
+    contentAdapters?: any[],
+    context?: any,
   ): Promise<{ catalog: Record<string, any>; imports?: string[] }> {
     let chunkType: "entry" | "lazy" | "shared" = "entry";
     let idOrHash = fullModuleId;
@@ -638,29 +652,20 @@ export class CatalogManager {
 
     const imports: string[] = [];
 
-    if (assetManager) {
-      const assetsCatalog: Record<string, any> = {};
-      const registeredAssets = assetManager.getRegisteredAssets();
-      let assetCounter = 0;
-      for (const assetId of registeredAssets) {
-        const isSource = locale === this.sourceLocale;
-        const localizedPath = isSource
-          ? join(this.root, assetId)
-          : assetManager.getAssetPath(assetId, locale);
-        if (existsSync(localizedPath)) {
-          const varName = `_zintl_asset_${assetCounter++}`;
-          imports.push(`import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`);
-          const assetKey = this.isDev
-            ? `@zintl/asset:${assetId}`
-            : generateMessageId(`@zintl/asset:${assetId}`);
-          assetsCatalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
+    if (contentAdapters && context) {
+      for (const adapter of contentAdapters) {
+        if (adapter.getChunkContributions) {
+          const contribution = await adapter.getChunkContributions(locale, context);
+          if (contribution) {
+            imports.push(...contribution.imports);
+            if (Object.keys(contribution.catalog).length > 0) {
+              result[contribution.boundaryId] = {
+                __zintl_pre_serialized: true,
+                code: this.serializeCatalog(contribution.catalog, locale, 4, this.logger),
+              };
+            }
+          }
         }
-      }
-      if (Object.keys(assetsCatalog).length > 0) {
-        result["b_assets"] = {
-          __zintl_pre_serialized: true,
-          code: this.serializeCatalog(assetsCatalog, locale, 4, this.logger),
-        };
       }
     }
 
@@ -1073,19 +1078,31 @@ export class CatalogManager {
     metadataGraph?: Record<string, any>,
     dependencyGraph?: Record<string, any>,
     graphManager?: any,
-    activeAssetPaths?: Set<string>,
+    activeContentPaths?: Set<string>,
     _chunkGraph?: any,
     /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
     precomputedReachable?: Set<string> | null,
+    contentAdapters?: any[],
   ) {
     if (!this.prune) return;
     if (this.isDev && !this.isTestEnv) return; // Skip pruning in dev mode in real environments
+
+    const isContentBoundary = (id: string, meta: any) => {
+      if (contentAdapters) {
+        for (const adapter of contentAdapters) {
+          if (adapter.isContentBoundary && adapter.isContentBoundary(id, meta)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
 
     // Optimization: Skip if the graph hasn't changed since last prune
     const manifestHash =
       Array.from(graph.nodes.keys())
         .sort((a: any, b: any) => String(a).localeCompare(String(b)))
-        .join(",") + (activeAssetPaths ? `|assets:${activeAssetPaths.size}` : "");
+        .join(",") + (activeContentPaths ? `|content:${activeContentPaths.size}` : "");
     if (this.lastPrunedManifestHash === manifestHash) return;
     this.lastPrunedManifestHash = manifestHash;
 
@@ -1132,15 +1149,15 @@ export class CatalogManager {
       knownPaths.add(normalizePath(s));
     }
 
-    if (activeAssetPaths) {
-      for (const p of activeAssetPaths) {
+    if (activeContentPaths) {
+      for (const p of activeContentPaths) {
         knownPaths.add(normalizePath(p));
       }
     }
 
     if (metadataGraph && dependencyGraph && graphManager) {
       for (const [id, meta] of Object.entries(metadataGraph)) {
-        if (meta.htmlProjection) {
+        if (isContentBoundary(id, meta)) {
           const check = graphManager.leadsToBoundary(id, dependencyGraph, metadataGraph);
           if (check.leads) {
             for (const locale of locales) {
@@ -1156,7 +1173,7 @@ export class CatalogManager {
     } else if (metadataGraph) {
       // Fallback for simple pruning
       for (const [id, meta] of Object.entries(metadataGraph)) {
-        if (meta.htmlProjection && graph.nodes.has(id)) {
+        if (isContentBoundary(id, meta) && graph.nodes.has(id)) {
           for (const locale of locales) {
             if (locale === this.sourceLocale) continue;
             const p = this.getCatalogPath(id, locale);
