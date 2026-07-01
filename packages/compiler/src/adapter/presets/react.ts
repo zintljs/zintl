@@ -29,60 +29,50 @@ function serializeTags(tags: TagMapEntry[]): string {
   return `[${items.join(", ")}]`;
 }
 
-// ── React Extraction Adapter ──────────────────────────────────────────────────
+// ── React Extraction Contribution ─────────────────────────────────────────────
 
 const reactExtractionAdapter: ZintlAdapter = {
   name: "react-extraction",
-  extraction: {
-    targets: [
-      "jsx:*:aria-label",
-      "jsx:*:alt",
-      "jsx:*:title",
-      "jsx:*:placeholder",
-      "jsx:*:aria-description",
-      "jsx:*:label",
-      "jsx:*:description",
-      "jsx:*:tooltip",
-      "jsx:html:dir",
-      "obj:field:label",
-      "obj:field:title",
-      "obj:field:description",
-      "obj:field:text",
-      "obj:field:tooltip",
-      "obj:field:placeholder",
-    ],
-    extensions: [".tsx", ".jsx"],
-  },
+  type: "extraction",
+  priority: 100,
+  targets: [
+    "jsx:*:aria-label",
+    "jsx:*:alt",
+    "jsx:*:title",
+    "jsx:*:placeholder",
+    "jsx:*:aria-description",
+    "jsx:*:label",
+    "jsx:*:description",
+    "jsx:*:tooltip",
+    "jsx:html:dir",
+    "obj:field:label",
+    "obj:field:title",
+    "obj:field:description",
+    "obj:field:text",
+    "obj:field:tooltip",
+    "obj:field:placeholder",
+  ],
+  extensions: [".tsx", ".jsx"],
 };
 
-// ── React Codegen Adapter ─────────────────────────────────────────────────────
+// ── React Codegen Contribution ────────────────────────────────────────────────
 
 /**
- * React codegen adapter.
+ * React codegen contribution.
  * Handles JSX output: dangerouslySetInnerHTML for rich tags, className→class conversion,
  * JSX-aware tag serialization.
- *
- * matches: .tsx, .jsx, and any file not already claimed by an SFC codegen adapter
- * (the match function must be set up after all SFC adapters are known — the
- * `match` implementation here is a static heuristic; the resolution engine
- * ensures that SFC adapters are registered before the React fallback is tested.)
  */
 const reactCodegenAdapter: ZintlAdapter = {
   name: "react-codegen",
-  codegen: {
-    extensions: [".tsx", ".jsx"],
-    match: (filePath: string) => filePath.endsWith(".tsx") || filePath.endsWith(".jsx"),
-    wrapJsxRichText: (replacement: string): string => {
-      return `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
-    },
-    serializeTags,
-    convertToHtmlTemplate,
-    // React does not use SFC script wrapping
-    wrapSfcScript: undefined,
-    // React uses standard HTML attribute syntax for translatable attrs
-    wrapHtmlText: undefined,
-    wrapHtmlAttribute: undefined,
+  type: "codegen",
+  priority: 100,
+  extensions: [".tsx", ".jsx"],
+  match: (filePath: string) => filePath.endsWith(".tsx") || filePath.endsWith(".jsx"),
+  wrapJsxRichText: (replacement: string): string => {
+    return `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${replacement} }} />`;
   },
+  serializeTags,
+  convertToHtmlTemplate,
 };
 
 registerPreset("react", () => [reactExtractionAdapter, reactCodegenAdapter]);

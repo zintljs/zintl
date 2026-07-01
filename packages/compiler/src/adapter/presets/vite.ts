@@ -3,7 +3,7 @@ import type { ZintlAdapter } from "../types.js";
 import { registerPreset } from "../resolve.js";
 
 /**
- * Vite bundler adapter.
+ * Vite bundler contribution.
  * Provides Vite-specific virtual module resolution, dynamic import template
  * (with @vite-ignore comment for dev mode), and HMR injection code.
  *
@@ -12,41 +12,41 @@ import { registerPreset } from "../resolve.js";
  */
 const viteBundlerAdapter: ZintlAdapter = {
   name: "vite",
-  bundler: {
-    resolveVirtualPath: (id: string): string => id,
-    dynamicImportTemplate: (path: string, isDev: boolean): string => {
-      return `import(${isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
-    },
-    hmrInjectionCode: (fileId: string, hmrToken: number, hasAnchors?: boolean): string => {
-      let code = "";
-      if (hasAnchors) {
-        code += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
-      }
-      if (hmrToken > 0) {
-        code += `\n\n// Zintl HMR Token: ${hmrToken}`;
-      }
-      return code;
-    },
-    fanBuildInputs: (
-      inputs: Record<string, string>,
-      locales: string[],
-      root: string,
-    ): Record<string, string> => {
-      const expandedInput: Record<string, string> = { ...inputs };
+  type: "bundler",
+  priority: 100,
+  resolveVirtualPath: (id: string): string => id,
+  dynamicImportTemplate: (path: string, isDev: boolean): string => {
+    return `import(${isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
+  },
+  hmrInjectionCode: (fileId: string, hmrToken: number, hasAnchors?: boolean): string => {
+    let code = "";
+    if (hasAnchors) {
+      code += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+    }
+    if (hmrToken > 0) {
+      code += `\n\n// Zintl HMR Token: ${hmrToken}`;
+    }
+    return code;
+  },
+  fanBuildInputs: (
+    inputs: Record<string, string>,
+    locales: string[],
+    root: string,
+  ): Record<string, string> => {
+    const expandedInput: Record<string, string> = { ...inputs };
 
-      for (const [key, val] of Object.entries(inputs)) {
-        if (val.endsWith(".html")) {
-          const relativeVal = isAbsolute(val) ? relative(root, val) : val;
-          for (const loc of locales) {
-            const prefixKey = `${loc}/${key === "main" || key === "index" ? "index" : key}`;
-            const prefixVal = `${loc}/${relativeVal}`;
-            expandedInput[prefixKey] = prefixVal;
-          }
+    for (const [key, val] of Object.entries(inputs)) {
+      if (val.endsWith(".html")) {
+        const relativeVal = isAbsolute(val) ? relative(root, val) : val;
+        for (const loc of locales) {
+          const prefixKey = `${loc}/${key === "main" || key === "index" ? "index" : key}`;
+          const prefixVal = `${loc}/${relativeVal}`;
+          expandedInput[prefixKey] = prefixVal;
         }
       }
+    }
 
-      return expandedInput;
-    },
+    return expandedInput;
   },
 };
 

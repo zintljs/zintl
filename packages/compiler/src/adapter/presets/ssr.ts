@@ -68,24 +68,26 @@ function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
 }
 
 /**
- * Generic SSR runtime adapter.
- * Activates server-side AsyncLocalStorage request scoping and stream injection.
- * Can be composed with any framework adapter.
- *
- * @example ["react", "ssr", "vite"] — React SSR app
- * @example ["vue", "ssr", "vite"]   — Vue SSR app
+ * SSR wrapping contribution.
  */
-const ssrRuntimeAdapter: ZintlAdapter = {
-  name: "ssr",
-  ssr: {
-    wrapCode: genericSsrWrapCode,
-  },
-  runtime: {
-    serverRequestScope: true,
-    streamInjection: true,
-  },
+const ssrWrappingContribution: ZintlAdapter = {
+  name: "ssr-wrapping",
+  type: "ssr",
+  priority: 100,
+  wrapCode: genericSsrWrapCode,
 };
 
-registerPreset("ssr", () => [ssrRuntimeAdapter]);
+/**
+ * SSR runtime capability contribution.
+ */
+const ssrRuntimeContribution: ZintlAdapter = {
+  name: "ssr-runtime",
+  type: "runtime",
+  priority: 100,
+  serverRequestScope: true,
+  streamInjection: true,
+};
 
-export { ssrRuntimeAdapter };
+registerPreset("ssr", () => [ssrWrappingContribution, ssrRuntimeContribution]);
+
+export { ssrWrappingContribution as ssrRuntimeAdapter };

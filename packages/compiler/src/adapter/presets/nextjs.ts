@@ -2,7 +2,7 @@ import type { ZintlAdapter, SsrWrapParams } from "../types.js";
 import { registerPreset } from "../resolve.js";
 import { reactExtractionAdapter, reactCodegenAdapter } from "./react.js";
 
-// ── Next.js SSR Adapter ───────────────────────────────────────────────────────
+// ── Next.js SSR wrapping helper ───────────────────────────────────────────────
 
 /**
  * Wraps the render function in a Next.js/vinext SSR entry file
@@ -74,39 +74,55 @@ function nextjsSsrWrapCode(params: SsrWrapParams): string | undefined {
   return undefined;
 }
 
-const nextjsSsrAdapter: ZintlAdapter = {
-  name: "nextjs-ssr",
-  extraction: {
-    targets: ["jsx:*:aria-label", "jsx:*:aria-description"],
-    extensions: [],
-    suppressionRules: [
-      {
-        match: {
-          types: ["FunctionDeclaration", "VariableDeclarator"],
-          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
-          isTopLevel: true,
-        },
-        bypassIf: "hasAnchor",
+// ── Next.js Contributions ─────────────────────────────────────────────────────
+
+const nextjsExtractionContribution: ZintlAdapter = {
+  name: "nextjs-extraction",
+  type: "extraction",
+  priority: 100,
+  targets: ["jsx:*:aria-label", "jsx:*:aria-description"],
+  extensions: [],
+  suppressionRules: [
+    {
+      match: {
+        types: ["FunctionDeclaration", "VariableDeclarator"],
+        names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
+        isTopLevel: true,
       },
-    ],
-  },
-  ssr: {
-    entryTargets: [
-      "virtual:vinext-rsc-entry",
-      "virtual:vinext-server-entry",
-      "virtual:vinext-app-ssr-entry",
-      "app-ssr-entry",
-    ],
-    wrapCode: nextjsSsrWrapCode,
-    wrapExports: ["renderPage", "handleApiRoute", "runMiddleware", "handleSsr"],
-    wrapDefault: "fetch",
-  },
-  runtime: {
-    serverRequestScope: true,
-    streamInjection: true,
-  },
+      bypassIf: "hasAnchor",
+    },
+  ],
 };
 
-registerPreset("nextjs", () => [reactExtractionAdapter, reactCodegenAdapter, nextjsSsrAdapter]);
+const nextjsSsrContribution: ZintlAdapter = {
+  name: "nextjs-ssr-wrapping",
+  type: "ssr",
+  priority: 100,
+  entryTargets: [
+    "virtual:vinext-rsc-entry",
+    "virtual:vinext-server-entry",
+    "virtual:vinext-app-ssr-entry",
+    "app-ssr-entry",
+  ],
+  wrapCode: nextjsSsrWrapCode,
+  wrapExports: ["renderPage", "handleApiRoute", "runMiddleware", "handleSsr"],
+  wrapDefault: "fetch",
+};
 
-export { nextjsSsrAdapter };
+const nextjsRuntimeContribution: ZintlAdapter = {
+  name: "nextjs-runtime",
+  type: "runtime",
+  priority: 100,
+  serverRequestScope: true,
+  streamInjection: true,
+};
+
+registerPreset("nextjs", () => [
+  reactExtractionAdapter,
+  reactCodegenAdapter,
+  nextjsExtractionContribution,
+  nextjsSsrContribution,
+  nextjsRuntimeContribution,
+]);
+
+export { nextjsSsrContribution as nextjsSsrAdapter };

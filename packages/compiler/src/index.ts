@@ -30,7 +30,7 @@ import {
 import {
   resolveAdapters,
   type ResolvedCompilerState,
-  type ZintlAdapter,
+  type ZintlAdapterInput,
   type ResolvedCapabilities,
   type CompilerContext,
 } from "./adapter/index.js";
@@ -53,11 +53,14 @@ export type {
 };
 export type {
   ZintlAdapter,
-  ExtractionAdapter,
-  CodegenAdapter,
-  SsrAdapter,
-  RuntimeAdapter,
-  BundlerAdapter,
+  ZintlPreset,
+  BaseContribution,
+  ExtractionContribution,
+  CodegenContribution,
+  SsrContribution,
+  RuntimeContribution,
+  BundlerContribution,
+  ContentContribution,
   ResolvedCapabilities,
   MergedAdapterHooks,
   ResolvedAdapters,
@@ -66,7 +69,6 @@ export type {
   LocaleDetectionContext,
   MultiplexDetectionContext,
   TagMapEntry,
-  ContentAdapter,
 } from "./adapter/index.js";
 export {
   resolveAdapters,
@@ -200,73 +202,13 @@ export class ZintlCompiler {
 
     // ── Resolve Adapters ──────────────────────────────────────────────────────
     // Build the adapter input list. Start with user-provided adapters.
-    const adapterInputs: (string | ZintlAdapter)[] = [...(options.adapters || [])];
+    const adapterInputs: ZintlAdapterInput[] = [...(options.adapters || [])];
     if (options.targets) {
       for (const t of options.targets) {
         if (typeof t === "string" && !adapterInputs.includes(t)) {
           adapterInputs.push(t);
         }
       }
-    }
-
-    // Auto-wrap legacy top-level options into a custom "legacy-options" adapter.
-    // This keeps backward compat while emitting deprecation guidance.
-    const hasLegacy =
-      options.ssrWrapCode ||
-      options.ssrEntryTargets?.length ||
-      options.ssrWrapExports?.length ||
-      options.ssrWrapDefault !== undefined ||
-      options.hmrInjectionCode ||
-      options.resolveVirtualPath ||
-      options.dynamicImportTemplate;
-
-    if (hasLegacy) {
-      // Only warn in dev or non-production.
-      if (isDev || process.env.NODE_ENV !== "production") {
-        const legacyFields = [
-          options.ssrWrapCode && "ssrWrapCode",
-          options.ssrEntryTargets?.length && "ssrEntryTargets",
-          options.ssrWrapExports?.length && "ssrWrapExports",
-          options.ssrWrapDefault !== undefined && "ssrWrapDefault",
-          options.hmrInjectionCode && "hmrInjectionCode",
-          options.resolveVirtualPath && "resolveVirtualPath",
-          options.dynamicImportTemplate && "dynamicImportTemplate",
-        ]
-          .filter(Boolean)
-          .join(", ");
-        console.warn(
-          `[Zintl] Deprecation: The following options have moved to the adapter system: ${legacyFields}.\n` +
-            `  Migrate them into a ZintlAdapter object passed to the 'adapters' option.\n` +
-            `  These legacy fields will be removed in the next release.`,
-        );
-      }
-
-      const legacyAdapter: ZintlAdapter = {
-        name: "legacy-options",
-        ...(options.ssrWrapCode ||
-        options.ssrEntryTargets ||
-        options.ssrWrapExports ||
-        options.ssrWrapDefault !== undefined
-          ? {
-              ssr: {
-                entryTargets: options.ssrEntryTargets,
-                wrapCode: options.ssrWrapCode as any,
-                wrapExports: options.ssrWrapExports,
-                wrapDefault: options.ssrWrapDefault,
-              },
-            }
-          : {}),
-        ...(options.hmrInjectionCode || options.resolveVirtualPath || options.dynamicImportTemplate
-          ? {
-              bundler: {
-                hmrInjectionCode: options.hmrInjectionCode,
-                resolveVirtualPath: options.resolveVirtualPath,
-                dynamicImportTemplate: options.dynamicImportTemplate,
-              },
-            }
-          : {}),
-      };
-      adapterInputs.push(legacyAdapter);
     }
 
     this._resolved = resolveAdapters(adapterInputs, options);

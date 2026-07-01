@@ -688,68 +688,66 @@ export function createAssetAdapter(options: ZintlOptions): ZintlAdapter {
 
   return {
     name: "system-static-assets",
-    content: {
-      getManagerInstance(context: CompilerContext) {
-        return getManager(context);
-      },
-      virtualBoundaries: ["b_assets"],
-      match(filePath: string, context: CompilerContext) {
-        return getManager(context).isSupportedAsset(filePath);
-      },
-      setup(savedState: any, context: CompilerContext) {
-        if (savedState && Array.isArray(savedState)) {
-          getManager(context).setRegisteredAssets(savedState);
+    type: "content",
+    priority: 100,
+    getManagerInstance(context: CompilerContext) {
+      return getManager(context);
+    },
+    virtualBoundaries: ["b_assets"],
+    match(filePath: string, context: CompilerContext) {
+      return getManager(context).isSupportedAsset(filePath);
+    },
+    setup(savedState: any, context: CompilerContext) {
+      if (savedState && Array.isArray(savedState)) {
+        getManager(context).setRegisteredAssets(savedState);
+      }
+    },
+    async discover(filePath: string, context: CompilerContext) {
+      await getManager(context).registerAsset(filePath);
+    },
+    async flush(context: CompilerContext) {
+      await getManager(context).syncAssets(context.locales);
+    },
+    async getTranslations(locale: string, context: CompilerContext) {
+      return getManager(context).getAssetTranslations(locale);
+    },
+    async isLocalizedOutput(filePath: string, context: CompilerContext) {
+      return getManager(context).isLocalizedAsset(filePath);
+    },
+    async getActiveOutputPaths(context: CompilerContext) {
+      return getManager(context).getActiveAssetPaths(context.locales);
+    },
+    getStateToSave(context: CompilerContext) {
+      return getManager(context).getRegisteredAssetsRaw();
+    },
+    async getBoundaryForLocalizedOutput(filePath: string, context: CompilerContext) {
+      const mgr = getManager(context);
+      if (await mgr.isLocalizedAsset(filePath)) {
+        return "b_assets";
+      }
+      return null;
+    },
+    async getChunkContributions(locale: string, context: CompilerContext) {
+      const mgr = getManager(context);
+      const registeredAssets = mgr.getRegisteredAssets();
+      const imports: string[] = [];
+      const catalog: Record<string, any> = {};
+      let assetCounter = 0;
+      for (const assetId of registeredAssets) {
+        const isSource = locale === context.sourceLocale;
+        const localizedPath = isSource
+          ? join(context.root, assetId)
+          : mgr.getAssetPath(assetId, locale);
+        if (existsSync(localizedPath)) {
+          const varName = `_zintl_asset_${assetCounter++}`;
+          imports.push(`import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`);
+          const assetKey = context.isDev
+            ? `@zintl/asset:${assetId}`
+            : generateMessageId(`@zintl/asset:${assetId}`);
+          catalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
         }
-      },
-      async discover(filePath: string, context: CompilerContext) {
-        await getManager(context).registerAsset(filePath);
-      },
-      async flush(context: CompilerContext) {
-        await getManager(context).syncAssets(context.locales);
-      },
-      async getTranslations(locale: string, context: CompilerContext) {
-        return getManager(context).getAssetTranslations(locale);
-      },
-      async isLocalizedOutput(filePath: string, context: CompilerContext) {
-        return getManager(context).isLocalizedAsset(filePath);
-      },
-      async getActiveOutputPaths(context: CompilerContext) {
-        return getManager(context).getActiveAssetPaths(context.locales);
-      },
-      getStateToSave(context: CompilerContext) {
-        return getManager(context).getRegisteredAssetsRaw();
-      },
-      async getBoundaryForLocalizedOutput(filePath: string, context: CompilerContext) {
-        const mgr = getManager(context);
-        if (await mgr.isLocalizedAsset(filePath)) {
-          return "b_assets";
-        }
-        return null;
-      },
-      async getChunkContributions(locale: string, context: CompilerContext) {
-        const mgr = getManager(context);
-        const registeredAssets = mgr.getRegisteredAssets();
-        const imports: string[] = [];
-        const catalog: Record<string, any> = {};
-        let assetCounter = 0;
-        for (const assetId of registeredAssets) {
-          const isSource = locale === context.sourceLocale;
-          const localizedPath = isSource
-            ? join(context.root, assetId)
-            : mgr.getAssetPath(assetId, locale);
-          if (existsSync(localizedPath)) {
-            const varName = `_zintl_asset_${assetCounter++}`;
-            imports.push(
-              `import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`,
-            );
-            const assetKey = context.isDev
-              ? `@zintl/asset:${assetId}`
-              : generateMessageId(`@zintl/asset:${assetId}`);
-            catalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
-          }
-        }
-        return { imports, boundaryId: "b_assets", catalog };
-      },
+      }
+      return { imports, boundaryId: "b_assets", catalog };
     },
   };
 }

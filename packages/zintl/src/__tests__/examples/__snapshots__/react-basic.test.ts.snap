@@ -13,9 +13,9 @@ exports[`Example Proof: react-basic > should match Development snapshots > react
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
@@ -11335,19 +11335,19 @@ exports[`Example Proof: react-basic > should match Final Production Build (dist)
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         const preloads = {"ar":["assets/entry_b_89ad0a7bfa7f.js"],"es":["assets/entry_b_89ad0a7bfa7f2.js"],"zh":["assets/entry_b_89ad0a7bfa7f3.js"]};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
         }
+      }
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
@@ -11381,9 +11381,9 @@ exports[`Example Proof: react-basic > should match Production snapshots > react-
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';

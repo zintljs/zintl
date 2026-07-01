@@ -11,25 +11,7 @@ const mockLogger = {
   error: () => {},
 } as any;
 
-const vueAdapter = {
-  name: "vue",
-  codegen: {
-    extensions: [".vue"],
-    match: (filePath: string) => filePath.endsWith(".vue"),
-    wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
-  },
-};
-
-const svelteAdapter = {
-  name: "svelte",
-  codegen: {
-    extensions: [".svelte"],
-    match: (filePath: string) => filePath.endsWith(".svelte"),
-    wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
-  },
-};
-
-const { capabilities, hooks } = resolveAdapters([vueAdapter, svelteAdapter]);
+const { capabilities, hooks, adapters } = resolveAdapters(["vue", "svelte"]);
 
 const mockConfig = {
   sourceLocale: "en",
@@ -37,7 +19,7 @@ const mockConfig = {
   outputDir: "locales",
   isDev: true,
   root: "/root",
-  adapters: [vueAdapter, svelteAdapter] as any[],
+  adapters,
   capabilities,
   hooks,
 };

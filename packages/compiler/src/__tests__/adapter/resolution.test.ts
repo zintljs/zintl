@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { resolveAdapters, registerPreset } from "../../adapter/index.js";
-import type { ZintlAdapter } from "../../adapter/index.js";
+import type { ZintlAdapter, ZintlPreset } from "../../adapter/index.js";
 
 describe("Adapter Resolution Engine", () => {
   // ── Preset Expansion ────────────────────────────────────────────────────────
@@ -28,12 +28,12 @@ describe("Adapter Resolution Engine", () => {
       const { adapters } = resolveAdapters(["nextjs"]);
       expect(adapters.some((a) => a.name === "react-extraction")).toBe(true);
       expect(adapters.some((a) => a.name === "react-codegen")).toBe(true);
-      expect(adapters.some((a) => a.name === "nextjs-ssr")).toBe(true);
+      expect(adapters.some((a) => a.name === "nextjs-ssr-wrapping")).toBe(true);
     });
 
     it("throws on unknown preset name", () => {
       expect(() => resolveAdapters(["unknown-framework-xyz"])).toThrow(
-        /Unknown adapter preset "unknown-framework-xyz"/,
+        /Unknown adapter preset or target descriptor "unknown-framework-xyz"/,
       );
     });
 
@@ -113,20 +113,21 @@ describe("Adapter Resolution Engine", () => {
     });
 
     it("ssr boolean is OR-merged across multiple adapters", () => {
-      // react doesn't enable ssr, ssr does — should be OR
       const { capabilities } = resolveAdapters(["react", "ssr"]);
       expect(capabilities.ssr).toBe(true);
       expect(capabilities.jsx).toBe(true);
     });
   });
 
-  // ── Deterministic Merge — No Ordering Dependence ────────────────────────────
+  // ── Deterministic Merge & Priorities ────────────────────────────────────────
 
-  describe("deterministic merge", () => {
-    it("resolveVirtualPath hook is ordering-independent", () => {
+  describe("priority and deterministic merge", () => {
+    it("resolveVirtualPath hook is ordering-independent due to priority", () => {
       const myBundler: ZintlAdapter = {
         name: "my-bundler",
-        bundler: { resolveVirtualPath: (id) => `\0${id}` },
+        type: "bundler",
+        priority: 50,
+        resolveVirtualPath: (id) => `\0${id}`,
       };
       // Order 1: myBundler first
       const r1 = resolveAdapters([myBundler]);
@@ -157,63 +158,114 @@ describe("Adapter Resolution Engine", () => {
       expect(hooks.extensions).toContain(".tsx");
       expect(hooks.extensions).toContain(".jsx");
     });
+
+    it("higher priority hook overrides lower priority hook without conflict", () => {
+      const bundlerA: ZintlAdapter = {
+        name: "bundler-a",
+        type: "bundler",
+        priority: 200,
+        resolveVirtualPath: (id) => `a:${id}`,
+      };
+      const bundlerB: ZintlAdapter = {
+        name: "bundler-b",
+        type: "bundler",
+        priority: 100,
+        resolveVirtualPath: (id) => `b:${id}`,
+      };
+      const { hooks } = resolveAdapters([bundlerA, bundlerB]);
+      expect(hooks.resolveVirtualPath("foo")).toBe("a:foo");
+    });
   });
 
   // ── Conflict Detection ──────────────────────────────────────────────────────
 
   describe("conflict detection", () => {
-    it("throws when two adapters claim the same extension for codegen", () => {
+    it("throws when two adapters claim the same extension for codegen at same priority", () => {
       const adapterA: ZintlAdapter = {
         name: "adapter-a",
-        codegen: {
-          extensions: [".custom"],
-          match: (f) => f.endsWith(".custom"),
-        },
+        type: "codegen",
+        priority: 50,
+        extensions: [".custom"],
+        match: (f) => f.endsWith(".custom"),
       };
       const adapterB: ZintlAdapter = {
         name: "adapter-b",
-        codegen: {
-          extensions: [".custom"],
-          match: (f) => f.endsWith(".custom"),
-        },
+        type: "codegen",
+        priority: 50,
+        extensions: [".custom"],
+        match: (f) => f.endsWith(".custom"),
       };
       expect(() => resolveAdapters([adapterA, adapterB])).toThrow(/Adapter conflict/);
       expect(() => resolveAdapters([adapterA, adapterB])).toThrow(/adapter-b/);
     });
 
-    it("throws when two adapters both provide bundler.dynamicImportTemplate", () => {
+    it("does not throw when two adapters claim the same extension at different priorities", () => {
+      const adapterA: ZintlAdapter = {
+        name: "adapter-a",
+        type: "codegen",
+        priority: 150,
+        extensions: [".custom"],
+        match: (f) => f.endsWith(".custom"),
+        wrapHtmlText: () => "a",
+      };
+      const adapterB: ZintlAdapter = {
+        name: "adapter-b",
+        type: "codegen",
+        priority: 50,
+        extensions: [".custom"],
+        match: (f) => f.endsWith(".custom"),
+        wrapHtmlText: () => "b",
+      };
+      const { hooks } = resolveAdapters([adapterA, adapterB]);
+      const matched = hooks.codegenAdapters.find((a) => a.match("foo.custom"));
+      expect(matched?.wrapHtmlText?.("val", false, false)).toBe("a");
+    });
+
+    it("throws when two adapters both provide bundler.dynamicImportTemplate at same priority", () => {
       const bundlerA: ZintlAdapter = {
         name: "bundler-a",
-        bundler: { dynamicImportTemplate: (p) => `import("${p}")` },
+        type: "bundler",
+        priority: 50,
+        dynamicImportTemplate: (p) => `import("${p}")`,
       };
       const bundlerB: ZintlAdapter = {
         name: "bundler-b",
-        bundler: { dynamicImportTemplate: (p) => `require("${p}")` },
+        type: "bundler",
+        priority: 50,
+        dynamicImportTemplate: (p) => `require("${p}")`,
       };
       expect(() => resolveAdapters([bundlerA, bundlerB])).toThrow(/Adapter conflict/);
       expect(() => resolveAdapters([bundlerA, bundlerB])).toThrow(/bundler-b/);
     });
 
-    it("throws when two adapters both provide ssr.wrapCode", () => {
+    it("throws when two adapters both provide ssr.wrapCode at same priority", () => {
       const ssrA: ZintlAdapter = {
         name: "ssr-a",
-        ssr: { wrapCode: () => "wrapped" },
+        type: "ssr",
+        priority: 50,
+        wrapCode: () => "wrapped",
       };
       const ssrB: ZintlAdapter = {
         name: "ssr-b",
-        ssr: { wrapCode: () => "also wrapped" },
+        type: "ssr",
+        priority: 50,
+        wrapCode: () => "also wrapped",
       };
       expect(() => resolveAdapters([ssrA, ssrB])).toThrow(/Adapter conflict/);
     });
 
-    it("throws when two adapters both provide bundler.resolveVirtualPath", () => {
+    it("throws when two adapters both provide bundler.resolveVirtualPath at same priority", () => {
       const bundlerA: ZintlAdapter = {
         name: "bundler-a",
-        bundler: { resolveVirtualPath: (id) => `\0${id}` },
+        type: "bundler",
+        priority: 50,
+        resolveVirtualPath: (id) => `\0${id}`,
       };
       const bundlerB: ZintlAdapter = {
         name: "bundler-b",
-        bundler: { resolveVirtualPath: (id) => id + "?resolved" },
+        type: "bundler",
+        priority: 50,
+        resolveVirtualPath: (id) => id + "?resolved",
       };
       expect(() => resolveAdapters([bundlerA, bundlerB])).toThrow(/Adapter conflict/);
     });
@@ -261,7 +313,9 @@ describe("Adapter Resolution Engine", () => {
     it("ssrEntryTargets are unioned across adapters", () => {
       const customSsr: ZintlAdapter = {
         name: "custom-ssr",
-        ssr: { entryTargets: ["my-custom-entry"] },
+        type: "ssr",
+        priority: 50,
+        entryTargets: ["my-custom-entry"],
       };
       const { hooks } = resolveAdapters(["nextjs", customSsr]);
       expect(hooks.ssrEntryTargets).toContain("virtual:vinext-rsc-entry");
@@ -271,15 +325,15 @@ describe("Adapter Resolution Engine", () => {
     it("detectLocale is chained — first non-undefined result wins", () => {
       const adapterA: ZintlAdapter = {
         name: "detect-a",
-        runtime: {
-          detectLocale: ({ url }) => (url?.includes("/ar/") ? "ar" : undefined),
-        },
+        type: "runtime",
+        priority: 50,
+        detectLocale: ({ url }) => (url?.includes("/ar/") ? "ar" : undefined),
       };
       const adapterB: ZintlAdapter = {
         name: "detect-b",
-        runtime: {
-          detectLocale: ({ url }) => (url?.includes("/en/") ? "en" : undefined),
-        },
+        type: "runtime",
+        priority: 50,
+        detectLocale: ({ url }) => (url?.includes("/en/") ? "en" : undefined),
       };
       const { hooks } = resolveAdapters([adapterA, adapterB]);
       const ctx = { locales: ["en", "ar"], defaultLocale: "en" };
@@ -360,22 +414,21 @@ describe("Adapter Resolution Engine", () => {
   // ── User-Authored Partial Adapters ──────────────────────────────────────────
 
   describe("user-authored partial adapters", () => {
-    it("accepts minimal adapter with only name", () => {
-      const minimal: ZintlAdapter = { name: "my-minimal" };
+    it("accepts minimal adapter with only name and type", () => {
+      const minimal: ZintlAdapter = { name: "my-minimal", type: "runtime" };
       expect(() => resolveAdapters([minimal])).not.toThrow();
     });
 
-    it("accepts adapter with only codegen sub-interface", () => {
+    it("accepts adapter with only codegen contribution", () => {
       const astro: ZintlAdapter = {
         name: "astro",
-        codegen: {
-          extensions: [".astro"],
-          match: (f) => f.endsWith(".astro"),
-          wrapHtmlText: (r) => `{${r}}`,
-        },
+        type: "codegen",
+        extensions: [".astro"],
+        match: (f) => f.endsWith(".astro"),
+        wrapHtmlText: (r) => `{${r}}`,
       };
       const { capabilities, hooks } = resolveAdapters([astro]);
-      expect(capabilities.sfc).toBe(false); // no wrapSfcScript
+      expect(capabilities.sfc).toBe(false);
       const matched = hooks.codegenAdapters.find((a) => a.match("src/page.astro"));
       expect(matched).toBeDefined();
       expect(matched?.wrapHtmlText?.("t('key')", false, true)).toBe(`{t('key')}`);
@@ -384,14 +437,63 @@ describe("Adapter Resolution Engine", () => {
     it("registers and uses a custom preset", () => {
       const myAdapter: ZintlAdapter = {
         name: "my-framework-codegen",
-        codegen: {
-          extensions: [".mf"],
-          match: (f) => f.endsWith(".mf"),
-        },
+        type: "codegen",
+        extensions: [".mf"],
+        match: (f) => f.endsWith(".mf"),
       };
       registerPreset("my-framework", () => [myAdapter]);
       const { adapters } = resolveAdapters(["my-framework"]);
       expect(adapters.some((a) => a.name === "my-framework-codegen")).toBe(true);
+    });
+  });
+
+  // ── Preset Objects & Nesting ────────────────────────────────────────────────
+
+  describe("explicit ZintlPreset and nesting", () => {
+    it("resolves explicit ZintlPreset object", () => {
+      const preset: ZintlPreset = {
+        type: "preset",
+        name: "my-preset",
+        use: [
+          {
+            name: "preset-codegen",
+            type: "codegen",
+            extensions: [".xyz"],
+            match: (f: string) => f.endsWith(".xyz"),
+          },
+        ],
+      };
+      const { adapters } = resolveAdapters([preset]);
+      expect(adapters.some((a) => a.name === "preset-codegen")).toBe(true);
+    });
+
+    it("resolves nested arrays of adapters and presets", () => {
+      const preset: ZintlPreset = {
+        type: "preset",
+        name: "inner-preset",
+        use: [
+          {
+            name: "inner-codegen",
+            type: "codegen",
+            extensions: [".abc"],
+            match: (f: string) => f.endsWith(".abc"),
+          },
+        ],
+      };
+      const { adapters } = resolveAdapters([
+        [
+          "vite",
+          preset,
+          {
+            name: "direct-runtime",
+            type: "runtime",
+            clientLocaleSync: true,
+          },
+        ],
+      ]);
+      expect(adapters.some((a) => a.name === "vite")).toBe(true);
+      expect(adapters.some((a) => a.name === "inner-codegen")).toBe(true);
+      expect(adapters.some((a) => a.name === "direct-runtime")).toBe(true);
     });
   });
 

@@ -9,7 +9,7 @@ import type {
   VariableBinding,
   ZintlConfig,
 } from "../types/index.js";
-import type { CodegenAdapter } from "../adapter/types.js";
+import type { CodegenContribution } from "../adapter/types.js";
 
 /**
  * Find the codegen adapter for a given file path.
@@ -18,40 +18,11 @@ import type { CodegenAdapter } from "../adapter/types.js";
 function findCodegen(
   filePath: string | undefined,
   config: ZintlConfig,
-): CodegenAdapter | undefined {
+): CodegenContribution | undefined {
   if (!filePath) return undefined;
   if (config.hooks?.codegenAdapters) {
     const found = config.hooks.codegenAdapters.find((a) => a.match(filePath));
     if (found) return found;
-  }
-  if (config.adapters) {
-    const foundLegacy = (config.adapters as any[]).find(
-      (a) => typeof a.match === "function" && a.match(filePath),
-    );
-    if (foundLegacy) {
-      const isSfc = !!foundLegacy.sfc;
-      return {
-        extensions: [],
-        match: foundLegacy.match,
-        wrapHtmlText: foundLegacy.wrapHtmlText,
-        wrapHtmlAttribute: foundLegacy.wrapHtmlAttribute,
-        wrapSfcScript: foundLegacy.wrapSfcScript,
-        wrapJsxRichText: foundLegacy.jsx
-          ? (r) =>
-              `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: ${r} }} />`
-          : undefined,
-        quoteLiteral: isSfc
-          ? (s: string) => {
-              const escaped = s
-                .replace(/\\/g, "\\\\")
-                .replace(/'/g, "\\'")
-                .replace(/\{/g, "\\x7b")
-                .replace(/\}/g, "\\x7d");
-              return "'" + escaped + "'";
-            }
-          : undefined,
-      };
-    }
   }
   return undefined;
 }

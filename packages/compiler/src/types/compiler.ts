@@ -13,20 +13,6 @@ export interface AssetTargetConfig {
   outputPattern?: string;
 }
 
-/**
- * @deprecated Use ZintlAdapter from the adapter system instead.
- * This legacy type is kept for backward compatibility and will be removed in the next release.
- */
-export interface TargetAdapter {
-  name: string;
-  match: (filePath: string) => boolean;
-  jsx?: boolean;
-  sfc?: boolean;
-  wrapHtmlText?: (replacement: string, hasTags: boolean, hasVars: boolean) => string;
-  wrapHtmlAttribute?: (attrName: string, replacement: string, hasVars: boolean) => string;
-  wrapSfcScript?: (code: string) => string;
-}
-
 export interface ZintlOptions {
   sourceLocale?: string;
   locales?: string[];
@@ -45,11 +31,20 @@ export interface ZintlOptions {
   virtualAssets?: boolean;
   extensions?: string[];
   /**
-   * Adapter list. Accepts preset name strings ("react", "vue", "vite", etc.)
-   * or ZintlAdapter objects for custom behavior.
+   * Adapter / Contribution list. Accepts preset name strings ("react", "vue", "vite", etc.),
+   * custom contribution objects, preset objects, or nested arrays of them.
    * @example adapters: ["react", "vite", "client-spa"]
    */
-  adapters?: (string | import("../adapter/index.js").ZintlAdapter)[];
+  adapters?: (
+    | string
+    | import("../adapter/index.js").ZintlAdapter
+    | import("../adapter/index.js").ZintlPreset
+    | (
+        | string
+        | import("../adapter/index.js").ZintlAdapter
+        | import("../adapter/index.js").ZintlPreset
+      )[]
+  )[];
 
   // ── Legacy options (deprecated — migrate to adapters) ───────────────────
   // These are auto-wrapped into a "legacy-options" custom adapter on construction

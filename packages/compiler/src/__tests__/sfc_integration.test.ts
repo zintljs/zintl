@@ -5,140 +5,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
 import { bakeICU } from "../utils/icu-baker.js";
 import { runInRequestScope, I18nStore, getActiveInstance } from "../runtime/store.js";
-import type { ZintlAdapter } from "../adapter/types.js";
 
 type LocalContext = TestContext & { compiler?: ZintlCompiler };
-
-const vueAdapter: ZintlAdapter = {
-  name: "vue-test",
-  extraction: {
-    targets: [
-      "dom:prop:innerHTML",
-      "dom:prop:textContent",
-      "jsx:*:aria-label",
-      "jsx:*:aria-description",
-      "jsx:*:title",
-      "jsx:*:alt",
-      "jsx:*:placeholder",
-      "obj:field:label",
-      "obj:field:description",
-      "obj:field:tooltip",
-    ],
-    extensions: [".vue"],
-    sfcRules: [
-      {
-        extensions: [".vue"],
-        blocks: [
-          {
-            id: "script",
-            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
-            action: "javascript",
-            resolveVirtualExtension: (attrs: string) => {
-              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
-              const lang = langMatch ? langMatch[1] : "js";
-              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
-            },
-          },
-          {
-            id: "template",
-            pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
-            action: "html",
-            isActiveContent: true,
-          },
-          {
-            id: "style",
-            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
-            action: "ignore",
-          },
-        ],
-      },
-    ],
-    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
-  },
-  codegen: {
-    extensions: [".vue"],
-    match: (filePath: string) => filePath.endsWith(".vue"),
-    wrapSfcScript: (code: string) => `<script setup lang="ts">\n${code}</script>\n`,
-    wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
-      if (hasVars) {
-        if (hasTags) {
-          return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;
-        } else {
-          return `{{ ${replacement} }}`;
-        }
-      }
-      return replacement;
-    },
-    wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
-      if (hasVars) {
-        return `:${attrName}="${replacement}"`;
-      }
-      return replacement;
-    },
-  },
-};
-
-const svelteAdapter: ZintlAdapter = {
-  name: "svelte-test",
-  extraction: {
-    targets: [
-      "dom:prop:innerHTML",
-      "dom:prop:textContent",
-      "jsx:*:aria-label",
-      "jsx:*:aria-description",
-      "jsx:*:title",
-      "jsx:*:alt",
-      "jsx:*:placeholder",
-      "obj:field:label",
-      "obj:field:description",
-    ],
-    extensions: [".svelte"],
-    sfcRules: [
-      {
-        extensions: [".svelte"],
-        blocks: [
-          {
-            id: "script",
-            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
-            action: "javascript",
-            resolveVirtualExtension: (attrs: string) => {
-              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
-              const lang = langMatch ? langMatch[1] : "js";
-              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
-            },
-          },
-          {
-            id: "style",
-            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
-            action: "ignore",
-          },
-        ],
-      },
-    ],
-    mustacheRegex: /\{([^{}]+)\}/g,
-  },
-  codegen: {
-    extensions: [".svelte"],
-    match: (filePath: string) => filePath.endsWith(".svelte"),
-    wrapSfcScript: (code: string) => `<script>\n${code}</script>\n`,
-    wrapHtmlText: (replacement: string, hasTags: boolean, hasVars: boolean) => {
-      if (hasVars) {
-        if (hasTags) {
-          return `{@html ${replacement} }`;
-        } else {
-          return `{ ${replacement} }`;
-        }
-      }
-      return replacement;
-    },
-    wrapHtmlAttribute: (attrName: string, replacement: string, hasVars: boolean) => {
-      if (hasVars) {
-        return `${attrName}={${replacement}}`;
-      }
-      return replacement;
-    },
-  },
-};
 
 describe("SFC Integration Tests", () => {
   beforeEach(async (context: LocalContext) => {
@@ -151,7 +19,7 @@ describe("SFC Integration Tests", () => {
         sourceLocale: "en",
         locales: ["en", "ar"],
         outputDir: "locales",
-        adapters: [vueAdapter, svelteAdapter],
+        adapters: ["vue", "svelte"],
         extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue", ".svelte"],
       },
       root,
@@ -189,7 +57,7 @@ zintl({ locale: "en" });
       const transformedCode = result!.code;
       // Assert that mustaches are rewritten to _t calls
       expect(transformedCode).toContain("_t(");
-      // Assert HTML_TEXT tags wrapping (e.g. <strong>)
+      // Assert HTML_TEXT wrapping (e.g. <strong>)
       expect(transformedCode).toContain("v-html");
       // Assert HTML attributes alt/placeholder binding wrapping
       expect(transformedCode).toContain(":placeholder=");
@@ -204,7 +72,7 @@ zintl({ locale: "en" });
           sourceLocale: "en",
           locales: ["en", "ar"],
           outputDir: "locales",
-          adapters: [vueAdapter],
+          adapters: ["vue"],
           extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
         },
         root!,
@@ -296,7 +164,7 @@ zintl("en");
           sourceLocale: "en",
           locales: ["en", "ar"],
           outputDir: "locales",
-          adapters: [svelteAdapter],
+          adapters: ["svelte"],
           extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".svelte"],
         },
         root!,

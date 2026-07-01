@@ -20,11 +20,15 @@ import "./presets/index.js";
 export { resolveAdapters, registerPreset } from "./resolve.js";
 export type {
   ZintlAdapter,
-  ExtractionAdapter,
-  CodegenAdapter,
-  SsrAdapter,
-  RuntimeAdapter,
-  BundlerAdapter,
+  ZintlPreset,
+  ZintlAdapterInput,
+  BaseContribution,
+  ExtractionContribution,
+  CodegenContribution,
+  SsrContribution,
+  RuntimeContribution,
+  BundlerContribution,
+  ContentContribution,
   ResolvedCapabilities,
   MergedAdapterHooks,
   SsrWrapParams,
@@ -32,7 +36,6 @@ export type {
   MultiplexDetectionContext,
   TagMapEntry,
   CompilerContext,
-  ContentAdapter,
 } from "./types.js";
 // Re-export for convenience — resolver types are also from resolve.ts
 export type { ResolvedAdapters, ResolvedCompilerState } from "./resolve.js";

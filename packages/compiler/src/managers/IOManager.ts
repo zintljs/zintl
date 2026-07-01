@@ -118,10 +118,10 @@ export class IOManager {
 
     const sfcExts = (this.adapters || [])
       .map((a) => {
-        const codegen = a.codegen || a;
-        const isSfc = a.codegen ? !!a.codegen.wrapSfcScript : !!a.sfc;
+        if (a.type !== "codegen") return [];
+        const isSfc = !!a.wrapSfcScript || !!a.sfc;
         if (!isSfc) return [];
-        const matchFn = codegen.match || a.match;
+        const matchFn = a.match;
         if (!matchFn) return [];
         return this.extensions.filter((ext) => matchFn("dummy" + ext));
       })

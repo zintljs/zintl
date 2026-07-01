@@ -1,16 +1,14 @@
 import type {
   ZintlAdapter,
-  CodegenAdapter,
-  ExtractionAdapter,
-  SsrAdapter,
-  RuntimeAdapter,
-  BundlerAdapter,
+  ZintlPreset,
+  ZintlAdapterInput,
+  CodegenContribution,
+  ContentContribution,
   ResolvedCapabilities,
   MergedAdapterHooks,
   SsrWrapParams,
   LocaleDetectionContext,
   MultiplexDetectionContext,
-  ContentAdapter,
 } from "./types.js";
 import {
   resolveTargets,
@@ -24,36 +22,78 @@ import {
 import type { ZintlOptions } from "../types/compiler.js";
 
 // Preset registry — populated by presets/index.ts to avoid circular imports
-const presetRegistry = new Map<string, (options?: ZintlOptions) => ZintlAdapter[]>();
+const presetRegistry = new Map<
+  string,
+  (options?: ZintlOptions) => (ZintlAdapter | ZintlPreset)[]
+>();
 
 /**
  * Register a named preset. Called by each preset file on load.
- * Presets expand to one or more adapters (e.g. "react" → [reactExtraction, reactCodegen]).
+ * Presets expand to one or more contributions/presets.
  */
 export function registerPreset(
   name: string,
-  factory: (options?: ZintlOptions) => ZintlAdapter[],
+  factory: (options?: ZintlOptions) => (ZintlAdapter | ZintlPreset)[],
 ): void {
   presetRegistry.set(name, factory);
 }
 
 /**
- * Expand a preset name or pass-through a ZintlAdapter object.
- * Throws a helpful error for unknown preset names.
+ * Expand a preset name, preset object, custom contribution, or nested array.
  */
-function expandInput(input: string | ZintlAdapter, options?: ZintlOptions): ZintlAdapter[] {
+function expandInput(
+  input: ZintlAdapterInput,
+  options?: ZintlOptions,
+  seenPresets = new Set<string>(),
+): ZintlAdapter[] {
+  if (Array.isArray(input)) {
+    const result: ZintlAdapter[] = [];
+    for (const item of input) {
+      result.push(...expandInput(item, options, seenPresets));
+    }
+    return result;
+  }
+
   if (typeof input === "string") {
+    if (seenPresets.has(input)) {
+      return []; // prevent circular references
+    }
     const factory = presetRegistry.get(input);
     if (!factory) {
+      if (input.includes(":")) {
+        return [
+          {
+            name: `custom-target-${input}`,
+            type: "extraction",
+            targets: [input as TargetDescriptor],
+            priority: 0,
+          },
+        ];
+      }
       const known = Array.from(presetRegistry.keys()).join(", ");
       throw new Error(
-        `[Zintl] Unknown adapter preset "${input}". Known presets: ${known}.\n` +
+        `[Zintl] Unknown adapter preset or target descriptor "${input}". Known presets: ${known}.\n` +
           `Pass a ZintlAdapter object for custom adapters.`,
       );
     }
-    return factory(options);
+    seenPresets.add(input);
+    return expandInput(factory(options), options, seenPresets);
   }
-  return [input];
+
+  if (input && typeof input === "object") {
+    if ("type" in input && input.type === "preset") {
+      const presetName = input.name;
+      if (presetName && seenPresets.has(presetName)) {
+        return [];
+      }
+      if (presetName) seenPresets.add(presetName);
+      return expandInput(input.use, options, seenPresets);
+    }
+
+    return [input as ZintlAdapter];
+  }
+
+  throw new Error(`[Zintl] Invalid adapter input: ${JSON.stringify(input)}`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,45 +101,55 @@ function expandInput(input: string | ZintlAdapter, options?: ZintlOptions): Zint
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * First-contributor-wins for function hooks, with conflict detection.
- * Two adapters providing the same function hook is an error — not silent ordering dependence.
+ * First-contributor-wins for function hooks, with conflict detection and priority overrides.
  */
 function mergeHook<T extends (...args: any[]) => any>(
   existing: T | undefined,
+  existingPriority: number,
   candidate: T | undefined,
+  candidatePriority: number,
   hookName: string,
   existingAdapterName: string,
   candidateAdapterName: string,
 ): T | undefined {
   if (candidate === undefined) return existing;
-  if (existing !== undefined) {
-    throw new Error(
-      `[Zintl] Adapter conflict: both "${existingAdapterName}" and "${candidateAdapterName}" provide "${hookName}". ` +
-        `Only one adapter may contribute this hook. Remove one, or use a custom adapter to combine them.`,
-    );
+  if (existing === undefined) return candidate;
+
+  if (candidatePriority > existingPriority) {
+    return candidate;
   }
-  return candidate;
+  if (existingPriority > candidatePriority) {
+    return existing;
+  }
+
+  throw new Error(
+    `[Zintl] Adapter conflict: both "${existingAdapterName}" and "${candidateAdapterName}" provide "${hookName}" at the same priority (${existingPriority}). ` +
+      `Only one adapter may contribute this hook. Increase priority on one, or remove the other.`,
+  );
 }
 
 /**
- * Merge codegen adapters with file extension conflict detection.
- * Two adapters claiming the same extension is an error.
+ * Merge codegen contributions with file extension conflict detection.
  */
 function mergeCodegenAdapters(
-  existing: CodegenAdapter[],
-  candidate: CodegenAdapter | undefined,
+  existing: CodegenContribution[],
+  candidate: CodegenContribution | undefined,
   candidateName: string,
-): CodegenAdapter[] {
+): CodegenContribution[] {
   if (!candidate) return existing;
 
   for (const existing_codegen of existing) {
     for (const ext of candidate.extensions) {
       if (existing_codegen.extensions.includes(ext)) {
-        throw new Error(
-          `[Zintl] Adapter conflict: codegen adapters from "${existing_codegen.extensions.join(",")}" and "${candidateName}" ` +
-            `both claim extension "${ext}". Only one codegen adapter may handle a given extension. ` +
-            `Use a "priority" field or remove one adapter.`,
-        );
+        const existingPriority = existing_codegen.priority ?? 0;
+        const candidatePriority = candidate.priority ?? 0;
+        if (existingPriority === candidatePriority) {
+          throw new Error(
+            `[Zintl] Adapter conflict: codegen contributions from "${existing_codegen.name}" and "${candidateName}" ` +
+              `both claim extension "${ext}" at the same priority (${existingPriority}). ` +
+              `Only one codegen contribution may handle a given extension at the same priority.`,
+          );
+        }
       }
     }
   }
@@ -112,18 +162,19 @@ function mergeCodegenAdapters(
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface MergeState {
-  codegenAdapters: CodegenAdapter[];
+  codegenAdapters: CodegenContribution[];
   extractionTargets: TargetDescriptor[];
   extensions: string[];
   sfcRules: SfcRule[];
   suppressionRules: SuppressionRule[];
   mustacheRules: MustacheRule[];
-  contentAdapters: ContentAdapter[];
+  contentAdapters: ContentContribution[];
 
   // SSR
   ssrEntryTargets: (string | RegExp | ((id: string) => boolean))[];
   ssrWrapCode: ((params: SsrWrapParams) => string | undefined) | undefined;
   ssrWrapCodeProvider: string;
+  ssrWrapCodePriority: number;
   ssrWrapExports: string[];
   ssrWrapDefault: boolean | "fetch" | undefined;
 
@@ -136,16 +187,21 @@ interface MergeState {
   // Bundler (first-contributor-wins)
   resolveVirtualPath: ((id: string) => string) | undefined;
   resolveVirtualPathProvider: string;
+  resolveVirtualPathPriority: number;
   dynamicImportTemplate: ((path: string, isDev: boolean) => string) | undefined;
   dynamicImportTemplateProvider: string;
+  dynamicImportTemplatePriority: number;
   hmrInjectionCode: ((fileId: string, hmrToken: number) => string) | undefined;
   hmrInjectionCodeProvider: string;
+  hmrInjectionCodePriority: number;
   isMultiplex: ((context: MultiplexDetectionContext) => boolean | undefined) | undefined;
   isMultiplexProvider: string;
+  isMultiplexPriority: number;
   fanBuildInputs:
     | ((inputs: Record<string, string>, locales: string[], root: string) => Record<string, string>)
     | undefined;
   fanBuildInputsProvider: string;
+  fanBuildInputsPriority: number;
 }
 
 function createEmptyState(): MergeState {
@@ -160,6 +216,7 @@ function createEmptyState(): MergeState {
     ssrEntryTargets: [],
     ssrWrapCode: undefined,
     ssrWrapCodeProvider: "",
+    ssrWrapCodePriority: -1,
     ssrWrapExports: [],
     ssrWrapDefault: undefined,
     clientLocaleSync: false,
@@ -168,148 +225,176 @@ function createEmptyState(): MergeState {
     detectLocaleChain: [],
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
+    resolveVirtualPathPriority: -1,
     dynamicImportTemplate: undefined,
     dynamicImportTemplateProvider: "",
+    dynamicImportTemplatePriority: -1,
     hmrInjectionCode: undefined,
     hmrInjectionCodeProvider: "",
+    hmrInjectionCodePriority: -1,
     isMultiplex: undefined,
     isMultiplexProvider: "",
+    isMultiplexPriority: -1,
     fanBuildInputs: undefined,
     fanBuildInputsProvider: "",
+    fanBuildInputsPriority: -1,
   };
 }
 
 function mergeAdapter(state: MergeState, adapter: ZintlAdapter): void {
   const name = adapter.name;
+  const priority = adapter.priority ?? 0;
 
-  // ── Extraction (union) ──
-  if (adapter.extraction) {
-    const ext: ExtractionAdapter = adapter.extraction;
-    for (const t of ext.targets) {
-      if (!state.extractionTargets.includes(t)) {
-        state.extractionTargets.push(t);
+  switch (adapter.type) {
+    case "extraction": {
+      for (const t of adapter.targets) {
+        if (!state.extractionTargets.includes(t)) {
+          state.extractionTargets.push(t);
+        }
       }
-    }
-    for (const e of ext.extensions ?? []) {
-      if (!state.extensions.includes(e)) {
-        state.extensions.push(e);
+      for (const e of adapter.extensions ?? []) {
+        if (!state.extensions.includes(e)) {
+          state.extensions.push(e);
+        }
       }
-    }
-    if (ext.sfcRules) {
-      state.sfcRules.push(...ext.sfcRules);
-    }
-    if (ext.suppressionRules) {
-      state.suppressionRules.push(...ext.suppressionRules);
-    }
-    if (ext.mustacheRegex) {
-      state.mustacheRules.push({
-        extensions: ext.extensions || [],
-        pattern: ext.mustacheRegex,
-      });
-    }
-  }
-
-  // ── Content (union) ──
-  if (adapter.content) {
-    adapter.content.name = adapter.name;
-    state.contentAdapters.push(adapter.content);
-  }
-
-  // ── Codegen (per-file, conflict detection) ──
-  if (adapter.codegen) {
-    state.codegenAdapters = mergeCodegenAdapters(state.codegenAdapters, adapter.codegen, name);
-    for (const e of adapter.codegen.extensions) {
-      if (!state.extensions.includes(e)) {
-        state.extensions.push(e);
+      if (adapter.sfcRules) {
+        state.sfcRules.push(...adapter.sfcRules);
       }
+      if (adapter.suppressionRules) {
+        state.suppressionRules.push(...adapter.suppressionRules);
+      }
+      if (adapter.mustacheRegex) {
+        state.mustacheRules.push({
+          extensions: adapter.extensions || [],
+          pattern: adapter.mustacheRegex,
+        });
+      }
+      break;
     }
-  }
-
-  // ── SSR (union arrays, first-contributor-wins for wrapCode) ──
-  if (adapter.ssr) {
-    const ssr: SsrAdapter = adapter.ssr;
-    if (ssr.entryTargets) {
-      state.ssrEntryTargets.push(...ssr.entryTargets);
+    case "content": {
+      state.contentAdapters.push(adapter);
+      break;
     }
-    if (ssr.wrapCode !== undefined) {
-      state.ssrWrapCode = mergeHook(
-        state.ssrWrapCode,
-        ssr.wrapCode,
-        "ssr.wrapCode",
-        state.ssrWrapCodeProvider,
-        name,
-      );
-      if (!state.ssrWrapCodeProvider) state.ssrWrapCodeProvider = name;
+    case "codegen": {
+      state.codegenAdapters = mergeCodegenAdapters(state.codegenAdapters, adapter, name);
+      for (const e of adapter.extensions) {
+        if (!state.extensions.includes(e)) {
+          state.extensions.push(e);
+        }
+      }
+      break;
     }
-    if (ssr.wrapExports) {
-      state.ssrWrapExports.push(...ssr.wrapExports);
+    case "ssr": {
+      if (adapter.entryTargets) {
+        state.ssrEntryTargets.push(...adapter.entryTargets);
+      }
+      if (adapter.wrapCode !== undefined) {
+        state.ssrWrapCode = mergeHook(
+          state.ssrWrapCode,
+          state.ssrWrapCodePriority,
+          adapter.wrapCode,
+          priority,
+          "ssr.wrapCode",
+          state.ssrWrapCodeProvider,
+          name,
+        );
+        if (state.ssrWrapCode === adapter.wrapCode) {
+          state.ssrWrapCodeProvider = name;
+          state.ssrWrapCodePriority = priority;
+        }
+      }
+      if (adapter.wrapExports) {
+        state.ssrWrapExports.push(...adapter.wrapExports);
+      }
+      if (adapter.wrapDefault !== undefined && state.ssrWrapDefault === undefined) {
+        state.ssrWrapDefault = adapter.wrapDefault;
+      }
+      break;
     }
-    if (ssr.wrapDefault !== undefined && state.ssrWrapDefault === undefined) {
-      state.ssrWrapDefault = ssr.wrapDefault;
+    case "runtime": {
+      if (adapter.clientLocaleSync) state.clientLocaleSync = true;
+      if (adapter.serverRequestScope) state.serverRequestScope = true;
+      if (adapter.streamInjection) state.streamInjection = true;
+      if (adapter.detectLocale) state.detectLocaleChain.push(adapter.detectLocale);
+      break;
     }
-  }
-
-  // ── Runtime (OR-merge booleans, chain detectLocale) ──
-  if (adapter.runtime) {
-    const runtime: RuntimeAdapter = adapter.runtime;
-    if (runtime.clientLocaleSync) state.clientLocaleSync = true;
-    if (runtime.serverRequestScope) state.serverRequestScope = true;
-    if (runtime.streamInjection) state.streamInjection = true;
-    if (runtime.detectLocale) state.detectLocaleChain.push(runtime.detectLocale);
-  }
-
-  // ── Bundler (first-contributor-wins) ──
-  if (adapter.bundler) {
-    const bundler: BundlerAdapter = adapter.bundler;
-    if (bundler.resolveVirtualPath !== undefined) {
-      state.resolveVirtualPath = mergeHook(
-        state.resolveVirtualPath,
-        bundler.resolveVirtualPath,
-        "bundler.resolveVirtualPath",
-        state.resolveVirtualPathProvider,
-        name,
-      );
-      if (!state.resolveVirtualPathProvider) state.resolveVirtualPathProvider = name;
-    }
-    if (bundler.dynamicImportTemplate !== undefined) {
-      state.dynamicImportTemplate = mergeHook(
-        state.dynamicImportTemplate,
-        bundler.dynamicImportTemplate,
-        "bundler.dynamicImportTemplate",
-        state.dynamicImportTemplateProvider,
-        name,
-      );
-      if (!state.dynamicImportTemplateProvider) state.dynamicImportTemplateProvider = name;
-    }
-    if (bundler.hmrInjectionCode !== undefined) {
-      state.hmrInjectionCode = mergeHook(
-        state.hmrInjectionCode,
-        bundler.hmrInjectionCode,
-        "bundler.hmrInjectionCode",
-        state.hmrInjectionCodeProvider,
-        name,
-      );
-      if (!state.hmrInjectionCodeProvider) state.hmrInjectionCodeProvider = name;
-    }
-    if (bundler.isMultiplex !== undefined) {
-      state.isMultiplex = mergeHook(
-        state.isMultiplex,
-        bundler.isMultiplex,
-        "bundler.isMultiplex",
-        state.isMultiplexProvider,
-        name,
-      );
-      if (!state.isMultiplexProvider) state.isMultiplexProvider = name;
-    }
-    if (bundler.fanBuildInputs !== undefined) {
-      state.fanBuildInputs = mergeHook(
-        state.fanBuildInputs,
-        bundler.fanBuildInputs,
-        "bundler.fanBuildInputs",
-        state.fanBuildInputsProvider,
-        name,
-      );
-      if (!state.fanBuildInputsProvider) state.fanBuildInputsProvider = name;
+    case "bundler": {
+      if (adapter.resolveVirtualPath !== undefined) {
+        state.resolveVirtualPath = mergeHook(
+          state.resolveVirtualPath,
+          state.resolveVirtualPathPriority,
+          adapter.resolveVirtualPath,
+          priority,
+          "bundler.resolveVirtualPath",
+          state.resolveVirtualPathProvider,
+          name,
+        );
+        if (state.resolveVirtualPath === adapter.resolveVirtualPath) {
+          state.resolveVirtualPathProvider = name;
+          state.resolveVirtualPathPriority = priority;
+        }
+      }
+      if (adapter.dynamicImportTemplate !== undefined) {
+        state.dynamicImportTemplate = mergeHook(
+          state.dynamicImportTemplate,
+          state.dynamicImportTemplatePriority,
+          adapter.dynamicImportTemplate,
+          priority,
+          "bundler.dynamicImportTemplate",
+          state.dynamicImportTemplateProvider,
+          name,
+        );
+        if (state.dynamicImportTemplate === adapter.dynamicImportTemplate) {
+          state.dynamicImportTemplateProvider = name;
+          state.dynamicImportTemplatePriority = priority;
+        }
+      }
+      if (adapter.hmrInjectionCode !== undefined) {
+        state.hmrInjectionCode = mergeHook(
+          state.hmrInjectionCode,
+          state.hmrInjectionCodePriority,
+          adapter.hmrInjectionCode,
+          priority,
+          "bundler.hmrInjectionCode",
+          state.hmrInjectionCodeProvider,
+          name,
+        );
+        if (state.hmrInjectionCode === adapter.hmrInjectionCode) {
+          state.hmrInjectionCodeProvider = name;
+          state.hmrInjectionCodePriority = priority;
+        }
+      }
+      if (adapter.isMultiplex !== undefined) {
+        state.isMultiplex = mergeHook(
+          state.isMultiplex,
+          state.isMultiplexPriority,
+          adapter.isMultiplex,
+          priority,
+          "bundler.isMultiplex",
+          state.isMultiplexProvider,
+          name,
+        );
+        if (state.isMultiplex === adapter.isMultiplex) {
+          state.isMultiplexProvider = name;
+          state.isMultiplexPriority = priority;
+        }
+      }
+      if (adapter.fanBuildInputs !== undefined) {
+        state.fanBuildInputs = mergeHook(
+          state.fanBuildInputs,
+          state.fanBuildInputsPriority,
+          adapter.fanBuildInputs,
+          priority,
+          "bundler.fanBuildInputs",
+          state.fanBuildInputsProvider,
+          name,
+        );
+        if (state.fanBuildInputs === adapter.fanBuildInputs) {
+          state.fanBuildInputsProvider = name;
+          state.fanBuildInputsPriority = priority;
+        }
+      }
+      break;
     }
   }
 }
@@ -412,18 +497,9 @@ export type ResolvedAdapters = ResolvedCompilerState;
 /**
  * Resolve a list of adapter inputs (preset names or adapter objects) into
  * the pre-merged capabilities and hooks.
- *
- * This is the single entry point for the adapter system.
- * Called once during ZintlCompiler construction and cached.
- *
- * @example
- * const resolved = resolveAdapters(["react", "vite", "client-spa"]);
- * // resolved.capabilities.jsx === true
- * // resolved.capabilities.hmr === true
- * // resolved.hooks.dynamicImportTemplate("./foo", true) === "import(/* @vite-ignore *\/ \"./foo\")"
  */
 export function resolveAdapters(
-  inputs: (string | ZintlAdapter)[] = [],
+  inputs: ZintlAdapterInput[] = [],
   options?: ZintlOptions,
 ): ResolvedCompilerState {
   const flatAdapters: ZintlAdapter[] = [];
@@ -431,7 +507,13 @@ export function resolveAdapters(
   // Expose configuration and auto-inject baseline content adapters if not explicitly provided
   const baseInputs = [...inputs];
   const hasAssetsPreset = inputs.some(
-    (i) => i === "assets" || (typeof i === "object" && i.name === "system-static-assets"),
+    (i) =>
+      i === "assets" ||
+      (i &&
+        typeof i === "object" &&
+        !Array.isArray(i) &&
+        "name" in i &&
+        i.name === "system-static-assets"),
   );
   if (!hasAssetsPreset) {
     baseInputs.push("assets");
@@ -439,7 +521,10 @@ export function resolveAdapters(
   const hasHtmlPreset = inputs.some(
     (i) =>
       i === "html" ||
-      (typeof i === "object" &&
+      (i &&
+        typeof i === "object" &&
+        !Array.isArray(i) &&
+        "name" in i &&
         (i.name === "html-extraction" || i.name === "system-html-projection")),
   );
   if (!hasHtmlPreset) {
@@ -450,10 +535,17 @@ export function resolveAdapters(
     flatAdapters.push(...expandInput(input, options));
   }
 
-  // Deduplicate adapters by name to prevent conflict errors from duplicate presets/registrations
+  // 1. Sort descending by priority (default: 0)
+  const sorted = [...flatAdapters].sort((a, b) => {
+    const pA = a.priority ?? 0;
+    const pB = b.priority ?? 0;
+    return pB - pA;
+  });
+
+  // 2. Deduplicate adapters by name (keeping the one with the highest priority first)
   const uniqueAdapters: ZintlAdapter[] = [];
   const seen = new Set<string>();
-  for (const a of flatAdapters) {
+  for (const a of sorted) {
     if (!seen.has(a.name)) {
       seen.add(a.name);
       uniqueAdapters.push(a);
@@ -469,8 +561,9 @@ export function resolveAdapters(
   const hooks = stateToHooks(state);
 
   const targetDescriptors = [...hooks.extractionTargets];
+  // Add target descriptors from inputs that are string extraction targets
   for (const input of inputs) {
-    if (typeof input === "string") {
+    if (typeof input === "string" && input.includes(":")) {
       if (!targetDescriptors.includes(input as any)) {
         targetDescriptors.push(input as any);
       }

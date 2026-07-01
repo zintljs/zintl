@@ -4,14 +4,23 @@ import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "../types/compiler.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sub-Interfaces
+// Sub-Interfaces (Contributions)
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface BaseContribution {
+  /** Unique contribution identifier (e.g. "react-codegen", "vite-bundler", "ssr-node") */
+  name: string;
+  /** Discriminator type for this contribution */
+  type: string;
+  /** Resolving priority. Default: 0, System: 100. Higher priority overrides. */
+  priority?: number;
+}
 
 /**
  * Extraction layer — influences which strings are captured from source files.
- * Merged across all adapters: targets and extensions are unioned.
  */
-export interface ExtractionAdapter {
+export interface ExtractionContribution extends BaseContribution {
+  type: "extraction";
   /** Target descriptors fed to the extractor (e.g. ["jsx:*:aria-label", "dom:prop:innerHTML"]) */
   targets: TargetDescriptor[];
   /** Additional file extensions to scan (e.g. [".vue", ".svelte"]) */
@@ -26,9 +35,9 @@ export interface ExtractionAdapter {
 
 /**
  * Codegen layer — per-file code generation behavior.
- * Multiple codegen adapters may coexist; each file matches at most one via match().
  */
-export interface CodegenAdapter {
+export interface CodegenContribution extends BaseContribution {
+  type: "codegen";
   /** File extensions this codegen adapter handles (e.g. [".tsx", ".jsx"]) */
   extensions: string[];
   /** Whether this codegen adapter handles a given file path */
@@ -72,10 +81,9 @@ export interface CodegenAdapter {
 
 /**
  * SSR layer — server-side rendering behavior.
- * System-wide. entryTargets and wrapExports are unioned; hook functions
- * (wrapCode) use first-contributor-wins with conflict detection.
  */
-export interface SsrAdapter {
+export interface SsrContribution extends BaseContribution {
+  type: "ssr";
   /** Entry point patterns to intercept for SSR wrapping */
   entryTargets?: (string | RegExp | ((id: string) => boolean))[];
   /**
@@ -91,9 +99,9 @@ export interface SsrAdapter {
 
 /**
  * Runtime layer — declares which runtime capabilities this adapter activates.
- * System-wide. Boolean fields are OR-merged. detectLocale is chained.
  */
-export interface RuntimeAdapter {
+export interface RuntimeContribution extends BaseContribution {
+  type: "runtime";
   /** Client-side locale sync (popstate, pushState monkey-patch, MutationObserver) */
   clientLocaleSync?: boolean;
   /** Server-side AsyncLocalStorage request scoping */
@@ -109,9 +117,9 @@ export interface RuntimeAdapter {
 
 /**
  * Bundler layer — build tool integration hooks.
- * System-wide. Hook functions use first-contributor-wins with conflict detection.
  */
-export interface BundlerAdapter {
+export interface BundlerContribution extends BaseContribution {
+  type: "bundler";
   /** Resolve virtual module paths (e.g. "virtual:zintl/..." → "\0virtual:zintl/...") */
   resolveVirtualPath?: (id: string) => string;
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
@@ -128,55 +136,64 @@ export interface BundlerAdapter {
   ) => Record<string, string>;
 }
 
+export interface ContentContribution extends BaseContribution {
+  type: "content";
+  getManagerInstance?: (context: CompilerContext) => any;
+  match: (filePath: string, context: CompilerContext) => boolean;
+  setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
+  discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
+  flush?: (context: CompilerContext) => Promise<void> | void;
+  getTranslations?: (
+    locale: string,
+    context: CompilerContext,
+  ) => Promise<Record<string, string>> | Record<string, string>;
+  isLocalizedOutput?: (filePath: string, context: CompilerContext) => Promise<boolean> | boolean;
+  getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
+  getStateToSave?: (context: CompilerContext) => any;
+  virtualBoundaries?: string[];
+  getBoundaryForLocalizedOutput?: (
+    filePath: string,
+    context: CompilerContext,
+  ) => Promise<string | null> | string | null;
+  getChunkContributions?: (
+    locale: string,
+    context: CompilerContext,
+  ) =>
+    | Promise<{ imports: string[]; boundaryId: string; catalog: Record<string, any> } | null>
+    | { imports: string[]; boundaryId: string; catalog: Record<string, any> }
+    | null;
+  isContentBoundary?: (boundaryId: string, context: CompilerContext) => boolean;
+  transformHtml?: (
+    html: string,
+    id: string,
+    context: CompilerContext,
+    preloads?: Record<string, string[]>,
+  ) => Promise<string> | string;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Top-Level Adapter Interface
+// Top-Level Adapter Interface & Presets
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface ZintlPreset {
+  type: "preset";
+  name: string;
+  use: ZintlAdapterInput[];
+}
+
+export type ZintlAdapterInput = string | ZintlAdapter | ZintlPreset | ZintlAdapterInput[];
 
 /**
  * A Zintl Adapter is a composable unit of concern.
  * Multiple adapters combine to form the resolved system behavior.
- *
- * Adapters are per-concern, not per-framework-with-flags.
- * Example: ["react", "ssr", "vite"] composes three independent concerns.
- *
- * @example
- * // Minimal user-authored adapter (e.g. for Astro)
- * const astroAdapter: ZintlAdapter = {
- *   name: "astro",
- *   codegen: {
- *     extensions: [".astro"],
- *     match: (f) => f.endsWith(".astro"),
- *     wrapHtmlText: (r) => `{${r}}`,
- *   },
- *   ssr: {
- *     entryTargets: ["src/pages/"],
- *   },
- * };
  */
-export interface ZintlAdapter {
-  /** Unique adapter identifier (e.g. "react-codegen", "vite-bundler", "ssr-node") */
-  name: string;
-
-  /** How this adapter influences extraction (string targets, extra extensions) */
-  extraction?: ExtractionAdapter;
-
-  /**
-   * How this adapter handles per-file code generation.
-   * Multiple codegen adapters can coexist; each file matches at most one.
-   */
-  codegen?: CodegenAdapter;
-
-  /** How this adapter handles server-side rendering */
-  ssr?: SsrAdapter;
-
-  /** What runtime capabilities this adapter contributes */
-  runtime?: RuntimeAdapter;
-
-  /** How this adapter integrates with the build tool */
-  bundler?: BundlerAdapter;
-  /** How this adapter handles content/asset/HTML lifecycle compilation */
-  content?: ContentAdapter;
-}
+export type ZintlAdapter =
+  | ExtractionContribution
+  | CodegenContribution
+  | SsrContribution
+  | RuntimeContribution
+  | BundlerContribution
+  | ContentContribution;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resolved Output Types
@@ -235,23 +252,23 @@ export interface ResolvedCapabilities {
 export interface MergedAdapterHooks {
   // ── Per-file codegen (matched by filePath) ──
 
-  /** All registered codegen adapters, to be matched per-file */
-  codegenAdapters: CodegenAdapter[];
+  /** All registered codegen contributions, to be matched per-file */
+  codegenAdapters: CodegenContribution[];
 
   // ── Extraction (union of all) ──
 
-  /** Unified extraction targets from all adapters */
+  /** Unified extraction targets from all contributions */
   extractionTargets: TargetDescriptor[];
-  /** Unified file extensions from all adapters */
+  /** Unified file extensions from all contributions */
   extensions: string[];
-  /** SFC rules from all adapters */
+  /** SFC rules from all contributions */
   sfcRules: SfcRule[];
-  /** Suppression rules from all adapters */
+  /** Suppression rules from all contributions */
   suppressionRules: SuppressionRule[];
-  /** Mustache regex rules from all adapters */
+  /** Mustache regex rules from all contributions */
   mustacheRules: MustacheRule[];
 
-  // ── SSR hooks (merged, first-contributor-wins for functions) ──
+  // ── SSR hooks (merged, highest priority wins or conflict detection) ──
 
   /** Union of all SSR entry target patterns */
   ssrEntryTargets: (string | RegExp | ((id: string) => boolean))[];
@@ -262,19 +279,19 @@ export interface MergedAdapterHooks {
   /** Resolved SSR default export wrapping mode */
   ssrWrapDefault: boolean | "fetch" | undefined;
 
-  // ── Bundler hooks (merged, first-contributor-wins) ──
+  // ── Bundler hooks (merged, highest priority wins or conflict detection) ──
 
   /** Resolved virtual path resolver */
   resolveVirtualPath: (id: string) => string;
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
-  /** Resolved HMR injection code generator (undefined if no HMR adapter) */
+  /** Resolved HMR injection code generator (undefined if no HMR contribution) */
   hmrInjectionCode:
     | ((fileId: string, hmrToken: number, hasAnchors?: boolean) => string)
     | undefined;
   /** Resolved multiplex detector (undefined to use default scan logic) */
   isMultiplex: ((context: MultiplexDetectionContext) => boolean | undefined) | undefined;
-  /** Resolved build input fanner (undefined if no MPA adapter) */
+  /** Resolved build input fanner (undefined if no MPA contribution) */
   fanBuildInputs:
     | ((inputs: Record<string, string>, locales: string[], root: string) => Record<string, string>)
     | undefined;
@@ -286,8 +303,8 @@ export interface MergedAdapterHooks {
 
   // ── Content hooks ──
 
-  /** All registered content adapters */
-  contentAdapters: ContentAdapter[];
+  /** All registered content contributions */
+  contentAdapters: ContentContribution[];
   /** All registered virtual content boundaries (e.g. ['b_assets']) */
   virtualBoundaries: string[];
 }
@@ -355,39 +372,4 @@ export interface CompilerContext {
     virtualInjectionTarget?: string,
     isDev?: boolean,
   ) => Promise<any>;
-}
-
-export interface ContentAdapter {
-  name?: string;
-  getManagerInstance?: (context: CompilerContext) => any;
-  match: (filePath: string, context: CompilerContext) => boolean;
-  setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
-  discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
-  flush?: (context: CompilerContext) => Promise<void> | void;
-  getTranslations?: (
-    locale: string,
-    context: CompilerContext,
-  ) => Promise<Record<string, string>> | Record<string, string>;
-  isLocalizedOutput?: (filePath: string, context: CompilerContext) => Promise<boolean> | boolean;
-  getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
-  getStateToSave?: (context: CompilerContext) => any;
-  virtualBoundaries?: string[];
-  getBoundaryForLocalizedOutput?: (
-    filePath: string,
-    context: CompilerContext,
-  ) => Promise<string | null> | string | null;
-  getChunkContributions?: (
-    locale: string,
-    context: CompilerContext,
-  ) =>
-    | Promise<{ imports: string[]; boundaryId: string; catalog: Record<string, any> } | null>
-    | { imports: string[]; boundaryId: string; catalog: Record<string, any> }
-    | null;
-  isContentBoundary?: (boundaryId: string, context: CompilerContext) => boolean;
-  transformHtml?: (
-    html: string,
-    id: string,
-    context: CompilerContext,
-    preloads?: Record<string, string[]>,
-  ) => Promise<string> | string;
 }

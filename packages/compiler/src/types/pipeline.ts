@@ -5,8 +5,7 @@ import type { FileObservation } from "./observation.js";
 import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
-import type { TargetAdapter } from "./compiler.js";
-import type { ResolvedCapabilities, MergedAdapterHooks } from "../adapter/index.js";
+import type { ResolvedCapabilities, MergedAdapterHooks, ZintlAdapter } from "../adapter/index.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -51,7 +50,7 @@ export interface ZintlConfig {
 
   // ── Legacy fields (still used by older codepaths during migration) ───────
   /** @deprecated Query capabilities.jsx / hooks.codegenAdapters instead. */
-  adapters?: TargetAdapter[];
+  adapters?: ZintlAdapter[];
   /** @deprecated Use hooks.resolveVirtualPath instead. */
   resolveVirtualPath?: (id: string) => string;
   /** @deprecated Use hooks.dynamicImportTemplate instead. */

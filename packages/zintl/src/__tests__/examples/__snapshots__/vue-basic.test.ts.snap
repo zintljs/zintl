@@ -11,12 +11,11 @@ exports[`Example Proof: vue-basic > should match Development snapshots > vue-bas
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
@@ -5548,22 +5547,21 @@ exports[`Example Proof: vue-basic > should match Final Production Build (dist) s
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
         }
+      }
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
@@ -5595,12 +5593,11 @@ exports[`Example Proof: vue-basic > should match Production snapshots > vue-basi
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';

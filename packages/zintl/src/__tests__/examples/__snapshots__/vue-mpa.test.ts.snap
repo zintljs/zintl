@@ -12,26 +12,25 @@ exports[`Example Proof: vue-mpa > should match Development snapshots > vue-mpa/d
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl Vue MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl Vue MPA"},"zh":{"title":"关于 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -59,26 +58,25 @@ exports[`Example Proof: vue-mpa > should match Development snapshots > vue-mpa/d
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl Vue MPA"},"es":{"title":"Inicio - Ejemplo de Zintl Vue MPA"},"zh":{"title":"首页 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -830,36 +828,35 @@ exports[`Example Proof: vue-mpa > should match Final Production Build (dist) sna
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl Vue MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl Vue MPA"},"zh":{"title":"关于 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         const preloads = {"ar":["assets/entry_b_9e373ef8c775.js","assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_9e373ef8c7752.js","assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_9e373ef8c7753.js","assets/entry_b_aafcf9c6fe163.js"]};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
         }
+      }
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -6378,36 +6375,35 @@ exports[`Example Proof: vue-mpa > should match Final Production Build (dist) sna
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl Vue MPA"},"es":{"title":"Inicio - Ejemplo de Zintl Vue MPA"},"zh":{"title":"首页 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         const preloads = {"ar":["assets/entry_b_9e373ef8c775.js","assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_9e373ef8c7752.js","assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_9e373ef8c7753.js","assets/entry_b_aafcf9c6fe163.js"]};
-        function preload(locale) {
-          const urls = preloads[locale] || [];
-          for (const url of urls) {
-            const link = document.createElement("link");
-            link.rel = "modulepreload";
-            link.href = url;
-            document.head.appendChild(link);
-          }
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
         }
+      }
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -6436,26 +6432,25 @@ exports[`Example Proof: vue-mpa > should match Production snapshots > vue-mpa/pr
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl Vue MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl Vue MPA"},"zh":{"title":"关于 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -6483,26 +6478,25 @@ exports[`Example Proof: vue-mpa > should match Production snapshots > vue-mpa/pr
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-        const l = lang || localStorage.getItem('zintl-locale') || 'en';
+        const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl Vue MPA"},"es":{"title":"Inicio - Ejemplo de Zintl Vue MPA"},"zh":{"title":"首页 - Zintl Vue MPA 示例"}};
-        const originals = {
-          title: document.title,
-        };
+      const originals = {
+        title: document.title,
+      };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-          const hasText = v => typeof v === "string" && v.trim();
-          const delta = deltas[locale];
-          if (delta) {
-            document.title = hasText(delta.title)
-              ? delta.title
-              : originals.title;
-          } else {
-            document.title = originals.title;
-          }
+        const hasText = v => typeof v === "string" && v.trim();
+        const delta = deltas[locale];
+        if (delta) {
+          document.title = hasText(delta.title)
+            ? delta.title
+            : originals.title;
+        } else {
+          document.title = originals.title;
+        }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
