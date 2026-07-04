@@ -25,6 +25,7 @@ class HtmlManager {
     locales: string[],
     hive: Record<string, Record<string, any>>,
     onHiveChange: () => void,
+    internalManifest?: Record<string, any[]>,
   ) {
     const isMulti = this.catalog.isMultilingualFormat();
     for (const [id, meta] of Object.entries(htmlMetadatas)) {
@@ -33,7 +34,10 @@ class HtmlManager {
       this.logger.debug(`Syncing HTML projections for ${id} (isMulti: ${isMulti})`);
 
       const schemaPath = this.getSchemaPath(id);
-      const schema = sortObjectKeys(this.generateSchema(meta.htmlProjection, locales, isMulti));
+      const boundaryMessages = internalManifest ? internalManifest[id] || [] : [];
+      const schema = sortObjectKeys(
+        this.generateSchema(meta.htmlProjection, locales, isMulti, boundaryMessages),
+      );
       await this.io.safeWriteFile(schemaPath, JSON.stringify(schema, null, 2));
 
       if (isMulti) {
@@ -138,6 +142,18 @@ class HtmlManager {
                 changed = true;
               }
 
+              if (meta.htmlProjection.title !== undefined && content.title === undefined) {
+                content.title = hive[locale]?.[`__zintl:html:${id}:title`] || "";
+                changed = true;
+              }
+              if (
+                meta.htmlProjection.description !== undefined &&
+                content.description === undefined
+              ) {
+                content.description = hive[locale]?.[`__zintl:html:${id}:description`] || "";
+                changed = true;
+              }
+
               if (meta.htmlProjection.title === undefined && content.title !== undefined) {
                 delete content.title;
                 changed = true;
@@ -163,15 +179,18 @@ class HtmlManager {
               const descKey = `__zintl:html:${id}:description`;
               const dirKey = `__zintl:html:${id}:dir`;
 
-              if (content.title && hive[locale][titleKey] !== content.title) {
+              if (content.title !== undefined && hive[locale][titleKey] !== content.title) {
                 hive[locale][titleKey] = content.title;
                 hiveChanged = true;
               }
-              if (content.description && hive[locale][descKey] !== content.description) {
+              if (
+                content.description !== undefined &&
+                hive[locale][descKey] !== content.description
+              ) {
                 hive[locale][descKey] = content.description;
                 hiveChanged = true;
               }
-              if (content.dir && hive[locale][dirKey] !== content.dir) {
+              if (content.dir !== undefined && hive[locale][dirKey] !== content.dir) {
                 hive[locale][dirKey] = content.dir;
                 hiveChanged = true;
               }
@@ -198,7 +217,12 @@ class HtmlManager {
     return join(this.root, this.outputDir, ".schemas", `${id}.schema.json`);
   }
 
-  private generateSchema(projection: HtmlProjectionPayload, locales: string[], isMulti: boolean) {
+  private generateSchema(
+    projection: HtmlProjectionPayload,
+    locales: string[],
+    isMulti: boolean,
+    messages: any[] = [],
+  ) {
     const properties: any = {
       $schema: { type: "string" },
     };
@@ -236,6 +260,24 @@ class HtmlManager {
       default: "",
     });
 
+    for (const msg of messages) {
+      const vars = new Set<string>();
+      if (msg.variables) msg.variables.forEach((v: string) => vars.add(v));
+      if (msg.passVars) Object.keys(msg.passVars).forEach((v: string) => vars.add(v));
+
+      if (vars.size > 0 || msg.note) {
+        const desc: string[] = [];
+        if (msg.note) desc.push(`Note: ${msg.note}`);
+        if (vars.size > 0) desc.push(`Variables: {${Array.from(vars).join("}, {")}}`);
+        properties[msg.text] = wrapLocale({
+          anyOf: [{ type: "string" }, { type: "object", additionalProperties: { type: "string" } }],
+          description: desc.join(" | "),
+        });
+      } else {
+        properties[msg.text] = wrapLocale({ type: "string" });
+      }
+    }
+
     const schema: any = {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",
@@ -271,6 +313,51 @@ const htmlExtractionAdapter: ZintlAdapter = {
   ],
   extensions: [".html"],
 };
+
+function findParentTagStart(html: string, index: number): number {
+  let depth = 0;
+  for (let i = index - 1; i >= 0; i--) {
+    const char = html[i];
+    if (char === ">") {
+      let start = i;
+      while (start >= 0 && html[start] !== "<") {
+        start--;
+      }
+      if (start >= 0) {
+        const tag = html.slice(start, i + 1);
+        if (tag.startsWith("</")) {
+          depth++;
+        } else if (!tag.endsWith("/>") && !tag.startsWith("<!--")) {
+          if (depth === 0) {
+            return start;
+          }
+          depth--;
+        }
+      }
+      i = start;
+    } else if (char === "<") {
+      let end = i;
+      while (end < html.length && html[end] !== ">") {
+        end++;
+      }
+      const tag = html.slice(i, end + 1);
+      if (!tag.startsWith("</") && !tag.endsWith("/>") && !tag.startsWith("<!--")) {
+        if (depth === 0) {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+function injectDataAttribute(tag: string, attrName: string, attrValue: string): string {
+  const match = tag.match(/^<([a-zA-Z0-9:-]+)/);
+  if (!match) return tag;
+  const tagName = match[1];
+  const insertPos = 1 + tagName.length;
+  return tag.slice(0, insertPos) + ` ${attrName}="${attrValue}"` + tag.slice(insertPos);
+}
 
 /**
  * HTML projection content contribution.
@@ -318,11 +405,22 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
         context.locales,
         context.getHive(),
         context.markHiveDirty,
+        context.internalManifest,
       );
     },
     isContentBoundary(boundaryId: string, context: CompilerContext) {
       const meta = context.getMetadataGraph()[boundaryId];
       return !!(meta && meta.htmlProjection);
+    },
+    getProtectedCatalogKeys(boundaryId: string, context: CompilerContext) {
+      const meta = context.getMetadataGraph()[boundaryId];
+      if (meta && meta.htmlProjection) {
+        const keys: string[] = ["dir"];
+        if (meta.htmlProjection.title !== undefined) keys.push("title");
+        if (meta.htmlProjection.description !== undefined) keys.push("description");
+        return keys;
+      }
+      return [];
     },
     async getBoundaryForLocalizedOutput(filePath: string, context: CompilerContext) {
       const mgr = getManager(context);
@@ -471,11 +569,12 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
       }
 
       const mgr = getManager(context);
+      let catalog: any = null;
       if (isLiteral && targetLocale !== "none") {
         const catalogPath = mgr.getCatalogPath(fileId, targetLocale);
         if (await context.io.exists(catalogPath)) {
           try {
-            const catalog = JSON.parse(await context.io.readFile(catalogPath));
+            catalog = JSON.parse(await context.io.readFile(catalogPath));
             const catalogTitle = context.catalog.isMultilingualFormat()
               ? catalog.title?.[targetLocale]
               : catalog.title;
@@ -493,8 +592,178 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
         }
       }
 
-      // 3. Apply Projection
       let mutated = html;
+      const bodySinks = (meta.sinks || []).filter(
+        (s: any) => s.sinkType === "HTML_TEXT" || s.sinkType.startsWith("html:attr:"),
+      );
+
+      const deltas: Record<string, any> = {};
+      const originals: Record<string, any> = {};
+
+      if (isLiteral) {
+        if (catalog) {
+          const bodyIdx = mutated.toLowerCase().indexOf("<body");
+          let lastSearchIndex = bodyIdx !== -1 ? bodyIdx : 0;
+
+          const sortedSinks = [...bodySinks].sort((a, b) => a.location.start - b.location.start);
+          for (const sink of sortedSinks) {
+            const translation = context.catalog.isMultilingualFormat()
+              ? catalog[sink.text]?.[targetLocale]
+              : catalog[sink.text];
+            if (translation !== undefined && translation !== "") {
+              const type = sink.sinkType === "HTML_TEXT" ? "text" : "attr";
+              const attrName = type === "attr" ? sink.sinkType.substring("html:attr:".length) : "";
+
+              let actualStart = -1;
+              let actualEnd = -1;
+              let replacement = "";
+
+              if (type === "text") {
+                actualStart = mutated.indexOf(sink.text, lastSearchIndex);
+                if (actualStart !== -1) {
+                  actualEnd = actualStart + sink.text.length;
+                  replacement = translation;
+                }
+              } else {
+                const searchStr1 = `${attrName}="${sink.text}"`;
+                const searchStr2 = `${attrName}='${sink.text}'`;
+                actualStart = mutated.indexOf(searchStr1, lastSearchIndex);
+                if (actualStart !== -1) {
+                  actualEnd = actualStart + searchStr1.length;
+                } else {
+                  actualStart = mutated.indexOf(searchStr2, lastSearchIndex);
+                  if (actualStart !== -1) {
+                    actualEnd = actualStart + searchStr2.length;
+                  }
+                }
+                if (actualStart !== -1) {
+                  replacement = `${attrName}="${translation}"`;
+                }
+              }
+
+              if (actualStart !== -1) {
+                mutated = mutated.slice(0, actualStart) + replacement + mutated.slice(actualEnd);
+                lastSearchIndex = actualStart + replacement.length;
+              } else {
+                const fallbackStart = sink.location.start;
+                const fallbackEnd = sink.location.end;
+                const fallbackReplacement =
+                  type === "text" ? translation : `${attrName}="${translation}"`;
+                mutated =
+                  mutated.slice(0, fallbackStart) +
+                  fallbackReplacement +
+                  mutated.slice(fallbackEnd);
+              }
+            }
+          }
+        }
+      } else {
+        const isMultilingual = context.catalog.isMultilingualFormat();
+        let multiCatalog: any;
+        if (isMultilingual) {
+          const catalogPath = mgr.getCatalogPath(fileId, context.locales[0]);
+          if (await context.io.exists(catalogPath)) {
+            try {
+              multiCatalog = JSON.parse(await context.io.readFile(catalogPath));
+            } catch {}
+          }
+        }
+
+        const localeCatalogs: Record<string, any> = {};
+        for (const loc of context.locales) {
+          if (loc === context.sourceLocale) continue;
+          if (isMultilingual && multiCatalog) {
+            localeCatalogs[loc] = multiCatalog;
+          } else {
+            const catalogPath = mgr.getCatalogPath(fileId, loc);
+            if (await context.io.exists(catalogPath)) {
+              try {
+                localeCatalogs[loc] = JSON.parse(await context.io.readFile(catalogPath));
+              } catch {}
+            }
+          }
+        }
+
+        const bodyIdx = mutated.toLowerCase().indexOf("<body");
+        let lastSearchIndex = bodyIdx !== -1 ? bodyIdx : 0;
+
+        const sortedSinks = [...bodySinks].sort((a, b) => a.location.start - b.location.start);
+        for (let i = 0; i < sortedSinks.length; i++) {
+          const sink = sortedSinks[i];
+          const id = `z_${i}`;
+          const type = sink.sinkType === "HTML_TEXT" ? "text" : "attr";
+          const attrName = type === "attr" ? sink.sinkType.substring("html:attr:".length) : "";
+
+          let actualStart = -1;
+          if (type === "text") {
+            actualStart = mutated.indexOf(sink.text, lastSearchIndex);
+          } else {
+            const searchStr1 = `${attrName}="${sink.text}"`;
+            const searchStr2 = `${attrName}='${sink.text}'`;
+            actualStart = mutated.indexOf(searchStr1, lastSearchIndex);
+            if (actualStart === -1) {
+              actualStart = mutated.indexOf(searchStr2, lastSearchIndex);
+            }
+            if (actualStart === -1) {
+              actualStart = mutated.indexOf(sink.text, lastSearchIndex);
+            }
+          }
+
+          let tagStart = -1;
+          if (actualStart !== -1) {
+            if (type === "text") {
+              tagStart = findParentTagStart(mutated, actualStart);
+            } else {
+              let pos = actualStart;
+              while (pos >= 0 && mutated[pos] !== "<") {
+                pos--;
+              }
+              tagStart = pos;
+            }
+            lastSearchIndex = actualStart;
+          } else {
+            if (type === "text") {
+              tagStart = findParentTagStart(mutated, sink.location.start);
+            } else {
+              let pos = sink.location.start;
+              while (pos >= 0 && mutated[pos] !== "<") {
+                pos--;
+              }
+              tagStart = pos;
+            }
+          }
+
+          if (tagStart !== -1) {
+            let tagEnd = tagStart;
+            while (tagEnd < mutated.length && mutated[tagEnd] !== ">") {
+              tagEnd++;
+            }
+            if (tagEnd < mutated.length) {
+              const originalTag = mutated.slice(tagStart, tagEnd + 1);
+              const taggedTag = injectDataAttribute(originalTag, "data-zintl-id", id);
+              mutated = mutated.slice(0, tagStart) + taggedTag + mutated.slice(tagEnd + 1);
+              if (actualStart !== -1 && tagStart < actualStart) {
+                lastSearchIndex += taggedTag.length - originalTag.length;
+              }
+            }
+          }
+
+          originals[id] = { type, name: attrName, val: sink.text };
+
+          for (const loc of context.locales) {
+            if (loc === context.sourceLocale) continue;
+            const cat = localeCatalogs[loc];
+            if (cat) {
+              const translation = isMultilingual ? cat[sink.text]?.[loc] : cat[sink.text];
+              if (translation !== undefined && translation !== "") {
+                if (!deltas[loc]) deltas[loc] = {};
+                deltas[loc][id] = { type, name: attrName, val: translation };
+              }
+            }
+          }
+        }
+      }
+
       mutated = mutated.replace(/<html([^>]*)>/i, (m, attrs) => {
         let newAttrs = attrs;
         if (!/lang=/i.test(attrs)) newAttrs += ` lang="${targetLocale}"`;
@@ -524,44 +793,12 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
         );
       }
 
-      // 4. Inject Bootstrap for Dynamic Anchors
       if (!isLiteral) {
         const existingRe =
           /<!--zintl-bootstrap-->\s*<script id="zintl-projection">[\s\S]*?<\/script>/gi;
         mutated = mutated.replace(existingRe, "");
 
-        for (const script of scripts) {
-          let scriptRel = script;
-          if (scriptRel.startsWith("/")) scriptRel = scriptRel.substring(1);
-          const scriptPath = join(context.root, scriptRel);
-          const scriptId = context.io.getNormalizedId(scriptPath);
-
-          if (!context.getMetadataGraph()[scriptId]) {
-            if (await context.io.exists(scriptPath)) {
-              context.logger.debug(`JIT extraction for script: ${scriptId}`);
-              try {
-                const scriptCode = await context.io.readFile(scriptPath);
-                await context.transform(scriptCode, scriptPath, undefined, true);
-              } catch {}
-            }
-          }
-
-          const check = context.leadsToBoundary(
-            scriptId,
-            context.getDependencyGraph(),
-            context.getMetadataGraph(),
-          );
-
-          if (check.leads) {
-            if (!winningCheck || (check.dynamic && !winningCheck.dynamic)) {
-              winningCheck = check;
-            }
-          }
-        }
-
         const rtlLocales: string[] = [];
-        const deltas: Record<string, any> = {};
-
         const isMultilingual = context.catalog.isMultilingualFormat();
         let multiCatalog: any;
         if (isMultilingual) {
@@ -588,18 +825,20 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
               else if (locale === context.sourceLocale && dir === "rtl") rtlLocales.push(locale);
 
               if (locale !== context.sourceLocale) {
-                const delta: Record<string, string> = {};
                 if (title && catalogTitle?.trim() && catalogTitle !== meta.htmlProjection.title) {
-                  delta.title = catalogTitle;
+                  if (!deltas[locale]) deltas[locale] = {};
+
+                  deltas[locale].title = catalogTitle;
                 }
                 if (
                   description &&
                   catalogDesc?.trim() &&
                   catalogDesc !== meta.htmlProjection.description
                 ) {
-                  delta.description = catalogDesc;
+                  if (!deltas[locale]) deltas[locale] = {};
+
+                  deltas[locale].description = catalogDesc;
                 }
-                if (Object.keys(delta).length > 0) deltas[locale] = delta;
               }
             } catch {}
           } else if (locale === context.sourceLocale && dir === "rtl") {
@@ -610,10 +849,9 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
         const hasDeltas = Object.keys(deltas).length > 0;
         const hasPreloads = Object.keys(preloads || {}).length > 0;
         const hasRtl = rtlLocales.length > 0;
+        const hasSink = Object.keys(originals).length > 0;
 
-        // build
         const rtlChunk = hasRtl ? `const rtl = ${JSON.stringify(rtlLocales)};` : "";
-
         const deltasChunk = hasDeltas ? `const deltas = ${JSON.stringify(deltas)};` : "";
         const preloadsChunk = hasPreloads
           ? `const preloads = ${JSON.stringify(preloads)};
@@ -628,50 +866,81 @@ export function createHtmlProjectionAdapter(): ZintlAdapter {
       }`
           : "";
 
+        const originalsEnd = JSON.stringify(originals).slice(1);
+
+        let extraObjects = "{\n";
+        if (title) {
+          extraObjects += `
+        title: document.title,`;
+        }
+        if (description) {
+          extraObjects += `
+        description: document.querySelector('meta[name="description"]')?.content,`;
+        }
+
+        const originalsBase = extraObjects + (hasSink ? originalsEnd + ";" : `\n      };`);
+
         const originalsChunk =
-          title || description
+          title || description || hasSink
             ? `
-      const originals = {
-        ${title ? "title: document.title," : ""}
-        ${description ? `description: document.querySelector('meta[name="description"]')?.content,` : ""}
-      };`
+        const originals = ${originalsBase}`
             : "";
 
         const applyChunk = hasDeltas
           ? `
-        const hasText = v => typeof v === "string" && v.trim();
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
 
-        ${description ? `const meta = document.querySelector('meta[name="description"]');` : ""}
-        const delta = deltas[locale];
-
-        if (delta) {
+          if (delta) {
           ${
             title
               ? `
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;`
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;`
               : ""
           }
 
           ${
             description
               ? `
-              if (meta && originals.description !== undefined) {
-                meta.content = hasText(delta.description)
-                  ? delta.description
-                  : originals.description;
-              }`
+            const meta = document.querySelector('meta[name="description"]');
+            if (meta && originals.description !== undefined) {
+              meta.content = hasText(delta.description)
+                ? delta.description
+                : originals.description;
+            }`
               : ""
           }
-        } else {
-          ${title ? "document.title = originals.title;" : ""}
+          } else {
+            ${title ? "document.title = originals.title;" : ""}
+            ${
+              description
+                ? `const meta = document.querySelector('meta[name="description"]');
+          if (meta && originals.description !== undefined) meta.content = originals.description;`
+                : ""
+            }
+          }
+
           ${
-            description
-              ? "if (meta && originals.description !== undefined) meta.content = originals.description;"
+            hasSink
+              ? `for (const [id, original] of Object.entries(originals)) {
+            const el = document.querySelector(\`[data-zintl-id="\${id}"]\`);
+            if (!el) continue;
+          
+            const target = delta && delta[id] ? delta[id] : original;
+            if (target.type === "text") {
+              el.textContent = hasText(target.val) ? target.val : original.val;
+            } else if (target.type === "attr") {
+              if (hasText(target.val)) {
+                el.setAttribute(target.name, target.val);
+              } else {
+                el.removeAttribute(target.name);
+              }
+            }
+          }`
               : ""
-          }
-        }`
+          }`
           : "";
 
         const dirChunk = hasRtl

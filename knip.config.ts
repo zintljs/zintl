@@ -8,7 +8,7 @@ const config: KnipConfig = {
       ignoreDependencies: ["ipaddr.js"],
     },
     "examples/**": {
-      entry: ["src/{about,main,entry-client,entry-server}.{ts,tsx}"],
+      entry: ["src/{about,main,entry-client,entry-server,index}.{ts,tsx}"],
       project: ["src/**/*.{ts,tsx}"],
     },
     "examples/vue-*": {

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "\"{brandSlogan}\"": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {brandSlogan}"
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "1. Handlebars Template Adapter Output:": {
+      "type": "string"
+    },
+    "2. Multi-Brand Theme Projection Output:": {
+      "type": "string"
+    },
+    "<strong>Active Brand:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>Active Locale:</strong> <span2>{lang}</span2>": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {brand}, {lang}"
+    },
+    "Adidas": {
+      "type": "string"
+    },
+    "Change Brand:": {
+      "type": "string"
+    },
+    "Change Language:": {
+      "type": "string"
+    },
+    "English": {
+      "type": "string"
+    },
+    "Nike": {
+      "type": "string"
+    },
+    "brand_slogan:": {
+      "type": "string"
+    },
+    "العربية": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "\"{brandSlogan}\"",
+    "<strong>Active Brand:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>Active Locale:</strong> <span2>{lang}</span2>",
+    "1. Handlebars Template Adapter Output:",
+    "2. Multi-Brand Theme Projection Output:",
+    "Adidas",
+    "brand_slogan:",
+    "Change Brand:",
+    "Change Language:",
+    "English",
+    "Nike",
+    "العربية"
+  ],
+  "additionalProperties": false
+}

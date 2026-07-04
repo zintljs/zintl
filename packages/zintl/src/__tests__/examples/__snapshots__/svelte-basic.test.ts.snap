@@ -13,7 +13,7 @@ exports[`Example Proof: svelte-basic > should match Development snapshots > svel
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
@@ -6277,7 +6277,7 @@ exports[`Example Proof: svelte-basic > should match Final Production Build (dist
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
@@ -6323,7 +6323,7 @@ exports[`Example Proof: svelte-basic > should match Production snapshots > svelt
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {

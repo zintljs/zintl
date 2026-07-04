@@ -13,7 +13,7 @@ exports[`Example Proof: react-basic > should match Development snapshots > react
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
@@ -11335,7 +11335,7 @@ exports[`Example Proof: react-basic > should match Final Production Build (dist)
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_89ad0a7bfa7f.js"],"es":["assets/entry_b_89ad0a7bfa7f2.js"],"zh":["assets/entry_b_89ad0a7bfa7f3.js"]};
@@ -11381,7 +11381,7 @@ exports[`Example Proof: react-basic > should match Production snapshots > react-
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {

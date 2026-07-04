@@ -270,4 +270,65 @@ describe("HTML Production Mode Transformation", () => {
     expect(transformed).toContain('dir="rtl"');
     expect(transformed).toContain("<title>Arabic Title</title>");
   });
+
+  it("should translate generic body text and attributes in literal mode", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const scriptCode = `import { zintl } from "@zintl/runtime"; zintl("ar");`;
+    await writeFile(join(root, "src/main.ts"), scriptCode);
+
+    const htmlCode = `<html><head><script type="module" src="/src/main.ts"></script></head><body><h1>Hello World</h1><input placeholder="Search..."></body></html>`;
+    await writeFile(join(root, "index.html"), htmlCode);
+    await compiler.setup();
+
+    // Create Arabic catalog
+    await mkdir(join(root, "locales"), { recursive: true });
+    await compiler.discover();
+    await compiler.flush();
+
+    await writeFile(
+      join(root, "locales/index.html.ar.json"),
+      JSON.stringify({
+        "Hello World": "مرحبا بالعالم",
+        "Search...": "بحث...",
+        dir: "rtl",
+      }),
+    );
+
+    const transformed = await compiler.transformHtml(htmlCode, join(root, "index.html"));
+    expect(transformed).toContain("<h1>مرحبا بالعالم</h1>");
+    expect(transformed).toContain('placeholder="بحث..."');
+  });
+
+  it("should tag and generate delta maps for body text and attributes in dynamic mode", async (context: LocalContext) => {
+    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+
+    const scriptCode = `import { zintl } from "@zintl/runtime"; zintl(window.lang);`;
+    await writeFile(join(root, "src/main.ts"), scriptCode);
+
+    const htmlCode = `<html><head><script type="module" src="/src/main.ts"></script></head><body><h1>Hello World</h1><input placeholder="Search..."></body></html>`;
+    await writeFile(join(root, "index.html"), htmlCode);
+    await compiler.setup();
+
+    // Create Arabic catalog
+    await mkdir(join(root, "locales"), { recursive: true });
+    await compiler.discover();
+    await compiler.flush();
+
+    await writeFile(
+      join(root, "locales/index.html.ar.json"),
+      JSON.stringify({
+        "Hello World": "مرحبا بالعالم",
+        "Search...": "بحث...",
+        dir: "rtl",
+      }),
+    );
+
+    const transformed = await compiler.transformHtml(htmlCode, join(root, "index.html"));
+    expect(transformed).toContain('<h1 data-zintl-id="z_0">Hello World</h1>');
+    expect(transformed).toContain('<input data-zintl-id="z_1" placeholder="Search...">');
+    expect(transformed).toContain('"z_0":{"type":"text","name":"","val":"مرحبا بالعالم"}');
+    expect(transformed).toContain('"z_1":{"type":"attr","name":"placeholder","val":"بحث..."}');
+    expect(transformed).toContain('"z_0":{"type":"text","name":"","val":"Hello World"}');
+  });
 });

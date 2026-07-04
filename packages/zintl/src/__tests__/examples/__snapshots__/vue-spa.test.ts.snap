@@ -15,22 +15,22 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"مثال Zintl Vue SPA"},"es":{"title":"Ejemplo de Zintl Vue SPA"},"zh":{"title":"Zintl Vue SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -8240,7 +8240,7 @@ exports[`Example Proof: vue-spa > should match Final Production Build (dist) sna
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"مثال Zintl Vue SPA"},"es":{"title":"Ejemplo de Zintl Vue SPA"},"zh":{"title":"Zintl Vue SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
@@ -8257,15 +8257,15 @@ exports[`Example Proof: vue-spa > should match Final Production Build (dist) sna
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -8297,22 +8297,22 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"مثال Zintl Vue SPA"},"es":{"title":"Ejemplo de Zintl Vue SPA"},"zh":{"title":"Zintl Vue SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {

@@ -40,6 +40,10 @@ export class CatalogManager {
     extensions?: string[],
     private readonly virtualBoundaries: string[] = [],
     private readonly contentAdapters: any[] = [],
+    private readonly getProtectedCatalogKeys?: (
+      boundaryId: string,
+      context: any,
+    ) => Promise<string[]>,
   ) {
     this._outputDir = outputDir;
     this.extensions = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
@@ -312,8 +316,8 @@ export class CatalogManager {
     try {
       const meta = await this.io.stat(path);
       if (!this.isDev && cached && this.catalogMtimes.get(path) === meta.mtimeMs) return cached;
-
-      const parsed = JSON.parse(await this.io.readFile(path));
+      const raw = await this.io.readFile(path);
+      const parsed = JSON.parse(raw);
 
       let final: Record<string, any> = parsed;
       if (this.isMultilingualFormat()) {
@@ -804,10 +808,16 @@ export class CatalogManager {
     this.logger.debug(`Syncing catalog at ${relative(this.root, path)} (${bIds.size} boundaries)`);
 
     // Load the existing physical catalog
-    let fullCatalog = await this.io
-      .readFile(path)
-      .then(JSON.parse)
-      .catch(() => ({}));
+    let raw = "";
+    try {
+      raw = await this.io.readFile(path);
+    } catch {}
+    let fullCatalog: Record<string, any>;
+    try {
+      fullCatalog = raw ? JSON.parse(raw) : {};
+    } catch {
+      fullCatalog = {};
+    }
     let anyChanged = false;
 
     // Use pre-computed reachable set if provided, otherwise lazily derive it once.
@@ -858,6 +868,14 @@ export class CatalogManager {
           await this.generateSchema(schemaPath, Array.from(allMessages.values()));
         }
         this.groupContentCache.set(path, groupContentKey);
+      }
+    }
+
+    let isContent = false;
+    for (const bId of bIds) {
+      if (this.isContentBoundary(bId)) {
+        isContent = true;
+        break;
       }
     }
 
@@ -930,8 +948,39 @@ export class CatalogManager {
 
       // 4. Prune keys that are NOT in ANY of the grouped boundaries
       if (this.prune) {
+        const protectedKeys = new Set<string>();
+        if (this.getProtectedCatalogKeys) {
+          const mockContext = {
+            root: this.root,
+            outputDir: this.outputDir,
+            sourceLocale: this.sourceLocale,
+            locales,
+            isDev: this.isDev,
+            io: this.io,
+            logger: this.logger,
+            catalog: this,
+            getDependencyGraph: () => dependencyGraph,
+            getHive: () => hive,
+            markHiveDirty: onHiveChange,
+            getBoundaryGraph: () => null,
+            getMetadataGraph: () => metadataGraph,
+            internalManifest,
+            leadsToBoundary: () => ({ leads: false, dynamic: false }),
+            transform: async () => ({ code: "" }),
+          };
+          for (const bId of bIds) {
+            const keys = await this.getProtectedCatalogKeys(bId, mockContext);
+            if (keys) {
+              for (const key of keys) {
+                protectedKeys.add(key);
+              }
+            }
+          }
+        }
+
         for (const key of Object.keys(userCatalog)) {
           if (key === "$schema") continue;
+          if (protectedKeys.has(key)) continue;
           if (!allCurrentKeys.has(key)) {
             delete userCatalog[key];
             changed = true;
@@ -975,21 +1024,8 @@ export class CatalogManager {
       }
     }
 
-    let hasHtmlProjection = false;
-    if (metadataGraph) {
-      for (const bId of bIds) {
-        if (metadataGraph[bId]?.htmlProjection) {
-          // Only count it if it's actually in the graph (i.e. it's zintlized)
-          if (graph?.nodes.has(bId)) {
-            hasHtmlProjection = true;
-            break;
-          }
-        }
-      }
-    }
-
     if (allCurrentKeys.size === 0) {
-      if (!hasHtmlProjection) {
+      if (!isContent) {
         if (this.prune) {
           if (await this.io.exists(path)) await this.io.rm(path);
           if (schemaPath && (await this.io.exists(schemaPath))) await this.io.rm(schemaPath);
@@ -998,9 +1034,6 @@ export class CatalogManager {
           }
         }
       }
-      // If it HAS an HTML projection but no messages, we EXIT and let HtmlManager handle it.
-      // This avoids writing a schema-only catalog that triggers "exists" in HtmlManager
-      // and causes unwanted dir=rtl injection.
       return;
     }
 
@@ -1015,7 +1048,8 @@ export class CatalogManager {
       const sorted = sortObjectKeys(fullCatalog);
       const final = schemaPath ? this.ensureSchemaAtTop(sorted, schemaPath, path) : sorted;
       this.logger.debug(`Saving catalog to ${path}`);
-      await this.io.safeWriteFile(path, JSON.stringify(final, null, 2));
+      const content = JSON.stringify(final, null, 2);
+      await this.io.safeWriteFile(path, content);
 
       // Update mtime to avoid redundant disk reads in loadUserCatalog
       try {

@@ -202,6 +202,10 @@ interface MergeState {
     | undefined;
   fanBuildInputsProvider: string;
   fanBuildInputsPriority: number;
+  getProtectedCatalogKeysChain: ((
+    boundaryId: string,
+    context: any,
+  ) => Promise<string[]> | string[])[];
 }
 
 function createEmptyState(): MergeState {
@@ -238,6 +242,7 @@ function createEmptyState(): MergeState {
     fanBuildInputs: undefined,
     fanBuildInputsProvider: "",
     fanBuildInputsPriority: -1,
+    getProtectedCatalogKeysChain: [],
   };
 }
 
@@ -273,6 +278,9 @@ function mergeAdapter(state: MergeState, adapter: ZintlAdapter): void {
     }
     case "content": {
       state.contentAdapters.push(adapter);
+      if (adapter.getProtectedCatalogKeys) {
+        state.getProtectedCatalogKeysChain.push(adapter.getProtectedCatalogKeys);
+      }
       break;
     }
     case "codegen": {
@@ -452,6 +460,18 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
     }
   }
 
+  const getProtectedCatalogKeysChain = state.getProtectedCatalogKeysChain;
+  const getProtectedCatalogKeys = async (boundaryId: string, context: any): Promise<string[]> => {
+    const allKeys = new Set<string>();
+    for (const fn of getProtectedCatalogKeysChain) {
+      const keys = await fn(boundaryId, context);
+      if (keys) {
+        for (const k of keys) allKeys.add(k);
+      }
+    }
+    return Array.from(allKeys);
+  };
+
   return {
     codegenAdapters: state.codegenAdapters,
     extractionTargets: state.extractionTargets,
@@ -474,6 +494,7 @@ function stateToHooks(state: MergeState): MergedAdapterHooks {
     fanBuildInputs: state.fanBuildInputs,
 
     detectLocale,
+    getProtectedCatalogKeys,
   };
 }
 

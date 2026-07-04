@@ -255,6 +255,7 @@ export class ZintlCompiler {
       this.extensions,
       this._resolved.hooks.virtualBoundaries,
       this._resolved.hooks.contentAdapters,
+      this._resolved.hooks.getProtectedCatalogKeys,
     );
     this.messages = new MessageManager(
       this.io,
@@ -278,6 +279,7 @@ export class ZintlCompiler {
       markHiveDirty: () => this.messages.markHiveDirty(),
       getBoundaryGraph: () => this.graph.boundaryGraph,
       getMetadataGraph: () => this.messages.metadataGraph,
+      internalManifest: this.messages.internalManifest,
       leadsToBoundary: (startId, depGraph, metaGraph) =>
         this.graph.leadsToBoundary(startId, depGraph, metaGraph),
       transform: (code, id, virtualInjectionTarget, isDev) =>
@@ -835,6 +837,7 @@ export class ZintlCompiler {
           exportedBoundaries: [],
           internalDependencies: [],
           htmlProjection: undefined,
+          sinks: [],
         };
         this.messages.trackBoundaryChange(fileId, new Set([fileId]));
         this.messages.internalManifest[fileId] = [];
@@ -858,6 +861,7 @@ export class ZintlCompiler {
           exportedBoundaries: observation.exportedBoundaries,
           internalDependencies: observation.internalDependencies,
           htmlProjection: observation.htmlProjection,
+          sinks: observation.sinks,
         };
 
         const messagesByBoundary: Record<string, any[]> = {};

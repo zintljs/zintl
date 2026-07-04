@@ -20,22 +20,22 @@ exports[`Example Proof: vanilla-spa > should match Development snapshots (Identi
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"زينتل | مثال تطبيق الصفحة الواحدة"},"es":{"title":"Zintl | Ejemplo de SPA Vanilla"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1308,7 +1308,7 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"زينتل | مثال تطبيق الصفحة الواحدة"},"es":{"title":"Zintl | Ejemplo de SPA Vanilla"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_612e1169e238.js"],"es":["assets/entry_b_612e1169e2382.js"]};
@@ -1325,15 +1325,15 @@ exports[`Example Proof: vanilla-spa > should match Final Production Build (dist)
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1370,22 +1370,22 @@ exports[`Example Proof: vanilla-spa > should match Production snapshots (Baking/
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"زينتل | مثال تطبيق الصفحة الواحدة"},"es":{"title":"Zintl | Ejemplo de SPA Vanilla"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {

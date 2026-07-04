@@ -1,0 +1,14 @@
+{
+  "$schema": "../.schemas/src/main.shared.schema.json",
+  "\"{brandSlogan}\"": "\"{brandSlogan}\"",
+  "1. Handlebars Template Adapter Output:": "1. مخرجات محول قوالب هاندل بارز:",
+  "2. Multi-Brand Theme Projection Output:": "2. مخرجات محول الإسقاط متعدد العلامات التجارية:",
+  "<strong>Active Brand:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>Active Locale:</strong> <span2>{lang}</span2>": "<strong>العلامة التجارية النشطة:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>الموقع النشط:</strong> <span2>{lang}</span2>",
+  "Adidas": "أديداس",
+  "Change Brand:": "تغيير العلامة التجارية:",
+  "Change Language:": "تغيير اللغة:",
+  "English": "الإنجليزية",
+  "Nike": "نايكي",
+  "brand_slogan:": "brand_slogan:",
+  "العربية": "العربية"
+}

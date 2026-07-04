@@ -14,22 +14,22 @@ exports[`Example Proof: vanilla-spa-basic > should match Development snapshots (
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"فانيلا تي إس - مثال SPA مع زينتل"},"es":{"title":"Vanilla TS - Ejemplo de SPA con Zintl"},"zh":{"title":"Vanilla TS - 带有 Zintl 的 SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1090,7 +1090,7 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"فانيلا تي إس - مثال SPA مع زينتل"},"es":{"title":"Vanilla TS - Ejemplo de SPA con Zintl"},"zh":{"title":"Vanilla TS - 带有 Zintl 的 SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_ae1e7cbb2f74.js"],"es":["assets/entry_b_ae1e7cbb2f742.js"],"zh":["assets/entry_b_ae1e7cbb2f743.js"]};
@@ -1107,15 +1107,15 @@ exports[`Example Proof: vanilla-spa-basic > should match Final Production Build 
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1146,22 +1146,22 @@ exports[`Example Proof: vanilla-spa-basic > should match Production snapshots (B
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"فانيلا تي إس - مثال SPA مع زينتل"},"es":{"title":"Vanilla TS - Ejemplo de SPA con Zintl"},"zh":{"title":"Vanilla TS - 带有 Zintl 的 SPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {

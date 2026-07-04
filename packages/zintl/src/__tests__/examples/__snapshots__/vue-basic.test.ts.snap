@@ -13,7 +13,7 @@ exports[`Example Proof: vue-basic > should match Development snapshots > vue-bas
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
@@ -5549,7 +5549,7 @@ exports[`Example Proof: vue-basic > should match Final Production Build (dist) s
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
@@ -5595,7 +5595,7 @@ exports[`Example Proof: vue-basic > should match Production snapshots > vue-basi
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {

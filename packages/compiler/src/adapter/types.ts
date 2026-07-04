@@ -42,6 +42,8 @@ export interface CodegenContribution extends BaseContribution {
   extensions: string[];
   /** Whether this codegen adapter handles a given file path */
   match: (filePath: string) => boolean;
+  /** Whether this codegen adapter is an SFC */
+  sfc?: boolean;
   /**
    * Wrap translated HTML text for template output.
    * Vue: v-html, Svelte: {@html}, React: dangerouslySetInnerHTML
@@ -163,6 +165,10 @@ export interface ContentContribution extends BaseContribution {
     | { imports: string[]; boundaryId: string; catalog: Record<string, any> }
     | null;
   isContentBoundary?: (boundaryId: string, context: CompilerContext) => boolean;
+  getProtectedCatalogKeys?: (
+    boundaryId: string,
+    context: CompilerContext,
+  ) => Promise<string[]> | string[];
   transformHtml?: (
     html: string,
     id: string,
@@ -307,6 +313,8 @@ export interface MergedAdapterHooks {
   contentAdapters: ContentContribution[];
   /** All registered virtual content boundaries (e.g. ['b_assets']) */
   virtualBoundaries: string[];
+  /** Unified catalog keys that must not be pruned from translation files */
+  getProtectedCatalogKeys: (boundaryId: string, context: CompilerContext) => Promise<string[]>;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -361,6 +369,7 @@ export interface CompilerContext {
   markHiveDirty: () => void;
   getBoundaryGraph: () => { entries: Set<string>; nodes: Map<string, any> } | null;
   getMetadataGraph: () => Record<string, any>;
+  internalManifest: Record<string, any[]>;
   leadsToBoundary: (
     startId: string,
     dependencyGraph: Record<string, any>,

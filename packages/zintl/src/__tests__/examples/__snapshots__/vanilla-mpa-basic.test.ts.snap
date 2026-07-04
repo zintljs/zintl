@@ -15,22 +15,22 @@ exports[`Example Proof: vanilla-mpa-basic > should match Development snapshots (
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl MPA"},"zh":{"title":"关于 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -61,22 +61,22 @@ exports[`Example Proof: vanilla-mpa-basic > should match Development snapshots (
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl MPA"},"es":{"title":"Inicio - Ejemplo de Zintl MPA"},"zh":{"title":"首页 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -495,7 +495,7 @@ exports[`Example Proof: vanilla-mpa-basic > should match Final Production Build 
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl MPA"},"zh":{"title":"关于 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_4f8017c0589a.js","assets/entry_b_c087d0722440.js"],"es":["assets/entry_b_4f8017c0589a2.js","assets/entry_b_c087d07224402.js"],"zh":["assets/entry_b_4f8017c0589a3.js","assets/entry_b_c087d07224403.js"]};
@@ -512,15 +512,15 @@ exports[`Example Proof: vanilla-mpa-basic > should match Final Production Build 
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1260,7 +1260,7 @@ exports[`Example Proof: vanilla-mpa-basic > should match Final Production Build 
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl MPA"},"es":{"title":"Inicio - Ejemplo de Zintl MPA"},"zh":{"title":"首页 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         const preloads = {"ar":["assets/entry_b_4f8017c0589a.js","assets/entry_b_c087d0722440.js"],"es":["assets/entry_b_4f8017c0589a2.js","assets/entry_b_c087d07224402.js"],"zh":["assets/entry_b_4f8017c0589a3.js","assets/entry_b_c087d07224403.js"]};
@@ -1277,15 +1277,15 @@ exports[`Example Proof: vanilla-mpa-basic > should match Final Production Build 
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1317,22 +1317,22 @@ exports[`Example Proof: vanilla-mpa-basic > should match Production snapshots (B
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"حول - مثال Zintl MPA"},"es":{"title":"Acerca de - Ejemplo de Zintl MPA"},"zh":{"title":"关于 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -1363,22 +1363,22 @@ exports[`Example Proof: vanilla-mpa-basic > should match Production snapshots (B
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"الرئيسية - مثال Zintl MPA"},"es":{"title":"Inicio - Ejemplo de Zintl MPA"},"zh":{"title":"首页 - Zintl MPA 示例"}};
-      const originals = {
+        const originals = {
         title: document.title,
       };
         function apply(locale) {
           if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
-        const hasText = v => typeof v === "string" && v.trim();
-        const delta = deltas[locale];
-        if (delta) {
-          document.title = hasText(delta.title)
-            ? delta.title
-            : originals.title;
-        } else {
-          document.title = originals.title;
-        }
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {

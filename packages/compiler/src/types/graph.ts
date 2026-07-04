@@ -1,5 +1,5 @@
 import type { BoundaryDep, HtmlProjectionPayload } from "@zintl/extractor";
-import type { ObservedAnchor } from "./observation.js";
+import type { ObservedAnchor, ObservedSink } from "./observation.js";
 
 /** Maps boundary id → its direct dependencies. */
 export type DependencyGraph = Record<string, BoundaryDep[]>;
@@ -13,6 +13,7 @@ export interface BoundaryMetadata {
   exportedBoundaries: Record<string, string>;
   internalDependencies: Record<string, string[]>;
   htmlProjection?: HtmlProjectionPayload;
+  sinks?: ObservedSink[];
 }
 
 /** Maps boundary id → metadata. */

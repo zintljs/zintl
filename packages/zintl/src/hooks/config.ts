@@ -158,16 +158,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       adapters.push("vanilla", "html");
     }
 
-    // Resolve extensions
-    const defaultExtensions = [".ts", ".tsx", ".js", ".jsx", ".html"];
-    const extraExtensions: string[] = [];
-    if (adapters.includes("vue") || detectedFrameworks.includes("vue")) {
-      extraExtensions.push(".vue");
-    }
-    if (adapters.includes("svelte") || detectedFrameworks.includes("svelte")) {
-      extraExtensions.push(".svelte");
-    }
-    const extensions = ctx.options.extensions || [...defaultExtensions, ...extraExtensions];
+    const extensions = ctx.options.extensions;
 
     const targets =
       ctx.options.targets || Array.from(new Set([...detectedFrameworks, "vanilla", "html"]));
