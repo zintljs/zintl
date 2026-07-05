@@ -90,4 +90,4 @@ const ssrRuntimeFacet: ZintlFacet = {
 
 registerPreset("ssr", () => [ssrWrappingFacet, ssrRuntimeFacet]);
 
-export { ssrWrappingFacet as ssrRuntimeFacet };
+export { ssrWrappingFacet, ssrRuntimeFacet };

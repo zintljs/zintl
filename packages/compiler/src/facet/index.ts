@@ -47,7 +47,7 @@ export { vueExtractionFacet, vueCodegenFacet } from "./presets/vue.js";
 export { svelteExtractionFacet, svelteCodegenFacet } from "./presets/svelte.js";
 export { htmlExtractionFacet, createHtmlProjectionFacet } from "./presets/html.js";
 export { nextjsSsrFacet } from "./presets/nextjs.js";
-export { ssrRuntimeFacet } from "./presets/ssr.js";
+export { ssrWrappingFacet, ssrRuntimeFacet } from "./presets/ssr.js";
 export { clientSpaRuntimeFacet } from "./presets/client-spa.js";
 export { viteBundlerFacet } from "./presets/vite.js";
 export { createAssetFacet } from "./presets/assets.js";

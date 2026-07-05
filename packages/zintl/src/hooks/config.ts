@@ -160,14 +160,10 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
 
     const extensions = ctx.options.extensions;
 
-    const targets =
-      ctx.options.targets || Array.from(new Set([...detectedFrameworks, "vanilla", "html"]));
-
     ctx.compiler = new ZintlCompiler(
       {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
-        targets: targets as any[],
         facets,
         extensions,
         logLevel: logLevel as LogLevel,

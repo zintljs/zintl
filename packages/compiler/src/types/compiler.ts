@@ -1,4 +1,4 @@
-import type { LogLevel, ZintlLogger, TargetDescriptor } from "@zintl/extractor";
+import type { LogLevel, ZintlLogger } from "@zintl/extractor";
 export type { LogLevel, ZintlLogger };
 
 export type AssetMergeStrategy =
@@ -25,9 +25,7 @@ export interface ZintlOptions {
   prune?: boolean;
   verifyIntegrity?: boolean;
   multiplex?: boolean;
-  targets?: TargetDescriptor[];
   assetsTarget?: (string | AssetTargetConfig)[];
-  vitePlugins?: readonly any[];
   virtualAssets?: boolean;
   extensions?: string[];
   /**
@@ -40,31 +38,6 @@ export interface ZintlOptions {
     | import("../facet/index.js").ZintlFacet
     | (string | import("../facet/index.js").ZintlFacet)[]
   )[];
-
-  // ── Legacy options (deprecated — migrate to facets) ───────────────────
-  // These are auto-wrapped into a "legacy-options" custom facet on construction
-  // and a deprecation warning is emitted in dev mode.
-
-  /** @deprecated Move ssrWrapCode into a ZintlFacet with an ssr.wrapCode hook */
-  ssrWrapCode?: (params: {
-    code: string;
-    fileId: string;
-    isEntry: boolean;
-    locales: string[];
-    sourceLocale: string;
-  }) => string | undefined;
-  /** @deprecated Move ssrEntryTargets into a ZintlFacet with an ssr.entryTargets array */
-  ssrEntryTargets?: (string | RegExp | ((id: string) => boolean))[];
-  /** @deprecated Move ssrWrapExports into a ZintlFacet with an ssr.wrapExports array */
-  ssrWrapExports?: string[];
-  /** @deprecated Move ssrWrapDefault into a ZintlFacet with an ssr.wrapDefault field */
-  ssrWrapDefault?: boolean | "fetch";
-  /** @deprecated Move hmrInjectionCode into a ZintlFacet with a bundler.hmrInjectionCode hook */
-  hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
-  /** @deprecated Move resolveVirtualPath into a ZintlFacet with a bundler.resolveVirtualPath hook */
-  resolveVirtualPath?: (id: string) => string;
-  /** @deprecated Move dynamicImportTemplate into a ZintlFacet with a bundler.dynamicImportTemplate hook */
-  dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 
 interface CatalogFormatContext {

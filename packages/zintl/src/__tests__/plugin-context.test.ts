@@ -229,14 +229,14 @@ describe("ZintlPluginContext", () => {
         plugins: [],
       } as any);
 
-      expect(ctx.compiler._options.targets).toContain("vue");
-      expect(ctx.compiler._options.targets).toContain("vanilla");
-      expect(ctx.compiler._options.targets).toContain("html");
-      expect(ctx.compiler._options.targets).not.toContain("react");
-      expect(ctx.compiler._options.targets).not.toContain("svelte");
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "vue-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "vanilla-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "html-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "react-extraction")).toBe(false);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "svelte-extraction")).toBe(false);
     });
 
-    it("should detect frameworks from vitePlugins/plugins option", () => {
+    it("should detect frameworks from vite config resolved plugins", () => {
       mockExistsSync = () => false;
 
       const ctx = new ZintlPluginContext({ locales: ["en", "ar"] });
@@ -247,11 +247,11 @@ describe("ZintlPluginContext", () => {
         plugins: [{ name: "vite:react-jsx" }, { name: "vite-plugin-svelte" }],
       } as any);
 
-      expect(ctx.compiler._options.targets).toContain("react");
-      expect(ctx.compiler._options.targets).toContain("svelte");
-      expect(ctx.compiler._options.targets).toContain("vanilla");
-      expect(ctx.compiler._options.targets).toContain("html");
-      expect(ctx.compiler._options.targets).not.toContain("vue");
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "react-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "svelte-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "vanilla-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "html-extraction")).toBe(true);
+      expect(ctx.compiler._resolved.facets.some((f) => f.name === "vue-extraction")).toBe(false);
     });
   });
 });

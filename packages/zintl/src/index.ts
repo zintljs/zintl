@@ -15,7 +15,6 @@ import { buildStartHook, buildEndHook } from "./hooks/build.js";
  * Handles message extraction and virtual catalog injection.
  */
 export function zintl(options: ZintlOptions = {}): any {
-  options.targets = options.targets || ["auto"];
   options.assetsTarget = options.assetsTarget || ["md", "txt"];
   const ctx = new ZintlPluginContext(options);
 

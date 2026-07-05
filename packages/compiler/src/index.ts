@@ -81,6 +81,7 @@ export {
   svelteCodegenFacet,
   htmlExtractionFacet,
   nextjsSsrFacet,
+  ssrWrappingFacet,
   ssrRuntimeFacet,
   clientSpaRuntimeFacet,
   viteBundlerFacet,
@@ -191,23 +192,28 @@ export class ZintlCompiler {
   public _options: ZintlOptions;
 
   constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
-    let targets = options.targets || ["vanilla", "react", "html"];
-    if (targets.includes("auto")) {
-      targets = ["vanilla", "react", "html"];
-    }
-    options.targets = targets;
     options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
 
     // ── Resolve Facets ──────────────────────────────────────────────────────
     // Build the facet input list. Start with user-provided facets.
     const facetInputs: ZintlFacetInput[] = [...(options.facets || [])];
-    if (options.targets) {
-      for (const t of options.targets) {
-        if (typeof t === "string" && !facetInputs.includes(t)) {
-          facetInputs.push(t);
-        }
-      }
+
+    // Auto-inject default extraction presets if no extraction concern facet is present
+    const hasExtractionPreset = facetInputs.some(
+      (f) =>
+        f === "vanilla" ||
+        f === "react" ||
+        f === "vue" ||
+        f === "svelte" ||
+        f === "nextjs" ||
+        (f &&
+          typeof f === "object" &&
+          !Array.isArray(f) &&
+          ("concern" in f ? f.concern === "extraction" : false)),
+    );
+    if (!hasExtractionPreset) {
+      facetInputs.push("vanilla", "react", "html");
     }
 
     this._resolved = resolveFacets(facetInputs, options);
