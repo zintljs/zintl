@@ -265,17 +265,17 @@ describe("I18nStore & Registry", () => {
 
     const p1 = runInRequestScope("/ar/dashboard", ["ar", "es"], "es", async () => {
       // Simulate async flow inside request scope
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       results.push(getActiveInstance().locale);
     });
 
     const p2 = runInRequestScope("/es/settings", ["ar", "es"], "es", async () => {
-      await new Promise((resolve) => setTimeout(resolve, 5));
+      await new Promise((resolve) => setTimeout(resolve, 20));
       results.push(getActiveInstance().locale);
     });
 
     await Promise.all([p1, p2]);
-    // Since p2 resolves first (5ms vs 10ms), it should push first in execution order
+    // Since p2 resolves first (20ms vs 150ms), it should push first in execution order
     expect(results).toEqual(["es", "ar"]);
   });
 

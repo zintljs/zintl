@@ -31,26 +31,21 @@ export interface ZintlOptions {
   virtualAssets?: boolean;
   extensions?: string[];
   /**
-   * Adapter / Contribution list. Accepts preset name strings ("react", "vue", "vite", etc.),
+   * Facet / Contribution list. Accepts preset name strings ("react", "vue", "vite", etc.),
    * custom contribution objects, preset objects, or nested arrays of them.
-   * @example adapters: ["react", "vite", "client-spa"]
+   * @example facets: ["react", "vite", "client-spa"]
    */
-  adapters?: (
+  facets?: (
     | string
-    | import("../adapter/index.js").ZintlAdapter
-    | import("../adapter/index.js").ZintlPreset
-    | (
-        | string
-        | import("../adapter/index.js").ZintlAdapter
-        | import("../adapter/index.js").ZintlPreset
-      )[]
+    | import("../facet/index.js").ZintlFacet
+    | (string | import("../facet/index.js").ZintlFacet)[]
   )[];
 
-  // ── Legacy options (deprecated — migrate to adapters) ───────────────────
-  // These are auto-wrapped into a "legacy-options" custom adapter on construction
+  // ── Legacy options (deprecated — migrate to facets) ───────────────────
+  // These are auto-wrapped into a "legacy-options" custom facet on construction
   // and a deprecation warning is emitted in dev mode.
 
-  /** @deprecated Move ssrWrapCode into a ZintlAdapter with an ssr.wrapCode hook */
+  /** @deprecated Move ssrWrapCode into a ZintlFacet with an ssr.wrapCode hook */
   ssrWrapCode?: (params: {
     code: string;
     fileId: string;
@@ -58,17 +53,17 @@ export interface ZintlOptions {
     locales: string[];
     sourceLocale: string;
   }) => string | undefined;
-  /** @deprecated Move ssrEntryTargets into a ZintlAdapter with an ssr.entryTargets array */
+  /** @deprecated Move ssrEntryTargets into a ZintlFacet with an ssr.entryTargets array */
   ssrEntryTargets?: (string | RegExp | ((id: string) => boolean))[];
-  /** @deprecated Move ssrWrapExports into a ZintlAdapter with an ssr.wrapExports array */
+  /** @deprecated Move ssrWrapExports into a ZintlFacet with an ssr.wrapExports array */
   ssrWrapExports?: string[];
-  /** @deprecated Move ssrWrapDefault into a ZintlAdapter with an ssr.wrapDefault field */
+  /** @deprecated Move ssrWrapDefault into a ZintlFacet with an ssr.wrapDefault field */
   ssrWrapDefault?: boolean | "fetch";
-  /** @deprecated Move hmrInjectionCode into a ZintlAdapter with a bundler.hmrInjectionCode hook */
+  /** @deprecated Move hmrInjectionCode into a ZintlFacet with a bundler.hmrInjectionCode hook */
   hmrInjectionCode?: (fileId: string, hmrToken: number) => string;
-  /** @deprecated Move resolveVirtualPath into a ZintlAdapter with a bundler.resolveVirtualPath hook */
+  /** @deprecated Move resolveVirtualPath into a ZintlFacet with a bundler.resolveVirtualPath hook */
   resolveVirtualPath?: (id: string) => string;
-  /** @deprecated Move dynamicImportTemplate into a ZintlAdapter with a bundler.dynamicImportTemplate hook */
+  /** @deprecated Move dynamicImportTemplate into a ZintlFacet with a bundler.dynamicImportTemplate hook */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
 }
 

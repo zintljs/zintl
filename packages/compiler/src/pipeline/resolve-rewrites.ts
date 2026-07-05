@@ -9,19 +9,16 @@ import type {
   VariableBinding,
   ZintlConfig,
 } from "../types/index.js";
-import type { CodegenContribution } from "../adapter/types.js";
+import type { CodegenFacet } from "../facet/types.js";
 
 /**
- * Find the codegen adapter for a given file path.
- * Uses the resolved adapter hooks — never the old TargetAdapter array.
+ * Find the codegen facet for a given file path.
+ * Uses the resolved facet system.
  */
-function findCodegen(
-  filePath: string | undefined,
-  config: ZintlConfig,
-): CodegenContribution | undefined {
+function findCodegen(filePath: string | undefined, config: ZintlConfig): CodegenFacet | undefined {
   if (!filePath) return undefined;
-  if (config.hooks?.codegenAdapters) {
-    const found = config.hooks.codegenAdapters.find((a) => a.match(filePath));
+  if (config.system?.codegenFacets) {
+    const found = config.system.codegenFacets.find((a) => a.match(filePath));
     if (found) return found;
   }
   return undefined;
@@ -46,12 +43,12 @@ const translatableAttrs = new Set([
   "tooltip",
 ]);
 
-/** Default tag serialization when no codegen adapter provides serializeTags. */
+/** Default tag serialization when no codegen facet provides serializeTags. */
 function defaultSerializeTags(tags: any[]): string {
   return JSON.stringify(tags);
 }
 
-/** Default convertToHtmlTemplate when no codegen adapter provides one. */
+/** Default convertToHtmlTemplate when no codegen facet provides one. */
 function defaultConvertToHtmlTemplate(tagOpen: string): string {
   return tagOpen;
 }

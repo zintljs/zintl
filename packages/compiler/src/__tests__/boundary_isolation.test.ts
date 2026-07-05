@@ -28,7 +28,7 @@ describe("Zintl Compiler: Boundary Isolation", () => {
         locales: ["en", "ar"],
         outputDir: "locales",
         logLevel: "silent",
-        adapters: ["vite"],
+        facets: ["vite"],
       },
       root,
       true,

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vite-plus/test";
 import { formIntent } from "../../pipeline/intent.js";
-import { resolveAdapters } from "../../adapter/index.js";
+import { resolveFacets } from "../../facet/index.js";
 import type { FileObservation, WorldState, ZintlConfig } from "../../pipeline/types.js";
 
-const { capabilities, hooks } = resolveAdapters([]);
+const { capabilities, system } = resolveFacets([]);
 
 const mockConfig: ZintlConfig = {
   sourceLocale: "en",
@@ -12,7 +12,7 @@ const mockConfig: ZintlConfig = {
   isDev: false,
   root: "/root",
   capabilities,
-  hooks,
+  system,
 };
 
 const createMockWorld = (overrides: Partial<WorldState> = {}): WorldState => ({

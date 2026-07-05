@@ -311,6 +311,7 @@ const count = ref(0);
 
 exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/dev-transforms/src/components/LocaleSwitcher.vue 1`] = `
 "<script setup lang="ts">
+import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 
 
@@ -332,7 +333,7 @@ const handleSwitch = async (lang: string) => {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", lang);
   window.history.pushState({}, "", url.pathname + url.search);
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: {  } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
   emit("switch", lang);
 };
 
@@ -390,7 +391,7 @@ async function bootstrap() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
 
   // 2. Await zintl locale loading and catalog hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_components_AboutWorld"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_components_AboutWorld_vue"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
 
   // 3. Mount Vue App after translations are active
   const app = createApp(App);
@@ -468,6 +469,23 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
       "Vue logo": "شعار فيو",
       "Vite logo": "شعار فيت",
     },
+    "b_src_components_AboutWorld_vue": {
+      "About Zintl SPA": "حول Zintl SPA",
+      "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.": "توضح هذه الصفحة توجيه SPA النظيف ودورات إماهة معزولة تماماً في Vue.",
+      "Go back Home": "الرجوع إلى الرئيسية",
+      "Documentation": "التوثيق",
+      "Your questions, answered": "تمت الإجابة على أسئلتك",
+      "Explore Vite": "استكشف فيت",
+      "Learn more": "تعلم المزيد",
+      "Connect with us": "تواصل معنا",
+      "Join the Vite community": "انضم إلى مجتمع فيت",
+      "GitHub": "غيت هاب",
+      "Discord": "ديسكورد",
+      "X.com": "إكس.كوم",
+      "Bluesky": "بلو سكاي",
+      "Vue logo": "شعار فيو",
+      "Vite logo": "شعار فيت",
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
@@ -486,6 +504,23 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
     return \`El recuento es \${params['count']}\`;
   },
       "Go to About Page": "Ir a la página de información",
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "Explore Vite": "Explorar Vite",
+      "Learn more": "Aprende más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+      "Vue logo": "Logotipo de Vue",
+      "Vite logo": "Logotipo de Vite",
+    },
+    "b_src_components_AboutWorld_vue": {
+      "About Zintl SPA": "Acerca de Zintl SPA",
+      "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.": "Esta página demuestra un enrutamiento SPA limpio y ciclos de hidratación completamente aislados en Vue.",
+      "Go back Home": "Volver al inicio",
       "Documentation": "Documentación",
       "Your questions, answered": "Tus preguntas, respondidas",
       "Explore Vite": "Explorar Vite",
@@ -530,6 +565,23 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
       "Vue logo": "Vue 图标",
       "Vite logo": "Vite 图标",
     },
+    "b_src_components_AboutWorld_vue": {
+      "About Zintl SPA": "关于 Zintl SPA",
+      "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.": "此页面展示了 Vue 中整洁的 SPA 路由 and 完全隔离的补水生命周期。",
+      "Go back Home": "返回首页",
+      "Documentation": "文档",
+      "Your questions, answered": "你的问题，已解答",
+      "Explore Vite": "探索 Vite",
+      "Learn more": "了解更多",
+      "Connect with us": "与我们联系",
+      "Join the Vite community": "加入 Vite 社区",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+      "Vue logo": "Vue 图标",
+      "Vite logo": "Vite 图标",
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
@@ -552,6 +604,23 @@ exports[`Example Proof: vue-spa > should match Development snapshots > vue-spa/d
     return \`Count is \${params['count']}\`;
   },
       "Go to About Page": "Go to About Page",
+      "Documentation": "Documentation",
+      "Your questions, answered": "Your questions, answered",
+      "Explore Vite": "Explore Vite",
+      "Learn more": "Learn more",
+      "Connect with us": "Connect with us",
+      "Join the Vite community": "Join the Vite community",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+      "Vue logo": "Vue logo",
+      "Vite logo": "Vite logo",
+    },
+    "b_src_components_AboutWorld_vue": {
+      "About Zintl SPA": "About Zintl SPA",
+      "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.": "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.",
+      "Go back Home": "Go back Home",
       "Documentation": "Documentation",
       "Your questions, answered": "Your questions, answered",
       "Explore Vite": "Explore Vite",
@@ -875,27 +944,46 @@ export { AboutWorld_default as default };
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe16.js 1`] = `
 "//#region \\0virtual:zintl/content/ar/entry:b_aafcf9c6fe16
-var catalog = { "b_07f886859652": {
-	"2217c56a": "مرحباً بك في صفحة Zintl SPA الرئيسية",
-	"5b3967d7": "هذه هي الصفحة الرئيسية لمثال تطبيقنا أحادي الصفحة في Vue.",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`العدد هو \${params["count"]}\`;
+var catalog = {
+	"b_07f886859652": {
+		"2217c56a": "مرحباً بك في صفحة Zintl SPA الرئيسية",
+		"5b3967d7": "هذه هي الصفحة الرئيسية لمثال تطبيقنا أحادي الصفحة في Vue.",
+		"aa624128": (params) => {
+			const { count } = params;
+			return \`العدد هو \${params["count"]}\`;
+		},
+		"6b1e5bfc": "الذهاب إلى صفحة حول",
+		"9e9cf322": "التوثيق",
+		"d0f7666b": "تمت الإجابة على أسئلتك",
+		"e49cb0ee": "استكشف فيت",
+		"824d76b1": "تعلم المزيد",
+		"65ac13a7": "تواصل معنا",
+		"15545bc4": "انضم إلى مجتمع فيت",
+		"5442e2b6": "غيت هاب",
+		"bccc14ee": "ديسكورد",
+		"b3c83ea6": "إكس.كوم",
+		"daf16c03": "بلو سكاي",
+		"7d8158dc": "شعار فيو",
+		"3473a536": "شعار فيت"
 	},
-	"6b1e5bfc": "الذهاب إلى صفحة حول",
-	"9e9cf322": "التوثيق",
-	"d0f7666b": "تمت الإجابة على أسئلتك",
-	"e49cb0ee": "استكشف فيت",
-	"824d76b1": "تعلم المزيد",
-	"65ac13a7": "تواصل معنا",
-	"15545bc4": "انضم إلى مجتمع فيت",
-	"5442e2b6": "غيت هاب",
-	"bccc14ee": "ديسكورد",
-	"b3c83ea6": "إكس.كوم",
-	"daf16c03": "بلو سكاي",
-	"7d8158dc": "شعار فيو",
-	"3473a536": "شعار فيت"
-} };
+	"b_13b9cb21366d": {
+		"ed15e3b5": "حول Zintl SPA",
+		"7b39de8e": "توضح هذه الصفحة توجيه SPA النظيف ودورات إماهة معزولة تماماً في Vue.",
+		"f2a9775a": "الرجوع إلى الرئيسية",
+		"9e9cf322": "التوثيق",
+		"d0f7666b": "تمت الإجابة على أسئلتك",
+		"e49cb0ee": "استكشف فيت",
+		"824d76b1": "تعلم المزيد",
+		"65ac13a7": "تواصل معنا",
+		"15545bc4": "انضم إلى مجتمع فيت",
+		"5442e2b6": "غيت هاب",
+		"bccc14ee": "ديسكورد",
+		"b3c83ea6": "إكس.كوم",
+		"daf16c03": "بلو سكاي",
+		"7d8158dc": "شعار فيو",
+		"3473a536": "شعار فيت"
+	}
+};
 //#endregion
 export { catalog as default };
 "
@@ -903,27 +991,46 @@ export { catalog as default };
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe162.js 1`] = `
 "//#region \\0virtual:zintl/content/es/entry:b_aafcf9c6fe16
-var catalog = { "b_07f886859652": {
-	"2217c56a": "Bienvenido a la página de inicio de Zintl SPA",
-	"5b3967d7": "Esta es la página de inicio de nuestro ejemplo de aplicación de una sola página en Vue.",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`El recuento es \${params["count"]}\`;
+var catalog = {
+	"b_07f886859652": {
+		"2217c56a": "Bienvenido a la página de inicio de Zintl SPA",
+		"5b3967d7": "Esta es la página de inicio de nuestro ejemplo de aplicación de una sola página en Vue.",
+		"aa624128": (params) => {
+			const { count } = params;
+			return \`El recuento es \${params["count"]}\`;
+		},
+		"6b1e5bfc": "Ir a la página de información",
+		"9e9cf322": "Documentación",
+		"d0f7666b": "Tus preguntas, respondidas",
+		"e49cb0ee": "Explorar Vite",
+		"824d76b1": "Aprende más",
+		"65ac13a7": "Conéctate con nosotros",
+		"15545bc4": "Únete a la comunidad de Vite",
+		"5442e2b6": "GitHub",
+		"bccc14ee": "Discord",
+		"b3c83ea6": "X.com",
+		"daf16c03": "Bluesky",
+		"7d8158dc": "Logotipo de Vue",
+		"3473a536": "Logotipo de Vite"
 	},
-	"6b1e5bfc": "Ir a la página de información",
-	"9e9cf322": "Documentación",
-	"d0f7666b": "Tus preguntas, respondidas",
-	"e49cb0ee": "Explorar Vite",
-	"824d76b1": "Aprende más",
-	"65ac13a7": "Conéctate con nosotros",
-	"15545bc4": "Únete a la comunidad de Vite",
-	"5442e2b6": "GitHub",
-	"bccc14ee": "Discord",
-	"b3c83ea6": "X.com",
-	"daf16c03": "Bluesky",
-	"7d8158dc": "Logotipo de Vue",
-	"3473a536": "Logotipo de Vite"
-} };
+	"b_13b9cb21366d": {
+		"ed15e3b5": "Acerca de Zintl SPA",
+		"7b39de8e": "Esta página demuestra un enrutamiento SPA limpio y ciclos de hidratación completamente aislados en Vue.",
+		"f2a9775a": "Volver al inicio",
+		"9e9cf322": "Documentación",
+		"d0f7666b": "Tus preguntas, respondidas",
+		"e49cb0ee": "Explorar Vite",
+		"824d76b1": "Aprende más",
+		"65ac13a7": "Conéctate con nosotros",
+		"15545bc4": "Únete a la comunidad de Vite",
+		"5442e2b6": "GitHub",
+		"bccc14ee": "Discord",
+		"b3c83ea6": "X.com",
+		"daf16c03": "Bluesky",
+		"7d8158dc": "Logotipo de Vue",
+		"3473a536": "Logotipo de Vite"
+	}
+};
 //#endregion
 export { catalog as default };
 "
@@ -931,27 +1038,46 @@ export { catalog as default };
 
 exports[`Example Proof: vue-spa > should match Final Production Build (dist) snapshots > vue-spa/dist/assets/entry_b_aafcf9c6fe163.js 1`] = `
 "//#region \\0virtual:zintl/content/zh/entry:b_aafcf9c6fe16
-var catalog = { "b_07f886859652": {
-	"2217c56a": "欢迎来到 Zintl SPA 主页",
-	"5b3967d7": "这是我们 Vue 单页面应用程序示例的主页。",
-	"aa624128": (params) => {
-		const { count } = params;
-		return \`计数为 \${params["count"]}\`;
+var catalog = {
+	"b_07f886859652": {
+		"2217c56a": "欢迎来到 Zintl SPA 主页",
+		"5b3967d7": "这是我们 Vue 单页面应用程序示例的主页。",
+		"aa624128": (params) => {
+			const { count } = params;
+			return \`计数为 \${params["count"]}\`;
+		},
+		"6b1e5bfc": "前往关于页面",
+		"9e9cf322": "文档",
+		"d0f7666b": "你的问题，已解答",
+		"e49cb0ee": "探索 Vite",
+		"824d76b1": "了解更多",
+		"65ac13a7": "与我们联系",
+		"15545bc4": "加入 Vite 社区",
+		"5442e2b6": "GitHub",
+		"bccc14ee": "Discord",
+		"b3c83ea6": "X.com",
+		"daf16c03": "Bluesky",
+		"7d8158dc": "Vue 图标",
+		"3473a536": "Vite 图标"
 	},
-	"6b1e5bfc": "前往关于页面",
-	"9e9cf322": "文档",
-	"d0f7666b": "你的问题，已解答",
-	"e49cb0ee": "探索 Vite",
-	"824d76b1": "了解更多",
-	"65ac13a7": "与我们联系",
-	"15545bc4": "加入 Vite 社区",
-	"5442e2b6": "GitHub",
-	"bccc14ee": "Discord",
-	"b3c83ea6": "X.com",
-	"daf16c03": "Bluesky",
-	"7d8158dc": "Vue 图标",
-	"3473a536": "Vite 图标"
-} };
+	"b_13b9cb21366d": {
+		"ed15e3b5": "关于 Zintl SPA",
+		"7b39de8e": "此页面展示了 Vue 中整洁的 SPA 路由 and 完全隔离的补水生命周期。",
+		"f2a9775a": "返回首页",
+		"9e9cf322": "文档",
+		"d0f7666b": "你的问题，已解答",
+		"e49cb0ee": "探索 Vite",
+		"824d76b1": "了解更多",
+		"65ac13a7": "与我们联系",
+		"15545bc4": "加入 Vite 社区",
+		"5442e2b6": "GitHub",
+		"bccc14ee": "Discord",
+		"b3c83ea6": "X.com",
+		"daf16c03": "Bluesky",
+		"7d8158dc": "Vue 图标",
+		"3473a536": "Vite 图标"
+	}
+};
 //#endregion
 export { catalog as default };
 "
@@ -1383,27 +1509,46 @@ var entry_b_aafcf9c6fe16_default = {
 	id: "b_aafcf9c6fe16",
 	loader: (locale) => {
 		switch (locale) {
-			case "en": return { "b_07f886859652": {
-				"2217c56a": "Welcome to Zintl SPA Home",
-				"5b3967d7": "This is the homepage of our Vue single-page application example.",
-				"aa624128": (params) => {
-					const { count } = params;
-					return \`Count is \${params["count"]}\`;
+			case "en": return {
+				"b_07f886859652": {
+					"2217c56a": "Welcome to Zintl SPA Home",
+					"5b3967d7": "This is the homepage of our Vue single-page application example.",
+					"aa624128": (params) => {
+						const { count } = params;
+						return \`Count is \${params["count"]}\`;
+					},
+					"6b1e5bfc": "Go to About Page",
+					"9e9cf322": "Documentation",
+					"d0f7666b": "Your questions, answered",
+					"e49cb0ee": "Explore Vite",
+					"824d76b1": "Learn more",
+					"65ac13a7": "Connect with us",
+					"15545bc4": "Join the Vite community",
+					"5442e2b6": "GitHub",
+					"bccc14ee": "Discord",
+					"b3c83ea6": "X.com",
+					"daf16c03": "Bluesky",
+					"7d8158dc": "Vue logo",
+					"3473a536": "Vite logo"
 				},
-				"6b1e5bfc": "Go to About Page",
-				"9e9cf322": "Documentation",
-				"d0f7666b": "Your questions, answered",
-				"e49cb0ee": "Explore Vite",
-				"824d76b1": "Learn more",
-				"65ac13a7": "Connect with us",
-				"15545bc4": "Join the Vite community",
-				"5442e2b6": "GitHub",
-				"bccc14ee": "Discord",
-				"b3c83ea6": "X.com",
-				"daf16c03": "Bluesky",
-				"7d8158dc": "Vue logo",
-				"3473a536": "Vite logo"
-			} };
+				"b_13b9cb21366d": {
+					"ed15e3b5": "About Zintl SPA",
+					"7b39de8e": "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.",
+					"f2a9775a": "Go back Home",
+					"9e9cf322": "Documentation",
+					"d0f7666b": "Your questions, answered",
+					"e49cb0ee": "Explore Vite",
+					"824d76b1": "Learn more",
+					"65ac13a7": "Connect with us",
+					"15545bc4": "Join the Vite community",
+					"5442e2b6": "GitHub",
+					"bccc14ee": "Discord",
+					"b3c83ea6": "X.com",
+					"daf16c03": "Bluesky",
+					"7d8158dc": "Vue logo",
+					"3473a536": "Vite logo"
+				}
+			};
 			case "ar": return __vitePreload(() => import("./entry_b_aafcf9c6fe16.js").then((m) => m.default), []);
 			case "es": return __vitePreload(() => import("./entry_b_aafcf9c6fe162.js").then((m) => m.default), []);
 			case "zh": return __vitePreload(() => import("./entry_b_aafcf9c6fe163.js").then((m) => m.default), []);
@@ -7838,7 +7983,7 @@ var LocaleSwitcher_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ d
 			window.history.pushState({}, "", url.pathname + url.search);
 			await (globalThis.__zintl_inst = loadI18nInstance({
 				locale: lang,
-				loaders: {}
+				loaders: { ["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader }
 			}));
 			emit("switch", lang);
 		};
@@ -8209,7 +8354,7 @@ async function bootstrap() {
 		locale: lang,
 		loaders: {
 			["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader,
-			["b_22d6afbaf438"]: entry_b_aafcf9c6fe16_default.loader
+			["b_13b9cb21366d"]: entry_b_aafcf9c6fe16_default.loader
 		}
 	}));
 	const app = createApp(App_default);
@@ -8593,6 +8738,7 @@ const count = ref(0);
 
 exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/prod-transforms/src/components/LocaleSwitcher.vue 1`] = `
 "<script setup lang="ts">
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 
 
@@ -8614,7 +8760,7 @@ const handleSwitch = async (lang: string) => {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", lang);
   window.history.pushState({}, "", url.pathname + url.search);
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: {  } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
   emit("switch", lang);
 };
 </script>
@@ -8665,7 +8811,7 @@ async function bootstrap() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
 
   // 2. Await zintl locale loading and catalog hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader, ["b_22d6afbaf438"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader, ["b_13b9cb21366d"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
 
   // 3. Mount Vue App after translations are active
   const app = createApp(App);
@@ -8736,6 +8882,23 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
       "7d8158dc": "شعار فيو",
       "3473a536": "شعار فيت",
     },
+    "b_13b9cb21366d": {
+      "ed15e3b5": "حول Zintl SPA",
+      "7b39de8e": "توضح هذه الصفحة توجيه SPA النظيف ودورات إماهة معزولة تماماً في Vue.",
+      "f2a9775a": "الرجوع إلى الرئيسية",
+      "9e9cf322": "التوثيق",
+      "d0f7666b": "تمت الإجابة على أسئلتك",
+      "e49cb0ee": "استكشف فيت",
+      "824d76b1": "تعلم المزيد",
+      "65ac13a7": "تواصل معنا",
+      "15545bc4": "انضم إلى مجتمع فيت",
+      "5442e2b6": "غيت هاب",
+      "bccc14ee": "ديسكورد",
+      "b3c83ea6": "إكس.كوم",
+      "daf16c03": "بلو سكاي",
+      "7d8158dc": "شعار فيو",
+      "3473a536": "شعار فيت",
+    },
   };
 export default catalog;"
 `;
@@ -8750,6 +8913,23 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
     return \`El recuento es \${params['count']}\`;
   },
       "6b1e5bfc": "Ir a la página de información",
+      "9e9cf322": "Documentación",
+      "d0f7666b": "Tus preguntas, respondidas",
+      "e49cb0ee": "Explorar Vite",
+      "824d76b1": "Aprende más",
+      "65ac13a7": "Conéctate con nosotros",
+      "15545bc4": "Únete a la comunidad de Vite",
+      "5442e2b6": "GitHub",
+      "bccc14ee": "Discord",
+      "b3c83ea6": "X.com",
+      "daf16c03": "Bluesky",
+      "7d8158dc": "Logotipo de Vue",
+      "3473a536": "Logotipo de Vite",
+    },
+    "b_13b9cb21366d": {
+      "ed15e3b5": "Acerca de Zintl SPA",
+      "7b39de8e": "Esta página demuestra un enrutamiento SPA limpio y ciclos de hidratación completamente aislados en Vue.",
+      "f2a9775a": "Volver al inicio",
       "9e9cf322": "Documentación",
       "d0f7666b": "Tus preguntas, respondidas",
       "e49cb0ee": "Explorar Vite",
@@ -8790,6 +8970,23 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
       "7d8158dc": "Vue 图标",
       "3473a536": "Vite 图标",
     },
+    "b_13b9cb21366d": {
+      "ed15e3b5": "关于 Zintl SPA",
+      "7b39de8e": "此页面展示了 Vue 中整洁的 SPA 路由 and 完全隔离的补水生命周期。",
+      "f2a9775a": "返回首页",
+      "9e9cf322": "文档",
+      "d0f7666b": "你的问题，已解答",
+      "e49cb0ee": "探索 Vite",
+      "824d76b1": "了解更多",
+      "65ac13a7": "与我们联系",
+      "15545bc4": "加入 Vite 社区",
+      "5442e2b6": "GitHub",
+      "bccc14ee": "Discord",
+      "b3c83ea6": "X.com",
+      "daf16c03": "Bluesky",
+      "7d8158dc": "Vue 图标",
+      "3473a536": "Vite 图标",
+    },
   };
 export default catalog;"
 `;
@@ -8807,6 +9004,23 @@ exports[`Example Proof: vue-spa > should match Production snapshots > vue-spa/pr
     return \`Count is \${params['count']}\`;
   },
       "6b1e5bfc": "Go to About Page",
+      "9e9cf322": "Documentation",
+      "d0f7666b": "Your questions, answered",
+      "e49cb0ee": "Explore Vite",
+      "824d76b1": "Learn more",
+      "65ac13a7": "Connect with us",
+      "15545bc4": "Join the Vite community",
+      "5442e2b6": "GitHub",
+      "bccc14ee": "Discord",
+      "b3c83ea6": "X.com",
+      "daf16c03": "Bluesky",
+      "7d8158dc": "Vue logo",
+      "3473a536": "Vite logo",
+    },
+    "b_13b9cb21366d": {
+      "ed15e3b5": "About Zintl SPA",
+      "7b39de8e": "This page demonstrates clean SPA routing and fully isolated hydration cycles in Vue.",
+      "f2a9775a": "Go back Home",
       "9e9cf322": "Documentation",
       "d0f7666b": "Your questions, answered",
       "e49cb0ee": "Explore Vite",

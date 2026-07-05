@@ -90,20 +90,22 @@ class ZintlCompiler {
 - Ensures translation stability across file moves/renames
 - Generated using SHA-1 of file path + content
 
-## Adapter Architecture
+## Faceted Compiler Architecture
 
-Zintl decouples framework-specific and toolchain-specific capabilities into a modular, conflict-free **Adapter Architecture**. Rather than using scattered framework conditionals and booleans, behavior is resolved at compiler instantiation by combining discrete adapters.
+Zintl decouples framework-specific and toolchain-specific capabilities into a modular, conflict-free **Faceted Compiler Architecture**. Rather than using scattered framework conditionals and booleans, behavior is resolved at compiler instantiation by combining discrete facets.
+
+A Facet is a composable implementation of a single compiler concern. This Concern-Faceted Compiler Architecture builds upon a Dimension-Constrained composition system where facets contribute orthogonal, non-overlapping dimensions of compiler behavior.
 
 ### Core Principles
 
-- **Discrete Concerns**: System capabilities are separated by concern, not bundled together (e.g., `["react", "ssr", "vite", "client-spa"]` rather than a monolith React-SSR adapter).
+- **Discrete Concerns**: System capabilities are separated by concern, not bundled together (e.g., `["react", "ssr", "vite", "client-spa"]` rather than a monolith React-SSR facet).
 - **Sub-Interfaces**: Subsystems define narrow interfaces to avoid interface bloat:
-  - `ExtractionAdapter`: Defines targets and files to scan.
-  - `CodegenAdapter`: Implements per-file string wrapping and JSX conversions (matched via `match()`).
-  - `SsrAdapter`: Implements server-side render function wrapping and request-scoped executions.
-  - `RuntimeAdapter`: Declares active runtime capabilities (like client-side auto-sync or server-side store-scoping).
-  - `BundlerAdapter`: Integrates with the build tool (e.g. virtual path resolution, dynamic imports, HMR injection).
-- **Conflict Detection**: Array and boolean capabilities are merged via Union/OR, while function hooks use first-contributor-wins with conflict detection. If two adapters claim the same file extension or provide conflicting bundler hooks, Zintl throws an error.
+  - `ExtractionFacet`: Defines targets and files to scan.
+  - `CodegenFacet`: Implements per-file string wrapping and JSX conversions (matched via `match()`).
+  - `SsrFacet`: Implements server-side render function wrapping and request-scoped executions.
+  - `RuntimeFacet`: Declares active runtime capabilities (like client-side auto-sync or server-side store-scoping).
+  - `BundlerFacet`: Integrates with the build tool (e.g. virtual path resolution, dynamic imports, HMR injection).
+- **Conflict Detection**: Array and boolean capabilities are merged via Union/OR, while function hooks use first-contributor-wins with conflict detection. If two facets claim the same file extension or provide conflicting bundler hooks, Zintl throws an error.
 
 ### Runtime Splitting
 

@@ -10,7 +10,7 @@ import {
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
 import type { ZintlOptions, ZintlLogger } from "../types/index.js";
-import { resolveAdapters } from "../adapter/index.js";
+import { resolveFacets } from "../facet/index.js";
 
 /**
  * Handles all I/O operations, formatting, and hashing.
@@ -23,7 +23,7 @@ export class IOManager {
   private readonly boundaryIdCache = new Map<string, string>();
   private readonly normalizedIdCache = new Map<string, string>();
   private readonly extensions: string[];
-  private readonly adapters?: any[];
+  private readonly facets?: any[];
 
   constructor(
     private readonly root: string,
@@ -31,11 +31,11 @@ export class IOManager {
     private readonly logger: ZintlLogger,
     _options: ZintlOptions,
     resolvedExtensions?: string[],
-    resolvedAdapters?: any[],
+    resolvedFacets?: any[],
   ) {
     this.extensions = resolvedExtensions ||
       _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
-    this.adapters = resolvedAdapters || resolveAdapters(_options.adapters).adapters;
+    this.facets = resolvedFacets || resolveFacets(_options.facets).facets;
     const metaDir = _options.metadataDir
       ? isAbsolute(_options.metadataDir)
         ? _options.metadataDir
@@ -116,9 +116,9 @@ export class IOManager {
 
     const rel = relative(this.root, abs).replace(/\\/g, "/");
 
-    const sfcExts = (this.adapters || [])
+    const sfcExts = (this.facets || [])
       .map((a) => {
-        if (a.type !== "codegen") return [];
+        if (a.concern !== "codegen") return [];
         const isSfc = !!a.wrapSfcScript || !!a.sfc;
         if (!isSfc) return [];
         const matchFn = a.match;

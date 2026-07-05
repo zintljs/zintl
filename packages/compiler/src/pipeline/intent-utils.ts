@@ -7,16 +7,13 @@ import type {
   VariableBinding,
 } from "../types/index.js";
 
-function stripExtensions(id: string, extensions?: string[], adapters?: any[]): string {
+function stripExtensions(id: string, extensions?: string[], codegenFacets?: any[]): string {
   const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
-  const sfcExts = (adapters || [])
+  const sfcExts = (codegenFacets || [])
     .map((a) => {
-      const codegen = a.codegen || a;
-      const isSfc = a.codegen ? !!a.codegen.wrapSfcScript : !!a.sfc;
+      const isSfc = !!a.wrapSfcScript;
       if (!isSfc) return [];
-      const matchFn = codegen.match || a.match;
-      if (!matchFn) return [];
-      return exts.filter((ext) => matchFn("dummy" + ext));
+      return a.extensions || [];
     })
     .flat();
   const keepExts = [".html", ...sfcExts];
@@ -32,15 +29,10 @@ function stripExtensions(id: string, extensions?: string[], adapters?: any[]): s
   return id.replace(regex, "");
 }
 
-function getMeta(
-  id: string,
-  metadataGraph: Record<string, any>,
-  extensions?: string[],
-  adapters?: any[],
-) {
+function getMeta(id: string, metadataGraph: any, extensions?: string[], codegenFacets?: any[]) {
   if (!id) return undefined;
   if (metadataGraph[id]) return metadataGraph[id];
-  const clean = stripExtensions(id, extensions, adapters);
+  const clean = stripExtensions(id, extensions, codegenFacets);
   if (metadataGraph[clean]) return metadataGraph[clean];
   const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
   for (const ext of exts) {
@@ -75,10 +67,11 @@ export function resolveOwner(
   const relativeId = normalizedId.startsWith(config.root)
     ? normalizedId.substring(config.root.length).replace(/^\/+/, "")
     : normalizedId;
-  const normId = stripExtensions(relativeId, config.extensions, config.adapters).replace(
-    /^\/+/,
-    "",
-  );
+  const normId = stripExtensions(
+    relativeId,
+    config.extensions,
+    config.system?.codegenFacets,
+  ).replace(/^\/+/, "");
 
   const owner = chunkGraph.boundaryToOwner.get(normId);
   if (owner) return owner;
@@ -98,7 +91,12 @@ export function resolveOwner(
   }
 
   // Fallback for file-level boundaries: if it has exported boundaries, resolve using the first exported boundary's owner!
-  const meta = getMeta(normId, worldState.metadataGraph, config.extensions, config.adapters);
+  const meta = getMeta(
+    normId,
+    worldState.metadataGraph,
+    config.extensions,
+    config.system?.codegenFacets,
+  );
   if (meta?.exportedBoundaries) {
     for (const bId of Object.values(meta.exportedBoundaries)) {
       const resolvedBId = bId as string;
@@ -121,17 +119,17 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   const relativeId = boundaryId.startsWith(config.root)
     ? boundaryId.substring(config.root.length).replace(/^\/+/, "")
     : boundaryId;
-  const normId = stripExtensions(relativeId, config.extensions, config.adapters);
+  const normId = stripExtensions(relativeId, config.extensions, config.system?.codegenFacets);
 
   const isKingdom = (b: string) => {
     const fId = b.split(":")[0];
-    const m = getMeta(fId, metadataGraph, config.extensions, config.adapters);
+    const m = getMeta(fId, metadataGraph, config.extensions, config.system?.codegenFacets);
     if (!m) return false;
     // A file with zintl-marker is a Kingdom (Axiom 5)
     if (m.hasZintlMarker && !b.includes(":")) return true;
     // A function with a zintl() call is a Kingdom (Axiom 5)
     return (m.anchorSites || []).some((s: any) => {
-      const sId = stripExtensions(s.boundaryId, config.extensions, config.adapters);
+      const sId = stripExtensions(s.boundaryId, config.extensions, config.system?.codegenFacets);
       return sId === b;
     });
   };
@@ -146,7 +144,12 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   }
 
   // 2. Trace back through dynamic/static imports
-  const normMeta = getMeta(normId.split(":")[0], metadataGraph, config.extensions, config.adapters);
+  const normMeta = getMeta(
+    normId.split(":")[0],
+    metadataGraph,
+    config.extensions,
+    config.system?.codegenFacets,
+  );
   const anchor = findEffectiveAnchor(
     boundaryId,
     worldState,
@@ -161,7 +164,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
   );
 
   if (anchor) {
-    return stripExtensions(anchor.boundaryId, config.extensions, config.adapters);
+    return stripExtensions(anchor.boundaryId, config.extensions, config.system?.codegenFacets);
   }
 
   // 3. Fallback to Chunk Graph owner
@@ -170,7 +173,7 @@ export function resolveKingdom(boundaryId: string, worldState: WorldState): stri
 
   // 4. Final fallback: If the owner is a file that is an entry, it's the kingdom
   const ownerFileId = owner.split(":")[0];
-  if (getMeta(ownerFileId, metadataGraph, config.extensions, config.adapters)?.isEntry)
+  if (getMeta(ownerFileId, metadataGraph, config.extensions, config.system?.codegenFacets)?.isEntry)
     return owner;
 
   return owner;
@@ -194,12 +197,12 @@ export function findEffectiveAnchor(
   const relativeId = boundaryId.startsWith(config.root)
     ? boundaryId.substring(config.root.length).replace(/^\/+/, "")
     : boundaryId;
-  const normId = stripExtensions(relativeId, config.extensions, config.adapters);
+  const normId = stripExtensions(relativeId, config.extensions, config.system?.codegenFacets);
 
   let currentId = normId;
   while (true) {
     const local = observation.anchors.find((a) => {
-      const aId = stripExtensions(a.boundaryId, config.extensions, config.adapters);
+      const aId = stripExtensions(a.boundaryId, config.extensions, config.system?.codegenFacets);
       return aId === currentId;
     });
     if (local) {
@@ -231,7 +234,7 @@ export function findEffectiveAnchor(
       const targetHash = calculateSafeBoundaryId(ownerId, root, isDev);
 
       const sIdRaw = s.boundaryId;
-      const sId = stripExtensions(sIdRaw, config.extensions, config.adapters);
+      const sId = stripExtensions(sIdRaw, config.extensions, config.system?.codegenFacets);
       const sIdRel = sId.startsWith(root) ? sId.substring(root.length).replace(/^\/+/, "") : sId;
       const sHash = calculateSafeBoundaryId(sIdRel, root, isDev);
 
@@ -269,7 +272,7 @@ export function findEffectiveAnchor(
     ownerId.split(":")[0],
     worldState.metadataGraph,
     worldState.config.extensions,
-    worldState.config.adapters,
+    worldState.config.system?.codegenFacets,
   );
   if (ownerMeta?.isEntry && ownerMeta.anchorSites?.length > 0) {
     const site = ownerMeta.anchorSites[0];
@@ -295,7 +298,7 @@ export function findEffectiveAnchor(
         parentId,
         worldState.metadataGraph,
         worldState.config.extensions,
-        worldState.config.adapters,
+        worldState.config.system?.codegenFacets,
       ) as any;
       if (parentObservation) {
         // Recursively find the anchor for the parent
@@ -345,7 +348,7 @@ function isLiveOwner(ownerId: string, worldState: WorldState): boolean {
   const normPathId = stripExtensions(
     pathId,
     worldState.config.extensions,
-    worldState.config.adapters,
+    worldState.config.system?.codegenFacets,
   );
   const resolvedOwnerId = chunkGraph.boundaryToOwner.get(normPathId);
   if (!resolvedOwnerId) return false;
@@ -354,7 +357,7 @@ function isLiveOwner(ownerId: string, worldState: WorldState): boolean {
     resolvedOwnerId,
     worldState.metadataGraph,
     worldState.config.extensions,
-    worldState.config.adapters,
+    worldState.config.system?.codegenFacets,
   );
   if (meta?.hasZintlMarker) return true;
 
@@ -365,7 +368,7 @@ function isLiveOwner(ownerId: string, worldState: WorldState): boolean {
       const normBId = stripExtensions(
         bId,
         worldState.config.extensions,
-        worldState.config.adapters,
+        worldState.config.system?.codegenFacets,
       );
       const bOwner = chunkGraph.boundaryToOwner.get(normBId);
       if (bOwner === resolvedOwnerId) {
@@ -403,13 +406,17 @@ export function generateManagerUrl(
 
   let hasDynamicAnchor = false;
   for (const rId of reachableNodeIds) {
-    const normRId = stripExtensions(rId, worldState.config.extensions, worldState.config.adapters);
+    const normRId = stripExtensions(
+      rId,
+      worldState.config.extensions,
+      worldState.config.system?.codegenFacets,
+    );
     const fileId = normRId.split(":")[0];
     const meta = getMeta(
       fileId,
       worldState.metadataGraph,
       worldState.config.extensions,
-      worldState.config.adapters,
+      worldState.config.system?.codegenFacets,
     );
     if (meta?.anchorSites?.some((s: any) => s.locale.type === "expression")) {
       hasDynamicAnchor = true;
@@ -421,21 +428,21 @@ export function generateManagerUrl(
     const normOwnerId = stripExtensions(
       ownerId,
       worldState.config.extensions,
-      worldState.config.adapters,
+      worldState.config.system?.codegenFacets,
     );
     const entryId = normOwnerId.includes(":") ? normOwnerId.split(":")[0] : normOwnerId;
     const meta = getMeta(
       entryId,
       worldState.metadataGraph,
       worldState.config.extensions,
-      worldState.config.adapters,
+      worldState.config.system?.codegenFacets,
     );
     if (meta?.anchorSites) {
       const site = meta.anchorSites.find((s: any) => {
         const normSId = stripExtensions(
           s.boundaryId,
           worldState.config.extensions,
-          worldState.config.adapters,
+          worldState.config.system?.codegenFacets,
         );
         return normSId === normOwnerId;
       });
@@ -446,9 +453,8 @@ export function generateManagerUrl(
   }
 
   const rawPath = `virtual:zintl/manager/${syncLocale}/${chunkType}:${encodeURIComponent(stableId)}`;
-  return worldState.config.resolveVirtualPath
-    ? worldState.config.resolveVirtualPath(rawPath)
-    : rawPath;
+  const resolveFn = worldState.config.system?.resolveVirtualPath;
+  return resolveFn ? resolveFn(rawPath) : rawPath;
 }
 
 export function mapVariables(sink: ObservedSink): VariableBinding[] {
@@ -500,7 +506,7 @@ export function getReachableHandshake(
         fileId,
         worldState.metadataGraph,
         worldState.config.extensions,
-        worldState.config.adapters,
+        worldState.config.system?.codegenFacets,
       );
       if (meta?.anchorSites?.length || meta?.hasZintlMarker) {
         handshake.add(owner);
@@ -514,7 +520,7 @@ export function getReachableHandshake(
       fileId,
       worldState.metadataGraph,
       worldState.config.extensions,
-      worldState.config.adapters,
+      worldState.config.system?.codegenFacets,
     );
 
     // Collect all dependencies for this ID and its file-level siblings
@@ -548,7 +554,7 @@ export function getReachableHandshake(
       const normDepId = stripExtensions(
         depFileId,
         worldState.config.extensions,
-        worldState.config.adapters,
+        worldState.config.system?.codegenFacets,
       ).replace(/^\/+/, "");
 
       if (!dep.dynamic) {
@@ -556,7 +562,7 @@ export function getReachableHandshake(
           normDepId,
           worldState.metadataGraph,
           worldState.config.extensions,
-          worldState.config.adapters,
+          worldState.config.system?.codegenFacets,
         );
         if (dep.bindings?.length && depMeta?.exportedBoundaries) {
           for (const binding of dep.bindings) {
@@ -579,7 +585,7 @@ export function getReachableHandshake(
           normDepId,
           worldState.metadataGraph,
           worldState.config.extensions,
-          worldState.config.adapters,
+          worldState.config.system?.codegenFacets,
         );
         if (depMeta?.exportedBoundaries && Object.keys(depMeta.exportedBoundaries).length > 0) {
           for (const [, bIdRaw] of Object.entries(depMeta.exportedBoundaries)) {
@@ -594,7 +600,7 @@ export function getReachableHandshake(
               bFileId,
               worldState.metadataGraph,
               worldState.config.extensions,
-              worldState.config.adapters,
+              worldState.config.system?.codegenFacets,
             );
             if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
               handshake.add(depOwner);
@@ -610,7 +616,7 @@ export function getReachableHandshake(
             normDepId,
             worldState.metadataGraph,
             worldState.config.extensions,
-            worldState.config.adapters,
+            worldState.config.system?.codegenFacets,
           );
           if (bMeta?.anchorSites?.length || bMeta?.hasZintlMarker) {
             handshake.add(depOwner);

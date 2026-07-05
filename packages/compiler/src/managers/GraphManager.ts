@@ -10,6 +10,7 @@ import {
 } from "../types/index.js";
 import { type ZintlLogger } from "@zintl/extractor";
 import type { IOManager } from "./IOManager.js";
+import type { ContentFacet } from "../facet/index.js";
 /**
  * Manages boundary and chunk graphs.
  */
@@ -58,7 +59,7 @@ export class GraphManager {
     metadataGraph: Record<string, BoundaryMetadata>,
     dependencyGraph: Record<string, ObservedDependency[]>,
     virtualBoundaries?: string[],
-    contentAdapters: any[] = [],
+    contentFacets: ContentFacet[] = [],
     context?: any,
   ): BoundaryGraph {
     this.logger.debug("Starting boundary graph construction...");
@@ -133,7 +134,7 @@ export class GraphManager {
 
       let isContent = this.isContentCache.get(fileId);
       if (isContent === undefined) {
-        isContent = context ? contentAdapters.some((a) => a.match(fileId, context)) : false;
+        isContent = context ? contentFacets.some((a) => a.match(fileId, context)) : false;
         this.isContentCache.set(fileId, isContent);
       }
 

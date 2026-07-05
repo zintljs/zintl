@@ -55,7 +55,7 @@ export const observe = (
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Adapter: ExtractionResult → FileObservation
+// Mapper: ExtractionResult → FileObservation
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**

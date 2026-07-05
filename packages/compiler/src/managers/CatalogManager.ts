@@ -6,6 +6,7 @@ import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
 import type { IOManager } from "./IOManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
+import type { ContentFacet } from "../facet/index.js";
 
 /**
  * Manages translation catalogs and JSON schemas.
@@ -39,7 +40,7 @@ export class CatalogManager {
     public prune: boolean = true,
     extensions?: string[],
     private readonly virtualBoundaries: string[] = [],
-    private readonly contentAdapters: any[] = [],
+    private readonly contentFacets: ContentFacet[] = [],
     private readonly getProtectedCatalogKeys?: (
       boundaryId: string,
       context: any,
@@ -150,7 +151,7 @@ export class CatalogManager {
 
     const result =
       this.virtualBoundaries.includes(boundaryId) ||
-      this.contentAdapters.some((a) =>
+      this.contentFacets.some((a) =>
         a.match?.(boundaryId, { root: this.root, io: this.io } as any),
       ) ||
       (/\.[a-zA-Z0-9]+$/.test(boundaryId) &&
@@ -533,7 +534,7 @@ export class CatalogManager {
     reconciliation?: ReconcileResult,
     isMgr = false,
     colonyBoundaries: string[] = [],
-    contentAdapters?: any[],
+    contentFacets?: ContentFacet[],
     context?: any,
   ): Promise<{ catalog: Record<string, any>; imports?: string[] }> {
     let chunkType: "entry" | "lazy" | "shared" = "entry";
@@ -656,10 +657,10 @@ export class CatalogManager {
 
     const imports: string[] = [];
 
-    if (contentAdapters && context) {
-      for (const adapter of contentAdapters) {
-        if (adapter.getChunkContributions) {
-          const contribution = await adapter.getChunkContributions(locale, context);
+    if (contentFacets && context) {
+      for (const facet of contentFacets) {
+        if (facet.getChunkContributions) {
+          const contribution = await facet.getChunkContributions(locale, context);
           if (contribution) {
             imports.push(...contribution.imports);
             if (Object.keys(contribution.catalog).length > 0) {
@@ -1116,15 +1117,15 @@ export class CatalogManager {
     _chunkGraph?: any,
     /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
     precomputedReachable?: Set<string> | null,
-    contentAdapters?: any[],
+    contentFacets?: ContentFacet[],
   ) {
     if (!this.prune) return;
     if (this.isDev && !this.isTestEnv) return; // Skip pruning in dev mode in real environments
 
     const isContentBoundary = (id: string, meta: any) => {
-      if (contentAdapters) {
-        for (const adapter of contentAdapters) {
-          if (adapter.isContentBoundary && adapter.isContentBoundary(id, meta)) {
+      if (contentFacets) {
+        for (const facet of contentFacets) {
+          if (facet.isContentBoundary && facet.isContentBoundary(id, meta)) {
             return true;
           }
         }

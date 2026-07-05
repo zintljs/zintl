@@ -123,21 +123,21 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       detectedFrameworks = ["react"];
     }
 
-    const adapters: any[] = [];
+    const facets: any[] = [];
 
-    // Always inject the "vite" bundler adapter
-    adapters.push("vite");
+    // Always inject the "vite" bundler facet
+    facets.push("vite");
 
-    // Add user-provided adapters
-    if (ctx.options.adapters) {
-      adapters.push(...ctx.options.adapters);
+    // Add user-provided facets
+    if (ctx.options.facets) {
+      facets.push(...ctx.options.facets);
     } else {
-      // If user did not provide custom adapters, expand detected frameworks
+      // If user did not provide custom facets, expand detected frameworks
       for (const f of detectedFrameworks) {
-        adapters.push(f);
+        facets.push(f);
       }
 
-      // If it has nextjs or general SSR, we add the SSR adapter
+      // If it has nextjs or general SSR, we add the SSR facet
       const hasSsr =
         detectedFrameworks.includes("nextjs") ||
         config.build?.ssr ||
@@ -145,17 +145,17 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
 
       if (hasSsr) {
         if (!detectedFrameworks.includes("nextjs")) {
-          adapters.push("ssr");
+          facets.push("ssr");
         }
       }
 
       // Add client-spa for SPA/client-side locale sync
       if (!detectedFrameworks.includes("nextjs")) {
-        adapters.push("client-spa");
+        facets.push("client-spa");
       }
 
       // Add vanilla and html presets as default fallbacks
-      adapters.push("vanilla", "html");
+      facets.push("vanilla", "html");
     }
 
     const extensions = ctx.options.extensions;
@@ -168,7 +168,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
         targets: targets as any[],
-        adapters,
+        facets,
         extensions,
         logLevel: logLevel as LogLevel,
       },

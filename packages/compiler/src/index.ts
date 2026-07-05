@@ -28,12 +28,12 @@ import {
   type AssetMergeStrategy,
 } from "./types/index.js";
 import {
-  resolveAdapters,
-  type ResolvedCompilerState,
-  type ZintlAdapterInput,
+  resolveFacets,
+  type ResolvedFacets,
+  type ZintlFacetInput,
   type ResolvedCapabilities,
   type CompilerContext,
-} from "./adapter/index.js";
+} from "./facet/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -52,42 +52,41 @@ export type {
   HtmlProjectionPayload,
 };
 export type {
-  ZintlAdapter,
-  ZintlPreset,
-  BaseContribution,
-  ExtractionContribution,
-  CodegenContribution,
-  SsrContribution,
-  RuntimeContribution,
-  BundlerContribution,
-  ContentContribution,
+  ZintlFacet,
+  FacetConcern,
+  BaseFacet,
+  ExtractionFacet,
+  CodegenFacet,
+  SsrFacet,
+  RuntimeFacet,
+  BundlerFacet,
+  ContentFacet,
   ResolvedCapabilities,
-  MergedAdapterHooks,
-  ResolvedAdapters,
-  ResolvedCompilerState,
+  ResolvedFacetSystem,
+  ResolvedFacets,
   SsrWrapParams,
   LocaleDetectionContext,
   MultiplexDetectionContext,
   TagMapEntry,
-} from "./adapter/index.js";
+} from "./facet/index.js";
 export {
-  resolveAdapters,
+  resolveFacets,
   registerPreset,
-  vanillaExtractionAdapter,
-  reactExtractionAdapter,
-  reactCodegenAdapter,
-  vueExtractionAdapter,
-  vueCodegenAdapter,
-  svelteExtractionAdapter,
-  svelteCodegenAdapter,
-  htmlExtractionAdapter,
-  nextjsSsrAdapter,
-  ssrRuntimeAdapter,
-  clientSpaRuntimeAdapter,
-  viteBundlerAdapter,
-  createAssetAdapter,
-  createHtmlProjectionAdapter,
-} from "./adapter/index.js";
+  vanillaExtractionFacet,
+  reactExtractionFacet,
+  reactCodegenFacet,
+  vueExtractionFacet,
+  vueCodegenFacet,
+  svelteExtractionFacet,
+  svelteCodegenFacet,
+  htmlExtractionFacet,
+  nextjsSsrFacet,
+  ssrRuntimeFacet,
+  clientSpaRuntimeFacet,
+  viteBundlerFacet,
+  createAssetFacet,
+  createHtmlProjectionFacet,
+} from "./facet/index.js";
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -97,25 +96,25 @@ export class ZintlCompiler {
   public readonly ssrBoundaries = new Set<string>();
   public readonly clientBoundaries = new Set<string>();
 
-  /** Pre-resolved adapter capabilities + hooks. Set in constructor. */
-  public readonly _resolved: ResolvedCompilerState;
+  /** Pre-resolved facet capabilities + hooks. Set in constructor. */
+  public readonly _resolved: ResolvedFacets;
 
   public get assets(): any {
-    const adapter = this._resolved?.hooks.contentAdapters.find(
+    const facet = this._resolved?.system.contentFacets.find(
       (a) => a.name === "system-static-assets",
     );
-    if (adapter && (adapter as any).getManagerInstance) {
-      return (adapter as any).getManagerInstance(this.getCompilerContext());
+    if (facet && (facet as any).getManagerInstance) {
+      return (facet as any).getManagerInstance(this.getCompilerContext());
     }
     return undefined;
   }
 
   public get html(): any {
-    const adapter = this._resolved?.hooks.contentAdapters.find(
+    const facet = this._resolved?.system.contentFacets.find(
       (a) => a.name === "system-html-projection",
     );
-    if (adapter && (adapter as any).getManagerInstance) {
-      return (adapter as any).getManagerInstance(this.getCompilerContext());
+    if (facet && (facet as any).getManagerInstance) {
+      return (facet as any).getManagerInstance(this.getCompilerContext());
     }
     return undefined;
   }
@@ -161,7 +160,7 @@ export class ZintlCompiler {
   }
 
   public isSsrEntryTarget(id: string): boolean {
-    const targets = this._resolved.hooks.ssrEntryTargets;
+    const targets = this._resolved.system.ssrEntryTargets;
     if (!targets || targets.length === 0) return false;
     const cleanId = id.startsWith("\0") ? id.slice(1) : id;
     return targets.some((target) => {
@@ -200,23 +199,23 @@ export class ZintlCompiler {
     options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
     this._options = options;
 
-    // ── Resolve Adapters ──────────────────────────────────────────────────────
-    // Build the adapter input list. Start with user-provided adapters.
-    const adapterInputs: ZintlAdapterInput[] = [...(options.adapters || [])];
+    // ── Resolve Facets ──────────────────────────────────────────────────────
+    // Build the facet input list. Start with user-provided facets.
+    const facetInputs: ZintlFacetInput[] = [...(options.facets || [])];
     if (options.targets) {
       for (const t of options.targets) {
-        if (typeof t === "string" && !adapterInputs.includes(t)) {
-          adapterInputs.push(t);
+        if (typeof t === "string" && !facetInputs.includes(t)) {
+          facetInputs.push(t);
         }
       }
     }
 
-    this._resolved = resolveAdapters(adapterInputs, options);
+    this._resolved = resolveFacets(facetInputs, options);
     // ──────────────────────────────────────────────────────────────────
 
     this.extensions =
-      options.extensions || this._resolved.hooks.extensions.length > 0
-        ? options.extensions || this._resolved.hooks.extensions
+      options.extensions || this._resolved.system.extensions.length > 0
+        ? options.extensions || this._resolved.system.extensions
         : [".ts", ".tsx", ".js", ".jsx", ".html"];
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
@@ -240,7 +239,7 @@ export class ZintlCompiler {
       this.logger.withPrefix("IO"),
       options,
       this.extensions,
-      this._resolved.adapters,
+      this._resolved.facets,
     );
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
     this.catalog = new CatalogManager(
@@ -253,9 +252,9 @@ export class ZintlCompiler {
       this.logger.withPrefix("Catalog"),
       this._prune,
       this.extensions,
-      this._resolved.hooks.virtualBoundaries,
-      this._resolved.hooks.contentAdapters,
-      this._resolved.hooks.getProtectedCatalogKeys,
+      this._resolved.system.virtualBoundaries,
+      this._resolved.system.contentFacets,
+      this._resolved.system.getProtectedCatalogKeys,
     );
     this.messages = new MessageManager(
       this.io,
@@ -292,11 +291,11 @@ export class ZintlCompiler {
   }
 
   public resolveVirtualPath(id: string): string {
-    return this._resolved.hooks.resolveVirtualPath(id);
+    return this._resolved.system.resolveVirtualPath(id);
   }
 
   public generateDynamicImport(path: string): string {
-    return this._resolved.hooks.dynamicImportTemplate(path, this.isDev);
+    return this._resolved.system.dynamicImportTemplate(path, this.isDev);
   }
 
   public get internalManifest() {
@@ -342,12 +341,12 @@ export class ZintlCompiler {
   public async setup() {
     await this.messages.loadMetadata();
     const context = this.getCompilerContext();
-    for (const adapter of this._resolved.hooks.contentAdapters) {
-      if (adapter.setup) {
+    for (const facet of this._resolved.system.contentFacets) {
+      if (facet.setup) {
         const savedState =
-          this.messages.savedContentStates[adapter.name || ""] ||
-          (adapter.name === "system-static-assets" ? this.messages.registeredAssets : undefined);
-        await adapter.setup(savedState, context);
+          this.messages.savedContentStates[facet.name || ""] ||
+          (facet.name === "system-static-assets" ? this.messages.registeredAssets : undefined);
+        await facet.setup(savedState, context);
       }
     }
     await this.catalog.harvestHive(
@@ -409,21 +408,19 @@ export class ZintlCompiler {
     // If it's a supported asset (md, txt, json, etc) and NOT inside the output dir
     // OR if it's a localized asset inside the output dir
     const context = this.getCompilerContext();
-    let matchedAdapter = this._resolved.hooks.contentAdapters.find((a) =>
-      a.match(filePath, context),
-    );
+    let matchedFacet = this._resolved.system.contentFacets.find((a) => a.match(filePath, context));
     if (isInsideOutputDir) {
-      for (const adapter of this._resolved.hooks.contentAdapters) {
-        if (adapter.isLocalizedOutput && (await adapter.isLocalizedOutput(filePath, context))) {
-          matchedAdapter = adapter;
+      for (const facet of this._resolved.system.contentFacets) {
+        if (facet.isLocalizedOutput && (await facet.isLocalizedOutput(filePath, context))) {
+          matchedFacet = facet;
           break;
         }
       }
     }
 
-    if (matchedAdapter) {
-      if (!isInsideOutputDir && matchedAdapter.discover) {
-        await matchedAdapter.discover(filePath, context);
+    if (matchedFacet) {
+      if (!isInsideOutputDir && matchedFacet.discover) {
+        await matchedFacet.discover(filePath, context);
       }
       if (this.isDev) {
         this.scheduleFlush();
@@ -467,10 +464,10 @@ export class ZintlCompiler {
       }
     }
 
-    // 3. Check if it's a localized output of a content adapter
-    for (const adapter of this._resolved.hooks.contentAdapters) {
-      if (adapter.getBoundaryForLocalizedOutput) {
-        const bId = await adapter.getBoundaryForLocalizedOutput(filePath, context);
+    // 3. Check if it's a localized output of a content facet
+    for (const facet of this._resolved.system.contentFacets) {
+      if (facet.getBoundaryForLocalizedOutput) {
+        const bId = await facet.getBoundaryForLocalizedOutput(filePath, context);
         if (bId && !foundBoundaryIds.includes(bId)) {
           foundBoundaryIds.push(bId);
           this.messages.dirtyBoundaries.add(bId);
@@ -511,7 +508,7 @@ export class ZintlCompiler {
     const affected = new Set<string>();
     if (!this.graph.chunkGraph) return [];
 
-    if (this._resolved.hooks.virtualBoundaries.includes(boundaryId)) {
+    if (this._resolved.system.virtualBoundaries.includes(boundaryId)) {
       for (const [id, chunk] of this.graph.chunkGraph.chunks.entries()) {
         if (chunk.type === "entry") {
           const splitIdx = id.indexOf("_");
@@ -612,7 +609,7 @@ export class ZintlCompiler {
           );
         } else {
           const context = this.getCompilerContext();
-          const matched = this._resolved.hooks.contentAdapters.find((a) =>
+          const matched = this._resolved.system.contentFacets.find((a) =>
             a.match(fullPath, context),
           );
           if (matched && matched.discover) {
@@ -647,9 +644,9 @@ export class ZintlCompiler {
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
         const assetTranslations: Record<string, string> = {};
-        for (const adapter of this._resolved.hooks.contentAdapters) {
-          if (adapter.getTranslations) {
-            const tr = await adapter.getTranslations(this.sourceLocale, context);
+        for (const facet of this._resolved.system.contentFacets) {
+          if (facet.getTranslations) {
+            const tr = await facet.getTranslations(this.sourceLocale, context);
             Object.assign(assetTranslations, tr);
           }
         }
@@ -672,9 +669,9 @@ export class ZintlCompiler {
 
         for (const loc of this.locales) {
           const locAssets: Record<string, string> = {};
-          for (const adapter of this._resolved.hooks.contentAdapters) {
-            if (adapter.getTranslations) {
-              const tr = await adapter.getTranslations(loc, context);
+          for (const facet of this._resolved.system.contentFacets) {
+            if (facet.getTranslations) {
+              const tr = await facet.getTranslations(loc, context);
               Object.assign(locAssets, tr);
             }
           }
@@ -700,8 +697,8 @@ export class ZintlCompiler {
         this.messages.internalManifest,
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
-        this._resolved.hooks.virtualBoundaries,
-        this._resolved.hooks.contentAdapters,
+        this._resolved.system.virtualBoundaries,
+        this._resolved.system.contentFacets,
         context,
       );
       this.graph.propagateActiveLocales(g);
@@ -709,7 +706,7 @@ export class ZintlCompiler {
         g,
         this.messages.internalManifest,
         this.messages.metadataGraph,
-        this._resolved.hooks.virtualBoundaries,
+        this._resolved.system.virtualBoundaries,
       );
       this.graph.boundaryGraph = g;
       this.graph.chunkGraph = c;
@@ -724,9 +721,9 @@ export class ZintlCompiler {
     preloads?: Record<string, string[]>,
   ): Promise<string> {
     const context = this.getCompilerContext();
-    for (const adapter of this._resolved.hooks.contentAdapters) {
-      if (adapter.transformHtml) {
-        return await adapter.transformHtml(html, id, context, preloads);
+    for (const facet of this._resolved.system.contentFacets) {
+      if (facet.transformHtml) {
+        return await facet.transformHtml(html, id, context, preloads);
       }
     }
     return html;
@@ -1085,8 +1082,8 @@ export class ZintlCompiler {
 
     let finalCode = result.code;
     let ssrWrapped = false;
-    if (ssr && this._resolved.hooks.ssrWrapCode) {
-      const wrapped = this._resolved.hooks.ssrWrapCode({
+    if (ssr && this._resolved.system.ssrWrapCode) {
+      const wrapped = this._resolved.system.ssrWrapCode({
         code: finalCode,
         fileId,
         isEntry: this.isEntry(fileId) || isTargetSsrEntry,
@@ -1154,7 +1151,7 @@ export class ZintlCompiler {
         }
 
         // 2. Generic Default Export Wrapping
-        if (this._resolved.hooks.ssrWrapDefault) {
+        if (this._resolved.system.ssrWrapDefault) {
           const defaultExportRegex = /(^|\n)export\s+default\b/;
           const exportBlockRegex = /export\s*\{([^}]+)\}/g;
           let hasDefault = defaultExportRegex.test(finalCode);
@@ -1203,8 +1200,11 @@ export class ZintlCompiler {
         }
 
         // 3. Generic Named Exports Wrapping
-        if (this._resolved.hooks.ssrWrapExports && this._resolved.hooks.ssrWrapExports.length > 0) {
-          for (const name of this._resolved.hooks.ssrWrapExports) {
+        if (
+          this._resolved.system.ssrWrapExports &&
+          this._resolved.system.ssrWrapExports.length > 0
+        ) {
+          for (const name of this._resolved.system.ssrWrapExports) {
             let wrappedExport = false;
             let wrapType: "rename" | "alias" = "rename";
 
@@ -1276,7 +1276,7 @@ export class ZintlCompiler {
     }
 
     if (this.isDev) {
-      const hmrFn = this._resolved.hooks.hmrInjectionCode;
+      const hmrFn = this._resolved.system.hmrInjectionCode;
       let hmrToken = 0;
       const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
       if (fileBoundaries) {
@@ -1356,9 +1356,9 @@ export class ZintlCompiler {
 
       const activeContentPaths = new Set<string>();
       const context = this.getCompilerContext();
-      for (const adapter of this._resolved.hooks.contentAdapters) {
-        if (adapter.getActiveOutputPaths) {
-          const paths = await adapter.getActiveOutputPaths(context);
+      for (const facet of this._resolved.system.contentFacets) {
+        if (facet.getActiveOutputPaths) {
+          const paths = await facet.getActiveOutputPaths(context);
           for (const p of paths) {
             activeContentPaths.add(p);
           }
@@ -1399,9 +1399,9 @@ export class ZintlCompiler {
       }
 
       const contentStatesToSave: Record<string, any> = {};
-      for (const adapter of this._resolved.hooks.contentAdapters) {
-        if (adapter.getStateToSave && adapter.name) {
-          contentStatesToSave[adapter.name] = adapter.getStateToSave(context);
+      for (const facet of this._resolved.system.contentFacets) {
+        if (facet.getStateToSave && facet.name) {
+          contentStatesToSave[facet.name] = facet.getStateToSave(context);
         }
       }
       await this.messages.saveManifest(this.outputDir, contentStatesToSave);
@@ -1483,11 +1483,11 @@ export class ZintlCompiler {
       }
       this.messages.dirtyBoundaries.clear();
 
-      // Run flush on all content adapters
+      // Run flush on all content facets
       const flushCtx = this.getCompilerContext();
-      for (const adapter of this._resolved.hooks.contentAdapters) {
-        if (adapter.flush) {
-          await adapter.flush(flushCtx);
+      for (const facet of this._resolved.system.contentFacets) {
+        if (facet.flush) {
+          await facet.flush(flushCtx);
         }
       }
 
@@ -1641,8 +1641,8 @@ export class ZintlCompiler {
       this.messages.internalManifest,
       this.messages.metadataGraph,
       this.messages.dependencyGraph,
-      this._resolved.hooks.virtualBoundaries,
-      this._resolved.hooks.contentAdapters,
+      this._resolved.system.virtualBoundaries,
+      this._resolved.system.contentFacets,
       this.getCompilerContext(),
     );
   }
@@ -1654,7 +1654,7 @@ export class ZintlCompiler {
       graph,
       this.messages.internalManifest,
       this.messages.metadataGraph,
-      this._resolved.hooks.virtualBoundaries,
+      this._resolved.system.virtualBoundaries,
     );
   }
 
@@ -1679,13 +1679,9 @@ export class ZintlCompiler {
         bakedLocale,
         multiplex: this._options.multiplex ?? true,
         extensions: this.extensions,
-        // Resolved adapter state — subsystems read these
+        // Resolved facet state — subsystems read these
         capabilities: this._resolved.capabilities,
-        hooks: this._resolved.hooks,
-        // Legacy compat — kept until pipeline stages are fully migrated
-        adapters: this._options.adapters as any,
-        resolveVirtualPath: this._resolved.hooks.resolveVirtualPath,
-        dynamicImportTemplate: this._resolved.hooks.dynamicImportTemplate,
+        system: this._resolved.system,
       },
       catalogs,
       logger: this.logger,
@@ -1749,7 +1745,7 @@ export class ZintlCompiler {
         this.messages.currentReconciliation,
         false,
         reachableColonies,
-        this._resolved.hooks.contentAdapters,
+        this._resolved.system.contentFacets,
         this.getCompilerContext(),
       );
       const importsCode = imports && imports.length > 0 ? imports.join("\n") + "\n" : "";
@@ -1796,7 +1792,7 @@ export class ZintlCompiler {
       this.messages.currentReconciliation,
       true,
       reachableColonies,
-      this._resolved.hooks.contentAdapters,
+      this._resolved.system.contentFacets,
       this.getCompilerContext(),
     );
 

@@ -8,7 +8,7 @@ const mockConfig = {
   sourceLocale: "en",
   locales: ["en"],
   root: "/root",
-  adapters: [],
+  facets: [],
 } as any;
 
 const mockLogger = {

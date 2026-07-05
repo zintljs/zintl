@@ -5,7 +5,7 @@ import type { FileObservation } from "./observation.js";
 import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
-import type { ResolvedCapabilities, MergedAdapterHooks, ZintlAdapter } from "../adapter/index.js";
+import type { ResolvedCapabilities, ResolvedFacetSystem } from "../facet/index.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -36,25 +36,17 @@ export interface ZintlConfig {
   multiplex?: boolean;
   extensions?: string[];
 
-  // ── Resolved Adapter State (Phase 2+) ────────────────────────────────
+  // ── Resolved Facet State (Phase 2+) ────────────────────────────────
   /**
-   * Pre-resolved capability flags. Subsystems read this — never raw adapters.
-   * Populated by ZintlCompiler constructor after resolveAdapters() call.
+   * Pre-resolved capability flags. Subsystems read this — never raw facets.
+   * Populated by ZintlCompiler constructor after resolveFacets() call.
    */
-  capabilities: ResolvedCapabilities;
+  capabilities?: ResolvedCapabilities;
   /**
-   * Merged, ready-to-call hooks. Subsystems call these — never raw adapters.
-   * Populated by ZintlCompiler constructor after resolveAdapters() call.
+   * Merged, ready-to-call system view. Subsystems call this — never raw facets.
+   * Populated by ZintlCompiler constructor after resolveFacets() call.
    */
-  hooks: MergedAdapterHooks;
-
-  // ── Legacy fields (still used by older codepaths during migration) ───────
-  /** @deprecated Query capabilities.jsx / hooks.codegenAdapters instead. */
-  adapters?: ZintlAdapter[];
-  /** @deprecated Use hooks.resolveVirtualPath instead. */
-  resolveVirtualPath?: (id: string) => string;
-  /** @deprecated Use hooks.dynamicImportTemplate instead. */
-  dynamicImportTemplate?: (path: string, isDev: boolean) => string;
+  system?: ResolvedFacetSystem;
 }
 
 export type FormIntentFn = (

@@ -29,26 +29,12 @@ export const apply: ApplyFn = (
   // 1. Apply Prepends (Managers) and New Imports
   let insertIndex = 0;
   let needsScriptWrapper = false;
-  let sfcAdapter: any = null;
+  let sfcFacet: any = null;
 
-  if (filePath && config?.hooks?.codegenAdapters) {
-    sfcAdapter = config.hooks.codegenAdapters.find((a) => a.match(filePath) && !!a.wrapSfcScript);
-    if (sfcAdapter) {
-      const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
-      const normalMatch = /<script\b[^>]*>/i.exec(source);
-      const match = setupMatch || normalMatch;
-      if (match) {
-        insertIndex = match.index + match[0].length;
-      } else {
-        needsScriptWrapper = true;
-      }
-    }
-  } else if (filePath && config?.adapters) {
-    // Legacy fallback: old TargetAdapter[] shape (deprecated)
-    sfcAdapter = (config.adapters as any[]).find(
-      (a) => typeof a.match === "function" && a.match(filePath) && a.sfc,
-    );
-    if (sfcAdapter) {
+  const codegenFacets = config?.system?.codegenFacets;
+  if (filePath && codegenFacets) {
+    sfcFacet = codegenFacets.find((a: any) => a.match(filePath) && !!a.wrapSfcScript);
+    if (sfcFacet) {
       const setupMatch = /<script\b[^>]*setup[^>]*>/i.exec(source);
       const normalMatch = /<script\b[^>]*>/i.exec(source);
       const match = setupMatch || normalMatch;
@@ -60,7 +46,7 @@ export const apply: ApplyFn = (
     }
   }
 
-  if (sfcAdapter) {
+  if (sfcFacet) {
     if (needsScriptWrapper) {
       let scriptContent = "";
       for (const prepend of plan.prepends) {
@@ -71,8 +57,8 @@ export const apply: ApplyFn = (
           scriptContent += `import { ${imp.specifiers.join(", ")} } from "${imp.source}";\n`;
         }
       }
-      const scriptCode = sfcAdapter.wrapSfcScript
-        ? sfcAdapter.wrapSfcScript(scriptContent)
+      const scriptCode = sfcFacet.wrapSfcScript
+        ? sfcFacet.wrapSfcScript(scriptContent)
         : scriptContent;
       ms.prepend(scriptCode);
     } else {

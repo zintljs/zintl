@@ -15,7 +15,7 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
       {
         locales: ["en", "ar"],
         outputDir: "locales",
-        adapters: ["vue"],
+        facets: ["vue"],
         extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
       },
       root,

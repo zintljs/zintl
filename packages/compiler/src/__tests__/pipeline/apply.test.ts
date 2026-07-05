@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { apply } from "../../pipeline/apply.js";
-import { resolveAdapters } from "../../adapter/index.js";
+import { resolveFacets } from "../../facet/index.js";
 import MagicString from "magic-string";
 import type { ResolvedPlan } from "../../pipeline/types.js";
 
@@ -11,7 +11,7 @@ const mockLogger = {
   error: () => {},
 } as any;
 
-const { capabilities, hooks, adapters } = resolveAdapters(["vue", "svelte"]);
+const { capabilities, system, facets } = resolveFacets(["vue", "svelte"]);
 
 const mockConfig = {
   sourceLocale: "en",
@@ -19,9 +19,9 @@ const mockConfig = {
   outputDir: "locales",
   isDev: true,
   root: "/root",
-  adapters,
+  facets,
   capabilities,
-  hooks,
+  system,
 };
 
 describe("Pipeline Phase 4: apply()", () => {

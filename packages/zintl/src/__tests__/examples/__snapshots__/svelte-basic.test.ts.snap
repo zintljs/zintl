@@ -160,6 +160,7 @@ import { _t } from "virtual:zintl/runtime/internal";
 
 exports[`Example Proof: svelte-basic > should match Development snapshots > svelte-basic/dev-transforms/src/lib/LocaleSwitcher.svelte 1`] = `
 "<script lang="ts">
+import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 
   
@@ -182,7 +183,7 @@ import { loadI18nInstance } from "virtual:zintl/runtime/internal";
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: {  } }));
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
     onswitch(newLang);
   };
 
@@ -5906,24 +5907,24 @@ delegate(["click"]);
 //#endregion
 //#region examples/svelte-basic/src/lib/LocaleSwitcher.svelte
 LocaleSwitcher[FILENAME] = "examples/svelte-basic/src/lib/LocaleSwitcher.svelte";
-var root$1 = add_locations(/* @__PURE__ */ from_html(\`<button> </button>\`), LocaleSwitcher[FILENAME], [[33, 6]]);
+var root$1 = add_locations(/* @__PURE__ */ from_html(\`<button> </button>\`), LocaleSwitcher[FILENAME], [[34, 6]]);
 var root_1$1 = add_locations(/* @__PURE__ */ from_html(\`<section id="header"><div id="switcher" class="switcher"></div> <div class="vertical-ticks"></div> <div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use href="/icons.svg#translate-icon"></use></svg></div></section> <div class="ticks"></div>\`, 1), LocaleSwitcher[FILENAME], [[
-	30,
+	31,
 	0,
 	[
-		[31, 2],
-		[41, 2],
+		[32, 2],
+		[42, 2],
 		[
-			42,
+			43,
 			2,
 			[[
-				43,
+				44,
 				4,
-				[[44, 6]]
+				[[45, 6]]
 			]]
 		]
 	]
-], [48, 0]]);
+], [49, 0]]);
 function LocaleSwitcher($$anchor, $$props) {
 	check_target(new.target);
 	push($$props, true, LocaleSwitcher);
@@ -5951,7 +5952,7 @@ function LocaleSwitcher($$anchor, $$props) {
 		window.history.pushState({}, "", url);
 		(await track_reactivity_loss(globalThis.__zintl_inst = loadI18nInstance({
 			locale: newLang,
-			loaders: {}
+			loaders: { ["b_aafcf9c6fe16"]: entry_b_aafcf9c6fe16_default.loader }
 		})))();
 		$$props.onswitch(newLang);
 	};
@@ -5971,7 +5972,7 @@ function LocaleSwitcher($$anchor, $$props) {
 			return handleSwitch(get(l).id);
 		});
 		append($$anchor, button);
-	}), "each", LocaleSwitcher, 32, 4);
+	}), "each", LocaleSwitcher, 33, 4);
 	reset(div);
 	next(4);
 	reset(section);
@@ -6470,6 +6471,7 @@ import { _t } from "virtual:zintl/runtime/internal";
 
 exports[`Example Proof: svelte-basic > should match Production snapshots > svelte-basic/prod-transforms/src/lib/LocaleSwitcher.svelte 1`] = `
 "<script lang="ts">
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 
   
@@ -6492,7 +6494,7 @@ import { loadI18nInstance } from "virtual:zintl/runtime/internal";
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: {  } }));
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
     onswitch(newLang);
   };
 </script>
