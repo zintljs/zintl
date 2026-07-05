@@ -1,12 +1,11 @@
 import type { ZintlFacet } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 /**
  * Vanilla extraction contribution.
  * Covers DOM property sinks (innerHTML, textContent, title, alt, placeholder, etc.)
  * for plain HTML, vanilla JS, and TS files.
  */
-const vanillaExtractionFacet: ZintlFacet = {
+export const vanillaExtractionFacet: ZintlFacet = {
   name: "vanilla-extraction",
   concern: "extraction",
   priority: 100,
@@ -27,7 +26,3 @@ const vanillaExtractionFacet: ZintlFacet = {
   ],
   extensions: [".ts", ".js", ".mts", ".mjs"],
 };
-
-registerPreset("vanilla", () => [vanillaExtractionFacet]);
-
-export { vanillaExtractionFacet };

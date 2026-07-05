@@ -14,13 +14,9 @@
  * // resolved.capabilities.clientLocaleSync === true
  */
 
-// Bootstrap all built-in presets (side-effects register them with the engine)
-import "./presets/index.js";
-
-export { resolveFacets, registerPreset } from "./resolve.js";
+export { resolveFacets } from "./resolve.js";
 export type {
   ZintlFacet,
-  ZintlFacetInput,
   FacetConcern,
   BaseFacet,
   ExtractionFacet,
@@ -46,7 +42,7 @@ export { reactExtractionFacet, reactCodegenFacet } from "./presets/react.js";
 export { vueExtractionFacet, vueCodegenFacet } from "./presets/vue.js";
 export { svelteExtractionFacet, svelteCodegenFacet } from "./presets/svelte.js";
 export { htmlExtractionFacet, createHtmlProjectionFacet } from "./presets/html.js";
-export { nextjsSsrFacet } from "./presets/nextjs.js";
+export { nextjsSsrFacet, nextjsExtractionFacet, nextjsRuntimeFacet } from "./presets/nextjs.js";
 export { ssrWrappingFacet, ssrRuntimeFacet } from "./presets/ssr.js";
 export { clientSpaRuntimeFacet } from "./presets/client-spa.js";
 export { viteBundlerFacet } from "./presets/vite.js";

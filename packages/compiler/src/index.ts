@@ -21,7 +21,8 @@ import {
   SAVE_DEBOUNCE_MS,
 } from "./constants.js";
 import {
-  type ZintlOptions,
+  type CompilerOptions,
+  type CompilerFacetInput,
   type ZintlLogger,
   type LogLevel,
   type AssetTargetConfig,
@@ -30,9 +31,14 @@ import {
 import {
   resolveFacets,
   type ResolvedFacets,
-  type ZintlFacetInput,
   type ResolvedCapabilities,
   type CompilerContext,
+  type ZintlFacet,
+  vanillaExtractionFacet,
+  reactExtractionFacet,
+  reactCodegenFacet,
+  htmlExtractionFacet,
+  createHtmlProjectionFacet,
 } from "./facet/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
@@ -44,7 +50,8 @@ export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
 import type { HtmlProjectionPayload } from "@zintl/extractor";
 export type {
-  ZintlOptions,
+  CompilerOptions,
+  CompilerFacetInput,
   ZintlLogger,
   LogLevel,
   AssetTargetConfig,
@@ -71,7 +78,6 @@ export type {
 } from "./facet/index.js";
 export {
   resolveFacets,
-  registerPreset,
   vanillaExtractionFacet,
   reactExtractionFacet,
   reactCodegenFacet,
@@ -81,6 +87,8 @@ export {
   svelteCodegenFacet,
   htmlExtractionFacet,
   nextjsSsrFacet,
+  nextjsExtractionFacet,
+  nextjsRuntimeFacet,
   ssrWrappingFacet,
   ssrRuntimeFacet,
   clientSpaRuntimeFacet,
@@ -189,34 +197,24 @@ export class ZintlCompiler {
   private readonly confirmedOnDisk = new Set<string>();
   private reachableCache: Set<string> | null = null;
 
-  public _options: ZintlOptions;
+  public _options: CompilerOptions;
 
-  constructor(options: ZintlOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
-    options.assetsTarget = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
+  constructor(options: CompilerOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
     this._options = options;
 
     // ── Resolve Facets ──────────────────────────────────────────────────────
-    // Build the facet input list. Start with user-provided facets.
-    const facetInputs: ZintlFacetInput[] = [...(options.facets || [])];
-
-    // Auto-inject default extraction presets if no extraction concern facet is present
-    const hasExtractionPreset = facetInputs.some(
-      (f) =>
-        f === "vanilla" ||
-        f === "react" ||
-        f === "vue" ||
-        f === "svelte" ||
-        f === "nextjs" ||
-        (f &&
-          typeof f === "object" &&
-          !Array.isArray(f) &&
-          ("concern" in f ? f.concern === "extraction" : false)),
-    );
-    if (!hasExtractionPreset) {
-      facetInputs.push("vanilla", "react", "html");
+    const facets = ((options.facets || []) as any).flat(Infinity) as ZintlFacet[];
+    const hasExtraction = facets.some((f) => f && f.concern === "extraction");
+    if (!hasExtraction) {
+      facets.push(
+        vanillaExtractionFacet,
+        reactExtractionFacet,
+        reactCodegenFacet,
+        htmlExtractionFacet,
+        createHtmlProjectionFacet(),
+      );
     }
-
-    this._resolved = resolveFacets(facetInputs, options);
+    this._resolved = resolveFacets(facets);
     // ──────────────────────────────────────────────────────────────────
 
     this.extensions =

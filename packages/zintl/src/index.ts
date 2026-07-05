@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
-import type { ZintlOptions } from "@zintl/compiler";
 import { PLUGIN_NAME } from "./constants.js";
 import { ZintlPluginContext } from "./context.js";
+import type { ZintlPluginOptions } from "./types.js";
 
 import { configHook, configResolvedHook } from "./hooks/config.js";
 import { configureServerHook } from "./hooks/server.js";
@@ -10,12 +10,34 @@ import { transformHook, transformIndexHtmlHook } from "./hooks/transform.js";
 import { handleHotUpdateHook } from "./hooks/hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
 
+export type { ZintlPluginOptions, ZintlPluginFacetInput } from "./types.js";
+
+// Re-export default facet factories and constants from @zintl/compiler
+export {
+  vanillaExtractionFacet,
+  reactExtractionFacet,
+  reactCodegenFacet,
+  vueExtractionFacet,
+  vueCodegenFacet,
+  svelteExtractionFacet,
+  svelteCodegenFacet,
+  htmlExtractionFacet,
+  nextjsSsrFacet,
+  nextjsExtractionFacet,
+  nextjsRuntimeFacet,
+  ssrWrappingFacet,
+  ssrRuntimeFacet,
+  clientSpaRuntimeFacet,
+  viteBundlerFacet,
+  createAssetFacet,
+  createHtmlProjectionFacet,
+} from "@zintl/compiler";
+
 /**
  * Zintl Vite Plugin
  * Handles message extraction and virtual catalog injection.
  */
-export function zintl(options: ZintlOptions = {}): any {
-  options.assetsTarget = options.assetsTarget || ["md", "txt"];
+export function zintl(options: ZintlPluginOptions = {}): any {
   const ctx = new ZintlPluginContext(options);
 
   const prePlugin: Plugin = {

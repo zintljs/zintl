@@ -1,5 +1,4 @@
 import type { ZintlFacet, SsrWrapParams } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   const { code, fileId, isEntry, locales, sourceLocale } = params;
@@ -87,7 +86,5 @@ const ssrRuntimeFacet: ZintlFacet = {
   serverRequestScope: true,
   streamInjection: true,
 };
-
-registerPreset("ssr", () => [ssrWrappingFacet, ssrRuntimeFacet]);
 
 export { ssrWrappingFacet, ssrRuntimeFacet };

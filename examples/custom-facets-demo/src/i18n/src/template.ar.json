@@ -1,6 +1,0 @@
-{
-  "$schema": "../.schemas/src/template.schema.json",
-  "Hello {name}, welcome to {site}!": "مرحباً {name}، أهلاً بك في {site}!",
-  "This is a plain text node in Handlebars extracted by Zintl.": "هذه عقدة نصية بسيطة في هاندل بارز تم استخراجها بواسطة زينتل.",
-  "Welcome to Handlebars!": "مرحباً بك في هاندل بارز!"
-}

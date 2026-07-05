@@ -1,5 +1,4 @@
 import type { ZintlFacet } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 // ── Vue Extraction Contribution ────────────────────────────────────────────────────
 
@@ -82,7 +81,5 @@ const vueCodegenFacet: ZintlFacet = {
     return "'" + escaped + "'";
   },
 };
-
-registerPreset("vue", () => [vueExtractionFacet, vueCodegenFacet]);
 
 export { vueExtractionFacet, vueCodegenFacet };

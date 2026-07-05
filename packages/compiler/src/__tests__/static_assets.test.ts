@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler } from "../index.js";
+import { ZintlCompiler, createAssetFacet } from "../index.js";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -16,6 +16,7 @@ describe("Zintl Compiler - Static Content Files (Markdown & Text)", () => {
       {
         locales: ["en", "ar", "fr"],
         outputDir: "locales",
+        facets: [createAssetFacet()],
       },
       root,
       true,
@@ -160,18 +161,22 @@ author: Khalid
       {
         locales: ["en", "ar"],
         outputDir: "locales",
-        assetsTarget: [
-          "md",
-          {
-            targetPattern: "src/docs/**/*.mdx",
-            strategy: "frontmatter",
-            outputPattern: "locales/docs/[locale]/[name].mdx",
-          },
-          {
-            targetPattern: "src/public/*.png",
-            strategy: "binary-passthrough",
-            outputPattern: "locales/assets/[locale]/[name].[ext]",
-          },
+        facets: [
+          createAssetFacet({
+            targets: [
+              "md",
+              {
+                targetPattern: "src/docs/**/*.mdx",
+                strategy: "frontmatter",
+                outputPattern: "locales/docs/[locale]/[name].mdx",
+              },
+              {
+                targetPattern: "src/public/*.png",
+                strategy: "binary-passthrough",
+                outputPattern: "locales/assets/[locale]/[name].[ext]",
+              },
+            ],
+          }),
         ],
       },
       root,
@@ -205,7 +210,7 @@ author: Khalid
         locales: ["en", "ar"],
         outputDir: "locales",
         catalogFormat: "translations/[locale].json",
-        assetsTarget: ["png"],
+        facets: [createAssetFacet({ targets: ["png"] })],
       },
       root,
       true,
@@ -231,15 +236,19 @@ author: Khalid
       {
         locales: ["en", "ar"],
         outputDir: "locales",
-        assetsTarget: [
-          {
-            targetPattern: "src/docs/custom.txt",
-            strategy: (srcBuf, extBuf, locale) => {
-              const text = srcBuf.toString("utf-8");
-              return Buffer.from(`[${locale}] ${text.toUpperCase()}`, "utf-8");
-            },
-            outputPattern: "locales/docs/[locale]/[name].[ext]",
-          },
+        facets: [
+          createAssetFacet({
+            targets: [
+              {
+                targetPattern: "src/docs/custom.txt",
+                strategy: (srcBuf: Buffer, extBuf: Buffer | null, locale: string) => {
+                  const text = srcBuf.toString("utf-8");
+                  return Buffer.from(`[${locale}] ${text.toUpperCase()}`, "utf-8");
+                },
+                outputPattern: "locales/docs/[locale]/[name].[ext]",
+              },
+            ],
+          }),
         ],
       },
       root,
@@ -343,10 +352,21 @@ author: Khalid
   });
 
   it("should support binary asset move recovery from the Hive", async (context: LocalContext) => {
-    const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+    const { root } = context as { root: string };
 
     const pngPath = join(root, "src/docs/logo.png");
     await writeFile(pngPath, Buffer.from("BINARY_LOGO_CONTENT_SOURCE"));
+
+    const compiler = new ZintlCompiler(
+      {
+        locales: ["en", "ar"],
+        outputDir: "locales",
+        catalogFormat: "translations/[locale].json",
+        facets: [createAssetFacet({ targets: ["png"] })],
+      },
+      root,
+      true,
+    );
 
     // 1. Discover & sync to create target
     await compiler.discover();

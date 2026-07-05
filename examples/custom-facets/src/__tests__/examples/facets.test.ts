@@ -7,7 +7,7 @@ describe("Custom Facets Stress Tests", () => {
   describe("Handlebars Extraction & Codegen Facet", () => {
     it("resolves sfc extraction rules and matches .hbs extensions", () => {
       const facet = createHandlebarsFacet();
-      const { system } = resolveFacets([facet]);
+      const { system } = resolveFacets([...facet]);
 
       expect(system.extensions).toContain(".hbs");
     });

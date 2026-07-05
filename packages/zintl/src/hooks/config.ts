@@ -1,8 +1,29 @@
 import type { ResolvedConfig } from "vite";
-import { ZintlCompiler, type LogLevel } from "@zintl/compiler";
+import {
+  ZintlCompiler,
+  type LogLevel,
+  vanillaExtractionFacet,
+  reactExtractionFacet,
+  reactCodegenFacet,
+  vueExtractionFacet,
+  vueCodegenFacet,
+  svelteExtractionFacet,
+  svelteCodegenFacet,
+  htmlExtractionFacet,
+  nextjsSsrFacet,
+  nextjsExtractionFacet,
+  nextjsRuntimeFacet,
+  ssrWrappingFacet,
+  ssrRuntimeFacet,
+  clientSpaRuntimeFacet,
+  viteBundlerFacet,
+  createAssetFacet,
+  createHtmlProjectionFacet,
+} from "@zintl/compiler";
 import type { ZintlPluginContext } from "../context.js";
 import { isAbsolute, relative, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
+import type { ZintlPluginFacetInput } from "../types.js";
 
 export function configHook(ctx: ZintlPluginContext) {
   return function (userConfig: any) {
@@ -82,6 +103,40 @@ export function configHook(ctx: ZintlPluginContext) {
   };
 }
 
+function flattenFacets(inputs: ZintlPluginFacetInput[], autoFacets: any[]): any[] {
+  const result: any[] = [];
+
+  function processInput(input: any) {
+    if (!input) return;
+    if (input === "auto") {
+      for (const f of autoFacets) {
+        processInput(f);
+      }
+      return;
+    }
+    if (typeof input === "function") {
+      processInput(input());
+      return;
+    }
+    if (Array.isArray(input)) {
+      for (const item of input) {
+        processInput(item);
+      }
+      return;
+    }
+    if (typeof input === "object") {
+      result.push(input);
+      return;
+    }
+  }
+
+  for (const input of inputs) {
+    processInput(input);
+  }
+
+  return result;
+}
+
 export function configResolvedHook(ctx: ZintlPluginContext) {
   return function (config: ResolvedConfig) {
     const logLevel = ctx.options.logLevel || (config as any).logLevel || "info";
@@ -123,40 +178,60 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       detectedFrameworks = ["react"];
     }
 
-    const facets: any[] = [];
+    // Build the "auto" facets list
+    const autoFacets: any[] = [];
+
+    // Framework detection mapping
+    for (const f of detectedFrameworks) {
+      if (f === "vue") {
+        autoFacets.push(vueExtractionFacet, vueCodegenFacet);
+      } else if (f === "react") {
+        autoFacets.push(reactExtractionFacet, reactCodegenFacet);
+      } else if (f === "svelte") {
+        autoFacets.push(svelteExtractionFacet, svelteCodegenFacet);
+      } else if (f === "nextjs") {
+        autoFacets.push(
+          reactExtractionFacet,
+          reactCodegenFacet,
+          nextjsExtractionFacet,
+          nextjsSsrFacet,
+          nextjsRuntimeFacet,
+        );
+      }
+    }
+
+    // SSR handling
+    const hasSsr =
+      detectedFrameworks.includes("nextjs") ||
+      config.build?.ssr ||
+      (config as any).ssr !== undefined;
+
+    if (hasSsr && !detectedFrameworks.includes("nextjs")) {
+      autoFacets.push(ssrWrappingFacet, ssrRuntimeFacet);
+    }
+
+    // Client SPA sync handling
+    if (!detectedFrameworks.includes("nextjs")) {
+      autoFacets.push(clientSpaRuntimeFacet);
+    }
+
+    // Baseline fallbacks
+    autoFacets.push(
+      vanillaExtractionFacet,
+      htmlExtractionFacet,
+      createHtmlProjectionFacet(),
+      createAssetFacet({
+        targets: ctx.options.assetsTarget,
+        virtualAssets: ctx.options.virtualAssets,
+      }),
+    );
+
+    // Flatten facets (allowing compound facets and functions)
+    const userFacets = ctx.options.facets || ["auto"];
+    const facets = flattenFacets(userFacets, autoFacets);
 
     // Always inject the "vite" bundler facet
-    facets.push("vite");
-
-    // Add user-provided facets
-    if (ctx.options.facets) {
-      facets.push(...ctx.options.facets);
-    } else {
-      // If user did not provide custom facets, expand detected frameworks
-      for (const f of detectedFrameworks) {
-        facets.push(f);
-      }
-
-      // If it has nextjs or general SSR, we add the SSR facet
-      const hasSsr =
-        detectedFrameworks.includes("nextjs") ||
-        config.build?.ssr ||
-        (config as any).ssr !== undefined;
-
-      if (hasSsr) {
-        if (!detectedFrameworks.includes("nextjs")) {
-          facets.push("ssr");
-        }
-      }
-
-      // Add client-spa for SPA/client-side locale sync
-      if (!detectedFrameworks.includes("nextjs")) {
-        facets.push("client-spa");
-      }
-
-      // Add vanilla and html presets as default fallbacks
-      facets.push("vanilla", "html");
-    }
+    facets.push(viteBundlerFacet);
 
     const extensions = ctx.options.extensions;
 

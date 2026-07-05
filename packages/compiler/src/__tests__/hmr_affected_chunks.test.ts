@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler } from "../index.js";
+import { ZintlCompiler, vueExtractionFacet, vueCodegenFacet } from "../index.js";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
@@ -15,7 +15,7 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
       {
         locales: ["en", "ar"],
         outputDir: "locales",
-        facets: ["vue"],
+        facets: [vueExtractionFacet, vueCodegenFacet],
         extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
       },
       root,

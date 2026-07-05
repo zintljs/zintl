@@ -192,8 +192,6 @@ export interface ContentFacet extends BaseFacet {
 // Top-Level Facet Interface & Presets
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type ZintlFacetInput = string | ZintlFacet | ZintlFacetInput[];
-
 /**
  * A Zintl Facet is the smallest independently composable unit of compiler behavior.
  * Every facet owns exactly one concern. The compiler itself is a microkernel that

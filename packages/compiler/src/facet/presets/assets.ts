@@ -1,13 +1,19 @@
 import { join, isAbsolute, relative } from "node:path";
 import { existsSync } from "node:fs";
 import type { ZintlFacet, CompilerContext } from "../types.js";
-import { registerPreset } from "../resolve.js";
 import { IOManager } from "../../managers/IOManager.js";
 import type { CatalogManager } from "../../managers/CatalogManager.js";
 import type { ZintlLogger } from "@zintl/extractor";
-import type { ZintlOptions, AssetMergeStrategy } from "../../types/compiler.js";
+import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { similarity } from "../../reconcile.js";
+
+export interface AssetFacetConfig {
+  targets?: (string | AssetTargetConfig)[];
+  assetsTarget?: (string | AssetTargetConfig)[];
+  virtualAssets?: boolean;
+  similarityThreshold?: number;
+}
 
 /**
  * Manages translation for static assets like Markdown (.md) and Text (.txt) files.
@@ -31,7 +37,7 @@ class AssetManager {
     private readonly locales: string[],
     private readonly logger: ZintlLogger,
     private readonly catalog: CatalogManager,
-    private readonly options: ZintlOptions = {},
+    private readonly options: AssetFacetConfig = {},
     private readonly getDependencyGraph?: () => Record<string, any[]>,
     private readonly getHive?: () => Record<string, Record<string, any>>,
     private readonly markHiveDirty?: () => void,
@@ -74,7 +80,7 @@ class AssetManager {
     const absolutePath = isAbsolute(filePath) ? filePath : join(this.root, filePath);
     const relativePath = relative(this.root, absolutePath).replace(/\\/g, "/");
 
-    const assetsTarget = this.options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
+    const assetsTarget = this.options.assetsTarget || ["md", "txt"];
 
     for (const item of assetsTarget) {
       let targetPattern = "";
@@ -664,8 +670,13 @@ class AssetManager {
 /**
  * Exposes the system static assets facet preset.
  */
-export function createAssetFacet(options: ZintlOptions): ZintlFacet {
+export function createAssetFacet(config: AssetFacetConfig = {}): ZintlFacet {
   let manager: AssetManager;
+
+  const resolvedConfig = {
+    ...config,
+    assetsTarget: config.targets || config.assetsTarget,
+  };
 
   const getManager = (context: CompilerContext) => {
     if (!manager) {
@@ -676,7 +687,7 @@ export function createAssetFacet(options: ZintlOptions): ZintlFacet {
         context.locales,
         context.logger,
         context.catalog,
-        options,
+        resolvedConfig,
         context.getDependencyGraph,
         context.getHive,
         context.markHiveDirty,
@@ -698,7 +709,7 @@ export function createAssetFacet(options: ZintlOptions): ZintlFacet {
       if (!context) {
         const idx = filePath.lastIndexOf(".");
         const ext = idx !== -1 ? filePath.substring(idx) : "";
-        const targets = options.assetsTarget || ["md", "txt", "png", "jpg", "jpeg", "webp"];
+        const targets = resolvedConfig.assetsTarget || ["md", "txt"];
         return targets.some((t: any) => {
           if (typeof t === "string") {
             return ext === (t.startsWith(".") ? t : `.${t}`);
@@ -738,7 +749,7 @@ export function createAssetFacet(options: ZintlOptions): ZintlFacet {
       }
       return null;
     },
-    async getChunkContributions(locale: string, context: CompilerContext) {
+    getChunkContributions(locale: string, context: CompilerContext) {
       const mgr = getManager(context);
       const registeredAssets = mgr.getRegisteredAssets();
       const imports: string[] = [];
@@ -762,5 +773,3 @@ export function createAssetFacet(options: ZintlOptions): ZintlFacet {
     },
   };
 }
-
-registerPreset("assets", (options: ZintlOptions = {}) => [createAssetFacet(options)]);

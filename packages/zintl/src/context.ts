@@ -1,14 +1,15 @@
-import { ZintlCompiler, type ZintlOptions } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintl/compiler";
 import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
+import type { ZintlPluginOptions } from "./types.js";
 
 export class ZintlPluginContext {
   public compiler!: ZintlCompiler;
   public server: ViteDevServer | null = null;
   public multiplexEnabled: boolean | null = null;
 
-  constructor(public options: ZintlOptions) {}
+  constructor(public options: ZintlPluginOptions) {}
 
   getMultiplex(config?: any): boolean {
     if (this.compiler && this.multiplexEnabled !== null) return this.multiplexEnabled;

@@ -1,6 +1,5 @@
-// oxlint-disable typescript/no-implied-eval
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler } from "../index.js";
+import { ZintlCompiler, viteBundlerFacet } from "../index.js";
 import { join } from "node:path";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
 
@@ -15,6 +14,7 @@ function evalManager(code: string) {
     .replace(/^export default /, "")
     .trim()
     .replace(/;$/, "");
+  // oxlint-disable-next-line typescript/no-implied-eval
   return new Function(`return (${objectPart})`)();
 }
 
@@ -28,7 +28,7 @@ describe("Zintl Compiler: Boundary Isolation", () => {
         locales: ["en", "ar"],
         outputDir: "locales",
         logLevel: "silent",
-        facets: ["vite"],
+        facets: [viteBundlerFacet],
       },
       root,
       true,

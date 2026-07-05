@@ -1,6 +1,5 @@
 import { join, relative, dirname } from "node:path";
 import type { ZintlFacet, CompilerContext } from "../types.js";
-import { registerPreset } from "../resolve.js";
 import { IOManager } from "../../managers/IOManager.js";
 import type { CatalogManager } from "../../managers/CatalogManager.js";
 import type { ZintlLogger, HtmlProjectionPayload } from "@zintl/extractor";
@@ -989,7 +988,5 @@ export function createHtmlProjectionFacet(): ZintlFacet {
     },
   };
 }
-
-registerPreset("html", () => [htmlExtractionFacet, createHtmlProjectionFacet()]);
 
 export { htmlExtractionFacet };

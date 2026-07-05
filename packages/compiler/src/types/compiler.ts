@@ -13,7 +13,7 @@ export interface AssetTargetConfig {
   outputPattern?: string;
 }
 
-export interface ZintlOptions {
+export interface CompilerOptions {
   sourceLocale?: string;
   locales?: string[];
   outputDir?: string;
@@ -25,20 +25,14 @@ export interface ZintlOptions {
   prune?: boolean;
   verifyIntegrity?: boolean;
   multiplex?: boolean;
-  assetsTarget?: (string | AssetTargetConfig)[];
-  virtualAssets?: boolean;
   extensions?: string[];
   /**
-   * Facet / Contribution list. Accepts preset name strings ("react", "vue", "vite", etc.),
-   * custom contribution objects, preset objects, or nested arrays of them.
-   * @example facets: ["react", "vite", "client-spa"]
+   * Resolved compiler facets list.
    */
-  facets?: (
-    | string
-    | import("../facet/index.js").ZintlFacet
-    | (string | import("../facet/index.js").ZintlFacet)[]
-  )[];
+  facets?: CompilerFacetInput[];
 }
+
+export type CompilerFacetInput = import("../facet/index.js").ZintlFacet | CompilerFacetInput[];
 
 interface CatalogFormatContext {
   locale: string;

@@ -1,5 +1,4 @@
 import type { ZintlFacet, TagMapEntry } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 // ── Helpers (moved from resolve-rewrites.ts) ──────────────────────────────────
 
@@ -74,7 +73,5 @@ const reactCodegenFacet: ZintlFacet = {
   serializeTags,
   convertToHtmlTemplate,
 };
-
-registerPreset("react", () => [reactExtractionFacet, reactCodegenFacet]);
 
 export { reactExtractionFacet, reactCodegenFacet };

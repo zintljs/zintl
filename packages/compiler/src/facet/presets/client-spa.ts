@@ -1,5 +1,4 @@
 import type { ZintlFacet } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 /**
  * Client SPA runtime contribution.
@@ -8,13 +7,9 @@ import { registerPreset } from "../resolve.js";
  *
  * NOT needed for MPA apps with full page reloads — only SPA navigation.
  */
-const clientSpaRuntimeFacet: ZintlFacet = {
+export const clientSpaRuntimeFacet: ZintlFacet = {
   name: "client-spa",
   concern: "runtime",
   priority: 100,
   clientLocaleSync: true,
 };
-
-registerPreset("client-spa", () => [clientSpaRuntimeFacet]);
-
-export { clientSpaRuntimeFacet };

@@ -1,6 +1,5 @@
 import type {
   ZintlFacet,
-  ZintlFacetInput,
   CodegenFacet,
   ContentFacet,
   ResolvedCapabilities,
@@ -18,70 +17,8 @@ import {
   type MustacheRule,
 } from "@zintl/extractor";
 
-import type { ZintlOptions } from "../types/compiler.js";
-
-// Preset registry — populated by presets/index.ts to avoid circular imports
-const presetRegistry = new Map<string, (options?: ZintlOptions) => ZintlFacetInput[]>();
-
-/**
- * Register a named preset. Called by each preset file on load.
- * Presets expand to one or more contributions/presets.
- */
-export function registerPreset(
-  name: string,
-  factory: (options?: ZintlOptions) => ZintlFacetInput[],
-): void {
-  presetRegistry.set(name, factory);
-}
-
-/**
- * Expand a preset name, preset object, custom contribution, or nested array.
- */
-function expandInput(
-  input: ZintlFacetInput,
-  options?: ZintlOptions,
-  seenPresets = new Set<string>(),
-): ZintlFacet[] {
-  if (Array.isArray(input)) {
-    const result: ZintlFacet[] = [];
-    for (const item of input) {
-      result.push(...expandInput(item, options, seenPresets));
-    }
-    return result;
-  }
-
-  if (typeof input === "string") {
-    if (seenPresets.has(input)) {
-      return []; // prevent circular references
-    }
-    const factory = presetRegistry.get(input);
-    if (!factory) {
-      if (input.includes(":")) {
-        return [
-          {
-            name: `custom-target-${input}`,
-            concern: "extraction",
-            targets: [input as TargetDescriptor],
-            priority: 0,
-          },
-        ];
-      }
-      const known = Array.from(presetRegistry.keys()).join(", ");
-      throw new Error(
-        `[Zintl] Unknown facet preset or target descriptor "${input}". Known presets: ${known}.\n` +
-          `Pass a ZintlFacet object for custom facets.`,
-      );
-    }
-    seenPresets.add(input);
-    return expandInput(factory(options), options, seenPresets);
-  }
-
-  if (input && typeof input === "object") {
-    return [input as ZintlFacet];
-  }
-
-  throw new Error(`[Zintl] Invalid facet input: ${JSON.stringify(input)}`);
-}
+import { htmlExtractionFacet, createHtmlProjectionFacet } from "./presets/html.js";
+import { createAssetFacet } from "./presets/assets.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Merge Helpers
@@ -494,55 +431,32 @@ export interface ResolvedFacets {
   capabilities: ResolvedCapabilities;
   /** Merged, ready-to-call system view — subsystems call this, never raw facets */
   system: ResolvedFacetSystem;
-  /** The flat list of facets after preset expansion (for debugging/introspection) */
+  /** The flat list of facets (for debugging/introspection) */
   facets: ZintlFacet[];
   /** Pre-resolved extraction configuration */
   extraction: CompiledExtractionState;
 }
 
 /**
- * Resolve a list of facet inputs (preset names or facet objects) into
- * the pre-merged capabilities and system view.
+ * Resolve a list of pre-resolved facet objects into the capabilities and system view.
  */
-export function resolveFacets(
-  inputs: ZintlFacetInput[] = [],
-  options?: ZintlOptions,
-): ResolvedFacets {
-  const flatFacets: ZintlFacet[] = [];
+export function resolveFacets(facets: ZintlFacet[] = []): ResolvedFacets {
+  const baseFacets = [...facets];
 
-  // Expose configuration and auto-inject baseline content facets if not explicitly provided
-  const baseInputs = [...inputs];
-  const hasAssetsPreset = inputs.some(
-    (i) =>
-      i === "assets" ||
-      (i &&
-        typeof i === "object" &&
-        !Array.isArray(i) &&
-        "name" in i &&
-        i.name === "system-static-assets"),
+  const hasHtml = facets.some(
+    (f) => f && (f.name === "html-extraction" || f.name === "system-html-projection"),
   );
-  if (!hasAssetsPreset) {
-    baseInputs.push("assets");
-  }
-  const hasHtmlPreset = inputs.some(
-    (i) =>
-      i === "html" ||
-      (i &&
-        typeof i === "object" &&
-        !Array.isArray(i) &&
-        "name" in i &&
-        (i.name === "html-extraction" || i.name === "system-html-projection")),
-  );
-  if (!hasHtmlPreset) {
-    baseInputs.push("html");
+  if (!hasHtml) {
+    baseFacets.push(htmlExtractionFacet, createHtmlProjectionFacet());
   }
 
-  for (const input of baseInputs) {
-    flatFacets.push(...expandInput(input, options));
+  const hasAssets = facets.some((f) => f && f.name === "system-static-assets");
+  if (!hasAssets) {
+    baseFacets.push(createAssetFacet());
   }
 
   // 1. Sort descending by priority (default: 0)
-  const sorted = [...flatFacets].sort((a, b) => {
+  const sorted = [...baseFacets].sort((a, b) => {
     const pA = a.priority ?? 0;
     const pB = b.priority ?? 0;
     return pB - pA;
@@ -567,14 +481,6 @@ export function resolveFacets(
   const system = stateToHooks(state);
 
   const targetDescriptors = [...system.extractionTargets];
-  // Add target descriptors from inputs that are string extraction targets
-  for (const input of inputs) {
-    if (typeof input === "string" && input.includes(":")) {
-      if (!targetDescriptors.includes(input as any)) {
-        targetDescriptors.push(input as any);
-      }
-    }
-  }
 
   // Resolve target descriptors through extractor's resolveTargets
   const extraction = resolveTargets(targetDescriptors);

@@ -1,5 +1,4 @@
 import type { ZintlFacet } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 // ── Svelte Extraction Contribution ─────────────────────────────────────────────────
 
@@ -75,7 +74,5 @@ const svelteCodegenFacet: ZintlFacet = {
     return "'" + escaped + "'";
   },
 };
-
-registerPreset("svelte", () => [svelteExtractionFacet, svelteCodegenFacet]);
 
 export { svelteExtractionFacet, svelteCodegenFacet };

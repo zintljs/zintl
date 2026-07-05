@@ -9,7 +9,7 @@ import {
   HIVE_FILENAME,
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
-import type { ZintlOptions, ZintlLogger } from "../types/index.js";
+import type { CompilerOptions, ZintlLogger } from "../types/index.js";
 import { resolveFacets } from "../facet/index.js";
 
 /**
@@ -29,13 +29,15 @@ export class IOManager {
     private readonly root: string,
     private readonly isDev: boolean,
     private readonly logger: ZintlLogger,
-    _options: ZintlOptions,
+    _options: CompilerOptions,
     resolvedExtensions?: string[],
     resolvedFacets?: any[],
   ) {
     this.extensions = resolvedExtensions ||
       _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
-    this.facets = resolvedFacets || resolveFacets(_options.facets).facets;
+    this.facets =
+      resolvedFacets ||
+      resolveFacets(((_options.facets || []) as any).flat(Infinity) as any[]).facets;
     const metaDir = _options.metadataDir
       ? isAbsolute(_options.metadataDir)
         ? _options.metadataDir

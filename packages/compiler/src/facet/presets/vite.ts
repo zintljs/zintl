@@ -1,6 +1,5 @@
 import { isAbsolute, relative } from "node:path";
 import type { ZintlFacet } from "../types.js";
-import { registerPreset } from "../resolve.js";
 
 /**
  * Vite bundler contribution.
@@ -10,7 +9,7 @@ import { registerPreset } from "../resolve.js";
  * This facet is ALWAYS injected by the @zintl/zintl Vite plugin.
  * Users should not need to add it manually.
  */
-const viteBundlerFacet: ZintlFacet = {
+export const viteBundlerFacet: ZintlFacet = {
   name: "vite",
   concern: "bundler",
   priority: 100,
@@ -49,7 +48,3 @@ const viteBundlerFacet: ZintlFacet = {
     return expandedInput;
   },
 };
-
-registerPreset("vite", () => [viteBundlerFacet]);
-
-export { viteBundlerFacet };

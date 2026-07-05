@@ -1,6 +1,4 @@
 import type { ZintlFacet, SsrWrapParams } from "../types.js";
-import { registerPreset } from "../resolve.js";
-import { reactExtractionFacet, reactCodegenFacet } from "./react.js";
 
 // ── Next.js SSR wrapping helper ───────────────────────────────────────────────
 
@@ -117,12 +115,4 @@ const nextjsRuntimeFacet: ZintlFacet = {
   streamInjection: true,
 };
 
-registerPreset("nextjs", () => [
-  reactExtractionFacet,
-  reactCodegenFacet,
-  nextjsExtractionFacet,
-  nextjsSsrFacet,
-  nextjsRuntimeFacet,
-]);
-
-export { nextjsSsrFacet };
+export { nextjsSsrFacet, nextjsExtractionFacet, nextjsRuntimeFacet };
