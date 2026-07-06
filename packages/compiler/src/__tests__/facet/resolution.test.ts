@@ -1,21 +1,27 @@
 import { describe, it, expect } from "vite-plus/test";
 import {
   resolveFacets,
-  vanillaExtractionFacet,
+  vanillaFacet,
   reactExtractionFacet,
   reactCodegenFacet,
+  reactFacet,
   vueExtractionFacet,
   vueCodegenFacet,
+  vueFacet,
   svelteExtractionFacet,
   svelteCodegenFacet,
+  svelteFacet,
   htmlExtractionFacet,
+  htmlFacet,
   nextjsSsrFacet,
   nextjsExtractionFacet,
   nextjsRuntimeFacet,
+  nextjsFacet,
   ssrWrappingFacet,
   ssrRuntimeFacet,
-  clientSpaRuntimeFacet,
-  viteBundlerFacet,
+  ssrFacet,
+  clientSpaFacet,
+  viteFacet,
 } from "../../facet/index.js";
 import type { ZintlFacet } from "../../facet/index.js";
 
@@ -24,7 +30,7 @@ describe("Facet Resolution Engine", () => {
 
   describe("basic resolution", () => {
     it("deduplicates and returns input facets", () => {
-      const { facets } = resolveFacets([reactExtractionFacet, reactCodegenFacet]);
+      const { facets } = resolveFacets([reactExtractionFacet(), reactCodegenFacet()]);
       expect(facets.some((a) => a.name === "react-extraction")).toBe(true);
       expect(facets.some((a) => a.name === "react-codegen")).toBe(true);
     });
@@ -34,7 +40,7 @@ describe("Facet Resolution Engine", () => {
 
   describe("ResolvedCapabilities", () => {
     it("vanilla adapter has no jsx/sfc/ssr/hmr capabilities", () => {
-      const { capabilities } = resolveFacets([vanillaExtractionFacet]);
+      const { capabilities } = resolveFacets([vanillaFacet()]);
       expect(capabilities.jsx).toBe(false);
       expect(capabilities.sfc).toBe(false);
       expect(capabilities.jsxRichText).toBe(false);
@@ -43,49 +49,49 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("react adapter enables jsx capability", () => {
-      const { capabilities } = resolveFacets([reactExtractionFacet, reactCodegenFacet]);
+      const { capabilities } = resolveFacets([reactExtractionFacet(), reactCodegenFacet()]);
       expect(capabilities.jsx).toBe(true);
       expect(capabilities.jsxRichText).toBe(true);
       expect(capabilities.sfc).toBe(false);
     });
 
     it("vue adapter enables sfc capability", () => {
-      const { capabilities } = resolveFacets([vueExtractionFacet, vueCodegenFacet]);
+      const { capabilities } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       expect(capabilities.sfc).toBe(true);
       expect(capabilities.jsx).toBe(false);
       expect(capabilities.jsxRichText).toBe(false);
     });
 
     it("svelte adapter enables sfc capability", () => {
-      const { capabilities } = resolveFacets([svelteExtractionFacet, svelteCodegenFacet]);
+      const { capabilities } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       expect(capabilities.sfc).toBe(true);
     });
 
     it("ssr adapter enables serverRequestScope and streaming", () => {
-      const { capabilities } = resolveFacets([ssrWrappingFacet, ssrRuntimeFacet]);
+      const { capabilities } = resolveFacets([ssrWrappingFacet(), ssrRuntimeFacet()]);
       expect(capabilities.serverRequestScope).toBe(true);
       expect(capabilities.streaming).toBe(true);
       expect(capabilities.ssr).toBe(true);
     });
 
     it("client-spa adapter enables clientLocaleSync", () => {
-      const { capabilities } = resolveFacets([clientSpaRuntimeFacet]);
+      const { capabilities } = resolveFacets([clientSpaFacet()]);
       expect(capabilities.clientLocaleSync).toBe(true);
       expect(capabilities.localeRouting).toBe(true);
     });
 
     it("vite adapter enables hmr capability", () => {
-      const { capabilities } = resolveFacets([viteBundlerFacet]);
+      const { capabilities } = resolveFacets([viteFacet()]);
       expect(capabilities.hmr).toBe(true);
     });
 
     it("nextjs adapter enables ssr + jsx + serverRequestScope + streaming", () => {
       const { capabilities } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        nextjsExtractionFacet,
-        nextjsSsrFacet,
-        nextjsRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        nextjsExtractionFacet(),
+        nextjsSsrFacet(),
+        nextjsRuntimeFacet(),
       ]);
       expect(capabilities.ssr).toBe(true);
       expect(capabilities.jsx).toBe(true);
@@ -108,10 +114,10 @@ describe("Facet Resolution Engine", () => {
 
     it("ssr boolean is OR-merged across multiple facets", () => {
       const { capabilities } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        ssrWrappingFacet,
-        ssrRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        ssrWrappingFacet(),
+        ssrRuntimeFacet(),
       ]);
       expect(capabilities.ssr).toBe(true);
       expect(capabilities.jsx).toBe(true);
@@ -131,14 +137,14 @@ describe("Facet Resolution Engine", () => {
       // Order 1: myBundler first
       const r1 = resolveFacets([myBundler]);
       // Order 2: vanilla first then myBundler
-      const r2 = resolveFacets([vanillaExtractionFacet, myBundler]);
+      const r2 = resolveFacets([vanillaFacet(), myBundler]);
       expect(r1.system.resolveVirtualPath("virtual:foo")).toBe("\0virtual:foo");
       expect(r2.system.resolveVirtualPath("virtual:foo")).toBe("\0virtual:foo");
     });
 
     it("runtime booleans are OR-merged across facets regardless of order", () => {
-      const { capabilities: c1 } = resolveFacets([ssrRuntimeFacet, clientSpaRuntimeFacet]);
-      const { capabilities: c2 } = resolveFacets([clientSpaRuntimeFacet, ssrRuntimeFacet]);
+      const { capabilities: c1 } = resolveFacets([ssrRuntimeFacet(), clientSpaFacet()]);
+      const { capabilities: c2 } = resolveFacets([clientSpaFacet(), ssrRuntimeFacet()]);
       expect(c1.serverRequestScope).toBe(true);
       expect(c1.clientLocaleSync).toBe(true);
       expect(c2.serverRequestScope).toBe(true);
@@ -146,17 +152,17 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("extraction targets are unioned across facets", () => {
-      const { system } = resolveFacets([vanillaExtractionFacet, htmlExtractionFacet]);
+      const { system } = resolveFacets([vanillaFacet(), htmlExtractionFacet()]);
       expect(system.extractionTargets).toContain("dom:prop:innerHTML");
       expect(system.extractionTargets).toContain("html:attr:alt");
     });
 
     it("extensions are unioned across facets", () => {
       const { system } = resolveFacets([
-        vueExtractionFacet,
-        vueCodegenFacet,
-        reactExtractionFacet,
-        reactCodegenFacet,
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        reactExtractionFacet(),
+        reactCodegenFacet(),
       ]);
       expect(system.extensions).toContain(".vue");
       expect(system.extensions).toContain(".tsx");
@@ -279,17 +285,17 @@ describe("Facet Resolution Engine", () => {
 
   describe("ResolvedFacetSystem", () => {
     it("resolveVirtualPath has a default passthrough when no bundler adapter", () => {
-      const { system } = resolveFacets([vanillaExtractionFacet]);
+      const { system } = resolveFacets([vanillaFacet()]);
       expect(system.resolveVirtualPath("virtual:zintl/content")).toBe("virtual:zintl/content");
     });
 
     it("dynamicImportTemplate has a default when no bundler adapter", () => {
-      const { system } = resolveFacets([vanillaExtractionFacet]);
+      const { system } = resolveFacets([vanillaFacet()]);
       expect(system.dynamicImportTemplate("./foo", false)).toBe(`import("./foo")`);
     });
 
     it("vite adapter provides @vite-ignore comment in dev mode", () => {
-      const { system } = resolveFacets([viteBundlerFacet]);
+      const { system } = resolveFacets([viteFacet()]);
       expect(system.dynamicImportTemplate("./foo", true)).toBe(
         `import(/* @vite-ignore */ "./foo")`,
       );
@@ -298,10 +304,10 @@ describe("Facet Resolution Engine", () => {
 
     it("codegenFacets has correct facets for vue+react combo", () => {
       const { system } = resolveFacets([
-        vueExtractionFacet,
-        vueCodegenFacet,
-        reactExtractionFacet,
-        reactCodegenFacet,
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        reactExtractionFacet(),
+        reactCodegenFacet(),
       ]);
       const vueAdapter = system.codegenFacets.find((a) => a.extensions.includes(".vue"));
       const reactAdapter = system.codegenFacets.find((a) => a.extensions.includes(".tsx"));
@@ -311,10 +317,10 @@ describe("Facet Resolution Engine", () => {
 
     it("vue codegen match works correctly", () => {
       const { system } = resolveFacets([
-        vueExtractionFacet,
-        vueCodegenFacet,
-        reactExtractionFacet,
-        reactCodegenFacet,
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        reactExtractionFacet(),
+        reactCodegenFacet(),
       ]);
       const matched = system.codegenFacets.find((a) => a.match("src/App.vue"));
       expect(matched?.extensions).toContain(".vue");
@@ -322,10 +328,10 @@ describe("Facet Resolution Engine", () => {
 
     it("react codegen match works correctly", () => {
       const { system } = resolveFacets([
-        vueExtractionFacet,
-        vueCodegenFacet,
-        reactExtractionFacet,
-        reactCodegenFacet,
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        reactExtractionFacet(),
+        reactCodegenFacet(),
       ]);
       const matched = system.codegenFacets.find((a) => a.match("src/Button.tsx"));
       expect(matched?.extensions).toContain(".tsx");
@@ -339,11 +345,11 @@ describe("Facet Resolution Engine", () => {
         entryTargets: ["my-custom-entry"],
       };
       const { system } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        nextjsExtractionFacet,
-        nextjsSsrFacet,
-        nextjsRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        nextjsExtractionFacet(),
+        nextjsSsrFacet(),
+        nextjsRuntimeFacet(),
         customSsr,
       ]);
       expect(system.ssrEntryTargets).toContain("virtual:vinext-rsc-entry");
@@ -375,7 +381,7 @@ describe("Facet Resolution Engine", () => {
 
   describe("codegen adapter behavior", () => {
     it("react wrapJsxRichText wraps with dangerouslySetInnerHTML", () => {
-      const { system } = resolveFacets([reactExtractionFacet, reactCodegenFacet]);
+      const { system } = resolveFacets([reactExtractionFacet(), reactCodegenFacet()]);
       const reactCodegen = system.codegenFacets.find((a) => a.extensions.includes(".tsx"))!;
       expect(reactCodegen.wrapJsxRichText?.("<b>hello</b>")).toBe(
         `<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: <b>hello</b> }} />`,
@@ -383,19 +389,19 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("vue wrapHtmlText with tags uses v-html", () => {
-      const { system } = resolveFacets([vueExtractionFacet, vueCodegenFacet]);
+      const { system } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
       expect(vueCodegen.wrapHtmlText?.("text", true, true)).toBe(`<span v-html="text"></span>`);
     });
 
     it("vue wrapHtmlText without tags uses mustache", () => {
-      const { system } = resolveFacets([vueExtractionFacet, vueCodegenFacet]);
+      const { system } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
       expect(vueCodegen.wrapHtmlText?.("t('key')", false, true)).toBe(`{{ t('key') }}`);
     });
 
     it("vue wrapHtmlAttribute uses :attr binding", () => {
-      const { system } = resolveFacets([vueExtractionFacet, vueCodegenFacet]);
+      const { system } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
       expect(vueCodegen.wrapHtmlAttribute?.("title", "t('myTitle')", true)).toBe(
         `:title="t('myTitle')"`,
@@ -403,19 +409,19 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("svelte wrapHtmlText with tags uses {@html}", () => {
-      const { system } = resolveFacets([svelteExtractionFacet, svelteCodegenFacet]);
+      const { system } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
       expect(svelteCodegen.wrapHtmlText?.("text", true, true)).toBe(`{@html text }`);
     });
 
     it("svelte wrapHtmlText without tags uses { expr }", () => {
-      const { system } = resolveFacets([svelteExtractionFacet, svelteCodegenFacet]);
+      const { system } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
       expect(svelteCodegen.wrapHtmlText?.("t('key')", false, true)).toBe(`{ t('key') }`);
     });
 
     it("svelte wrapHtmlAttribute uses attr={} binding", () => {
-      const { system } = resolveFacets([svelteExtractionFacet, svelteCodegenFacet]);
+      const { system } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
       expect(svelteCodegen.wrapHtmlAttribute?.("title", "t('myTitle')", true)).toBe(
         `title={t('myTitle')}`,
@@ -423,7 +429,7 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("vue wrapSfcScript wraps with script setup", () => {
-      const { system } = resolveFacets([vueExtractionFacet, vueCodegenFacet]);
+      const { system } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
       expect(vueCodegen.wrapSfcScript?.('import { t } from "zintl"')).toBe(
         `<script setup lang="ts">\nimport { t } from "zintl"</script>\n`,
@@ -431,7 +437,7 @@ describe("Facet Resolution Engine", () => {
     });
 
     it("svelte wrapSfcScript wraps with script", () => {
-      const { system } = resolveFacets([svelteExtractionFacet, svelteCodegenFacet]);
+      const { system } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
       expect(svelteCodegen.wrapSfcScript?.('import { t } from "zintl"')).toBe(
         `<script>\nimport { t } from "zintl"</script>\n`,
@@ -468,11 +474,11 @@ describe("Facet Resolution Engine", () => {
   describe("SSR adapter behavior", () => {
     it("nextjs ssrWrapCode wraps export function render()", () => {
       const { system } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        nextjsExtractionFacet,
-        nextjsSsrFacet,
-        nextjsRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        nextjsExtractionFacet(),
+        nextjsSsrFacet(),
+        nextjsRuntimeFacet(),
       ]);
       const code = `export async function render(url, manifest) { return "<html>" }`;
       const result = system.ssrWrapCode?.({
@@ -489,11 +495,11 @@ describe("Facet Resolution Engine", () => {
 
     it("nextjs ssrWrapCode is idempotent (skips already-wrapped code)", () => {
       const { system } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        nextjsExtractionFacet,
-        nextjsSsrFacet,
-        nextjsRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        nextjsExtractionFacet(),
+        nextjsSsrFacet(),
+        nextjsRuntimeFacet(),
       ]);
       const code = `export async function render(url) { return "" }`;
       const wrapped = system.ssrWrapCode!({
@@ -516,11 +522,11 @@ describe("Facet Resolution Engine", () => {
 
     it("nextjs ssrWrapCode skips non-entry files", () => {
       const { system } = resolveFacets([
-        reactExtractionFacet,
-        reactCodegenFacet,
-        nextjsExtractionFacet,
-        nextjsSsrFacet,
-        nextjsRuntimeFacet,
+        reactExtractionFacet(),
+        reactCodegenFacet(),
+        nextjsExtractionFacet(),
+        nextjsSsrFacet(),
+        nextjsRuntimeFacet(),
       ]);
       const code = `export function render() {}`;
       const result = system.ssrWrapCode?.({
@@ -531,6 +537,51 @@ describe("Facet Resolution Engine", () => {
         sourceLocale: "en",
       });
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("compound facets", () => {
+    it("reactFacet compiles to reactExtractionFacet and reactCodegenFacet", () => {
+      const facets = reactFacet();
+      expect(facets.length).toBe(2);
+      expect(facets[0].name).toBe("react-extraction");
+      expect(facets[1].name).toBe("react-codegen");
+    });
+
+    it("vueFacet compiles to vueExtractionFacet and vueCodegenFacet", () => {
+      const facets = vueFacet();
+      expect(facets.length).toBe(2);
+      expect(facets[0].name).toBe("vue-extraction");
+      expect(facets[1].name).toBe("vue-codegen");
+    });
+
+    it("svelteFacet compiles to svelteExtractionFacet and svelteCodegenFacet", () => {
+      const facets = svelteFacet();
+      expect(facets.length).toBe(2);
+      expect(facets[0].name).toBe("svelte-extraction");
+      expect(facets[1].name).toBe("svelte-codegen");
+    });
+
+    it("htmlFacet compiles to htmlExtractionFacet and htmlProjectionFacet", () => {
+      const facets = htmlFacet();
+      expect(facets.length).toBe(2);
+      expect(facets[0].name).toBe("html-extraction");
+      expect(facets[1].name).toBe("system-html-projection");
+    });
+
+    it("nextjsFacet compiles to extraction, ssr, and runtime facets", () => {
+      const facets = nextjsFacet();
+      expect(facets.length).toBe(3);
+      expect(facets[0].name).toBe("nextjs-extraction");
+      expect(facets[1].name).toBe("nextjs-ssr-wrapping");
+      expect(facets[2].name).toBe("nextjs-runtime");
+    });
+
+    it("ssrFacet compiles to ssr-wrapping and ssr-runtime facets", () => {
+      const facets = ssrFacet();
+      expect(facets.length).toBe(2);
+      expect(facets[0].name).toBe("ssr-wrapping");
+      expect(facets[1].name).toBe("ssr-runtime");
     });
   });
 });

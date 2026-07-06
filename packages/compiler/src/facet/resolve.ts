@@ -17,9 +17,6 @@ import {
   type MustacheRule,
 } from "@zintl/extractor";
 
-import { htmlExtractionFacet, createHtmlProjectionFacet } from "./presets/html.js";
-import { createAssetFacet } from "./presets/assets.js";
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Merge Helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -442,18 +439,6 @@ export interface ResolvedFacets {
  */
 export function resolveFacets(facets: ZintlFacet[] = []): ResolvedFacets {
   const baseFacets = [...facets];
-
-  const hasHtml = facets.some(
-    (f) => f && (f.name === "html-extraction" || f.name === "system-html-projection"),
-  );
-  if (!hasHtml) {
-    baseFacets.push(htmlExtractionFacet, createHtmlProjectionFacet());
-  }
-
-  const hasAssets = facets.some((f) => f && f.name === "system-static-assets");
-  if (!hasAssets) {
-    baseFacets.push(createAssetFacet());
-  }
 
   // 1. Sort descending by priority (default: 0)
   const sorted = [...baseFacets].sort((a, b) => {

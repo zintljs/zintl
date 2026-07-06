@@ -28,13 +28,14 @@ export interface ZintlConfig {
   outputDir: string;
   isDev: boolean;
   root: string;
+  extensions?: string[];
+
   catalogFormat?: string | ((ctx: any) => string);
   similarityThreshold?: number;
   logLevel?: LogLevel;
   debug?: boolean | string;
   bakedLocale?: string;
   multiplex?: boolean;
-  extensions?: string[];
 
   // ── Resolved Facet State (Phase 2+) ────────────────────────────────
   /**

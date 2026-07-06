@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { apply } from "../../pipeline/apply.js";
-import {
-  resolveFacets,
-  vueExtractionFacet,
-  vueCodegenFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-} from "../../facet/index.js";
+import { resolveFacets, vueFacet, svelteFacet } from "../../facet/index.js";
 import MagicString from "magic-string";
 import type { ResolvedPlan } from "../../pipeline/types.js";
 
@@ -17,12 +11,9 @@ const mockLogger = {
   error: () => {},
 } as any;
 
-const { capabilities, system, facets } = resolveFacets([
-  vueExtractionFacet,
-  vueCodegenFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-]);
+const { capabilities, system, facets } = resolveFacets(
+  [vueFacet(), svelteFacet()].flat(Infinity) as any,
+);
 
 const mockConfig = {
   sourceLocale: "en",

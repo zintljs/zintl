@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import {
-  ZintlCompiler,
-  vueExtractionFacet,
-  vueCodegenFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-} from "../index.js";
+import { ZintlCompiler, vueFacet, svelteFacet, viteFacet } from "../index.js";
 import { join } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
@@ -25,8 +19,7 @@ describe("SFC Integration Tests", () => {
         sourceLocale: "en",
         locales: ["en", "ar"],
         outputDir: "locales",
-        facets: [vueExtractionFacet, vueCodegenFacet, svelteExtractionFacet, svelteCodegenFacet],
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue", ".svelte"],
+        facets: [viteFacet(), vueFacet(), svelteFacet()],
       },
       root,
       true, // isDev
@@ -78,8 +71,7 @@ zintl({ locale: "en" });
           sourceLocale: "en",
           locales: ["en", "ar"],
           outputDir: "locales",
-          facets: [vueExtractionFacet, vueCodegenFacet],
-          extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".vue"],
+          facets: [vueFacet()],
         },
         root!,
         false, // Production
@@ -170,8 +162,7 @@ zintl("en");
           sourceLocale: "en",
           locales: ["en", "ar"],
           outputDir: "locales",
-          facets: [svelteExtractionFacet, svelteCodegenFacet],
-          extensions: [".ts", ".tsx", ".js", ".jsx", ".html", ".svelte"],
+          facets: [svelteFacet()],
         },
         root!,
         false, // Production
@@ -222,7 +213,6 @@ zintl("ar");
           sourceLocale: "en",
           locales: ["en", "ar"],
           outputDir: "locales",
-          extensions: [".ts", ".tsx", ".js", ".jsx", ".html"],
         },
         root!,
         false, // Production

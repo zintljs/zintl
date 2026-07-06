@@ -670,7 +670,7 @@ class AssetManager {
 /**
  * Exposes the system static assets facet preset.
  */
-export function createAssetFacet(config: AssetFacetConfig = {}): ZintlFacet {
+export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
   let manager: AssetManager;
 
   const resolvedConfig = {

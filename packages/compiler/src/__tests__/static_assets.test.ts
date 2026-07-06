@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler, createAssetFacet } from "../index.js";
+import { ZintlCompiler, assetsFacet } from "../index.js";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -16,7 +16,7 @@ describe("Zintl Compiler - Static Content Files (Markdown & Text)", () => {
       {
         locales: ["en", "ar", "fr"],
         outputDir: "locales",
-        facets: [createAssetFacet()],
+        facets: [assetsFacet()],
       },
       root,
       true,
@@ -162,7 +162,7 @@ author: Khalid
         locales: ["en", "ar"],
         outputDir: "locales",
         facets: [
-          createAssetFacet({
+          assetsFacet({
             targets: [
               "md",
               {
@@ -210,7 +210,7 @@ author: Khalid
         locales: ["en", "ar"],
         outputDir: "locales",
         catalogFormat: "translations/[locale].json",
-        facets: [createAssetFacet({ targets: ["png"] })],
+        facets: [assetsFacet({ targets: ["png"] })],
       },
       root,
       true,
@@ -237,7 +237,7 @@ author: Khalid
         locales: ["en", "ar"],
         outputDir: "locales",
         facets: [
-          createAssetFacet({
+          assetsFacet({
             targets: [
               {
                 targetPattern: "src/docs/custom.txt",
@@ -362,7 +362,7 @@ author: Khalid
         locales: ["en", "ar"],
         outputDir: "locales",
         catalogFormat: "translations/[locale].json",
-        facets: [createAssetFacet({ targets: ["png"] })],
+        facets: [assetsFacet({ targets: ["png"] })],
       },
       root,
       true,

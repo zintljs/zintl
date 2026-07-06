@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vite-plus/test";
 import { resolveFacets } from "@zintl/compiler";
 import { join } from "node:path";
-import { createHandlebarsFacet, createMultiBrandThemeFacet } from "../../index.js";
+import { handlebarsFacet, multiBrandThemeFacet } from "../../index.js";
 
 describe("Custom Facets Stress Tests", () => {
   describe("Handlebars Extraction & Codegen Facet", () => {
     it("resolves sfc extraction rules and matches .hbs extensions", () => {
-      const facet = createHandlebarsFacet();
+      const facet = handlebarsFacet();
       const { system } = resolveFacets([...facet]);
 
       expect(system.extensions).toContain(".hbs");
@@ -21,7 +21,7 @@ describe("Custom Facets Stress Tests", () => {
           locales: ["en", "ar"],
           outputDir: "./src/i18n",
           verifyIntegrity: false,
-          facets: [createHandlebarsFacet()],
+          facets: [handlebarsFacet()],
         },
         root,
         true,
@@ -48,7 +48,7 @@ describe("Custom Facets Stress Tests", () => {
 
   describe("Multi-Brand Theme Facet", () => {
     it("registers brand virtual boundary and acts as content facet", () => {
-      const facet = createMultiBrandThemeFacet();
+      const facet = multiBrandThemeFacet();
       const { system } = resolveFacets([facet]);
 
       expect(system.contentFacets.some((a) => a.name === "multi-brand-theme-facet")).toBe(true);

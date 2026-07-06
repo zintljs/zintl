@@ -1,6 +1,6 @@
 import type { ZintlFacet } from "@zintl/compiler";
 
-export function createHandlebarsFacet(): ZintlFacet[] {
+export function handlebarsFacet(): ZintlFacet[] {
   return [
     {
       name: "handlebars-extraction",

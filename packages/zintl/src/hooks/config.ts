@@ -2,23 +2,16 @@ import type { ResolvedConfig } from "vite";
 import {
   ZintlCompiler,
   type LogLevel,
-  vanillaExtractionFacet,
-  reactExtractionFacet,
-  reactCodegenFacet,
-  vueExtractionFacet,
-  vueCodegenFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-  htmlExtractionFacet,
-  nextjsSsrFacet,
-  nextjsExtractionFacet,
-  nextjsRuntimeFacet,
-  ssrWrappingFacet,
-  ssrRuntimeFacet,
-  clientSpaRuntimeFacet,
-  viteBundlerFacet,
-  createAssetFacet,
-  createHtmlProjectionFacet,
+  vanillaFacet,
+  reactFacet,
+  vueFacet,
+  svelteFacet,
+  htmlFacet,
+  nextjsFacet,
+  ssrFacet,
+  clientSpaFacet,
+  viteFacet,
+  assetsFacet,
 } from "@zintl/compiler";
 import type { ZintlPluginContext } from "../context.js";
 import { isAbsolute, relative, join } from "node:path";
@@ -184,19 +177,13 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
     // Framework detection mapping
     for (const f of detectedFrameworks) {
       if (f === "vue") {
-        autoFacets.push(vueExtractionFacet, vueCodegenFacet);
+        autoFacets.push(vueFacet());
       } else if (f === "react") {
-        autoFacets.push(reactExtractionFacet, reactCodegenFacet);
+        autoFacets.push(reactFacet());
       } else if (f === "svelte") {
-        autoFacets.push(svelteExtractionFacet, svelteCodegenFacet);
+        autoFacets.push(svelteFacet());
       } else if (f === "nextjs") {
-        autoFacets.push(
-          reactExtractionFacet,
-          reactCodegenFacet,
-          nextjsExtractionFacet,
-          nextjsSsrFacet,
-          nextjsRuntimeFacet,
-        );
+        autoFacets.push(reactFacet(), nextjsFacet());
       }
     }
 
@@ -207,20 +194,19 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       (config as any).ssr !== undefined;
 
     if (hasSsr && !detectedFrameworks.includes("nextjs")) {
-      autoFacets.push(ssrWrappingFacet, ssrRuntimeFacet);
+      autoFacets.push(ssrFacet());
     }
 
     // Client SPA sync handling
     if (!detectedFrameworks.includes("nextjs")) {
-      autoFacets.push(clientSpaRuntimeFacet);
+      autoFacets.push(clientSpaFacet());
     }
 
     // Baseline fallbacks
     autoFacets.push(
-      vanillaExtractionFacet,
-      htmlExtractionFacet,
-      createHtmlProjectionFacet(),
-      createAssetFacet({
+      vanillaFacet(),
+      htmlFacet(),
+      assetsFacet({
         targets: ctx.options.assetsTarget,
         virtualAssets: ctx.options.virtualAssets,
       }),
@@ -231,16 +217,13 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
     const facets = flattenFacets(userFacets, autoFacets);
 
     // Always inject the "vite" bundler facet
-    facets.push(viteBundlerFacet);
-
-    const extensions = ctx.options.extensions;
+    facets.push(viteFacet());
 
     ctx.compiler = new ZintlCompiler(
       {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
         facets,
-        extensions,
         logLevel: logLevel as LogLevel,
       },
       config.root,

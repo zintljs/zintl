@@ -37,13 +37,18 @@ export type {
 export type { ResolvedFacets } from "./resolve.js";
 
 // Built-in preset facets (for programmatic use / testing)
-export { vanillaExtractionFacet } from "./presets/vanilla.js";
-export { reactExtractionFacet, reactCodegenFacet } from "./presets/react.js";
-export { vueExtractionFacet, vueCodegenFacet } from "./presets/vue.js";
-export { svelteExtractionFacet, svelteCodegenFacet } from "./presets/svelte.js";
-export { htmlExtractionFacet, createHtmlProjectionFacet } from "./presets/html.js";
-export { nextjsSsrFacet, nextjsExtractionFacet, nextjsRuntimeFacet } from "./presets/nextjs.js";
-export { ssrWrappingFacet, ssrRuntimeFacet } from "./presets/ssr.js";
-export { clientSpaRuntimeFacet } from "./presets/client-spa.js";
-export { viteBundlerFacet } from "./presets/vite.js";
-export { createAssetFacet } from "./presets/assets.js";
+export { vanillaFacet } from "./presets/vanilla.js";
+export { reactExtractionFacet, reactCodegenFacet, reactFacet } from "./presets/react.js";
+export { vueExtractionFacet, vueCodegenFacet, vueFacet } from "./presets/vue.js";
+export { svelteExtractionFacet, svelteCodegenFacet, svelteFacet } from "./presets/svelte.js";
+export { htmlExtractionFacet, htmlProjectionFacet, htmlFacet } from "./presets/html.js";
+export {
+  nextjsSsrFacet,
+  nextjsExtractionFacet,
+  nextjsRuntimeFacet,
+  nextjsFacet,
+} from "./presets/nextjs.js";
+export { ssrWrappingFacet, ssrRuntimeFacet, ssrFacet } from "./presets/ssr.js";
+export { clientSpaFacet } from "./presets/client-spa.js";
+export { viteFacet } from "./presets/vite.js";
+export { assetsFacet } from "./presets/assets.js";

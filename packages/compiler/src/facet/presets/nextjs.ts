@@ -1,4 +1,4 @@
-import type { ZintlFacet, SsrWrapParams } from "../types.js";
+import type { ZintlFacet, SsrWrapParams, TargetDescriptor } from "../types.js";
 
 // ── Next.js SSR wrapping helper ───────────────────────────────────────────────
 
@@ -74,45 +74,81 @@ function nextjsSsrWrapCode(params: SsrWrapParams): string | undefined {
 
 // ── Next.js Contributions ─────────────────────────────────────────────────────
 
-const nextjsExtractionFacet: ZintlFacet = {
-  name: "nextjs-extraction",
-  concern: "extraction",
-  priority: 100,
-  targets: ["jsx:*:aria-label", "jsx:*:aria-description"],
-  extensions: [],
-  suppressionRules: [
-    {
-      match: {
-        types: ["FunctionDeclaration", "VariableDeclarator"],
-        names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
-        isTopLevel: true,
+export interface NextjsExtractionOptions {
+  targets?: TargetDescriptor[];
+  extensions?: string[];
+}
+
+export interface NextjsSsrOptions {
+  entryTargets?: string[];
+  wrapExports?: string[];
+  wrapDefault?: "fetch" | boolean;
+}
+
+export interface NextjsRuntimeOptions {
+  serverRequestScope?: boolean;
+  streamInjection?: boolean;
+}
+
+export interface NextjsFacetOptions
+  extends NextjsExtractionOptions, NextjsSsrOptions, NextjsRuntimeOptions {}
+
+export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): ZintlFacet {
+  return {
+    name: "nextjs-extraction",
+    concern: "extraction",
+    priority: 100,
+    targets: (options.targets || [
+      "jsx:*:aria-label",
+      "jsx:*:aria-description",
+    ]) as TargetDescriptor[],
+    extensions: options.extensions || [],
+    suppressionRules: [
+      {
+        match: {
+          types: ["FunctionDeclaration", "VariableDeclarator"],
+          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
+          isTopLevel: true,
+        },
+        bypassIf: "hasAnchor",
       },
-      bypassIf: "hasAnchor",
-    },
-  ],
-};
+    ],
+  };
+}
 
-const nextjsSsrFacet: ZintlFacet = {
-  name: "nextjs-ssr-wrapping",
-  concern: "ssr",
-  priority: 100,
-  entryTargets: [
-    "virtual:vinext-rsc-entry",
-    "virtual:vinext-server-entry",
-    "virtual:vinext-app-ssr-entry",
-    "app-ssr-entry",
-  ],
-  wrapCode: nextjsSsrWrapCode,
-  wrapExports: ["renderPage", "handleApiRoute", "runMiddleware", "handleSsr"],
-  wrapDefault: "fetch",
-};
+export function nextjsSsrFacet(options: NextjsSsrOptions = {}): ZintlFacet {
+  return {
+    name: "nextjs-ssr-wrapping",
+    concern: "ssr",
+    priority: 100,
+    entryTargets: options.entryTargets || [
+      "virtual:vinext-rsc-entry",
+      "virtual:vinext-server-entry",
+      "virtual:vinext-app-ssr-entry",
+      "app-ssr-entry",
+    ],
+    wrapCode: nextjsSsrWrapCode,
+    wrapExports: options.wrapExports || [
+      "renderPage",
+      "handleApiRoute",
+      "runMiddleware",
+      "handleSsr",
+    ],
+    wrapDefault: options.wrapDefault !== undefined ? options.wrapDefault : "fetch",
+  };
+}
 
-const nextjsRuntimeFacet: ZintlFacet = {
-  name: "nextjs-runtime",
-  concern: "runtime",
-  priority: 100,
-  serverRequestScope: true,
-  streamInjection: true,
-};
+export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFacet {
+  return {
+    name: "nextjs-runtime",
+    concern: "runtime",
+    priority: 100,
+    serverRequestScope:
+      options.serverRequestScope !== undefined ? options.serverRequestScope : true,
+    streamInjection: options.streamInjection !== undefined ? options.streamInjection : true,
+  };
+}
 
-export { nextjsSsrFacet, nextjsExtractionFacet, nextjsRuntimeFacet };
+export function nextjsFacet(options: NextjsFacetOptions = {}): ZintlFacet[] {
+  return [nextjsExtractionFacet(options), nextjsSsrFacet(options), nextjsRuntimeFacet(options)];
+}

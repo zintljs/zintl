@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ZintlFacet } from "@zintl/compiler";
 
-export function createMultiBrandThemeFacet(): ZintlFacet {
+export function multiBrandThemeFacet(): ZintlFacet {
   async function getTranslations(locale: string, context: any) {
     context.logger.info(`MultiBrandThemeFacet loading all brands for locale: ${locale}`);
     const brandFolder = join(context.root, "brand-overrides");

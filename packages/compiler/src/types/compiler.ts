@@ -25,7 +25,6 @@ export interface CompilerOptions {
   prune?: boolean;
   verifyIntegrity?: boolean;
   multiplex?: boolean;
-  extensions?: string[];
   /**
    * Resolved compiler facets list.
    */

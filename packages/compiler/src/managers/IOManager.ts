@@ -33,8 +33,7 @@ export class IOManager {
     resolvedExtensions?: string[],
     resolvedFacets?: any[],
   ) {
-    this.extensions = resolvedExtensions ||
-      _options.extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+    this.extensions = resolvedExtensions || [];
     this.facets =
       resolvedFacets ||
       resolveFacets(((_options.facets || []) as any).flat(Infinity) as any[]).facets;

@@ -1,4 +1,5 @@
 import type { TargetDescriptor, SfcRule, SuppressionRule, MustacheRule } from "@zintl/extractor";
+export type { TargetDescriptor };
 import type { IOManager } from "../managers/IOManager.js";
 import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "../types/compiler.js";

@@ -1,7 +1,7 @@
 import { defineConfig } from "vite-plus";
 import { zintl } from "zintl";
 import { resolve } from "node:path";
-import { createHandlebarsFacet, createMultiBrandThemeFacet } from "@zintl-examples/custom-facets";
+import { handlebarsFacet, multiBrandThemeFacet } from "@zintl-examples/custom-facets";
 
 export default defineConfig({
   plugins: [
@@ -11,7 +11,7 @@ export default defineConfig({
       outputDir: "./src/i18n",
       catalogFormat: "[path].[locale].json",
       verifyIntegrity: false,
-      facets: ["auto", createHandlebarsFacet(), createMultiBrandThemeFacet()],
+      facets: ["auto", handlebarsFacet(), multiBrandThemeFacet()],
     }) as any,
     {
       name: "hbs-compiler",

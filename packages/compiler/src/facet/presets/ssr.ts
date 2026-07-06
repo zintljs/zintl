@@ -66,25 +66,48 @@ function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   return undefined;
 }
 
+export interface SsrWrappingOptions {
+  entryTargets?: string[];
+  wrapExports?: string[];
+  wrapDefault?: "fetch" | boolean;
+}
+
+export interface SsrRuntimeOptions {
+  serverRequestScope?: boolean;
+  streamInjection?: boolean;
+}
+
+export interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {}
+
 /**
  * SSR wrapping contribution.
  */
-const ssrWrappingFacet: ZintlFacet = {
-  name: "ssr-wrapping",
-  concern: "ssr",
-  priority: 100,
-  wrapCode: genericSsrWrapCode,
-};
+export function ssrWrappingFacet(options: SsrWrappingOptions = {}): ZintlFacet {
+  return {
+    name: "ssr-wrapping",
+    concern: "ssr",
+    priority: 100,
+    wrapCode: genericSsrWrapCode,
+    ...(options.entryTargets ? { entryTargets: options.entryTargets } : {}),
+    ...(options.wrapExports ? { wrapExports: options.wrapExports } : {}),
+    ...(options.wrapDefault ? { wrapDefault: options.wrapDefault } : {}),
+  };
+}
 
 /**
  * SSR runtime capability contribution.
  */
-const ssrRuntimeFacet: ZintlFacet = {
-  name: "ssr-runtime",
-  concern: "runtime",
-  priority: 100,
-  serverRequestScope: true,
-  streamInjection: true,
-};
+export function ssrRuntimeFacet(options: SsrRuntimeOptions = {}): ZintlFacet {
+  return {
+    name: "ssr-runtime",
+    concern: "runtime",
+    priority: 100,
+    serverRequestScope:
+      options.serverRequestScope !== undefined ? options.serverRequestScope : true,
+    streamInjection: options.streamInjection !== undefined ? options.streamInjection : true,
+  };
+}
 
-export { ssrWrappingFacet, ssrRuntimeFacet };
+export function ssrFacet(options: SsrFacetOptions = {}): ZintlFacet[] {
+  return [ssrWrappingFacet(options), ssrRuntimeFacet(options)];
+}

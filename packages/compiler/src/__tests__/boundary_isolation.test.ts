@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler, viteBundlerFacet } from "../index.js";
+import { ZintlCompiler, viteFacet } from "../index.js";
 import { join } from "node:path";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
 
@@ -28,7 +28,7 @@ describe("Zintl Compiler: Boundary Isolation", () => {
         locales: ["en", "ar"],
         outputDir: "locales",
         logLevel: "silent",
-        facets: [viteBundlerFacet],
+        facets: [viteFacet()],
       },
       root,
       true,

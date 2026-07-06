@@ -1,5 +1,5 @@
 import { join, relative, dirname } from "node:path";
-import type { ZintlFacet, CompilerContext } from "../types.js";
+import type { ZintlFacet, CompilerContext, TargetDescriptor } from "../types.js";
 import { IOManager } from "../../managers/IOManager.js";
 import type { CatalogManager } from "../../managers/CatalogManager.js";
 import type { ZintlLogger, HtmlProjectionPayload } from "@zintl/extractor";
@@ -289,29 +289,43 @@ class HtmlManager {
   }
 }
 
-// ── HTML Extraction Contribution ───────────────────────────────────────────────
+export interface HtmlExtractionOptions {
+  targets?: TargetDescriptor[];
+  extensions?: string[];
+}
+
+interface HtmlProjectionOptions {
+  // Option fields can be added in future
+}
+
+export interface HtmlFacetOptions {
+  targets?: TargetDescriptor[];
+  extensions?: string[];
+}
 
 /**
  * HTML extraction contribution.
  * Covers translatable HTML attributes in .html files.
  */
-const htmlExtractionFacet: ZintlFacet = {
-  name: "html-extraction",
-  concern: "extraction",
-  priority: 100,
-  targets: [
-    "html:attr:alt",
-    "html:attr:title",
-    "html:attr:placeholder",
-    "html:attr:aria-label",
-    "html:attr:aria-description",
-    "html:attr:label",
-    "html:attr:description",
-    "html:attr:tooltip",
-    "html:attr:dir",
-  ],
-  extensions: [".html"],
-};
+export function htmlExtractionFacet(options: HtmlExtractionOptions = {}): ZintlFacet {
+  return {
+    name: "html-extraction",
+    concern: "extraction",
+    priority: 100,
+    targets: (options.targets || [
+      "html:attr:alt",
+      "html:attr:title",
+      "html:attr:placeholder",
+      "html:attr:aria-label",
+      "html:attr:aria-description",
+      "html:attr:label",
+      "html:attr:description",
+      "html:attr:tooltip",
+      "html:attr:dir",
+    ]) as TargetDescriptor[],
+    extensions: options.extensions || [".html"],
+  };
+}
 
 function findParentTagStart(html: string, index: number): number {
   let depth = 0;
@@ -362,7 +376,7 @@ function injectDataAttribute(tag: string, attrName: string, attrValue: string): 
  * HTML projection content contribution.
  * Manages HTML schema and catalog updates.
  */
-export function createHtmlProjectionFacet(): ZintlFacet {
+export function htmlProjectionFacet(_options: HtmlProjectionOptions = {}): ZintlFacet {
   let manager: HtmlManager;
 
   const getManager = (context: CompilerContext) => {
@@ -989,4 +1003,6 @@ export function createHtmlProjectionFacet(): ZintlFacet {
   };
 }
 
-export { htmlExtractionFacet };
+export function htmlFacet(options: HtmlFacetOptions = {}): ZintlFacet[] {
+  return [htmlExtractionFacet(options), htmlProjectionFacet(options)];
+}
