@@ -5998,6 +5998,7 @@ function setRunInRequestScope(fn) {
 }
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;

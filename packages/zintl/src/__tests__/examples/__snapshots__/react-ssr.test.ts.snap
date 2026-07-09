@@ -11661,6 +11661,7 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 var storeStorage = null;
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
@@ -12519,6 +12520,7 @@ function setStoreStorage(storage) {
 }
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;

@@ -136,7 +136,7 @@ export class ZintlCompiler {
   private graphDirty = true;
   private readonly extensions: string[];
 
-  private readonly sourceLocale: string;
+  public readonly sourceLocale: string;
   private readonly locales: string[];
   private readonly root: string;
   public readonly isDev: boolean;
@@ -1889,6 +1889,7 @@ export function getRuntimeCode(
     | "store-server",
   capabilities?: ResolvedCapabilities,
   isSsr?: boolean,
+  sourceLocale?: string,
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -1910,5 +1911,14 @@ export function getRuntimeCode(
   if (!existsSync(path)) {
     throw new Error(`[Zintl] Runtime module not found: ${moduleName} (resolved to ${path})`);
   }
-  return readFileSync(path, "utf-8");
+  let code = readFileSync(path, "utf-8");
+  if (cleanName === "store-core" && sourceLocale) {
+    code = code
+      .replace(
+        /sourceLocale\s*:\s*string\s*=\s*["']en["']/g,
+        `sourceLocale: string = "${sourceLocale}"`,
+      )
+      .replace(/sourceLocale\s*=\s*["']en["']/g, `sourceLocale = "${sourceLocale}"`);
+  }
+  return code;
 }

@@ -560,6 +560,7 @@ exports[`Example Proof: vue-basic > should match Final Production Build (dist) s
 var storeStorage = null;
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;

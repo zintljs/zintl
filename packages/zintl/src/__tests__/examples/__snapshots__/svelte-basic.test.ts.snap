@@ -546,6 +546,7 @@ exports[`Example Proof: svelte-basic > should match Final Production Build (dist
 var storeStorage = null;
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;

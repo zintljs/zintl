@@ -5321,6 +5321,7 @@ if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ 
 var storeStorage = null;
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
@@ -6694,6 +6695,7 @@ function setRunInRequestScope(fn) {
 }
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true" || false;

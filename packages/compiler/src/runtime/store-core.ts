@@ -26,6 +26,7 @@ export function setRunInRequestScope(fn: any) {
 
 export class I18nStore {
   locale: string = "";
+  sourceLocale: string = "en";
   catalogs: Catalogs = {};
   locales: string[] = [];
   debug: boolean = (typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true") || false;

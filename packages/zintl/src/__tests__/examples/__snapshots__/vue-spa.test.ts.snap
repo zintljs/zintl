@@ -1119,6 +1119,7 @@ exports[`Example Proof: vue-spa > should match Final Production Build (dist) sna
 var storeStorage = null;
 var I18nStore = class {
 	locale = "";
+	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
