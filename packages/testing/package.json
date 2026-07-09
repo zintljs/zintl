@@ -1,0 +1,30 @@
+{
+  "name": "@zintl/testing",
+  "version": "0.1.0-alpha.5",
+  "description": "Browser laboratory environment for testing Zintl applications",
+  "license": "MIT",
+  "author": "Khalid FSh",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "check": "vp check"
+  },
+  "dependencies": {
+    "@playwright/test": "catalog:",
+    "vite": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@zintl/compiler": "workspace:*",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

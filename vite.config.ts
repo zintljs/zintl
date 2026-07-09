@@ -34,7 +34,7 @@ export default defineConfig({
   lint: { options: { typeAware: true, typeCheck: true } },
   test: {
     globalSetup: "./scripts/cleanup-test.ts",
-    exclude: [...configDefaults.exclude, "**/__tests__/examples/**"],
+    exclude: [...configDefaults.exclude, "**/__tests__/examples/**", "tests/**"],
     coverage: {
       exclude: [
         ...configDefaults.exclude,

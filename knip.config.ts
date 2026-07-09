@@ -2,6 +2,9 @@ import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
   workspaces: {
+    ".": {
+      entry: ["tests/playwright.config.ts", "tests/**/*.spec.ts"],
+    },
     "examples/vinext-*": {
       next: true,
       // ignore: [".vinext/**"],
@@ -26,6 +29,10 @@ const config: KnipConfig = {
     },
     "packages/zintl": {
       entry: ["src/index.ts", "src/macro.ts"],
+      project: ["src/**/*.ts"],
+    },
+    "packages/testing": {
+      entry: "src/index.ts",
       project: ["src/**/*.ts"],
     },
   },

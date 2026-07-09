@@ -4,6 +4,7 @@ packages:
   - tools/*
 
 catalog:
+  "@playwright/test": ^1.49.0
   "@types/node": ^24.13.2
   typescript: ^6.0.3
   knip: latest

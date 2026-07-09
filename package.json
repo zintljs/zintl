@@ -14,6 +14,7 @@
     "examples:build": "vpr --filter='./examples/*' build",
     "examples:test": "vp test --config=vitest.examples.config.ts",
     "examples:ready": "vpr examples:build && vpr examples:test",
+    "test:e2e": "vp exec playwright test --config=tests/playwright.config.ts --project=chromium",
     "bench": "NODE_OPTIONS=\"--expose-gc\" vp test bench --run",
     "bench:write": "WRITE_BASELINE=1 NODE_OPTIONS=\"--expose-gc\" vp test bench --run",
     "deps": "vpx taze@latest -Ilwr",
@@ -29,7 +30,9 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "@playwright/test": "catalog:",
     "@types/node": "catalog:",
+    "@zintl/testing": "workspace:*",
     "knip": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

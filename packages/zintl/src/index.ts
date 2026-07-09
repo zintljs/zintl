@@ -45,6 +45,10 @@ export {
  */
 export function zintl(options: ZintlPluginOptions = {}): any {
   const ctx = new ZintlPluginContext(options);
+  if (typeof globalThis !== "undefined") {
+    (globalThis as any).__zintl_active_contexts = (globalThis as any).__zintl_active_contexts || [];
+    (globalThis as any).__zintl_active_contexts.push(ctx);
+  }
 
   const prePlugin: Plugin = {
     name: "zintl-pre",

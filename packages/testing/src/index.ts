@@ -1,0 +1,12 @@
+export { createLab, type Lab, type LabOptions } from "./environment/lab.js";
+export type { LabBrowser } from "./environment/browser.js";
+export type { LabDevServer } from "./environment/dev-server.js";
+export type { LabFilesystem, FsMutation } from "./environment/filesystem.js";
+export type { LabCompiler } from "./environment/compiler.js";
+export type { LabWebSocket, HmrPacket, WsCapture } from "./environment/websocket.js";
+export type { LabNetwork, CapturedRequest, NetworkCapture } from "./environment/network.js";
+export type { LabConsole, ConsoleMessage, ConsoleCapture } from "./environment/console.js";
+export type { LabClock } from "./environment/clock.js";
+export { LabAssertions } from "./assertions/index.js";
+export { closeSharedBrowser } from "./environment/browser.js";
+export * from "./contracts/index.js";
