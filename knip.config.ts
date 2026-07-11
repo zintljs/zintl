@@ -6,7 +6,7 @@ const config: KnipConfig = {
       entry: ["tests/playwright.config.ts", "tests/**/*.spec.ts"],
       ignoreBinaries: [
         "vpx", // vite-plus companion binary, ships with vite-plus package
-        "vpr",
+        // "vpr",
       ],
       ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
     },
