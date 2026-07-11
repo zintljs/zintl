@@ -4,6 +4,11 @@ const config: KnipConfig = {
   workspaces: {
     ".": {
       entry: ["tests/playwright.config.ts", "tests/**/*.spec.ts"],
+      ignoreBinaries: [
+        "vpx", // vite-plus companion binary, ships with vite-plus package
+        "vpr",
+      ],
+      ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
     },
     "examples/vinext-*": {
       next: true,
@@ -17,7 +22,6 @@ const config: KnipConfig = {
     "examples/vue-*": {
       entry: ["src/{about,main,entry-client,entry-server}.ts"],
       vue: true,
-      ignoreFiles: ["src/**.d.ts"],
     },
     "packages/compiler": {
       entry: ["src/index.ts", "src/runtime/*.ts"],
@@ -28,7 +32,7 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
     "packages/zintl": {
-      entry: ["src/index.ts", "src/macro.ts"],
+      entry: ["src/index.ts", "src/macro.ts", "src/vite.ts"],
       project: ["src/**/*.ts"],
     },
     "packages/testing": {
@@ -36,13 +40,8 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
   },
-  ignoreBinaries: [
-    "vpx", // vite-plus companion binary, ships with vite-plus package
-    "vpr",
-  ],
   ignoreDependencies: ["vite", "@vitest/coverage-v8"],
   exclude: ["catalog"],
-  ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
   vitest: true,
   vite: true,
   pnpm: true,

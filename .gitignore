@@ -29,4 +29,3 @@ dist-ssr
 .perf-bench*
 coverage
 .antigravitycli
-test-results

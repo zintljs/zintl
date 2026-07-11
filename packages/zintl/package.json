@@ -37,6 +37,10 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
+    "./vite": {
+      "types": "./dist/vite.d.mts",
+      "import": "./dist/vite.mjs"
+    },
     "./macro": {
       "types": "./dist/macro.d.mts",
       "import": "./dist/macro.mjs"
@@ -48,13 +52,14 @@
     "provenance": true
   },
   "scripts": {
-    "build": "vp pack src/index.ts src/macro.ts --dts",
-    "dev": "vp pack src/index.ts src/macro.ts --dts --watch",
+    "build": "vp pack",
+    "dev": "vp pack --watch",
     "test": "vp test",
     "check": "vp check"
   },
   "dependencies": {
-    "@zintl/compiler": "workspace:*"
+    "@zintl/compiler": "workspace:*",
+    "unplugin": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -115,3 +115,57 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
     },
   };
 }
+
+export function preTransformIndexHtmlHook(ctx: ZintlPluginContext) {
+  return {
+    order: "pre" as const,
+    handler(html: string, viteCtx: any) {
+      const filename = viteCtx.filename || viteCtx.path || "";
+      const normalizedPath = filename.replace(/\\/g, "/");
+      const parts = normalizedPath.split("?")[0].split("/");
+      const locales = ctx.options.locales || ["en"];
+      const pathParts = (viteCtx.path || "").split("/").filter(Boolean);
+      const isFanned =
+        parts.some((p: string) => locales.includes(p)) ||
+        pathParts.some((p: string) => locales.includes(p)) ||
+        normalizedPath.includes("virtual:zintl-multiplex-html");
+
+      const isMultiplex = ctx.getMultiplex();
+
+      if (isMultiplex && !isFanned) {
+        const localesStr = JSON.stringify(locales);
+        const defaultLocale = ctx.options.sourceLocale || "en";
+        return `<!doctype html>
+<html lang="${defaultLocale}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script id="zintl-multiplex-redirect">
+      (function() {
+        try {
+          const lang = (navigator.language || '${defaultLocale}').split('-')[0];
+          const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const target = supported.includes(lang) ? lang : '${defaultLocale}';
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
+        } catch (e) {
+          const supported = ${localesStr};
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/${defaultLocale}/' + path);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>`;
+      }
+      return html;
+    },
+  };
+}

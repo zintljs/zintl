@@ -1,6 +1,6 @@
 import vinext from "vinext";
 import { defineConfig } from "vite-plus";
-import { zintl } from "zintl";
+import zintl from "zintl/vite";
 
 export default defineConfig({
   plugins: [

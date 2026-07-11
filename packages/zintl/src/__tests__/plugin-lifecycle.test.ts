@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { zintl } from "../index.ts";
+import zintl from "../vite.js";
 
 let mockExistsSync: any = null;
 let mockReadFileSync: any = null;

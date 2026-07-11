@@ -17,7 +17,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as viteBuild, mergeConfig, type InlineConfig, type Rollup } from "vite";
-import { zintl } from "../../index.ts";
+import zintl from "../../vite.js";
 import {
   type TestContext,
   type BuildOutput,

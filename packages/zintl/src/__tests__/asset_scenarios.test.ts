@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vite-plus/test";
 import { createZintlContext } from "./helpers/harness.ts";
 import { sha1 } from "@zintl/compiler";
-
+import zintl from "../vite.js";
 /**
  * High-Fidelity Asset Scenarios Test Suite
  *
@@ -264,7 +264,6 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
       }
 
       const { build: viteBuild } = await import("vite");
-      const { zintl } = await import("../index.ts");
 
       await viteBuild({
         root: zeroDiskCtx.root,

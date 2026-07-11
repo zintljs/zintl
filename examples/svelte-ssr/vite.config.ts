@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { zintl } from "zintl";
+import zintl from "zintl/vite";
 
 // https://vite.dev/config/
 export default defineConfig({

@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-import { zintl } from "zintl";
+import zintl from "zintl/vite";
 import { resolve } from "node:path";
 import { handlebarsFacet, multiBrandThemeFacet } from "@zintl-examples/custom-facets";
 

@@ -52,7 +52,7 @@ import {
   type InlineConfig,
   type Rollup,
 } from "vite";
-import { zintl } from "../../index.ts";
+import zintl from "../../vite.js";
 import {
   type TestContext,
   type BuildOutput,
