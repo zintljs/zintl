@@ -15,7 +15,7 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
@@ -24,7 +24,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "ipaddr.js": "^2.4.0",
     "react-server-dom-webpack": "catalog:",
-    "tailwindcss": "^4.3.1",
+    "tailwindcss": "^4.3.2",
     "typescript": "catalog:",
     "vinext": "catalog:",
     "vite": "catalog:",
