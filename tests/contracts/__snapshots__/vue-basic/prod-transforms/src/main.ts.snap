@@ -1,0 +1,16 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+import { createApp } from "vue";
+
+import "./style.css";
+import App from "./App.vue";
+async function bootstrap() {
+  // 1. Resolve current locale from URL query params or fallback to English
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+
+  // 2. Await zintl locale loading and catalog hydration
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
+  // 3. Mount Vue App after translations are active
+  createApp(App).mount("#app");
+}
+void bootstrap();

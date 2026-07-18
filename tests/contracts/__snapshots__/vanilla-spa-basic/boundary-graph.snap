@@ -1,0 +1,191 @@
+{
+  "entries": [
+    "index.html",
+    "src/main:render"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/main"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/counter:setupCounter": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/counter",
+      "id": "src/counter:setupCounter",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/style.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/typescript.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/icons.svg?raw"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:render"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main:render": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/style.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/typescript.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/icons.svg?raw"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main:render",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

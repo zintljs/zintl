@@ -1,0 +1,372 @@
+{
+  "entries": [
+    "index.html",
+    "src/entry-client.tsx:bootstrap",
+    "src/entry-server.tsx:render"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/entry-client.tsx"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "server": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "node:fs/promises"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "express"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "vite"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "compression"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "sirv"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "dist/server/entry-server"
+        }
+      ],
+      "filePath": "server",
+      "id": "server",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/react.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "getLocale"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx:App": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/react.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "getLocale"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:App",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/entry-client.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "StrictMode"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "hydrateRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/entry-client.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/entry-client.tsx:bootstrap"
+        }
+      ],
+      "filePath": "src/entry-client.tsx",
+      "id": "src/entry-client.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/entry-client.tsx:bootstrap": {
+      "activeLocales": [],
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "StrictMode"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "hydrateRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/entry-client.tsx",
+      "id": "src/entry-client.tsx:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/entry-server.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "renderToString"
+          ],
+          "dynamic": false,
+          "id": "react-dom/server"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/entry-server.tsx:render"
+        }
+      ],
+      "filePath": "src/entry-server.tsx",
+      "id": "src/entry-server.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/entry-server.tsx:render": {
+      "activeLocales": [],
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "renderToString"
+          ],
+          "dynamic": false,
+          "id": "react-dom/server"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/entry-server.tsx",
+      "id": "src/entry-server.tsx:render",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "@vitejs/plugin-react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

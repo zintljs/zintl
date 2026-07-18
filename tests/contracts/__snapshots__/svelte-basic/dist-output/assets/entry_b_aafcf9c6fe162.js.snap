@@ -1,0 +1,21 @@
+//#region \0virtual:zintl/content/es/entry:b_aafcf9c6fe16
+var catalog = {
+	"b_b071a5cc9dda": {
+		"90e40d50": "Comenzar",
+		"b339a4ca": "Edite <code>src/App.svelte</code> y guarde para probar <code>HMR</code>",
+		"9e9cf322": "Documentación",
+		"d0f7666b": "Tus preguntas, respondidas",
+		"e49cb0ee": "Explorar Vite",
+		"824d76b1": "Aprender más",
+		"65ac13a7": "Conéctate con nosotros",
+		"15545bc4": "Únete a la comunidad de Vite",
+		"2200eef1": "Logo de Svelte",
+		"3473a536": "Logo de Vite"
+	},
+	"b_cd9034670a6d": { "aa624128": (params) => {
+		const { count } = params;
+		return `El valor es ${params["count"]}`;
+	} }
+};
+//#endregion
+export { catalog as default };

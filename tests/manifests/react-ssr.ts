@@ -1,8 +1,27 @@
-import type { ExampleManifest } from "@zintl/testing";
+import type { ExampleManifest, ZintlPluginOptions } from "@zintl/testing";
+
+const zintlOptions: ZintlPluginOptions = {
+  sourceLocale: "en",
+  locales: ["en", "ar", "es", "zh"],
+};
 
 export const reactSsr: ExampleManifest = {
   name: "react-ssr",
-  capabilities: ["ssr", "hmr", "locale-switch", "rtl", "boundary-graph"],
+  zintlOptions,
+  buildTargets: [
+    { name: "dist" },
+    { name: "dist-server", overrides: { build: { ssr: "src/entry-server.tsx" } } },
+  ],
+  capabilities: [
+    "ssr",
+    "hmr",
+    "locale-switch",
+    "rtl",
+    "boundary-graph",
+    "transform",
+    "build",
+    "graph",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",

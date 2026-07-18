@@ -1,0 +1,286 @@
+{
+  "entries": [
+    "index.html",
+    "src/main.tsx:bootstrap",
+    "src/main.tsx:f_545"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/main.tsx"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/App.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/react.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx:App": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/react.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:App",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:f_545"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main.tsx:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/main.tsx:f_545": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx:f_545",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "@vitejs/plugin-react"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

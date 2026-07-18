@@ -1,5 +1,29 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import zintl from "../vite.js";
+import rawZintl from "../vite.js";
+
+const getPluginHooks = (p: any) => {
+  const list = Array.isArray(p) ? p : [p];
+  const main = list.find((x) => x.name === "zintl") || list[0];
+  const pre = list.find((x) => x.name === "zintl-pre") || list[0];
+  return {
+    config: main.vite?.config,
+    configResolved: main.vite?.configResolved,
+    configureServer: main.vite?.configureServer,
+    transformIndexHtml: main.vite?.transformIndexHtml || pre.vite?.transformIndexHtml,
+    handleHotUpdate: main.vite?.handleHotUpdate,
+    hotUpdate: main.vite?.hotUpdate,
+    buildStart: main.buildStart,
+    buildEnd: main.buildEnd,
+    resolveId: main.resolveId,
+    load: main.load,
+    transform: main.transform,
+    get __compiler() {
+      return (globalThis as any).__zintl_active_contexts?.slice(-1)[0]?.compiler;
+    },
+  };
+};
+
+const zintl = (options?: any) => getPluginHooks(rawZintl(options));
 
 let mockExistsSync: any = null;
 let mockReadFileSync: any = null;

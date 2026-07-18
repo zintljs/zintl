@@ -1,0 +1,27 @@
+const catalog = {
+    "b_src_components_HelloWorld_vue": {
+      "Get started": "开始",
+      "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+      "Documentation": "文档",
+      "Your questions, answered": "你的问题，已解答",
+      "Explore Vite": "探索 Vite",
+      "Learn more": "了解更多",
+      "Connect with us": "与我们联系",
+      "Join the Vite community": "加入 Vite 社区",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+      "Vue logo": "Vue 图标",
+      "Vite logo": "Vite 图标",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

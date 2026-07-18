@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 
@@ -17,7 +17,8 @@ export const performanceHmrContract: Contract = {
     });
 
     const heading = lab.page.locator(adapter.headingSelector);
-    await expect(heading.first()).toContainText("Perf HMR Works!", { timeout: 10000 });
+    await heading.first().waitFor({ state: "visible", timeout: 10000 });
+    expect(await heading.first().textContent()).toContain("Perf HMR Works!");
 
     const duration = performance.now() - start;
 

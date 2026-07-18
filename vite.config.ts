@@ -31,9 +31,10 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    options: { typeAware: true, typeCheck: true },
+  },
   test: {
-    globalSetup: "./scripts/cleanup-test.ts",
     exclude: [...configDefaults.exclude, "**/__tests__/examples/**", "tests/**"],
     coverage: {
       exclude: [

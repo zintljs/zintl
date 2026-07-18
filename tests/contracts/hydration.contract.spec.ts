@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract, type SsrAdapter } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 
@@ -41,7 +41,8 @@ export const hydrationContract: Contract<SsrAdapter> = {
 
     // 5. Assert the visual heading exists and is correct after hydration
     const heading = lab.page.locator(adapter.headingSelector);
-    await expect(heading).toContainText(adapter.initialHeadingText, { timeout: 10000 });
+    await heading.waitFor({ state: "visible", timeout: 10000 });
+    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
   },
 };
 

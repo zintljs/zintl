@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import type { Lab } from "../environment/lab.js";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -64,7 +64,7 @@ export class LabAssertions {
   }
 
   async textVisible(text: string): Promise<void> {
-    await expect(this.lab.page.locator("body")).toContainText(text);
+    expect(this.lab.page.locator("body")).toContain(text);
   }
 
   async ssrContains(path: string, text: string): Promise<void> {
@@ -73,6 +73,18 @@ export class LabAssertions {
     const html = await res.text();
     if (!html.includes(text)) {
       throw new Error(`SSR HTML from ${url} does not contain: "${text}"`);
+    }
+  }
+
+  async snapshot(name: string, value: string): Promise<void> {
+    const finalName = `${name}.snap`;
+    await expect(value).toMatchFileSnapshot(`./__snapshots__/${finalName}`);
+  }
+
+  async snapshotAll(prefix: string, results: Record<string, string>): Promise<void> {
+    for (const [file, code] of Object.entries(results)) {
+      const finalName = `${file}.snap`;
+      await expect(code).toMatchFileSnapshot(`./__snapshots__/${prefix}/${finalName}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 
@@ -13,7 +13,8 @@ export const syntaxRecoveryContract: Contract = {
 
     // 1. Verify initial text
     const heading = lab.page.locator(adapter.headingSelector);
-    await expect(heading).toContainText(adapter.initialHeadingText, { timeout: 10000 });
+    await heading.waitFor({ state: "visible", timeout: 10000 });
+    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
 
     // 2. Introduce a syntax error at the bottom of the file
     const syntaxErrorToken = "\nconst syntaxErrorToken = ;";
@@ -29,7 +30,8 @@ export const syntaxRecoveryContract: Contract = {
     });
 
     // 4. Assert that the heading successfully updated to "Recovered!" after recovery
-    await expect(heading).toContainText("Recovered!", { timeout: 15000 });
+    await heading.waitFor({ state: "visible", timeout: 15000 });
+    expect(await heading.textContent()).toContain("Recovered!");
   },
 };
 

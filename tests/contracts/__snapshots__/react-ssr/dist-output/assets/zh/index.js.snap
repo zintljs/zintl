@@ -1,0 +1,440 @@
+import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+//#region examples/react-ssr/src/App.tsx?zintl-multiplex=zh
+var import_client = require_client();
+var import_react = require_react();
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/react-ssr/src/App.tsx?zintl-multiplex=zh";
+var locales = [
+	{
+		id: "en",
+		name: "English"
+	},
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+function LocaleSwitcher() {
+	const locale = getLocale() || "en";
+	const handleSwitch = (lang) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = `/${lang}${path === "/" ? "/" : path}`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: locale === l.id ? "active" : "",
+					onClick: () => handleSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 32,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 30,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 41,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+					className: "icon",
+					role: "img",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 44,
+						columnNumber: 13
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 43,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName$1,
+				lineNumber: 42,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 29,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName$1,
+		lineNumber: 48,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 28,
+		columnNumber: 5
+	}, this);
+}
+function App() {
+	const [count, setCount] = (0, import_react.useState)(0);
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 58,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+					className: "hero",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: hero_default,
+							className: "base",
+							width: "170",
+							height: "179",
+							alt: ""
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 61,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: react_default,
+							className: "framework",
+							alt: "React 图标"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 62,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
+							src: vite_default,
+							className: "vite",
+							alt: "Vite 图标"
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 63,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 60,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "开始" }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 66,
+					columnNumber: 11
+				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+					style: { display: "contents" },
+					dangerouslySetInnerHTML: { __html: `编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>` }
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 15
+				}, this) }, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 67,
+					columnNumber: 11
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName$1,
+					lineNumber: 65,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					className: "counter",
+					onClick: () => setCount((count) => count + 1),
+					children: `计数为 ${count}`
+				}, void 0, false, {
+					fileName: _jsxFileName$1,
+					lineNumber: 69,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 59,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 72,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+			id: "next-steps",
+			children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "docs",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 77,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 76,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "文档" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 79,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "您的问题已解答" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 80,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://vite.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+							style: { display: "contents" },
+							dangerouslySetInnerHTML: { __html: `<img class="logo" src="${vite_default}" alt="" /> 探索 Vite` }
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 83,
+							columnNumber: 60
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 83,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 82,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+						href: "https://react.dev/",
+						target: "_blank",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
+							style: { display: "contents" },
+							dangerouslySetInnerHTML: { __html: `<img class="button-icon" src="${react_default}" alt="" /> 了解更多` }
+						}, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 86,
+							columnNumber: 61
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 86,
+						columnNumber: 15
+					}, this) }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 85,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 81,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 75,
+				columnNumber: 9
+			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "social",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+						className: "icon",
+						role: "presentation",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 92,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 91,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "与我们联系" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 94,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "加入 Vite 社区" }, void 0, false, {
+						fileName: _jsxFileName$1,
+						lineNumber: 95,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://github.com/vitejs/vite",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 101,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 100,
+								columnNumber: 17
+							}, this), "GitHub"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 99,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 98,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://chat.vite.dev/",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 109,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 108,
+								columnNumber: 17
+							}, this), "Discord"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 107,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 106,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://x.com/vite_js",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 117,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 116,
+								columnNumber: 17
+							}, this), "X.com"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 115,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 114,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
+							href: "https://bsky.app/profile/vite.dev",
+							target: "_blank",
+							children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+								className: "button-icon",
+								role: "presentation",
+								"aria-hidden": "true",
+								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
+									fileName: _jsxFileName$1,
+									lineNumber: 125,
+									columnNumber: 19
+								}, this)
+							}, void 0, false, {
+								fileName: _jsxFileName$1,
+								lineNumber: 124,
+								columnNumber: 17
+							}, this), "Bluesky"]
+						}, void 0, true, {
+							fileName: _jsxFileName$1,
+							lineNumber: 123,
+							columnNumber: 15
+						}, this) }, void 0, false, {
+							fileName: _jsxFileName$1,
+							lineNumber: 122,
+							columnNumber: 13
+						}, this)
+					] }, void 0, true, {
+						fileName: _jsxFileName$1,
+						lineNumber: 97,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName$1,
+				lineNumber: 90,
+				columnNumber: 9
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName$1,
+			lineNumber: 74,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 134,
+			columnNumber: 7
+		}, this),
+		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
+			fileName: _jsxFileName$1,
+			lineNumber: 135,
+			columnNumber: 7
+		}, this)
+	] }, void 0, true, {
+		fileName: _jsxFileName$1,
+		lineNumber: 57,
+		columnNumber: 5
+	}, this);
+}
+//#endregion
+//#region examples/react-ssr/src/entry-client.tsx?zintl-multiplex=zh
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/entry-client.tsx?zintl-multiplex=zh";
+async function bootstrap() {
+	(0, import_client.hydrateRoot)(document.getElementById("root"), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_react.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(App, {}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 12,
+		columnNumber: 7
+	}, this) }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 5
+	}, this));
+}
+bootstrap();
+//#endregion

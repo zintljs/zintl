@@ -1,0 +1,43 @@
+export default (() => {
+  const manager = { id: "b_src_main_render", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_main_render": {
+      "Get started": "Get started",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
+      "Documentation": "Documentation",
+      "Your questions, answered": "Your questions, answered",
+      "Explore Vite": "Explore Vite",
+      "Learn more": "Learn more",
+      "Connect with us": "Connect with us",
+      "Join the Vite community": "Join the Vite community",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `Count is ${params['counter']}`;
+  },
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_src_main_render").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_src_main_render").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_src_main_render").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}

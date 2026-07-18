@@ -1,4 +1,5 @@
 import type { Lab } from "../environment/lab.js";
+import type { ZintlPluginOptions, BuildTarget } from "../environment/driver.js";
 
 export type Capability =
   | "spa"
@@ -11,7 +12,10 @@ export type Capability =
   | "locale-switch-stress"
   | "chaos"
   | "memory"
-  | "performance";
+  | "performance"
+  | "transform"
+  | "build"
+  | "graph";
 
 export interface BaseAdapter {
   /** Navigate to the app's initial state with source locale */
@@ -43,6 +47,24 @@ export interface ExampleManifest {
   capabilities: Capability[];
   /** The adapter for this example */
   adapter: BaseAdapter & Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter>;
+
+  /**
+   * Zintl compiler options — single source of truth for tests.
+   * Import ZintlPluginOptions from `zintl` in each manifest.
+   */
+  zintlOptions: ZintlPluginOptions;
+
+  /**
+   * Build targets for this example. Defaults to [{ name: "dist" }].
+   * SSR examples declare both client and server targets.
+   *
+   * @example
+   * buildTargets: [
+   *   { name: "dist" },
+   *   { name: "dist-server", overrides: { build: { ssr: "src/entry-server.tsx" } } },
+   * ]
+   */
+  buildTargets?: BuildTarget[];
 }
 
 export interface Contract<TAdapter = BaseAdapter> {
@@ -52,6 +74,6 @@ export interface Contract<TAdapter = BaseAdapter> {
   readonly description: string;
   /** The capabilities this contract requires */
   readonly requires: ReadonlyArray<Capability>;
-  /** The invariant steps */
-  execute(lab: Lab, adapter: TAdapter): Promise<void>;
+  /** The invariant steps — manifest is the third arg for build/compile contracts */
+  execute(lab: Lab, adapter: TAdapter, manifest: ExampleManifest): Promise<void>;
 }

@@ -1,0 +1,223 @@
+{
+  "entries": [
+    "index.html",
+    "src/lib/LocaleSwitcher.svelte:f_523",
+    "src/main:bootstrap"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/main"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/App.svelte": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/svelte.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/lib/Counter.svelte"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/lib/LocaleSwitcher.svelte"
+        }
+      ],
+      "filePath": "src/App.svelte",
+      "id": "src/App.svelte",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/lib/Counter.svelte": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/lib/Counter.svelte",
+      "id": "src/lib/Counter.svelte",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/lib/LocaleSwitcher.svelte": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/lib/LocaleSwitcher.svelte:f_523"
+        }
+      ],
+      "filePath": "src/lib/LocaleSwitcher.svelte",
+      "id": "src/lib/LocaleSwitcher.svelte",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/lib/LocaleSwitcher.svelte:f_523": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/lib/LocaleSwitcher.svelte",
+      "id": "src/lib/LocaleSwitcher.svelte:f_523",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/main": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "mount"
+          ],
+          "dynamic": false,
+          "id": "svelte"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.svelte"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "mount"
+          ],
+          "dynamic": false,
+          "id": "svelte"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.svelte"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintl/macro"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite"
+        },
+        {
+          "bindings": [
+            "svelte"
+          ],
+          "dynamic": false,
+          "id": "@sveltejs/vite-plugin-svelte"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

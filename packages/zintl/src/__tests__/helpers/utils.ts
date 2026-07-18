@@ -6,9 +6,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import type { InlineConfig, Rollup } from "vite";
+import type { Rollup } from "vite";
 import { expect } from "vite-plus/test";
 import { generateMessageId } from "@zintl/compiler";
 
@@ -71,76 +69,9 @@ export const BASE_TEST_OVERRIDES = {
   minify: false, // human-readable output → meaningful snapshot diffs
   sourcemap: false,
 } as const;
-
-export const TEST_DEFINES = {
-  "process.env.NODE_ENV": JSON.stringify("production"),
-  "import.meta.env.DEV": "false",
-} as const;
-
-/**
- * Additional output overrides that are only safe for lib-mode builds.
- * Applying entryFileNames/chunkFileNames to an HTML-entry app build causes
- * Rolldown to fail because the app pipeline manages output names differently.
- */
-const LIB_OUTPUT_OVERRIDES = {
-  rollupOptions: {
-    output: {
-      entryFileNames: "[name].js",
-      chunkFileNames: "[name].js",
-      assetFileNames: "[name].[ext]",
-    },
-  },
-} as const;
-
-/**
- * Returns the correct set of test-mode build overrides for a given resolved
- * config. App-mode builds (index.html entry, no build.lib) only get the base
- * overrides; lib-mode builds additionally get stable hash-free output names.
- */
-export function buildTestOverrides(
-  config: InlineConfig,
-  root: string,
-): Partial<InlineConfig["build"]> {
-  const isLibMode = !!(config.build as any)?.lib;
-  const hasHtmlEntry = !isLibMode && existsSync(join(root, "index.html"));
-
-  if (isLibMode || !hasHtmlEntry) {
-    // Lib mode or no HTML — safe to lock down output filenames
-    return { ...BASE_TEST_OVERRIDES, ...LIB_OUTPUT_OVERRIDES };
-  }
-
-  // App mode (index.html entry) — lock down JS output filenames nested under assets/ to prevent hash drifts in snapshots without affecting assets/HTML fanning
-  return {
-    ...BASE_TEST_OVERRIDES,
-    rollupOptions: {
-      output: {
-        entryFileNames: "assets/[name].js",
-        chunkFileNames: "assets/[name].js",
-      },
-    },
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Monorepo root resolution
 // ---------------------------------------------------------------------------
-
-/**
- * Walk up from `startDir` until we find a directory containing a
- * `pnpm-workspace.yaml` (or `pnpm-lock.yaml`) — that's the monorepo root.
- * Falls back to `startDir` if nothing is found within 10 levels.
- */
-export function findMonorepoRoot(startDir: string): string {
-  const markers = ["pnpm-workspace.yaml", "pnpm-lock.yaml", "turbo.json", "lerna.json"];
-  let dir = startDir;
-  for (let i = 0; i < 10; i++) {
-    if (markers.some((m) => existsSync(join(dir, m)))) return dir;
-    const parent = join(dir, "..");
-    if (parent === dir) break; // reached filesystem root
-    dir = parent;
-  }
-  return startDir;
-}
 
 // ---------------------------------------------------------------------------
 // Output collection

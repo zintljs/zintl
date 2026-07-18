@@ -177,28 +177,43 @@ export class LabFilesystem {
         console.error(`[FS Restore Error] Failed to restore mutation:`, m, err);
       }
     }
+
     this._mutations = [];
 
     // 2. Restore JSON translation catalogs to their original/pristine states
-    const currentJsonFiles = await this.findJsonFiles(this.exampleRoot);
-    for (const file of currentJsonFiles) {
-      if (this.catalogBackups.has(file)) {
-        const originalContent = this.catalogBackups.get(file)!;
-        const currentContent = await readFile(file, "utf-8").catch(() => "");
-        if (currentContent !== originalContent) {
-          await writeFile(file, originalContent, "utf-8");
-        }
-      } else {
-        // File was created during the test, clean it up
-        await unlink(file).catch(() => {});
-      }
-    }
+    // const currentJsonFiles = await this.findJsonFiles(this.exampleRoot);
+
+    // for (const file of currentJsonFiles) {
+    //   if (this.catalogBackups.has(file)) {
+    //     const originalContent = this.catalogBackups.get(file)!;
+    //     const currentContent = await readFile(file, "utf-8").catch(() => "");
+    //     if (currentContent !== originalContent) {
+    //       await writeFile(file, originalContent, "utf-8");
+    //     }
+    //   } else {
+    //     // File was created during the test, clean it up
+    //     await unlink(file).catch(() => {
+    //       console.log("FILE: ", file, " could not be deleted");
+    //     });
+    //   }
+    // }
 
     // 3. Recreate any JSON files that were deleted during the test
-    for (const [file, originalContent] of this.catalogBackups.entries()) {
-      if (!existsSync(file)) {
-        await writeFile(file, originalContent, "utf-8");
-      }
-    }
+    // for (const [file, originalContent] of this.catalogBackups.entries()) {
+    //   if (!existsSync(file)) {
+    //     await mkdir(dirname(file), { recursive: true });
+    //     await writeFile(file, originalContent, "utf-8");
+    //   }
+    // }
+
+    // 4. Clean up compiler metadata directory in node_modules/.zintl to clear boundary graph cache
+    // const metadataDir = join(this.exampleRoot, "node_modules", ".zintl");
+    // if (existsSync(metadataDir)) {
+    //   await rm(metadataDir, { recursive: true, force: true }).catch(() => {});
+    // }
+
+    // if (this.onMutationCallback) {
+    //   await this.onMutationCallback();
+    // }
   }
 }

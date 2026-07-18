@@ -12,6 +12,9 @@ import { LabNetwork } from "./network.js";
 import { LabConsole } from "./console.js";
 import { LabClock } from "./clock.js";
 import { LabAssertions } from "../assertions/index.js";
+import { LabPipeline } from "./pipeline.js";
+import type { ZintlPluginOptions } from "./driver.js";
+import { ViteDriver } from "./vite-driver.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -37,6 +40,11 @@ export interface LabOptions {
   headless?: boolean;
 }
 
+export interface ProjectLabOptions {
+  example: string;
+  zintlOptions: ZintlPluginOptions;
+}
+
 export interface Lab {
   readonly page: Page;
   readonly browser: LabBrowser;
@@ -48,6 +56,8 @@ export interface Lab {
   readonly console: LabConsole;
   readonly clock: LabClock;
   readonly assert: LabAssertions;
+  readonly pipeline: LabPipeline;
+  readonly driver: ViteDriver;
   readonly url: string;
   readonly root: string;
   teardown(): Promise<void>;
@@ -64,31 +74,49 @@ class LabImpl implements Lab {
   readonly console: LabConsole;
   readonly clock: LabClock;
   readonly assert: LabAssertions;
+  readonly pipeline: LabPipeline;
+  readonly driver: ViteDriver;
   readonly url: string;
   readonly root: string;
+  private readonly mode: "dev" | "preview" | "project";
+  // private readonly exampleName: string;
 
   constructor(
-    page: Page,
-    browser: LabBrowser,
-    server: LabDevServer | LabPreviewServer,
+    page: Page | undefined,
+    browser: LabBrowser | undefined,
+    server: LabDevServer | LabPreviewServer | undefined,
     url: string,
     root: string,
-    mode: "dev" | "preview",
+    mode: "dev" | "preview" | "project",
     fs: LabFilesystem,
+    exampleName: string,
+    zintlOptions: ZintlPluginOptions,
   ) {
-    this.page = page;
-    this.browser = browser;
-    this.server = server;
+    this.mode = mode;
+    // this.exampleName = exampleName;
+    const throwNoAccess = (propName: string) => {
+      return new Proxy({} as any, {
+        get() {
+          throw new Error(`Property "${propName}" is not available in project lab mode`);
+        },
+      });
+    };
+
+    this.page = page ?? throwNoAccess("page");
+    this.browser = browser ?? throwNoAccess("browser");
+    this.server = server ?? throwNoAccess("server");
     this.url = url;
     this.root = root;
 
     const devServer = mode === "dev" ? (server as LabDevServer).server : undefined;
-    this.ws = new LabWebSocket(devServer);
-    this.network = new LabNetwork(page);
-    this.console = new LabConsole(page);
-    this.clock = new LabClock(page);
+    this.ws = mode === "project" ? throwNoAccess("ws") : new LabWebSocket(devServer);
+    this.network = mode === "project" ? throwNoAccess("network") : new LabNetwork(this.page);
+    this.console = mode === "project" ? throwNoAccess("console") : new LabConsole(this.page);
+    this.clock = mode === "project" ? throwNoAccess("clock") : new LabClock(this.page);
     this.compiler = new LabCompiler(devServer);
     this.assert = new LabAssertions(this);
+    this.pipeline = new LabPipeline(exampleName, root, zintlOptions);
+    this.driver = this.pipeline.driver;
 
     const onMutation = async () => {
       if (mode === "dev") {
@@ -109,10 +137,32 @@ class LabImpl implements Lab {
   }
 
   async teardown(): Promise<void> {
-    this.ws.teardown();
-    await this.browser.close();
-    await this.server.close();
-    await this.fs.restoreAll();
+    if (this.mode !== "project") {
+      // stop loggin for now.
+      // TODO: add a flag to enable/disable this.
+      // try {
+      //   const msgs = this.console.messages.filter((m) => m.type === "error" || m.type === "warn");
+      //   if (msgs.length > 0) {
+      //     console.log(`\n--- Browser Console Messages for ${this.exampleName} ---`);
+      //     for (const m of msgs) {
+      //       console.log(`[${m.type.toUpperCase()}] ${m.text}`);
+      //     }
+      //     console.log(`----------------------------------------------------\n`);
+      //   }
+      // } catch {}
+    }
+    try {
+      this.ws.teardown();
+      await this.ws.waitFor("update", { timeout: 2000 });
+    } catch {}
+    try {
+      await this.fs.restoreAll();
+    } catch (err) {
+      console.error("[Teardown] Filesystem restore failed:", err);
+    }
+    try {
+      await this.browser.close();
+    } catch {}
   }
 }
 
@@ -135,14 +185,54 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
 
   let server: LabDevServer | LabPreviewServer;
   if (mode === "dev") {
-    server = await createLabDevServer(root, port, env);
+    server = await createLabDevServer(root, opts.example, port, env);
   } else {
-    server = await createLabPreviewServer(root, port, env);
+    server = await createLabPreviewServer(root, opts.example, port, env);
   }
 
   const browser = await createLabBrowser(opts.headless ?? true);
 
-  const lab = new LabImpl(browser.page, browser, server, server.url, root, mode, fs);
+  // createLab is for browser-based tests — zintlOptions are not needed
+  // for project-mode compilation, so we use an empty placeholder here.
+  const lab = new LabImpl(
+    browser.page,
+    browser,
+    server,
+    server.url,
+    root,
+    mode,
+    fs,
+    opts.example,
+    {},
+  );
+
+  return lab;
+}
+
+export async function createProjectLab(opts: ProjectLabOptions): Promise<Lab> {
+  if (!process.env.ZINTL_LOG_LEVEL) {
+    process.env.ZINTL_LOG_LEVEL = "silent";
+  }
+
+  const root = join(MONOREPO_ROOT, "examples", opts.example);
+  if (!existsSync(root)) {
+    throw new Error(`Example fixture directory not found: ${opts.example}`);
+  }
+
+  const fs = new LabFilesystem(root);
+  await fs.init();
+
+  const lab = new LabImpl(
+    undefined,
+    undefined,
+    undefined,
+    "",
+    root,
+    "project",
+    fs,
+    opts.example,
+    opts.zintlOptions,
+  );
 
   return lab;
 }

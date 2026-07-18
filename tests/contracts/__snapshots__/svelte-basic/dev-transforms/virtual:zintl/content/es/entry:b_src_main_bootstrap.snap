@@ -1,0 +1,25 @@
+const catalog = {
+    "b_src_App_svelte": {
+      "Get started": "Comenzar",
+      "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "Edite <code>src/App.svelte</code> y guarde para probar <code>HMR</code>",
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "Explore Vite": "Explorar Vite",
+      "Learn more": "Aprender más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+      "Svelte logo": "Logo de Svelte",
+      "Vite logo": "Logo de Vite",
+    },
+    "b_src_lib_Counter_svelte": {
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `El valor es ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

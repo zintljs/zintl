@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 
@@ -38,8 +38,8 @@ export const memoryLeakContract: Contract = {
         return content.replace(target, `Memory Iteration ${i}`);
       });
 
-      // Wait for propagation to complete
-      await expect(heading.first()).toContainText(`Memory Iteration ${i}`, { timeout: 10000 });
+      await heading.first().waitFor({ state: "visible", timeout: 10000 });
+      expect(await heading.first().textContent()).toContain(`Memory Iteration ${i}`);
     }
 
     // 4. Trigger garbage collection and verify heap growth

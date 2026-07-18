@@ -3,12 +3,12 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   workspaces: {
     ".": {
-      entry: ["tests/playwright.config.ts", "tests/**/*.spec.ts"],
+      entry: ["tests/vitest.config.ts", "tests/setup.ts", "tests/**/*.spec.ts"],
       ignoreBinaries: [
         "vpx", // vite-plus companion binary, ships with vite-plus package
         // "vpr",
       ],
-      ignoreFiles: ["scripts/budget-reporter.ts", "vitest.examples.config.ts"],
+      ignoreFiles: ["scripts/budget-reporter.ts"],
     },
     "examples/vinext-*": {
       next: true,
@@ -40,7 +40,7 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
   },
-  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
+  ignoreDependencies: ["vite", "@vitest/coverage-v8", "@playwright/test"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

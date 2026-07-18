@@ -19,12 +19,16 @@
   },
   "dependencies": {
     "@playwright/test": "catalog:",
-    "vite": "catalog:"
+    "@zintl/compiler": "workspace:*",
+    "vite": "catalog:",
+    "zintl": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@zintl/compiler": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "vitest": "4.1.10"
   }
 }

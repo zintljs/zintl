@@ -41,13 +41,37 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
   );
   await mkdir(root, { recursive: true });
 
-  const plugin = zintl({
+  const rawPlugin = zintl({
     sourceLocale: "en",
     locales: ["en", "ar"],
     prune: false,
     verifyIntegrity: false,
     ...options,
   });
+
+  const getPluginHooks = (p: any) => {
+    const list = Array.isArray(p) ? p : [p];
+    const main = list.find((x) => x.name === "zintl") || list[0];
+    const pre = list.find((x) => x.name === "zintl-pre") || list[0];
+    return {
+      config: main.vite?.config,
+      configResolved: main.vite?.configResolved,
+      configureServer: main.vite?.configureServer,
+      transformIndexHtml: main.vite?.transformIndexHtml || pre.vite?.transformIndexHtml,
+      handleHotUpdate: main.vite?.handleHotUpdate,
+      hotUpdate: main.vite?.hotUpdate,
+      buildStart: main.buildStart,
+      buildEnd: main.buildEnd,
+      resolveId: main.resolveId,
+      load: main.load,
+      transform: main.transform,
+      get __compiler() {
+        return (globalThis as any).__zintl_active_contexts?.slice(-1)[0]?.compiler;
+      },
+    };
+  };
+
+  const plugin = getPluginHooks(rawPlugin);
 
   const isDev = !!options.isDev;
 

@@ -1,0 +1,20 @@
+const catalog = {
+    "b_07f886859652": {
+      "90e40d50": "Empezar",
+      "6c65d65b": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+      "aa624128": "El recuento es {{ count }}",
+      "9e9cf322": "Documentación",
+      "d0f7666b": "Tus preguntas, respondidas",
+      "e49cb0ee": "Explorar Vite",
+      "824d76b1": "Aprende más",
+      "65ac13a7": "Conéctate con nosotros",
+      "15545bc4": "Únete a la comunidad de Vite",
+      "5442e2b6": "GitHub",
+      "bccc14ee": "Discord",
+      "b3c83ea6": "X.com",
+      "daf16c03": "Bluesky",
+      "7d8158dc": "Logotipo de Vue",
+      "3473a536": "Logotipo de Vite",
+    },
+  };
+export default catalog;

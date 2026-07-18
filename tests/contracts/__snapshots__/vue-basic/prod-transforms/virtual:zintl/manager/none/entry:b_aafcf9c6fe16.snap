@@ -1,0 +1,34 @@
+export default { id: "b_aafcf9c6fe16", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_07f886859652": {
+      "90e40d50": "Get started",
+      "6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+      "9e9cf322": "Documentation",
+      "d0f7666b": "Your questions, answered",
+      "e49cb0ee": "Explore Vite",
+      "824d76b1": "Learn more",
+      "65ac13a7": "Connect with us",
+      "15545bc4": "Join the Vite community",
+      "5442e2b6": "GitHub",
+      "bccc14ee": "Discord",
+      "b3c83ea6": "X.com",
+      "daf16c03": "Bluesky",
+      "7d8158dc": "Vue logo",
+      "3473a536": "Vite logo",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_aafcf9c6fe16").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

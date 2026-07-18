@@ -3,18 +3,26 @@ import { build, preview } from "vite";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import http from "node:http";
+import { pathToFileURL } from "node:url";
 
 export interface LabPreviewServer {
   server: any;
   url: string;
   close(): Promise<void>;
 }
+const sharedPreviewServers = new Map<string, LabPreviewServer>();
 
 export async function createLabPreviewServer(
   exampleRoot: string,
+  exampleName: string,
   port: number = 0,
   env: Record<string, string> = {},
 ): Promise<LabPreviewServer> {
+  const existing = sharedPreviewServers.get(exampleName);
+  if (existing) {
+    return existing;
+  }
+
   // Apply environment overrides
   for (const [key, value] of Object.entries(env)) {
     process.env[key] = value;
@@ -23,6 +31,8 @@ export async function createLabPreviewServer(
   const configFile = existsSync(join(exampleRoot, "vite.config.ts"))
     ? join(exampleRoot, "vite.config.ts")
     : undefined;
+
+  let previewServer: LabPreviewServer;
 
   // Run production build
   await build({
@@ -49,7 +59,7 @@ export async function createLabPreviewServer(
     process.env.PORT = String(port || 0);
 
     try {
-      await import(`file://${serverJsPath}?t=${Date.now()}`);
+      await import(`${pathToFileURL(serverJsPath).href}?t=${Date.now()}`);
     } finally {
       http.Server.prototype.listen = originalListen;
     }
@@ -63,7 +73,7 @@ export async function createLabPreviewServer(
     const actualPort = typeof address === "object" && address ? address.port : 4173;
     const url = `http://localhost:${actualPort}`;
 
-    return {
+    previewServer = {
       server: capturedHttpServer,
       url,
       async close() {
@@ -92,7 +102,7 @@ export async function createLabPreviewServer(
     const actualPort = typeof address === "object" && address ? address.port : 4173;
     const url = `http://localhost:${actualPort}`;
 
-    return {
+    previewServer = {
       server,
       url,
       async close() {
@@ -100,4 +110,18 @@ export async function createLabPreviewServer(
       },
     };
   }
+
+  sharedPreviewServers.set(exampleName, previewServer);
+  return previewServer;
+}
+
+export async function closeSharedPreviewServers(): Promise<void> {
+  for (const server of sharedPreviewServers.values()) {
+    try {
+      await server.close();
+    } catch (err) {
+      console.error("[Teardown] Failed to close shared preview server:", err);
+    }
+  }
+  sharedPreviewServers.clear();
 }

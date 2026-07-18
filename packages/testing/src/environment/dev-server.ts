@@ -3,18 +3,26 @@ import { createServer, type ViteDevServer } from "vite";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import http from "node:http";
+import { pathToFileURL } from "node:url";
 
 export interface LabDevServer {
   server: ViteDevServer;
   url: string;
   close(): Promise<void>;
 }
+const sharedServers = new Map<string, LabDevServer>();
 
 export async function createLabDevServer(
   exampleRoot: string,
+  exampleName: string,
   port: number = 0,
   env: Record<string, string> = {},
 ): Promise<LabDevServer> {
+  const existing = sharedServers.get(exampleName);
+  if (existing) {
+    return existing;
+  }
+
   // Apply environment overrides
   for (const [key, value] of Object.entries(env)) {
     process.env[key] = value;
@@ -23,6 +31,8 @@ export async function createLabDevServer(
   const targetPort = port || 0;
   const serverJsPath = join(exampleRoot, "server.js");
   const hasCustomServer = existsSync(serverJsPath);
+
+  let devServer: LabDevServer;
 
   if (hasCustomServer) {
     const originalChdir = process.cwd();
@@ -38,9 +48,14 @@ export async function createLabDevServer(
     process.env.PORT = String(targetPort);
 
     try {
-      await import(`file://${serverJsPath}?t=${Date.now()}`);
+      await import(`${pathToFileURL(serverJsPath).href}?t=${Date.now()}`);
+      // Wait up to 5 seconds for listen() to be called in server.js
+      for (let i = 0; i < 50; i++) {
+        if (capturedHttpServer) break;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
     } finally {
-      // Restore listen patch immediately, but keep process.chdir active for async handlers
+      // Restore listen patch
       http.Server.prototype.listen = originalListen;
     }
 
@@ -75,16 +90,21 @@ export async function createLabDevServer(
     const actualPort = typeof address === "object" && address ? address.port : 5173;
     const url = `http://localhost:${actualPort}`;
 
-    return {
+    devServer = {
       server: viteServer,
       url,
       async close() {
-        await new Promise<void>((resolve, reject) => {
-          capturedHttpServer!.close((err: any) => {
-            if (err) reject(err);
-            else resolve();
+        if (capturedHttpServer) {
+          if (typeof (capturedHttpServer as any).closeAllConnections === "function") {
+            (capturedHttpServer as any).closeAllConnections();
+          }
+          await new Promise<void>((resolve, reject) => {
+            capturedHttpServer!.close((err: any) => {
+              if (err) reject(err);
+              else resolve();
+            });
           });
-        });
+        }
         await viteServer!.close();
         // Restore CWD when closing the server
         process.chdir(originalChdir);
@@ -110,7 +130,7 @@ export async function createLabDevServer(
     const actualPort = typeof address === "object" && address ? address.port : 5173;
     const url = `http://localhost:${actualPort}`;
 
-    return {
+    devServer = {
       server,
       url,
       async close() {
@@ -118,4 +138,18 @@ export async function createLabDevServer(
       },
     };
   }
+
+  sharedServers.set(exampleName, devServer);
+  return devServer;
+}
+
+export async function closeSharedServers(): Promise<void> {
+  for (const server of sharedServers.values()) {
+    try {
+      await server.close();
+    } catch (err) {
+      console.error("[Teardown] Failed to close shared dev server:", err);
+    }
+  }
+  sharedServers.clear();
 }

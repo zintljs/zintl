@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 
@@ -10,10 +10,9 @@ export const initialRenderContract: Contract = {
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
-    await expect(lab.page.locator(adapter.headingSelector)).toContainText(
-      adapter.initialHeadingText,
-      { timeout: 10000 },
-    );
+    const heading = lab.page.locator(adapter.headingSelector);
+    await heading.waitFor({ state: "visible", timeout: 10000 });
+    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
   },
 };
 

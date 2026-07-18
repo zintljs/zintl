@@ -1,0 +1,23 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_tsx_bootstrap";
+import { StrictMode } from "react";
+import { renderToString } from "react-dom/server";
+import App from "./App";
+
+
+export async function render(_url: string) {
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_tsx_bootstrap"]: _zintl_mgr_b_src_entry_client_tsx_bootstrap.loader } }));
+  const html = renderToString(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+  return { html };
+}
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/entry-server.tsx");
+  });
+}

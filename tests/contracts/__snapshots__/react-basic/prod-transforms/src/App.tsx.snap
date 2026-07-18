@@ -1,0 +1,130 @@
+import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_89ad0a7bfa7f from "virtual:zintl/manager/none/entry:b_89ad0a7bfa7f";
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "./assets/vite.svg";
+import heroImg from "./assets/hero.png";
+import "./App.css";
+
+const locales = [
+  { id: "en", name: "English" },
+  { id: "ar", name: "العربية" },
+  { id: "es", name: "Español" },
+  { id: "zh", name: "中文" },
+];
+
+interface AppProps {
+  lang: string;
+  onSwitch: (newLang: string) => void;
+}
+
+function App({ lang, onSwitch }: AppProps) {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div key={lang} style={{ display: "contents" }}>
+      {/* @zintl-ignore */}
+      <section id="header">
+        <div id="switcher" className="switcher">
+          {locales.map((l) => (
+            <button
+              key={l.id}
+              className={lang === l.id ? "active" : ""}
+              onClick={() => onSwitch(l.id)}
+            >
+              {l.name}
+            </button>
+          ))}
+        </div>
+        <div className="vertical-ticks"></div>
+        <div className="icon-border">
+          <svg className="icon" role="img" aria-hidden="true">
+            <use href="/icons.svg#translate-icon"></use>
+          </svg>
+        </div>
+      </section>
+
+      <div className="ticks"></div>
+
+      <section id="center">
+        <div className="hero">
+          <img src={heroImg} className="base" width="170" height="179" alt="" />
+          <img src={reactLogo} className="framework" alt={_t("c41e657d", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })} />
+          <img src={viteLogo} className="vite" alt={_t("3473a536", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })} />
+        </div>
+        <div>
+          <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</h1>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("9fd2f187", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
+        </div>
+        <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>{_t("aa624128", { count: count }, { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</button>
+      </section>
+
+      <div className="ticks"></div>
+
+      <section id="next-steps">
+        <div id="docs">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>{_t("9e9cf322", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</h2>
+          <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+            </li>
+            <li>
+              <a href="https://react.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("8cc85295", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e", _tags: [{ alias: "img", originalOpen: `<img class="button-icon" src="${reactLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>{_t("65ac13a7", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</h2>
+          <p>{_t("15545bc4", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</p>
+          {/* @zintl-ignore */}
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg className="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg className="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg className="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg className="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div className="ticks"></div>
+      <section id="spacer"></section>
+    </div>
+  );
+}
+
+export default App;

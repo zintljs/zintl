@@ -1,0 +1,58 @@
+{
+  "boundaryToOwner": {
+    "src/App.svelte": "src/main:bootstrap",
+    "src/lib/Counter.svelte": "src/main:bootstrap",
+    "src/lib/LocaleSwitcher.svelte": "src/main:bootstrap",
+    "src/lib/LocaleSwitcher.svelte:f_523": "src/lib/LocaleSwitcher.svelte:f_523",
+    "src/main:bootstrap": "src/main:bootstrap"
+  },
+  "chunks": {
+    "entry_b_aafcf9c6fe16": {
+      "boundaries": [
+        "src/App.svelte",
+        "src/app.css",
+        "src/assets/hero.png",
+        "src/assets/svelte.svg",
+        "src/assets/vite.svg",
+        "src/lib/Counter.svelte",
+        "src/lib/LocaleSwitcher.svelte",
+        "src/main:bootstrap",
+        "svelte"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/main:bootstrap"
+      ],
+      "id": "entry_b_aafcf9c6fe16",
+      "type": "entry"
+    },
+    "entry_b_da9ef060613a": {
+      "boundaries": [
+        "src/lib/LocaleSwitcher.svelte:f_523"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/lib/LocaleSwitcher.svelte:f_523"
+      ],
+      "id": "entry_b_da9ef060613a",
+      "type": "entry"
+    },
+    "shared_b_da9a6f102df0": {
+      "boundaries": [
+        "zintl/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_da9a6f102df0",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/lib/LocaleSwitcher.svelte:f_523": "entry_b_da9ef060613a",
+    "src/main:bootstrap": "entry_b_aafcf9c6fe16"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_da9a6f102df0"
+  ]
+}

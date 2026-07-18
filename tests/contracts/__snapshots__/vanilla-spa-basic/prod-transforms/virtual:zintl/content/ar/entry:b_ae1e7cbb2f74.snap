@@ -1,0 +1,19 @@
+const catalog = {
+    "b_ae1e7cbb2f74": {
+      "90e40d50": "ابدأ الآن",
+      "e2aae512": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
+      "9e9cf322": "وثائق",
+      "d0f7666b": "إجابات لأسئلتك",
+      "e49cb0ee": "استكشف Vite",
+      "824d76b1": "تعرف على المزيد",
+      "65ac13a7": "تواصل معنا",
+      "15545bc4": "انضم إلى مجتمع Vite",
+    },
+    "b_f05b8e5701f3": {
+      "3aaf6932": (params) => {
+    const { counter } = params;
+    return `العدد هو ${params['counter']}`;
+  },
+    },
+  };
+export default catalog;

@@ -1,7 +1,15 @@
-import type { ExampleManifest } from "@zintl/testing";
+import type { ExampleManifest, ZintlPluginOptions } from "@zintl/testing";
+
+const zintlOptions: ZintlPluginOptions = {
+  sourceLocale: "en",
+  locales: ["en", "ar", "es", "zh"],
+  outputDir: "./src/i18n",
+  catalogFormat: "translations.json",
+};
 
 export const vanillaSpaBasic: ExampleManifest = {
   name: "vanilla-spa-basic",
+  zintlOptions,
   capabilities: [
     "spa",
     "hmr",
@@ -13,6 +21,9 @@ export const vanillaSpaBasic: ExampleManifest = {
     "chaos",
     "memory",
     "performance",
+    "transform",
+    "build",
+    "graph",
   ],
   adapter: {
     headingSelector: "h1",

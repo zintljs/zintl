@@ -26,7 +26,7 @@ describe("Zintl Runtime: Synchronous Boost", () => {
     const asyncLoader = (_locale: string) => Promise.resolve({ a1: { async: "value" } });
 
     const promise = loadI18nInstance({
-      locale: "en",
+      locale: "ar",
       loaders: {
         s1: syncLoader,
         a1: asyncLoader,

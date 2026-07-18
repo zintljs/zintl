@@ -1,0 +1,32 @@
+export default { id: "b_aafcf9c6fe16", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_b071a5cc9dda": {
+      "90e40d50": "Get started",
+      "b339a4ca": "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>",
+      "9e9cf322": "Documentation",
+      "d0f7666b": "Your questions, answered",
+      "e49cb0ee": "Explore Vite",
+      "824d76b1": "Learn more",
+      "65ac13a7": "Connect with us",
+      "15545bc4": "Join the Vite community",
+      "2200eef1": "Svelte logo",
+      "3473a536": "Vite logo",
+    },
+    "b_cd9034670a6d": {
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_aafcf9c6fe16").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

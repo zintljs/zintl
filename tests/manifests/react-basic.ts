@@ -1,7 +1,13 @@
-import type { ExampleManifest } from "@zintl/testing";
+import type { ExampleManifest, ZintlPluginOptions } from "@zintl/testing";
+
+const zintlOptions: ZintlPluginOptions = {
+  sourceLocale: "en",
+  locales: ["en", "ar", "es", "zh"],
+};
 
 export const reactBasic: ExampleManifest = {
   name: "react-basic",
+  zintlOptions,
   capabilities: [
     "spa",
     "hmr",
@@ -13,6 +19,9 @@ export const reactBasic: ExampleManifest = {
     "chaos",
     "memory",
     "performance",
+    "transform",
+    "build",
+    "graph",
   ],
   adapter: {
     headingSelector: "h1",

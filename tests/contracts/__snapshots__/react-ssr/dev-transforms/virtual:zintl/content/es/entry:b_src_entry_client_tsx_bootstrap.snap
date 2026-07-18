@@ -1,0 +1,23 @@
+const catalog = {
+    "b_src_App_tsx_App": {
+      "React logo": "Logo de React",
+      "Vite logo": "Logo de Vite",
+      "Get started": "Comenzar",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edite <code>src/App.tsx</code> y guarde para probar <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `El valor es ${params['count']}`;
+  },
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "<img/> Explore Vite": "<img/> Explorar Vite",
+      "<img/> Learn more": "<img/> Aprender más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

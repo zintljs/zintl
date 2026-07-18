@@ -1,12 +1,11 @@
-import { test } from "@playwright/test";
-import { createLab } from "../environment/lab.js";
+import { test } from "vite-plus/test";
+import { createLab, createProjectLab } from "../environment/lab.js";
 import type { Contract, ExampleManifest, BaseAdapter } from "./types.js";
 
 export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
   contract: Contract<TAdapter>,
   manifests: ExampleManifest[],
 ) {
-  // Filter manifests that claim all required capabilities
   const eligible = manifests.filter((m) =>
     contract.requires.every((cap) => m.capabilities.includes(cap)),
   );
@@ -15,10 +14,33 @@ export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
     test(`[${contract.name}] ${manifest.name}`, async () => {
       const lab = await createLab({ example: manifest.name, mode: "dev" });
       try {
-        await contract.execute(lab, manifest.adapter as TAdapter);
+        await contract.execute(lab, manifest.adapter as TAdapter, manifest);
       } finally {
         await lab.teardown();
       }
-    });
+    }, 45000);
+  }
+}
+
+export function executeProjectContract<TAdapter extends BaseAdapter = BaseAdapter>(
+  contract: Contract<TAdapter>,
+  manifests: ExampleManifest[],
+) {
+  const eligible = manifests.filter((m) =>
+    contract.requires.every((cap) => m.capabilities.includes(cap)),
+  );
+
+  for (const manifest of eligible) {
+    test(`[${contract.name}] ${manifest.name}`, async () => {
+      const lab = await createProjectLab({
+        example: manifest.name,
+        zintlOptions: manifest.zintlOptions,
+      });
+      try {
+        await contract.execute(lab, manifest.adapter as TAdapter, manifest);
+      } finally {
+        await lab.teardown();
+      }
+    }, 45000);
   }
 }

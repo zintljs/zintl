@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 

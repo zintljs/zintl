@@ -9,10 +9,15 @@ export class LabCompiler {
   }
 
   get instance(): ZintlCompiler | undefined {
-    if (!this.server) return undefined;
-    const plugins = this.server.config.plugins.flat(Infinity);
-    const zintlPlugin = plugins.find((p) => p && (p.name === "zintl" || (p as any).__compiler));
-    return (zintlPlugin as any)?.__compiler;
+    const contexts = (globalThis as any).__zintl_active_contexts || [];
+    if (this.server) {
+      const serverRoot = this.server.config.root;
+      const match = contexts.find(
+        (ctx: any) => ctx.server === this.server || ctx.compiler?.root === serverRoot,
+      );
+      if (match) return match.compiler;
+    }
+    return contexts[contexts.length - 1]?.compiler;
   }
 
   getBoundaryGraph() {

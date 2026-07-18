@@ -1,0 +1,25 @@
+const catalog = {
+    "b_src_App_svelte": {
+      "Get started": "البدء",
+      "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "عدل <code>src/App.svelte</code> واحفظه لاختبار <code>HMR</code>",
+      "Documentation": "التوثيق",
+      "Your questions, answered": "تمت الإجابة على أسئلتك",
+      "Explore Vite": "استكشف فيت",
+      "Learn more": "تعلم المزيد",
+      "Connect with us": "تواصل معنا",
+      "Join the Vite community": "انضم إلى مجتمع فيت",
+      "Svelte logo": "شعار سفتلي",
+      "Vite logo": "شعار فيت",
+    },
+    "b_src_lib_Counter_svelte": {
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog });
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

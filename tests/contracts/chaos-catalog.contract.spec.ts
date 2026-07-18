@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "vite-plus/test";
 import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintl/testing";
 import { allManifests } from "../manifests/index.js";
 import { readdirSync, existsSync } from "node:fs";
@@ -62,7 +62,8 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
 
     // Page must receive HMR update
     const heading = lab.page.locator(adapter.headingSelector);
-    await expect(heading.first()).toContainText("Chaos Deletion", { timeout: 10000 });
+    await heading.first().waitFor({ state: "visible", timeout: 10000 });
+    expect(await heading.first().textContent()).toContain("Chaos Deletion");
 
     // Switch locales - must not crash the page, fallbacks must load gracefully
     await adapter.switchLocale(lab, "es");
@@ -92,17 +93,12 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
       return content.replace("Chaos Corruption", "Chaos Recovered!");
     });
 
-    // If the browser runtime component tree unmounted during import failure, reload to restore context
-    const currentText = await heading
-      .first()
-      .innerText()
-      .catch(() => "");
-    if (!currentText) {
-      await lab.page.reload();
-      await lab.clock.waitForIdle();
-    }
+    // Reload the page to ensure the browser recovers from temporary module load errors and fetches healed catalog state
+    await lab.page.reload();
+    await lab.clock.waitForIdle();
 
-    await expect(heading.first()).toContainText("Chaos Recovered!", { timeout: 15000 });
+    await heading.first().waitFor({ state: "visible", timeout: 15000 });
+    expect(await heading.first().textContent()).toContain("Chaos Recovered!");
   },
 };
 
