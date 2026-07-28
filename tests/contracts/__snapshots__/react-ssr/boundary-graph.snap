@@ -23,11 +23,14 @@
       "activeLocales": "all",
       "deps": [
         {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "node:fs/promises"
+          "bindings": [],
+          "dynamic": true,
+          "id": "compression"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "dist/server/entry-server"
         },
         {
           "bindings": [
@@ -37,14 +40,11 @@
           "id": "express"
         },
         {
-          "bindings": [],
-          "dynamic": true,
-          "id": "vite"
-        },
-        {
-          "bindings": [],
-          "dynamic": true,
-          "id": "compression"
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "node:fs/promises"
         },
         {
           "bindings": [],
@@ -54,7 +54,7 @@
         {
           "bindings": [],
           "dynamic": true,
-          "id": "dist/server/entry-server"
+          "id": "vite"
         }
       ],
       "filePath": "server",
@@ -73,6 +73,22 @@
           "id": "react"
         },
         {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
           "bindings": [
             "default"
           ],
@@ -88,26 +104,10 @@
         },
         {
           "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
-        },
-        {
-          "bindings": [
             "getLocale"
           ],
           "dynamic": false,
           "id": "zintl/macro"
-        },
-        {
-          "dynamic": false,
-          "id": "src/App.tsx:App"
         }
       ],
       "filePath": "src/App.tsx",
@@ -126,6 +126,18 @@
           "id": "react"
         },
         {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
           "bindings": [
             "default"
           ],
@@ -138,18 +150,6 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
         },
         {
           "bindings": [
@@ -168,11 +168,6 @@
       "activeLocales": "all",
       "deps": [
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
-        },
-        {
           "bindings": [
             "StrictMode"
           ],
@@ -194,19 +189,24 @@
           "id": "src/App.tsx:App"
         },
         {
+          "dynamic": false,
+          "id": "src/entry-client.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/entry-client.tsx:bootstrap"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
           "bindings": [
             "zintl"
           ],
           "dynamic": false,
           "id": "zintl/macro"
-        },
-        {
-          "dynamic": false,
-          "id": "src/entry-client.tsx:bootstrap"
-        },
-        {
-          "dynamic": false,
-          "id": "src/entry-client.tsx:bootstrap"
         }
       ],
       "filePath": "src/entry-client.tsx",
@@ -218,11 +218,6 @@
       "activeLocales": [],
       "deps": [
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
-        },
-        {
           "bindings": [
             "StrictMode"
           ],
@@ -242,6 +237,11 @@
           ],
           "dynamic": false,
           "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
         },
         {
           "bindings": [
@@ -281,15 +281,15 @@
           "id": "src/App.tsx:App"
         },
         {
+          "dynamic": false,
+          "id": "src/entry-server.tsx:render"
+        },
+        {
           "bindings": [
             "zintl"
           ],
           "dynamic": false,
           "id": "zintl/macro"
-        },
-        {
-          "dynamic": false,
-          "id": "src/entry-server.tsx:render"
         }
       ],
       "filePath": "src/entry-server.tsx",
@@ -339,13 +339,6 @@
       "deps": [
         {
           "bindings": [
-            "defineConfig"
-          ],
-          "dynamic": false,
-          "id": "vite"
-        },
-        {
-          "bindings": [
             "default"
           ],
           "dynamic": false,
@@ -353,14 +346,21 @@
         },
         {
           "bindings": [
-            "default"
+            "defineConfig"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "vite"
         },
         {
           "dynamic": false,
           "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
         }
       ],
       "filePath": "vite.config",

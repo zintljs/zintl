@@ -1,3 +1,4 @@
+export { serializeDeterministic } from "@zintl/compiler";
 export {
   createLab,
   createProjectLab,

@@ -30,9 +30,18 @@
       "activeLocales": "all",
       "deps": [
         {
-          "bindings": [],
+          "bindings": [
+            "default"
+          ],
           "dynamic": false,
-          "id": "src/style.css"
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/icons.svg?raw"
         },
         {
           "bindings": [
@@ -50,24 +59,23 @@
         },
         {
           "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [
             "setupCounter"
           ],
           "dynamic": false,
           "id": "src/counter:setupCounter"
         },
         {
-          "bindings": [
-            "zintl"
-          ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "src/main:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:render"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/style.css"
         },
         {
           "bindings": [
@@ -78,18 +86,10 @@
         },
         {
           "bindings": [
-            "default"
+            "zintl"
           ],
           "dynamic": false,
-          "id": "src/assets/icons.svg?raw"
-        },
-        {
-          "dynamic": false,
-          "id": "src/main:render"
-        },
-        {
-          "dynamic": false,
-          "id": "src/main:render"
+          "id": "zintl/macro"
         }
       ],
       "filePath": "src/main",
@@ -101,9 +101,18 @@
       "activeLocales": "all",
       "deps": [
         {
-          "bindings": [],
+          "bindings": [
+            "default"
+          ],
           "dynamic": false,
-          "id": "src/style.css"
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/icons.svg?raw"
         },
         {
           "bindings": [
@@ -121,24 +130,15 @@
         },
         {
           "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [
             "setupCounter"
           ],
           "dynamic": false,
           "id": "src/counter:setupCounter"
         },
         {
-          "bindings": [
-            "zintl"
-          ],
+          "bindings": [],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "src/style.css"
         },
         {
           "bindings": [
@@ -149,10 +149,10 @@
         },
         {
           "bindings": [
-            "default"
+            "zintl"
           ],
           "dynamic": false,
-          "id": "src/assets/icons.svg?raw"
+          "id": "zintl/macro"
         }
       ],
       "filePath": "src/main",
@@ -171,15 +171,15 @@
           "id": "vite-plus"
         },
         {
+          "dynamic": false,
+          "id": "vite.config"
+        },
+        {
           "bindings": [
             "default"
           ],
           "dynamic": false,
           "id": "zintl/vite"
-        },
-        {
-          "dynamic": false,
-          "id": "vite.config"
         }
       ],
       "filePath": "vite.config",

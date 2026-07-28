@@ -27,6 +27,13 @@
             "default"
           ],
           "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
           "id": "src/assets/svelte.svg"
         },
         {
@@ -35,13 +42,6 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
         },
         {
           "bindings": [
@@ -75,15 +75,15 @@
       "activeLocales": "all",
       "deps": [
         {
+          "dynamic": false,
+          "id": "src/lib/LocaleSwitcher.svelte:f_523"
+        },
+        {
           "bindings": [
             "zintl"
           ],
           "dynamic": false,
           "id": "zintl/macro"
-        },
-        {
-          "dynamic": false,
-          "id": "src/lib/LocaleSwitcher.svelte:f_523"
         }
       ],
       "filePath": "src/lib/LocaleSwitcher.svelte",
@@ -112,10 +112,10 @@
       "deps": [
         {
           "bindings": [
-            "mount"
+            "default"
           ],
           "dynamic": false,
-          "id": "svelte"
+          "id": "src/App.svelte"
         },
         {
           "bindings": [],
@@ -123,11 +123,19 @@
           "id": "src/app.css"
         },
         {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        },
+        {
           "bindings": [
-            "default"
+            "mount"
           ],
           "dynamic": false,
-          "id": "src/App.svelte"
+          "id": "svelte"
         },
         {
           "bindings": [
@@ -135,14 +143,6 @@
           ],
           "dynamic": false,
           "id": "zintl/macro"
-        },
-        {
-          "dynamic": false,
-          "id": "src/main:bootstrap"
-        },
-        {
-          "dynamic": false,
-          "id": "src/main:bootstrap"
         }
       ],
       "filePath": "src/main",
@@ -155,10 +155,10 @@
       "deps": [
         {
           "bindings": [
-            "mount"
+            "default"
           ],
           "dynamic": false,
-          "id": "svelte"
+          "id": "src/App.svelte"
         },
         {
           "bindings": [],
@@ -167,10 +167,10 @@
         },
         {
           "bindings": [
-            "default"
+            "mount"
           ],
           "dynamic": false,
-          "id": "src/App.svelte"
+          "id": "svelte"
         },
         {
           "bindings": [
@@ -190,13 +190,6 @@
       "deps": [
         {
           "bindings": [
-            "defineConfig"
-          ],
-          "dynamic": false,
-          "id": "vite"
-        },
-        {
-          "bindings": [
             "svelte"
           ],
           "dynamic": false,
@@ -204,14 +197,21 @@
         },
         {
           "bindings": [
-            "default"
+            "defineConfig"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "vite"
         },
         {
           "dynamic": false,
           "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
         }
       ],
       "filePath": "vite.config",

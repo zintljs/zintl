@@ -47,6 +47,7 @@ import { MessageManager } from "./managers/MessageManager.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
+export { serializeDeterministic, sortObjectKeys, compareStrings } from "./utils/serialization.js";
 import type { HtmlProjectionPayload } from "@zintl/extractor";
 export type {
   CompilerOptions,

@@ -30,6 +30,22 @@
           "id": "react"
         },
         {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
           "bindings": [
             "default"
           ],
@@ -42,22 +58,6 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
-        },
-        {
-          "dynamic": false,
-          "id": "src/App.tsx:App"
         }
       ],
       "filePath": "src/App.tsx",
@@ -76,6 +76,18 @@
           "id": "react"
         },
         {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
           "bindings": [
             "default"
           ],
@@ -88,18 +100,6 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
         }
       ],
       "filePath": "src/App.tsx",
@@ -126,11 +126,6 @@
           "id": "react-dom/client"
         },
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
-        },
-        {
           "bindings": [
             "default"
           ],
@@ -138,23 +133,28 @@
           "id": "src/App.tsx:App"
         },
         {
-          "bindings": [
-            "zintl"
-          ],
+          "bindings": [],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
         },
         {
           "dynamic": false,
           "id": "src/main.tsx:f_545"
         },
         {
+          "bindings": [
+            "zintl"
+          ],
           "dynamic": false,
-          "id": "src/main.tsx:bootstrap"
-        },
-        {
-          "dynamic": false,
-          "id": "src/main.tsx:bootstrap"
+          "id": "zintl/macro"
         }
       ],
       "filePath": "src/main.tsx",
@@ -181,16 +181,16 @@
           "id": "react-dom/client"
         },
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
-        },
-        {
           "bindings": [
             "default"
           ],
           "dynamic": false,
           "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
         },
         {
           "bindings": [
@@ -224,16 +224,16 @@
           "id": "react-dom/client"
         },
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
-        },
-        {
           "bindings": [
             "default"
           ],
           "dynamic": false,
           "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
         },
         {
           "bindings": [
@@ -253,13 +253,6 @@
       "deps": [
         {
           "bindings": [
-            "defineConfig"
-          ],
-          "dynamic": false,
-          "id": "vite-plus"
-        },
-        {
-          "bindings": [
             "default"
           ],
           "dynamic": false,
@@ -267,14 +260,21 @@
         },
         {
           "bindings": [
-            "default"
+            "defineConfig"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "vite-plus"
         },
         {
           "dynamic": false,
           "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintl/vite"
         }
       ],
       "filePath": "vite.config",
