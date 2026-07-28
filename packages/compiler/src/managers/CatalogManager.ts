@@ -766,6 +766,7 @@ export class CatalogManager {
   public getReachableFiles(
     entries: Set<string>,
     dependencyGraph: Record<string, any[]>,
+    metadataGraph?: Record<string, any>,
   ): Set<string> {
     const reachable = new Set<string>();
     const walk = (id: string) => {
@@ -777,7 +778,22 @@ export class CatalogManager {
       for (const dep of deps) {
         let depFileId = dep.id.startsWith(".") ? join(dirname(normId), dep.id) : dep.id;
         const cleanDepFileId = this.io.getNormalizedId(depFileId);
-        walk(cleanDepFileId);
+
+        let targetId = cleanDepFileId;
+        if (dependencyGraph[targetId] === undefined) {
+          const extensions = [".tsx", ".jsx", ".ts", ".js", ".vue", ".svelte", ".html"];
+          for (const ext of extensions) {
+            const candidate = targetId + ext;
+            if (
+              dependencyGraph[candidate] !== undefined ||
+              (metadataGraph && metadataGraph[candidate] !== undefined)
+            ) {
+              targetId = candidate;
+              break;
+            }
+          }
+        }
+        walk(targetId);
       }
     };
 
@@ -808,7 +824,6 @@ export class CatalogManager {
     if (!firstBId) return;
     this.logger.debug(`Syncing catalog at ${relative(this.root, path)} (${bIds.size} boundaries)`);
 
-    // Load the existing physical catalog
     let raw = "";
     try {
       raw = await this.io.readFile(path);
@@ -834,7 +849,7 @@ export class CatalogManager {
           isActive = this.isTestEnv && !isExample;
         } else {
           if (!reachableFiles) {
-            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph);
+            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph, metadataGraph);
           }
         }
       }
@@ -1161,7 +1176,7 @@ export class CatalogManager {
           const fileId = bId.split(":")[0];
           const normFileId = this.io.getNormalizedId(fileId);
           if (!reachableFiles) {
-            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph);
+            reachableFiles = this.getReachableFiles(graph.entries, dependencyGraph, metadataGraph);
           }
           isActive = reachableFiles.has(normFileId);
         }
