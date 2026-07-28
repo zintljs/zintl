@@ -219,6 +219,16 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
     // Always inject the "vite" bundler facet
     facets.push(viteFacet());
 
+    const testOutputDir = process.env.ZINTL_TEST_OUTPUT_DIR;
+    if (testOutputDir) {
+      ctx.options.outputDir = testOutputDir;
+      ctx.options.prune = false;
+      ctx.options.verifyIntegrity = true;
+      if (process.env.ZINTL_TEST_METADATA_DIR) {
+        ctx.options.metadataDir = process.env.ZINTL_TEST_METADATA_DIR;
+      }
+    }
+
     ctx.compiler = new ZintlCompiler(
       {
         verifyIntegrity: config.command === "build",
