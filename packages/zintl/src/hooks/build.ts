@@ -7,6 +7,7 @@ export function buildStartHook(ctx: ZintlPluginContext) {
     if (!ctx.server) {
       // Discovery pass for production builds
       await ctx.compiler.discover();
+      (ctx as any).discovered = true;
     }
   };
 }

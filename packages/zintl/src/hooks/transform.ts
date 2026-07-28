@@ -7,6 +7,14 @@ export function transformHook(ctx: ZintlPluginContext) {
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
+    if (ctx.server && !(ctx as any).discovered) {
+      (ctx as any).discovered = true;
+      try {
+        await ctx.compiler.discover();
+      } catch (err: any) {
+        if (err.code !== "ENOENT") throw err;
+      }
+    }
     const isTargetSsrEntry = ctx.compiler?.isSsrEntryTarget?.(id);
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
