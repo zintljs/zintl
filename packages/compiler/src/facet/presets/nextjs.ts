@@ -13,7 +13,9 @@ function nextjsSsrWrapCode(params: SsrWrapParams): string | undefined {
     !isEntry &&
     !fileId.endsWith("entry-server") &&
     !fileId.endsWith("entry-server.ts") &&
-    !fileId.endsWith("entry-server.js")
+    !fileId.endsWith("entry-server.js") &&
+    !fileId.endsWith("entry-server.tsx") &&
+    !fileId.endsWith("entry-server.jsx")
   ) {
     return undefined;
   }
