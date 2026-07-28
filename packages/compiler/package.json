@@ -10,6 +10,10 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
+    "./facets": {
+      "types": "./dist/facet/index.d.mts",
+      "import": "./dist/facet/index.mjs"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {

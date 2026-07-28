@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler, assetsFacet } from "../index.js";
+import { ZintlCompiler } from "../index.js";
+import { assetsFacet } from "../facet/index.js";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";

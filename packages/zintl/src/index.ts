@@ -1,28 +1,10 @@
-export type { ZintlPluginOptions, ZintlPluginFacetInput } from "./types.js";
+import type { CompilerOptions, AssetTargetConfig } from "@zintl/compiler";
+import type { ZintlPluginFacetInput } from "./facets.ts";
+export interface ZintlPluginOptions extends Omit<CompilerOptions, "facets"> {
+  assetsTarget?: (string | AssetTargetConfig)[];
+  virtualAssets?: boolean;
+  verifyIntegrity?: boolean;
+  facets?: ZintlPluginFacetInput[];
+}
 
-// Re-export default facet factories and constants from @zintl/compiler
-export {
-  vanillaFacet,
-  reactExtractionFacet,
-  reactCodegenFacet,
-  reactFacet,
-  vueExtractionFacet,
-  vueCodegenFacet,
-  vueFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-  svelteFacet,
-  htmlExtractionFacet,
-  htmlProjectionFacet,
-  htmlFacet,
-  nextjsSsrFacet,
-  nextjsExtractionFacet,
-  nextjsRuntimeFacet,
-  nextjsFacet,
-  ssrWrappingFacet,
-  ssrRuntimeFacet,
-  ssrFacet,
-  clientSpaFacet,
-  viteFacet,
-  assetsFacet,
-} from "@zintl/compiler";
+export * from "./macro.js";

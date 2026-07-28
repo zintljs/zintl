@@ -30,5 +30,10 @@ export default defineConfig({
         ],
       },
     },
+    {
+      entry: ["src/facet/index.ts"],
+      dts: true,
+      outDir: "dist/facet",
+    },
   ],
 });

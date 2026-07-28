@@ -1,7 +1,6 @@
 import type { ResolvedConfig } from "vite";
+import { ZintlCompiler, type LogLevel } from "@zintl/compiler";
 import {
-  ZintlCompiler,
-  type LogLevel,
   vanillaFacet,
   reactFacet,
   vueFacet,
@@ -12,11 +11,11 @@ import {
   clientSpaFacet,
   viteFacet,
   assetsFacet,
-} from "@zintl/compiler";
+} from "@zintl/compiler/facets";
 import type { ZintlPluginContext } from "../context.js";
 import { isAbsolute, relative, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import type { ZintlPluginFacetInput } from "../types.js";
+import type { ZintlPluginFacetInput } from "../facets.ts";
 
 export function configHook(ctx: ZintlPluginContext) {
   return function (userConfig: any) {

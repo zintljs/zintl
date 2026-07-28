@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
 import type { ZintlCompiler } from "@zintl/compiler";
 import { PLUGIN_NAME } from "./constants.js";
-import type { ZintlPluginOptions } from "./types.js";
+import type { ZintlPluginOptions } from "./index.js";
 import zintlUnplugin, { contextMap } from "./plugin.js";
 
 export interface ZintlPluginArray extends Array<Plugin> {

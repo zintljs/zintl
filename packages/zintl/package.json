@@ -45,6 +45,10 @@
       "types": "./dist/macro.d.mts",
       "import": "./dist/macro.mjs"
     },
+    "./facets": {
+      "types": "./dist/facets.d.mts",
+      "import": "./dist/facets.mjs"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {

@@ -2,7 +2,7 @@ import { ZintlCompiler } from "@zintl/compiler";
 import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
-import type { ZintlPluginOptions } from "./types.js";
+import type { ZintlPluginOptions } from "./index.js";
 
 export class ZintlPluginContext {
   public compiler!: ZintlCompiler;

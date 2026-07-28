@@ -1,7 +1,7 @@
 import { createUnplugin, type UnpluginFactory } from "unplugin";
 import { PLUGIN_NAME } from "./constants.js";
 import { ZintlPluginContext } from "./context.js";
-import type { ZintlPluginOptions } from "./types.js";
+import type { ZintlPluginOptions } from "./index.js";
 
 import { configHook, configResolvedHook } from "./hooks/config.js";
 import { configureServerHook } from "./hooks/server.js";

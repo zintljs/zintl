@@ -15,24 +15,7 @@
  */
 
 export { resolveFacets } from "./resolve.js";
-export type {
-  ZintlFacet,
-  FacetConcern,
-  BaseFacet,
-  ExtractionFacet,
-  CodegenFacet,
-  SsrFacet,
-  RuntimeFacet,
-  BundlerFacet,
-  ContentFacet,
-  ResolvedCapabilities,
-  ResolvedFacetSystem,
-  SsrWrapParams,
-  LocaleDetectionContext,
-  MultiplexDetectionContext,
-  TagMapEntry,
-  CompilerContext,
-} from "./types.js";
+export type * from "./types.js";
 // Re-export for convenience — resolver types are also from resolve.ts
 export type { ResolvedFacets } from "./resolve.js";
 

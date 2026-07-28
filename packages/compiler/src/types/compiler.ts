@@ -1,4 +1,5 @@
 import type { LogLevel, ZintlLogger } from "@zintl/extractor";
+import type { ZintlFacet } from "../facet/index.js";
 export type { LogLevel, ZintlLogger };
 
 export type AssetMergeStrategy =
@@ -31,7 +32,7 @@ export interface CompilerOptions {
   facets?: CompilerFacetInput[];
 }
 
-export type CompilerFacetInput = import("../facet/index.js").ZintlFacet | CompilerFacetInput[];
+type CompilerFacetInput = ZintlFacet | CompilerFacetInput[];
 
 interface CatalogFormatContext {
   locale: string;

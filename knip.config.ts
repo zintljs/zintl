@@ -24,7 +24,7 @@ const config: KnipConfig = {
       vue: true,
     },
     "packages/compiler": {
-      entry: ["src/index.ts", "src/runtime/*.ts"],
+      entry: ["src/index.ts", "src/runtime/*.ts", "src/facet/index.ts"],
       project: ["src/**/*.ts"],
     },
     "packages/extractor": {

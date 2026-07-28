@@ -22,7 +22,6 @@ import {
 } from "./constants.js";
 import {
   type CompilerOptions,
-  type CompilerFacetInput,
   type ZintlLogger,
   type LogLevel,
   type AssetTargetConfig,
@@ -51,57 +50,14 @@ export { serializeDeterministic, sortObjectKeys, compareStrings } from "./utils/
 import type { HtmlProjectionPayload } from "@zintl/extractor";
 export type {
   CompilerOptions,
-  CompilerFacetInput,
   ZintlLogger,
   LogLevel,
   AssetTargetConfig,
   AssetMergeStrategy,
   HtmlProjectionPayload,
-};
-export type {
   ZintlFacet,
-  FacetConcern,
-  BaseFacet,
-  ExtractionFacet,
-  CodegenFacet,
-  SsrFacet,
-  RuntimeFacet,
-  BundlerFacet,
-  ContentFacet,
-  ResolvedCapabilities,
-  ResolvedFacetSystem,
-  ResolvedFacets,
-  SsrWrapParams,
-  LocaleDetectionContext,
-  MultiplexDetectionContext,
-  TagMapEntry,
-} from "./facet/index.js";
-export {
-  resolveFacets,
-  vanillaFacet,
-  reactExtractionFacet,
-  reactCodegenFacet,
-  reactFacet,
-  vueExtractionFacet,
-  vueCodegenFacet,
-  vueFacet,
-  svelteExtractionFacet,
-  svelteCodegenFacet,
-  svelteFacet,
-  htmlExtractionFacet,
-  htmlProjectionFacet,
-  htmlFacet,
-  nextjsSsrFacet,
-  nextjsExtractionFacet,
-  nextjsRuntimeFacet,
-  nextjsFacet,
-  ssrWrappingFacet,
-  ssrRuntimeFacet,
-  ssrFacet,
-  clientSpaFacet,
-  viteFacet,
-  assetsFacet,
-} from "./facet/index.js";
+};
+export { resolveFacets };
 
 export class ZintlCompiler {
   public readonly io: IOManager;

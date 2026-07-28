@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { ZintlCompiler, viteFacet } from "../index.js";
+import { ZintlCompiler } from "../index.js";
+import { viteFacet } from "../facet/index.js";
 import { join } from "node:path";
 import { createTestDir, type TestContext } from "./helpers/fs.js";
 

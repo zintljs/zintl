@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
-import { resolveFacets } from "@zintl/compiler";
 import { join } from "node:path";
 import { handlebarsFacet, multiBrandThemeFacet } from "../../index.js";
+import { ZintlCompiler, resolveFacets } from "@zintl/compiler";
 
 describe("Custom Facets Stress Tests", () => {
   describe("Handlebars Extraction & Codegen Facet", () => {
@@ -13,7 +13,6 @@ describe("Custom Facets Stress Tests", () => {
     });
 
     it("extracts and translates HBS template under ZintlCompiler", async () => {
-      const { ZintlCompiler } = await import("@zintl/compiler");
       const root = join(process.cwd(), "test-app");
       const compiler = new ZintlCompiler(
         {
