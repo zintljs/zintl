@@ -1,7 +1,7 @@
-import { createUnplugin, type UnpluginFactory } from "unplugin";
+import { createUnplugin } from "unplugin";
 import { PLUGIN_NAME } from "./constants.js";
-import { ZintlPluginContext } from "./context.js";
-import type { ZintlPluginOptions } from "./index.js";
+import Context from "./context.js";
+import type { Options } from "./types.ts";
 
 import { configHook, configResolvedHook } from "./hooks/config.js";
 import { configureServerHook } from "./hooks/server.js";
@@ -13,19 +13,18 @@ import {
 } from "./hooks/transform.js";
 import { handleHotUpdateHook } from "./hooks/hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
+import { resolveOptions } from "./options.js";
 
-export const contextMap = new WeakMap<ZintlPluginOptions, ZintlPluginContext>();
+const contextMap = new WeakMap<Options, Context>();
 
-/**
- * Zintl Unplugin Factory
- */
-const zintlFactory: UnpluginFactory<ZintlPluginOptions, true> = (options) => {
-  const ctx = new ZintlPluginContext(options);
-  contextMap.set(options, ctx);
+const unplugin = createUnplugin<Options, true>((options) => {
+  const resolved = resolveOptions(options);
+  const ctx = new Context(resolved);
+  contextMap.set(resolved ?? {}, ctx);
 
   if (typeof globalThis !== "undefined") {
     const activeContexts = globalThis as unknown as {
-      __zintl_active_contexts?: ZintlPluginContext[];
+      __zintl_active_contexts?: Context[];
     };
     activeContexts.__zintl_active_contexts = activeContexts.__zintl_active_contexts || [];
     activeContexts.__zintl_active_contexts.push(ctx);
@@ -73,6 +72,6 @@ const zintlFactory: UnpluginFactory<ZintlPluginOptions, true> = (options) => {
       },
     },
   ];
-};
+});
 
-export default createUnplugin(zintlFactory);
+export default unplugin;

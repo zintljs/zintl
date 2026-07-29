@@ -1,6 +1,6 @@
-import type { ZintlPluginOptions } from "zintl";
+import type { Options } from "zintl";
 
-export type { ZintlPluginOptions };
+export type { Options as ZintlPluginOptions };
 
 export interface CompilationResult {
   /** Transformed source modules (relative path → code) */

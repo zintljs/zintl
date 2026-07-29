@@ -1,6 +1,6 @@
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 
-export function buildStartHook(ctx: ZintlPluginContext) {
+export function buildStartHook(ctx: Context) {
   return async function () {
     ctx.compiler._logger.withPrefix("Vite").debug("Build starting...");
     await ctx.compiler.setup();
@@ -12,7 +12,7 @@ export function buildStartHook(ctx: ZintlPluginContext) {
   };
 }
 
-export function buildEndHook(ctx: ZintlPluginContext) {
+export function buildEndHook(ctx: Context) {
   return async function () {
     await ctx.compiler.flush();
   };

@@ -1,9 +1,9 @@
 import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 
-export function configureServerHook(ctx: ZintlPluginContext) {
+export function configureServerHook(ctx: Context) {
   return function (server: ViteDevServer) {
     ctx.server = server;
 

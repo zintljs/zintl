@@ -12,12 +12,12 @@ import {
   viteFacet,
   assetsFacet,
 } from "@zintl/compiler/facets";
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 import { isAbsolute, relative, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import type { ZintlPluginFacetInput } from "../facets.ts";
+import type { FacetsInput } from "../types.ts";
 
-export function configHook(ctx: ZintlPluginContext) {
+export function configHook(ctx: Context) {
   return function (userConfig: any) {
     const multiplex = ctx.getMultiplex(userConfig);
     const locales = ctx.options.locales || ["en"];
@@ -95,7 +95,7 @@ export function configHook(ctx: ZintlPluginContext) {
   };
 }
 
-function flattenFacets(inputs: ZintlPluginFacetInput[], autoFacets: any[]): any[] {
+function flattenFacets(inputs: FacetsInput[], autoFacets: any[]): any[] {
   const result: any[] = [];
 
   function processInput(input: any) {
@@ -129,7 +129,7 @@ function flattenFacets(inputs: ZintlPluginFacetInput[], autoFacets: any[]): any[
   return result;
 }
 
-export function configResolvedHook(ctx: ZintlPluginContext) {
+export function configResolvedHook(ctx: Context) {
   return function (config: ResolvedConfig) {
     const logLevel = ctx.options.logLevel || (config as any).logLevel || "info";
 
@@ -206,7 +206,7 @@ export function configResolvedHook(ctx: ZintlPluginContext) {
       vanillaFacet(),
       htmlFacet(),
       assetsFacet({
-        targets: ctx.options.assetsTarget,
+        targets: ctx.options?.assetsTarget,
         virtualAssets: ctx.options.virtualAssets,
       }),
     );

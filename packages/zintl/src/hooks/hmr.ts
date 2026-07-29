@@ -1,9 +1,9 @@
 import type { ModuleNode } from "vite";
 import { isAbsolute, join } from "node:path";
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 
-export function handleHotUpdateHook(ctx: ZintlPluginContext) {
+export function handleHotUpdateHook(ctx: Context) {
   return async function (this: any, { file, server, modules, timestamp }: any) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (ctx.compiler.isWritingFile(file)) return;

@@ -1,17 +1,24 @@
 import { describe, it, expect, vi } from "vite-plus/test";
 import rawZintl from "../vite.js";
+import {
+  RESOLVED_VIRTUAL_PREFIX,
+  RESOLVED_CHUNK_PREFIX,
+  RESOLVED_CONTENT_PREFIX,
+  RESOLVED_MANAGER_PREFIX,
+} from "../constants.ts";
+import type { VitePlugin } from "unplugin";
 
-const getPluginHooks = (p: any) => {
+const getPluginHooks = (p: VitePlugin[]) => {
   const list = Array.isArray(p) ? p : [p];
   const main = list.find((x) => x.name === "zintl") || list[0];
   const pre = list.find((x) => x.name === "zintl-pre") || list[0];
   return {
-    config: main.vite?.config,
-    configResolved: main.vite?.configResolved,
-    configureServer: main.vite?.configureServer,
-    transformIndexHtml: main.vite?.transformIndexHtml || pre.vite?.transformIndexHtml,
-    handleHotUpdate: main.vite?.handleHotUpdate,
-    hotUpdate: main.vite?.hotUpdate,
+    config: main.config,
+    configResolved: main.configResolved,
+    configureServer: main.configureServer,
+    transformIndexHtml: main.transformIndexHtml || pre.transformIndexHtml,
+    handleHotUpdate: main.handleHotUpdate,
+    hotUpdate: main.hotUpdate,
     buildStart: main.buildStart,
     buildEnd: main.buildEnd,
     resolveId: main.resolveId,
@@ -42,12 +49,6 @@ vi.mock("node:fs", async () => {
     },
   };
 });
-import {
-  RESOLVED_VIRTUAL_PREFIX,
-  RESOLVED_CHUNK_PREFIX,
-  RESOLVED_CONTENT_PREFIX,
-  RESOLVED_MANAGER_PREFIX,
-} from "../constants.ts";
 
 describe("Zintl Vite Plugin Lifecycle", () => {
   it("should handle options.debug in config", () => {

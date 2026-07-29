@@ -32,7 +32,7 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
     "packages/zintl": {
-      entry: ["src/index.ts", "src/macro.ts", "src/vite.ts"],
+      entry: ["src/index.ts", "src/macro.ts", "src/vite.ts", "src/facets.ts"],
       project: ["src/**/*.ts"],
     },
     "packages/testing": {

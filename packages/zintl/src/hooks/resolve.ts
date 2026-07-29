@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 import { generateMessageId, getRuntimeCode, sha1 } from "@zintl/compiler";
 import {
   VIRTUAL_PREFIX,
@@ -37,7 +37,7 @@ function injectMultiplexQuery(id: string, locale: string): string {
   return `${cleanId}?${params.join("&")}&zintl-multiplex=${locale}`;
 }
 
-export function resolveIdHook(ctx: ZintlPluginContext) {
+export function resolveIdHook(ctx: Context) {
   return async function (
     this: any,
     id: string,
@@ -314,7 +314,7 @@ export function resolveIdHook(ctx: ZintlPluginContext) {
   };
 }
 
-export function loadHook(ctx: ZintlPluginContext) {
+export function loadHook(ctx: Context) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const cleanId = id.split("?")[0];

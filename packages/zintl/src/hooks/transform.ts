@@ -1,8 +1,8 @@
 import { join, dirname } from "node:path";
-import type { ZintlPluginContext } from "../context.js";
+import type Context from "../context.js";
 import { VIRTUAL_PREFIX } from "../constants.js";
 
-export function transformHook(ctx: ZintlPluginContext) {
+export function transformHook(ctx: Context) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
@@ -61,7 +61,7 @@ export function transformHook(ctx: ZintlPluginContext) {
   };
 }
 
-export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
+export function transformIndexHtmlHook(ctx: Context) {
   return {
     order: "post" as const,
     async handler(html: string, viteCtx: any) {
@@ -124,7 +124,7 @@ export function transformIndexHtmlHook(ctx: ZintlPluginContext) {
   };
 }
 
-export function preTransformIndexHtmlHook(ctx: ZintlPluginContext) {
+export function preTransformIndexHtmlHook(ctx: Context) {
   return {
     order: "pre" as const,
     handler(html: string, viteCtx: any) {
