@@ -382,7 +382,11 @@ var __vitePreload = function preload(baseModule, deps, importerUrl) {
 		}
 		function importMetaResolve(specifier) {
 			if (import.meta.resolve) return import.meta.resolve(specifier);
-			return new URL(specifier, new URL("../../../../../../vite/packages/vite/src/node/plugins/importAnalysisBuild.ts", import.meta.url)).href;
+			return new URL(
+				specifier,
+				/** #__KEEP__ */
+				import.meta.url
+			).href;
 		}
 		promise = allSettled(deps.map((dep) => {
 			dep = assetsURL(dep, importerUrl);
@@ -454,7 +458,7 @@ var entry_b_aafcf9c6fe16_default = {
 	manifest: []
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/shared/utils.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/utils.js
 var is_array = Array.isArray;
 var index_of = Array.prototype.indexOf;
 var includes = Array.prototype.includes;
@@ -532,7 +536,7 @@ var STALE_REACTION = new class StaleReactionError extends Error {
 }();
 var IS_XHTML = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/shared/errors.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/errors.js
 /**
 * An invariant violation occurred, meaning Svelte's internal assumptions were flawed. This is a bug in Svelte, not your app — please open an issue at https://github.com/sveltejs/svelte, citing the following message: "%message%"
 * @param {string} message
@@ -546,7 +550,7 @@ function invariant_violation(message) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/errors.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/errors.js
 /**
 * Cannot create a `$derived(...)` with an `await` expression outside of an effect tree
 * @returns {never}
@@ -691,7 +695,7 @@ function svelte_boundary_reset_onerror() {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/constants.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
 var UNINITIALIZED = Symbol("uninitialized");
 var FILENAME = Symbol("filename");
@@ -699,7 +703,7 @@ var NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
 var NAMESPACE_SVG = "http://www.w3.org/2000/svg";
 var NAMESPACE_MATHML = "http://www.w3.org/1998/Math/MathML";
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/warnings.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/warnings.js
 var bold = "font-weight: bold";
 var normal = "font-weight: normal";
 /**
@@ -760,7 +764,7 @@ function svelte_boundary_reset_noop() {
 	console.warn(`%c[svelte] svelte_boundary_reset_noop\n%cA \`<svelte:boundary>\` \`reset\` function only resets the boundary the first time it is called\nhttps://svelte.dev/e/svelte_boundary_reset_noop`, bold, normal);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/hydration.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/hydration.js
 /** @import { TemplateNode } from '#client' */
 /**
 * Use this variable to guard everything related to hydration code so it can be treeshaken out
@@ -839,7 +843,7 @@ function read_hydration_instruction(node) {
 	return node.data;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/equality.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/equality.js
 /** @import { Equals } from '#client' */
 /** @type {Equals} */
 function equals(value) {
@@ -858,7 +862,7 @@ function safe_equals(value) {
 	return !safe_not_equal(value, this.v);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/flags/index.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/flags/index.js
 /** True if experimental.async=true */
 var async_mode_flag = false;
 /** True if we're not certain that we only have Svelte 5 code in the compilation */
@@ -866,7 +870,7 @@ var legacy_mode_flag = false;
 /** True if $inspect.trace is used */
 var tracing_mode_flag = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dev/tracing.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/tracing.js
 /**
 * @typedef {{
 *   traces: Error[];
@@ -892,7 +896,7 @@ function tag_proxy(value, label) {
 	return value;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/shared/dev.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/dev.js
 /**
 * @param {string} label
 * @returns {Error & { stack: string } | null}
@@ -935,7 +939,7 @@ function invariant(condition, message) {
 	if (!condition) invariant_violation(message);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/context.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/context.js
 /** @import { ComponentContext, DevStackEntry, Effect } from '#client' */
 /** @type {ComponentContext | null} */
 var component_context = null;
@@ -1037,7 +1041,7 @@ function is_runes() {
 	return !legacy_mode_flag || component_context !== null && component_context.l === null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/task.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/task.js
 /** @type {Array<() => void>} */
 var micro_tasks = [];
 function run_micro_tasks() {
@@ -1058,7 +1062,7 @@ function queue_micro_task(fn) {
 	micro_tasks.push(fn);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/error-handling.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/error-handling.js
 /** @import { Derived, Effect } from '#client' */
 /** @import { Boundary } from './dom/blocks/boundary.js' */
 var adjustments = /* @__PURE__ */ new WeakMap();
@@ -1130,7 +1134,7 @@ function apply_adjustments(error) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/status.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/status.js
 /** @import { Derived, Signal } from '#client' */
 var STATUS_MASK = ~(DIRTY | MAYBE_DIRTY | CLEAN);
 /**
@@ -1149,7 +1153,7 @@ function update_derived_status(derived) {
 	else set_signal_status(derived, MAYBE_DIRTY);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/utils.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/utils.js
 /** @import { Derived, Effect, Value } from '#client' */
 /**
 * @param {Value[] | null} deps
@@ -1177,14 +1181,32 @@ function defer_effect(effect, dirty_effects, maybe_dirty_effects) {
 	set_signal_status(effect, CLEAN);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/store.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/store.js
 /**
 * We set this to `true` when updating a store so that we correctly
 * schedule effects if the update takes place inside a `$:` effect
 */
 var legacy_is_updating_store = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/reactivity/create-subscriber.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
+/**
+* @template T
+* @param {() => T} fn
+*/
+function without_reactive_context(fn) {
+	var previous_reaction = active_reaction;
+	var previous_effect = active_effect;
+	set_active_reaction(null);
+	set_active_effect(null);
+	try {
+		return fn();
+	} finally {
+		set_active_reaction(previous_reaction);
+		set_active_effect(previous_effect);
+	}
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/reactivity/create-subscriber.js
 /**
 * Returns a `subscribe` function that integrates external event-based systems with Svelte's reactivity.
 * It's particularly useful for integrating with web APIs like `MediaQuery`, `IntersectionObserver`, or `WebSocket`.
@@ -1258,7 +1280,7 @@ function createSubscriber(start) {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
 /** @import { Effect, Source, TemplateNode, } from '#client' */
 /**
 * @typedef {{
@@ -1371,10 +1393,49 @@ var Boundary = class {
 	*/
 	#hydrate_failed_content(error) {
 		const failed = this.#props.failed;
+		const { reset, invoke_onerror } = this.#create_reset(error);
+		queue_micro_task(invoke_onerror);
 		if (!failed) return;
 		this.#failed_effect = branch(() => {
-			failed(this.#anchor, () => error, () => () => {});
+			failed(this.#anchor, () => error, () => reset);
 		});
+	}
+	/**
+	* Creates the `reset` function for a failed boundary, along with a function
+	* that invokes `onerror` with it (if provided)
+	* @param {unknown} error
+	* @returns {{ reset: () => void, invoke_onerror: () => void }}
+	*/
+	#create_reset(error) {
+		var did_reset = false;
+		var calling_on_error = false;
+		const reset = () => {
+			if (did_reset) {
+				svelte_boundary_reset_noop();
+				return;
+			}
+			did_reset = true;
+			if (calling_on_error) svelte_boundary_reset_onerror();
+			if (this.#failed_effect !== null) pause_effect(this.#failed_effect, () => {
+				this.#failed_effect = null;
+			});
+			this.#run(() => {
+				this.#render();
+			});
+		};
+		const invoke_onerror = () => {
+			try {
+				calling_on_error = true;
+				this.#props.onerror?.(error, reset);
+				calling_on_error = false;
+			} catch (err) {
+				invoke_error_boundary(err, this.#effect && this.#effect.parent);
+			}
+		};
+		return {
+			reset,
+			invoke_onerror
+		};
 	}
 	#hydrate_pending_content() {
 		const pending = this.#props.pending;
@@ -1540,33 +1601,11 @@ var Boundary = class {
 			next();
 			set_hydrate_node(skip_nodes());
 		}
-		var onerror = this.#props.onerror;
 		let failed = this.#props.failed;
-		var did_reset = false;
-		var calling_on_error = false;
-		const reset = () => {
-			if (did_reset) {
-				svelte_boundary_reset_noop();
-				return;
-			}
-			did_reset = true;
-			if (calling_on_error) svelte_boundary_reset_onerror();
-			if (this.#failed_effect !== null) pause_effect(this.#failed_effect, () => {
-				this.#failed_effect = null;
-			});
-			this.#run(() => {
-				this.#render();
-			});
-		};
 		/** @param {unknown} transformed_error */
 		const handle_error_result = (transformed_error) => {
-			try {
-				calling_on_error = true;
-				onerror?.(transformed_error, reset);
-				calling_on_error = false;
-			} catch (error) {
-				invoke_error_boundary(error, this.#effect && this.#effect.parent);
-			}
+			const { reset, invoke_onerror } = this.#create_reset(transformed_error);
+			invoke_onerror();
 			if (failed) this.#failed_effect = this.#run(() => {
 				try {
 					return branch(() => {
@@ -1601,7 +1640,7 @@ var Boundary = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/async.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/async.js
 /** @import { Blocker, Effect, Source, Value } from '#client' */
 /**
 * @param {Blocker[]} blockers
@@ -1719,7 +1758,7 @@ function increment_pending() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/deriveds.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/deriveds.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @import { Batch } from './batch.js'; */
 /** @import { Boundary } from '../dom/blocks/boundary.js'; */
@@ -1946,9 +1985,11 @@ function freeze_derived_effects(derived) {
 	if (derived.effects === null) return;
 	for (const e of derived.effects) if (e.teardown || e.ac) {
 		e.teardown?.();
-		e.ac?.abort(STALE_REACTION);
+		if (e.ac !== null) without_reactive_context(() => {
+			/** @type {AbortController} */ e.ac.abort(STALE_REACTION);
+			e.ac = null;
+		});
 		if (e.fn !== null) e.teardown = noop;
-		e.ac = null;
 		remove_reactions(e, 0);
 		destroy_effect_children(e);
 	}
@@ -1961,7 +2002,7 @@ function unfreeze_derived_effects(derived) {
 	for (const e of derived.effects) if (e.teardown && e.fn !== null) update_effect(e);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/batch.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/batch.js
 /** @import { Fork } from 'svelte' */
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @type {Batch | null} */
@@ -2298,6 +2339,7 @@ var Batch = class Batch {
 		const mark = (value) => {
 			var reactions = value.reactions;
 			if (reactions === null) return;
+			if ((value.f & 2) !== 0 && (value.f & 6144) === 0) return;
 			for (const reaction of reactions) {
 				var flags = reaction.f;
 				if ((flags & 2) !== 0) mark(reaction);
@@ -2688,7 +2730,7 @@ function reset_all(effect) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/sources.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/sources.js
 /** @import { Derived, Effect, Source, Value } from '#client' */
 /** @type {Set<Effect>} */
 var eager_effects = /* @__PURE__ */ new Set();
@@ -2868,7 +2910,7 @@ function mark_reactions(signal, status, updated_during_traversal) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/proxy.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/proxy.js
 /** @import { Source } from '#client' */
 var regex_is_valid_identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 /**
@@ -3104,7 +3146,7 @@ function inspectable_array(array) {
 	} });
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dev/equality.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/equality.js
 function init_array_prototype_warnings() {
 	const array_prototype = Array.prototype;
 	const cleanup = Array.__svelte_cleanup;
@@ -3159,7 +3201,7 @@ function strict_equals(a, b, equal = true) {
 	return a === b === equal;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/operations.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/operations.js
 /** @import { Effect, TemplateNode } from '#client' */
 /** @type {Window} */
 var $window;
@@ -3339,25 +3381,7 @@ function merge_text_nodes(text) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
-/**
-* @template T
-* @param {() => T} fn
-*/
-function without_reactive_context(fn) {
-	var previous_reaction = active_reaction;
-	var previous_effect = active_effect;
-	set_active_reaction(null);
-	set_active_effect(null);
-	try {
-		return fn();
-	} finally {
-		set_active_reaction(previous_reaction);
-		set_active_effect(previous_effect);
-	}
-}
-//#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/reactivity/effects.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/effects.js
 /** @import { Blocker, ComponentContext, ComponentContextLegacy, Derived, Effect, TemplateNode, TransitionManager } from '#client' */
 /**
 * @param {Effect} effect
@@ -3707,15 +3731,18 @@ function move_effect(effect, fragment) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/legacy.js
 /**
 * @type {Set<Value> | null}
 * @deprecated
 */
 var captured_signals = null;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/runtime.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/runtime.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
+/**
+* True if updating in an effect context that is reactive (i.e. not branch/root effects)
+*/
 var is_updating_effect = false;
 var is_destroying_effect = false;
 /** @param {boolean} value */
@@ -3913,6 +3940,11 @@ function remove_reaction(signal, dependency) {
 			derived.f &= ~WAS_MARKED;
 		}
 		if (derived.v !== UNINITIALIZED) update_derived_status(derived);
+		if (derived.ac !== null) without_reactive_context(() => {
+			/** @type {AbortController} */ derived.ac.abort(STALE_REACTION);
+			derived.ac = null;
+			set_signal_status(derived, DIRTY);
+		});
 		freeze_derived_effects(derived);
 		remove_reactions(derived, 0);
 	}
@@ -3938,7 +3970,7 @@ function update_effect(effect) {
 	var previous_effect = active_effect;
 	var was_updating_effect = is_updating_effect;
 	active_effect = effect;
-	is_updating_effect = true;
+	is_updating_effect = (flags & 96) === 0;
 	var previous_component_fn = dev_current_component_function;
 	set_dev_current_component_function(effect.component_function);
 	var previous_stack = dev_stack;
@@ -4086,7 +4118,7 @@ function untrack(fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/utils.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/utils.js
 var regex_return_characters = /\r/g;
 /**
 * @param {string} str
@@ -4126,7 +4158,7 @@ function sanitize_location(location) {
 	return location?.replace(/\//g, "/​");
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dev/elements.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/elements.js
 /** @import { SourceLocation } from '#client' */
 /**
 * @param {any} fn
@@ -4176,7 +4208,7 @@ function assign_locations(node, filename, locations) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/elements/events.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/events.js
 /**
 * Used on elements, as a map of event type -> event handler,
 * and on events themselves to track which element handled an event
@@ -4276,7 +4308,7 @@ function handle_event_propagation(event) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/reconciler.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/reconciler.js
 var policy = globalThis?.window?.trustedTypes && /* @__PURE__ */ globalThis.window.trustedTypes.createPolicy("svelte-trusted-html", { 
 /** @param {string} html */
 createHTML: (html) => {
@@ -4295,7 +4327,7 @@ function create_fragment_from_html(html) {
 	return elem.content;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/template.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/template.js
 /** @import { Effect, EffectNodes, TemplateNode } from '#client' */
 /** @import { TemplateStructure } from './types' */
 /**
@@ -4465,7 +4497,7 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
 */
 var mounted_components = /* @__PURE__ */ new WeakMap();
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dev/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/legacy.js
 /** @param {Function & { [FILENAME]: string }} target */
 function check_target(target) {
 	if (target) component_api_invalid_new(target[FILENAME] ?? "a component", target.name);
@@ -4483,7 +4515,7 @@ function legacy_api() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/blocks/branches.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/branches.js
 /** @import { Effect, TemplateNode } from '#client' */
 /**
 * @typedef {{ effect: Effect, fragment: DocumentFragment }} Branch
@@ -4630,7 +4662,7 @@ var BranchManager = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/blocks/key.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/key.js
 /** @import { TemplateNode } from '#client' */
 var NAN = Symbol("NaN");
 /**
@@ -4652,7 +4684,7 @@ function key(node, get_key, render_fn) {
 	});
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/blocks/each.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/each.js
 /** @import { EachItem, EachOutroGroup, EachState, Effect, EffectNodes, MaybeSource, Source, TemplateNode, TransitionManager, Value } from '#client' */
 /** @import { Batch } from '../../reactivity/batch.js'; */
 /**
@@ -5091,7 +5123,7 @@ function validate_each_keys(array, key_fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/blocks/html.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/html.js
 /** @import { Effect, TemplateNode } from '#client' */
 /** @import {} from 'trusted-types' */
 /**
@@ -5184,7 +5216,7 @@ function clsx$1() {
 	return n;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/shared/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/attributes.js
 /**
 * Small wrapper around clsx to preserve Svelte's (weird) handling of falsy values.
 * TODO Svelte 6 revisit this, and likely turn all falsy values into the empty string (what clsx also does)
@@ -5219,7 +5251,7 @@ function to_class(value, hash, directives) {
 	return classname === "" ? null : classname;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/elements/class.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/class.js
 /**
 * @param {Element} dom
 * @param {boolean | number} is_html
@@ -5244,7 +5276,7 @@ function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
 	return next_classes;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/client/dom/elements/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/attributes.js
 /** @import { Blocker, Effect } from '#client' */
 var IS_CUSTOM_ELEMENT = Symbol("is custom element");
 var IS_HTML = Symbol("is html");
@@ -5360,7 +5392,7 @@ if (typeof HTMLElement === "function");
 	throw_rune_error("$bindable");
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.4/node_modules/svelte/src/internal/disclose-version.js
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/disclose-version.js
 if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 //#endregion
 //#region examples/svelte-basic/src/assets/svelte.svg

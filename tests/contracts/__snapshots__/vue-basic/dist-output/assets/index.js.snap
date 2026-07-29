@@ -382,7 +382,11 @@ var __vitePreload = function preload(baseModule, deps, importerUrl) {
 		}
 		function importMetaResolve(specifier) {
 			if (import.meta.resolve) return import.meta.resolve(specifier);
-			return new URL(specifier, new URL("../../../../../../vite/packages/vite/src/node/plugins/importAnalysisBuild.ts", import.meta.url)).href;
+			return new URL(
+				specifier,
+				/** #__KEEP__ */
+				import.meta.url
+			).href;
 		}
 		promise = allSettled(deps.map((dep) => {
 			dep = assetsURL(dep, importerUrl);
@@ -456,9 +460,9 @@ var entry_b_aafcf9c6fe16_default = {
 	manifest: []
 };
 //#endregion
-//#region node_modules/.pnpm/@vue+shared@3.5.39/node_modules/@vue/shared/dist/shared.esm-bundler.js
+//#region node_modules/.pnpm/@vue+shared@3.5.40/node_modules/@vue/shared/dist/shared.esm-bundler.js
 /**
-* @vue/shared v3.5.39
+* @vue/shared v3.5.40
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -632,9 +636,9 @@ var stringifySymbol = (v, i = "") => {
 	return isSymbol(v) ? `Symbol(${(_a = v.description) != null ? _a : i})` : v;
 };
 //#endregion
-//#region node_modules/.pnpm/@vue+reactivity@3.5.39/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js
+//#region node_modules/.pnpm/@vue+reactivity@3.5.40/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js
 /**
-* @vue/reactivity v3.5.39
+* @vue/reactivity v3.5.40
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -676,7 +680,10 @@ var EffectScope = class {
 		if (this._active) {
 			this._isPaused = true;
 			let i, l;
-			if (this.scopes) for (i = 0, l = this.scopes.length; i < l; i++) this.scopes[i].pause();
+			if (this.scopes) {
+				const scopes = this.scopes.slice();
+				for (i = 0, l = scopes.length; i < l; i++) scopes[i].pause();
+			}
 			for (i = 0, l = this.effects.length; i < l; i++) this.effects[i].pause();
 		}
 	}
@@ -688,8 +695,12 @@ var EffectScope = class {
 			if (this._isPaused) {
 				this._isPaused = false;
 				let i, l;
-				if (this.scopes) for (i = 0, l = this.scopes.length; i < l; i++) this.scopes[i].resume();
-				for (i = 0, l = this.effects.length; i < l; i++) this.effects[i].resume();
+				if (this.scopes) {
+					const scopes = this.scopes.slice();
+					for (i = 0, l = scopes.length; i < l; i++) scopes[i].resume();
+				}
+				const effects = this.effects.slice();
+				for (i = 0, l = effects.length; i < l; i++) effects[i].resume();
 			}
 		}
 	}
@@ -743,7 +754,8 @@ var EffectScope = class {
 			for (i = 0, l = this.cleanups.length; i < l; i++) this.cleanups[i]();
 			this.cleanups.length = 0;
 			if (this.scopes) {
-				for (i = 0, l = this.scopes.length; i < l; i++) this.scopes[i].stop(true);
+				const scopes = this.scopes.slice();
+				for (i = 0, l = scopes.length; i < l; i++) scopes[i].stop(true);
 				this.scopes.length = 0;
 			}
 			if (!this.detached && this.parent && !fromParent) {
@@ -1909,9 +1921,9 @@ function traverse(value, depth = Infinity, seen) {
 	return value;
 }
 //#endregion
-//#region node_modules/.pnpm/@vue+runtime-core@3.5.39/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
+//#region node_modules/.pnpm/@vue+runtime-core@3.5.40/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
 /**
-* @vue/runtime-core v3.5.39
+* @vue/runtime-core v3.5.40
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -2082,10 +2094,12 @@ function withCtx(fn, ctx = currentRenderingInstance, isNonScopedSlot) {
 	const renderFnWithContext = (...args) => {
 		if (renderFnWithContext._d) setBlockTracking(-1);
 		const prevInstance = setCurrentRenderingInstance(ctx);
+		const prevStackSize = blockStack.length;
 		let res;
 		try {
 			res = fn(...args);
 		} finally {
+			for (let i = blockStack.length; i > prevStackSize; i--) closeBlock();
 			setCurrentRenderingInstance(prevInstance);
 			if (renderFnWithContext._d) setBlockTracking(1);
 		}
@@ -2274,14 +2288,8 @@ function setRef(rawRef, oldRawRef, parentSuspense, vnode, isUnmount = false) {
 			if (oldRawRefAtom.k) refs[oldRawRefAtom.k] = null;
 		}
 	}
-	if (isFunction(ref)) {
-		pauseTracking();
-		try {
-			callWithErrorHandling(ref, owner, 12, [value, refs]);
-		} finally {
-			resetTracking();
-		}
-	} else {
+	if (isFunction(ref)) callWithErrorHandling(ref, owner, 12, [value, refs]);
+	else {
 		const _isString = isString(ref);
 		const _isRef = /* @__PURE__ */ isRef(ref);
 		if (_isString || _isRef) {
@@ -4370,11 +4378,11 @@ function isClassComponent(value) {
 var computed = (getterOrOptions, debugOptions) => {
 	return /* @__PURE__ */ computed$1(getterOrOptions, debugOptions, isInSSRComponentSetup);
 };
-var version = "3.5.39";
+var version = "3.5.40";
 //#endregion
-//#region node_modules/.pnpm/@vue+runtime-dom@3.5.39/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js
+//#region node_modules/.pnpm/@vue+runtime-dom@3.5.40/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js
 /**
-* @vue/runtime-dom v3.5.39
+* @vue/runtime-dom v3.5.40
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
