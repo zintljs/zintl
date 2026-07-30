@@ -26,6 +26,7 @@ import {
   type LogLevel,
   type AssetTargetConfig,
   type AssetMergeStrategy,
+  type CatalogFormatContext,
   type CompilerCapabilities,
   type CapabilityFlags,
   type CompilerContext,
@@ -48,6 +49,7 @@ export type {
   LogLevel,
   AssetTargetConfig,
   AssetMergeStrategy,
+  CatalogFormatContext,
   HtmlProjectionPayload,
 };
 

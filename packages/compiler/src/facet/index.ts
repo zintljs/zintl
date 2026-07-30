@@ -40,3 +40,21 @@ export { ssrWrappingFacet, ssrRuntimeFacet, ssrFacet } from "./presets/ssr.js";
 export { clientSpaFacet } from "./presets/client-spa.js";
 export { viteFacet } from "./presets/vite.js";
 export { assetsFacet } from "./presets/assets.js";
+
+// What each preset accepts. These interfaces are declared here and nowhere
+// else, so re-exporting them carries no risk of the duplicate-declaration
+// problem described above — that applies only to the core capability types.
+export type { VanillaFacetOptions } from "./presets/vanilla.js";
+export type { ReactFacetOptions } from "./presets/react.js";
+export type { VueFacetOptions } from "./presets/vue.js";
+export type { SvelteFacetOptions } from "./presets/svelte.js";
+export type { HtmlExtractionOptions, HtmlFacetOptions } from "./presets/html.js";
+export type {
+  NextjsExtractionOptions,
+  NextjsSsrOptions,
+  NextjsRuntimeOptions,
+  NextjsFacetOptions,
+} from "./presets/nextjs.js";
+export type { SsrWrappingOptions, SsrRuntimeOptions, SsrFacetOptions } from "./presets/ssr.js";
+export type { ClientSpaFacetOptions } from "./presets/client-spa.js";
+export type { AssetFacetConfig } from "./presets/assets.js";

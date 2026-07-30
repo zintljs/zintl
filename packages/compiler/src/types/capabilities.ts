@@ -191,25 +191,71 @@ export interface BundlerFacet extends BaseFacet {
   hmrInjectionCode?: (fileId: string, hmrToken: number, hasAnchors?: boolean) => string;
 }
 
+/**
+ * Localizes files that are not modules — Markdown, HTML pages, anything whose
+ * translations do not come from a boundary's extracted strings.
+ *
+ * Where an extraction facet says "here is how to find strings in this syntax",
+ * a content facet owns a whole file type end to end: which files it claims,
+ * what it emits for each locale, and what it remembers between runs. `match` is
+ * the only required member; implement the rest as the file type needs.
+ *
+ * The lifecycle across a build is `setup` → `discover` (per matched file) →
+ * `flush` → `getStateToSave`.
+ */
 export interface ContentFacet extends BaseFacet {
   concern: "content";
+  /**
+   * The facet's own state object, created once and reused across hooks.
+   *
+   * The usual pattern is a manager class holding whatever `discover` collects,
+   * lazily constructed on first call.
+   */
   getManagerInstance?: (context: CompilerContext) => any;
+  /** Whether this facet owns `filePath`. The one required member. */
   match: (filePath: string, context: CompilerContext) => boolean;
+  /**
+   * Prepare for a build, given whatever the last run returned from
+   * {@link ContentFacet.getStateToSave | `getStateToSave`} (`undefined` on a
+   * cold start).
+   */
   setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
+  /** Register a matched file. Called once per file, before `flush`. */
   discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
+  /** Emit everything for the discovered files — written output, catalog updates. */
   flush?: (context: CompilerContext) => Promise<void> | void;
+  /** This facet's translations for `locale`, merged into the catalogs. */
   getTranslations?: (
     locale: string,
     context: CompilerContext,
   ) => Promise<Record<string, string>> | Record<string, string>;
+  /** Whether `filePath` is output this facet produced, rather than a source file. */
   isLocalizedOutput?: (filePath: string, context: CompilerContext) => Promise<boolean> | boolean;
+  /**
+   * Every output path currently in use.
+   *
+   * What pruning consults before deleting a stale file, so an output that is
+   * still live is never removed.
+   */
   getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
+  /** State to persist for the next run's `setup`. Must be JSON-serializable. */
   getStateToSave?: (context: CompilerContext) => any;
+  /**
+   * Boundary ids this facet owns that correspond to no source file.
+   *
+   * Content has no `zintl()` anchor of its own, so it needs a synthetic
+   * boundary to hang catalogs on — the assets facet uses `"b_assets"`.
+   */
   virtualBoundaries?: string[];
+  /** The boundary a localized output file belongs to, or `null` if none. */
   getBoundaryForLocalizedOutput?: (
     filePath: string,
     context: CompilerContext,
   ) => Promise<string | null> | string | null;
+  /**
+   * Extra imports and catalog entries to fold into `locale`'s chunk, or `null`
+   * to contribute nothing.
+   */
   getChunkContributions?: (
     locale: string,
     context: CompilerContext,
@@ -217,11 +263,19 @@ export interface ContentFacet extends BaseFacet {
     | Promise<{ imports: string[]; boundaryId: string; catalog: Record<string, any> } | null>
     | { imports: string[]; boundaryId: string; catalog: Record<string, any> }
     | null;
+  /** Whether `boundaryId` is one of this facet's content boundaries. */
   isContentBoundary?: (boundaryId: string, context: CompilerContext) => boolean;
+  /**
+   * Catalog keys that must survive pruning.
+   *
+   * Content keys are not produced by extraction, so without this they look
+   * orphaned and would be pruned away.
+   */
   getProtectedCatalogKeys?: (
     boundaryId: string,
     context: CompilerContext,
   ) => Promise<string[]> | string[];
+  /** Rewrite an HTML document on its way out — head tags, `lang`, preloads. */
   transformHtml?: (
     html: string,
     id: string,

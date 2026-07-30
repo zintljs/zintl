@@ -22,10 +22,29 @@ function serializeTags(tags: TagMapEntry[]): string {
 // ── Facets ───────────────────────────────────────────────────────────────────
 
 export interface ReactFacetOptions {
+  /**
+   * Replace the JSX attributes and object fields scanned for strings.
+   *
+   * Replaces the defaults rather than adding to them — pass a full list.
+   *
+   * @default `aria-label`, `alt`, `title`, `placeholder`, `aria-description`,
+   * `label`, `description`, `tooltip` and `<html dir>`
+   */
   targets?: TargetDescriptor[];
+  /**
+   * Replace the file extensions this facet claims.
+   *
+   * @default [".tsx", ".jsx"]
+   */
   extensions?: string[];
 }
 
+/**
+ * Extraction for React files: JSX text and the translatable JSX attributes.
+ *
+ * Half of {@link reactFacet}. Take it alone only to pair React extraction with
+ * a different codegen.
+ */
 export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFacet {
   return {
     name: "react-extraction",
@@ -52,6 +71,16 @@ export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFace
   };
 }
 
+/**
+ * Codegen for React: rich-text output and re-rendering on locale change.
+ *
+ * Emits translations that contain markup as a `display: contents` span, so the
+ * surrounding layout is untouched, and declares that components subscribing to
+ * the store need `useSyncExternalStore` — the compiler injects the subscription
+ * without ever learning what React is.
+ *
+ * Half of {@link reactFacet}.
+ */
 export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet {
   return {
     name: "react-codegen",
@@ -70,6 +99,16 @@ export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet
   };
 }
 
+/**
+ * Full React support: {@link reactExtractionFacet} plus {@link reactCodegenFacet}.
+ *
+ * Components re-render on a locale change with no hook of yours, and JSX is
+ * extracted as whole stitched units rather than fragments, so a sentence broken
+ * across `<strong>` reaches translators as one sentence.
+ *
+ * Included in `"auto"` when React is detected — and when nothing is detected at
+ * all, since React is the fallback.
+ */
 export function reactFacet(options: ReactFacetOptions = {}): ZintlFacet[] {
   return [reactExtractionFacet(options), reactCodegenFacet(options)];
 }

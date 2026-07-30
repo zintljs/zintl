@@ -76,25 +76,72 @@ function nextjsSsrWrapCode(params: SsrWrapParams): string | undefined {
 
 // ── Next.js Contributions ─────────────────────────────────────────────────────
 
-interface NextjsExtractionOptions {
+export interface NextjsExtractionOptions {
+  /**
+   * Replace the attributes scanned for strings, on top of what
+   * {@link reactExtractionFacet} already covers.
+   *
+   * @default `aria-label` and `aria-description`
+   */
   targets?: TargetDescriptor[];
+  /**
+   * File extensions this facet claims.
+   *
+   * @default none — React's `.tsx`/`.jsx` already cover Next.js files
+   */
   extensions?: string[];
 }
 
-interface NextjsSsrOptions {
+export interface NextjsSsrOptions {
+  /**
+   * Modules to treat as server entries.
+   *
+   * @default the `vinext` RSC, server and app-SSR virtual entries
+   */
   entryTargets?: string[];
+  /**
+   * Named exports of the server entry to wrap in a request scope.
+   *
+   * @default `renderPage`, `handleApiRoute`, `runMiddleware`, `handleSsr`
+   */
   wrapExports?: string[];
+  /**
+   * Also wrap the default export. `"fetch"` wraps its `fetch` method.
+   *
+   * @default "fetch"
+   */
   wrapDefault?: "fetch" | boolean;
 }
 
-interface NextjsRuntimeOptions {
+export interface NextjsRuntimeOptions {
+  /**
+   * Scope the active locale to the request, via `AsyncLocalStorage`.
+   *
+   * @default true
+   */
   serverRequestScope?: boolean;
+  /**
+   * Rewrite `<html lang>`/`dir` in the outgoing HTML response or stream.
+   *
+   * @default true
+   */
   streamInjection?: boolean;
 }
 
-interface NextjsFacetOptions
+/** Options for {@link nextjsFacet}, split across its three halves. */
+export interface NextjsFacetOptions
   extends NextjsExtractionOptions, NextjsSsrOptions, NextjsRuntimeOptions {}
 
+/**
+ * Next.js extraction adjustments, layered on top of React's.
+ *
+ * Its real job is a suppression rule: `metadata`, `viewport`,
+ * `generateMetadata` and `generateViewport` are build-time exports, not UI, so
+ * their strings are left alone — unless you put a `zintl()` anchor in one, which
+ * is a clear enough statement of intent to bypass the rule.
+ *
+ * One third of {@link nextjsFacet}.
+ */
 export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): ZintlFacet {
   return {
     name: "nextjs-extraction",
@@ -118,6 +165,15 @@ export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): Zi
   };
 }
 
+/**
+ * Request-scope wrapping for Next.js server entries.
+ *
+ * Targets the framework's own entries — RSC, server, app-SSR — instead of the
+ * conventional `entry-server`, which is why the generic SSR facet is left out
+ * when this one is installed.
+ *
+ * One third of {@link nextjsFacet}.
+ */
 export function nextjsSsrFacet(options: NextjsSsrOptions = {}): ZintlFacet {
   return {
     name: "nextjs-ssr-wrapping",
@@ -140,6 +196,12 @@ export function nextjsSsrFacet(options: NextjsSsrOptions = {}): ZintlFacet {
   };
 }
 
+/**
+ * The server-side runtime for Next.js: per-request locale scoping and HTML
+ * injection. Same capabilities as the generic SSR runtime.
+ *
+ * One third of {@link nextjsFacet}.
+ */
 export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFacet {
   return {
     name: "nextjs-runtime",
@@ -151,6 +213,14 @@ export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFac
   };
 }
 
+/**
+ * Full Next.js support: {@link nextjsExtractionFacet}, {@link nextjsSsrFacet}
+ * and {@link nextjsRuntimeFacet}.
+ *
+ * Layered on top of React rather than replacing it — `"auto"` installs both
+ * when Next.js is detected, and skips the generic SSR and client-SPA facets,
+ * whose jobs Next.js does itself.
+ */
 export function nextjsFacet(options: NextjsFacetOptions = {}): ZintlFacet[] {
   return [nextjsExtractionFacet(options), nextjsSsrFacet(options), nextjsRuntimeFacet(options)];
 }

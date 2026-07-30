@@ -1,10 +1,29 @@
 import type { ZintlFacet, TargetDescriptor } from "@zintl/compiler";
 
 export interface SvelteFacetOptions {
+  /**
+   * Replace the attributes and object fields scanned for strings.
+   *
+   * Replaces the defaults rather than adding to them — pass a full list.
+   */
   targets?: TargetDescriptor[];
+  /**
+   * Replace the file extensions this facet claims.
+   *
+   * @default [".svelte"]
+   */
   extensions?: string[];
 }
 
+/**
+ * Extraction for Svelte components.
+ *
+ * Reads `<script>` as code and markup as HTML, skipping `<style>`, and treats
+ * `{expr}` interpolations as variables inside the surrounding sentence so a
+ * phrase is extracted whole.
+ *
+ * Half of {@link svelteFacet}.
+ */
 export function svelteExtractionFacet(options: SvelteFacetOptions = {}): ZintlFacet {
   return {
     name: "svelte-extraction",
@@ -48,6 +67,14 @@ export function svelteExtractionFacet(options: SvelteFacetOptions = {}): ZintlFa
   };
 }
 
+/**
+ * Codegen for Svelte components.
+ *
+ * Writes translations back in Svelte's own syntax: `{ }` for text, `{@html }`
+ * when the translation carries markup, and `attr={...}` for attributes.
+ *
+ * Half of {@link svelteFacet}.
+ */
 export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet {
   return {
     name: "svelte-codegen",
@@ -76,6 +103,11 @@ export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet
   };
 }
 
+/**
+ * Full Svelte support: {@link svelteExtractionFacet} plus {@link svelteCodegenFacet}.
+ *
+ * Included in `"auto"` when Svelte or SvelteKit is detected.
+ */
 export function svelteFacet(options: SvelteFacetOptions = {}): ZintlFacet[] {
   return [svelteExtractionFacet(options), svelteCodegenFacet(options)];
 }

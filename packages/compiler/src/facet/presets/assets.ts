@@ -22,16 +22,37 @@ const DEFAULT_ASSET_DRIFT_THRESHOLD = 0.6;
 /** Default asset extensions when the caller names none. */
 const DEFAULT_ASSET_TARGETS: (string | AssetTargetConfig)[] = ["md", "txt"];
 
-interface AssetFacetConfig {
+export interface AssetFacetConfig {
   /**
    * Asset extensions or glob configs to localize.
+   *
+   * A bare extension like `"md"` expands to `**\/*.md`. Reached through the
+   * plugin's `assetsTarget` option, which is the same list under the name that
+   * makes sense from the outside.
    *
    * This concept used to be spelled three ways across the boundary: `targets`
    * here, `assetsTarget` on the same interface, and `assetsTarget` on the
    * plugin options — reconciled by an alias in the factory. One spelling now.
+   *
+   * @default ["md", "txt"]
    */
   targets?: (string | AssetTargetConfig)[];
+  /**
+   * Serve localized assets from virtual modules instead of writing them to disk.
+   *
+   * @default false
+   */
   virtualAssets?: boolean;
+  /**
+   * How similar an asset's body must be to the remembered one before its
+   * translation is reused.
+   *
+   * Its own knob, separate from the plugin's `similarityThreshold`: that one
+   * asks "is this the same UI string, edited?" over short labels, this one asks
+   * "did this document change materially?" over whole file bodies.
+   *
+   * @default 0.6
+   */
   similarityThreshold?: number;
 }
 
@@ -688,7 +709,19 @@ class AssetManager {
 }
 
 /**
- * Exposes the system static assets facet preset.
+ * Localization of static content files — Markdown, text, and whatever else you
+ * point it at.
+ *
+ * Each matched file gets a localized copy per locale: Markdown has its
+ * frontmatter values and body translated, text is treated as one body, anything
+ * else is copied verbatim. Import the file as usual and you receive the copy
+ * for the active locale.
+ *
+ * Edits are tracked by content, not by path, so rewording a paragraph carries
+ * its translation forward instead of resetting the document.
+ *
+ * Included in `"auto"`, configured from the plugin's `assetsTarget` and
+ * `virtualAssets` options.
  */
 export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
   let manager: AssetManager;

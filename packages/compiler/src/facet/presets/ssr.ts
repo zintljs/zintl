@@ -68,21 +68,55 @@ function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   return undefined;
 }
 
-interface SsrWrappingOptions {
+export interface SsrWrappingOptions {
+  /**
+   * Modules to treat as server entries.
+   *
+   * @default the conventional `entry-server.{ts,js,tsx,jsx}`
+   */
   entryTargets?: string[];
+  /**
+   * Named exports of the server entry to wrap in a request scope.
+   *
+   * @default the `render` export
+   */
   wrapExports?: string[];
+  /**
+   * Also wrap the default export. `"fetch"` wraps its `fetch` method, for
+   * entries that export a server object rather than a function.
+   *
+   * @default false
+   */
   wrapDefault?: "fetch" | boolean;
 }
 
-interface SsrRuntimeOptions {
+export interface SsrRuntimeOptions {
+  /**
+   * Scope the active locale to the request, via `AsyncLocalStorage`.
+   *
+   * Without it, concurrent requests for different locales share one global
+   * locale and can render each other's language.
+   *
+   * @default true
+   */
   serverRequestScope?: boolean;
+  /**
+   * Rewrite `<html lang>`/`dir` in the outgoing HTML response or stream.
+   *
+   * @default true
+   */
   streamInjection?: boolean;
 }
 
-interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {}
+/** Options for {@link ssrFacet}, split between its two halves. */
+export interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {}
 
 /**
- * SSR wrapping contribution.
+ * Wraps the server entry so each render runs inside a request scope.
+ *
+ * Rewrites the entry's `render` export to call the original through
+ * `runInRequestScope`, which is what gives {@link ssrRuntimeFacet} a locale to
+ * scope. Half of {@link ssrFacet}.
  */
 export function ssrWrappingFacet(options: SsrWrappingOptions = {}): ZintlFacet {
   return {
@@ -97,7 +131,14 @@ export function ssrWrappingFacet(options: SsrWrappingOptions = {}): ZintlFacet {
 }
 
 /**
- * SSR runtime capability contribution.
+ * The server-side runtime: per-request locale scoping and HTML injection.
+ *
+ * Turns on the `AsyncLocalStorage`-based store so concurrent requests cannot
+ * bleed locales into each other, and the response/stream injector that sets
+ * `<html lang>` and `dir` on the way out. This code is only included in builds
+ * that install this facet — client bundles never see it.
+ *
+ * Half of {@link ssrFacet}.
  */
 export function ssrRuntimeFacet(options: SsrRuntimeOptions = {}): ZintlFacet {
   return {
@@ -110,6 +151,12 @@ export function ssrRuntimeFacet(options: SsrRuntimeOptions = {}): ZintlFacet {
   };
 }
 
+/**
+ * Full SSR support: {@link ssrWrappingFacet} plus {@link ssrRuntimeFacet}.
+ *
+ * Included in `"auto"` for SSR builds, except on Next.js — {@link nextjsFacet}
+ * brings its own, and installing both would collide on the same hook.
+ */
 export function ssrFacet(options: SsrFacetOptions = {}): ZintlFacet[] {
   return [ssrWrappingFacet(options), ssrRuntimeFacet(options)];
 }

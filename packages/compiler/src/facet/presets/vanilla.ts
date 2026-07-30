@@ -1,14 +1,34 @@
 import type { ZintlFacet, TargetDescriptor } from "@zintl/compiler";
 
-interface VanillaFacetOptions {
+export interface VanillaFacetOptions {
+  /**
+   * Replace the sinks that are scanned for translatable strings.
+   *
+   * Replaces the defaults rather than adding to them — pass a full list.
+   *
+   * @default DOM property sinks (`innerHTML`, `textContent`, `innerText`,
+   * `title`, `alt`, `placeholder`, `aria-label`, `aria-description`, `value`)
+   * plus the `label`, `description` and `tooltip` object fields
+   */
   targets?: TargetDescriptor[];
+  /**
+   * Replace the file extensions this facet claims.
+   *
+   * @default [".ts", ".js", ".mts", ".mjs"]
+   */
   extensions?: string[];
 }
 
 /**
- * Vanilla extraction contribution.
- * Covers DOM property sinks (innerHTML, textContent, title, alt, placeholder, etc.)
- * for plain HTML, vanilla JS, and TS files.
+ * Extraction for plain JavaScript and TypeScript.
+ *
+ * Picks up strings assigned to DOM properties — `innerHTML`, `textContent`,
+ * `title`, `alt`, `placeholder`, `aria-label` and friends — and the `label` /
+ * `description` / `tooltip` fields of plain objects. This is what makes a
+ * framework-less app translatable with no annotation at all.
+ *
+ * Included in `"auto"`, for every project, alongside whichever framework was
+ * detected.
  */
 export function vanillaFacet(options: VanillaFacetOptions = {}): ZintlFacet {
   return {

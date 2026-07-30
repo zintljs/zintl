@@ -1,18 +1,14 @@
 import type { ZintlFacet } from "@zintl/compiler";
 
-interface ViteFacetOptions {
-  // Option fields can be added in future if needed
-}
-
 /**
- * Vite bundler contribution.
- * Provides Vite-specific virtual module resolution, dynamic import template
- * (with @vite-ignore comment for dev mode), and HMR injection code.
+ * The Vite bundler contribution: virtual module resolution, the dynamic-import
+ * template (with `@vite-ignore` in dev), and HMR acceptance code.
  *
- * This facet is ALWAYS injected by the @zintl/zintl Vite plugin.
- * Users should not need to add it manually.
+ * **Always appended by the plugin, and not something to add yourself.** It is
+ * listed here only so the facet set is legible — the plugin cannot function
+ * without these hooks, so there is no way to opt out of it.
  */
-export function viteFacet(_options: ViteFacetOptions = {}): ZintlFacet {
+export function viteFacet(): ZintlFacet {
   return {
     name: "vite",
     concern: "bundler",

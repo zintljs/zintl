@@ -1,4 +1,4 @@
-import type { Options } from "zintl";
+import type { Options } from "zintl/vite";
 
 export type { Options as ZintlPluginOptions };
 

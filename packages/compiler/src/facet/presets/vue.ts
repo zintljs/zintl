@@ -1,10 +1,30 @@
 import type { ZintlFacet, TargetDescriptor } from "@zintl/compiler";
 
 export interface VueFacetOptions {
+  /**
+   * Replace the attributes and object fields scanned for strings.
+   *
+   * Replaces the defaults rather than adding to them — pass a full list.
+   */
   targets?: TargetDescriptor[];
+  /**
+   * Replace the file extensions this facet claims.
+   *
+   * @default [".vue"]
+   */
   extensions?: string[];
 }
 
+/**
+ * Extraction for Vue single-file components.
+ *
+ * Splits an SFC into its blocks and treats each correctly: `<script>` is parsed
+ * as TS or JS according to its `lang`, `<template>` is walked as HTML, and
+ * `<style>` is skipped. `{{ }}` interpolations are read as variables inside the
+ * surrounding sentence, so a phrase is extracted whole rather than in pieces.
+ *
+ * Half of {@link vueFacet}.
+ */
 export function vueExtractionFacet(options: VueFacetOptions = {}): ZintlFacet {
   return {
     name: "vue-extraction",
@@ -55,6 +75,14 @@ export function vueExtractionFacet(options: VueFacetOptions = {}): ZintlFacet {
   };
 }
 
+/**
+ * Codegen for Vue single-file components.
+ *
+ * Writes translations back in Vue's own syntax: `{{ }}` for text, `v-html` when
+ * the translation carries markup, and `:attr` bindings for attributes.
+ *
+ * Half of {@link vueFacet}.
+ */
 export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
   return {
     name: "vue-codegen",
@@ -83,6 +111,11 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
   };
 }
 
+/**
+ * Full Vue support: {@link vueExtractionFacet} plus {@link vueCodegenFacet}.
+ *
+ * Included in `"auto"` when Vue is detected.
+ */
 export function vueFacet(options: VueFacetOptions = {}): ZintlFacet[] {
   return [vueExtractionFacet(options), vueCodegenFacet(options)];
 }

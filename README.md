@@ -77,7 +77,7 @@ Add the plugin to your `vite.config.ts` configuration file:
 
 ```typescript
 import { defineConfig } from "vite";
-import { zintl } from "zintl";
+import zintl from "zintl/vite"; // the plugin — a default export
 
 export default defineConfig({
   plugins: [
@@ -89,6 +89,29 @@ export default defineConfig({
   ],
 });
 ```
+
+> The plugin lives at `zintl/vite`. The bare `zintl` entry is the **macro** you call in application code (step 3) — importing that one into `vite.config.ts` gives you an async no-op, not a plugin.
+
+#### Plugin Options
+
+Every option is optional; most projects only set `locales`. Full documentation, including what each option does to your build, is on the `Options` type — hover or ctrl+click it in your editor.
+
+| Option                | Type                              | Default                          | What it does                                                                     |
+| --------------------- | --------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| `locales`             | `string[]`                        | `["en"]`                         | Every locale the app ships, including the source locale.                         |
+| `sourceLocale`        | `string`                          | `"en"`                           | The locale your source is written in. Never written to disk (Ghost Mode).        |
+| `outputDir`           | `string`                          | `"./zintl"`                      | Where catalogs are written, relative to the project root.                        |
+| `catalogFormat`       | `string \| (ctx) => string`       | `<path>[.<func>].<locale>.json`  | Catalog file naming. Tokens: `[locale] [path] [dir] [name] [func] [bId] [hash]`. |
+| `facets`              | `FacetsInput[]`                   | `["auto"]`                       | Which capabilities the compiler is built with. `"auto"` detects your framework.  |
+| `assetsTarget`        | `(string \| AssetTargetConfig)[]` | `["md", "txt"]`                  | Static content files to localize alongside code.                                 |
+| `virtualAssets`       | `boolean`                         | `false`                          | Serve localized assets from virtual modules instead of writing them to disk.     |
+| `prune`               | `boolean`                         | `true`                           | Remove catalog keys once no source string produces them.                         |
+| `debug`               | `boolean \| string`               | `false`                          | Verbose tracing. A string filters to one subsystem.                              |
+| `logLevel`            | `LogLevel`                        | Vite's `logLevel`, then `"info"` | How much Zintl prints.                                                           |
+| `similarityThreshold` | `number`                          | `0.6`                            | How similar an edited string must be to keep its translation.                    |
+| `verifyIntegrity`     | `boolean`                         | `true` on build, `false` on dev  | Verify catalogs against the manifest and repair drift.                           |
+| `multiplex`           | `boolean`                         | auto-detected                    | Build each locale as its own set of HTML entries.                                |
+| `metadataDir`         | `string`                          | `<root>/node_modules/.zintl`     | Where the compiler keeps its own bookkeeping.                                    |
 
 ### 3. Initialize in Source Code
 

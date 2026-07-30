@@ -1,13 +1,90 @@
 /**
- * `zintl/facets` — the one-stop facet surface for plugin users.
+ * @module zintl/facets
  *
- * Preset values come from the compiler's isolated facets module; the capability
- * types come from the compiler core (they are declared exactly once, so user
- * facets stay assignable without casts); resolution comes from this package,
- * because deciding what the compiler will be is the plugin's job.
+ * Facets — the composable units the compiler's behavior is assembled from.
+ *
+ * Most projects never import from here: `facets: ["auto"]` detects the framework
+ * and installs the right presets. Reach for this entry to pin a preset
+ * explicitly, or to write a facet of your own for a file type or framework Zintl
+ * does not know about.
+ *
+ * Each facet owns exactly one concern — extraction, codegen, runtime, ssr,
+ * bundler or content — and contributes only within it. That is what lets them
+ * merge without conflict: arrays union, flags OR together, and two facets
+ * claiming the same hook is a build error rather than a silent winner.
+ *
+ * @example
+ * ```ts
+ * // vite.config.ts
+ * import zintl from "zintl/vite";
+ * import { reactFacet, ssrFacet } from "zintl/facets";
+ *
+ * zintl({ facets: [reactFacet(), ssrFacet()] });   // exactly these
+ * zintl({ facets: ["auto", myFacet()] });          // the defaults, plus yours
+ * ```
+ *
+ * @example
+ * ```ts
+ * // A facet of your own.
+ * import type { ZintlFacet } from "zintl/facets";
+ *
+ * export function myFacet(): ZintlFacet {
+ *   return {
+ *     name: "my-extraction",
+ *     concern: "extraction",
+ *     extensions: [".my"],
+ *     targets: [{ id: "dom:prop:innerHTML" }],
+ *   };
+ * }
+ * ```
  */
+
+/** The built-in preset facets. */
 export * from "@zintl/compiler/facets";
-export type * from "@zintl/compiler";
+
+/**
+ * The facet-authoring vocabulary.
+ *
+ * Deliberately an explicit list, not `export type *`: the compiler's own option
+ * and manager types are not part of what a facet author writes against, and
+ * leaking them here would put compiler internals one ctrl+click away from a
+ * user entry point.
+ */
+export type {
+  // The facet contract
+  ZintlFacet,
+  BaseFacet,
+  FacetConcern,
+  ExtractionFacet,
+  CodegenFacet,
+  ContentFacet,
+  RuntimeFacet,
+  SsrFacet,
+  BundlerFacet,
+  // What a facet is handed, and what it produces
+  CompilerCapabilities,
+  CompilerContext,
+  CompilerSystemView,
+  CapabilityFlags,
+  SsrWrapParams,
+  LocaleDetectionContext,
+  MultiplexDetectionContext,
+  HtmlProjectionPayload,
+  // The declarative extraction vocabulary
+  TargetDescriptor,
+  TargetPlugin,
+  SfcRule,
+  SfcBlockRule,
+  SuppressionRule,
+  MustacheRule,
+  TagMapEntry,
+  CompiledExtractionState,
+  ExtractionContribution,
+  // Reachable from CompilerContext; nameable so facet hooks can be typed.
+  IOManager,
+  CatalogManager,
+} from "@zintl/compiler";
+
 export { resolveFacets } from "./facets/resolve.js";
 export { assembleFacets, autoFacets, flattenFacets } from "./facets/assemble.js";
 export {

@@ -289,23 +289,31 @@ class HtmlManager {
   }
 }
 
-interface HtmlExtractionOptions {
+export interface HtmlExtractionOptions {
+  /**
+   * Replace the HTML attributes scanned for strings.
+   *
+   * Replaces the defaults rather than adding to them — pass a full list.
+   *
+   * @default `alt`, `title`, `placeholder`, `aria-label`, `aria-description`,
+   * `label`, `description`, `tooltip` and `dir`
+   */
   targets?: TargetDescriptor[];
+  /**
+   * Replace the file extensions this facet claims.
+   *
+   * @default [".html"]
+   */
   extensions?: string[];
 }
 
-interface HtmlProjectionOptions {
-  // Option fields can be added in future
-}
-
-interface HtmlFacetOptions {
-  targets?: TargetDescriptor[];
-  extensions?: string[];
-}
+/** Options for {@link htmlFacet}, forwarded to {@link htmlExtractionFacet}. */
+export interface HtmlFacetOptions extends HtmlExtractionOptions {}
 
 /**
- * HTML extraction contribution.
- * Covers translatable HTML attributes in .html files.
+ * Extraction for `.html` files: text content and the translatable attributes.
+ *
+ * Half of {@link htmlFacet}.
  */
 export function htmlExtractionFacet(options: HtmlExtractionOptions = {}): ZintlFacet {
   return {
@@ -373,10 +381,18 @@ function injectDataAttribute(tag: string, attrName: string, attrValue: string): 
 }
 
 /**
- * HTML projection content contribution.
- * Manages HTML schema and catalog updates.
+ * Localization of the HTML `<head>` — page `title`, `meta[name="description"]`
+ * and the document's `dir`.
+ *
+ * These land in their own catalog next to the page (`<file>.<locale>.json`)
+ * rather than in a boundary catalog, because they belong to the document, not
+ * to any module. For static targets the translation is baked into the emitted
+ * HTML; for dynamic ones a tiny head-blocking script applies it before first
+ * paint, so a translated title never flashes the source language.
+ *
+ * Half of {@link htmlFacet}.
  */
-export function htmlProjectionFacet(_options: HtmlProjectionOptions = {}): ZintlFacet {
+export function htmlProjectionFacet(): ZintlFacet {
   let manager: HtmlManager;
 
   const getManager = (context: CompilerContext) => {
@@ -1003,6 +1019,12 @@ export function htmlProjectionFacet(_options: HtmlProjectionOptions = {}): Zintl
   };
 }
 
+/**
+ * Full HTML support: {@link htmlExtractionFacet} plus {@link htmlProjectionFacet}.
+ *
+ * Included in `"auto"`, for every project — even a framework app has an
+ * `index.html` with a title worth translating.
+ */
 export function htmlFacet(options: HtmlFacetOptions = {}): ZintlFacet[] {
-  return [htmlExtractionFacet(options), htmlProjectionFacet(options)];
+  return [htmlExtractionFacet(options), htmlProjectionFacet()];
 }
