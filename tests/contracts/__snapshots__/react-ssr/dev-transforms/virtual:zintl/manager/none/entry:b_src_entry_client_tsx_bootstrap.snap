@@ -21,11 +21,11 @@ export default (() => {
     },
   };
                 case "ar":
-          return import("virtual:zintl/content/ar/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         case "es":
-          return import("virtual:zintl/content/es/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         case "zh":
-          return import("virtual:zintl/content/zh/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_entry_client_tsx_bootstrap").then(m => m.default);
         default: return {};
       }
     }, manifest: [] };

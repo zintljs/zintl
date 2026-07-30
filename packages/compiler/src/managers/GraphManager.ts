@@ -10,7 +10,7 @@ import {
 } from "../types/index.js";
 import { type ZintlLogger } from "@zintl/extractor";
 import type { IOManager } from "./IOManager.js";
-import type { ContentFacet } from "../facet/index.js";
+import type { ContentFacet } from "../types/capabilities.js";
 /**
  * Manages boundary and chunk graphs.
  */
@@ -40,8 +40,7 @@ export class GraphManager {
     if (this.lastManifest[clean] !== undefined) return clean;
     if (dependencyGraph[clean] !== undefined) return clean;
 
-    const extensions = [".tsx", ".jsx", ".ts", ".js", ".vue", ".svelte", ".html"];
-    for (const ext of extensions) {
+    for (const ext of this.io.resolvedExtensions) {
       const candidate = clean + ext;
       if (
         this.lastMetadata[candidate] !== undefined ||

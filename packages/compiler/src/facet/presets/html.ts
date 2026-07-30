@@ -1,7 +1,7 @@
 import { join, relative, dirname } from "node:path";
-import type { ZintlFacet, CompilerContext, TargetDescriptor } from "../types.js";
-import { IOManager } from "../../managers/IOManager.js";
-import type { CatalogManager } from "../../managers/CatalogManager.js";
+import type { ZintlFacet, CompilerContext, TargetDescriptor } from "@zintl/compiler";
+import type { IOManager } from "@zintl/compiler";
+import type { CatalogManager } from "@zintl/compiler";
 import type { ZintlLogger, HtmlProjectionPayload } from "@zintl/extractor";
 import { sortObjectKeys } from "../../utils/serialization.js";
 
@@ -289,7 +289,7 @@ class HtmlManager {
   }
 }
 
-export interface HtmlExtractionOptions {
+interface HtmlExtractionOptions {
   targets?: TargetDescriptor[];
   extensions?: string[];
 }
@@ -298,7 +298,7 @@ interface HtmlProjectionOptions {
   // Option fields can be added in future
 }
 
-export interface HtmlFacetOptions {
+interface HtmlFacetOptions {
   targets?: TargetDescriptor[];
   extensions?: string[];
 }

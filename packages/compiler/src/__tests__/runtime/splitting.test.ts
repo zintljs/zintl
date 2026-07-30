@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vite-plus/test";
 import { getRuntimeCode } from "../../index.js";
-import type { ResolvedCapabilities } from "../../facet/types.js";
+import type { CapabilityFlags } from "../../types/capabilities.js";
 
 describe("Runtime Splitting - getRuntimeCode", () => {
-  const baseCapabilities: ResolvedCapabilities = {
+  const baseCapabilities: CapabilityFlags = {
     jsx: false,
     sfc: false,
     jsxRichText: false,

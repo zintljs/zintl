@@ -6,7 +6,7 @@ import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
 import type { IOManager } from "./IOManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
-import type { ContentFacet } from "../facet/index.js";
+import type { ContentFacet } from "../types/capabilities.js";
 
 /**
  * Manages translation catalogs and JSON schemas.
@@ -47,7 +47,7 @@ export class CatalogManager {
     ) => Promise<string[]>,
   ) {
     this._outputDir = outputDir;
-    this.extensions = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
+    this.extensions = extensions || [];
   }
 
   private _outputDir: string;
@@ -781,8 +781,7 @@ export class CatalogManager {
 
         let targetId = cleanDepFileId;
         if (dependencyGraph[targetId] === undefined) {
-          const extensions = [".tsx", ".jsx", ".ts", ".js", ".vue", ".svelte", ".html"];
-          for (const ext of extensions) {
+          for (const ext of this.extensions) {
             const candidate = targetId + ext;
             if (
               dependencyGraph[candidate] !== undefined ||

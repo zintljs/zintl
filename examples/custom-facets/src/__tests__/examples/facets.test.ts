@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vite-plus/test";
 import { join } from "node:path";
 import { handlebarsFacet, multiBrandThemeFacet } from "../../index.js";
-import { ZintlCompiler, resolveFacets } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintl/compiler";
+import { resolveFacets } from "zintl/facets";
 
 describe("Custom Facets Stress Tests", () => {
   describe("Handlebars Extraction & Codegen Facet", () => {
@@ -20,7 +21,7 @@ describe("Custom Facets Stress Tests", () => {
           locales: ["en", "ar"],
           outputDir: "./src/i18n",
           verifyIntegrity: false,
-          facets: [handlebarsFacet()],
+          capabilities: resolveFacets(handlebarsFacet()),
         },
         root,
         true,

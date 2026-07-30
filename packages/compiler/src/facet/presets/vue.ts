@@ -1,4 +1,4 @@
-import type { ZintlFacet, TargetDescriptor } from "../types.js";
+import type { ZintlFacet, TargetDescriptor } from "@zintl/compiler";
 
 export interface VueFacetOptions {
   targets?: TargetDescriptor[];

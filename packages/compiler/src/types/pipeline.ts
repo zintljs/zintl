@@ -5,7 +5,7 @@ import type { FileObservation } from "./observation.js";
 import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
-import type { ResolvedCapabilities, ResolvedFacetSystem } from "../facet/index.js";
+import type { CapabilityFlags, CompilerSystemView } from "./capabilities.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -37,17 +37,17 @@ export interface ZintlConfig {
   bakedLocale?: string;
   multiplex?: boolean;
 
-  // ── Resolved Facet State (Phase 2+) ────────────────────────────────
+  // ── Resolved Capability State ──────────────────────────────────────
   /**
    * Pre-resolved capability flags. Subsystems read this — never raw facets.
-   * Populated by ZintlCompiler constructor after resolveFacets() call.
+   * Resolved by the host plugin and handed to the ZintlCompiler constructor.
    */
-  capabilities?: ResolvedCapabilities;
+  capabilities?: CapabilityFlags;
   /**
    * Merged, ready-to-call system view. Subsystems call this — never raw facets.
-   * Populated by ZintlCompiler constructor after resolveFacets() call.
+   * Resolved by the host plugin and handed to the ZintlCompiler constructor.
    */
-  system?: ResolvedFacetSystem;
+  system?: CompilerSystemView;
 }
 
 export type FormIntentFn = (

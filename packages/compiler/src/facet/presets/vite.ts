@@ -1,7 +1,6 @@
-import { isAbsolute, relative } from "node:path";
-import type { ZintlFacet } from "../types.js";
+import type { ZintlFacet } from "@zintl/compiler";
 
-export interface ViteFacetOptions {
+interface ViteFacetOptions {
   // Option fields can be added in future if needed
 }
 
@@ -31,26 +30,6 @@ export function viteFacet(_options: ViteFacetOptions = {}): ZintlFacet {
         code += `\n\n// Zintl HMR Token: ${hmrToken}`;
       }
       return code;
-    },
-    fanBuildInputs: (
-      inputs: Record<string, string>,
-      locales: string[],
-      root: string,
-    ): Record<string, string> => {
-      const expandedInput: Record<string, string> = { ...inputs };
-
-      for (const [key, val] of Object.entries(inputs)) {
-        if (val.endsWith(".html")) {
-          const relativeVal = isAbsolute(val) ? relative(root, val) : val;
-          for (const loc of locales) {
-            const prefixKey = `${loc}/${key === "main" || key === "index" ? "index" : key}`;
-            const prefixVal = `${loc}/${relativeVal}`;
-            expandedInput[prefixKey] = prefixVal;
-          }
-        }
-      }
-
-      return expandedInput;
     },
   };
 }

@@ -396,7 +396,7 @@ export function loadHook(ctx: Context) {
         .debug(`Loading virtual runtime module: ${moduleName}`);
       let code = getRuntimeCode(
         moduleName as any,
-        ctx.compiler._resolved.capabilities,
+        ctx.compiler._resolved.flags,
         isSsr,
         ctx.compiler.sourceLocale,
       );

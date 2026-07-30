@@ -9,8 +9,12 @@ import {
   HIVE_FILENAME,
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
-import type { CompilerOptions, ZintlLogger } from "../types/index.js";
-import { resolveFacets } from "../facet/index.js";
+import type { ZintlFacet, ZintlLogger } from "../types/index.js";
+
+/** The only slice of compiler options the I/O layer actually reads. */
+export interface IOManagerOptions {
+  metadataDir?: string;
+}
 
 /**
  * Handles all I/O operations, formatting, and hashing.
@@ -23,37 +27,40 @@ export class IOManager {
   private readonly boundaryIdCache = new Map<string, string>();
   private readonly normalizedIdCache = new Map<string, string>();
   private readonly extensions: string[];
-  private readonly facets?: any[];
+
+  /** Resolved source extensions, for callers that probe extensionless dep ids. */
+  public get resolvedExtensions(): readonly string[] {
+    return this.extensions;
+  }
+  private readonly facets: ZintlFacet[];
 
   constructor(
     private readonly root: string,
     private readonly isDev: boolean,
     private readonly logger: ZintlLogger,
-    _options: CompilerOptions,
-    resolvedExtensions?: string[],
-    resolvedFacets?: any[],
+    _options: IOManagerOptions,
+    resolvedExtensions: string[] = [],
+    resolvedFacets: ZintlFacet[] = [],
   ) {
-    this.extensions = resolvedExtensions || [];
-    this.facets =
-      resolvedFacets ||
-      resolveFacets(((_options.facets || []) as any).flat(Infinity) as any[]).facets;
-    const metaDir = _options.metadataDir
-      ? isAbsolute(_options.metadataDir)
-        ? _options.metadataDir
-        : join(root, _options.metadataDir)
-      : join(root, "node_modules", COMPILER_METADATA_DIR);
+    this.extensions = resolvedExtensions;
+    this.facets = resolvedFacets;
+    const metaDir = this.resolveMetadataDir(_options.metadataDir);
 
     this.manifestPath = join(metaDir, MANIFEST_FILENAME);
     this.hivePath = join(metaDir, HIVE_FILENAME);
     this.detectFormatter();
   }
 
+  /** Single source of truth for where compiler metadata lives. */
+  private resolveMetadataDir(dir?: string): string {
+    if (!dir) {
+      return join(this.root, "node_modules", COMPILER_METADATA_DIR);
+    }
+    return isAbsolute(dir) ? dir : join(this.root, dir);
+  }
+
   public setMetadataDir(dir?: string) {
-    const metaDir = dir
-      ? isAbsolute(dir)
-        ? dir
-        : join(this.root, dir)
-      : join(this.root, "node_modules", COMPILER_METADATA_DIR);
+    const metaDir = this.resolveMetadataDir(dir);
 
     (this as any).manifestPath = join(metaDir, MANIFEST_FILENAME);
     (this as any).hivePath = join(metaDir, HIVE_FILENAME);

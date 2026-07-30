@@ -27,7 +27,7 @@ export const resolve: ResolveFn = (
 ): ResolvedPlan => {
   const diagnostics: Diagnostic[] = [];
 
-  const imports = resolveImports(intents, observation);
+  const imports = resolveImports(intents, observation, config.system?.clientReactivityImports);
   const prepends = resolvePrepends(intents, observation, logger);
   const rewrites = resolveRewrites(intents, config, filePath || observation.fileId);
 

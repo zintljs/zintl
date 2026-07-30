@@ -1,4 +1,4 @@
-import type { ZintlFacet, SsrWrapParams } from "../types.js";
+import type { ZintlFacet, SsrWrapParams } from "@zintl/compiler";
 
 function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   const { code, fileId, isEntry, locales, sourceLocale } = params;
@@ -68,18 +68,18 @@ function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   return undefined;
 }
 
-export interface SsrWrappingOptions {
+interface SsrWrappingOptions {
   entryTargets?: string[];
   wrapExports?: string[];
   wrapDefault?: "fetch" | boolean;
 }
 
-export interface SsrRuntimeOptions {
+interface SsrRuntimeOptions {
   serverRequestScope?: boolean;
   streamInjection?: boolean;
 }
 
-export interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {}
+interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {}
 
 /**
  * SSR wrapping contribution.

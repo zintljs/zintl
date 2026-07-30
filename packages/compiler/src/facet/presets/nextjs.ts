@@ -1,4 +1,4 @@
-import type { ZintlFacet, SsrWrapParams, TargetDescriptor } from "../types.js";
+import type { ZintlFacet, SsrWrapParams, TargetDescriptor } from "@zintl/compiler";
 
 // ── Next.js SSR wrapping helper ───────────────────────────────────────────────
 
@@ -76,23 +76,23 @@ function nextjsSsrWrapCode(params: SsrWrapParams): string | undefined {
 
 // ── Next.js Contributions ─────────────────────────────────────────────────────
 
-export interface NextjsExtractionOptions {
+interface NextjsExtractionOptions {
   targets?: TargetDescriptor[];
   extensions?: string[];
 }
 
-export interface NextjsSsrOptions {
+interface NextjsSsrOptions {
   entryTargets?: string[];
   wrapExports?: string[];
   wrapDefault?: "fetch" | boolean;
 }
 
-export interface NextjsRuntimeOptions {
+interface NextjsRuntimeOptions {
   serverRequestScope?: boolean;
   streamInjection?: boolean;
 }
 
-export interface NextjsFacetOptions
+interface NextjsFacetOptions
   extends NextjsExtractionOptions, NextjsSsrOptions, NextjsRuntimeOptions {}
 
 export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): ZintlFacet {

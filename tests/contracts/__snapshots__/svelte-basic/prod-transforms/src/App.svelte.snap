@@ -1,4 +1,7 @@
 <script lang="ts">
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+import { _t } from "virtual:zintl/runtime/internal";
+
   import svelteLogo from './assets/svelte.svg'
   import viteLogo from './assets/vite.svg'
   import heroImg from './assets/hero.png'
@@ -18,12 +21,12 @@
 <section id="center">
   <div class="hero">
     <img src={heroImg} class="base" width="170" height="179" alt="" />
-    <img src={svelteLogo} class="framework" alt="Svelte logo" />
-    <img src={viteLogo} class="vite" alt="Vite logo" />
+    <img src={svelteLogo} class="framework" alt={_t('2200eef1', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' })} />
+    <img src={viteLogo} class="vite" alt={_t('3473a536', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' })} />
   </div>
   <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/App.svelte</code> and save to test <code>HMR</code></p>
+    <h1>{ _t('90e40d50', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }</h1>
+    <p>{@html _t('b339a4ca', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda', _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]') }) }</p>
   </div>
   <Counter />
 </section>
@@ -35,19 +38,19 @@
     <svg class="icon" role="presentation" aria-hidden="true">
       <use href="/icons.svg#documentation-icon"></use>
     </svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
+    <h2>{ _t('9e9cf322', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }</h2>
+    <p>{ _t('d0f7666b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }</p>
     <ul>
       <li>
         <a href="https://vite.dev/" target="_blank" rel="noreferrer">
           <img class="logo" src={viteLogo} alt="" />
-          Explore Vite
+          { _t('e49cb0ee', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }
         </a>
       </li>
       <li>
         <a href="https://svelte.dev/" target="_blank" rel="noreferrer">
           <img class="button-icon" src={svelteLogo} alt="" />
-          Learn more
+          { _t('824d76b1', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }
         </a>
       </li>
     </ul>
@@ -56,8 +59,8 @@
     <svg class="icon" role="presentation" aria-hidden="true">
       <use href="/icons.svg#social-icon"></use>
     </svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
+    <h2>{ _t('65ac13a7', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }</h2>
+    <p>{ _t('15545bc4', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_b071a5cc9dda' }) }</p>
     <!-- @zintl-ignore -->
     <ul>
       <li>

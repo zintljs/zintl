@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { zintl } from "zintl/macro";
+import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+
+  
 
   interface Props {
     lang: string;
@@ -19,9 +22,16 @@
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);
-    await zintl(newLang);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
     onswitch(newLang);
   };
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/lib/LocaleSwitcher.svelte");
+  });
+}
 </script>
 
 <!-- @zintl-ignore -->

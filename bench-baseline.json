@@ -136,13 +136,13 @@
       ]
     },
     {
-      "filepath": "packages/compiler/src/__bench__/pipeline.bench.ts",
+      "filepath": "packages/zintl/src/__bench__/pipeline.bench.ts",
       "groups": [
         {
-          "fullName": "packages/compiler/src/__bench__/pipeline.bench.ts > Zintl Compiler Pipeline",
+          "fullName": "packages/zintl/src/__bench__/pipeline.bench.ts > Zintl Compiler Pipeline",
           "benchmarks": [
             {
-              "id": "47554161_0_0",
+              "id": "-2013124315_0_0",
               "name": "Reference Calibration (No-Op)",
               "rank": 2,
               "rme": 0.055004051554951874,
@@ -192,7 +192,7 @@
               "median": 0.9970840000000862
             },
             {
-              "id": "47554161_0_2",
+              "id": "-2013124315_0_1",
               "name": "Hot HMR Latency (Warm Path)",
               "rank": 1,
               "rme": 2.6248233872214124,
@@ -217,7 +217,7 @@
               "median": 0.0014590000000680448
             },
             {
-              "id": "47554161_0_3",
+              "id": "-2013124315_0_2",
               "name": "Structural HMR Latency (Patch Path)",
               "rank": 3,
               "rme": 0.6638132756548554,
@@ -242,7 +242,7 @@
               "median": 0.20516700000007404
             },
             {
-              "id": "47554161_0_4",
+              "id": "-2013124315_0_3",
               "name": "Catalog Serialization Logic",
               "rank": 4,
               "rme": 0.31048701134343637,
@@ -267,7 +267,7 @@
               "median": 0.27558349999981147
             },
             {
-              "id": "47554161_0_5",
+              "id": "-2013124315_0_4",
               "name": "Colony HMR Latency (Manager Sync)",
               "rank": 5,
               "rme": 0.5383762603420921,

@@ -26,18 +26,10 @@ import {
   type LogLevel,
   type AssetTargetConfig,
   type AssetMergeStrategy,
-} from "./types/index.js";
-import {
-  resolveFacets,
-  vanillaFacet,
-  reactFacet,
-  htmlFacet,
-  assetsFacet,
-  type ResolvedFacets,
-  type ResolvedCapabilities,
+  type CompilerCapabilities,
+  type CapabilityFlags,
   type CompilerContext,
-  type ZintlFacet,
-} from "./facet/index.js";
+} from "./types/index.js";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -47,6 +39,8 @@ import { MessageManager } from "./managers/MessageManager.js";
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
 export { serializeDeterministic, sortObjectKeys, compareStrings } from "./utils/serialization.js";
+export { compileExtractionState } from "./capabilities/compile-targets.js";
+export type { ExtractionContribution } from "./capabilities/compile-targets.js";
 import type { HtmlProjectionPayload } from "@zintl/extractor";
 export type {
   CompilerOptions,
@@ -55,9 +49,17 @@ export type {
   AssetTargetConfig,
   AssetMergeStrategy,
   HtmlProjectionPayload,
-  ZintlFacet,
 };
-export { resolveFacets };
+
+// The full capability contract. The host plugin resolves facets into these
+// shapes, so it must be able to name every one of them without ever importing
+// @zintl/extractor.
+export type * from "./types/capabilities.js";
+
+// Manager types reachable from CompilerContext. Facet authors receive these on
+// the context, so they must be nameable from the package root.
+export type { IOManager } from "./managers/IOManager.js";
+export type { CatalogManager } from "./managers/CatalogManager.js";
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -68,7 +70,7 @@ export class ZintlCompiler {
   public readonly clientBoundaries = new Set<string>();
 
   /** Pre-resolved facet capabilities + hooks. Set in constructor. */
-  public readonly _resolved: ResolvedFacets;
+  public readonly _resolved: CompilerCapabilities;
 
   public get assets(): any {
     const facet = this._resolved?.system.contentFacets.find(
@@ -161,46 +163,13 @@ export class ZintlCompiler {
 
   public _options: CompilerOptions;
 
-  constructor(options: CompilerOptions = {}, root: string = process.cwd(), isDev: boolean = false) {
+  constructor(options: CompilerOptions, root: string = process.cwd(), isDev: boolean = false) {
     this._options = options;
 
-    // ── Resolve Facets ──────────────────────────────────────────────────────
-    const facets = ((options.facets || []) as any).flat(Infinity) as ZintlFacet[];
-
-    const isTestMode =
-      typeof process !== "undefined" &&
-      (process.env.VITEST === "true" || process.env.NODE_ENV === "test");
-    if (isTestMode) {
-      const hasHtml = facets.some(
-        (f) => f && (f.name === "html-extraction" || f.name === "system-html-projection"),
-      );
-      if (!hasHtml) {
-        facets.push(...htmlFacet());
-      }
-      const hasAssets = facets.some((f) => f && f.name === "system-static-assets");
-      if (!hasAssets) {
-        facets.push(assetsFacet());
-      }
-      const hasVanilla = facets.some((f) => f && f.name === "vanilla-extraction");
-      if (!hasVanilla) {
-        facets.push(vanillaFacet());
-      }
-      const hasVue = facets.some(
-        (f) => f && (f.name === "vue-extraction" || f.name === "vue-codegen"),
-      );
-      const hasSvelte = facets.some(
-        (f) => f && (f.name === "svelte-extraction" || f.name === "svelte-codegen"),
-      );
-      const hasReact = facets.some(
-        (f) => f && (f.name === "react-extraction" || f.name === "react-codegen"),
-      );
-      if (!hasReact && !hasVue && !hasSvelte) {
-        facets.push(...reactFacet());
-      }
-    }
-
-    this._resolved = resolveFacets(facets);
-    // ──────────────────────────────────────────────────────────────────
+    // Capabilities arrive fully resolved. The compiler is deliberately
+    // logic-less here: it does not select, merge or validate facets, and it has
+    // no idea whether it is compiling React, Vue, Svelte or plain HTML.
+    this._resolved = options.capabilities;
 
     this.extensions = this._resolved.system.extensions;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
@@ -1666,7 +1635,7 @@ export class ZintlCompiler {
         multiplex: this._options.multiplex ?? true,
         extensions: this.extensions,
         // Resolved facet state — subsystems read these
-        capabilities: this._resolved.capabilities,
+        capabilities: this._resolved.flags,
         system: this._resolved.system,
       },
       catalogs,
@@ -1844,7 +1813,7 @@ export function getRuntimeCode(
     | "store-core"
     | "store-client"
     | "store-server",
-  capabilities?: ResolvedCapabilities,
+  capabilities?: CapabilityFlags,
   isSsr?: boolean,
   sourceLocale?: string,
 ): string {

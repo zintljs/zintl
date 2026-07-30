@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { zintl } from "zintl/macro";
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+
+
 
 const props = defineProps<{
   lang: string;
@@ -18,7 +21,7 @@ const handleSwitch = async (lang: string) => {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", lang);
   window.history.pushState({}, "", url);
-  await zintl(lang);
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
   emit("switch", lang);
 };
 </script>

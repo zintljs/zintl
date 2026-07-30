@@ -10,6 +10,9 @@ const config: KnipConfig = {
       ],
       ignoreFiles: ["scripts/budget-reporter.ts"],
     },
+    "examples/svelte-*": {
+      sveltekit: true,
+    },
     "examples/vinext-*": {
       next: true,
       // ignore: [".vinext/**"],

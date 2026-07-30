@@ -2,13 +2,21 @@ import { describe, it, expect } from "vite-plus/test";
 import { observe } from "../../pipeline/observe.js";
 import { resolve } from "../../pipeline/resolve.js";
 import { apply } from "../../pipeline/apply.js";
+import { reactCodegenFacet } from "../../facet/index.js";
+import { emptyCapabilities } from "../helpers/capabilities.js";
+
+// Which framework hook client reactivity needs is declared by the codegen facet,
+// not hardcoded in the compiler — so the test must supply that world.
+const { system } = emptyCapabilities({
+  clientReactivityImports: reactCodegenFacet().clientReactivityImports,
+});
 
 const mockConfig = {
   isDev: true,
   sourceLocale: "en",
   locales: ["en"],
   root: "/root",
-  facets: [],
+  system,
 } as any;
 
 const mockLogger = {

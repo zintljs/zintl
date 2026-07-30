@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vite-plus/test";
 import { formIntent } from "../../pipeline/intent.js";
-import { resolveFacets } from "../../facet/index.js";
+import { emptyCapabilities } from "../helpers/capabilities.js";
 import type { FileObservation, WorldState, ZintlConfig } from "../../pipeline/types.js";
 
-const { capabilities, system } = resolveFacets([]);
+const { flags: capabilities, system } = emptyCapabilities();
 
 const mockConfig: ZintlConfig = {
   sourceLocale: "en",

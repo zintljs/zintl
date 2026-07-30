@@ -5,7 +5,7 @@ import { logger } from "@zintl/extractor";
 
 describe("CatalogManager", () => {
   it("should construct and heal ICU strings", () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     const catalogMgr = new CatalogManager(
       io,
       "/root",
@@ -24,7 +24,7 @@ describe("CatalogManager", () => {
   });
 
   it("should prune orphaned boundaries early in dev mode outside of test env", async () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     const catalogMgr = new CatalogManager(
       io,
       "/root",
@@ -57,7 +57,7 @@ describe("CatalogManager", () => {
   });
 
   it("should early return if baseDir does not exist", async () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     // Mock exists to return false
     io.exists = async () => false;
 
@@ -78,7 +78,7 @@ describe("CatalogManager", () => {
   });
 
   it("should fallback to simple pruning when graphManager is undefined", async () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     io.exists = async () => true;
     io.readEntries = async () => [];
 

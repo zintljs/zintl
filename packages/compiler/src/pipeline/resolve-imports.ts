@@ -16,6 +16,7 @@ const MACRO_PACKAGE = "zintl/macro";
 export function resolveImports(
   intents: TransformIntent[],
   observation: FileObservation,
+  clientReactivityImports: Record<string, string[]> = {},
 ): ResolvedImport[] {
   const specifiersBySource: Record<string, Set<string>> = {};
 
@@ -35,10 +36,12 @@ export function resolveImports(
     if (autoClientReactivity) {
       specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("subscribe");
       specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("getStoreVersion");
-      if (!specifiersBySource["react"]) {
-        specifiersBySource["react"] = new Set();
+      // Which framework hook this needs is the framework's business, not ours.
+      // Declared by the codegen facet (see CodegenFacet.clientReactivityImports).
+      for (const [source, specifiers] of Object.entries(clientReactivityImports)) {
+        if (!specifiersBySource[source]) specifiersBySource[source] = new Set();
+        for (const spec of specifiers) specifiersBySource[source].add(spec);
       }
-      specifiersBySource["react"].add("useSyncExternalStore");
     }
   }
 

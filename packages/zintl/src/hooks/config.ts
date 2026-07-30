@@ -1,21 +1,10 @@
 import type { ResolvedConfig } from "vite";
 import { ZintlCompiler, type LogLevel } from "@zintl/compiler";
-import {
-  vanillaFacet,
-  reactFacet,
-  vueFacet,
-  svelteFacet,
-  htmlFacet,
-  nextjsFacet,
-  ssrFacet,
-  clientSpaFacet,
-  viteFacet,
-  assetsFacet,
-} from "@zintl/compiler/facets";
+import { resolveFacets } from "../facets/resolve.js";
+import { detectFrameworksOrFallback } from "../facets/detect.js";
+import { assembleFacets } from "../facets/assemble.js";
 import type Context from "../context.js";
-import { isAbsolute, relative, join } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
-import type { FacetsInput } from "../types.ts";
+import { isAbsolute, relative } from "node:path";
 
 export function configHook(ctx: Context) {
   return function (userConfig: any) {
@@ -95,144 +84,34 @@ export function configHook(ctx: Context) {
   };
 }
 
-function flattenFacets(inputs: FacetsInput[], autoFacets: any[]): any[] {
-  const result: any[] = [];
-
-  function processInput(input: any) {
-    if (!input) return;
-    if (input === "auto") {
-      for (const f of autoFacets) {
-        processInput(f);
-      }
-      return;
-    }
-    if (typeof input === "function") {
-      processInput(input());
-      return;
-    }
-    if (Array.isArray(input)) {
-      for (const item of input) {
-        processInput(item);
-      }
-      return;
-    }
-    if (typeof input === "object") {
-      result.push(input);
-      return;
-    }
-  }
-
-  for (const input of inputs) {
-    processInput(input);
-  }
-
-  return result;
-}
-
 export function configResolvedHook(ctx: Context) {
   return function (config: ResolvedConfig) {
     const logLevel = ctx.options.logLevel || (config as any).logLevel || "info";
 
-    let detectedFrameworks: string[] = [];
-    const frameworks = new Set<string>();
+    // Orchestration, in three visible steps: detect → assemble → resolve.
+    const frameworks = detectFrameworksOrFallback({
+      pluginNames: Array.isArray(config.plugins)
+        ? config.plugins.map((p) => p?.name).filter(Boolean)
+        : [],
+      root: config.root,
+    });
 
-    if (config.plugins && Array.isArray(config.plugins)) {
-      for (const plugin of config.plugins) {
-        if (plugin && plugin.name) {
-          const name = plugin.name.toLowerCase();
-          if (name.includes("vue")) frameworks.add("vue");
-          if (name.includes("react")) frameworks.add("react");
-          if (name.includes("svelte")) frameworks.add("svelte");
-          if (name.includes("next") || name.includes("vinext")) frameworks.add("nextjs");
-        }
-      }
-    }
+    const facets = assembleFacets({
+      frameworks,
+      ssr: Boolean(config.build?.ssr) || (config as any).ssr !== undefined,
+      facets: ctx.options.facets,
+      assetsTarget: ctx.options.assetsTarget,
+      virtualAssets: ctx.options.virtualAssets,
+    });
 
-    try {
-      const pkgPath = join(config.root, "package.json");
-      if (existsSync(pkgPath)) {
-        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-        const allDeps = {
-          ...pkg.dependencies,
-          ...pkg.devDependencies,
-          ...pkg.peerDependencies,
-        };
-        if (allDeps["vue"]) frameworks.add("vue");
-        if (allDeps["react"]) frameworks.add("react");
-        if (allDeps["svelte"] || allDeps["@sveltejs/kit"]) frameworks.add("svelte");
-        if (allDeps["next"] || allDeps["vinext"]) frameworks.add("nextjs");
-      }
-    } catch {}
-
-    if (frameworks.size > 0) {
-      detectedFrameworks = Array.from(frameworks);
-    } else {
-      detectedFrameworks = ["react"];
-    }
-
-    // Build the "auto" facets list
-    const autoFacets: any[] = [];
-
-    // Framework detection mapping
-    for (const f of detectedFrameworks) {
-      if (f === "vue") {
-        autoFacets.push(vueFacet());
-      } else if (f === "react") {
-        autoFacets.push(reactFacet());
-      } else if (f === "svelte") {
-        autoFacets.push(svelteFacet());
-      } else if (f === "nextjs") {
-        autoFacets.push(reactFacet(), nextjsFacet());
-      }
-    }
-
-    // SSR handling
-    const hasSsr =
-      detectedFrameworks.includes("nextjs") ||
-      config.build?.ssr ||
-      (config as any).ssr !== undefined;
-
-    if (hasSsr && !detectedFrameworks.includes("nextjs")) {
-      autoFacets.push(ssrFacet());
-    }
-
-    // Client SPA sync handling
-    if (!detectedFrameworks.includes("nextjs")) {
-      autoFacets.push(clientSpaFacet());
-    }
-
-    // Baseline fallbacks
-    autoFacets.push(
-      vanillaFacet(),
-      htmlFacet(),
-      assetsFacet({
-        targets: ctx.options?.assetsTarget,
-        virtualAssets: ctx.options.virtualAssets,
-      }),
-    );
-
-    // Flatten facets (allowing compound facets and functions)
-    const userFacets = ctx.options.facets || ["auto"];
-    const facets = flattenFacets(userFacets, autoFacets);
-
-    // Always inject the "vite" bundler facet
-    facets.push(viteFacet());
-
-    const testOutputDir = process.env.ZINTL_TEST_OUTPUT_DIR;
-    if (testOutputDir) {
-      ctx.options.outputDir = testOutputDir;
-      ctx.options.prune = false;
-      ctx.options.verifyIntegrity = true;
-      if (process.env.ZINTL_TEST_METADATA_DIR) {
-        ctx.options.metadataDir = process.env.ZINTL_TEST_METADATA_DIR;
-      }
-    }
+    // The compiler is handed the result and never learns which facets produced it.
+    const capabilities = resolveFacets(facets);
 
     ctx.compiler = new ZintlCompiler(
       {
         verifyIntegrity: config.command === "build",
         ...ctx.options,
-        facets,
+        capabilities,
         logLevel: logLevel as LogLevel,
       },
       config.root,

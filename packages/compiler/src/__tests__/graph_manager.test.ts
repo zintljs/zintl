@@ -6,7 +6,7 @@ import type { BoundaryMetadata, ObservedDependency } from "../types.ts";
 
 describe("GraphManager", () => {
   it("should construct and build a simple boundary graph", () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
 
     const internalManifest = {
@@ -122,7 +122,7 @@ describe("GraphManager", () => {
   });
 
   it("should cover leadsToBoundary branches: sovereign/contextual anchors and early returns", () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
 
     const internalManifest = {
@@ -228,7 +228,7 @@ describe("GraphManager", () => {
   });
 
   it("should propagate active locales and compute usage counts", () => {
-    const io = new IOManager("/root", false, logger, {});
+    const io = new IOManager("/root", false, logger, {}, [], []);
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
 
     const internalManifest = {

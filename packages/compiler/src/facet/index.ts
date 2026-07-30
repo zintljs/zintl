@@ -1,25 +1,30 @@
 /**
- * Zintl Facet System — Public API
+ * Zintl Facets — Public API (`@zintl/compiler/facets`)
  *
- * The facet system decouples framework-specific behavior from the compiler core.
- * Facets are composable, per-concern units. Multiple facets combine to form
- * the resolved system behavior.
+ * The concrete, framework-aware facet implementations. This is an **isolated
+ * module graph**: the compiler core never imports from here. Knowledge flows one
+ * way only —
+ *
+ *   extractor  ←  compiler (core)  ←  compiler/facets  ←  zintl (plugin)
+ *
+ * These presets are free to use compiler utilities (`IOManager`, hashing, …);
+ * what they must not do is know how they were *selected* or how they *merge*.
+ * Selection and resolution belong to the host plugin.
+ *
+ * This entry exports **values only**. The capability types live in the core and
+ * are published from `@zintl/compiler`; re-exporting them here too would emit a
+ * second, structurally-identical-but-nominally-distinct declaration in
+ * `dist/facet/index.d.mts`, and the two would not be assignable to each other.
+ * That is what forced `as FacetsInput` casts on user facets.
  *
  * @example
- * import { resolveFacets } from "@zintl/compiler/facet";
+ * import type { ZintlFacet } from "@zintl/compiler";
+ * import { reactFacet, viteFacet } from "@zintl/compiler/facets";
  *
- * const resolved = resolveFacets(["react", "vite", "client-spa"]);
- * // resolved.capabilities.jsx === true
- * // resolved.capabilities.hmr === true
- * // resolved.capabilities.clientLocaleSync === true
+ * const facets: ZintlFacet[] = [...reactFacet(), viteFacet()];
  */
 
-export { resolveFacets } from "./resolve.js";
-export type * from "./types.js";
-// Re-export for convenience — resolver types are also from resolve.ts
-export type { ResolvedFacets } from "./resolve.js";
-
-// Built-in preset facets (for programmatic use / testing)
+// Built-in preset facets
 export { vanillaFacet } from "./presets/vanilla.js";
 export { reactExtractionFacet, reactCodegenFacet, reactFacet } from "./presets/react.js";
 export { vueExtractionFacet, vueCodegenFacet, vueFacet } from "./presets/vue.js";

@@ -1,4 +1,4 @@
-import type { ZintlFacet, TagMapEntry, TargetDescriptor } from "../types.js";
+import type { CodegenFacet, ZintlFacet, TagMapEntry, TargetDescriptor } from "@zintl/compiler";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,10 +52,13 @@ export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFace
   };
 }
 
-export function reactCodegenFacet(options: ReactFacetOptions = {}): ZintlFacet {
+export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet {
   return {
     name: "react-codegen",
     concern: "codegen",
+    // React needs this hook when the compiler injects client reactivity.
+    // The compiler must not know that; the framework declares it.
+    clientReactivityImports: { react: ["useSyncExternalStore"] },
     priority: 100,
     extensions: options.extensions || [".tsx", ".jsx"],
     match: (filePath: string) => filePath.endsWith(".tsx") || filePath.endsWith(".jsx"),

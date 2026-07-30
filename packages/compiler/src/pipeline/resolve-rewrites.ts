@@ -9,7 +9,7 @@ import type {
   VariableBinding,
   ZintlConfig,
 } from "../types/index.js";
-import type { CodegenFacet } from "../facet/types.js";
+import type { CodegenFacet } from "../types/capabilities.js";
 
 /**
  * Find the codegen facet for a given file path.

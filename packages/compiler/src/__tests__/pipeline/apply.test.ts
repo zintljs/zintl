@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vite-plus/test";
 import { apply } from "../../pipeline/apply.js";
-import { resolveFacets, vueFacet, svelteFacet } from "../../facet/index.js";
+import { vueCodegenFacet, svelteCodegenFacet } from "../../facet/index.js";
+import type { CodegenFacet } from "../../types/capabilities.js";
+import { emptyCapabilities } from "../helpers/capabilities.js";
 import MagicString from "magic-string";
 import type { ResolvedPlan } from "../../pipeline/types.js";
 
@@ -11,9 +13,9 @@ const mockLogger = {
   error: () => {},
 } as any;
 
-const { capabilities, system, facets } = resolveFacets(
-  [vueFacet(), svelteFacet()].flat(Infinity) as any,
-);
+// apply() only consults system.codegenFacets, so a scoped fixture is enough.
+const codegenFacets = [vueCodegenFacet(), svelteCodegenFacet()] as CodegenFacet[];
+const { flags: capabilities, system, facets } = emptyCapabilities({ codegenFacets }, { sfc: true });
 
 const mockConfig = {
   sourceLocale: "en",

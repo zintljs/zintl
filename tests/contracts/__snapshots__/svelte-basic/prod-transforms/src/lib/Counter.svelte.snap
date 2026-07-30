@@ -1,4 +1,7 @@
 <script lang="ts">
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+import { _t } from "virtual:zintl/runtime/internal";
+
   let count: number = $state(0)
   const increment = () => {
     count += 1
@@ -6,5 +9,5 @@
 </script>
 
 <button type="button" class="counter" onclick={increment}>
-  Count is {count}
+  { _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_cd9034670a6d' }) }
 </button>

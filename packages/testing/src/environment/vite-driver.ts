@@ -9,6 +9,8 @@ import {
   type Rollup,
 } from "vite";
 import { ZintlCompiler } from "@zintl/compiler";
+import { resolveFacets } from "zintl/facets";
+import { assembleFacets, detectFrameworksOrFallback } from "zintl/facets";
 import { collectOutput, buildTestOverrides, TEST_DEFINES } from "../utils.js";
 import type {
   BuildToolDriver,
@@ -36,10 +38,28 @@ export class ViteDriver implements BuildToolDriver {
   /**
    * Compile sources through ZintlCompiler directly — no Vite involved.
    * Tests the compiler contract, not the build tool.
+   *
+   * Capabilities are resolved exactly the way the plugin resolves them
+   * (detect → assemble → resolve), so these contract snapshots measure the
+   * production path. Previously this handed plugin-shaped options straight to
+   * the compiler and relied on its `VITEST` facet injection, which meant the
+   * snapshots recorded a test-only world.
    */
   async compile(mode: "development" | "production" = "production"): Promise<CompilationResult> {
     const isDev = mode === "development";
-    const compiler = new ZintlCompiler(this.zintlOptions as any, this.root, isDev);
+    const frameworks = detectFrameworksOrFallback({ root: this.root });
+    const facets = assembleFacets({
+      frameworks,
+      ssr: Boolean((this.zintlOptions as any).ssr),
+      facets: this.zintlOptions.facets,
+      assetsTarget: this.zintlOptions.assetsTarget,
+      virtualAssets: this.zintlOptions.virtualAssets,
+    });
+    const compiler = new ZintlCompiler(
+      { ...(this.zintlOptions as any), capabilities: resolveFacets(facets) },
+      this.root,
+      isDev,
+    );
 
     // Phase 1: setup (loads metadata, initializes facets)
     await compiler.setup();

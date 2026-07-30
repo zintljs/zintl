@@ -1,5 +1,5 @@
 import type { LogLevel, ZintlLogger } from "@zintl/extractor";
-import type { ZintlFacet } from "../facet/index.js";
+import type { CompilerCapabilities } from "./capabilities.js";
 export type { LogLevel, ZintlLogger };
 
 export type AssetMergeStrategy =
@@ -27,12 +27,15 @@ export interface CompilerOptions {
   verifyIntegrity?: boolean;
   multiplex?: boolean;
   /**
-   * Resolved compiler facets list.
+   * The compiler's entire behavioral surface, pre-resolved by the host plugin.
+   *
+   * The compiler does not resolve facets and does not know which facets exist —
+   * it only knows the capabilities it has been given. Selecting facets, applying
+   * defaults, merging them and detecting conflicts all belong to the host plugin
+   * (see `zintl`'s `facets/resolve.ts`).
    */
-  facets?: CompilerFacetInput[];
+  capabilities: CompilerCapabilities;
 }
-
-type CompilerFacetInput = ZintlFacet | CompilerFacetInput[];
 
 interface CatalogFormatContext {
   locale: string;

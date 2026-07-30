@@ -1,6 +1,6 @@
-import type { ZintlFacet } from "../types.js";
+import type { ZintlFacet } from "@zintl/compiler";
 
-export interface ClientSpaFacetOptions {
+interface ClientSpaFacetOptions {
   clientLocaleSync?: boolean;
 }
 

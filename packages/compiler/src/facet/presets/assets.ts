@@ -1,14 +1,14 @@
 import { join, isAbsolute, relative } from "node:path";
 import { existsSync } from "node:fs";
-import type { ZintlFacet, CompilerContext } from "../types.js";
-import { IOManager } from "../../managers/IOManager.js";
-import type { CatalogManager } from "../../managers/CatalogManager.js";
+import type { ZintlFacet, CompilerContext } from "@zintl/compiler";
+import type { IOManager } from "@zintl/compiler";
+import type { CatalogManager } from "@zintl/compiler";
 import type { ZintlLogger } from "@zintl/extractor";
 import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { similarity } from "../../reconcile.js";
 
-export interface AssetFacetConfig {
+interface AssetFacetConfig {
   targets?: (string | AssetTargetConfig)[];
   assetsTarget?: (string | AssetTargetConfig)[];
   virtualAssets?: boolean;
