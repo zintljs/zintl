@@ -6,7 +6,18 @@ import type { CatalogManager } from "@zintl/compiler";
 import type { ZintlLogger } from "@zintl/extractor";
 import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
-import { DEFAULT_RENAME_THRESHOLD, similarity } from "../../reconcile.js";
+import { similarity } from "../../reconcile.js";
+
+/**
+ * How similar an asset's source body must be to a remembered one before its
+ * translation is reused.
+ *
+ * Deliberately its own constant rather than `DEFAULT_RENAME_THRESHOLD`. That one
+ * answers "is this the same UI string, edited?" over short labels; this one
+ * answers "did this document change materially?" over whole file bodies. They
+ * happen to share a value today, and they should be free to diverge.
+ */
+const DEFAULT_ASSET_DRIFT_THRESHOLD = 0.6;
 
 /** Default asset extensions when the caller names none. */
 const DEFAULT_ASSET_TARGETS: (string | AssetTargetConfig)[] = ["md", "txt"];
@@ -212,7 +223,7 @@ class AssetManager {
       let isFuzzyMatched = false;
 
       if (!hiveBackup && hive && config.strategy !== "binary-passthrough") {
-        const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
+        const threshold = this.options.similarityThreshold ?? DEFAULT_ASSET_DRIFT_THRESHOLD;
         let bestScore = 0;
         let bestKey = "";
 
@@ -313,7 +324,7 @@ class AssetManager {
           }
 
           if (sourceChanged) {
-            const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
+            const threshold = this.options.similarityThreshold ?? DEFAULT_ASSET_DRIFT_THRESHOLD;
             const isFuzzy = similarityScore >= threshold;
 
             if (isFuzzy) {
@@ -610,7 +621,7 @@ class AssetManager {
             let isFuzzyMatched = false;
 
             if (!hiveBackup && hive) {
-              const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
+              const threshold = this.options.similarityThreshold ?? DEFAULT_ASSET_DRIFT_THRESHOLD;
               let bestScore = 0;
               let bestKey = "";
 

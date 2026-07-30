@@ -70,8 +70,37 @@ export class MessageManager {
       this.internalManifest,
       this.threshold,
     );
+    this.reportRenames(changes);
     this.currentReconciliation = changes;
     return changes;
+  }
+
+  /**
+   * Surface every translation carried from one source text to another.
+   *
+   * Deletes are deliberately not reported: the hive is append-only, so a missed
+   * rename never destroys a translation — it only leaves the new wording
+   * untranslated until someone fills it in. A *wrong* rename is the failure the
+   * hive cannot undo, because the old translation is written under the new text
+   * and then memorized. Those are the ones worth a developer's attention.
+   */
+  private reportRenames(changes: ReconcileResult) {
+    if (!this.logger || changes.renamed.length === 0) return;
+
+    for (const r of changes.renamed) {
+      const score = r.score.toFixed(2);
+      if (r.substitutesWords) {
+        this.logger.warn?.(
+          `Carried translations from "${r.from}" to "${r.to}" (similarity ${score}), ` +
+            `but a word was substituted rather than edited — verify the meaning still matches. ` +
+            `If these are different strings, the old translations remain recoverable from the hive.`,
+        );
+      } else {
+        this.logger.debug?.(
+          `Reconciled "${r.from}" → "${r.to}" (similarity ${score}) in ${r.boundaryId}`,
+        );
+      }
+    }
   }
 
   public commitReconciliation() {
