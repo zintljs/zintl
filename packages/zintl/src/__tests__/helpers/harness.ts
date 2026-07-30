@@ -29,6 +29,25 @@ import {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * The harness's plugin options, defined once.
+ *
+ * These deliberately differ from production defaults (`prune` and
+ * `verifyIntegrity` off, two locales) because tests assert on catalog files
+ * without wanting pruning or integrity checks. That is legitimate test config —
+ * the problem was that the same block was written out twice, making it a fourth
+ * place a Zintl default appeared to live.
+ */
+function testPluginOptions(options: any = {}) {
+  return {
+    sourceLocale: "en",
+    locales: ["en", "ar"],
+    prune: false,
+    verifyIntegrity: false,
+    ...options,
+  };
+}
+
 export async function createZintlContext(options: any = {}): Promise<TestContext> {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const tmpBase = join(__dirname, ".tmp");
@@ -41,13 +60,7 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
   );
   await mkdir(root, { recursive: true });
 
-  const rawPlugin = zintl({
-    sourceLocale: "en",
-    locales: ["en", "ar"],
-    prune: false,
-    verifyIntegrity: false,
-    ...options,
-  });
+  const rawPlugin = zintl(testPluginOptions(options));
 
   const getPluginHooks = (p: any) => {
     const list = Array.isArray(p) ? p : [p];
@@ -149,23 +162,7 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
       {
         root,
         logLevel: "silent",
-        plugins: [
-          zintl({
-            sourceLocale: "en",
-            locales: ["en", "ar"],
-            prune: false,
-            verifyIntegrity: false,
-            ...options,
-          }),
-        ],
-        resolve: {
-          alias: {
-            "zintl/internal": fileURLToPath(
-              new URL("../../../../runtime/src/internal.ts", import.meta.url),
-            ),
-            zintl: fileURLToPath(new URL("../../../../runtime/src/index.ts", import.meta.url)),
-          },
-        },
+        plugins: [zintl(testPluginOptions(options))],
       },
       { build: BASE_TEST_OVERRIDES },
     );

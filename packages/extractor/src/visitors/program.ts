@@ -1,6 +1,6 @@
 import type { Node, CallExpression, ImportDeclaration } from "@oxc-project/types";
 import { ExtractionContext } from "../context.js";
-import { ZINTL_MACRO } from "../constants.js";
+import { ZINTL_MACRO, isRuntimeSpecifier } from "../constants.js";
 import { generateMessageId } from "../hashing.js";
 import { walk, Visitors } from "../walker.js";
 import { getAttachedComments } from "../comments.js";
@@ -236,16 +236,7 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
                       bindings.push((spec.imported as any).name || (spec.imported as any).value);
                     else if (spec.type === "ImportDefaultSpecifier") bindings.push("default");
                   }
-                if (
-                  [
-                    ZINTL_MACRO,
-                    "zintl",
-                    "zintl/internal",
-                    "zintl/macro",
-                    "virtual:zintl/runtime/internal",
-                    ctx.runtimePackage,
-                  ].includes(sourceVal)
-                ) {
+                if (isRuntimeSpecifier(sourceVal, ctx.runtimePackage)) {
                   ctx.zintlImportGroup = { start: stmt.start, end: stmt.end, source: sourceVal };
                   for (const name of bindings) ctx.runtimeImports.push(name);
                   if (!stmt.specifiers?.length) {
@@ -585,16 +576,7 @@ export function createProgramVisitor(_ctx: ExtractionContext): Visitors {
               bindings.push((spec.imported as any).name || (spec.imported as any).value);
             else if (spec.type === "ImportDefaultSpecifier") bindings.push("default");
           }
-        if (
-          [
-            ZINTL_MACRO,
-            "zintl",
-            "zintl/internal",
-            "zintl/macro",
-            "virtual:zintl/runtime/internal",
-            ctx.runtimePackage,
-          ].includes(sourceVal)
-        ) {
+        if (isRuntimeSpecifier(sourceVal, ctx.runtimePackage)) {
           ctx.zintlImportGroup = { start: node.start, end: node.end, source: sourceVal };
           for (const name of bindings) ctx.runtimeImports.push(name);
           if (!node.specifiers?.length) {

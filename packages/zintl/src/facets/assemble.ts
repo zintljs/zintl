@@ -60,6 +60,9 @@ export function autoFacets(input: AssembleInput): ZintlFacet[] {
   if (ssr && !isNext) out.push(ssrFacet());
   if (!isNext) out.push(clientSpaFacet());
 
+  // The plugin option is `assetsTarget` (it names the subsystem); the facet
+  // option is `targets` (the facet is already about assets). This line is the
+  // one and only place the two are bridged.
   out.push(vanillaFacet(), htmlFacet(), assetsFacet({ targets: assetsTarget, virtualAssets }));
 
   return out.flat(Infinity) as ZintlFacet[];

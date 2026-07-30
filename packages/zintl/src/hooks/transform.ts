@@ -68,7 +68,7 @@ export function transformIndexHtmlHook(ctx: Context) {
       let htmlId = viteCtx.filename || viteCtx.path || "";
       if (viteCtx.path) {
         const pathParts = viteCtx.path.split("/").filter(Boolean);
-        const locales = ctx.options.locales || ["en"];
+        const locales = ctx.options.locales;
         const foundLocale = pathParts.find((p: string) => locales.includes(p));
         if (foundLocale) {
           const pathName = pathParts.filter((p: string) => p !== foundLocale).join("/");
@@ -86,7 +86,7 @@ export function transformIndexHtmlHook(ctx: Context) {
       const normalizedPath = filename.replace(/\\/g, "/");
       const cleanPath = normalizedPath.split("?")[0];
       const parts = cleanPath.split("/");
-      const locales = ctx.options.locales || ["en"];
+      const locales = ctx.options.locales;
       const isFanned =
         parts.some((p: string) => locales.includes(p)) ||
         normalizedPath.includes("virtual:zintl-multiplex-html");
@@ -131,7 +131,7 @@ export function preTransformIndexHtmlHook(ctx: Context) {
       const filename = viteCtx.filename || viteCtx.path || "";
       const normalizedPath = filename.replace(/\\/g, "/");
       const parts = normalizedPath.split("?")[0].split("/");
-      const locales = ctx.options.locales || ["en"];
+      const locales = ctx.options.locales;
       const pathParts = (viteCtx.path || "").split("/").filter(Boolean);
       const isFanned =
         parts.some((p: string) => locales.includes(p)) ||
@@ -142,7 +142,7 @@ export function preTransformIndexHtmlHook(ctx: Context) {
 
       if (isMultiplex && !isFanned) {
         const localesStr = JSON.stringify(locales);
-        const defaultLocale = ctx.options.sourceLocale || "en";
+        const defaultLocale = ctx.options.sourceLocale;
         return `<!doctype html>
 <html lang="${defaultLocale}">
   <head>

@@ -2,21 +2,21 @@ import { ZintlCompiler } from "@zintl/compiler";
 import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
-import type { Options } from "./types.js";
+import type { ResolvedOptions } from "./options.js";
 
 export default class Context {
   public compiler!: ZintlCompiler;
   public server: ViteDevServer | null = null;
   public multiplexEnabled: boolean | null = null;
 
-  constructor(public options: Options) {}
+  constructor(public options: ResolvedOptions) {}
 
   getMultiplex(config?: any): boolean {
     if (this.compiler && this.multiplexEnabled !== null) return this.multiplexEnabled;
     const root = config?.root || this.compiler?.rootDir || process.cwd();
 
-    if ((this.options as any).multiplex !== undefined) {
-      const val = (this.options as any).multiplex;
+    if (this.options.multiplex !== undefined) {
+      const val = this.options.multiplex;
       if (this.compiler) {
         this.multiplexEnabled = val;
       }
@@ -46,7 +46,7 @@ export default class Context {
         entryFiles.push("index.html");
       }
 
-      const locales = this.options.locales || ["en"];
+      const locales = this.options.locales;
       const cleanEntryFiles = entryFiles.map((file) => {
         let clean = file;
         for (const loc of locales) {

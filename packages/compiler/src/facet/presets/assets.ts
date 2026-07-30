@@ -6,11 +6,20 @@ import type { CatalogManager } from "@zintl/compiler";
 import type { ZintlLogger } from "@zintl/extractor";
 import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
-import { similarity } from "../../reconcile.js";
+import { DEFAULT_RENAME_THRESHOLD, similarity } from "../../reconcile.js";
+
+/** Default asset extensions when the caller names none. */
+const DEFAULT_ASSET_TARGETS: (string | AssetTargetConfig)[] = ["md", "txt"];
 
 interface AssetFacetConfig {
+  /**
+   * Asset extensions or glob configs to localize.
+   *
+   * This concept used to be spelled three ways across the boundary: `targets`
+   * here, `assetsTarget` on the same interface, and `assetsTarget` on the
+   * plugin options — reconciled by an alias in the factory. One spelling now.
+   */
   targets?: (string | AssetTargetConfig)[];
-  assetsTarget?: (string | AssetTargetConfig)[];
   virtualAssets?: boolean;
   similarityThreshold?: number;
 }
@@ -80,7 +89,7 @@ class AssetManager {
     const absolutePath = isAbsolute(filePath) ? filePath : join(this.root, filePath);
     const relativePath = relative(this.root, absolutePath).replace(/\\/g, "/");
 
-    const assetsTarget = this.options.assetsTarget || ["md", "txt"];
+    const assetsTarget = this.options.targets ?? DEFAULT_ASSET_TARGETS;
 
     for (const item of assetsTarget) {
       let targetPattern = "";
@@ -203,7 +212,7 @@ class AssetManager {
       let isFuzzyMatched = false;
 
       if (!hiveBackup && hive && config.strategy !== "binary-passthrough") {
-        const threshold = this.options.similarityThreshold ?? 0.6;
+        const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
         let bestScore = 0;
         let bestKey = "";
 
@@ -304,7 +313,7 @@ class AssetManager {
           }
 
           if (sourceChanged) {
-            const threshold = this.options.similarityThreshold ?? 0.6;
+            const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
             const isFuzzy = similarityScore >= threshold;
 
             if (isFuzzy) {
@@ -601,7 +610,7 @@ class AssetManager {
             let isFuzzyMatched = false;
 
             if (!hiveBackup && hive) {
-              const threshold = this.options.similarityThreshold ?? 0.6;
+              const threshold = this.options.similarityThreshold ?? DEFAULT_RENAME_THRESHOLD;
               let bestScore = 0;
               let bestKey = "";
 
@@ -673,10 +682,7 @@ class AssetManager {
 export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
   let manager: AssetManager;
 
-  const resolvedConfig = {
-    ...config,
-    assetsTarget: config.targets || config.assetsTarget,
-  };
+  const resolvedConfig = { ...config };
 
   const getManager = (context: CompilerContext) => {
     if (!manager) {
@@ -709,7 +715,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
       if (!context) {
         const idx = filePath.lastIndexOf(".");
         const ext = idx !== -1 ? filePath.substring(idx) : "";
-        const targets = resolvedConfig.assetsTarget || ["md", "txt"];
+        const targets = resolvedConfig.targets ?? DEFAULT_ASSET_TARGETS;
         return targets.some((t: any) => {
           if (typeof t === "string") {
             return ext === (t.startsWith(".") ? t : `.${t}`);

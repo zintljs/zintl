@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vite-plus/test";
 import { resolveTargets } from "../targets.js";
 import { extract } from "../parser.js";
+import { JSX_TARGETS, HTML_TARGETS, DOM_TARGETS } from "./helpers/fixtures.js";
 
 describe("Zintl Extractor - Targets and DSL Presets", () => {
-  it("should expand default presets correctly", () => {
-    const resolved = resolveTargets(["react", "html"]);
+  it("compiles jsx and html descriptors into lookup structures", () => {
+    const resolved = resolveTargets([...JSX_TARGETS, ...HTML_TARGETS]);
 
-    // React preset
+    // JSX sinks
     expect(resolved.jsxAttributes.has("aria-label")).toBe(true);
     expect(resolved.jsxAttributes.has("alt")).toBe(true);
     expect(resolved.jsxElementAttributes.get("html")?.has("dir")).toBe(true);
@@ -59,8 +60,8 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
   });
 
   it("should cache resolved targets reference", () => {
-    const run1 = resolveTargets(["react", "vanilla"]);
-    const run2 = resolveTargets(["react", "vanilla"]);
+    const run1 = resolveTargets([...JSX_TARGETS, ...DOM_TARGETS]);
+    const run2 = resolveTargets([...JSX_TARGETS, ...DOM_TARGETS]);
 
     // Strict equality check (caching mechanism)
     expect(run1).toBe(run2);

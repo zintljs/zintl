@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vite-plus/test";
 import Context from "../context.js";
+import { resolveOptions } from "../options.js";
 import { configResolvedHook } from "../hooks/config.js";
 
 let mockExistsSync: any = null;
@@ -27,7 +28,7 @@ describe("ZintlPluginContext", () => {
   });
 
   it("should construct with options", () => {
-    const ctx = new Context({ locales: ["en", "ar"] });
+    const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
     expect(ctx.options.locales).toEqual(["en", "ar"]);
     expect(ctx.server).toBeNull();
     expect(ctx.multiplexEnabled).toBeNull();
@@ -35,12 +36,12 @@ describe("ZintlPluginContext", () => {
 
   describe("getMultiplexLocale", () => {
     it("should return undefined when no zintl-multiplex param", () => {
-      const ctx = new Context({});
+      const ctx = new Context(resolveOptions({}));
       expect(ctx.getMultiplexLocale("/src/main.ts")).toBeUndefined();
     });
 
     it("should extract locale from zintl-multiplex query param", () => {
-      const ctx = new Context({});
+      const ctx = new Context(resolveOptions({}));
       expect(ctx.getMultiplexLocale("/src/main.ts?zintl-multiplex=ar")).toBe("ar");
       expect(ctx.getMultiplexLocale("/src/main.ts?v=123&zintl-multiplex=en")).toBe("en");
     });
@@ -48,7 +49,7 @@ describe("ZintlPluginContext", () => {
 
   describe("getMultiplex", () => {
     it("should return cached value when compiler and multiplexEnabled are set", () => {
-      const ctx = new Context({});
+      const ctx = new Context(resolveOptions({}));
       ctx.compiler = {} as any;
       ctx.multiplexEnabled = true;
       expect(ctx.getMultiplex()).toBe(true);
@@ -58,12 +59,12 @@ describe("ZintlPluginContext", () => {
     });
 
     it("should use explicit options.multiplex when set", () => {
-      const ctx = new Context({ multiplex: true } as any);
+      const ctx = new Context(resolveOptions({ multiplex: true }));
       expect(ctx.getMultiplex({ root: "/mock" })).toBe(true);
     });
 
     it("should cache multiplex value on compiler when compiler is set", () => {
-      const ctx = new Context({ multiplex: false } as any);
+      const ctx = new Context(resolveOptions({ multiplex: false }));
       ctx.compiler = {} as any;
       ctx.getMultiplex();
       expect(ctx.multiplexEnabled).toBe(false);
@@ -81,7 +82,7 @@ describe("ZintlPluginContext", () => {
         return "";
       };
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(true);
     });
@@ -98,7 +99,7 @@ describe("ZintlPluginContext", () => {
         return "";
       };
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(true);
     });
@@ -115,7 +116,7 @@ describe("ZintlPluginContext", () => {
         return "";
       };
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(false);
     });
@@ -124,7 +125,7 @@ describe("ZintlPluginContext", () => {
       mockExistsSync = () => true;
       mockReadFileSync = () => `zintl()`;
 
-      const ctx = new Context({ locales: ["en"] });
+      const ctx = new Context(resolveOptions({ locales: ["en"] }));
       const result = ctx.getMultiplex({
         root: "/mock",
         build: { rollupOptions: { input: "pages/about.html" } },
@@ -136,7 +137,7 @@ describe("ZintlPluginContext", () => {
       mockExistsSync = () => true;
       mockReadFileSync = () => `zintl()`;
 
-      const ctx = new Context({ locales: ["en"] });
+      const ctx = new Context(resolveOptions({ locales: ["en"] }));
       const result = ctx.getMultiplex({
         root: "/mock",
         build: { rollupOptions: { input: ["index.html", "about.html"] } },
@@ -148,7 +149,7 @@ describe("ZintlPluginContext", () => {
       mockExistsSync = () => true;
       mockReadFileSync = () => `zintl()`;
 
-      const ctx = new Context({ locales: ["en"] });
+      const ctx = new Context(resolveOptions({ locales: ["en"] }));
       const result = ctx.getMultiplex({
         root: "/mock",
         build: { rollupOptions: { input: { main: "index.html", about: "about.html" } } },
@@ -160,7 +161,7 @@ describe("ZintlPluginContext", () => {
       mockExistsSync = () => true;
       mockReadFileSync = () => `zintl()`;
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const result = ctx.getMultiplex({
         root: "/mock",
         build: { rollupOptions: { input: { en: "en/index.html", ar: "ar/index.html" } } },
@@ -172,7 +173,7 @@ describe("ZintlPluginContext", () => {
       mockExistsSync = () => true;
       mockReadFileSync = () => `zintl()`;
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const result = ctx.getMultiplex({
         root: "/mock",
         build: { rollupOptions: { input: "./en/index.html" } },
@@ -186,7 +187,7 @@ describe("ZintlPluginContext", () => {
         throw new Error("boom");
       };
 
-      const ctx = new Context({ locales: ["en"] });
+      const ctx = new Context(resolveOptions({ locales: ["en"] }));
       ctx.compiler = {} as any;
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(false);
@@ -203,7 +204,7 @@ describe("ZintlPluginContext", () => {
         return "";
       };
 
-      const ctx = new Context({ locales: ["en"] });
+      const ctx = new Context(resolveOptions({ locales: ["en"] }));
       const result = ctx.getMultiplex({ root: "/mock" });
       expect(result).toBe(false);
     });
@@ -221,7 +222,7 @@ describe("ZintlPluginContext", () => {
         return "";
       };
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const hook = configResolvedHook(ctx);
       hook({
         root: "/mock-root",
@@ -239,7 +240,7 @@ describe("ZintlPluginContext", () => {
     it("should detect frameworks from vite config resolved plugins", () => {
       mockExistsSync = () => false;
 
-      const ctx = new Context({ locales: ["en", "ar"] });
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
       const hook = configResolvedHook(ctx);
       hook({
         root: "/mock-root",

@@ -3,7 +3,9 @@ import { observe } from "../../pipeline/observe.js";
 import { resolve } from "../../pipeline/resolve.js";
 import { apply } from "../../pipeline/apply.js";
 import { reactCodegenFacet } from "../../facet/index.js";
-import { emptyCapabilities } from "../helpers/capabilities.js";
+import { baseExtraction, emptyCapabilities } from "../helpers/capabilities.js";
+
+const compiledState = baseExtraction();
 
 // Which framework hook client reactivity needs is declared by the codegen facet,
 // not hardcoded in the compiler — so the test must supply that world.
@@ -38,7 +40,7 @@ export function ClientComponent() {
 }
     `;
 
-    const observation = observe(code, "client.tsx", "client", mockLogger);
+    const observation = observe(code, "client.tsx", "client", mockLogger, { compiledState });
     expect(observation.isClientComponent).toBe(true);
     expect(observation.componentFunctions?.length).toBeGreaterThan(0);
 
@@ -63,7 +65,7 @@ export function ServerComponent() {
 }
     `;
 
-    const observation = observe(code, "server.tsx", "server", mockLogger);
+    const observation = observe(code, "server.tsx", "server", mockLogger, { compiledState });
     expect(observation.isClientComponent).toBe(false);
 
     const plan = resolve([], observation, mockConfig, mockLogger, "server.tsx");
@@ -91,7 +93,7 @@ export default function ClientComponent() {
 }
       `;
 
-      const observation = observe(code, "hybrid.tsx", "hybrid", mockLogger);
+      const observation = observe(code, "hybrid.tsx", "hybrid", mockLogger, { compiledState });
       expect(observation.isClientComponent).toBe(true);
       // Both HelperComponent and ClientComponent contain translatable JSX sinks ("helper"), so both should be registered.
       expect(observation.componentFunctions?.length).toBe(2);
@@ -112,7 +114,9 @@ export function HelperComponent() {
 }
       `;
 
-      const observation = observe(helperCode, "helper.tsx", "helper", mockLogger);
+      const observation = observe(helperCode, "helper.tsx", "helper", mockLogger, {
+        compiledState,
+      });
       expect(observation.isClientComponent).toBe(false);
 
       const plan = resolve([], observation, mockConfig, mockLogger, "helper.tsx");

@@ -1,4 +1,10 @@
-import { extract } from "../parser.js";
+import { extractBase as extract, baseState } from "./helpers/extract.js";
+import {
+  SVELTE_MUSTACHE,
+  SVELTE_SFC_RULES,
+  VUE_MUSTACHE,
+  VUE_SFC_RULES,
+} from "./helpers/fixtures.js";
 import { describe, it, expect } from "vite-plus/test";
 
 describe("SFC Extraction (Vue/Svelte)", () => {
@@ -20,7 +26,7 @@ const meta = {
 </template>`;
 
     const result = extract(code, "App.vue", "App.vue", {
-      targets: ["vue", "vanilla", "html"],
+      compiledState: baseState({ sfcRules: VUE_SFC_RULES, mustacheRegex: VUE_MUSTACHE }),
     });
 
     // 1. Check dependencies
@@ -56,7 +62,7 @@ const message = t("Welcome Svelte");
 </main>`;
 
     const result = extract(code, "App.svelte", "App.svelte", {
-      targets: ["svelte", "vanilla", "html"],
+      compiledState: baseState({ sfcRules: SVELTE_SFC_RULES, mustacheRegex: SVELTE_MUSTACHE }),
     });
 
     // 1. Check dependencies
@@ -77,7 +83,7 @@ const message = t("Welcome Svelte");
     </template>`;
 
     const result = extract(code, "App.vue", "App.vue", {
-      targets: ["vue", "html"],
+      compiledState: baseState({ sfcRules: VUE_SFC_RULES, mustacheRegex: VUE_MUSTACHE }),
     });
 
     // Verify attribute extraction
@@ -102,7 +108,7 @@ const message = t("Welcome Svelte");
     </main>`;
 
     const result = extract(code, "App.svelte", "App.svelte", {
-      targets: ["svelte", "html"],
+      compiledState: baseState({ sfcRules: SVELTE_SFC_RULES, mustacheRegex: SVELTE_MUSTACHE }),
     });
 
     // Verify attributes

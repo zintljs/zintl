@@ -1,101 +1,21 @@
-import type {
-  TargetDescriptor,
-  TargetPlugin,
-  SfcRule,
-  SuppressionRule,
-  CompiledExtractionState,
-} from "./types.js";
+/**
+ * Target compilation — folding declarative sink descriptors into the lookup
+ * structures the visitors execute against.
+ *
+ * This module is deliberately framework-blind. It understands the structural
+ * descriptor DSL (`jsx:`, `dom:prop:`, `dom:attr:`, `obj:field:`, `html:attr:`)
+ * and target plugins, and nothing else. It does not know what React, Vue,
+ * Svelte or Next.js are, and it holds no preset lists, SFC block rules,
+ * mustache patterns or suppression rules of its own.
+ *
+ * All of that now flows downward from the facet presets in
+ * `@zintl/compiler/facets`, which are the single source of truth. SFC rules,
+ * suppression rules and mustache rules reach the extractor as *inputs* on
+ * `CompiledExtractionState` — see the compiler's `compileExtractionState`.
+ */
+import type { TargetDescriptor, TargetPlugin, CompiledExtractionState } from "./types.js";
 
 export type ResolvedTargets = CompiledExtractionState;
-
-export const TARGET_PRESETS: Record<string, TargetDescriptor[]> = {
-  vanilla: [
-    "dom:prop:innerHTML",
-    "dom:prop:textContent",
-    "dom:prop:innerText",
-    "dom:prop:value",
-    "dom:prop:placeholder",
-    "dom:prop:title",
-    "dom:prop:ariaLabel",
-  ],
-  react: [
-    "jsx:*:aria-label",
-    "jsx:*:alt",
-    "jsx:*:title",
-    "jsx:*:placeholder",
-    "jsx:*:aria-description",
-    "jsx:*:label",
-    "jsx:*:description",
-    "jsx:*:tooltip",
-    "jsx:html:dir",
-    "obj:field:label",
-    "obj:field:title",
-    "obj:field:description",
-    "obj:field:text",
-    "obj:field:tooltip",
-  ],
-  nextjs: [
-    "jsx:*:aria-label",
-    "jsx:*:alt",
-    "jsx:*:title",
-    "jsx:*:placeholder",
-    "jsx:*:aria-description",
-    "jsx:*:label",
-    "jsx:*:description",
-    "jsx:*:tooltip",
-    "jsx:html:dir",
-    "obj:field:label",
-    "obj:field:title",
-    "obj:field:description",
-    "obj:field:text",
-    "obj:field:tooltip",
-  ],
-  vue: [
-    "jsx:*:aria-label",
-    "jsx:*:alt",
-    "jsx:*:title",
-    "jsx:*:placeholder",
-    "jsx:*:aria-description",
-    "jsx:*:label",
-    "jsx:*:description",
-    "jsx:*:tooltip",
-    "jsx:html:dir",
-    "obj:field:label",
-    "obj:field:title",
-    "obj:field:description",
-    "obj:field:text",
-    "obj:field:tooltip",
-    "obj:field:alt",
-    "obj:field:placeholder",
-    "obj:field:aria-label",
-  ],
-  svelte: [
-    "jsx:*:aria-label",
-    "jsx:*:alt",
-    "jsx:*:title",
-    "jsx:*:placeholder",
-    "jsx:*:aria-description",
-    "jsx:*:label",
-    "jsx:*:description",
-    "jsx:*:tooltip",
-    "jsx:html:dir",
-    "obj:field:label",
-    "obj:field:title",
-    "obj:field:description",
-    "obj:field:text",
-    "obj:field:tooltip",
-    "obj:field:alt",
-    "obj:field:placeholder",
-    "obj:field:aria-label",
-  ],
-  html: [
-    "html:attr:alt",
-    "html:attr:aria-label",
-    "html:attr:title",
-    "html:attr:placeholder",
-    "html:attr:dir",
-  ],
-};
 
 let pluginIdCounter = 0;
 const pluginIds = new WeakMap<object, string>();
@@ -115,94 +35,13 @@ function getTargetKey(t: TargetDescriptor): string {
   return String(t);
 }
 
+/**
+ * Memoized per unique descriptor set. Callers must treat the result as
+ * read-only — it is shared. The compiler's `compileExtractionState` copies it
+ * before attaching rules, which is what keeps two compilers with identical
+ * descriptors from clobbering each other.
+ */
 const targetsCache = new Map<string, ResolvedTargets>();
-
-export interface TargetMetadata {
-  sfcRules?: SfcRule[];
-  suppressionRules?: SuppressionRule[];
-  mustacheRegex?: RegExp;
-}
-
-export const TARGET_METADATA: Record<string, TargetMetadata> = {
-  vue: {
-    sfcRules: [
-      {
-        extensions: [".vue"],
-        blocks: [
-          {
-            id: "script",
-            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
-            action: "javascript",
-            resolveVirtualExtension: (attrs) => {
-              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
-              const lang = langMatch ? langMatch[1] : "js";
-              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
-            },
-          },
-          {
-            id: "template",
-            pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
-            action: "html",
-            isActiveContent: true,
-          },
-          {
-            id: "style",
-            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
-            action: "ignore",
-          },
-        ],
-      },
-    ],
-    mustacheRegex: /\{\{([\s\S]*?)\}\}/g,
-  },
-  svelte: {
-    sfcRules: [
-      {
-        extensions: [".svelte"],
-        blocks: [
-          {
-            id: "script",
-            pattern: /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
-            action: "javascript",
-            resolveVirtualExtension: (attrs) => {
-              const langMatch = /lang=["']([^"']+)["']/i.exec(attrs);
-              const lang = langMatch ? langMatch[1] : "js";
-              return lang === "ts" || lang === "tsx" ? ".tsx" : ".jsx";
-            },
-          },
-          {
-            id: "style",
-            pattern: /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
-            action: "ignore",
-          },
-        ],
-      },
-    ],
-    mustacheRegex: /\{([^{}]+)\}/g,
-  },
-  nextjs: {
-    suppressionRules: [
-      {
-        targets: ["nextjs"],
-        match: {
-          types: ["FunctionDeclaration", "VariableDeclarator"],
-          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
-          isTopLevel: true,
-        },
-        bypassIf: "hasAnchor",
-      },
-    ],
-  },
-};
-
-export const DEFAULT_SFC_RULES: SfcRule[] = [
-  ...TARGET_METADATA.vue.sfcRules!,
-  ...TARGET_METADATA.svelte.sfcRules!,
-];
-
-export const DEFAULT_SUPPRESSION_RULES: SuppressionRule[] = [
-  ...TARGET_METADATA.nextjs.suppressionRules!,
-];
 
 export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
   const cacheKey = targets.map(getTargetKey).join("|");
@@ -219,23 +58,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
   const plugins: TargetPlugin[] = [];
   const fastPathHints: string[] = [];
 
-  const expanded = new Set<TargetDescriptor>();
-
-  function expand(t: TargetDescriptor) {
-    if (typeof t === "string") {
-      if (TARGET_PRESETS[t]) {
-        TARGET_PRESETS[t].forEach(expand);
-      } else {
-        expanded.add(t);
-      }
-    } else {
-      expanded.add(t);
-    }
-  }
-
-  targets.forEach(expand);
-
-  for (const item of expanded) {
+  for (const item of new Set(targets)) {
     if (typeof item === "string") {
       if (item.startsWith("jsx:")) {
         // format: jsx:<element>:<attribute>
@@ -304,19 +127,6 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
 
   const fastPathRegex = new RegExp(patternParts.join("|"));
 
-  const sfcRules: SfcRule[] = [];
-  const suppressionRules: SuppressionRule[] = [];
-  let mustacheRegex: RegExp | null = null;
-
-  for (const t of targets) {
-    if (typeof t === "string" && TARGET_METADATA[t]) {
-      const meta = TARGET_METADATA[t];
-      if (meta.sfcRules) sfcRules.push(...meta.sfcRules);
-      if (meta.suppressionRules) suppressionRules.push(...meta.suppressionRules);
-      if (meta.mustacheRegex) mustacheRegex = meta.mustacheRegex;
-    }
-  }
-
   const resolved: ResolvedTargets = {
     jsxAttributes,
     jsxElementAttributes,
@@ -329,9 +139,10 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
     fastPathRegex,
     hasDomSinks,
     hasJsxSinks,
-    sfcRules,
-    suppressionRules,
-    mustacheRegex,
+    // Framework rules are supplied by the caller, never invented here.
+    sfcRules: [],
+    suppressionRules: [],
+    mustacheRegex: null,
   };
 
   targetsCache.set(cacheKey, resolved);

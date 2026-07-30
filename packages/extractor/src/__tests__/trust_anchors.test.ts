@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
-import { extract } from "../parser.js";
+import { extractBase as extract } from "./helpers/extract.js";
+import { BASE_TARGETS, NEXTJS_SUPPRESSION_RULES } from "./helpers/fixtures.js";
 
 describe("Trust Anchors (zintl)", () => {
   it("should detect zintl at module level", () => {
@@ -83,7 +84,10 @@ describe("Trust Anchors (zintl)", () => {
         };
       }
     `;
-    const result = extract(code, "layout.tsx", "layout", { targets: ["nextjs"] });
+    const result = extract(code, "layout.tsx", "layout", {
+      targets: BASE_TARGETS,
+      suppressionRules: NEXTJS_SUPPRESSION_RULES,
+    });
     expect(result.messages).toHaveLength(0);
   });
 
@@ -97,7 +101,10 @@ describe("Trust Anchors (zintl)", () => {
         };
       }
     `;
-    const result = extract(code, "layout.tsx", "layout", { targets: ["nextjs"] });
+    const result = extract(code, "layout.tsx", "layout", {
+      targets: BASE_TARGETS,
+      suppressionRules: NEXTJS_SUPPRESSION_RULES,
+    });
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0].text).toBe("My custom page title");
     expect(result.messages[0].boundaryId).toBe("layout:generateMetadata");

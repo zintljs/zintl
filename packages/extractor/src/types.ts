@@ -207,14 +207,14 @@ export interface Transform {
   argNode?: Expression;
 }
 
+/**
+ * A structural sink descriptor.
+ *
+ * Deliberately framework-blind: there are no `"react"` / `"vue"` / `"svelte"` /
+ * `"nextjs"` members. Framework presets live in `@zintl/compiler/facets` and
+ * expand to these low-level forms before they ever reach the extractor.
+ */
 export type TargetDescriptor =
-  | "auto"
-  | "react"
-  | "nextjs"
-  | "vue"
-  | "svelte"
-  | "html"
-  | "vanilla"
   | `jsx:*:${string}`
   | `jsx:${string}:${string}`
   | `dom:prop:${string}`

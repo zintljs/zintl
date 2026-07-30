@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vite-plus/test";
 import { observe } from "../../pipeline/observe.js";
 import type { FileObservation } from "../../pipeline/types.js";
+import { baseExtraction } from "../helpers/capabilities.js";
+
+// The extractor has no default target set; a caller must declare its sinks.
+const compiledState = baseExtraction();
 
 /**
  * Phase 1 Observation Tests
@@ -13,7 +17,7 @@ import type { FileObservation } from "../../pipeline/types.js";
 describe("Pipeline Phase 1: observe()", () => {
   // ── Helper ──────────────────────────────────────────────────────────────
   function obs(code: string, fileId = "src/test"): FileObservation {
-    return observe(code, `${fileId}.ts`, fileId);
+    return observe(code, `${fileId}.ts`, fileId, undefined, { compiledState });
   }
 
   // ── Basic Sink Detection ────────────────────────────────────────────────

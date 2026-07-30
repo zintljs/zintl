@@ -1,3 +1,4 @@
+import { isRuntimeSpecifier } from "../constants.js";
 import type {
   Node,
   ImportDeclaration,
@@ -155,12 +156,7 @@ export function createBindingVisitor(ctx: ExtractionContext) {
         return;
       const sourceVal = (node.source as any).value;
 
-      if (
-        sourceVal === ctx.runtimePackage ||
-        sourceVal === "zintl/internal" ||
-        sourceVal === "zintl/macro" ||
-        sourceVal === "virtual:zintl/runtime/internal"
-      ) {
+      if (isRuntimeSpecifier(sourceVal, ctx.runtimePackage)) {
         node.specifiers?.forEach((spec: any) => {
           if (spec.type === "ImportSpecifier" && spec.imported.type === "Identifier") {
             ctx.runtimeImports.push(spec.imported.name);

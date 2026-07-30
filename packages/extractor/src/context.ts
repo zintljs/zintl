@@ -389,8 +389,7 @@ export class ExtractionContext {
     this.htmlAttributes = new Set();
     this.targetPlugins = [];
 
-    const compiledState =
-      options.compiledState ?? resolveTargets(options.targets || ["vanilla", "react", "html"]);
+    const compiledState = options.compiledState ?? resolveTargets(options.targets || []);
     options.compiledState = compiledState;
 
     for (const attr of compiledState.jsxAttributes) {

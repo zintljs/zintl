@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { parseSync } from "oxc-parser";
 import { ExtractionContext } from "../../context.js";
+import { baseOptions } from "../helpers/extract.js";
 import { createCombinedVisitor } from "../../visitors/index.js";
 import { createBindingVisitor } from "../../visitors/bindings.js";
 import { walk } from "../../walker.js";
@@ -17,7 +18,12 @@ function runBindingVisitor(
   fileBoundaryId: string,
   options: { combined?: boolean; contextOptions?: Record<string, any> } = {},
 ) {
-  const ctx = new ExtractionContext(code, filePath, fileBoundaryId, options.contextOptions);
+  const ctx = new ExtractionContext(
+    code,
+    filePath,
+    fileBoundaryId,
+    baseOptions(options.contextOptions),
+  );
   const result = parseSync(filePath, code);
   ctx.trivias = (result as any).comments || (result as any).trivias || [];
 
@@ -362,7 +368,7 @@ describe("Boundary ownership", () => {
 
   it("does not extract sinks when boundary is inactive", () => {
     const code = `el.innerHTML = "Should be ignored";`;
-    const ctx = new ExtractionContext(code, "src/main.ts", "src/main");
+    const ctx = new ExtractionContext(code, "src/main.ts", "src/main", baseOptions());
     // Manually deactivate the boundary
     (ctx as any).boundaryStack = [{ id: "src/main", active: false }];
     const { program } = parseSync("src/main.ts", code);

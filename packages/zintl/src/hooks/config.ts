@@ -9,7 +9,7 @@ import { isAbsolute, relative } from "node:path";
 export function configHook(ctx: Context) {
   return function (userConfig: any) {
     const multiplex = ctx.getMultiplex(userConfig);
-    const locales = ctx.options.locales || ["en"];
+    const locales = ctx.options.locales;
     const configUpdate: any = {};
 
     if (ctx.options.debug) {
@@ -86,7 +86,10 @@ export function configHook(ctx: Context) {
 
 export function configResolvedHook(ctx: Context) {
   return function (config: ResolvedConfig) {
-    const logLevel = ctx.options.logLevel || (config as any).logLevel || "info";
+    // The two Vite-dependent defaults, each applied exactly once. Everything
+    // else was already resolved by resolveOptions() at plugin creation.
+    const logLevel: LogLevel = ctx.options.logLevel ?? (config as any).logLevel ?? "info";
+    const verifyIntegrity = ctx.options.verifyIntegrity ?? config.command === "build";
 
     // Orchestration, in three visible steps: detect → assemble → resolve.
     const frameworks = detectFrameworksOrFallback({
@@ -109,10 +112,10 @@ export function configResolvedHook(ctx: Context) {
 
     ctx.compiler = new ZintlCompiler(
       {
-        verifyIntegrity: config.command === "build",
         ...ctx.options,
         capabilities,
-        logLevel: logLevel as LogLevel,
+        logLevel,
+        verifyIntegrity,
       },
       config.root,
       config.command === "serve",

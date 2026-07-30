@@ -2,6 +2,7 @@ import { createUnplugin } from "unplugin";
 import { PLUGIN_NAME } from "./constants.js";
 import Context from "./context.js";
 import type { Options } from "./types.ts";
+import type { ResolvedOptions } from "./options.js";
 
 import { configHook, configResolvedHook } from "./hooks/config.js";
 import { configureServerHook } from "./hooks/server.js";
@@ -15,12 +16,12 @@ import { handleHotUpdateHook } from "./hooks/hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
 import { resolveOptions } from "./options.js";
 
-const contextMap = new WeakMap<Options, Context>();
+const contextMap = new WeakMap<ResolvedOptions, Context>();
 
 const unplugin = createUnplugin<Options, true>((options) => {
   const resolved = resolveOptions(options);
   const ctx = new Context(resolved);
-  contextMap.set(resolved ?? {}, ctx);
+  contextMap.set(resolved, ctx);
 
   if (typeof globalThis !== "undefined") {
     const activeContexts = globalThis as unknown as {

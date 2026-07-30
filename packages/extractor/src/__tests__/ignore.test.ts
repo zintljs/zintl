@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vite-plus/test";
 import { parseSync } from "oxc-parser";
 import { ExtractionContext } from "../context.js";
+import { baseOptions } from "./helpers/extract.js";
 import { createCombinedVisitor } from "../visitors/index.js";
 import { walk } from "../walker.js";
 
 describe("Zintl Ignore Directives", () => {
   function runExtractor(code: string) {
-    const ctx = new ExtractionContext(code, "test.tsx", "test");
+    const ctx = new ExtractionContext(code, "test.tsx", "test", baseOptions());
     const result = parseSync("test.tsx", code);
     const trivias = (result as any).comments || (result as any).trivias || [];
     ctx.trivias = trivias;

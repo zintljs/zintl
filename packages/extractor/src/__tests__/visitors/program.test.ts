@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { extract } from "../../parser.js";
+import { extractBase as extract } from "../helpers/extract.js";
 
 describe("createProgramVisitor (Integration)", () => {
   it("should handle async anchors with await", () => {

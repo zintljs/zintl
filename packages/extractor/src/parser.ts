@@ -6,7 +6,8 @@ import { createCombinedVisitor } from "./visitors/index.js";
 import { walk } from "./walker.js";
 
 import { extractHtml } from "./html.js";
-import { resolveTargets, DEFAULT_SFC_RULES } from "./targets.js";
+import { resolveTargets } from "./targets.js";
+import { isRuntimeSpecifier } from "./constants.js";
 
 export function extract(
   code: string,
@@ -16,21 +17,20 @@ export function extract(
 ): ExtractionResult {
   code = code.replace(/\r\n/g, "\n");
 
-  const compiledState =
-    options.compiledState ?? resolveTargets(options.targets ?? ["vanilla", "react", "html"]);
+  // No default target set. A framework-blind extractor has nothing sensible to
+  // guess here; the caller supplies a compiled state (production) or a
+  // descriptor list (tests).
+  const compiledState = options.compiledState ?? resolveTargets(options.targets ?? []);
   const normalizedOptions: ExtractionOptions = {
     ...options,
     compiledState,
   };
 
+  // SFC block rules are supplied by the caller only. This used to fall back to
+  // a built-in Vue/Svelte table, which meant the extractor silently applied
+  // framework knowledge nobody asked it for.
   const sfcRules = [...compiledState.sfcRules, ...(normalizedOptions.sfcRules || [])];
   const ext = "." + filePath.split(".").pop();
-  if (!sfcRules.some((r) => r.extensions.includes(ext))) {
-    const defaultRule = DEFAULT_SFC_RULES.find((r) => r.extensions.includes(ext));
-    if (defaultRule) {
-      sfcRules.push(defaultRule);
-    }
-  }
   const sfcRule = sfcRules.find((rule) => rule.extensions.includes(ext));
 
   // Fast-Path Heuristic: Skip files that are statistically unlikely to contain translatable logic.
@@ -94,12 +94,7 @@ export function extract(
   result.program.body.forEach((stmt: Statement) => {
     if (stmt.type === "ImportDeclaration") {
       const sourceVal = stmt.source?.value ?? "";
-      const isZintl =
-        sourceVal === "zintl" ||
-        sourceVal === "zintl/internal" ||
-        sourceVal === "zintl/macro" ||
-        sourceVal === "virtual:zintl/runtime/internal" ||
-        sourceVal === ctx.runtimePackage;
+      const isZintl = isRuntimeSpecifier(sourceVal, ctx.runtimePackage);
       const hasNoSpecifiers = !stmt.specifiers || stmt.specifiers.length === 0;
       if (isZintl) {
         ctx.zintlImportGroup = { start: stmt.start, end: stmt.end, source: sourceVal };

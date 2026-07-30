@@ -13,7 +13,7 @@ export function configureServerHook(ctx: Context) {
 
     const multiplex = ctx.getMultiplex();
     if (multiplex) {
-      const locales = ctx.options.locales || ["en"];
+      const locales = ctx.options.locales;
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || "/";
         const [pathname] = url.split("?");
@@ -73,7 +73,7 @@ export function configureServerHook(ctx: Context) {
         }
 
         if (pathname === "/" || pathname === "/index.html") {
-          const defaultLocale = ctx.options.sourceLocale || "en";
+          const defaultLocale = ctx.options.sourceLocale;
           const localesStr = JSON.stringify(locales);
           const redirectHtml = `
 <!doctype html>

@@ -17,7 +17,8 @@ export type Manifest = Record<string, ManifestEntry[]>;
 // type CatalogMap = Record<string, Record<string, string>>; // locale → { text → translation }
 
 // Below this similarity ratio, a change is treated as a brand-new string (not a rename).
-const DEFAULT_RENAME_THRESHOLD = 0.6;
+/** Single source of truth for the reconciliation similarity threshold. */
+export const DEFAULT_RENAME_THRESHOLD = 0.6;
 
 // ─── Levenshtein distance ────────────────────────────────────────────────────
 

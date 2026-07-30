@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
-import { extract } from "../parser.js";
+import { extractBase as extract } from "./helpers/extract.js";
 import { ExtractionContext } from "../context.js";
+import { baseOptions } from "./helpers/extract.js";
 
 describe("Semantic Context Extraction", () => {
   it("should generate one ID for same text in different tags", () => {
@@ -113,7 +114,7 @@ describe("File-Level Ignore", () => {
     const result = extract(code, "test.tsx", "test");
     expect(result.messages).toBeDefined();
 
-    const ctx = new ExtractionContext("code", "test.ts", "test");
+    const ctx = new ExtractionContext("code", "test.ts", "test", baseOptions());
     expect(ctx.logicTaintedIdentifiers).toBeDefined();
 
     ctx.addTransform(0, 10, "replacement");

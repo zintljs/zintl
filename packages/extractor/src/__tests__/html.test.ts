@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { extract } from "../parser.js";
+import { extractBase as extract } from "./helpers/extract.js";
 
 describe("HTML Extraction", () => {
   it("should extract title and description from HTML", () => {

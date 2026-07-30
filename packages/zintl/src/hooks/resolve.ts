@@ -134,7 +134,7 @@ export function resolveIdHook(ctx: Context) {
 
     const multiplex = ctx.getMultiplex();
     if (multiplex && id.endsWith(".html")) {
-      const locales = ctx.options.locales || ["en"];
+      const locales = ctx.options.locales;
       for (const loc of locales) {
         const pattern = new RegExp(`(^|\\/)${loc}\\/([^\\/]+\\.html)$`);
         if (pattern.test(id)) {
@@ -334,7 +334,7 @@ export function loadHook(ctx: Context) {
             const sourceBuffer = readFileSync(originalPath);
             const sourceHashKey = `@zintl/asset-hash:${sha1(sourceBuffer)}`;
             const hive = (ctx.compiler as any).messages.hive;
-            const sourceLocale = ctx.options.sourceLocale || "en";
+            const sourceLocale = ctx.options.sourceLocale;
 
             let buffer = sourceBuffer;
             if (locale !== sourceLocale) {
@@ -426,7 +426,7 @@ export function loadHook(ctx: Context) {
 
         if (id.includes("?raw")) {
           const multiplexLocale = ctx.getMultiplexLocale(id);
-          const sourceLocale = ctx.options.sourceLocale || "en";
+          const sourceLocale = ctx.options.sourceLocale;
 
           if (multiplexLocale) {
             const localizedPath =
@@ -444,7 +444,7 @@ export function loadHook(ctx: Context) {
             return code;
           }
 
-          const locales = ctx.options.locales || ["en"];
+          const locales = ctx.options.locales;
           for (const loc of locales) {
             if (loc === sourceLocale) continue;
             const localizedPath = ctx.compiler.assets.getAssetPath(assetId, loc);
@@ -493,7 +493,7 @@ if (import.meta.hot) {
 
     const multiplex = ctx.getMultiplex();
     if (multiplex && id.endsWith(".html")) {
-      const locales = ctx.options.locales || ["en"];
+      const locales = ctx.options.locales;
       let isFanned = false;
       let matchedLocale = "";
       let originalHtmlFile = "";
