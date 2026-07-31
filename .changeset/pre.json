@@ -32,6 +32,7 @@
     "react-jsx-self-closing-tags",
     "rebrand-to-zintl",
     "reconciliation-hardening",
+    "rename-main-package-to-zintljs",
     "sfc-extension-normalization-fixes",
     "sfc-hmr-injection-script-block-fixes",
     "sfc-vue-svelte-integration-and-flush-perf",
