@@ -31,11 +31,25 @@ export class LabPipeline {
 
   public sanitizeCode(code: string): string {
     const escapedMonorepoRoot = this.MONOREPO_ROOT.replace(/\\/g, "/");
-    return code
-      .split(this.MONOREPO_ROOT)
-      .join("<MONOREPO_ROOT>")
-      .split(escapedMonorepoRoot)
-      .join("<MONOREPO_ROOT>");
+    return (
+      code
+        .split(this.MONOREPO_ROOT)
+        .join("<MONOREPO_ROOT>")
+        .split(escapedMonorepoRoot)
+        .join("<MONOREPO_ROOT>")
+        /**
+         * Public-directory assets resolve outside the project, so the bundler
+         * emits a `#region` breadcrumb whose `../` depth tracks the absolute
+         * depth of the checkout — `/Users/x/Lingua/lingua` yields one fewer
+         * than `/home/runner/work/zintl/zintl`. That is not portable, so the
+         * escape prefix is collapsed.
+         *
+         * Scoped to `#region` lines on purpose: vendored sources legitimately
+         * contain relative paths (Svelte's own JSDoc references
+         * `'../../reactivity/batch.js'`) and must be left untouched.
+         */
+        .replace(/(#(?:end)?region\s+)(?:\.\.\/)+/g, "$1<OUTSIDE_ROOT>/")
+    );
   }
 
   filterForSnapshots(results: Record<string, string>): Record<string, string> {

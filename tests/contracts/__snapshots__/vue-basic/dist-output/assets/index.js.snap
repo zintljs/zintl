@@ -4729,7 +4729,7 @@ var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defin
 	}
 });
 //#endregion
-//#region ../../../../icons.svg
+//#region <OUTSIDE_ROOT>/icons.svg
 var icons_default = "/icons.svg";
 //#endregion
 //#region \0plugin-vue:export-helper
