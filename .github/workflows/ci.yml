@@ -65,9 +65,8 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build Packages
-        run: pnpm build
-
+      # `ready:examples` -> `build:examples` -> `vpr build` + example builds,
+      # so packages are built as part of this; no separate build step needed.
       - name: Build Examples and Run Contracts
         run: pnpm ready:examples
 
