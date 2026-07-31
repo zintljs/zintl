@@ -43,7 +43,7 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
   },
-  ignoreDependencies: ["vite", "@vitest/coverage-v8", "@playwright/test"],
+  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

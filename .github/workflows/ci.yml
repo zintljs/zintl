@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Supersede in-flight runs for the same ref — saves Actions minutes on rapid pushes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fast gate — runs on every push. Build first: type-aware lint resolves
+  # workspace imports through each package's dist/*.d.mts.
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build, Lint, Knip, Test, Format
+        run: pnpm verify
+
+  # Full e2e gate — 18 example builds + 17 contract specs through real browsers.
+  # PR-only: it needs Playwright browsers and takes ~5min, so it is not worth
+  # spending on every push while the repo is private and minutes are metered.
+  contracts:
+    name: Contracts (e2e)
+    needs: verify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Packages
+        run: pnpm build
+
+      - name: Build Examples and Run Contracts
+        run: pnpm ready:examples
+
+# Benchmarks are deliberately absent. Perf budgets are noise-sensitive enough to
+# fail on a quiet local machine; on shared runners they would be pure flake.
+# Run them locally with `vpr bench`.

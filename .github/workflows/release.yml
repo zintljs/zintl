@@ -1,12 +1,11 @@
 name: Release
 
+# MANUAL ONLY. This workflow publishes to npm; it must never fire from a push.
+# Re-enable automatic releases by restoring the `push: branches: [main]` trigger
+# once NPM_TOKEN is set (granular token with "Bypass 2FA") and you are ready to
+# ship on every merge.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -44,13 +43,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Gated Verifications
-        run: pnpm ready # Runs lint, knip, build, test, format, and benchmarks
+        run: pnpm verify # build, lint, knip, test, format check (no benchmarks — too noisy on shared runners)
 
-  # 2. Release Job (Only runs on push to main if verification passes)
+  # 2. Release Job — gated on manual dispatch from main.
   release:
     name: Release to npm
     needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write # Needed to commit package version updates and create git tags
