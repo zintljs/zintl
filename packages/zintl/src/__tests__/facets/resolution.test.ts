@@ -22,8 +22,8 @@ import {
   ssrFacet,
   clientSpaFacet,
   viteFacet,
-} from "@zintl/compiler/facets";
-import type { ZintlFacet } from "@zintl/compiler";
+} from "@zintljs/compiler/facets";
+import type { ZintlFacet } from "@zintljs/compiler";
 
 describe("Facet Resolution Engine", () => {
   // ── Basic Resolution ───────────────────────────────────────────────────────

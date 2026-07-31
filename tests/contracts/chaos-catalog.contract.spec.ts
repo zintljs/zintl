@@ -1,5 +1,5 @@
 import { expect } from "vite-plus/test";
-import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintl/testing";
+import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 import { readdirSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";

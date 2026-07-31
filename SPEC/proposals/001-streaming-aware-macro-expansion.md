@@ -42,7 +42,7 @@ The Smart Manager is only shipped for **Dynamic Boundaries**. If an entire page 
 
 ### Phase 1: Environment Detection
 
-Update `@zintl/compiler` to identify if the current file/boundary is a Server Component or a Client Component (using the `"use client"` directive or framework-specific markers).
+Update `@zintljs/compiler` to identify if the current file/boundary is a Server Component or a Client Component (using the `"use client"` directive or framework-specific markers).
 
 ### Phase 2: Literal Replacement (The "Baking" Step)
 

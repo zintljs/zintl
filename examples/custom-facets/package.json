@@ -13,7 +13,7 @@
     "build": "vp pack src/index.ts --dts"
   },
   "dependencies": {
-    "@zintl/compiler": "workspace:*"
+    "@zintljs/compiler": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

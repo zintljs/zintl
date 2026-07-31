@@ -1,5 +1,5 @@
 ---
-"@zintl/compiler": patch
+"@zintljs/compiler": patch
 ---
 
 Fixed boundary resolution and dependency reachability for exported bindings and entry point content modules.

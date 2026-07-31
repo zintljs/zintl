@@ -1,4 +1,4 @@
-import { resolveTargets } from "@zintl/extractor";
+import { resolveTargets } from "@zintljs/extractor";
 import type {
   CompiledExtractionState,
   MustacheRule,
@@ -20,7 +20,7 @@ export interface ExtractionContribution {
  * extractor executes against.
  *
  * This lives in the compiler, not the plugin, for one reason: the host plugin
- * must never depend on `@zintl/extractor`. The plugin decides *which* facets
+ * must never depend on `@zintljs/extractor`. The plugin decides *which* facets
  * exist and merges their declarations; turning those declarations into sets,
  * maps and a fast-path regex is mechanical work, and mechanical work is exactly
  * what "a little smart" means for this layer.

@@ -1,9 +1,9 @@
 ---
-"@zintl/extractor": minor
-"@zintl/compiler": minor
+"@zintljs/extractor": minor
+"@zintljs/compiler": minor
 ---
 
-Made `@zintl/extractor` genuinely framework-blind. A previous changeset claimed the extractor had been "fully decoupled" from framework presets; that was inaccurate — the tables were left in place, duplicating the facet presets, and one of them was still on a live code path.
+Made `@zintljs/extractor` genuinely framework-blind. A previous changeset claimed the extractor had been "fully decoupled" from framework presets; that was inaccurate — the tables were left in place, duplicating the facet presets, and one of them was still on a live code path.
 
 **Deleted from `targets.ts`:**
 
@@ -11,7 +11,7 @@ Made `@zintl/extractor` genuinely framework-blind. A previous changeset claimed 
 - `TARGET_METADATA` and the `TargetMetadata` type — Vue and Svelte SFC block rules, Svelte's mustache pattern, and the Next.js `generateMetadata` / `generateViewport` suppression rules.
 - `DEFAULT_SFC_RULES` and `DEFAULT_SUPPRESSION_RULES`.
 
-Every one of these duplicated a facet preset in `@zintl/compiler/facets`, which is now the single source of truth. The Vue and Svelte block rules were byte-identical to their preset counterparts.
+Every one of these duplicated a facet preset in `@zintljs/compiler/facets`, which is now the single source of truth. The Vue and Svelte block rules were byte-identical to their preset counterparts.
 
 **Removed the one live leak.** `parser.ts` fell back to `DEFAULT_SFC_RULES` whenever the caller's rules did not cover a file's extension, so any `.vue` or `.svelte` file received Vue/Svelte block-splitting from the extractor itself even when no rules were supplied. SFC rules are now caller-supplied only.
 

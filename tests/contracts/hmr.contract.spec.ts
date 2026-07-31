@@ -1,5 +1,5 @@
 import { expect } from "vite-plus/test";
-import { executeContract, type Contract, type HmrAdapter } from "@zintl/testing";
+import { executeContract, type Contract, type HmrAdapter } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 export const hmrContract: Contract<HmrAdapter> = {

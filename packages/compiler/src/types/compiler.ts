@@ -1,4 +1,4 @@
-import type { LogLevel, ZintlLogger } from "@zintl/extractor";
+import type { LogLevel, ZintlLogger } from "@zintljs/extractor";
 import type { CompilerCapabilities } from "./capabilities.js";
 export type { LogLevel, ZintlLogger };
 

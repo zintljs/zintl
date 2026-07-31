@@ -1,4 +1,4 @@
-import { executeProjectContract, serializeDeterministic, type Contract } from "@zintl/testing";
+import { executeProjectContract, serializeDeterministic, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 export const graphContract: Contract = {

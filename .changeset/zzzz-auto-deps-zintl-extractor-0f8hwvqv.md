@@ -1,5 +1,5 @@
 ---
-"@zintl/extractor": patch
+"@zintljs/extractor": patch
 ---
 
 Updated external dependencies:

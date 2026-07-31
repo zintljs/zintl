@@ -1,4 +1,4 @@
-import type { ZintlFacet, SsrWrapParams, TargetDescriptor } from "@zintl/compiler";
+import type { ZintlFacet, SsrWrapParams, TargetDescriptor } from "@zintljs/compiler";
 
 // ── Next.js SSR wrapping helper ───────────────────────────────────────────────
 

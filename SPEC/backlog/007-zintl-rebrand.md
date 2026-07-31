@@ -25,8 +25,8 @@ Developers call `zintl("ar")`. The compiler identifies this as a **Trust Anchor*
 ### 1. Package Renames
 
 - `zintl`: The new core runtime package (replaces `@lingua/runtime`).
-- `@zintl/extractor`: AST processing logic.
-- `@zintl/compiler`: Boundary graph and chunking logic.
+- `@zintljs/extractor`: AST processing logic.
+- `@zintljs/compiler`: Boundary graph and chunking logic.
 - `@zintl/vite`: The unified Vite plugin.
 
 ### 2. Comment Directive Evolution

@@ -3,7 +3,7 @@ import { reactSsr } from "./react-ssr.js";
 import { vueBasic } from "./vue-basic.js";
 import { svelteBasic } from "./svelte-basic.js";
 import { vanillaSpaBasic } from "./vanilla-spa-basic.js";
-import type { ExampleManifest } from "@zintl/testing";
+import type { ExampleManifest } from "@zintljs/testing";
 
 export const allManifests: ExampleManifest[] = [
   reactBasic,

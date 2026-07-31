@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { InlineConfig, Rollup } from "vite";
 import { expect } from "vite-plus/test";
-import { generateMessageId } from "@zintl/compiler";
+import { generateMessageId } from "@zintljs/compiler";
 
 export type BuildOutput = Record<string, string>;
 

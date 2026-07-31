@@ -1,5 +1,5 @@
 /**
- * Zintl Facets — Public API (`@zintl/compiler/facets`)
+ * Zintl Facets — Public API (`@zintljs/compiler/facets`)
  *
  * The concrete, framework-aware facet implementations. This is an **isolated
  * module graph**: the compiler core never imports from here. Knowledge flows one
@@ -12,14 +12,14 @@
  * Selection and resolution belong to the host plugin.
  *
  * This entry exports **values only**. The capability types live in the core and
- * are published from `@zintl/compiler`; re-exporting them here too would emit a
+ * are published from `@zintljs/compiler`; re-exporting them here too would emit a
  * second, structurally-identical-but-nominally-distinct declaration in
  * `dist/facet/index.d.mts`, and the two would not be assignable to each other.
  * That is what forced `as FacetsInput` casts on user facets.
  *
  * @example
- * import type { ZintlFacet } from "@zintl/compiler";
- * import { reactFacet, viteFacet } from "@zintl/compiler/facets";
+ * import type { ZintlFacet } from "@zintljs/compiler";
+ * import { reactFacet, viteFacet } from "@zintljs/compiler/facets";
  *
  * const facets: ZintlFacet[] = [...reactFacet(), viteFacet()];
  */

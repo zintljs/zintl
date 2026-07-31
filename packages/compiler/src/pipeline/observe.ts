@@ -18,7 +18,7 @@ import {
   type ExtractionResult,
   type AnchorSite,
   type ExtractionOptions,
-} from "@zintl/extractor";
+} from "@zintljs/extractor";
 import { sha1 } from "../utils/hashing.js";
 import type {
   FileObservation,

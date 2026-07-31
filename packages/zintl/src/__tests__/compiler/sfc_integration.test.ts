@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { createTestCompiler, createTestCompilerWith } from "../helpers/compiler.js";
-import { ZintlCompiler } from "@zintl/compiler";
-import { vueFacet, svelteFacet, viteFacet } from "@zintl/compiler/facets";
+import { ZintlCompiler } from "@zintljs/compiler";
+import { vueFacet, svelteFacet, viteFacet } from "@zintljs/compiler/facets";
 import { join } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "../helpers/fs.js";

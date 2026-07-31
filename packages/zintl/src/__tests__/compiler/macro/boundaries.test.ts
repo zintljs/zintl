@@ -1,7 +1,7 @@
 // oxlint-disable typescript/no-implied-eval
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { createTestCompiler } from "../../helpers/compiler.js";
-import { ZintlCompiler } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintljs/compiler";
 import { join } from "node:path";
 import { createTestDir, type TestContext } from "../../helpers/fs.js";
 

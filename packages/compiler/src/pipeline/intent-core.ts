@@ -1,4 +1,4 @@
-import { generateMessageId } from "@zintl/extractor";
+import { generateMessageId } from "@zintljs/extractor";
 import { calculateSafeBoundaryId } from "../utils/hashing.js";
 import type {
   FileObservation,

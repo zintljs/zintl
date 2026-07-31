@@ -211,7 +211,7 @@ export interface Transform {
  * A structural sink descriptor.
  *
  * Deliberately framework-blind: there are no `"react"` / `"vue"` / `"svelte"` /
- * `"nextjs"` members. Framework presets live in `@zintl/compiler/facets` and
+ * `"nextjs"` members. Framework presets live in `@zintljs/compiler/facets` and
  * expand to these low-level forms before they ever reach the extractor.
  */
 export type TargetDescriptor =

@@ -1,4 +1,4 @@
-import * as Extractor from "@zintl/extractor";
+import * as Extractor from "@zintljs/extractor";
 import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute, dirname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,7 +42,7 @@ export { similarity } from "./reconcile.js";
 export { serializeDeterministic, sortObjectKeys, compareStrings } from "./utils/serialization.js";
 export { compileExtractionState } from "./capabilities/compile-targets.js";
 export type { ExtractionContribution } from "./capabilities/compile-targets.js";
-import type { HtmlProjectionPayload } from "@zintl/extractor";
+import type { HtmlProjectionPayload } from "@zintljs/extractor";
 export type {
   CompilerOptions,
   ZintlLogger,
@@ -55,7 +55,7 @@ export type {
 
 // The full capability contract. The host plugin resolves facets into these
 // shapes, so it must be able to name every one of them without ever importing
-// @zintl/extractor.
+// @zintljs/extractor.
 export type * from "./types/capabilities.js";
 
 // Manager types reachable from CompilerContext. Facet authors receive these on

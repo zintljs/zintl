@@ -52,4 +52,4 @@ export type {
   AssetTargetConfig,
   CatalogFormatContext,
   LogLevel,
-} from "@zintl/compiler";
+} from "@zintljs/compiler";

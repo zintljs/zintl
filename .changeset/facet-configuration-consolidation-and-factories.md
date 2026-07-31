@@ -1,5 +1,5 @@
 ---
-"@zintl/compiler": minor
+"@zintljs/compiler": minor
 "zintl": minor
 ---
 

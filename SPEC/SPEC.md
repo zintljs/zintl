@@ -33,11 +33,11 @@ graph TD
     SourceMutated -- Autonomous Import --> Registry
 ```
 
-### @zintl/extractor (The Pure Provider)
+### @zintljs/extractor (The Pure Provider)
 
 Functions as a pure metadata provider. It scans the AST for anchor sites (`zintl()`) and UI-sinks, returning precise `transforms` and `messages` metadata without modifying the source.
 
-### @zintl/compiler (The Mutation Dictator)
+### @zintljs/compiler (The Mutation Dictator)
 
 The sole authority for source modification. It consumes extractor metadata, orchestrates a centralized transformation queue, and generates chunk-aware catalogs.
 

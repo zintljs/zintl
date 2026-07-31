@@ -1,6 +1,6 @@
 ---
 "zintl": patch
-"@zintl/compiler": patch
+"@zintljs/compiler": patch
 ---
 
 Fix production SSR client hydration mismatch and Vue SFC multiplex caching:

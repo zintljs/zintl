@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
-import { generateMessageId, getRuntimeCode, sha1 } from "@zintl/compiler";
+import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,

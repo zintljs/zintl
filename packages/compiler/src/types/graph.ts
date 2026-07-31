@@ -1,4 +1,4 @@
-import type { BoundaryDep, HtmlProjectionPayload } from "@zintl/extractor";
+import type { BoundaryDep, HtmlProjectionPayload } from "@zintljs/extractor";
 import type { ObservedAnchor, ObservedSink } from "./observation.js";
 
 /** Maps boundary id → its direct dependencies. */

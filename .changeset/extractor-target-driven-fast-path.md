@@ -1,5 +1,5 @@
 ---
-"@zintl/extractor": patch
+"@zintljs/extractor": patch
 ---
 
 Refactor extractor fast-path and boundary assignment to be fully driven by configuration and structure, removing all sink-based speculation.

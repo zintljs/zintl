@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { createTestCompiler } from "../../helpers/compiler.js";
-import { ZintlCompiler } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintljs/compiler";
 import { join, dirname } from "node:path";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "../../helpers/fs.js";

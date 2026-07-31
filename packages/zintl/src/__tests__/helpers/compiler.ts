@@ -12,15 +12,15 @@
  * these tests ever passed a facet list. The world is now declared here, once,
  * in the open.
  */
-import { ZintlCompiler } from "@zintl/compiler";
-import type { CompilerCapabilities, CompilerOptions, ZintlFacet } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintljs/compiler";
+import type { CompilerCapabilities, CompilerOptions, ZintlFacet } from "@zintljs/compiler";
 import {
   assetsFacet,
   htmlFacet,
   reactFacet,
   vanillaFacet,
   viteFacet,
-} from "@zintl/compiler/facets";
+} from "@zintljs/compiler/facets";
 import { resolveFacets } from "../../facets/resolve.js";
 
 /**

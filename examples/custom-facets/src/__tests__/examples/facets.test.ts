@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { join } from "node:path";
 import { handlebarsFacet, multiBrandThemeFacet } from "../../index.js";
-import { ZintlCompiler } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintljs/compiler";
 import { resolveFacets } from "zintl/facets";
 
 describe("Custom Facets Stress Tests", () => {

@@ -13,7 +13,7 @@ Following the **Baseline of Shame 4.0** (Meditations 9-12), we executed the "Con
 ### 1. Refactor Amnesia (Structural Identity Failure)
 
 - **Problem**: Boundary IDs were tied to relative file paths. Moving a file (`src/old/comp.ts` -> `src/new/comp.ts`) destroyed its translation context.
-- **Fix**: Implemented **Content-Based Identity**. The `@zintl/extractor` now computes a SHA-1 fingerprint based on a boundary's messages (text, context, and notes).
+- **Fix**: Implemented **Content-Based Identity**. The `@zintljs/extractor` now computes a SHA-1 fingerprint based on a boundary's messages (text, context, and notes).
 - **Outcome**: Moving files, renaming directories, or refactoring code now results in stable, persistent translation IDs.
 
 ### 2. The Tree-Shaking Wall (Bundle Bloat)

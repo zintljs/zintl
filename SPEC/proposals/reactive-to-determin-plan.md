@@ -475,7 +475,7 @@ Create the formal types (`FileObservation`, `TransformIntent`, `ResolvedPlan`) i
 
 ### Phase 1B: Extract `observe()` from Extractor
 
-Refactor `@zintl/extractor` to return `FileObservation` instead of the current mixed `ExtractionResult`. The existing visitors stay — they just write to a cleaner output structure. This is where "transforms" leave the extractor.
+Refactor `@zintljs/extractor` to return `FileObservation` instead of the current mixed `ExtractionResult`. The existing visitors stay — they just write to a cleaner output structure. This is where "transforms" leave the extractor.
 
 ### Phase 2: Implement `formIntent()`
 
@@ -541,7 +541,7 @@ async transform(code: string, id: string): Promise<TransformResult | undefined> 
 > 3. Keep the current single-pass approach in dev mode with a "dev-observe" that also does intent? (pragmatic hybrid)
 
 > [!IMPORTANT]
-> **Extractor Independence**: Should `observe()` be part of `@zintl/extractor` or a new package? The extractor currently does Babel parsing + visiting. If we move to OXC, do we want `@zintl/extractor-babel` and `@zintl/extractor-oxc` that both produce `FileObservation`?
+> **Extractor Independence**: Should `observe()` be part of `@zintljs/extractor` or a new package? The extractor currently does Babel parsing + visiting. If we move to OXC, do we want `@zintljs/extractor-babel` and `@zintljs/extractor-oxc` that both produce `FileObservation`?
 
 > [!IMPORTANT]  
 > **Baking I/O**: The current baking logic does async `getCatalogForFullModule()` during mutation. In the new model, this happens in Phase 2 (Intent). But Phase 2 should be pure/fast. Should we pre-load all potentially-needed catalogs into `WorldState` before Phase 2, or accept that Intent formation is async?

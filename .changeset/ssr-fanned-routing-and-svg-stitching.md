@@ -1,6 +1,6 @@
 ---
-"@zintl/extractor": patch
-"@zintl/compiler": patch
+"@zintljs/extractor": patch
+"@zintljs/compiler": patch
 "zintl": patch
 ---
 

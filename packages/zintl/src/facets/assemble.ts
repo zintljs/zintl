@@ -22,8 +22,8 @@ import {
   vanillaFacet,
   viteFacet,
   vueFacet,
-} from "@zintl/compiler/facets";
-import type { AssetTargetConfig, ZintlFacet } from "@zintl/compiler";
+} from "@zintljs/compiler/facets";
+import type { AssetTargetConfig, ZintlFacet } from "@zintljs/compiler";
 import type { FacetsInput } from "../types.js";
 import type { Framework } from "./detect.js";
 

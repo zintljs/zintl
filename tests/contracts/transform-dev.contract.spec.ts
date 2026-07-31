@@ -1,4 +1,4 @@
-import { executeProjectContract, type Contract } from "@zintl/testing";
+import { executeProjectContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 export const devTransformContract: Contract = {

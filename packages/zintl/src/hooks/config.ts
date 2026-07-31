@@ -1,5 +1,5 @@
 import type { ResolvedConfig } from "vite";
-import { ZintlCompiler, type LogLevel } from "@zintl/compiler";
+import { ZintlCompiler, type LogLevel } from "@zintljs/compiler";
 import { resolveFacets } from "../facets/resolve.js";
 import { detectFrameworksOrFallback } from "../facets/detect.js";
 import { assembleFacets } from "../facets/assemble.js";

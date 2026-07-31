@@ -9,7 +9,7 @@
  * mustache pattern, Next.js metadata suppression) and `DEFAULT_SFC_RULES` — and
  * `parser.ts` applied that last one to any `.vue`/`.svelte` file even when the
  * caller supplied no rules at all. Every one of those duplicated a facet preset
- * in `@zintl/compiler/facets`, which is now the single source of truth.
+ * in `@zintljs/compiler/facets`, which is now the single source of truth.
  */
 import { describe, it, expect } from "vite-plus/test";
 import { readdir, readFile } from "node:fs/promises";

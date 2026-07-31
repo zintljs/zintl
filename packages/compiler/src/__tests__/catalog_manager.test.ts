@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { CatalogManager } from "../managers/CatalogManager.js";
 import { IOManager } from "../managers/IOManager.js";
-import { logger } from "@zintl/extractor";
+import { logger } from "@zintljs/extractor";
 
 describe("CatalogManager", () => {
   it("should construct and heal ICU strings", () => {

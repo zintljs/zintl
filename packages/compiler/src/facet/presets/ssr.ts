@@ -1,4 +1,4 @@
-import type { ZintlFacet, SsrWrapParams } from "@zintl/compiler";
+import type { ZintlFacet, SsrWrapParams } from "@zintljs/compiler";
 
 function genericSsrWrapCode(params: SsrWrapParams): string | undefined {
   const { code, fileId, isEntry, locales, sourceLocale } = params;

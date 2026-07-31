@@ -1,4 +1,4 @@
-import type { CodegenFacet, ZintlFacet, TagMapEntry, TargetDescriptor } from "@zintl/compiler";
+import type { CodegenFacet, ZintlFacet, TagMapEntry, TargetDescriptor } from "@zintljs/compiler";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

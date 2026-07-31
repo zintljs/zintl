@@ -1,9 +1,9 @@
 import { join, isAbsolute, relative } from "node:path";
 import { existsSync } from "node:fs";
-import type { ZintlFacet, CompilerContext } from "@zintl/compiler";
-import type { IOManager } from "@zintl/compiler";
-import type { CatalogManager } from "@zintl/compiler";
-import type { ZintlLogger } from "@zintl/extractor";
+import type { ZintlFacet, CompilerContext } from "@zintljs/compiler";
+import type { IOManager } from "@zintljs/compiler";
+import type { CatalogManager } from "@zintljs/compiler";
+import type { ZintlLogger } from "@zintljs/extractor";
 import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { similarity } from "../../reconcile.js";

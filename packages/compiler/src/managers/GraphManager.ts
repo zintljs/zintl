@@ -8,7 +8,7 @@ import {
   type ObservedDependency,
   type ObservedAnchor,
 } from "../types/index.js";
-import { type ZintlLogger } from "@zintl/extractor";
+import { type ZintlLogger } from "@zintljs/extractor";
 import type { IOManager } from "./IOManager.js";
 import type { ContentFacet } from "../types/capabilities.js";
 /**

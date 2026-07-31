@@ -1,4 +1,4 @@
-export { serializeDeterministic } from "@zintl/compiler";
+export { serializeDeterministic } from "@zintljs/compiler";
 export {
   createLab,
   createProjectLab,

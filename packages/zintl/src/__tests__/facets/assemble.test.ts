@@ -7,7 +7,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { assembleFacets, autoFacets, flattenFacets } from "../../facets/assemble.js";
 import { FALLBACK_FRAMEWORK, detectFrameworks } from "../../facets/detect.js";
-import type { ZintlFacet } from "@zintl/compiler";
+import type { ZintlFacet } from "@zintljs/compiler";
 
 const names = (facets: ZintlFacet[]) => facets.map((f) => f.name);
 

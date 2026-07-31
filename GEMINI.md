@@ -8,8 +8,8 @@ Zintl is a compiler-driven internationalization system for modern web applicatio
 
 ### Three-Package System
 
-- **@zintl/extractor**: AST-based string extraction with dependency tracking
-- **@zintl/compiler**: Boundary graph algorithm and catalog generation
+- **@zintljs/extractor**: AST-based string extraction with dependency tracking
+- **@zintljs/compiler**: Boundary graph algorithm and catalog generation
 - **@zintl/runtime**: Minimalist runtime for translation loading
 
 ### Processing Pipeline
@@ -128,9 +128,9 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 ### Build System
 
 - Uses Vite+ unified toolchain
-- Commands: `vpr @zintl/compiler#build`, `vp test`, `vp lint`
+- Commands: `vpr @zintljs/compiler#build`, `vp test`, `vp lint`
 - Build all packages: `vp run -r build`, or `vpr build` (we need to build before testing or running/building the example apps)
-- run single command for any project/package: `vpr <package_name>#<command>` (e.g. `vpr @zintl/compiler#build`)
+- run single command for any project/package: `vpr <package_name>#<command>` (e.g. `vpr @zintljs/compiler#build`)
 - TypeScript strict mode enabled
 - Test structure follows Vitest patterns
 

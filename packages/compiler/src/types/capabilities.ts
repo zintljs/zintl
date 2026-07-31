@@ -24,14 +24,14 @@ import type {
   MustacheRule,
   TagMapEntry,
   CompiledExtractionState,
-} from "@zintl/extractor";
+} from "@zintljs/extractor";
 import type { IOManager } from "../managers/IOManager.js";
 import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "./compiler.js";
 
 /**
  * The declarative extraction vocabulary, re-exported so that facet authors and
- * the host plugin can name these types without depending on `@zintl/extractor`.
+ * the host plugin can name these types without depending on `@zintljs/extractor`.
  * The plugin resolves facets and must be able to name `TargetDescriptor` to
  * merge them, but it must never take a dependency on the extractor.
  */

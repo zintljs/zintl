@@ -1,5 +1,5 @@
 import { expect } from "vite-plus/test";
-import { executeContract, type Contract } from "@zintl/testing";
+import { executeContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 export const memoryLeakContract: Contract = {

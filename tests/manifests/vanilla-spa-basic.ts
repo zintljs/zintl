@@ -1,4 +1,4 @@
-import type { ExampleManifest, ZintlPluginOptions } from "@zintl/testing";
+import type { ExampleManifest, ZintlPluginOptions } from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",

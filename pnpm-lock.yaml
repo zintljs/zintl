@@ -13,7 +13,7 @@ catalogs:
       specifier: ^3.5.15
       version: 3.5.15
     '@oxc-project/types':
-      specifier: latest
+      specifier: ^0.142.0
       version: 0.142.0
     '@playwright/test':
       specifier: ^1.62.0
@@ -67,7 +67,7 @@ catalogs:
       specifier: ^16.2.12
       version: 16.2.12
     oxc-parser:
-      specifier: latest
+      specifier: ^0.142.0
       version: 0.142.0
     react:
       specifier: ^19.2.8
@@ -122,7 +122,7 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
-      '@zintl/testing':
+      '@zintljs/testing':
         specifier: workspace:*
         version: link:packages/testing
       knip:
@@ -137,7 +137,7 @@ importers:
 
   examples/custom-facets:
     dependencies:
-      '@zintl/compiler':
+      '@zintljs/compiler':
         specifier: workspace:*
         version: link:../../packages/compiler
     devDependencies:
@@ -675,7 +675,7 @@ importers:
       '@formatjs/icu-messageformat-parser':
         specifier: 'catalog:'
         version: 3.5.15
-      '@zintl/extractor':
+      '@zintljs/extractor':
         specifier: workspace:*
         version: link:../extractor
       magic-string:
@@ -716,7 +716,7 @@ importers:
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.62.0
-      '@zintl/compiler':
+      '@zintljs/compiler':
         specifier: workspace:*
         version: link:../compiler
       vite:
@@ -741,7 +741,7 @@ importers:
 
   packages/zintl:
     dependencies:
-      '@zintl/compiler':
+      '@zintljs/compiler':
         specifier: workspace:*
         version: link:../compiler
       unplugin:

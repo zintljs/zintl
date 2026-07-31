@@ -1,6 +1,6 @@
 ---
 "zintl": minor
-"@zintl/compiler": patch
+"@zintljs/compiler": patch
 ---
 
 Gave Zintl's option defaults a single home. Defaults were previously applied lazily at roughly thirty read sites across two packages, several of them duplicated with divergent rules, so answering "where did this value come from?" meant grepping.

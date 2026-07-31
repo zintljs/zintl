@@ -1,5 +1,5 @@
 ---
-"@zintl/compiler": patch
+"@zintljs/compiler": patch
 ---
 
 Fix HMR script injection for Vue and Svelte SFC components. The compiler now detects the closing `</script>` tag in single-file components and embeds the HMR acceptance code block inside it instead of appending it raw at the end of the file, preventing template syntax compilation errors.

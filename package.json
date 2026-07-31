@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm run -F '@zintl/*' -F 'zintl' -F 'website' --parallel dev ",
-    "build": "vpr --transitive zintl#build && vpr --transitive @zintl/testing#build",
+    "build": "vpr --transitive zintl#build && vpr --transitive @zintljs/testing#build",
     "ready": "vp lint && knip && vp run build && vp test  && vp fmt && vp run bench ",
     "test:contracts": "vp test --config=tests/vitest.config.ts",
     "dev:examples": "pnpm run --filter='./examples/*' --parallel dev",
@@ -33,7 +33,7 @@
     "@changesets/cli": "catalog:",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
-    "@zintl/testing": "workspace:*",
+    "@zintljs/testing": "workspace:*",
     "knip": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

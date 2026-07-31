@@ -64,7 +64,7 @@ describe("Zintl Compiler Pipeline", async () => {
     { time: 500 },
   );
 
-  // Raw extraction is benchmarked in @zintl/extractor's own suite; the plugin
+  // Raw extraction is benchmarked in @zintljs/extractor's own suite; the plugin
   // cannot import the extractor, and this file measures the compiler pipeline.
 
   bench(

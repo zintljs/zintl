@@ -2,8 +2,8 @@
   "mode": "pre",
   "tag": "alpha",
   "initialVersions": {
-    "@zintl/compiler": "0.0.3",
-    "@zintl/extractor": "0.0.3",
+    "@zintljs/compiler": "0.0.3",
+    "@zintljs/extractor": "0.0.3",
     "zintl": "0.0.3"
   },
   "changesets": [

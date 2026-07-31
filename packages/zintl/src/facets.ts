@@ -40,7 +40,7 @@
  */
 
 /** The built-in preset facets. */
-export * from "@zintl/compiler/facets";
+export * from "@zintljs/compiler/facets";
 
 /**
  * The facet-authoring vocabulary.
@@ -83,7 +83,7 @@ export type {
   // Reachable from CompilerContext; nameable so facet hooks can be typed.
   IOManager,
   CatalogManager,
-} from "@zintl/compiler";
+} from "@zintljs/compiler";
 
 export { resolveFacets } from "./facets/resolve.js";
 export { assembleFacets, autoFacets, flattenFacets } from "./facets/assemble.js";

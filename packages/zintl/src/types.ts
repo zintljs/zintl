@@ -16,7 +16,7 @@ import type {
   CompilerOptions,
   LogLevel,
   ZintlFacet,
-} from "@zintl/compiler";
+} from "@zintljs/compiler";
 
 /**
  * What a user may write in `facets: [...]`.

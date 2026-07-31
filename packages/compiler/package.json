@@ -1,9 +1,32 @@
 {
-  "name": "@zintl/compiler",
+  "name": "@zintljs/compiler",
   "version": "0.1.0-alpha.5",
   "description": "Bundler-agnostic compiler intelligence for Zintl",
+  "keywords": [
+    "compiler",
+    "i18n",
+    "i18n-compiler",
+    "icu",
+    "internationalization",
+    "intl",
+    "l10n",
+    "localization",
+    "zintl"
+  ],
+  "homepage": "https://github.com/zintljs/zintl/tree/main/packages/compiler#readme",
+  "bugs": {
+    "url": "https://github.com/zintljs/zintl/issues"
+  },
   "license": "MIT",
-  "author": "Khalid FSh",
+  "author": "Khalid F. Shuhail <dev.khalid@me.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zintljs/zintl.git",
+    "directory": "packages/compiler"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -17,8 +40,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "vp pack",
@@ -29,12 +51,15 @@
   },
   "dependencies": {
     "@formatjs/icu-messageformat-parser": "catalog:",
-    "@zintl/extractor": "workspace:*",
+    "@zintljs/extractor": "workspace:*",
     "magic-string": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
   }
 }

@@ -1,4 +1,4 @@
-import type { ZintlFacet } from "@zintl/compiler";
+import type { ZintlFacet } from "@zintljs/compiler";
 
 export function handlebarsFacet(): ZintlFacet[] {
   return [

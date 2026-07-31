@@ -4,7 +4,7 @@
  * The extractor is a framework-blind executor: it no longer carries preset
  * target lists, SFC block rules, mustache patterns or suppression rules, and it
  * has no default target set. Production supplies all of that from the facet
- * presets in `@zintl/compiler/facets`, which are the single source of truth.
+ * presets in `@zintljs/compiler/facets`, which are the single source of truth.
  *
  * These fixtures are *test inputs* that stand in for what a caller would pass.
  * They intentionally duplicate a slice of the real presets — the extractor

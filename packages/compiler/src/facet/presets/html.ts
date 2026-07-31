@@ -1,8 +1,8 @@
 import { join, relative, dirname } from "node:path";
-import type { ZintlFacet, CompilerContext, TargetDescriptor } from "@zintl/compiler";
-import type { IOManager } from "@zintl/compiler";
-import type { CatalogManager } from "@zintl/compiler";
-import type { ZintlLogger, HtmlProjectionPayload } from "@zintl/extractor";
+import type { ZintlFacet, CompilerContext, TargetDescriptor } from "@zintljs/compiler";
+import type { IOManager } from "@zintljs/compiler";
+import type { CatalogManager } from "@zintljs/compiler";
+import type { ZintlLogger, HtmlProjectionPayload } from "@zintljs/extractor";
 import { sortObjectKeys } from "../../utils/serialization.js";
 
 /**

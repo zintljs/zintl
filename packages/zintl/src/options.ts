@@ -18,7 +18,7 @@
  * - `verifyIntegrity` — `undefined` means "on for `build`, off for `serve`"
  *   (`configResolvedHook`).
  */
-import type { LogLevel } from "@zintl/compiler";
+import type { LogLevel } from "@zintljs/compiler";
 import type { FacetsInput, Options } from "./types.js";
 
 /**

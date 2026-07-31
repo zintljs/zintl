@@ -43,7 +43,7 @@ If a developer organically types a literal brace: `` `Zintl parts: {extractor, r
 
 ### 2.2 — The Extraction Pipeline
 
-The `@zintl/extractor` captures JS literals organically. The default schema generated will be a standard string, using the normalized `{var}` format for variables.
+The `@zintljs/extractor` captures JS literals organically. The default schema generated will be a standard string, using the normalized `{var}` format for variables.
 
 ### 2.3 — Adding Grammatical Context (The `@zintl-pass` Escape Hatch)
 

@@ -8,7 +8,7 @@ import {
   type InlineConfig,
   type Rollup,
 } from "vite";
-import { ZintlCompiler } from "@zintl/compiler";
+import { ZintlCompiler } from "@zintljs/compiler";
 import { resolveFacets } from "zintl/facets";
 import { assembleFacets, detectFrameworksOrFallback } from "zintl/facets";
 import { collectOutput, buildTestOverrides, TEST_DEFINES } from "../utils.js";

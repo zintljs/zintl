@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { GraphManager } from "../managers/GraphManager.js";
 import { IOManager } from "../managers/IOManager.js";
-import { logger } from "@zintl/extractor";
+import { logger } from "@zintljs/extractor";
 import type { BoundaryMetadata, ObservedDependency } from "../types.ts";
 
 describe("GraphManager", () => {

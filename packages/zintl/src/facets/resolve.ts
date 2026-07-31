@@ -18,7 +18,7 @@
  * - Codegen facets stay a list, matched per-file; two facets claiming the same
  *   extension at the same priority is a hard error.
  */
-import { compileExtractionState } from "@zintl/compiler";
+import { compileExtractionState } from "@zintljs/compiler";
 import type {
   CapabilityFlags,
   CodegenFacet,
@@ -32,7 +32,7 @@ import type {
   SuppressionRule,
   TargetDescriptor,
   ZintlFacet,
-} from "@zintl/compiler";
+} from "@zintljs/compiler";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Merge Helpers
@@ -438,7 +438,7 @@ export function resolveFacets(facets: ZintlFacet[] = []): CompilerCapabilities {
   const system = stateToHooks(state);
 
   // Declarative extraction rules are compiled by the compiler — the plugin must
-  // never depend on @zintl/extractor.
+  // never depend on @zintljs/extractor.
   const extraction = compileExtractionState(system);
 
   return {

@@ -1,4 +1,4 @@
-import { RUNTIME_PACKAGE } from "@zintl/extractor";
+import { RUNTIME_PACKAGE } from "@zintljs/extractor";
 import type {
   TransformIntent,
   FileObservation,

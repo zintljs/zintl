@@ -21,16 +21,20 @@
     "vue",
     "zintl"
   ],
+  "homepage": "https://github.com/zintljs/zintl#readme",
   "bugs": {
-    "url": "https://github.com/zintl/zintl/issues"
+    "url": "https://github.com/zintljs/zintl/issues"
   },
   "license": "MIT",
-  "author": "Khalid FSh",
+  "author": "Khalid F. Shuhail <dev.khalid@me.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zintl/zintl.git",
+    "url": "git+https://github.com/zintljs/zintl.git",
     "directory": "packages/zintl"
   },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -52,8 +56,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "vp pack",
@@ -62,7 +65,7 @@
     "check": "vp check"
   },
   "dependencies": {
-    "@zintl/compiler": "workspace:*",
+    "@zintljs/compiler": "workspace:*",
     "unplugin": "^3.3.0"
   },
   "devDependencies": {
@@ -71,6 +74,9 @@
     "vite-plus": "catalog:"
   },
   "peerDependencies": {
-    "vite": "^5.0.0 || ^6.0.0"
+    "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
   }
 }

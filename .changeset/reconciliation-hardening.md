@@ -1,5 +1,5 @@
 ---
-"@zintl/compiler": minor
+"@zintljs/compiler": minor
 ---
 
 Hardened catalog reconciliation — the subsystem that decides, when source text changes, whether a translation is carried forward or dropped. Because keys derive from the text itself, this is what makes ordinary copy edits safe, and it had three unit tests.

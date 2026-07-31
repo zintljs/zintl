@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ZintlFacet } from "@zintl/compiler";
+import type { ZintlFacet } from "@zintljs/compiler";
 
 export function multiBrandThemeFacet(): ZintlFacet {
   async function getTranslations(locale: string, context: any) {

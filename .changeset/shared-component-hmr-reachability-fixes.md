@@ -1,5 +1,5 @@
 ---
-"@zintl/compiler": patch
+"@zintljs/compiler": patch
 ---
 
 Fixed HMR updates for shared and lazy components by resolving entry manager chunks through boundary graph reachability traversal:

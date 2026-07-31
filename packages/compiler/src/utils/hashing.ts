@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { relative } from "node:path";
-import { generateMessageId } from "@zintl/extractor";
+import { generateMessageId } from "@zintljs/extractor";
 
 export { generateMessageId };
 

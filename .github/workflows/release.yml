@@ -60,13 +60,17 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      # registry-url is REQUIRED: it writes the .npmrc that wires NODE_AUTH_TOKEN
+      # into `npm publish`. Without it, changesets publishes with no credentials
+      # and fails with E401.
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+          registry-url: "https://registry.npmjs.org"
 
       - name: Get pnpm store directory
         shell: bash
@@ -97,4 +101,7 @@ jobs:
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # npm provenance requires a PUBLIC source repository. Uncomment once
+          # zintljs/zintl is public; leaving it on while private fails the publish.
+          # NPM_CONFIG_PROVENANCE: true

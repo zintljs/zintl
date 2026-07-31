@@ -1,9 +1,32 @@
 {
-  "name": "@zintl/extractor",
+  "name": "@zintljs/extractor",
   "version": "0.1.0-alpha.5",
   "description": "AST-based message extractor for Zintl",
+  "keywords": [
+    "ast",
+    "extractor",
+    "i18n",
+    "internationalization",
+    "intl",
+    "l10n",
+    "localization",
+    "oxc",
+    "zintl"
+  ],
+  "homepage": "https://github.com/zintljs/zintl/tree/main/packages/extractor#readme",
+  "bugs": {
+    "url": "https://github.com/zintljs/zintl/issues"
+  },
   "license": "MIT",
-  "author": "Khalid FSh",
+  "author": "Khalid F. Shuhail <dev.khalid@me.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zintljs/zintl.git",
+    "directory": "packages/extractor"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "types": "./dist/index.d.mts",
   "exports": {
@@ -14,8 +37,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "vp pack --dts",
@@ -31,5 +53,8 @@
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
   }
 }

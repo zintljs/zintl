@@ -1,5 +1,5 @@
 import { expect } from "vite-plus/test";
-import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintl/testing";
+import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 export const localeSwitchContract: Contract<LocaleSwitchAdapter> = {

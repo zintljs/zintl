@@ -11,7 +11,7 @@ import { extract, resolveTargets, type TargetDescriptor } from "../index.js";
  * no macro call misses it, and `extract` returns before parsing. That read as a
  * 60x speedup on the fast-path benchmarks while extracting nothing.
  *
- * Inlined rather than imported because the presets live in `@zintl/compiler`,
+ * Inlined rather than imported because the presets live in `@zintljs/compiler`,
  * and the extractor sits below the compiler — it must never depend upward.
  * Keep this list in step with those presets.
  */

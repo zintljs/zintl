@@ -1,9 +1,10 @@
 {
-  "name": "@zintl/testing",
+  "name": "@zintljs/testing",
   "version": "0.1.0-alpha.5",
-  "description": "Browser laboratory environment for testing Zintl applications",
+  "private": true,
+  "description": "Browser laboratory environment for testing Zintl applications (internal, not published)",
   "license": "MIT",
-  "author": "Khalid FSh",
+  "author": "Khalid F. Shuhail",
   "type": "module",
   "exports": {
     ".": {
@@ -19,7 +20,7 @@
   },
   "dependencies": {
     "@playwright/test": "catalog:",
-    "@zintl/compiler": "workspace:*",
+    "@zintljs/compiler": "workspace:*",
     "vite": "catalog:",
     "zintl": "workspace:*"
   },

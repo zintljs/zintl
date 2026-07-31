@@ -1,5 +1,5 @@
 import type { ViteDevServer } from "vite";
-import type { ZintlCompiler } from "@zintl/compiler";
+import type { ZintlCompiler } from "@zintljs/compiler";
 
 export class LabCompiler {
   private server?: ViteDevServer;

@@ -16,8 +16,11 @@ catalog:
 
   magic-string: ^0.30.21
   "@formatjs/icu-messageformat-parser": ^3.5.15
-  "@oxc-project/types": latest
-  "oxc-parser": latest
+  # Runtime deps of the published @zintljs/extractor — these must be real semver
+  # ranges, never `latest`, or every consumer install resolves to whatever oxc
+  # shipped that day. oxc is pre-1.0, so caret pins the minor.
+  "@oxc-project/types": ^0.142.0
+  "oxc-parser": ^0.142.0
 
   vue: ^3.5.40
   vue-router: ^5.2.0

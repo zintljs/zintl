@@ -9,7 +9,7 @@
  * mustache patterns or suppression rules of its own.
  *
  * All of that now flows downward from the facet presets in
- * `@zintl/compiler/facets`, which are the single source of truth. SFC rules,
+ * `@zintljs/compiler/facets`, which are the single source of truth. SFC rules,
  * suppression rules and mustache rules reach the extractor as *inputs* on
  * `CompiledExtractionState` — see the compiler's `compileExtractionState`.
  */

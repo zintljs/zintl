@@ -8,7 +8,7 @@
 import { createHash } from "node:crypto";
 import type { Rollup } from "vite";
 import { expect } from "vite-plus/test";
-import { generateMessageId } from "@zintl/compiler";
+import { generateMessageId } from "@zintljs/compiler";
 
 /**
  * Resiliently remove a directory with retries.

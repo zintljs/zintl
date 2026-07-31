@@ -1,5 +1,5 @@
 import type { Manifest } from "../reconcile.js";
-import type { LogLevel, ZintlLogger } from "@zintl/extractor";
+import type { LogLevel, ZintlLogger } from "@zintljs/extractor";
 import type { DependencyGraph, MetadataGraph, BoundaryGraph, ChunkGraph } from "./graph.js";
 import type { FileObservation } from "./observation.js";
 import type { TransformIntent } from "./intent.js";

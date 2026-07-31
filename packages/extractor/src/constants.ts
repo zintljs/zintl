@@ -4,7 +4,7 @@
  * The former `DEFAULT_UI_ATTRIBUTES` / `DEFAULT_UI_OBJECT_FIELDS` /
  * `DEFAULT_UI_SINK_PROPERTIES` sets and `TEMPLATE_ATTR_REGEX` lived here and
  * encoded opinions about which DOM and JSX attributes are translatable. That is
- * facet knowledge — it now lives in `@zintl/compiler/facets` and reaches the
+ * facet knowledge — it now lives in `@zintljs/compiler/facets` and reaches the
  * extractor as descriptors. All four were already unreferenced (one survived
  * only inside a commented-out line) and have been removed.
  */

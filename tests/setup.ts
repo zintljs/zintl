@@ -1,4 +1,8 @@
-import { closeSharedBrowser, closeSharedServers, closeSharedPreviewServers } from "@zintl/testing";
+import {
+  closeSharedBrowser,
+  closeSharedServers,
+  closeSharedPreviewServers,
+} from "@zintljs/testing";
 
 export async function teardown() {
   await closeSharedServers();
