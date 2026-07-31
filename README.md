@@ -12,7 +12,7 @@
   <br>
 </p>
 
-<h1 align="center">Zintl ⚡</h1>
+<h1 align="center">Zintl(𝐢𝟖𝐧)</h1>
 
 <p align="center">
   <strong>Compiler-driven internationalization system for modern web applications.</strong>
