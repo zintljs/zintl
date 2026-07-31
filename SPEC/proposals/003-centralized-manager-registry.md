@@ -34,7 +34,7 @@ The Entry Point assumes total responsibility for the locale state of its static 
 Whenever a module (Entry or Boundary) requires `loadI18nInstance` or other runtime functions, the compiler must:
 
 - **Scan Exports**: Check if the function is already imported from `zintl`.
-- **Merge Imports**: If `import "zintl"` exists, transform it into `import { loadI18nInstance } from "zintl"`.
+- **Merge Imports**: If `import "zintljs"` exists, transform it into `import { loadI18nInstance } from "zintljs"`.
 - **De-duplicate**: Ensure no redundant imports are added if multiple transformations trigger injections.
 
 ## Implementation Details

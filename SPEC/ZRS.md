@@ -14,7 +14,7 @@ These markers are mutually exclusive at a given scope (file or function).
 | Symbol  | Name   | Detection                                                                                       |
 | :------ | :----- | :---------------------------------------------------------------------------------------------- |
 | **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument).  |
-| **$M**  | Marker | A bare `import "zintl"` side-effect import with no named specifiers.                            |
+| **$M**  | Marker | A bare `import "zintljs"` side-effect import with no named specifiers.                          |
 | **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                            |
 | **$S**  | Sink   | A UI string assigned to a translatable property (innerHTML, JSX text, title, aria-label, etc.). |
 | **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                               |
@@ -191,7 +191,7 @@ Without pruning, an empty anchor like `zintl("ar")` in a utilities file would in
 
 ### §5.3 — Marker Exception
 
-$M (the bare `import "zintl"`) is exempt from pruning. It represents a **declaration of future intent** — the developer is setting up Kingdom infrastructure for a library or micro-frontend that will receive sinks later (via dynamic composition or framework injection).
+$M (the bare `import "zintljs"`) is exempt from pruning. It represents a **declaration of future intent** — the developer is setting up Kingdom infrastructure for a library or micro-frontend that will receive sinks later (via dynamic composition or framework injection).
 
 ### §5.4 — Locale Pruning Axiom (The Isolation Rule)
 

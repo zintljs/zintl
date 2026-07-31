@@ -31,7 +31,7 @@ describe("Quantum Level Entanglement (Strict Catalog Sync)", () => {
     await mkdir(dirname(fileId), { recursive: true });
 
     const codeV1 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("HELLO"));
       console.log(t("STALE"));
@@ -55,7 +55,7 @@ describe("Quantum Level Entanglement (Strict Catalog Sync)", () => {
 
     // 2. Remove one string from source
     const codeV2 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("HELLO"));
     `;
@@ -83,7 +83,7 @@ describe("Quantum Level Entanglement (Strict Catalog Sync)", () => {
     await mkdir(dirname(fileId), { recursive: true });
 
     const codeV1 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Original Message"));
     `;
@@ -102,7 +102,7 @@ describe("Quantum Level Entanglement (Strict Catalog Sync)", () => {
 
     // 2. Rename the string (similarity threshold)
     const codeV2 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Original Message.")); 
     `;

@@ -31,7 +31,7 @@ describe("HTML Deep Discovery", () => {
 
     await writeFile(
       join(root, "src/lib.ts"),
-      `import { zintl } from "zintl"; 
+      `import { zintl } from "zintljs"; 
        export function setup() {
          zintl("ar");
        }`,
@@ -63,11 +63,11 @@ describe("HTML Deep Discovery", () => {
 
     await writeFile(join(root, "src/main.ts"), `import "./static"; import "./dynamic";`);
 
-    await writeFile(join(root, "src/static.ts"), `import { zintl } from "zintl"; zintl("en");`);
+    await writeFile(join(root, "src/static.ts"), `import { zintl } from "zintljs"; zintl("en");`);
 
     await writeFile(
       join(root, "src/dynamic.ts"),
-      `import { zintl } from "zintl"; 
+      `import { zintl } from "zintljs"; 
        async function init() {
          const lang = "ar";
          await zintl(lang);

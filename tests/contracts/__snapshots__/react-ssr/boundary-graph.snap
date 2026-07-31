@@ -107,7 +107,7 @@
             "getLocale"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/App.tsx",
@@ -156,7 +156,7 @@
             "getLocale"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/App.tsx",
@@ -206,7 +206,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/entry-client.tsx",
@@ -248,7 +248,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/entry-client.tsx",
@@ -289,7 +289,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/entry-server.tsx",
@@ -326,7 +326,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/entry-server.tsx",
@@ -360,7 +360,7 @@
             "default"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "zintljs/vite"
         }
       ],
       "filePath": "vite.config",

@@ -1,4 +1,4 @@
-// import { zintl } from "zintl/macro";
+// import { zintl } from "zintljs/macro";
 import heroImg from "../assets/hero.png";
 
 export async function Home() {

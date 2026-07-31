@@ -25,7 +25,7 @@ describe("Quantum Variable Healing", () => {
     );
 
     // 1. Initial State: Source uses 'name'
-    const codeV1 = "import 'zintl'; export const Hero = () => <div>Hello {name}</div>;";
+    const codeV1 = "import 'zintljs'; export const Hero = () => <div>Hello {name}</div>;";
     const filePath = join(root, "src/Hero.tsx");
     await writeFile(filePath, codeV1);
 
@@ -41,7 +41,7 @@ describe("Quantum Variable Healing", () => {
     await (compiler as any).flush();
 
     // 3. Refactor: Rename variable from 'name' to 'fullName'
-    const codeV2 = "import 'zintl'; export const Hero = () => <div>Hello {fullName}</div>;";
+    const codeV2 = "import 'zintljs'; export const Hero = () => <div>Hello {fullName}</div>;";
     await writeFile(filePath, codeV2);
 
     // Trigger reconciliation

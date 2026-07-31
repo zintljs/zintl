@@ -1,4 +1,4 @@
-// import { zintl } from "zintl/macro";
+// import { zintl } from "zintljs/macro";
 
 export async function Header(currentLocale: string) {
   // Establishing an independent anchor for the header

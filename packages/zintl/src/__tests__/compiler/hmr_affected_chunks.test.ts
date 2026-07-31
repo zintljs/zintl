@@ -28,8 +28,8 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
 
     // Create a few entry points
-    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintl"; zintl();');
-    await writeFile(join(root, "src/about.ts"), 'import { zintl } from "zintl"; zintl();');
+    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintljs"; zintl();');
+    await writeFile(join(root, "src/about.ts"), 'import { zintl } from "zintljs"; zintl();');
 
     await compiler.discover();
     await compiler.flush();
@@ -52,11 +52,11 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
 
     await writeFile(
       join(root, "src/main.ts"),
-      'import { zintl } from "zintl"; import { getMsg } from "./shared"; zintl(); getMsg();',
+      'import { zintl } from "zintljs"; import { getMsg } from "./shared"; zintl(); getMsg();',
     );
     await writeFile(
       join(root, "src/shared.ts"),
-      'import { zintl } from "zintl"; export function getMsg() { return zintl("hello"); }',
+      'import { zintl } from "zintljs"; export function getMsg() { return zintl("hello"); }',
     );
 
     await compiler.transform(
@@ -86,7 +86,7 @@ describe("Zintl Compiler - HMR Affected Chunks", () => {
 
     await writeFile(
       join(root, "src/main.ts"),
-      'import { zintl } from "zintl"; import "./Component.vue"; zintl();',
+      'import { zintl } from "zintljs"; import "./Component.vue"; zintl();',
     );
     await writeFile(
       join(root, "src/Component.vue"),

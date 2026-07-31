@@ -150,7 +150,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -168,7 +168,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -202,7 +202,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -251,7 +251,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -281,7 +281,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -327,7 +327,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -342,7 +342,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -357,7 +357,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -372,7 +372,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -387,7 +387,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -402,7 +402,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -417,7 +417,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -451,7 +451,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -509,7 +509,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -540,7 +540,7 @@ importers:
       vue-tsc:
         specifier: 'catalog:'
         version: 3.3.8(typescript@6.0.3)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -571,7 +571,7 @@ importers:
       vue-tsc:
         specifier: 'catalog:'
         version: 3.3.8(typescript@6.0.3)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -605,7 +605,7 @@ importers:
       vue-tsc:
         specifier: 'catalog:'
         version: 3.3.8(typescript@6.0.3)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -651,7 +651,7 @@ importers:
       vue-tsc:
         specifier: 'catalog:'
         version: 3.3.8(typescript@6.0.3)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -666,7 +666,7 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.6(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))(jiti@2.7.0)(svelte@5.56.8)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0)
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../../packages/zintl
 
@@ -725,7 +725,7 @@ importers:
       vitest:
         specifier: 4.1.10
         version: 4.1.10(@types/node@24.13.3)(@vitest/browser-preview@4.1.10)(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.3)(jiti@2.7.0)(terser@5.49.0)(typescript@6.0.3)(yaml@2.9.0))
-      zintl:
+      zintljs:
         specifier: workspace:*
         version: link:../zintl
     devDependencies:

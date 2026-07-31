@@ -3,19 +3,19 @@
     "src/App.vue": "src/main:bootstrap",
     "src/components/HelloWorld.vue": "src/main:bootstrap",
     "src/components/LocaleSwitcher.vue": "src/main:bootstrap",
-    "src/components/LocaleSwitcher.vue:f_457": "src/components/LocaleSwitcher.vue:f_457",
+    "src/components/LocaleSwitcher.vue:f_459": "src/components/LocaleSwitcher.vue:f_459",
     "src/main:bootstrap": "src/main:bootstrap"
   },
   "chunks": {
-    "entry_b_34d26432f32f": {
+    "entry_b_381483fd6e80": {
       "boundaries": [
-        "src/components/LocaleSwitcher.vue:f_457"
+        "src/components/LocaleSwitcher.vue:f_459"
       ],
       "colonies": [],
       "entrySources": [
-        "src/components/LocaleSwitcher.vue:f_457"
+        "src/components/LocaleSwitcher.vue:f_459"
       ],
-      "id": "entry_b_34d26432f32f",
+      "id": "entry_b_381483fd6e80",
       "type": "entry"
     },
     "entry_b_aafcf9c6fe16": {
@@ -37,22 +37,22 @@
       "id": "entry_b_aafcf9c6fe16",
       "type": "entry"
     },
-    "shared_b_da9a6f102df0": {
+    "shared_b_006866fb4e10": {
       "boundaries": [
-        "zintl/macro"
+        "zintljs/macro"
       ],
       "colonies": [],
       "entrySources": [],
-      "id": "shared_b_da9a6f102df0",
+      "id": "shared_b_006866fb4e10",
       "type": "shared"
     }
   },
   "entryChunks": {
-    "src/components/LocaleSwitcher.vue:f_457": "entry_b_34d26432f32f",
+    "src/components/LocaleSwitcher.vue:f_459": "entry_b_381483fd6e80",
     "src/main:bootstrap": "entry_b_aafcf9c6fe16"
   },
   "lazyChunks": [],
   "sharedChunks": [
-    "shared_b_da9a6f102df0"
+    "shared_b_006866fb4e10"
   ]
 }

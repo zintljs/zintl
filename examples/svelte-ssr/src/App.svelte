@@ -4,7 +4,7 @@
   import heroImg from './assets/hero.png'
   import Counter from './lib/Counter.svelte'
   import LocaleSwitcher from './lib/LocaleSwitcher.svelte'
-  import { getLocale } from "zintl/macro";
+  import { getLocale } from "zintljs/macro";
 
   let activeLang = $state(getLocale() || "en");
 </script>

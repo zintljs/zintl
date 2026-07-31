@@ -3,10 +3,21 @@
     "src/App.svelte": "src/main:bootstrap",
     "src/lib/Counter.svelte": "src/main:bootstrap",
     "src/lib/LocaleSwitcher.svelte": "src/main:bootstrap",
-    "src/lib/LocaleSwitcher.svelte:f_523": "src/lib/LocaleSwitcher.svelte:f_523",
+    "src/lib/LocaleSwitcher.svelte:f_525": "src/lib/LocaleSwitcher.svelte:f_525",
     "src/main:bootstrap": "src/main:bootstrap"
   },
   "chunks": {
+    "entry_b_581042b7afb9": {
+      "boundaries": [
+        "src/lib/LocaleSwitcher.svelte:f_525"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/lib/LocaleSwitcher.svelte:f_525"
+      ],
+      "id": "entry_b_581042b7afb9",
+      "type": "entry"
+    },
     "entry_b_aafcf9c6fe16": {
       "boundaries": [
         "src/App.svelte",
@@ -26,33 +37,22 @@
       "id": "entry_b_aafcf9c6fe16",
       "type": "entry"
     },
-    "entry_b_da9ef060613a": {
+    "shared_b_006866fb4e10": {
       "boundaries": [
-        "src/lib/LocaleSwitcher.svelte:f_523"
-      ],
-      "colonies": [],
-      "entrySources": [
-        "src/lib/LocaleSwitcher.svelte:f_523"
-      ],
-      "id": "entry_b_da9ef060613a",
-      "type": "entry"
-    },
-    "shared_b_da9a6f102df0": {
-      "boundaries": [
-        "zintl/macro"
+        "zintljs/macro"
       ],
       "colonies": [],
       "entrySources": [],
-      "id": "shared_b_da9a6f102df0",
+      "id": "shared_b_006866fb4e10",
       "type": "shared"
     }
   },
   "entryChunks": {
-    "src/lib/LocaleSwitcher.svelte:f_523": "entry_b_da9ef060613a",
+    "src/lib/LocaleSwitcher.svelte:f_525": "entry_b_581042b7afb9",
     "src/main:bootstrap": "entry_b_aafcf9c6fe16"
   },
   "lazyChunks": [],
   "sharedChunks": [
-    "shared_b_da9a6f102df0"
+    "shared_b_006866fb4e10"
   ]
 }

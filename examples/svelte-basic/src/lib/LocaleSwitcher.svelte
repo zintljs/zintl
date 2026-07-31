@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { zintl } from "zintl/macro";
+  import { zintl } from "zintljs/macro";
 
   interface Props {
     lang: string;

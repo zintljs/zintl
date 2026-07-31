@@ -3,7 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
-import { getLocale } from "zintl/macro";
+import { getLocale } from "zintljs/macro";
 
 const locales = [
   { id: "en", name: "English" },

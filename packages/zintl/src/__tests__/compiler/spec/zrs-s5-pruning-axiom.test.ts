@@ -29,7 +29,7 @@ describe("ZRS §5: Pruning Axiom", () => {
       );
 
       // File has zintl() but no UI sinks AND no dependencies with sinks
-      const code = `import { zintl } from "zintl"; await zintl("ar"); const x = 42;`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); const x = 42;`;
       const result = await compiler.transform(code, join(root, "src/empty.ts"), "target");
 
       // The pruning axiom says: if zero reachable sinks AND no $M marker,
@@ -48,7 +48,7 @@ describe("ZRS §5: Pruning Axiom", () => {
       );
 
       // main has an anchor and imports lazy, but lazy has NO sinks
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Main"; const Lazy = import("./lazy");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Main"; const Lazy = import("./lazy");`;
       const lazyCode = `const x = 42; export default x;`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -73,7 +73,7 @@ describe("ZRS §5: Pruning Axiom", () => {
       );
 
       // Bare marker, no strings — this is a library declaring future intent
-      const code = `import "zintl"; export function setup() { return "library"; }`;
+      const code = `import "zintljs"; export function setup() { return "library"; }`;
       await compiler.transform(code, join(root, "src/lib-stub.ts"), "target");
       await compiler.flush();
 
@@ -96,12 +96,12 @@ describe("ZRS §5: Pruning Axiom", () => {
       );
 
       // $A with zero sinks
-      const codeA = `import { zintl } from "zintl"; await zintl("ar"); const x = 42;`;
+      const codeA = `import { zintl } from "zintljs"; await zintl("ar"); const x = 42;`;
       await compilerA.transform(codeA, join(root, "src/anchor.ts"), "target");
       await compilerA.flush();
 
       // $M with zero sinks
-      const codeM = `import "zintl"; const x = 42;`;
+      const codeM = `import "zintljs"; const x = 42;`;
       await compilerM.transform(codeM, join(root, "src/marker.ts"), "target");
       await compilerM.flush();
 

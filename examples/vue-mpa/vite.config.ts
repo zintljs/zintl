@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import zintl from "zintl/vite";
+import zintl from "zintljs/vite";
 import { resolve } from "node:path";
 
 export default defineConfig({

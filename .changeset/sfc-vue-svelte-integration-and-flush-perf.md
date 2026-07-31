@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": minor
 "@zintljs/extractor": minor
-"zintl": minor
+"zintljs": minor
 ---
 
 Introduce Single File Component (SFC) extraction/transformation for Vue and Svelte, automatic target resolution, and performance optimizations:

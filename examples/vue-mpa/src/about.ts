@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 import "./style.css";
 import AboutApp from "./AboutApp.vue";
 

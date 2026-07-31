@@ -2,7 +2,7 @@
 
 ## Overview
 
-Currently, Zintl overarchingly injects translation managers and loader registration logic into any module touched by an `import "zintl"` marker, even if that module contains zero translatable strings. This leads to "Ghost Boundaries"—polluted modules that carry redundant logic and, in some modular SPA flows, cause runtime crashes due to missing imports.
+Currently, Zintl overarchingly injects translation managers and loader registration logic into any module touched by an `import "zintljs"` marker, even if that module contains zero translatable strings. This leads to "Ghost Boundaries"—polluted modules that carry redundant logic and, in some modular SPA flows, cause runtime crashes due to missing imports.
 
 ## Current Deficiencies (The "Baseline of Shame")
 

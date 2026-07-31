@@ -65,7 +65,7 @@ export interface ZintlInstance {
  *
  * @example
  * ```ts
- * import { zintl } from "zintl/macro";
+ * import { zintl } from "zintljs/macro";
  *
  * await zintl(new URLSearchParams(location.search).get("lang") ?? "en");
  *

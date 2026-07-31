@@ -30,7 +30,7 @@ describe("Zintl Compiler: Zero-Runtime Baking", () => {
   it("should bake manual t() calls into literal strings for static anchors", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const code = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       await zintl("ar");
       document.title = t("Welcome Page");
     `;
@@ -64,7 +64,7 @@ describe("Zintl Compiler: Zero-Runtime Baking", () => {
   it("should bake HTML sinks into literal Arabic strings and eliminate runtime", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       await zintl("ar");
       document.body.innerHTML = "Zintl is baked";
     `;
@@ -95,7 +95,7 @@ describe("Zintl Compiler: Zero-Runtime Baking", () => {
   it("should NOT eliminate runtime if the boundary has dynamic anchors", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const code = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       export async function init(lang) {
         await zintl(lang);
         return t("Hello");

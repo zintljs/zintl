@@ -51,7 +51,7 @@ describe("Zintl Compiler - Directives Integration", () => {
   it("should integrate @zintl-pass into the t() call and schema", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       zintl("en");
       export const App = () => (
         <div>

@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Introduce **Virtual Assets Mode** (zero-disk asset reference compilation) to allow building and resolving localized static translation assets purely in memory:

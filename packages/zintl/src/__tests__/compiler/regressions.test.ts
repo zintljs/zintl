@@ -38,7 +38,7 @@ describe("Zintl Regressions: System Gate", () => {
 
     // 2. Add an entry to the current project and flush
     const entryPath = join(root, "src/main.ts");
-    await compiler.transform(`import { zintl } from "zintl"; zintl();`, entryPath);
+    await compiler.transform(`import { zintl } from "zintljs"; zintl();`, entryPath);
     await compiler.flush();
 
     // 3. Verify that 'other-locales' is untouched
@@ -56,8 +56,8 @@ describe("Zintl Regressions: System Gate", () => {
     const childPath = join(root, "src/child.ts");
 
     // Parent with nested anchor and STATIC import
-    const parentCode = `import { zintl } from "zintl"; import "./child"; async function render() { await zintl(); }`;
-    const childCode = `import { t } from "zintl"; export const msg = t("Hello");`;
+    const parentCode = `import { zintl } from "zintljs"; import "./child"; async function render() { await zintl(); }`;
+    const childCode = `import { t } from "zintljs"; export const msg = t("Hello");`;
 
     await compiler.transform(childCode, childPath);
     await compiler.transform(parentCode, parentPath);
@@ -78,7 +78,7 @@ describe("Zintl Regressions: System Gate", () => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const code = `
       export async function render(locale) {
-        const { zintl } = await import("zintl");
+        const { zintl } = await import("zintljs");
         await zintl(locale);
       }
     `;
@@ -99,8 +99,8 @@ describe("Zintl Regressions: System Gate", () => {
     const entryPath = join(root, "src/entry.ts");
     const sharedPath = join(root, "src/shared.ts");
 
-    const entryCode = `import { zintl } from "zintl"; zintl(); import { msg } from "./shared";`;
-    const sharedCode = `import { t } from "zintl"; export const msg = t("Shared Msg");`;
+    const entryCode = `import { zintl } from "zintljs"; zintl(); import { msg } from "./shared";`;
+    const sharedCode = `import { t } from "zintljs"; export const msg = t("Shared Msg");`;
 
     await compiler.transform(sharedCode, sharedPath);
     await compiler.transform(entryCode, entryPath);
@@ -120,14 +120,14 @@ describe("Zintl Regressions: System Gate", () => {
     const safeId = compiler.getSafeBoundaryId("src/main");
 
     // 1. Initial transform
-    await compiler.transform(`import { zintl, t } from "zintl"; zintl(); t("Initial");`, path);
+    await compiler.transform(`import { zintl, t } from "zintljs"; zintl(); t("Initial");`, path);
     await compiler.syncGraphs();
 
     let mod = await compiler.generateVirtualModule(`entry:${safeId}`, "en", true);
     expect(mod.code).toContain("Initial");
 
     // 2. Update code (HMR simulation)
-    await compiler.transform(`import { zintl, t } from "zintl"; zintl(); t("Updated");`, path);
+    await compiler.transform(`import { zintl, t } from "zintljs"; zintl(); t("Updated");`, path);
     // Crucial: syncGraphs must be called as it's what the plugin does during HMR or virtual module request
     await compiler.syncGraphs();
 
@@ -143,15 +143,15 @@ describe("Zintl Regressions: System Gate", () => {
     const parentPath = join(root, "src/main.ts");
     const childPath = join(root, "src/child.ts");
 
-    const parentCode = `import { zintl } from "zintl"; import "./child"; async function render() { await zintl(); }`;
-    const childCode = `import { t } from "zintl"; export const msg = t("Child Msg");`;
+    const parentCode = `import { zintl } from "zintljs"; import "./child"; async function render() { await zintl(); }`;
+    const childCode = `import { t } from "zintljs"; export const msg = t("Child Msg");`;
 
     await compiler.transform(childCode, childPath);
     await compiler.transform(parentCode, parentPath);
     await compiler.syncGraphs();
 
     // Simulating child edit
-    const updatedChildCode = `import { t } from "zintl"; export const msg = t("Updated Child");`;
+    const updatedChildCode = `import { t } from "zintljs"; export const msg = t("Updated Child");`;
     await compiler.transform(updatedChildCode, childPath);
 
     const affected = compiler.getAffectedChunks("src/child");
@@ -167,7 +167,7 @@ describe("Zintl Regressions: System Gate", () => {
   it("Regression: Nested Boundary Pattern Matching - should find chunks via parent path", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const mainPath = join(root, "src/main.ts");
-    const code = `import { zintl, t } from "zintl"; async function render() { await zintl(); t("Msg"); }`;
+    const code = `import { zintl, t } from "zintljs"; async function render() { await zintl(); t("Msg"); }`;
 
     await compiler.transform(code, mainPath);
     await compiler.syncGraphs();

@@ -39,8 +39,8 @@ describe("Zintl Compiler: Boundary Isolation", () => {
 
   it("should not merge a nested entry point's catalog into its parent entry point", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const parentCode = `import { zintl } from "zintl"; zintl("en");\nimport "./nested";\ndocument.body.innerHTML = "Parent Content";`;
-    const nestedCode = `import { zintl } from "zintl"; zintl("en");\ndocument.body.innerHTML = "Nested Content";`;
+    const parentCode = `import { zintl } from "zintljs"; zintl("en");\nimport "./nested";\ndocument.body.innerHTML = "Parent Content";`;
+    const nestedCode = `import { zintl } from "zintljs"; zintl("en");\ndocument.body.innerHTML = "Nested Content";`;
 
     // Process nested first to populate internal state
     await compiler.transform(nestedCode, join(root, "src/nested.ts"), "virtual:zintl/catalogs");
@@ -70,8 +70,8 @@ describe("Zintl Compiler: Boundary Isolation", () => {
   it("should maintain isolation after a restart (persistent metadata)", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     // 1. First session: process files and save manifest
-    const p1Code = `import { zintl } from "zintl"; zintl("en");\nimport "./c1";\ndocument.body.innerHTML = "P1";`;
-    const c1Code = `import { zintl } from "zintl"; zintl("en");\ndocument.body.innerHTML = "C1";`;
+    const p1Code = `import { zintl } from "zintljs"; zintl("en");\nimport "./c1";\ndocument.body.innerHTML = "P1";`;
+    const c1Code = `import { zintl } from "zintljs"; zintl("en");\ndocument.body.innerHTML = "C1";`;
 
     await compiler.transform(p1Code, join(root, "src/p1.ts"), "virtual:zintl/catalogs");
     await compiler.transform(c1Code, join(root, "src/c1.ts"), "virtual:zintl/catalogs");
@@ -101,7 +101,7 @@ describe("Zintl Compiler: Boundary Isolation", () => {
   });
   it("should generate dynamic imports with @vite-ignore in dev mode", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl();`;
+    const code = `import { zintl } from "zintljs"; zintl();`;
 
     await compiler.transform(code, join(root, "src/entry.ts"), "virtual:zintl/catalogs");
     await compiler.flush();

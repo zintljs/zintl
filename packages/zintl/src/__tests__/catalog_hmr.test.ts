@@ -23,7 +23,7 @@ describe("Catalog HMR Integration", () => {
     const compiler = (plugin as any).__compiler;
 
     // 1. Setup a contextual anchor in src/main.ts
-    const code = `import { zintl, t } from "zintl"; zintl("en"); console.log(t("Hello"));`;
+    const code = `import { zintl, t } from "zintljs"; zintl("en"); console.log(t("Hello"));`;
     await ctx.setupFile("src/main.ts", code);
 
     await compiler.discover();
@@ -87,7 +87,7 @@ describe("Catalog HMR Integration", () => {
     const compiler = (plugin as any).__compiler;
 
     // 1. Setup a sovereign anchor in src/main.ts
-    const code = `import { zintl, t } from "zintl"; zintl("*"); console.log(t("Hello"));`;
+    const code = `import { zintl, t } from "zintljs"; zintl("*"); console.log(t("Hello"));`;
     await ctx.setupFile("src/main.ts", code);
 
     await compiler.discover();
@@ -149,7 +149,7 @@ describe("Catalog HMR Integration", () => {
 
     // 1. Setup src/main.tsx with bootstrap zintl call, and src/App.tsx with text
     const mainCode = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       import { App } from "./App";
       async function bootstrap() {
         await zintl("en");
@@ -158,7 +158,7 @@ describe("Catalog HMR Integration", () => {
       bootstrap();
     `;
     const appCode = `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       export function App() {
         return <div>{t("Hello World")}</div>;
       }

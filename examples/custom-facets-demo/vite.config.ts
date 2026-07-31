@@ -1,5 +1,5 @@
 import { defineConfig } from "vite-plus";
-import zintl from "zintl/vite";
+import zintl from "zintljs/vite";
 import { resolve } from "node:path";
 import { handlebarsFacet, multiBrandThemeFacet } from "@zintl-examples/custom-facets";
 
@@ -67,7 +67,7 @@ export default defineConfig({
           const mgrMatch = imports.join("\n").match(/import\s+([a-zA-Z0-9_]+)\s+from/);
           const mgrVar = mgrMatch ? mgrMatch[1] : "undefined";
           const hasTImport = imports.some((imp) => imp.includes("_t"));
-          const tImportLine = hasTImport ? "" : `import { _t } from "zintl/internal";`;
+          const tImportLine = hasTImport ? "" : `import { _t } from "zintljs/internal";`;
 
           return {
             code: `

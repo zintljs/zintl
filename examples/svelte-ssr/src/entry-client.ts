@@ -1,7 +1,7 @@
 import "./app.css";
 import { hydrate } from "svelte";
 import App from "./App.svelte";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 async function bootstrap() {
   await zintl();

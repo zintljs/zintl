@@ -1,6 +1,6 @@
 import "./style.css";
 import { createApp } from "./main";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 const { app } = createApp();
 

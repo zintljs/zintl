@@ -5,7 +5,7 @@ import { BASE_TARGETS, NEXTJS_SUPPRESSION_RULES } from "./helpers/fixtures.js";
 describe("Trust Anchors (zintl)", () => {
   it("should detect zintl at module level", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       zintl("en");
       function App() { return <h1>Submit</h1>; }
     `;
@@ -20,7 +20,7 @@ describe("Trust Anchors (zintl)", () => {
 
   it("should detect zintl inside a function", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       export function generateMetadata() {
         zintl("en");
         return { title: "My Page" };
@@ -38,7 +38,7 @@ describe("Trust Anchors (zintl)", () => {
 
   it("should handle multiple anchors in one file", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       
       export function A() {
         zintl("en");
@@ -93,7 +93,7 @@ describe("Trust Anchors (zintl)", () => {
 
   it("should allow extraction in Next.js metadata/viewport when they have a zintl anchor", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       export async function generateMetadata() {
         await zintl("en");
         return {

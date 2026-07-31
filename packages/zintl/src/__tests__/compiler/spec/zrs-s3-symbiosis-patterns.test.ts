@@ -31,7 +31,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
       );
 
       // main.ts is the Kingdom ($A), utils.ts is the Vassal ($V with $S)
-      const mainCode = `import { zintl } from "zintl"; import "./utils"; await zintl("ar"); document.body.innerHTML = "Main";`;
+      const mainCode = `import { zintl } from "zintljs"; import "./utils"; await zintl("ar"); document.body.innerHTML = "Main";`;
       const utilsCode = `document.body.innerHTML = "Utility";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -54,7 +54,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; import "./utils"; await zintl("ar");`;
+      const mainCode = `import { zintl } from "zintljs"; import "./utils"; await zintl("ar");`;
       const utilsCode = `document.body.innerHTML = "Utility";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -73,7 +73,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; import "./utils"; await zintl("ar");`;
+      const mainCode = `import { zintl } from "zintljs"; import "./utils"; await zintl("ar");`;
       const utilsCode = `document.body.innerHTML = "Utility";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -103,7 +103,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Page = import("./page");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Page = import("./page");`;
       const pageCode = `document.body.innerHTML = "Page Content";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -138,7 +138,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Page = import("./page");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Page = import("./page");`;
       const pageCode = `document.body.innerHTML = "Page Content";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -166,7 +166,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Kingdom";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Kingdom";`;
       const result = await compiler.transform(code, join(root, "src/kingdom.ts"), "target");
 
       expect(result?.code).toContain("loadI18nInstance");
@@ -182,8 +182,8 @@ describe("ZRS §3: Symbiosis Patterns", () => {
       );
 
       // main imports sub lazily, but sub has its own zintl() — it becomes a Kingdom
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Sub = import("./sub");`;
-      const subCode = `import { zintl } from "zintl"; await zintl("en"); document.body.innerHTML = "Sub Kingdom";`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Sub = import("./sub");`;
+      const subCode = `import { zintl } from "zintljs"; await zintl("en"); document.body.innerHTML = "Sub Kingdom";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
       await compiler.transform(subCode, join(root, "src/sub.ts"), "target");
@@ -194,7 +194,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
       expect(graph.entries.has("src/sub")).toBe(true);
     });
 
-    it("should create a Kingdom for $M (import 'zintl') marker", async (context: LocalContext) => {
+    it("should create a Kingdom for $M (import 'zintljs') marker", async (context: LocalContext) => {
       const root = context.root!;
       const compiler = createTestCompiler(
         { sourceLocale: "en", locales: ["en", "ar"] },
@@ -202,7 +202,7 @@ describe("ZRS §3: Symbiosis Patterns", () => {
         true,
       );
 
-      const code = `import "zintl"; document.body.innerHTML = "Library";`;
+      const code = `import "zintljs"; document.body.innerHTML = "Library";`;
       await compiler.transform(code, join(root, "src/library.ts"), "target");
       await compiler.flush();
 

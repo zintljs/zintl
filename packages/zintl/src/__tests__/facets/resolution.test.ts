@@ -434,16 +434,16 @@ describe("Facet Resolution Engine", () => {
     it("vue wrapSfcScript wraps with script setup", () => {
       const { system } = resolveFacets([vueExtractionFacet(), vueCodegenFacet()]);
       const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
-      expect(vueCodegen.wrapSfcScript?.('import { t } from "zintl"')).toBe(
-        `<script setup lang="ts">\nimport { t } from "zintl"</script>\n`,
+      expect(vueCodegen.wrapSfcScript?.('import { t } from "zintljs"')).toBe(
+        `<script setup lang="ts">\nimport { t } from "zintljs"</script>\n`,
       );
     });
 
     it("svelte wrapSfcScript wraps with script", () => {
       const { system } = resolveFacets([svelteExtractionFacet(), svelteCodegenFacet()]);
       const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
-      expect(svelteCodegen.wrapSfcScript?.('import { t } from "zintl"')).toBe(
-        `<script>\nimport { t } from "zintl"</script>\n`,
+      expect(svelteCodegen.wrapSfcScript?.('import { t } from "zintljs"')).toBe(
+        `<script>\nimport { t } from "zintljs"</script>\n`,
       );
     });
   });

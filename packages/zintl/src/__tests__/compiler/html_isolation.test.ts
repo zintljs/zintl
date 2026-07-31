@@ -32,7 +32,7 @@ describe("HTML Catalog Isolation & Persistence", () => {
     await writeFile(htmlPath, htmlCode);
 
     // 2. Create a TS file with messages
-    const tsCode = `import { zintl } from "zintl"; zintl("en"); document.body.innerHTML = "Hello";`;
+    const tsCode = `import { zintl } from "zintljs"; zintl("en"); document.body.innerHTML = "Hello";`;
     const tsPath = join(root, "src/main.ts");
     await writeFile(tsPath, tsCode);
 
@@ -79,7 +79,7 @@ describe("HTML Catalog Isolation & Persistence", () => {
     const htmlPath = join(root, "index.html");
     await writeFile(htmlPath, htmlCode);
 
-    const tsCode = `import { zintl } from "zintl"; zintl("en");`;
+    const tsCode = `import { zintl } from "zintljs"; zintl("en");`;
     const tsPath = join(root, "src/main.ts");
     await writeFile(tsPath, tsCode);
 

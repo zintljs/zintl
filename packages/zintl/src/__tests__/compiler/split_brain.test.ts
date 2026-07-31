@@ -28,7 +28,7 @@ describe("ZintlCompiler - Split-Brain (Disk Collision)", () => {
 
     // Transform boundary A
     await compiler.transform(
-      'import { t, zintl } from "zintl"; zintl("ar"); const x = t("Hello A");',
+      'import { t, zintl } from "zintljs"; zintl("ar"); const x = t("Hello A");',
       join(root, "src/App.ts"),
     );
 
@@ -50,7 +50,7 @@ describe("ZintlCompiler - Split-Brain (Disk Collision)", () => {
     // Here we simulate a second boundary that would collide if not handled
     // We use a different file but same catalog path to prove the point
     await compiler.transform(
-      'import { t, zintl } from "zintl"; zintl("ar"); const y = t("Hello B");',
+      'import { t, zintl } from "zintljs"; zintl("ar"); const y = t("Hello B");',
       join(root, "src/App.ts"), // Overwriting App.ts with new content that has different message
     );
 
@@ -73,10 +73,10 @@ describe("ZintlCompiler - Split-Brain (Disk Collision)", () => {
     );
     await compiler2.setup();
 
-    await compiler2.transform('import { t } from "zintl"; t("Hello A")', join(root2, "src/A.ts"));
+    await compiler2.transform('import { t } from "zintljs"; t("Hello A")', join(root2, "src/A.ts"));
     await compiler2.flush();
 
-    await compiler2.transform('import { t } from "zintl"; t("Hello B")', join(root2, "src/B.ts"));
+    await compiler2.transform('import { t } from "zintljs"; t("Hello B")', join(root2, "src/B.ts"));
     await compiler2.flush();
 
     const sharedPath = join(root2, "locales/shared.ar.json");

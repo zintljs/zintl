@@ -35,7 +35,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
 
     // 1. Create file A with a translatable string
     const codeA1 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Global Memory"));
     `;
@@ -61,7 +61,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
     // When the compiler flushes, it loads the user catalog from disk, harvests the translation into the hive,
     // and then deletes the key from the user catalog.
     const codeA2 = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log("No memory here");
     `;
@@ -73,7 +73,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
 
     // 3. Create a totally new file B that uses the EXACT SAME string.
     const codeB = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Global Memory"));
     `;
@@ -95,7 +95,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
     await mkdir(join(root, "src"), { recursive: true });
 
     const codeA = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Count is {counter}"));
     `;
@@ -122,7 +122,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
 
     // Now use it in file B
     const codeB = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Count is {counter}"));
     `;
@@ -143,7 +143,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
     await mkdir(join(root, "src"), { recursive: true });
 
     const codeA = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Persistent Memory"));
     `;
@@ -175,7 +175,7 @@ describe("The Translation Hive (Global Resuscitation)", () => {
     const catalogPathB = compiler2.getCatalogPath("src/persist_b", "ar")!;
     const fileB = join(root, "src/persist_b.ts");
     const codeB = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       zintl(Math.random() > 0.5 ? "ar" : "en");
       console.log(t("Persistent Memory"));
     `;

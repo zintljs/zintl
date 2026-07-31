@@ -22,7 +22,7 @@ describe("Flow: Dev DX (Content as Key)", () => {
   // it("should use readable content as keys in both code and catalog in Dev Mode", async () => {
   //   const filePath = "src/main.ts";
   //   // Must include zintl to be detected as a boundary
-  //   const sourceCode = `import "zintl"; document.body.innerHTML = "Welcome to Zintl";`;
+  //   const sourceCode = `import "zintljs"; document.body.innerHTML = "Welcome to Zintl";`;
 
   //   // Transform
   //   const transformed = await ctx.transform(filePath, sourceCode);
@@ -43,7 +43,7 @@ describe("Flow: Dev DX (Content as Key)", () => {
 
   it("should handle multi-boundary consolidation with readable keys in Dev Mode", async () => {
     const results = await ctx.project({
-      "src/main.ts": `import { zintl } from "zintl"; zintl("en"); import "./comp";`,
+      "src/main.ts": `import { zintl } from "zintljs"; zintl("en"); import "./comp";`,
       "src/comp.ts": `document.body.innerHTML = "Sub Component";`,
     });
 

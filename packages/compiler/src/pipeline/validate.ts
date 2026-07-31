@@ -113,11 +113,11 @@ function validateStrays(result: TransformResult, errors: ValidationError[]) {
     });
   }
 
-  // import "zintl" (side-effect marker) should also be gone
+  // import "zintljs" (side-effect marker) should also be gone
   if (/\bimport\s+['"]zintl['"]/.test(codeWithoutDistractions)) {
     errors.push({
       type: "stray_marker",
-      marker: 'import "zintl"',
+      marker: 'import "zintljs"',
     });
   }
 }

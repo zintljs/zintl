@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": patch
 "@zintljs/extractor": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Fix evaluation of dynamic attributes, tag replacement, and boundary resolution in JSX/SFC compilation:

@@ -96,7 +96,7 @@ describe("Zintl Extractor", () => {
 
   it("should recursively trace variable declarations for anchor detection", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       const a = "en";
       const b = a;
       const c = b;
@@ -125,7 +125,7 @@ describe("Zintl Extractor", () => {
 
   it("should handle default import specifiers", () => {
     const code = `
-      import zintl from "zintl";
+      import zintl from "zintljs";
       zintl("en");
     `;
     const result = extract(code, "App.tsx", "App");
@@ -134,7 +134,7 @@ describe("Zintl Extractor", () => {
 
   it("should capture statementRange correctly in ReturnStatement", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       function App() {
         return zintl("en");
       }

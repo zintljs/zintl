@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Fix phantom boundary integrity errors and phantom asset output for projects without a `zintl()` anchor:

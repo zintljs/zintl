@@ -23,7 +23,7 @@ describe("HTML HMR", () => {
     const compiler = (plugin as any).__compiler;
 
     // 1. Setup an HTML file and its script
-    await ctx.setupFile("src/main.ts", `import { zintl } from "zintl"; zintl("en");`);
+    await ctx.setupFile("src/main.ts", `import { zintl } from "zintljs"; zintl("en");`);
     const htmlCode = `<html><head><title>HMR Test</title><script src="/src/main.ts"></script></head></html>`;
     await ctx.setupFile("index.html", htmlCode);
 
@@ -69,7 +69,7 @@ describe("HTML HMR", () => {
     const compiler = (plugin as any).__compiler;
 
     // 1. Setup a standard boundary
-    const tsCode = `import { zintl } from "zintl"; zintl("en"); console.log("Hello");`;
+    const tsCode = `import { zintl } from "zintljs"; zintl("en"); console.log("Hello");`;
     await ctx.setupFile("src/main.ts", tsCode);
 
     await compiler.discover();
@@ -110,7 +110,7 @@ describe("HTML HMR", () => {
     const compiler = (plugin as any).__compiler;
 
     // 1. Setup an HTML file and its script
-    await ctx.setupFile("src/main.ts", `import { zintl } from "zintl"; zintl("en");`);
+    await ctx.setupFile("src/main.ts", `import { zintl } from "zintljs"; zintl("en");`);
     const htmlCode = `<html><head><title>HMR Test</title><script src="/src/main.ts"></script></head><body><h1>Hello</h1></body></html>`;
     const htmlPath = join(root, "index.html");
     await ctx.setupFile("index.html", htmlCode);

@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": minor
 "@zintljs/extractor": minor
-"zintl": minor
+"zintljs": minor
 ---
 
 Prepare the packages for their first public release.

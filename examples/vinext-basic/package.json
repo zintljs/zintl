@@ -29,6 +29,6 @@
     "vinext": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
-    "zintl": "workspace:*"
+    "zintljs": "workspace:*"
   }
 }

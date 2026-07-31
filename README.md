@@ -19,8 +19,8 @@
 </p>
 
 <p align="center">
-  <a href="https://npmjs.com/package/zintl"><img src="https://img.shields.io/npm/v/zintl.svg?color=863bff&label=" alt="npm package"></a>
-  <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/zintl.svg?color=6a2ee3&label=node" alt="node compatibility"></a>
+  <a href="https://npmjs.com/package/zintljs"><img src="https://img.shields.io/npm/v/zintljs.svg?color=863bff&label=" alt="npm package"></a>
+  <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/zintljs.svg?color=6a2ee3&label=node" alt="node compatibility"></a>
   <a href="https://github.com/zintljs/zintl/actions"><img src="https://img.shields.io/badge/build-passing-success" alt="build status"></a>
 </p>
 
@@ -68,7 +68,7 @@ Source Code ──▶ @zintljs/extractor (AST Scan) ──▶ @zintljs/compiler 
 Install the main Zintl package using Vite+:
 
 ```bash
-vp install -D zintl
+vp install -D zintljs
 ```
 
 ### 2. Configure the Vite Plugin
@@ -77,7 +77,7 @@ Add the plugin to your `vite.config.ts` configuration file:
 
 ```typescript
 import { defineConfig } from "vite";
-import zintl from "zintl/vite"; // the plugin — a default export
+import zintl from "zintljs/vite"; // the plugin — a default export
 
 export default defineConfig({
   plugins: [
@@ -119,7 +119,7 @@ Establish a **Trust Anchor** in your application entry point. Every file or func
 
 ```typescript
 // src/main.ts
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 async function initApp() {
   const userLang = new URLSearchParams(window.location.search).get("lang") || "en";
@@ -206,7 +206,7 @@ Zintl implements a **Source Purity** philosophy. Developers do not write complex
 
 | Package                                        | Version                                                                                                                   | Description                                              |
 | :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------- |
-| [**`zintl`**](packages/zintl)                  | [![version](https://img.shields.io/npm/v/zintl.svg?color=863bff&label=%20)](packages/zintl/CHANGELOG.md)                  | Vite plugin & macro runtime library.                     |
+| [**`zintl`**](packages/zintl)                  | [![version](https://img.shields.io/npm/v/zintljs.svg?color=863bff&label=%20)](packages/zintl/CHANGELOG.md)                | Vite plugin & macro runtime library.                     |
 | [**`@zintljs/compiler`**](packages/compiler)   | [![version](https://img.shields.io/npm/v/@zintljs/compiler.svg?color=863bff&label=%20)](packages/compiler/CHANGELOG.md)   | Graph management, HTML projection & ICU baking compiler. |
 | [**`@zintljs/extractor`**](packages/extractor) | [![version](https://img.shields.io/npm/v/@zintljs/extractor.svg?color=863bff&label=%20)](packages/extractor/CHANGELOG.md) | AST-based string & dependency extraction utility.        |
 

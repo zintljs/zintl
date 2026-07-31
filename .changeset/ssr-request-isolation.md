@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Added support for Server-Side Rendering (SSR) request context isolation and automatic client-side locale inheritance:

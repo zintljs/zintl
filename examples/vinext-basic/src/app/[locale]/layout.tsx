@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 import LocaleSwitcher from "../../components/locales";
 
 const geistSans = Geist({

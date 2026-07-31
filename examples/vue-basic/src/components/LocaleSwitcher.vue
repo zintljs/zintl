@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 const props = defineProps<{
   lang: string;

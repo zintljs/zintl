@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { renderToString } from "react-dom/server";
 import App from "./App";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 export async function render(_url: string) {
   await zintl();

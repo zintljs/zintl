@@ -30,7 +30,7 @@ describe("ZintlCompiler - End-to-End Key Reconciliation", () => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const fileId = "src/components/Banner.tsx";
     const codeV1 = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       zintl("en");
       export function Banner() { return <h1>Welcome to our application!</h1>; }
     `;
@@ -78,7 +78,7 @@ describe("ZintlCompiler - End-to-End Key Reconciliation", () => {
 
     // 3. Second Parse (Code change / Typo fixed)
     const codeV2 = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       zintl("en");
       export function Banner() { return <h1>Welcome to our application.</h1>; }
     `;

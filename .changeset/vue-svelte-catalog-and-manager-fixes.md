@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": patch
 "@zintljs/extractor": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Fix HTML catalog generation pollution in SFC templates, ignore only-variable text nodes, and optimize translation loader generation:

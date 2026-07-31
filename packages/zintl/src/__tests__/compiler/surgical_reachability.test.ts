@@ -19,7 +19,7 @@ describe("Surgical Reachability", () => {
     const root = context.root!;
     // 1. Dependency file with top-level string and an exported function
     const counterTs = `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       export const x = t("Hello Top Level");
       export function setupCounter() {
         return t("Inside Function");
@@ -29,7 +29,7 @@ describe("Surgical Reachability", () => {
 
     // 2. Entry file that ONLY uses the exported function
     const mainTs = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       import { setupCounter } from "./counter";
 
       async function render() {
@@ -84,7 +84,7 @@ describe("Surgical Reachability", () => {
   it("should create surgical boundaries for local functions in entry files", async (context: TestContext) => {
     const root = context.root!;
     const mainTs = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       
       function localFunc() {
         return t("Local Message");

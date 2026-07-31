@@ -29,7 +29,7 @@ describe("Scenario: World-Class Meditations", () => {
 
     const result = await ctx.transform(
       "src/main.ts",
-      `import { zintl } from "zintl"; zintl("en"); ${content}`,
+      `import { zintl } from "zintljs"; zintl("en"); ${content}`,
     );
     const { matchers } = ctx;
 
@@ -44,7 +44,7 @@ describe("Scenario: World-Class Meditations", () => {
 
   it("Meditation 12: The Hydration Void (Loading Race)", async () => {
     const files = {
-      "src/main.ts": `import { zintl, t, loadI18nInstance } from "zintl"; \nloadI18nInstance({ locale: "ar" }); console.log(document.body.innerHTML = "Immediate");`,
+      "src/main.ts": `import { zintl, t, loadI18nInstance } from "zintljs"; \nloadI18nInstance({ locale: "ar" }); console.log(document.body.innerHTML = "Immediate");`,
     };
 
     const results = await ctx.project(files);

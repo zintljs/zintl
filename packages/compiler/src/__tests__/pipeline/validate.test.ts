@@ -30,12 +30,12 @@ const createMockObs = (overrides: Partial<FileObservation> = {}): FileObservatio
 describe("Pipeline Phase 5: validate()", () => {
   it("should pass for valid transformed code", () => {
     const result: TransformResult = {
-      code: `import { t } from "zintl";\nt("msg");`,
+      code: `import { t } from "zintljs";\nt("msg");`,
       diagnostics: [],
       map: {},
     };
     const plan: ResolvedPlan = {
-      imports: [{ source: "zintl", specifiers: ["t"], strategy: "merge" }],
+      imports: [{ source: "zintljs", specifiers: ["t"], strategy: "merge" }],
       prepends: [],
       rewrites: [],
       diagnostics: [],
@@ -53,7 +53,7 @@ describe("Pipeline Phase 5: validate()", () => {
       map: {},
     };
     const plan: ResolvedPlan = {
-      imports: [{ source: "zintl", specifiers: ["_t"], strategy: "new" }],
+      imports: [{ source: "zintljs", specifiers: ["_t"], strategy: "new" }],
       prepends: [],
       rewrites: [{ kind: "manual_t", start: 0, end: 2, replacement: '_t("msg")' } as any],
       diagnostics: [],
@@ -66,7 +66,7 @@ describe("Pipeline Phase 5: validate()", () => {
 
   it("should fail if zintl() stray call is detected", () => {
     const result: TransformResult = {
-      code: `import { t } from "zintl";\nzintl("en");`,
+      code: `import { t } from "zintljs";\nzintl("en");`,
       diagnostics: [],
       map: {},
     };

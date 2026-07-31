@@ -1,7 +1,7 @@
 {
   "entries": [
     "index.html",
-    "src/components/LocaleSwitcher.vue:f_457",
+    "src/components/LocaleSwitcher.vue:f_459",
     "src/main:bootstrap"
   ],
   "nodes": {
@@ -91,14 +91,14 @@
       "deps": [
         {
           "dynamic": false,
-          "id": "src/components/LocaleSwitcher.vue:f_457"
+          "id": "src/components/LocaleSwitcher.vue:f_459"
         },
         {
           "bindings": [
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/components/LocaleSwitcher.vue",
@@ -106,7 +106,7 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/components/LocaleSwitcher.vue:f_457": {
+    "src/components/LocaleSwitcher.vue:f_459": {
       "activeLocales": "all",
       "deps": [
         {
@@ -114,11 +114,11 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/components/LocaleSwitcher.vue",
-      "id": "src/components/LocaleSwitcher.vue:f_457",
+      "id": "src/components/LocaleSwitcher.vue:f_459",
       "mode": "entry",
       "usageCount": 0
     },
@@ -173,7 +173,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main",
@@ -208,7 +208,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main",
@@ -242,7 +242,7 @@
             "default"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "zintljs/vite"
         }
       ],
       "filePath": "vite.config",

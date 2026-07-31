@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Expanded SSR entry point file extension matching in the compiler presets to support JSX/TSX:

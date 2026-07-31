@@ -4,7 +4,7 @@ import { extractBase as extract } from "../helpers/extract.js";
 describe("createProgramVisitor (Integration)", () => {
   it("should handle async anchors with await", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       async function setup() {
         await zintl("en");
         return <h1>Async</h1>;
@@ -18,7 +18,7 @@ describe("createProgramVisitor (Integration)", () => {
 
   it("should handle anchors wrapped in void", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       void zintl("en");
       const x = <h1>Void</h1>;
     `;
@@ -29,7 +29,7 @@ describe("createProgramVisitor (Integration)", () => {
 
   it("should handle anchors with .then()", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       zintl("en").then(() => {
         const x = <h1>Then</h1>;
       });
@@ -41,7 +41,7 @@ describe("createProgramVisitor (Integration)", () => {
 
   it("should detect manual translations via t()", () => {
     const code = `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       const msg = t("hello.world", { name: "User" });
     `;
     const result = extract(code, "test.ts", "test");
@@ -80,9 +80,9 @@ describe("createProgramVisitor (Integration)", () => {
     expect(result.messages.find((m) => m.text === "Internal")?.boundaryId).toBe("test:Internal");
   });
 
-  it("should mark as entry if import 'zintl' is present without specifiers", () => {
+  it("should mark as entry if import 'zintljs' is present without specifiers", () => {
     const code = `
-      import "zintl";
+      import "zintljs";
       const x = <h1>Marker</h1>;
     `;
     const result = extract(code, "test.tsx", "test");
@@ -125,7 +125,7 @@ describe("createProgramVisitor (Integration)", () => {
 
   it("should skip loadI18nInstance if it already contains loaders", () => {
     const code = `
-      import { loadI18nInstance } from "zintl";
+      import { loadI18nInstance } from "zintljs";
       loadI18nInstance({
         locale: "en",
         loaders: { b1: () => ({}) }

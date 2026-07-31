@@ -27,7 +27,7 @@ import unplugin from "./plugin.js";
  * ```ts
  * // vite.config.ts
  * import { defineConfig } from "vite";
- * import zintl from "zintl/vite";
+ * import zintl from "zintljs/vite";
  *
  * export default defineConfig({
  *   plugins: [

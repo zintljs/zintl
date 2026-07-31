@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Ensure deterministic boundary and chunk graph serialization by implementing deterministic sorting helpers:

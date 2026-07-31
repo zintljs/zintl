@@ -22,7 +22,7 @@ describe("Compiler Optimizations", () => {
   it("should pre-populate caches during discover()", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const mainPath = join(root, "src/main.ts");
-    const code = 'import { zintl } from "zintl"; zintl("en"); console.log("hello");';
+    const code = 'import { zintl } from "zintljs"; zintl("en"); console.log("hello");';
     await writeFile(mainPath, code);
 
     // Verify cache is empty
@@ -69,7 +69,7 @@ describe("Compiler Optimizations", () => {
   it("should skip graph synchronization during discovery phase", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     const mainPath = join(root, "src/main.ts");
-    const code = 'import { zintl } from "zintl"; zintl("en");';
+    const code = 'import { zintl } from "zintljs"; zintl("en");';
     await writeFile(mainPath, code);
 
     // If it synchronized, graph would be populated

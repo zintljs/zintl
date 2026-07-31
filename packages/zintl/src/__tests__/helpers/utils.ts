@@ -130,7 +130,7 @@ export function createZintlMatchers(plugin: any) {
   };
 
   return {
-    toImportFromZintl(code: string, imports: string[], source: string = "zintl") {
+    toImportFromZintl(code: string, imports: string[], source: string = "zintljs") {
       for (const i of imports) {
         // Allow zintl or zintl/internal depending on what is being checked
         expect(code).toMatch(

@@ -24,7 +24,7 @@ describe("Boundary Graph Algorithm", () => {
     it("should process files with zintl trust anchor", async (context: LocalContext) => {
       const { compiler, root: testRoot } = context;
       const entryCode = `
-                import { zintl } from "zintl";
+                import { zintl } from "zintljs";
         zintl("en");
         const mainTitle = "Main Title";
         import layout from "./layout";
@@ -44,7 +44,7 @@ describe("Boundary Graph Algorithm", () => {
     it("should process multiple entry points", async (context: LocalContext) => {
       const { compiler, root: testRoot } = context;
       const microEntryCode = `
-                import { zintl } from "zintl";
+                import { zintl } from "zintljs";
         zintl("en");
         const adminTitle = "Admin Panel";
         import settings from "./settings";
@@ -66,7 +66,7 @@ describe("Boundary Graph Algorithm", () => {
     it("should handle static imports", async (context: LocalContext) => {
       const { compiler, root: testRoot } = context;
       const code = `
-                import { zintl } from "zintl";
+                import { zintl } from "zintljs";
         zintl("en");
         const title = "Title";
         import staticDep from "./static";
@@ -83,7 +83,7 @@ describe("Boundary Graph Algorithm", () => {
     it("should handle dynamic imports", async (context: LocalContext) => {
       const { compiler, root: testRoot } = context;
       const code = `
-                import { zintl } from "zintl";
+                import { zintl } from "zintljs";
         zintl("en");
         const title = "Title";
         import("./dynamic");
@@ -101,7 +101,7 @@ describe("Boundary Graph Algorithm", () => {
   describe("Boundary ID Generation", () => {
     it("should generate stable boundary IDs", async (context: LocalContext) => {
       const { compiler, root: testRoot } = context;
-      const code = `        import { zintl } from "zintl";
+      const code = `        import { zintl } from "zintljs";
         zintl("en"); const msg = "test";`;
 
       // Transform same file twice
@@ -118,7 +118,7 @@ describe("Boundary Graph Algorithm", () => {
       const { compiler, root: testRoot } = context;
       // Setup some files first
       await compiler.transform(
-        `        import { zintl } from "zintl";
+        `        import { zintl } from "zintljs";
         zintl("en"); const title = "Main";`,
         join(testRoot, "src/entry.ts"),
         "virtual:zintl-catalog",
@@ -136,7 +136,7 @@ describe("Boundary Graph Algorithm", () => {
       const { compiler, root: testRoot } = context;
       // Create a dependency chain
       await compiler.transform(
-        `        import { zintl } from "zintl";
+        `        import { zintl } from "zintljs";
         zintl("en"); const main = "Main"; import layout from "./layout";`,
         join(testRoot, "src/entry.ts"),
         "virtual:zintl-catalog",
@@ -157,7 +157,7 @@ describe("Boundary Graph Algorithm", () => {
       const { compiler, root: testRoot } = context;
       // Setup files with messages
       await compiler.transform(
-        `        import { zintl } from "zintl";
+        `        import { zintl } from "zintljs";
         zintl("en"); const title = "Main Title";`,
         join(testRoot, "src/entry.ts"),
         "virtual:zintl-catalog",

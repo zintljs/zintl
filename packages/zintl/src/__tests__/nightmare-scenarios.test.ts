@@ -24,7 +24,7 @@ describe("Nightmare Meditations: Salvation Stress Tests", () => {
   //   const files = {
   //     "src/a.ts": `import "./b"; document.body.innerHTML = "A Content";`,
   //     "src/b.ts": `import "./a"; document.body.innerHTML = "B Content";`,
-  //     "src/main.ts": `import { zintl } from "zintl"; zintl("en"); import "./a";`,
+  //     "src/main.ts": `import { zintl } from "zintljs"; zintl("en"); import "./a";`,
   //   };
 
   //   const results = await ctx.project(files);
@@ -42,7 +42,7 @@ describe("Nightmare Meditations: Salvation Stress Tests", () => {
     const result = await ctx.transform(
       "src/shadow.ts",
       `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       const _zintl_mgr_b_bd50d169e701 = { loader: (loc) => ({}) };
       document.body.innerHTML = "Original Content";
     `,
@@ -57,8 +57,8 @@ describe("Nightmare Meditations: Salvation Stress Tests", () => {
 
   // it("should prevent Cross-Entry Shared Logic (Locale Interference)", async () => {
   //   const files = {
-  //     "src/en-root.ts": `import { zintl } from "zintl"; zintl("en"); import "./shared";`,
-  //     "src/ar-root.ts": `import { zintl } from "zintl"; zintl("ar"); import "./shared";`,
+  //     "src/en-root.ts": `import { zintl } from "zintljs"; zintl("en"); import "./shared";`,
+  //     "src/ar-root.ts": `import { zintl } from "zintljs"; zintl("ar"); import "./shared";`,
   //     "src/shared.ts": `document.body.innerHTML = "Silent Collision";`,
   //   };
 
@@ -79,7 +79,7 @@ describe("Nightmare Meditations: Salvation Stress Tests", () => {
   //   const result = await ctx.transform(
   //     "src/collision.ts",
   //     `
-  //     import { zintl } from "zintl";
+  //     import { zintl } from "zintljs";
   //     zintl("en");
   //     zintl("ar");
   //     document.body.innerHTML = "Multi-Content";

@@ -28,8 +28,8 @@ describe("ZRS §10: Conflict Resolution", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Sub = import("./sub");`;
-      const subCode = `import { zintl } from "zintl"; await zintl("en"); document.body.innerHTML = "Sub";`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Sub = import("./sub");`;
+      const subCode = `import { zintl } from "zintljs"; await zintl("en"); document.body.innerHTML = "Sub";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
       await compiler.transform(subCode, join(root, "src/sub.ts"), "target");
@@ -52,9 +52,9 @@ describe("ZRS §10: Conflict Resolution", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Lib = import("./lib");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Lib = import("./lib");`;
       // The lib uses $M to declare Kingdom intent
-      const libCode = `import "zintl"; document.body.innerHTML = "Library Content";`;
+      const libCode = `import "zintljs"; document.body.innerHTML = "Library Content";`;
 
       await compiler.transform(mainCode, join(root, "src/main.ts"), "target");
       await compiler.transform(libCode, join(root, "src/lib.ts"), "target");
@@ -79,7 +79,7 @@ describe("ZRS §10: Conflict Resolution", () => {
           true,
         );
 
-        const codeA = `import { zintl } from "zintl"; import "./b"; await zintl("ar"); document.body.innerHTML = "A";`;
+        const codeA = `import { zintl } from "zintljs"; import "./b"; await zintl("ar"); document.body.innerHTML = "A";`;
         const codeB = `import "./a"; document.body.innerHTML = "B";`;
 
         await compiler.transform(codeA, join(root, "src/a.ts"), "target");
@@ -108,7 +108,7 @@ describe("ZRS §10: Conflict Resolution", () => {
       );
 
       const code = `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         function setupHeader() { zintl("ar"); document.body.innerHTML = "Header"; }
         function setupFooter() { zintl("en"); document.body.innerHTML = "Footer"; }
       `;
@@ -138,7 +138,7 @@ describe("ZRS §10: Conflict Resolution", () => {
       );
 
       const code = `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         await zintl("ar");
         document.body.innerHTML = "Top Level";
         function render() { zintl(); document.body.innerHTML = "Nested"; }
@@ -172,7 +172,7 @@ describe("ZRS §10: Conflict Resolution", () => {
         false,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       const lazyCode = `document.body.innerHTML = "Lazy";`;
 
       // Dev run

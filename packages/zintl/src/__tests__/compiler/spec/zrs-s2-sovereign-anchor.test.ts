@@ -25,7 +25,7 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
     );
 
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       async function setup() {
         await zintl("*");
       }
@@ -48,7 +48,7 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
     );
 
     const parentCode = `import "./subordinate";`;
-    const subordinateCode = `import { zintl } from "zintl"; await zintl("*");`;
+    const subordinateCode = `import { zintl } from "zintljs"; await zintl("*");`;
 
     const parentPath = join(root, "src/parent.ts");
     const subordinatePath = join(root, "src/subordinate.ts");
@@ -78,8 +78,8 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
       false, // Production mode
     );
 
-    const entryCode = `import { zintl } from "zintl"; await zintl("*"); import "./descendant";`;
-    const descendantCode = `import { zintl } from "zintl"; zintl(); document.body.innerHTML = "Descendant Msg";`;
+    const entryCode = `import { zintl } from "zintljs"; await zintl("*"); import "./descendant";`;
+    const descendantCode = `import { zintl } from "zintljs"; zintl(); document.body.innerHTML = "Descendant Msg";`;
 
     const entryPath = join(root, "src/entry.ts");
     const descendantPath = join(root, "src/descendant.ts");
@@ -118,7 +118,7 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
       false, // Production mode
     );
 
-    const entryCode = `import { zintl } from "zintl"; await zintl("*");`;
+    const entryCode = `import { zintl } from "zintljs"; await zintl("*");`;
     const entryPath = join(root, "src/main.ts");
 
     await mkdir(dirname(entryPath), { recursive: true });
@@ -157,8 +157,8 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
       false, // Production mode
     );
 
-    const mfeACode = `import { zintl } from "zintl"; await zintl("*"); document.body.innerHTML = "MFE A";`;
-    const mfeBCode = `import { zintl } from "zintl"; await zintl("*"); document.body.innerHTML = "MFE B";`;
+    const mfeACode = `import { zintl } from "zintljs"; await zintl("*"); document.body.innerHTML = "MFE A";`;
+    const mfeBCode = `import { zintl } from "zintljs"; await zintl("*"); document.body.innerHTML = "MFE B";`;
 
     const mfeAPath = join(root, "src/mfeA.ts");
     const mfeBPath = join(root, "src/mfeB.ts");
@@ -187,9 +187,9 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
       false, // Production mode
     );
 
-    const entryCode = `import { zintl } from "zintl"; await zintl("*"); import "./widget";`;
+    const entryCode = `import { zintl } from "zintljs"; await zintl("*"); import "./widget";`;
     const widgetCode = `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       export async function loadWidget(lang) {
         await zintl(lang); // Dynamic Opt-Out
         return t("Widget Loaded");
@@ -242,7 +242,7 @@ describe("ZRS §2.4: Sovereign Anchor ($A_{sovereign}$)", () => {
       false,
     );
 
-    const entryCode = `import { zintl } from "zintl"; await zintl("*");`;
+    const entryCode = `import { zintl } from "zintljs"; await zintl("*");`;
     const entryPath = join(root, "src/main.ts");
     await mkdir(dirname(entryPath), { recursive: true });
     await writeFile(entryPath, entryCode);

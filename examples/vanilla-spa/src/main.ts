@@ -2,7 +2,7 @@ import "./style.css";
 import { Router } from "./router";
 import { Header } from "./components/Header";
 import { Home } from "./pages/Home";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 async function initApp() {
   const params = new URLSearchParams(window.location.search);

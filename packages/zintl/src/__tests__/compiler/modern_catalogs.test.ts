@@ -32,7 +32,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
     };
 
     await compiler.transform(
-      'import { t } from "zintl"; t("Hello World")',
+      'import { t } from "zintljs"; t("Hello World")',
       join(root, "src/index.ts"),
     );
     await compiler.flush();
@@ -68,7 +68,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
       true,
     );
     await compiler1.setup();
-    await compiler1.transform('import { t } from "zintl"; t("A")', join(root, "src/page.ts"));
+    await compiler1.transform('import { t } from "zintljs"; t("A")', join(root, "src/page.ts"));
     await compiler1.flush();
 
     expect(existsSync(join(root, "locales/src/page.ar.json"))).toBe(true);
@@ -86,7 +86,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
       true,
     );
     await compiler2.setup();
-    await compiler2.transform('import { t } from "zintl"; t("A")', join(root, "src/page.ts"));
+    await compiler2.transform('import { t } from "zintljs"; t("A")', join(root, "src/page.ts"));
     await compiler2.flush();
 
     // New files exist
@@ -110,7 +110,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
       true,
     );
     await compiler1.setup();
-    await compiler1.transform('import { t } from "zintl"; t("A")', join(root, "src/page.ts"));
+    await compiler1.transform('import { t } from "zintljs"; t("A")', join(root, "src/page.ts"));
     await compiler1.flush();
 
     expect(existsSync(join(root, "locales"))).toBe(true);
@@ -127,7 +127,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
 
     // We need to simulate the persistent manifest by NOT deleting the root, but compiler1 already saved it.
     await compiler2.setup();
-    await compiler2.transform('import { t } from "zintl"; t("A")', join(root, "src/page.ts"));
+    await compiler2.transform('import { t } from "zintljs"; t("A")', join(root, "src/page.ts"));
     await compiler2.flush();
 
     // New directory exists
@@ -153,7 +153,7 @@ describe("ZintlCompiler - Modern Catalogs", () => {
     (compiler1 as any).messages.markHiveDirty();
     await (compiler1 as any).messages.flushHive(); // Explicitly flush hive to disk for the next compiler to pick it up
     await compiler1.transform(
-      'import { zintl, t } from "zintl"; zintl(Math.random() > 0.5 ? "ar" : "en"); t("Greeting")',
+      'import { zintl, t } from "zintljs"; zintl(Math.random() > 0.5 ? "ar" : "en"); t("Greeting")',
       join(root, "src/index.ts"),
     );
     await compiler1.flush();

@@ -2,7 +2,7 @@ import "./index.css";
 import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import App from "./App";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 async function bootstrap() {
   await zintl();

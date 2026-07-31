@@ -14,7 +14,7 @@ describe("Flow: Modular SPA", () => {
   //   const devCtx = await createZintlContext({ isDev: true });
 
   //   const files = {
-  //     "src/main.ts": `import { zintl } from "zintl"; zintl("en"); import "./ui";`,
+  //     "src/main.ts": `import { zintl } from "zintljs"; zintl("en"); import "./ui";`,
   //     "src/ui.ts": `document.body.innerHTML = "Welcome";`,
   //   };
 
@@ -32,9 +32,9 @@ describe("Flow: Modular SPA", () => {
     //TODO: Reenable matchers after fixing the baking.
     const ctx = await createZintlContext({ logLevel: "silent" });
     const files = {
-      "src/main.ts": `import { zintl } from "zintl"; zintl(window.navigator.language || "en"); import "./shared";`,
-      "src/other.ts": `import { zintl } from "zintl"; zintl(window.navigator.language || "en"); import "./shared";`,
-      "src/shared.ts": `import "zintl"; document.body.innerHTML = "Welcome";`,
+      "src/main.ts": `import { zintl } from "zintljs"; zintl(window.navigator.language || "en"); import "./shared";`,
+      "src/other.ts": `import { zintl } from "zintljs"; zintl(window.navigator.language || "en"); import "./shared";`,
+      "src/shared.ts": `import "zintljs"; document.body.innerHTML = "Welcome";`,
     };
 
     const results = await ctx.project(files);
@@ -53,8 +53,8 @@ describe("Flow: Modular SPA", () => {
     const devCtx = await createZintlContext({ isDev: true, logLevel: "silent" });
 
     const files = {
-      "src/main.ts": `import { zintl } from "zintl"; zintl("en"); const load = () => import("./lazy");`,
-      "src/lazy.ts": `import "zintl"; document.body.innerHTML = "Sub Page";`,
+      "src/main.ts": `import { zintl } from "zintljs"; zintl("en"); const load = () => import("./lazy");`,
+      "src/lazy.ts": `import "zintljs"; document.body.innerHTML = "Sub Page";`,
     };
 
     const results = await devCtx.project(files);
@@ -72,7 +72,7 @@ describe("Flow: Modular SPA", () => {
 
   // it("should suppress injection for empty ghost boundaries (Baseline of Shame)", async () => {
   //   const files = {
-  //     "src/ghost.ts": `import "zintl"; console.log("I am empty");`,
+  //     "src/ghost.ts": `import "zintljs"; console.log("I am empty");`,
   //   };
 
   //   const results = await ctx.project(files);

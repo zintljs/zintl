@@ -1,7 +1,7 @@
 import { mount } from "svelte";
 import "./app.css";
 import App from "./App.svelte";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 async function bootstrap() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";

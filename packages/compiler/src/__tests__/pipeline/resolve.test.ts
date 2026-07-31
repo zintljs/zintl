@@ -179,8 +179,8 @@ describe("Pipeline Phase 3: resolve()", () => {
   describe("Import Consolidation", () => {
     it("should merge multiple import intents for the same source", () => {
       const intents: TransformIntent[] = [
-        { type: "import", source: "zintl", specifiers: ["t"], strategy: "merge" },
-        { type: "import", source: "zintl", specifiers: ["loadI18nInstance"], strategy: "merge" },
+        { type: "import", source: "zintljs", specifiers: ["t"], strategy: "merge" },
+        { type: "import", source: "zintljs", specifiers: ["loadI18nInstance"], strategy: "merge" },
       ];
 
       const plan = resolve(intents, createMockObs(), mockConfig, mockLogger);
@@ -300,13 +300,13 @@ describe("Pipeline Phase 3: resolve()", () => {
       const observation = createMockObs({
         imports: [
           {
-            source: "zintl",
+            source: "zintljs",
             specifiers: [{ local: "t", imported: "t", kind: "value" }],
             location: { start: 10, end: 30, line: 1, column: 10 },
             isDynamic: false,
           },
           {
-            source: "zintl",
+            source: "zintljs",
             specifiers: [],
             location: { start: 50, end: 50, line: 10, column: 0 },
             isDynamic: false,
@@ -315,7 +315,7 @@ describe("Pipeline Phase 3: resolve()", () => {
       });
 
       const intents: TransformIntent[] = [
-        { type: "import", source: "zintl", specifiers: ["_t"], strategy: "replace" },
+        { type: "import", source: "zintljs", specifiers: ["_t"], strategy: "replace" },
       ];
 
       const plan = resolve(intents, observation, mockConfig, mockLogger);

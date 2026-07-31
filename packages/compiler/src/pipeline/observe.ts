@@ -118,8 +118,8 @@ function adaptExtractionResult(
     detectionCode: site.detectionCode,
   }));
 
-  // --- IMPLICIT ANCHOR: Handle import "zintl" side-effect marker ---
-  // If a file has the side-effect import "zintl", we only promote it to an entry
+  // --- IMPLICIT ANCHOR: Handle import "zintljs" side-effect marker ---
+  // If a file has the side-effect import "zintljs", we only promote it to an entry
   // IF it doesn't already have explicit anchors.
   if (result.hasZintlMarker && anchors.length === 0) {
     const end = result.zintlImportGroup?.end ?? 0;
@@ -243,7 +243,7 @@ function reconstructImports(result: ExtractionResult): ObservedImport[] {
   // The zintl import (if present)
   if (result.zintlImportGroup) {
     imports.push({
-      source: result.zintlImportGroup.source || "zintl",
+      source: result.zintlImportGroup.source || "zintljs",
       specifiers: result.runtimeImports.map((name) => ({
         local: name,
         imported: name,
@@ -261,7 +261,7 @@ function reconstructImports(result: ExtractionResult): ObservedImport[] {
   for (const dep of result.dependencies) {
     // Polishing: Skip zintl if it was already captured by the explicit group scanner
     // to avoid zero-width duplicates that confuse the consolidation engine.
-    if (dep.id === "zintl" && result.zintlImportGroup) continue;
+    if (dep.id === "zintljs" && result.zintlImportGroup) continue;
 
     imports.push({
       source: dep.id,

@@ -72,14 +72,14 @@ describe("Zintl Extractor Performance", () => {
     }
   });
   const shortFile = `
-    import { t } from "zintl";
+    import { t } from "zintljs";
     export function App() {
       return <div>{t("Hello World")}</div>;
     }
   `;
 
   const longFile = `
-    import { t } from "zintl";
+    import { t } from "zintljs";
     ${Array.from({ length: 100 }, (_, i) => `const msg${i} = t("Message ${i}");`).join("\n")}
     export function App() {
       return (

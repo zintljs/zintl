@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Bypassed code transformations and catalog generation/pruning for non-zintlized files and projects:

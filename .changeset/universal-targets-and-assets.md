@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": patch
 "@zintljs/extractor": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Introduce universal target presets, configurable assets mapping, and testing suites:

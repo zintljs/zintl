@@ -29,7 +29,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       const result = await compiler.transform(code, join(root, "src/app.ts"), "target");
 
       // Must contain the RHL contract
@@ -46,7 +46,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; zintl(); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; zintl(); document.body.innerHTML = "Hello";`;
       const result = await compiler.transform(code, join(root, "src/ctx.ts"), "target");
 
       expect(result?.code).toContain("loadI18nInstance(");
@@ -61,7 +61,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Main Content"; const Lazy = import("./colony");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Main Content"; const Lazy = import("./colony");`;
       const colonyCode = `document.body.innerHTML = "Colony Content";`;
 
       await compiler.transform(colonyCode, join(root, "src/colony.ts"), "target");
@@ -85,7 +85,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       await compiler.transform(code, join(root, "src/app.ts"), "target");
       await compiler.flush();
 
@@ -107,7 +107,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       await compiler.transform(code, join(root, "src/app.ts"), "target");
       await compiler.flush();
 
@@ -131,7 +131,7 @@ describe("ZRS §7: Registry Handshake Ledger", () => {
         true,
       );
 
-      const code = `import { zintl } from "zintl"; await zintl(Math.random() > 0.5 ? "ar" : "en"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl(Math.random() > 0.5 ? "ar" : "en"); document.body.innerHTML = "Hello";`;
       await compiler.transform(code, join(root, "src/app.ts"), "target");
       await compiler.flush();
 

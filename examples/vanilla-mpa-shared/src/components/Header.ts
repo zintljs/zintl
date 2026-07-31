@@ -1,4 +1,4 @@
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 export async function Header(locale: string) {
   await zintl(locale);

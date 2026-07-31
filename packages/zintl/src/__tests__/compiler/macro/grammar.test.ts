@@ -29,7 +29,7 @@ describe("Macro Grammar: AST Rewrites", () => {
 
   it("should transform static absolute anchor: zintl('ar')", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl("ar"); document.body.innerHTML = "Welcome";`;
+    const code = `import { zintl } from "zintljs"; zintl("ar"); document.body.innerHTML = "Welcome";`;
     const result = await compiler!.transform(code, join(root, "src/static.ts"), "target");
 
     // In Dev Mode: Readable path for _bId and URL, hash for JS variable
@@ -46,7 +46,7 @@ describe("Macro Grammar: AST Rewrites", () => {
 
   it("should transform implicit contextual anchor: zintl()", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl(); document.body.innerHTML = "Welcome";`;
+    const code = `import { zintl } from "zintljs"; zintl(); document.body.innerHTML = "Welcome";`;
     const result = await compiler!.transform(code, join(root, "src/implicit.ts"), "target");
 
     // Should have self-registration loaders with hashed safeIds
@@ -56,9 +56,9 @@ describe("Macro Grammar: AST Rewrites", () => {
     expect(result?.code).not.toContain('locale: "');
   });
 
-  it("should handle extraction markers: import 'zintl'", async (context: LocalContext) => {
+  it("should handle extraction markers: import 'zintljs'", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import "zintl"; document.body.innerHTML = "Welcome";`;
+    const code = `import "zintljs"; document.body.innerHTML = "Welcome";`;
     const result = await compiler!.transform(code, join(root, "src/marker.ts"), "target");
 
     // Marker promotes to Entry. Even if no strings, it gets a handshake for potential reachable content.
@@ -84,7 +84,7 @@ describe("Macro Grammar: AST Rewrites", () => {
     );
 
     const bId = "src/tmpl";
-    const code = `import { zintl } from "zintl"; zintl("en"); document.body.innerHTML = \`<p>Test \${test.sss}</p>\`;`;
+    const code = `import { zintl } from "zintljs"; zintl("en"); document.body.innerHTML = \`<p>Test \${test.sss}</p>\`;`;
 
     // Manual setup of manifest to trigger baking for a specific ID
     const filePath = join(root, "src/tmpl.ts");

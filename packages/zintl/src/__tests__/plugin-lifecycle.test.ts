@@ -388,7 +388,7 @@ describe("Zintl Vite Plugin Config & Context Edge Cases", () => {
         return `<html><body><script src="./src/main.ts"></script></body></html>`;
       }
       if (path.endsWith("main.ts")) {
-        return `import { zintl } from "zintl"; zintl();`;
+        return `import { zintl } from "zintljs"; zintl();`;
       }
       return "";
     };

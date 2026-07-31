@@ -1,7 +1,7 @@
 ---
 "@zintljs/compiler": minor
 "@zintljs/testing": minor
-"zintl": minor
+"zintljs": minor
 ---
 
 Moved facet resolution out of the compiler and into the host plugin, completing the separation the Concern-Faceted Architecture was aiming at. Knowledge now flows one way only: `extractor ← compiler (core) ← compiler/facets ← zintl (plugin)`. The compiler receives capabilities and executes them; it no longer selects, merges, validates or names a framework.
@@ -13,7 +13,7 @@ Moved facet resolution out of the compiler and into the host plugin, completing 
 new ZintlCompiler({ facets: [reactFacet(), viteFacet()] });
 
 // after
-import { resolveFacets } from "zintl/facets";
+import { resolveFacets } from "zintljs/facets";
 new ZintlCompiler({ capabilities: resolveFacets([...reactFacet(), viteFacet()]) });
 ```
 

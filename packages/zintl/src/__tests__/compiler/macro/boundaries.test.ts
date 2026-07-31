@@ -37,7 +37,7 @@ describe("Macro Boundaries: Rollup & Isolation", () => {
     compiler,
     root,
   }: LocalContext) => {
-    const parentCode = `import { zintl } from "zintl"; zintl(); import "./child"; document.body.innerHTML = "Parent";`;
+    const parentCode = `import { zintl } from "zintljs"; zintl(); import "./child"; document.body.innerHTML = "Parent";`;
     const childCode = `document.body.innerHTML = "Child";`;
 
     await compiler.transform(childCode, join(root, "src/child.ts"), "target");
@@ -58,8 +58,8 @@ describe("Macro Boundaries: Rollup & Isolation", () => {
     compiler,
     root,
   }: LocalContext) => {
-    const parentCode = `import { zintl } from "zintl"; zintl(); import("./child"); document.body.innerHTML = "Parent";`;
-    const childCode = `import { zintl } from "zintl"; zintl(); document.body.innerHTML = "Child";`;
+    const parentCode = `import { zintl } from "zintljs"; zintl(); import("./child"); document.body.innerHTML = "Parent";`;
+    const childCode = `import { zintl } from "zintljs"; zintl(); document.body.innerHTML = "Child";`;
 
     await compiler.transform(childCode, join(root, "src/child.ts"), "target");
     await compiler.transform(parentCode, join(root, "src/parent.ts"), "target");
@@ -81,8 +81,8 @@ describe("Macro Boundaries: Rollup & Isolation", () => {
   }: LocalContext) => {
     // entryA -> shared
     // entryB -> shared
-    const entryACode = `import { zintl } from "zintl"; zintl(); import "./shared"; document.body.innerHTML = "A";`;
-    const entryBCode = `import { zintl } from "zintl"; zintl(); import "./shared"; document.body.innerHTML = "B";`;
+    const entryACode = `import { zintl } from "zintljs"; zintl(); import "./shared"; document.body.innerHTML = "A";`;
+    const entryBCode = `import { zintl } from "zintljs"; zintl(); import "./shared"; document.body.innerHTML = "B";`;
     const sharedCode = `document.body.innerHTML = "Shared Content";`;
 
     await compiler.transform(sharedCode, join(root, "src/shared.ts"), "target");

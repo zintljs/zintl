@@ -1,7 +1,7 @@
 ---
 "@zintljs/extractor": patch
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Added support for inline SVG elements during HTML/JSX parsing and resolved fanned routing redirect intercepts in development mode:

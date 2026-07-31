@@ -37,7 +37,7 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
       `,
       "src/about.txt": `Hello World!`,
       "src/main.ts": `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         import aboutText from "./about.txt?raw";
         zintl("ar");
         console.log(aboutText);
@@ -81,7 +81,7 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
         export const getDoc = () => doc;
       `,
       "src/main.ts": `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         import { getDoc } from "./ui";
         zintl("ar");
         console.log(getDoc());
@@ -122,7 +122,7 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
         export const printText = () => lazyText;
       `,
       "src/main.ts": `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         async function run() {
           zintl("ar");
           const { printText } = await import("./lazy");
@@ -162,7 +162,7 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
       `,
       "src/about.txt": `Source Content`,
       "src/main.ts": `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         import aboutText from "./about.txt?raw";
         zintl("ar");
         console.log(aboutText);
@@ -241,7 +241,7 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
         "src/about.txt": sourceText,
         "src/hero.png": sourceImageBuffer.toString("binary"),
         "src/main.ts": `
-          import { zintl } from "zintl";
+          import { zintl } from "zintljs";
           import aboutText from "./about.txt?raw";
           import heroImg from "./hero.png";
           zintl("ar");

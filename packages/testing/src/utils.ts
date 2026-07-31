@@ -115,7 +115,7 @@ export function createZintlMatchers(plugin: any) {
   };
 
   return {
-    toImportFromZintl(code: string, imports: string[], source: string = "zintl") {
+    toImportFromZintl(code: string, imports: string[], source: string = "zintljs") {
       for (const i of imports) {
         expect(code).toMatch(
           new RegExp(`import\\s*{[^}]*\\b${i}\\b[^}]*}\\s*from\\s*["']${source}["'];?`),

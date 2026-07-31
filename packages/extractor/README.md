@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@zintljs/extractor.svg?color=863bff&label=)](https://npmjs.com/package/@zintljs/extractor)
 
-This is an **internal package**. You almost certainly want [`zintl`](https://npmjs.com/package/zintl) instead — it bundles this extractor behind a ready-to-use Vite plugin.
+This is an **internal package**. You almost certainly want [`zintljs`](https://npmjs.com/package/zintljs) instead — it bundles this extractor behind a ready-to-use Vite plugin.
 
 Install it directly only if you are building custom tooling on top of Zintl's extraction layer.
 

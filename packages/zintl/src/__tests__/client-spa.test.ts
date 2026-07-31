@@ -20,7 +20,7 @@ describe("Flow: Client-Side SPA", () => {
 
   it("should bake static translations and not inject manager (High-Fidelity)", async () => {
     const results = await ctx.project({
-      "src/main.ts": `import { zintl } from "zintl"; await zintl("en"); document.body.innerHTML = "Welcome";`,
+      "src/main.ts": `import { zintl } from "zintljs"; await zintl("en"); document.body.innerHTML = "Welcome";`,
     });
 
     const code = results["src/main.ts"];
@@ -37,7 +37,7 @@ describe("Flow: Client-Side SPA", () => {
 
   it("should bake template literal fragments correctly", async () => {
     const results = await ctx.project({
-      "src/tmpl.ts": `import { zintl } from "zintl"; await zintl("en"); const name = "Zintl"; document.body.innerHTML = \`<div>Hello \${name}</div>\`;`,
+      "src/tmpl.ts": `import { zintl } from "zintljs"; await zintl("en"); const name = "Zintl"; document.body.innerHTML = \`<div>Hello \${name}</div>\`;`,
     });
 
     const code = results["src/tmpl.ts"];
@@ -52,7 +52,7 @@ describe("Flow: Client-Side SPA", () => {
 
   it("should resolve and load virtual catalog modules", async () => {
     const filePath = "src/main.ts";
-    const sourceCode = `import { zintl } from "zintl"; await zintl("en"); document.body.innerHTML = "Welcome";`;
+    const sourceCode = `import { zintl } from "zintljs"; await zintl("en"); document.body.innerHTML = "Welcome";`;
 
     // Transform once to populate manifest
     await ctx.transform(filePath, sourceCode);

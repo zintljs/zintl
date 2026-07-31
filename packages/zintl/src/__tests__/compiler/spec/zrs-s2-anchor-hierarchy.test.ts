@@ -28,7 +28,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         false, // Production mode
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       const filePath = join(root, "src/static.ts");
 
       // First pass: extract
@@ -59,7 +59,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         true, // Production mode
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Hello";`;
       const filePath = join(root, "src/static.ts");
 
       // First pass: extract
@@ -92,7 +92,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         false, // Production mode
       );
 
-      const code = `import { zintl } from "zintl"; await zintl("en"); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; await zintl("en"); document.body.innerHTML = "Hello";`;
       const filePath = join(root, "src/passthrough.ts");
 
       await compiler.transform(code, filePath, "target");
@@ -117,7 +117,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         false,
       );
 
-      const code = `import { zintl } from "zintl"; const lang = "ar"; await zintl(lang); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; const lang = "ar"; await zintl(lang); document.body.innerHTML = "Hello";`;
       const filePath = join(root, "src/dynamic.ts");
 
       await compiler.transform(code, filePath, "target");
@@ -137,7 +137,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         true, // Dev mode
       );
 
-      const code = `import { zintl } from "zintl"; const lang = detectLocale(); await zintl(lang); document.body.innerHTML = "Hello";`;
+      const code = `import { zintl } from "zintljs"; const lang = detectLocale(); await zintl(lang); document.body.innerHTML = "Hello";`;
       const filePath = join(root, "src/dynamic.ts");
 
       const result = await compiler.transform(code, filePath, "target");
@@ -158,7 +158,7 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         true, // Dev mode
       );
 
-      const code = `import { zintl } from "zintl"; zintl(); const msg = "Welcome";`;
+      const code = `import { zintl } from "zintljs"; zintl(); const msg = "Welcome";`;
       const filePath = join(root, "src/contextual.ts");
 
       const result = await compiler.transform(code, filePath, "target");
@@ -181,8 +181,8 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         false, // Production mode
       );
 
-      const parentCode = `import { zintl } from "zintl"; import "./child"; await zintl(detectLocale());`;
-      const childCode = `import { zintl } from "zintl"; await zintl("ar"); document.body.innerHTML = "Child Msg";`;
+      const parentCode = `import { zintl } from "zintljs"; import "./child"; await zintl(detectLocale());`;
+      const childCode = `import { zintl } from "zintljs"; await zintl("ar"); document.body.innerHTML = "Child Msg";`;
 
       const parentPath = join(root, "src/parent.ts");
       const childPath = join(root, "src/child.ts");
@@ -221,8 +221,8 @@ describe("ZRS §2: Anchor Hierarchy", () => {
         false, // Production mode
       );
 
-      const parentCode = `import { zintl } from "zintl"; import "./child"; await zintl("ar");`;
-      const childCode = `import { zintl } from "zintl"; await zintl(detectLocale()); document.body.innerHTML = "Child Msg";`;
+      const parentCode = `import { zintl } from "zintljs"; import "./child"; await zintl("ar");`;
+      const childCode = `import { zintl } from "zintljs"; await zintl(detectLocale()); document.body.innerHTML = "Child Msg";`;
 
       const parentPath = join(root, "src/parent.ts");
       const childPath = join(root, "src/child.ts");

@@ -31,7 +31,7 @@ describe("ZRS §4: Handshake Axioms", () => {
       );
 
       // File has zintl() but no UI sinks — MUST still be a Kingdom
-      const code = `import { zintl } from "zintl"; await zintl("ar"); const x = 42;`;
+      const code = `import { zintl } from "zintljs"; await zintl("ar"); const x = 42;`;
       await context.compiler.transform(code, join(root, "src/empty-kingdom.ts"), "target");
       await context.compiler.flush();
 
@@ -48,7 +48,7 @@ describe("ZRS §4: Handshake Axioms", () => {
       );
 
       // Bare marker, no strings at all — still a Kingdom (§5.3 Marker Exception)
-      const code = `import "zintl"; const config = { debug: true };`;
+      const code = `import "zintljs"; const config = { debug: true };`;
       await context.compiler.transform(code, join(root, "src/marker-only.ts"), "target");
       await context.compiler.flush();
 
@@ -69,8 +69,8 @@ describe("ZRS §4: Handshake Axioms", () => {
 
       // Chain: main($A) → mid($A) → leaf($S)
       // Leaf's sink belongs to mid (the nearest Kingdom), not main
-      const mainCode = `import { zintl } from "zintl"; import "./mid"; await zintl("ar");`;
-      const midCode = `import { zintl } from "zintl"; import "./leaf"; await zintl("en");`;
+      const mainCode = `import { zintl } from "zintljs"; import "./mid"; await zintl("ar");`;
+      const midCode = `import { zintl } from "zintljs"; import "./leaf"; await zintl("en");`;
       const leafCode = `document.body.innerHTML = "Deep Sink";`;
 
       await context.compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -99,7 +99,7 @@ describe("ZRS §4: Handshake Axioms", () => {
         true,
       );
 
-      const mainCode = `import { zintl } from "zintl"; await zintl("ar"); const Lazy = import("./lazy");`;
+      const mainCode = `import { zintl } from "zintljs"; await zintl("ar"); const Lazy = import("./lazy");`;
       const lazyCode = `document.body.innerHTML = "Lazy Content";`;
 
       await context.compiler.transform(mainCode, join(root, "src/main.ts"), "target");
@@ -130,7 +130,7 @@ describe("ZRS §4: Handshake Axioms", () => {
       );
 
       // Circular: A imports B, B imports A
-      const codeA = `import { zintl } from "zintl"; import "./b"; await zintl("ar"); document.body.innerHTML = "A";`;
+      const codeA = `import { zintl } from "zintljs"; import "./b"; await zintl("ar"); document.body.innerHTML = "A";`;
       const codeB = `import "./a"; document.body.innerHTML = "B";`;
 
       await context.compiler.transform(codeA, join(root, "src/a.ts"), "target");
@@ -171,7 +171,7 @@ describe("ZRS §4: Handshake Axioms", () => {
 
       // Top-level zintl() acts as Dictator — nested function's zintl() is absorbed
       const code = `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         await zintl("ar");
         function render() { zintl(); document.body.innerHTML = "Nested"; }
       `;
@@ -196,7 +196,7 @@ describe("ZRS §4: Handshake Axioms", () => {
 
       // No top-level anchor — each function with zintl() becomes its own Kingdom
       const code = `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         function renderA() { zintl("ar"); document.body.innerHTML = "A"; }
         function renderB() { zintl("en"); document.body.innerHTML = "B"; }
       `;

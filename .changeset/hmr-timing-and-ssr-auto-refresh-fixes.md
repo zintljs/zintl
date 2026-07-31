@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Fixed HMR rendering issues and resolved timing race conditions during source translation updates:

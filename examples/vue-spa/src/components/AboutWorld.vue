@@ -2,7 +2,7 @@
 import viteLogo from "../assets/vite.svg";
 import heroImg from "../assets/hero.png";
 import vueLogo from "../assets/vue.svg";
-// import { zintl } from "zintl/macro";
+// import { zintl } from "zintljs/macro";
 
 const props = defineProps<{
   lang: string;

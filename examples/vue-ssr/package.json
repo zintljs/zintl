@@ -26,6 +26,6 @@
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vue-tsc": "catalog:",
-    "zintl": "workspace:*"
+    "zintljs": "workspace:*"
   }
 }

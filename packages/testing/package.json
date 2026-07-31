@@ -22,7 +22,7 @@
     "@playwright/test": "catalog:",
     "@zintljs/compiler": "workspace:*",
     "vite": "catalog:",
-    "zintl": "workspace:*"
+    "zintljs": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

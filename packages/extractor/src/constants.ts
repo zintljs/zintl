@@ -8,8 +8,16 @@
  * extractor as descriptors. All four were already unreferenced (one survived
  * only inside a commented-out line) and have been removed.
  */
+/**
+ * The macro's *identifier* — the `zintl(...)` call users write. This is the
+ * public API surface and is intentionally NOT the package name: the npm package
+ * is `zintljs` (the bare `zintl` name is blocked by npm's similarity filter),
+ * but the function it exports is still `zintl`.
+ */
 export const ZINTL_MACRO = "zintl";
-export const RUNTIME_PACKAGE = "zintl";
+
+/** The npm package specifier that carries the runtime. */
+export const RUNTIME_PACKAGE = "zintljs";
 
 /**
  * Module specifiers that carry the Zintl runtime surface.
@@ -21,9 +29,10 @@ export const RUNTIME_PACKAGE = "zintl";
  * by three of the four checks and missed by the fourth.
  */
 export const RUNTIME_SPECIFIERS: readonly string[] = [
-  "zintl",
-  "zintl/internal",
-  "zintl/macro",
+  "zintljs",
+  "zintljs/internal",
+  "zintljs/macro",
+  // Virtual module IDs are internal and keep the `zintl` brand prefix.
   "virtual:zintl/runtime/internal",
 ];
 

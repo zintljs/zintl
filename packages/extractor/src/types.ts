@@ -54,7 +54,7 @@ export interface ExtractionResult {
   needsLoader: boolean;
   /** If true, this module contains at least one trust anchor (zintl). */
   hasZintlMacro: boolean;
-  /** If true, this module contains a side-effect import "zintl" ($M). */
+  /** If true, this module contains a side-effect import "zintljs" ($M). */
   hasZintlMarker: boolean;
   /** Locations of zintl calls for compiler-driven catalog injection. */
   anchorSites: AnchorSite[];
@@ -64,7 +64,7 @@ export interface ExtractionResult {
   usedKeys: Set<string>;
   /** Map of boundaryId -> sha1 hash of its messages (text+context+note) */
   boundaryHashes: Record<string, string>;
-  /** Location and actual source of existing import from "zintl" used for merging. */
+  /** Location and actual source of existing import from "zintljs" used for merging. */
   zintlImportGroup?: { start: number; end: number; source: string };
   /** Map of exported identifier -> internal boundary ID. */
   exportedBoundaries: Record<string, string>;
@@ -280,7 +280,7 @@ export interface CompiledExtractionState {
 }
 
 export interface ExtractionOptions {
-  runtimePackage?: string; // default: "zintl"
+  runtimePackage?: string; // default: "zintljs"
   uiAttributes?: Set<string>;
   uiObjectFields?: Set<string>;
   uiSinkProperties?: string[];

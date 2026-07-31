@@ -136,7 +136,7 @@ interface FileObservation {
 
   // === Metadata ===
   fileId: string; // Relative path without extension
-  hasZintlMarker: boolean; // import "zintl" or zintl() present
+  hasZintlMarker: boolean; // import "zintljs" or zintl() present
   contentHash: string; // SHA-1 of file content
 }
 

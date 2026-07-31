@@ -1,4 +1,4 @@
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 export const generateStaticParams = async () => {
   return ["en", "ar", "es", "zh"].map((locale) => ({ locale }));
 };

@@ -1,5 +1,5 @@
 ---
-"zintl": minor
+"zintljs": minor
 "@zintljs/compiler": patch
 ---
 

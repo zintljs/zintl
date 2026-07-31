@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getLocale } from "zintl/macro";
+import { getLocale } from "zintljs/macro";
 
 const locale = getLocale();
 

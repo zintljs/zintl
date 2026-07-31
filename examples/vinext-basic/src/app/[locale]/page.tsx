@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;

@@ -91,7 +91,7 @@ describe("Pipeline Phase 1: observe()", () => {
 
   describe("Manual t() Calls", () => {
     it("should observe explicit t() as manualTranslation", () => {
-      const code = `import { t } from "zintl"; const msg = t("Submit");`;
+      const code = `import { t } from "zintljs"; const msg = t("Submit");`;
       const result = obs(code);
 
       expect(result.manualTranslations).toHaveLength(1);
@@ -104,7 +104,7 @@ describe("Pipeline Phase 1: observe()", () => {
 
   describe("Trust Anchors (zintl() calls)", () => {
     it("should observe top-level zintl() with literal locale", () => {
-      const code = `import { zintl } from "zintl"; zintl("en");`;
+      const code = `import { zintl } from "zintljs"; zintl("en");`;
       const result = obs(code);
 
       expect(result.anchors).toHaveLength(1);
@@ -114,15 +114,15 @@ describe("Pipeline Phase 1: observe()", () => {
       expect(result.anchors[0].boundaryId).toBe("src/test");
     });
 
-    it("should set hasZintlMarker for import 'zintl'", () => {
-      const code = `import "zintl";`;
+    it("should set hasZintlMarker for import 'zintljs'", () => {
+      const code = `import "zintljs";`;
       const result = obs(code);
 
       expect(result.hasZintlMarker).toBe(true);
     });
 
     it("should NOT set hasZintlMarker for zintl() call (it is an anchor, not a marker)", () => {
-      const code = `import { zintl } from "zintl"; zintl("ar");`;
+      const code = `import { zintl } from "zintljs"; zintl("ar");`;
       const result = obs(code);
       expect(result.hasZintlMarker).toBe(false);
     });
@@ -168,7 +168,7 @@ describe("Pipeline Phase 1: observe()", () => {
 
     it("should detect function-level boundaries from nested anchors", () => {
       const code = `
-        import { zintl } from "zintl";
+        import { zintl } from "zintljs";
         function render() { zintl("ar"); }
       `;
       const result = obs(code);
@@ -184,7 +184,7 @@ describe("Pipeline Phase 1: observe()", () => {
 
   describe("Import Observations", () => {
     it("should capture zintl import location", () => {
-      const code = `import { t, zintl } from "zintl";`;
+      const code = `import { t, zintl } from "zintljs";`;
       const result = obs(code);
 
       expect(result.zintlImportLocation).toBeDefined();
@@ -215,7 +215,7 @@ describe("Pipeline Phase 1: observe()", () => {
   describe("Phase Boundary Invariant", () => {
     it("should NOT contain transforms — observation produces only facts", () => {
       const result = obs(
-        `import { zintl } from "zintl"; zintl("en"); document.body.innerHTML = "Hello";`,
+        `import { zintl } from "zintljs"; zintl("en"); document.body.innerHTML = "Hello";`,
       );
 
       // The observation has sinks (facts) but no replacement strings (intent)
@@ -229,7 +229,7 @@ describe("Pipeline Phase 1: observe()", () => {
 
     it("should produce a complete FileObservation with all required fields", () => {
       const code = `
-        import { zintl, t } from "zintl";
+        import { zintl, t } from "zintljs";
         zintl("en");
         document.body.innerHTML = "Welcome";
         const msg = t("Manual");

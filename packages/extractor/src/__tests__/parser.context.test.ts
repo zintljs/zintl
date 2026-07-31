@@ -23,7 +23,7 @@ describe("Semantic Context Extraction", () => {
 describe("Function-Level Boundaries", () => {
   it("should support function-level trust anchors", () => {
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       function Auth() {
         zintl("en");
         return <div>Login</div>;

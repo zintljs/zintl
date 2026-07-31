@@ -19,7 +19,7 @@ describe("Zintl Ignore Directives", () => {
   it("should ignore entire file with @zintl-ignore-file", () => {
     const code = `
       // @zintl-ignore-file
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       const x = zintl("en");
       const label = "Translate me";
       function App() {

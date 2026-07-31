@@ -30,7 +30,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
     await mkdir(join(root, "src"), { recursive: true });
 
-    const code = `import { zintl } from "zintl"; zintl("ar"); export function App() { return <p>{"Welcome"}</p>; }`;
+    const code = `import { zintl } from "zintljs"; zintl("ar"); export function App() { return <p>{"Welcome"}</p>; }`;
     const filePath = join(root, "src/server.tsx");
     await writeFile(filePath, code);
 
@@ -63,7 +63,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
 
   it("should bake conditional logic: Count is {counter}", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl("ar"); export function Counter({ counter }) { return <div>{ "Count is {counter}" }</div>; }`;
+    const code = `import { zintl } from "zintljs"; zintl("ar"); export function Counter({ counter }) { return <div>{ "Count is {counter}" }</div>; }`;
     const filePath = join(root, "src/counter.tsx");
     await writeFile(filePath, code);
 
@@ -102,7 +102,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
 
   it("should bake JSX elements correctly", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const code = `import { zintl } from "zintl"; zintl("ar"); export function App() { return <button title="Click me">Submit</button>; }`;
+    const code = `import { zintl } from "zintljs"; zintl("ar"); export function App() { return <button title="Click me">Submit</button>; }`;
     const filePath = join(root, "src/jsx.tsx");
     await writeFile(filePath, code);
 
@@ -133,7 +133,7 @@ describe("Macro Streaming: RSC Baking & Handshake", () => {
   });
 
   // it("should fall back to empty string if translation is missing (Strict Mode)", async () => {
-  //   const code = `import { zintl } from "zintl"; zintl("ar"); export function App() { return <p>{"Welcome"}</p>; }`;
+  //   const code = `import { zintl } from "zintljs"; zintl("ar"); export function App() { return <p>{"Welcome"}</p>; }`;
   //   const filePath = join(root, "src/fallback.tsx");
   //   await writeFile(filePath, code);
 

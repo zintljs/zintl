@@ -78,6 +78,15 @@
       "id": "lazy_b_e4c94651c6df",
       "type": "lazy"
     },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
     "shared_b_46b46a617b3e": {
       "boundaries": [
         "src/App.tsx:App"
@@ -131,15 +140,6 @@
       "entrySources": [],
       "id": "shared_b_d72067eafbdc",
       "type": "shared"
-    },
-    "shared_b_da9a6f102df0": {
-      "boundaries": [
-        "zintl/macro"
-      ],
-      "colonies": [],
-      "entrySources": [],
-      "id": "shared_b_da9a6f102df0",
-      "type": "shared"
     }
   },
   "entryChunks": {
@@ -153,12 +153,12 @@
     "lazy_b_e4c94651c6df"
   ],
   "sharedChunks": [
+    "shared_b_006866fb4e10",
     "shared_b_46b46a617b3e",
     "shared_b_6b810c90aa9a",
     "shared_b_7c1737176de1",
     "shared_b_8413c2e4a806",
     "shared_b_aa7165aefcf8",
-    "shared_b_d72067eafbdc",
-    "shared_b_da9a6f102df0"
+    "shared_b_d72067eafbdc"
   ]
 }

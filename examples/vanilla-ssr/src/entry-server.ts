@@ -1,7 +1,7 @@
 import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 import { LocaleSwitcher } from "./switcher";
 
 export async function render(_url: string) {

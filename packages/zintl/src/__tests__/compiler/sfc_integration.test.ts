@@ -13,7 +13,7 @@ describe("SFC Integration Tests", () => {
     const root = await createTestDir("sfc-integration-");
     context.root = root;
     await mkdir(join(root, "src"), { recursive: true });
-    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintl"; zintl("en");');
+    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintljs"; zintl("en");');
     context.compiler = createTestCompilerWith(
       [viteFacet(), vueFacet(), svelteFacet()],
       {
@@ -34,7 +34,7 @@ describe("SFC Integration Tests", () => {
       // Vue SFC code containing script anchor and translatable template elements
       const sfcCode = `
 <script lang="ts">
-import { zintl } from "zintl";
+import { zintl } from "zintljs";
 zintl({ locale: "en" });
 </script>
 <template>
@@ -80,7 +80,7 @@ zintl({ locale: "en" });
 
       const sfcCode = `
 <script lang="ts">
-import { zintl } from "zintl";
+import { zintl } from "zintljs";
 zintl("ar");
 </script>
 <template>
@@ -129,7 +129,7 @@ zintl("ar");
 
       const sfcCode = `
 <script>
-import { zintl } from "zintl";
+import { zintl } from "zintljs";
 zintl("en");
 </script>
 
@@ -171,7 +171,7 @@ zintl("en");
 
       const sfcCode = `
 <script>
-import { zintl } from "zintl";
+import { zintl } from "zintljs";
 zintl("ar");
 </script>
 
@@ -220,7 +220,7 @@ zintl("ar");
       await prodCompiler.setup();
 
       const code = `
-import { zintl, t } from "zintl";
+import { zintl, t } from "zintljs";
 zintl("ar");
 const msg = t("Items count", { count: 1 });
       `.trim();
@@ -260,7 +260,7 @@ const msg = t("Items count", { count: 1 });
 
       // Setup overlapping markers or identical duplicate markers
       const code = `
-import { zintl, t } from "zintl";
+import { zintl, t } from "zintljs";
 zintl("en");
 // Trigger duplicate and overlapping rewrite checks
 const duplicate = t("SameKey") + t("SameKey");

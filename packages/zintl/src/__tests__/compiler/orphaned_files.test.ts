@@ -54,7 +54,7 @@ describe("Zintl Compiler: Orphaned Files", () => {
 
   it("should transform a file if it has the 'use i18n' directive even if not reachable", async (context: LocalContext) => {
     const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
-    const directiveCode = `import { zintl } from "zintl"; zintl("en");\ndocument.body.innerHTML = "Directive Message";`;
+    const directiveCode = `import { zintl } from "zintljs"; zintl("en");\ndocument.body.innerHTML = "Directive Message";`;
     const result = await compiler.transform(
       directiveCode,
       join(root, "src/directive.ts"),

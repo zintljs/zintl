@@ -1,4 +1,4 @@
-import { t } from "zintl/macro";
+import { t } from "zintljs/macro";
 
 export function setupCounter(element: HTMLButtonElement) {
   let counter = 0;

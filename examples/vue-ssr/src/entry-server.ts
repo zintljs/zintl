@@ -1,6 +1,6 @@
 import { renderToString } from "vue/server-renderer";
 import { createApp } from "./main";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 export async function render(_url: string) {
   const { app } = createApp();

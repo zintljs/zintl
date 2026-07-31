@@ -8,7 +8,7 @@
 
 The previous macro transformation pipeline suffered from several instabilities:
 
-1. **Ambiguous Entries**: Implicit entries (markers) like `import "zintl"` were captured by the extractor but ignored by the compiler, leading to missing translation boundaries in the build.
+1. **Ambiguous Entries**: Implicit entries (markers) like `import "zintljs"` were captured by the extractor but ignored by the compiler, leading to missing translation boundaries in the build.
 2. **Anonymous Collisions**: Multiple anonymous functions calling `zintl()` in the same file shared identical boundary IDs (`anon`), causing translation key collisions and graph corruption.
 3. **Redundant Rollups**: The compiler's catalog generation logic (`getCatalogForFullModule`) manually re-walked dependencies, ignoring the pre-computed `chunkGraph`. This "Double-Rollup" bug caused shared dependencies to be duplicated into entry catalogs, increasing bundle sizes.
 4. **Fragile Grammar**: Code generation for baked inlining was prone to syntax errors and lacked support for contextual (no-argument) `zintl()` calls.
@@ -19,7 +19,7 @@ We have stabilized the macro baking and grammar pipeline to ensure deterministic
 
 - **Zero-Runtime Baking**: Static literals (e.g., `zintl("ar")`) are now fully "baked" at compile-time into optimized ternary trees, removing the `loadI18nInstance` overhead.
 - **Marker & Implicit Support**:
-  - `import "zintl"` now acts as an explicit entry marker, ensuring the file is treated as a translation boundary even without dynamic calls.
+  - `import "zintljs"` now acts as an explicit entry marker, ensuring the file is treated as a translation boundary even without dynamic calls.
   - `zintl()` (implicit) initializes the manager context for the active runtime locale without baking specific catalog data.
 - **Deterministic Boundary IDs**: Anonymous function IDs are now uniquely identified using line numbers (e.g., `anon_12`), preventing collisions within the same module.
 - **Chunk-Aware Resolution**: Catalog generation now strictly iterates over `targetChunk.boundaries`. This aligns output with the `Boundary Graph Algorithm`, ensuring that shared boundaries stay in their own chunks and entries remain lean.

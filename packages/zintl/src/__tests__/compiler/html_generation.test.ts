@@ -13,7 +13,7 @@ describe("HTML Disk Generation", () => {
     const root = await createTestDir("html-generation-");
     context.root = root;
     await mkdir(join(root, "src"), { recursive: true });
-    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintl"; zintl("en");');
+    await writeFile(join(root, "src/main.ts"), 'import { zintl } from "zintljs"; zintl("en");');
     context.compiler = createTestCompiler(
       { locales: ["en", "ar"], outputDir: "locales" },
       root,

@@ -27,7 +27,7 @@ describe("ZRS §4.5 — Kingdom-Colony Reachability (The Bridge Pattern)", () =>
       root,
       "colony.ts",
       `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       export const getMessage = () => t("Hello from Colony");
     `,
     );
@@ -47,7 +47,7 @@ describe("ZRS §4.5 — Kingdom-Colony Reachability (The Bridge Pattern)", () =>
       root,
       "main.ts",
       `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       import { bridgeFn } from "./bridge";
       
       zintl(window.navigator.language);
@@ -113,7 +113,7 @@ describe("ZRS §4.5 — Kingdom-Colony Reachability (The Bridge Pattern)", () =>
       root,
       "colony.ts",
       `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       export const getMessage = () => t("Colony Message");
     `,
     );
@@ -122,7 +122,7 @@ describe("ZRS §4.5 — Kingdom-Colony Reachability (The Bridge Pattern)", () =>
       root,
       "bridge.ts",
       `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       import { getMessage } from "./colony";
       
       zintl("ar");
@@ -136,7 +136,7 @@ describe("ZRS §4.5 — Kingdom-Colony Reachability (The Bridge Pattern)", () =>
       root,
       "main.ts",
       `
-      import { zintl, t } from "zintl";
+      import { zintl, t } from "zintljs";
       import { bridgeFn } from "./bridge";
       
       zintl(window.navigator.language);

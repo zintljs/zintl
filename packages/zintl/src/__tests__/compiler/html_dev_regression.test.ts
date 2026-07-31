@@ -59,7 +59,7 @@ describe("HTML Dev Mode Persistence Regression", () => {
 
     // 3. Update main.ts to be zintlized with a dynamic anchor
     const zintlizedMain = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       const l = new URLSearchParams(window.location.search).get("lang") || "en";
       zintl(l);
       document.body.innerHTML = "<h1>Welcome to Zintl</h1>";

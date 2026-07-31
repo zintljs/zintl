@@ -11,7 +11,7 @@ describe("SFC Extraction (Vue/Svelte)", () => {
   it("should extract dependencies, manual translations, and object targets from Vue script blocks with correct offsets", () => {
     const code = `<script setup lang="ts">
 import { ref } from "vue";
-import { t } from "zintl";
+import { t } from "zintljs";
 import HelloWorld from "./components/HelloWorld.vue";
 
 const title = t("Welcome back");
@@ -36,8 +36,8 @@ const meta = {
     // 2. Check t() manual translation & line number
     const welcomeT = result.rawManualTranslations.find((m) => m.key === "Welcome back");
     expect(welcomeT).toBeDefined();
-    expect(welcomeT!.start).toBe(148);
-    expect(welcomeT!.line).toBe(148);
+    expect(welcomeT!.start).toBe(150);
+    expect(welcomeT!.line).toBe(150);
     expect(code.substring(welcomeT!.start, welcomeT!.end)).toBe('t("Welcome back")');
 
     // 3. Check target object fields (e.g. title/description)
@@ -52,7 +52,7 @@ const meta = {
 
   it("should extract dependencies and explicit translations from Svelte script blocks with correct offsets", () => {
     const code = `<script>
-import { t } from "zintl";
+import { t } from "zintljs";
 import Nested from "./Nested.svelte";
 const message = t("Welcome Svelte");
 </script>
@@ -72,8 +72,8 @@ const message = t("Welcome Svelte");
     // 2. Check manual translations
     const welcomeT = result.rawManualTranslations.find((m) => m.key === "Welcome Svelte");
     expect(welcomeT).toBeDefined();
-    expect(welcomeT!.start).toBe(90);
-    expect(welcomeT!.line).toBe(90);
+    expect(welcomeT!.start).toBe(92);
+    expect(welcomeT!.line).toBe(92);
     expect(code.substring(welcomeT!.start, welcomeT!.end)).toBe('t("Welcome Svelte")');
   });
 

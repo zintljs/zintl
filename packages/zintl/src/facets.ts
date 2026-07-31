@@ -16,8 +16,8 @@
  * @example
  * ```ts
  * // vite.config.ts
- * import zintl from "zintl/vite";
- * import { reactFacet, ssrFacet } from "zintl/facets";
+ * import zintl from "zintljs/vite";
+ * import { reactFacet, ssrFacet } from "zintljs/facets";
  *
  * zintl({ facets: [reactFacet(), ssrFacet()] });   // exactly these
  * zintl({ facets: ["auto", myFacet()] });          // the defaults, plus yours
@@ -26,7 +26,7 @@
  * @example
  * ```ts
  * // A facet of your own.
- * import type { ZintlFacet } from "zintl/facets";
+ * import type { ZintlFacet } from "zintljs/facets";
  *
  * export function myFacet(): ZintlFacet {
  *   return {

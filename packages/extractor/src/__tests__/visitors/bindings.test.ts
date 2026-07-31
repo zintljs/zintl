@@ -124,13 +124,13 @@ describe("resolveBoundaryId — relative import resolution", () => {
 
 describe("ImportDeclaration — runtime package tracking", () => {
   it("records named specifiers from the runtime package", () => {
-    const ctx = runBindingVisitor(`import { t, zintl } from "zintl";`, "src/main.ts", "src/main");
+    const ctx = runBindingVisitor(`import { t, zintl } from "zintljs";`, "src/main.ts", "src/main");
     expect(ctx.runtimeImports).toContain("t");
     expect(ctx.runtimeImports).toContain("zintl");
   });
 
   it("ignores default imports from the runtime package", () => {
-    const ctx = runBindingVisitor(`import zintl from "zintl";`, "src/main.ts", "src/main");
+    const ctx = runBindingVisitor(`import zintl from "zintljs";`, "src/main.ts", "src/main");
     // default specifier is not an ImportSpecifier, should not be pushed
     expect(ctx.runtimeImports).toHaveLength(0);
   });
@@ -403,7 +403,7 @@ describe("Edge cases", () => {
 
   it("handles mixed imports and sinks in one file", () => {
     const code = `
-      import { t } from "zintl";
+      import { t } from "zintljs";
       import "./styles.css";
       import { helper } from "./utils";
       el.innerHTML = "Hello";

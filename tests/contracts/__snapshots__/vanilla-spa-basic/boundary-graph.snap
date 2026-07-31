@@ -89,7 +89,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main",
@@ -152,7 +152,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main",
@@ -179,7 +179,7 @@
             "default"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "zintljs/vite"
         }
       ],
       "filePath": "vite.config",

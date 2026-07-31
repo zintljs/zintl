@@ -9,8 +9,8 @@ import {
   type Rollup,
 } from "vite";
 import { ZintlCompiler } from "@zintljs/compiler";
-import { resolveFacets } from "zintl/facets";
-import { assembleFacets, detectFrameworksOrFallback } from "zintl/facets";
+import { resolveFacets } from "zintljs/facets";
+import { assembleFacets, detectFrameworksOrFallback } from "zintljs/facets";
 import { collectOutput, buildTestOverrides, TEST_DEFINES } from "../utils.js";
 import type {
   BuildToolDriver,

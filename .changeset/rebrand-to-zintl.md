@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": minor
-"zintl": minor
+"zintljs": minor
 "@zintljs/extractor": minor
 ---
 

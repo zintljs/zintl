@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { useState } from "react";
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 
 function Main() {
   const [lang, setLang] = useState(() => {

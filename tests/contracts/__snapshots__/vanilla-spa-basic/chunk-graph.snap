@@ -14,7 +14,7 @@
         "src/main:render",
         "src/style.css",
         "src/switcher:setupSwitcher",
-        "zintl/macro"
+        "zintljs/macro"
       ],
       "colonies": [],
       "entrySources": [

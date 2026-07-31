@@ -1,6 +1,6 @@
-import { zintl } from "zintl/macro";
+import { zintl } from "zintljs/macro";
 // @ts-ignore
-import { _t } from "zintl/internal";
+import { _t } from "zintljs/internal";
 // @ts-ignore
 import renderTemplate from "./template.hbs";
 // @ts-ignore

@@ -1,6 +1,6 @@
 ---
 "@zintljs/compiler": patch
-"zintl": patch
+"zintljs": patch
 ---
 
 Fixed React HMR support, nested entry point reachability checks, and documented the synchronous catalog injection behavior:

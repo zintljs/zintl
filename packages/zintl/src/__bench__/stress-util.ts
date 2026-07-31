@@ -53,7 +53,7 @@ export async function generateStressProject(
 
     const content = `
       /* @zintl-note "Benchmark Component ${i}" */
-      import { t } from "zintl/macro";
+      import { t } from "zintljs/macro";
       ${imports}
       
       export function render_${i}() {
@@ -71,7 +71,7 @@ export async function generateStressProject(
   }
 
   const mainContent = `
-    import { zintl } from "zintl/macro";
+    import { zintl } from "zintljs/macro";
     ${mainImports.join("\n")}
     
     zintl("en");
@@ -84,7 +84,7 @@ export async function generateStressProject(
 
   // 4. Secondary Entry (Multi-entry test)
   const secondaryContent = `
-    import { zintl } from "zintl/macro";
+    import { zintl } from "zintljs/macro";
     import { render_0 } from "./components/cmp_0.js";
     zintl("ar");
     render_0();

@@ -2,7 +2,7 @@
   "entries": [
     "index.html",
     "src/main.tsx:bootstrap",
-    "src/main.tsx:f_545"
+    "src/main.tsx:f_547"
   ],
   "nodes": {
     "index.html": {
@@ -147,14 +147,14 @@
         },
         {
           "dynamic": false,
-          "id": "src/main.tsx:f_545"
+          "id": "src/main.tsx:f_547"
         },
         {
           "bindings": [
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main.tsx",
@@ -197,7 +197,7 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main.tsx",
@@ -205,7 +205,7 @@
       "mode": "entry",
       "usageCount": 0
     },
-    "src/main.tsx:f_545": {
+    "src/main.tsx:f_547": {
       "activeLocales": "all",
       "deps": [
         {
@@ -240,11 +240,11 @@
             "zintl"
           ],
           "dynamic": false,
-          "id": "zintl/macro"
+          "id": "zintljs/macro"
         }
       ],
       "filePath": "src/main.tsx",
-      "id": "src/main.tsx:f_545",
+      "id": "src/main.tsx:f_547",
       "mode": "entry",
       "usageCount": 0
     },
@@ -274,7 +274,7 @@
             "default"
           ],
           "dynamic": false,
-          "id": "zintl/vite"
+          "id": "zintljs/vite"
         }
       ],
       "filePath": "vite.config",

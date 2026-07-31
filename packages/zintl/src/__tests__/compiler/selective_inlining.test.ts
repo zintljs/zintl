@@ -37,7 +37,7 @@ describe("Zintl Compiler: Selective Inlining", () => {
 
   it("should inline ONLY the anchor locale for zintl('ar')", async (context: LocalContext) => {
     const { compiler, root } = context as { compiler: ZintlCompiler; root: string };
-    const code = `import { t, zintl } from "zintl"; zintl("ar");\nconsole.log(t("Arabic Content"));`;
+    const code = `import { t, zintl } from "zintljs"; zintl("ar");\nconsole.log(t("Arabic Content"));`;
     const fullId = join(root, "src/main.ts");
 
     // Process the file
@@ -71,7 +71,7 @@ describe("Zintl Compiler: Selective Inlining", () => {
 
   it("should NOT inline ANY locale for dynamic zintl(lang)", async (context: LocalContext) => {
     const { compiler, root } = context as { compiler: ZintlCompiler; root: string };
-    const code = `import { zintl } from "zintl"; zintl(1 + 1 === 2 ? "ar" : "en");\ndocument.body.innerHTML = "Dynamic Content";`;
+    const code = `import { zintl } from "zintljs"; zintl(1 + 1 === 2 ? "ar" : "en");\ndocument.body.innerHTML = "Dynamic Content";`;
     const fullId = join(root, "src/dynamic.ts");
 
     await compiler.transform(code, fullId, "virtual:zintl/catalogs");
@@ -92,7 +92,7 @@ describe("Zintl Compiler: Selective Inlining", () => {
     const { compiler, root } = context as { compiler: ZintlCompiler; root: string };
     // Top-level is static ("en"), but nested is dynamic (lang variable)
     const code = `
-      import { zintl } from "zintl";
+      import { zintl } from "zintljs";
       await zintl("en");
       export async function render(lang) {
         await zintl(lang);

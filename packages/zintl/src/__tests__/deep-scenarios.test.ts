@@ -21,8 +21,8 @@ describe("Scenario: Deep Meditations", () => {
   it("Meditation 5: The Homeless Parent (Hierarchy Failure)", async () => {
     const files = {
       "src/main.ts": `import "./parent";`,
-      "src/child.ts": `import { zintl, t } from "zintl"; zintl(window.navigator.language || "en"); document.body.innerHTML = "Child Msg";`,
-      "src/parent.ts": `import { t } from "zintl"; import "./child"; document.body.innerHTML = "Parent Msg";`,
+      "src/child.ts": `import { zintl, t } from "zintljs"; zintl(window.navigator.language || "en"); document.body.innerHTML = "Child Msg";`,
+      "src/parent.ts": `import { t } from "zintljs"; import "./child"; document.body.innerHTML = "Parent Msg";`,
     };
 
     const results = await ctx.project(files);
@@ -44,8 +44,8 @@ describe("Scenario: Deep Meditations", () => {
       (_, i) => `document.body.innerHTML = "Heavy ${i}"`,
     ).join("; ");
     const files = {
-      "src/main.ts": `import { zintl } from "zintl"; zintl(window.navigator.language || "en"); import { VERSION } from "./utils"; console.log(VERSION);`,
-      "src/heavy.ts": `import { t } from "zintl"; export const heavy = () => { ${heavyStrings} };`,
+      "src/main.ts": `import { zintl } from "zintljs"; zintl(window.navigator.language || "en"); import { VERSION } from "./utils"; console.log(VERSION);`,
+      "src/heavy.ts": `import { t } from "zintljs"; export const heavy = () => { ${heavyStrings} };`,
       "src/utils.ts": `import { heavy } from "./heavy"; export const VERSION = "1.0";`,
     };
 
@@ -62,7 +62,7 @@ describe("Scenario: Deep Meditations", () => {
 
   it("Meditation 7: The Duplicate Key Collision", async () => {
     const files = {
-      "src/main.ts": `import { zintl } from "zintl"; zintl("en"); import "./auth"; import "./profile";`,
+      "src/main.ts": `import { zintl } from "zintljs"; zintl("en"); import "./auth"; import "./profile";`,
       "src/auth.ts": `// @zintl-note User login button\ndocument.body.innerHTML = "Submit";`,
       "src/profile.ts": `// @zintl-note Save profile changes\ndocument.body.innerHTML = "Submit";`,
     };
@@ -82,7 +82,7 @@ describe("Scenario: Deep Meditations", () => {
 
   // it("Meditation 8: The HMR Zombie (Registry Leak Simulation)", async () => {
   //   const mainPath = "src/main.ts";
-  //   const mainSrc = (i: number) => `import { zintl, t } from "zintl"; zintl("en"); console.log("Msg ${i}");`;
+  //   const mainSrc = (i: number) => `import { zintl, t } from "zintljs"; zintl("en"); console.log("Msg ${i}");`;
 
   //   // Simulate 5 HMR updates
   //   const results: Record<string, string> = {};
