@@ -15,6 +15,22 @@ export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
       const lab = await createLab({ source: manifest.source, mode: "dev" });
       try {
         await contract.execute(lab, manifest.adapter as TAdapter, manifest);
+      } catch (err) {
+        /**
+         * Attach page state to every contract failure, not just assertion
+         * failures. A `page.click` that times out reports only which locator it
+         * waited for — it cannot say whether the element was missing, the app
+         * had crashed, or the page rendered nothing. Without that, each failure
+         * costs a fresh investigation and flakes stay unfalsifiable.
+         */
+        let diagnosis = "";
+        try {
+          diagnosis = `\n\n${await lab.assert.describeStall()}`;
+        } catch {
+          // Diagnosis is best-effort; never mask the original failure.
+        }
+        (err as Error).message = `${(err as Error).message}${diagnosis}`;
+        throw err;
       } finally {
         await lab.teardown();
       }
@@ -38,6 +54,22 @@ export function executeProjectContract<TAdapter extends BaseAdapter = BaseAdapte
       });
       try {
         await contract.execute(lab, manifest.adapter as TAdapter, manifest);
+      } catch (err) {
+        /**
+         * Attach page state to every contract failure, not just assertion
+         * failures. A `page.click` that times out reports only which locator it
+         * waited for — it cannot say whether the element was missing, the app
+         * had crashed, or the page rendered nothing. Without that, each failure
+         * costs a fresh investigation and flakes stay unfalsifiable.
+         */
+        let diagnosis = "";
+        try {
+          diagnosis = `\n\n${await lab.assert.describeStall()}`;
+        } catch {
+          // Diagnosis is best-effort; never mask the original failure.
+        }
+        (err as Error).message = `${(err as Error).message}${diagnosis}`;
+        throw err;
       } finally {
         await lab.teardown();
       }

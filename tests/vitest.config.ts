@@ -8,7 +8,18 @@ export default defineConfig({
     include: ["tests/**/*.{spec,test}.ts"],
     exclude: configDefaults.exclude.filter((x) => !x.includes("tests")),
     testTimeout: 45000,
-    retry: 1,
+    /**
+     * No retries, deliberately.
+     *
+     * A retry converts a flake into a green run, which means the suite reports
+     * "passing" for a codebase that intermittently does the wrong thing. Every
+     * flake traced so far was a real defect — an assertion that could not retry,
+     * or contention on a shared example directory — and each was found only
+     * because someone read past the checkmark to the `(retry x1)` beside it.
+     *
+     * If a test needs a retry to pass, that is a bug report, not a hiccup.
+     */
+    retry: 0,
     /**
      * Contracts mutate their project, and several target the same file of the
      * same example. This is only safe because manifests use

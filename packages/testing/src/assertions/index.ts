@@ -32,12 +32,111 @@ export class LabAssertions {
     const interval = opts?.interval ?? 50;
     const locator = this.lab.page.locator(selector).first();
 
-    await expect
-      .poll(async () => (await locator.textContent().catch(() => null)) ?? "", {
-        timeout,
-        interval,
-      })
-      .toContain(expected);
+    try {
+      await expect
+        .poll(async () => (await locator.textContent().catch(() => null)) ?? "", {
+          timeout,
+          interval,
+        })
+        .toContain(expected);
+    } catch (err) {
+      throw new Error(
+        `${(err as Error).message}\n\n${await this.describeStall(selector, expected)}`,
+      );
+    }
+  }
+
+  /**
+   * Explain *why* the DOM never reached the expected text.
+   *
+   * A bare "expected X to contain Y" cannot distinguish an update the dev server
+   * never sent, one the client never applied, and one that rendered into a
+   * different element. Each of those has a different fix, so the failure needs
+   * to carry enough state to tell them apart — otherwise every occurrence costs
+   * a fresh investigation.
+   */
+  async describeStall(selector?: string, expected?: string): Promise<string> {
+    const lines: string[] = ["── page diagnosis ──"];
+
+    try {
+      const packets = this.lab.ws.recentPackets ?? [];
+      const kinds = packets.reduce<Record<string, number>>((acc, p: { type?: string }) => {
+        const key = p?.type ?? "unknown";
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      }, {});
+      lines.push(
+        `hmr packets: ${packets.length === 0 ? "NONE — the dev server never pushed an update" : JSON.stringify(kinds)}`,
+      );
+    } catch {
+      lines.push("hmr packets: unavailable");
+    }
+
+    try {
+      const beacon = await this.lab.page.evaluate(
+        () => (globalThis as { __zintl_version?: number }).__zintl_version,
+      );
+      lines.push(
+        beacon === undefined
+          ? "settle beacon: ABSENT — no Zintl runtime on the page"
+          : `settle beacon: ${beacon} (runtime applied ${beacon} update(s))`,
+      );
+    } catch {
+      lines.push("settle beacon: unreadable (page navigating or closed)");
+    }
+
+    try {
+      const errors = this.lab.console.errors ?? [];
+      lines.push(
+        errors.length === 0
+          ? "console errors: none"
+          : `console errors:\n${errors
+              .slice(0, 5)
+              .map((e: { text: string }) => `    ${e.text}`)
+              .join("\n")}`,
+      );
+    } catch {
+      lines.push("console errors: unavailable");
+    }
+
+    /**
+     * The body outline is what distinguishes "the element is missing" from
+     * "the page rendered nothing at all". A `page.click` that never finds its
+     * target for 30s usually means the second, and only the page state says so.
+     */
+    try {
+      const body = await this.lab.page.evaluate(() => {
+        const b = document.body;
+        return {
+          length: b?.innerHTML?.length ?? 0,
+          buttons: Array.from(document.querySelectorAll("button"))
+            .map((el) => (el.textContent ?? "").trim())
+            .slice(0, 8),
+          text: (b?.innerText ?? "").trim().slice(0, 160),
+        };
+      });
+      lines.push(`body html length: ${body.length}${body.length === 0 ? "  ← PAGE IS EMPTY" : ""}`);
+      lines.push(`buttons present: ${body.buttons.length ? JSON.stringify(body.buttons) : "NONE"}`);
+      lines.push(`body text: ${body.text || "(empty)"}`);
+    } catch {
+      lines.push("page state: unreadable (navigating or closed)");
+    }
+
+    if (selector) {
+      try {
+        const html = await this.lab.page
+          .locator(selector)
+          .first()
+          .innerHTML()
+          .catch(() => "<not found>");
+        lines.push(`selector ${selector} html: ${html.slice(0, 200)}`);
+        if (expected !== undefined) lines.push(`expected to contain: ${expected}`);
+      } catch {
+        lines.push(`selector ${selector}: unreadable`);
+      }
+    }
+
+    return lines.join("\n  ");
   }
 
   async noHydrationErrors(): Promise<void> {

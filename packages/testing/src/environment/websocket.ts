@@ -18,6 +18,21 @@ export class LabWebSocket {
   private originalSend?: Function;
   private listeners: Set<(packet: HmrPacket) => void> = new Set();
 
+  private static readonly RECENT_LIMIT = 50;
+  private readonly recent: HmrPacket[] = [];
+
+  /**
+   * Rolling log of packets the dev server pushed, independent of any capture.
+   *
+   * Captures must be started before the interesting moment, which is no help
+   * when diagnosing a failure after the fact. This answers the first question
+   * of any stalled-update investigation — did the server send anything at all?
+   * — and so distinguishes "never sent" from "sent but never applied".
+   */
+  get recentPackets(): ReadonlyArray<HmrPacket> {
+    return this.recent;
+  }
+
   constructor(server?: ViteDevServer) {
     this.server = server;
     if (server) {
@@ -47,6 +62,10 @@ export class LabWebSocket {
       }
 
       if (packet) {
+        this.recent.push(packet);
+        if (this.recent.length > LabWebSocket.RECENT_LIMIT) {
+          this.recent.shift();
+        }
         for (const capture of this.activeCaptures) {
           capture.packets.push(packet);
         }

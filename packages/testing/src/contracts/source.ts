@@ -82,6 +82,17 @@ const preparedCopies = new Set<string>();
 /** Build artefacts and caches — never worth copying, and stale by definition. */
 const COPY_EXCLUDED = new Set(["node_modules", "dist", ".next", ".vite", ".turbo", ".tmp"]);
 
+/**
+ * `node_modules` entries the symlink farm must skip.
+ *
+ * Anything the dev server *writes* has to be per-copy. Linking a write target
+ * back to the shared `examples/` tree reintroduces exactly the cross-worker
+ * contention the copy exists to eliminate — and does so invisibly, because
+ * module resolution keeps working perfectly while the cache underneath is being
+ * raced by four processes.
+ */
+const MODULES_NOT_LINKED = new Set([".vite", ".cache", ".vite-temp"]);
+
 function workerId(): string {
   return process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? String(process.pid);
 }
@@ -124,6 +135,14 @@ export function copiedExampleSource(dir: string): ProjectSource {
           const target = join(root, "node_modules");
           await mkdir(target, { recursive: true });
           for (const entry of await readdir(originModules)) {
+            /**
+             * `.vite` must NOT be linked. It is Vite's dependency-optimization
+             * cache, which the dev server writes to — linking it sends every
+             * worker's writes into the one shared directory under `examples/`,
+             * which is the exact contention this copy exists to remove.
+             * Omitting it lets each copy create its own.
+             */
+            if (MODULES_NOT_LINKED.has(entry)) continue;
             await symlink(join(originModules, entry), join(target, entry)).catch(() => {
               // Entry already linked, or unsupported — resolution falls back to
               // walking up to the workspace root, which still resolves.

@@ -9,7 +9,7 @@ Add `copiedExampleSource`, unlocking parallel contract runs.
 `copiedExampleSource(dir)` gives each worker a private copy under `.tmp/runs/w<id>/`, removing the shared mutable state entirely.
 
 - **Per-worker, not per-test.** Dev servers are pooled by example name in module scope, so every lab for an example inside one worker must resolve to the same root; a per-test copy would leave the pooled server rooted at a directory the next test no longer uses.
-- **`node_modules` is a shallow symlink farm**, not a copy or a directory link. Linking the directory itself would send Vite's `node_modules/.vite` cache writes back into the real example, reintroducing cross-worker contention through the back door.
+- **`node_modules` is a shallow symlink farm**, not a copy or a directory link — and the farm deliberately skips `.vite`, `.vite-temp`, and `.cache`. Anything the dev server _writes_ must be per-copy: linking Vite's dependency-optimization cache back to the shared `examples/` tree reintroduces cross-worker contention invisibly, since module resolution keeps working perfectly while four processes race the cache underneath it.
 - **Snapshot paths are normalized** back to `examples/<name>`, so output is byte-identical whichever source materialized it. Verified: zero snapshot churn after the switch.
 
 Measured on the same machine:
