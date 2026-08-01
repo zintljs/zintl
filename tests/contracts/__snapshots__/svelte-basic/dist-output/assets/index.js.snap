@@ -150,13 +150,13 @@ var I18nStore = class {
 			if (isThenable(result)) {
 				const p = result.then((res) => {
 					processResult(res);
-				}).catch(() => {
+				}).catch((err) => {
 					this.pendingBoundaries.delete(boundaryId);
 				});
 				this.pendingPromises.push(p);
 				return p;
 			} else processResult(result);
-		} catch {
+		} catch (err) {
 			this.pendingBoundaries.delete(boundaryId);
 		}
 	}

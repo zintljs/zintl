@@ -1,8 +1,8 @@
 import { expect } from "vite-plus/test";
 import type { Lab } from "../environment/lab.js";
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, readdir, unlink } from "node:fs/promises";
+import { dirname, join, relative } from "node:path";
 
 export class LabAssertions {
   private lab: Lab;
@@ -214,5 +214,92 @@ export class LabAssertions {
       const finalName = `${file}.snap`;
       await expect(code).toMatchFileSnapshot(`./__snapshots__/${prefix}/${finalName}`);
     }
+    await this.assertNoOrphanSnapshots(prefix, results);
   }
+
+  /**
+   * Fail when a snapshot exists for output that is no longer produced.
+   *
+   * `toMatchFileSnapshot` is driven by what the build emitted *this* run, so it
+   * can only ever check files that still exist. Stop emitting one — a chunk that
+   * disappears, a catalog that is no longer written — and its snapshot is simply
+   * never read. The suite stays green while output silently vanished, which is
+   * the one regression a snapshot test is supposed to be incapable of missing.
+   *
+   * Comparing the directory against the produced set closes that: the snapshot
+   * directory becomes an assertion about the *shape* of the output, not just the
+   * content of whatever survived.
+   *
+   * Each `snapshotAll` call owns its prefix directory exclusively
+   * (`<project>/dist-output`, `/dev-transforms`, `/prod-transforms`), so
+   * everything under it is expected to correspond to a produced file.
+   */
+  private async assertNoOrphanSnapshots(
+    prefix: string,
+    results: Record<string, string>,
+  ): Promise<void> {
+    const state = expect.getState() as { testPath?: string; snapshotState?: unknown };
+    const testPath = state?.testPath;
+    if (!testPath) {
+      throw new Error(
+        "[Lab] Cannot verify snapshot completeness: vitest did not expose `testPath`. " +
+          "Refusing to skip silently — an unchecked orphan snapshot is exactly the " +
+          "regression this guard exists to catch.",
+      );
+    }
+
+    const snapshotDir = join(dirname(testPath), "__snapshots__", prefix);
+    if (!existsSync(snapshotDir)) return;
+
+    const onDisk = new Set<string>();
+    const walk = async (dir: string): Promise<void> => {
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(full);
+        } else if (entry.name.endsWith(".snap")) {
+          onDisk.add(relative(snapshotDir, full).replace(/\\/g, "/").slice(0, -".snap".length));
+        }
+      }
+    };
+    await walk(snapshotDir);
+
+    const produced = new Set(Object.keys(results));
+    const orphans = [...onDisk].filter((f) => !produced.has(f)).sort();
+    if (orphans.length === 0) return;
+
+    /**
+     * Under `-u` the author is deliberately re-baselining, so an orphan means
+     * "this output is gone on purpose" — remove it, exactly as vitest prunes
+     * obsolete inline snapshots. Outside update mode it is a regression.
+     */
+    if (isUpdatingSnapshots(state.snapshotState)) {
+      for (const orphan of orphans) {
+        await unlink(join(snapshotDir, `${orphan}.snap`)).catch(() => {});
+      }
+      return;
+    }
+
+    throw new Error(
+      `Output disappeared: ${orphans.length} snapshot(s) under __snapshots__/${prefix}/ ` +
+        `have no matching file in this run's output.\n` +
+        orphans.map((o) => `  - ${o}`).join("\n") +
+        `\n\nEither the build stopped emitting them (a regression), or they are ` +
+        `intentionally gone — re-run with \`-u\` to prune them.`,
+    );
+  }
+}
+
+/**
+ * Whether vitest was invoked with `-u` / `--update`.
+ *
+ * Read defensively: the flag lives on internal snapshot state, and a wrong
+ * answer here is safe in only one direction. Unknown is treated as "not
+ * updating", so an orphan is reported rather than quietly deleted.
+ */
+function isUpdatingSnapshots(snapshotState: unknown): boolean {
+  const mode = (snapshotState as { _updateSnapshot?: string; updateSnapshot?: string } | undefined)
+    ?._updateSnapshot;
+  const fallback = (snapshotState as { updateSnapshot?: string } | undefined)?.updateSnapshot;
+  return mode === "all" || fallback === "all";
 }

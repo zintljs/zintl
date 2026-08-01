@@ -262,7 +262,24 @@ export class I18nStore {
       const result = loader(this.locale);
       const processResult = (res: any) => {
         this.pendingBoundaries.delete(boundaryId);
-        if (!res) return;
+        if (!res) {
+          /**
+           * An empty result abandons the boundary: pending is cleared, no
+           * catalogs are applied, and `_t` keeps returning "" for every key
+           * bound to it — permanently, because nothing schedules a retry.
+           *
+           * The compiler's integrity check guarantees catalogs are complete, so
+           * reaching here means *delivery* failed, not content. Staying silent
+           * turns a delivery bug into blank UI with no trace.
+           */
+          if (__ZINTL_DEV__) {
+            console.error(
+              `[Zintl] Loader for boundary "${boundaryId}" (${this.locale}) resolved empty. ` +
+                `Text in this boundary will render blank until something reloads it.`,
+            );
+          }
+          return;
+        }
         this.addCatalogs({ [this.locale]: res } as Catalogs);
       };
 
@@ -271,16 +288,29 @@ export class I18nStore {
           .then((res) => {
             processResult(res);
           })
-          .catch(() => {
+          .catch((err) => {
             this.pendingBoundaries.delete(boundaryId);
+            if (__ZINTL_DEV__) {
+              console.error(
+                `[Zintl] Catalog load FAILED for boundary "${boundaryId}" (${this.locale}). ` +
+                  `Its text will render blank until something reloads it.`,
+                err,
+              );
+            }
           });
         this.pendingPromises.push(p);
         return p;
       } else {
         processResult(result);
       }
-    } catch {
+    } catch (err) {
       this.pendingBoundaries.delete(boundaryId);
+      if (__ZINTL_DEV__) {
+        console.error(
+          `[Zintl] Loader threw synchronously for boundary "${boundaryId}" (${this.locale}).`,
+          err,
+        );
+      }
     }
   }
 }
