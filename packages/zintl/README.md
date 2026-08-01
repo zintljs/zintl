@@ -1,253 +1,113 @@
-<p align="center">
-  <br>
-  <br>
-  <a href="https://github.com/zintljs/zintl" target="_blank" rel="noopener noreferrer">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
-      <img alt="Zintl logo" src="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg" height="80">
-    </picture>
-  </a>
-  <br>
-  <br>
-</p>
-
-<h1 align="center">Zintl ⚡</h1>
+<h1 align="center">Zintl(𝐢𝟖𝐧)</h1>
 
 <p align="center">
-  <strong>Compiler-driven internationalization system for modern web applications.</strong>
+  <strong>Write your app in plain language. Ship it in every language.</strong>
 </p>
 
 <p align="center">
   <a href="https://npmjs.com/package/zintljs"><img src="https://img.shields.io/npm/v/zintljs.svg?color=863bff&label=" alt="npm package"></a>
-  <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/zintljs.svg?color=6a2ee3&label=node" alt="node compatibility"></a>
-  <a href="https://github.com/zintljs/zintl/actions"><img src="https://img.shields.io/badge/build-passing-success" alt="build status"></a>
+  ·
+  <a href="https://github.com/zintljs/zintl">GitHub</a>
+  ·
+  <a href="https://github.com/zintljs/zintl/tree/main/docs">Docs</a>
 </p>
 
 <br/>
 
-Zintl (pronounced [`/tsɪntl/`]) is a compile-time internationalization engine built to provide a faster, leaner, and zero-config localization experience for modern web projects. It moves internationalization from a runtime lookup bottleneck to a compile-time optimization pipeline.
+Zintl is a compile-time internationalization engine.
 
-It consists of two major parts:
+Most i18n libraries ask you to change how you write code — wrap every string in `t()`, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each part of your app actually needs, and ships exactly those.
 
-- **A Vite Plugin & Runtime:** Integrates seamlessly into Vite's module graph to perform surgical code replacement, inlining, and HMR catalog updates.
-- **A Compiler Core:** Builds dependency graphs, splits localized content into optimized translation chunks, and compiles target ICU formats into ultra-fast JS conditional branches at build time.
-
----
-
-## Features
-
-- ⚡ **Zero-Runtime Overhead (ZCU Baking):** Compiles ICU MessageFormat expressions (plurals, select enums, nesting) into pure JavaScript conditions at build time. No heavy parsing libraries are shipped to the client.
-- 📂 **Smart Chunking & Code Splitting:** A graph-based boundary algorithm automatically partitions translations into entry-specific, lazy-loaded, and shared catalog chunks matching your bundler's code-splitting boundaries.
-- 🔍 **Zero-Config Extraction:** Automatically extracts strings from JSX, template literals, and HTML structures. No manual translation key mapping or tedious function wrappers are required.
-- 👻 **Zero-Disk Source Locale (Ghost Mode):** The source locale (typically English) is completely diskless. The compiler virtualizes it on-the-fly from the extraction manifest, eliminating redundant `{ "key": "key" }` files from your repository.
-- 🌐 **HTML Metadata Projections:** Automatically extracts and translates standard HTML head tags (`title`, `meta[name="description"]`, and directionality `dir`). It bakes translations directly for static targets or injects a minimal head-blocking bootstrap script for dynamic targets.
-- 🏷️ **Surgical Comment Directives:** Control translation behavior with inline code comments (`@zintl-ignore` with HTML tag scoping, `@zintl-note` for translator context, and `@zintl-pass` to pass grammatical context variables).
-- 🔄 **Lightning Fast HMR:** Surgical invalidation of translation catalogs. Accept hot updates in-place during development with zero page reloads.
-
----
-
-## Core Architecture
-
-Zintl operates as a **Three-Package Monorepo** separating extraction, compilation, and runtime logic:
-
-```
-Source Code ──▶ @zintljs/extractor (AST Scan) ──▶ @zintljs/compiler (Graph & Baking) ──▶ zintl (Vite Plugin & Runtime)
-```
-
-1. **`@zintljs/extractor`:** A pure metadata provider. It scans code syntax using high-performance AST parsers to identify translation anchors (`zintl()`), template literals, and HTML sinks without modifying source files.
-2. **`@zintljs/compiler`:** The transformation orchestrator. It builds boundary graphs, resolves file dependencies, manages Levenshtein-based typo reconciliation, and generates chunked catalogs.
-3. **`zintl`:** The developer-facing entry point. It exports the Vite plugin and runtime macros (`zintl()`, `t()`, `getLocale()`) used in code.
-
----
-
-## Quick Start
-
-### 1. Installation
-
-Install the main Zintl package using Vite+:
+## Install
 
 ```bash
-vp install -D zintljs
+npm install -D zintljs
 ```
 
-### 2. Configure the Vite Plugin
+<sub>or `pnpm add -D zintljs` · `yarn add -D zintljs`</sub>
 
-Add the plugin to your `vite.config.ts` configuration file:
+## Use
 
-```typescript
+**1. Add the plugin.**
+
+```ts
+// vite.config.ts
 import { defineConfig } from "vite";
-import zintl from "zintljs/vite"; // the plugin — a default export
+import zintl from "zintljs/vite";
 
 export default defineConfig({
-  plugins: [
-    zintl({
-      sourceLocale: "en",
-      locales: ["en", "ar", "fr"],
-      outputDir: "locales",
-    }),
-  ],
+  plugins: [zintl({ locales: ["en", "ar", "fr"] })],
 });
 ```
 
-> The plugin lives at `zintl/vite`. The bare `zintl` entry is the **macro** you call in application code (step 3) — importing that one into `vite.config.ts` gives you an async no-op, not a plugin.
+**2. Set a locale.**
 
-#### Plugin Options
-
-Every option is optional; most projects only set `locales`. Full documentation, including what each option does to your build, is on the `Options` type — hover or ctrl+click it in your editor.
-
-| Option                | Type                              | Default                          | What it does                                                                     |
-| --------------------- | --------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| `locales`             | `string[]`                        | `["en"]`                         | Every locale the app ships, including the source locale.                         |
-| `sourceLocale`        | `string`                          | `"en"`                           | The locale your source is written in. Never written to disk (Ghost Mode).        |
-| `outputDir`           | `string`                          | `"./zintl"`                      | Where catalogs are written, relative to the project root.                        |
-| `catalogFormat`       | `string \| (ctx) => string`       | `<path>[.<func>].<locale>.json`  | Catalog file naming. Tokens: `[locale] [path] [dir] [name] [func] [bId] [hash]`. |
-| `facets`              | `FacetsInput[]`                   | `["auto"]`                       | Which capabilities the compiler is built with. `"auto"` detects your framework.  |
-| `assetsTarget`        | `(string \| AssetTargetConfig)[]` | `["md", "txt"]`                  | Static content files to localize alongside code.                                 |
-| `virtualAssets`       | `boolean`                         | `false`                          | Serve localized assets from virtual modules instead of writing them to disk.     |
-| `prune`               | `boolean`                         | `true`                           | Remove catalog keys once no source string produces them.                         |
-| `debug`               | `boolean \| string`               | `false`                          | Verbose tracing. A string filters to one subsystem.                              |
-| `logLevel`            | `LogLevel`                        | Vite's `logLevel`, then `"info"` | How much Zintl prints.                                                           |
-| `similarityThreshold` | `number`                          | `0.6`                            | How similar an edited string must be to keep its translation.                    |
-| `verifyIntegrity`     | `boolean`                         | `true` on build, `false` on dev  | Verify catalogs against the manifest and repair drift.                           |
-| `multiplex`           | `boolean`                         | auto-detected                    | Build each locale as its own set of HTML entries.                                |
-| `metadataDir`         | `string`                          | `<root>/node_modules/.zintl`     | Where the compiler keeps its own bookkeeping.                                    |
-
-### 3. Initialize in Source Code
-
-Establish a **Trust Anchor** in your application entry point. Every file or function calling `zintl()` forms an independent translation boundary with its own lazy catalog loading:
-
-```typescript
+```ts
 // src/main.ts
 import { zintl } from "zintljs/macro";
 
-async function initApp() {
-  const userLang = new URLSearchParams(window.location.search).get("lang") || "en";
+const locale = new URLSearchParams(location.search).get("lang") ?? "en";
+await zintl(locale);
 
-  // Sets the active locale and loads necessary catalog chunks
-  await zintl(userLang);
+document.querySelector("#app").innerHTML = `<h1>Welcome back!</h1>`;
+```
 
-  document.querySelector("#app")!.innerHTML = `
-    <h1>Welcome back!</h1>
-    <p>You have successfully logged in.</p>
-  `;
+That's the whole API. No keys, no wrappers, no dictionary to maintain.
+
+> **What you pass matters.** A variable ships every locale and lets users switch at runtime. A literal — `zintl("fr")` — tells the compiler this page _is_ French: it bakes that locale in, emits no catalog chunk, and leaves every other locale out of the bundle, source language included. Use a literal for per-locale static builds, a variable whenever language is a choice.
+
+> `zintljs/vite` is the plugin; `zintljs/macro` is what you call in app code. Importing the wrong one into `vite.config.ts` gives you an async no-op rather than a plugin.
+
+**3. Run your dev server.** Zintl extracts your strings and writes one file per locale, ready to fill in:
+
+```json
+// zintl/src/main.fr.json
+{
+  "Welcome back!": ""
 }
-
-initApp();
 ```
 
----
+Fill it in and the page updates without a reload. Leave it empty and the production build refuses to ship — a blank string is a bug, not a fallback.
 
-## The Comment Directive System
+## What you get
 
-Use comments directly in your source code (JavaScript `//`, `/* */` or HTML `<!-- -->`) to guide the compiler surgically:
+**Only what each screen needs.** Zintl works out which strings are reachable from which entry point, and splits catalogs along the same lines your bundler splits code. Opening the settings page downloads the settings translations, not all of them.
 
-### `@zintl-ignore`
+**Nothing extra in the bundle.** Plurals and grammar rules compile to plain JavaScript at build time — no ICU parser reaches the browser. Your source locale is never written to disk; the compiler already has those strings.
 
-Suppresses translation extraction for the immediate next node or HTML tag and its nested subtree:
+**Translations that survive refactors.** Identity is content-based, not path-based — so translations aren't attached to a file, a line, or a key you have to keep stable. Rename components, move files, restructure whole directories: the translations follow. Even a source string edited into a near-identical one keeps what it had, instead of being orphaned and sent back to translators.
 
-```jsx
-<div>
-  {/* @zintl-ignore */}
-  <span>This text will not be extracted</span>
-  <span>This text will be extracted</span>
-</div>
+Restructuring an app usually means a day of reconciling catalogs afterwards. Here it means zero.
+
+**Grammar where it belongs.** Source files keep simple template literals; plural and gender rules live in the catalog, with a generated JSON schema so translators get autocomplete.
+
+```ts
+const msg = `You have ${count} items in your cart`;
 ```
 
-### `@zintl-note`
-
-Attaches translator notes that are automatically injected into the generated translation schema:
-
-```typescript
-// @zintl-note Welcome message on the user's dashboard
-const welcomeMsg = `Hello, user!`;
+```json
+{
+  "You have {count} items in your cart": "{count, plural, =0 {سلتك فارغة} one {لديك عنصر واحد} other {لديك {count} عناصر}}"
+}
 ```
 
-### `@zintl-pass`
+## Where it runs
 
-Binds invisible grammatical context variables (like gender, role, or counts) to the extraction scope. This allows target languages to use advanced grammatical logic (e.g., ICU Plurals or Select) even if they aren't visible in the source English text:
+Works with **React, Vue, Svelte, and vanilla** apps — client-rendered, server-rendered, and multi-page. Requires **Vite 6, 7, or 8** and Node `^22.18.0 || >=24.11.0`.
 
-```typescript
-// @zintl-pass role={user.role}
-const dashboardTitle = `Welcome to your dashboard!`;
-```
+That list is a starting point, not the design. The extractor carries no framework knowledge and the compiler is bundler-agnostic, so another framework or another build tool is something you add rather than something the core is rewritten around. More of both are coming.
 
----
+## Docs
 
-## The ZCU (Component-based ICU) Agreement
+- [Configuration](https://github.com/zintljs/zintl/blob/main/docs/configuration.md) — every option
+- [Comment directives](https://github.com/zintljs/zintl/blob/main/docs/directives.md) — `@zintl-ignore`, `@zintl-note`, `@zintl-pass`
+- [Plurals & grammar](https://github.com/zintljs/zintl/blob/main/docs/icu.md)
+- [Glossary](https://github.com/zintljs/zintl/blob/main/docs/glossary.md)
 
-Zintl implements a **Source Purity** philosophy. Developers do not write complex grammatical logic inside their source code. Instead, source files contain simple template literals, and grammatical variations are managed as catalog data:
+## Status
 
-1. **Source Code:** Write clean, standard JS template literals:
-   ```typescript
-   const msg = `You have ${count} items in your cart`;
-   ```
-2. **Target Translation Catalog (`locales/ar.json`):** Translators write standard ICU MessageFormat syntax inside the JSON files, backed by IDE auto-complete schemas:
-   ```json
-   {
-     "$schema": "./.schemas/locales.schema.json",
-     "You have {count} items in your cart": "{count, plural, =0 {سلتك فارغة} one {لديك عنصر واحد في سلتك} other {لديك {count} عناصر في سلتك}}"
-   }
-   ```
-3. **Compilation:** At build time, the Zintl compiler parses the ICU syntax and compiles ("bakes") it into optimized JavaScript conditional logic:
-   ```javascript
-   // Compiled output (Smart Manager)
-   (params) => {
-     const { count } = params;
-     if (count === 0) return `سلتك فارغة`;
-     if (count === 1) return `لديك عنصر واحد في سلتك`;
-     return `لديك ${count} عناصر في سلتك`;
-   };
-   ```
-
----
-
-## Packages
-
-| Package                                        | Version                                                                                                                   | Description                                              |
-| :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------- |
-| [**`zintl`**](packages/zintl)                  | [![version](https://img.shields.io/npm/v/zintljs.svg?color=863bff&label=%20)](packages/zintl/CHANGELOG.md)                | Vite plugin & macro runtime library.                     |
-| [**`@zintljs/compiler`**](packages/compiler)   | [![version](https://img.shields.io/npm/v/@zintljs/compiler.svg?color=863bff&label=%20)](packages/compiler/CHANGELOG.md)   | Graph management, HTML projection & ICU baking compiler. |
-| [**`@zintljs/extractor`**](packages/extractor) | [![version](https://img.shields.io/npm/v/@zintljs/extractor.svg?color=863bff&label=%20)](packages/extractor/CHANGELOG.md) | AST-based string & dependency extraction utility.        |
-
----
-
-## Contributing
-
-Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) to learn about the monorepo setup, development commands, and codebase guidelines.
+**Alpha.** The ideas are settled and the test suite is thorough, but the API can still move between releases. Pin your version, and please [open an issue](https://github.com/zintljs/zintl/issues) when something surprises you — early reports shape this more than anything else right now.
 
 ## License
 
-[MIT](LICENSE).
-
----
-
-## What's genuinely brilliant
-
-**The Boundary Graph is a paradigm shift.** Most i18n systems are flat dictionaries. Zintl treats translations as a _dependency graph problem_ — the same mental model bundlers use for code splitting. The idea that "a file with a `zintl()` call becomes a trust anchor, and only strings reachable from that anchor need to be translated" is deeply correct and eliminates an entire class of bloat that ships in every other i18n library.
-
-**Ghost Mode (Zero-Disk Source Locale) is elegant.** Generating `{ "key": "key" }` for English is genuinely redundant — the AST already has the strings. Virtualizing the source locale from the extraction manifest instead of materializing it to disk is the kind of insight that only comes from thinking about the problem correctly from first principles.
-
-**The Intelligent Stitching engine** — treating template literals, JSX fragments, and HTML strings as _logical units_ rather than raw strings — is what separates Zintl from simple `i18next.t()` wrappers. Most systems make you manually wrap every string. Zintl reads intent from structure.
-
-**Hive (translation memory) with fuzzy recovery** is seriously underrated. The idea that a minor edit to a source string should forward-port the existing translation (with a warning) instead of wiping it is exactly how professional translators think. Most tools just orphan translations on source changes.
-
----
-
-## Where I see real risk
-
-**The phantom boundary class of bugs is a structural vulnerability.** The aggressive extraction heuristic (`/zintl|loadI18nInstance|t\(|<|innerHTML/.test(ctx.code)`) runs on every file before the graph is built. The fix we applied today — gating at `verifyIntegrity` and `syncSingleAsset` — is correct, but it means phantom extractions _exist silently in the manifest_ even when they're eventually blocked from writing. In a large project with many non-anchored files, this is unneeded memory and CPU pressure on every build. The longer-term fix would be to not extract at all when there are no entries — but that requires knowing the graph before extracting, which is a chicken-and-egg problem with the current sequential pipeline.
-
-**The `resolve.ts` hook is doing too much.** That file is 636 lines handling multiplexing, asset registration, SFC proxy files, HTML fanning, virtual module resolution, AND the translation-neutrality traversal. It's a load-bearing monolith. Any new framework (vinext, Nuxt, Astro) that has a slightly different module resolution model will cause subtle bugs here. Each concern deserves its own hook.
-
-**The "special cases" are accumulating.** HTML projections, SSR boundaries, HTML fanning, zero-config mode, zintl markers vs. macros vs. anchors — each is individually justified, but the interaction surface is growing. The test suite is the only thing holding this together right now, and there are already 5 skipped tests.
-
----
-
-## The meta-observation
-
-Zintl is solving the _right_ problem — most i18n tools treat internationalization as a runtime lookup problem, when it's actually a **compilation and bundling problem**. The strings that need to be translated are known at build time. The code-splitting boundary that determines which strings load when is known at build time. Zintl is the only system I know of that treats both of these facts seriously.
-
-The risk is that the implementation complexity is approaching the complexity of the problem it's solving. That's usually a sign that the abstraction layer needs a checkpoint — either a stricter API surface (fewer escape hatches), or a cleaner separation between the extractor (which should be dumb and greedy), the compiler (which should be the authority on what's "real"), and the runtime (which should be minimal and trust the compiler completely).
-
-The bones are exceptional. The muscle needs careful discipline as the feature surface grows.
+[MIT](https://github.com/zintljs/zintl/blob/main/LICENSE) © Khalid F. Shuhail
