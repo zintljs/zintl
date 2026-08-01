@@ -1,12 +1,13 @@
-import type { ExampleManifest, ZintlPluginOptions } from "@zintljs/testing";
+import { exampleSource, type ProjectManifest, type ZintlPluginOptions } from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",
   locales: ["en", "ar", "es", "zh"],
 };
 
-export const vueBasic: ExampleManifest = {
+export const vueBasic: ProjectManifest = {
   name: "vue-basic",
+  source: exampleSource("vue-basic"),
   zintlOptions,
   capabilities: [
     "spa",

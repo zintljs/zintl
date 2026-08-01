@@ -1,5 +1,6 @@
 import type { Lab } from "../environment/lab.js";
 import type { ZintlPluginOptions, BuildTarget } from "../environment/driver.js";
+import type { ProjectSource } from "./source.js";
 
 export type Capability =
   | "spa"
@@ -40,12 +41,17 @@ export interface SsrAdapter extends BaseAdapter {
   ssrPath(locale: string): string;
 }
 
-export interface ExampleManifest {
-  /** Example directory name in examples/ */
+export interface ProjectManifest {
+  /** Display name, used in test titles and snapshot paths */
   name: string;
-  /** Capabilities this example claims */
+  /**
+   * Where this project comes from — an on-disk example today, an inline
+   * fixture later. Nothing above this field knows the difference.
+   */
+  source: ProjectSource;
+  /** Capabilities this project claims */
   capabilities: Capability[];
-  /** The adapter for this example */
+  /** The adapter for this project */
   adapter: BaseAdapter & Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter>;
 
   /**
@@ -55,8 +61,8 @@ export interface ExampleManifest {
   zintlOptions: ZintlPluginOptions;
 
   /**
-   * Build targets for this example. Defaults to [{ name: "dist" }].
-   * SSR examples declare both client and server targets.
+   * Build targets for this project. Defaults to [{ name: "dist" }].
+   * SSR projects declare both client and server targets.
    *
    * @example
    * buildTargets: [
@@ -75,5 +81,5 @@ export interface Contract<TAdapter = BaseAdapter> {
   /** The capabilities this contract requires */
   readonly requires: ReadonlyArray<Capability>;
   /** The invariant steps — manifest is the third arg for build/compile contracts */
-  execute(lab: Lab, adapter: TAdapter, manifest: ExampleManifest): Promise<void>;
+  execute(lab: Lab, adapter: TAdapter, manifest: ProjectManifest): Promise<void>;
 }

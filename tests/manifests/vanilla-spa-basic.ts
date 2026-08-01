@@ -1,4 +1,4 @@
-import type { ExampleManifest, ZintlPluginOptions } from "@zintljs/testing";
+import { exampleSource, type ProjectManifest, type ZintlPluginOptions } from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",
@@ -7,8 +7,9 @@ const zintlOptions: ZintlPluginOptions = {
   catalogFormat: "translations.json",
 };
 
-export const vanillaSpaBasic: ExampleManifest = {
+export const vanillaSpaBasic: ProjectManifest = {
   name: "vanilla-spa-basic",
+  source: exampleSource("vanilla-spa-basic"),
   zintlOptions,
   capabilities: [
     "spa",

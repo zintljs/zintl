@@ -1,12 +1,13 @@
-import type { ExampleManifest, ZintlPluginOptions } from "@zintljs/testing";
+import { exampleSource, type ProjectManifest, type ZintlPluginOptions } from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",
   locales: ["en", "ar", "es", "zh"],
 };
 
-export const reactBasic: ExampleManifest = {
+export const reactBasic: ProjectManifest = {
   name: "react-basic",
+  source: exampleSource("react-basic"),
   zintlOptions,
   capabilities: [
     "spa",

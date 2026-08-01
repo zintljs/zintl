@@ -1,6 +1,3 @@
-import { join, dirname } from "node:path";
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import type { Page } from "@playwright/test";
 import { createLabBrowser, type LabBrowser } from "./browser.js";
 import { createLabDevServer, type LabDevServer } from "./dev-server.js";
@@ -15,25 +12,10 @@ import { LabAssertions } from "../assertions/index.js";
 import { LabPipeline } from "./pipeline.js";
 import type { ZintlPluginOptions } from "./driver.js";
 import { ViteDriver } from "./vite-driver.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-function findMonorepoRoot(startDir: string): string {
-  const markers = ["pnpm-workspace.yaml", "pnpm-lock.yaml"];
-  let dir = startDir;
-  for (let i = 0; i < 10; i++) {
-    if (markers.some((m) => existsSync(join(dir, m)))) return dir;
-    const parent = join(dir, "..");
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return startDir;
-}
-
-const MONOREPO_ROOT = findMonorepoRoot(__dirname);
+import type { MaterializedProject, ProjectSource } from "../contracts/source.js";
 
 export interface LabOptions {
-  example: string;
+  source: ProjectSource;
   mode?: "dev" | "preview";
   port?: number;
   env?: Record<string, string>;
@@ -41,7 +23,7 @@ export interface LabOptions {
 }
 
 export interface ProjectLabOptions {
-  example: string;
+  source: ProjectSource;
   zintlOptions: ZintlPluginOptions;
 }
 
@@ -79,6 +61,7 @@ class LabImpl implements Lab {
   readonly url: string;
   readonly root: string;
   private readonly mode: "dev" | "preview" | "project";
+  private readonly project: MaterializedProject;
   // private readonly exampleName: string;
 
   constructor(
@@ -86,13 +69,15 @@ class LabImpl implements Lab {
     browser: LabBrowser | undefined,
     server: LabDevServer | LabPreviewServer | undefined,
     url: string,
-    root: string,
+    project: MaterializedProject,
     mode: "dev" | "preview" | "project",
     fs: LabFilesystem,
     exampleName: string,
     zintlOptions: ZintlPluginOptions,
   ) {
     this.mode = mode;
+    this.project = project;
+    const root = project.root;
     // this.exampleName = exampleName;
     const throwNoAccess = (propName: string) => {
       return new Proxy({} as any, {
@@ -160,6 +145,13 @@ class LabImpl implements Lab {
     } catch (err) {
       console.error("[Teardown] Filesystem restore failed:", err);
     }
+    // Strictly after restoreAll: a materialized project may own the directory
+    // the filesystem is restoring into.
+    try {
+      await this.project.cleanup();
+    } catch (err) {
+      console.error("[Teardown] Project cleanup failed:", err);
+    }
     try {
       await this.browser.close();
     } catch {}
@@ -171,12 +163,9 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
     process.env.ZINTL_LOG_LEVEL = "silent";
   }
 
-  const root = join(MONOREPO_ROOT, "examples", opts.example);
-  if (!existsSync(root)) {
-    throw new Error(`Example fixture directory not found: ${opts.example}`);
-  }
+  const project = await opts.source.materialize();
 
-  const fs = new LabFilesystem(root);
+  const fs = new LabFilesystem(project.root);
   await fs.init();
 
   const mode = opts.mode ?? "dev";
@@ -185,9 +174,9 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
 
   let server: LabDevServer | LabPreviewServer;
   if (mode === "dev") {
-    server = await createLabDevServer(root, opts.example, port, env);
+    server = await createLabDevServer(project.root, opts.source.id, port, env);
   } else {
-    server = await createLabPreviewServer(root, opts.example, port, env);
+    server = await createLabPreviewServer(project.root, opts.source.id, port, env);
   }
 
   const browser = await createLabBrowser(opts.headless ?? true);
@@ -199,10 +188,10 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
     browser,
     server,
     server.url,
-    root,
+    project,
     mode,
     fs,
-    opts.example,
+    opts.source.id,
     {},
   );
 
@@ -214,12 +203,9 @@ export async function createProjectLab(opts: ProjectLabOptions): Promise<Lab> {
     process.env.ZINTL_LOG_LEVEL = "silent";
   }
 
-  const root = join(MONOREPO_ROOT, "examples", opts.example);
-  if (!existsSync(root)) {
-    throw new Error(`Example fixture directory not found: ${opts.example}`);
-  }
+  const project = await opts.source.materialize();
 
-  const fs = new LabFilesystem(root);
+  const fs = new LabFilesystem(project.root);
   await fs.init();
 
   const lab = new LabImpl(
@@ -227,10 +213,10 @@ export async function createProjectLab(opts: ProjectLabOptions): Promise<Lab> {
     undefined,
     undefined,
     "",
-    root,
+    project,
     "project",
     fs,
-    opts.example,
+    opts.source.id,
     opts.zintlOptions,
   );
 

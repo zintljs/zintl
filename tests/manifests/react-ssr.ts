@@ -1,12 +1,13 @@
-import type { ExampleManifest, ZintlPluginOptions } from "@zintljs/testing";
+import { exampleSource, type ProjectManifest, type ZintlPluginOptions } from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",
   locales: ["en", "ar", "es", "zh"],
 };
 
-export const reactSsr: ExampleManifest = {
+export const reactSsr: ProjectManifest = {
   name: "react-ssr",
+  source: exampleSource("react-ssr"),
   zintlOptions,
   buildTargets: [
     { name: "dist" },
