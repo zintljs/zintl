@@ -43,7 +43,11 @@ const config: KnipConfig = {
       project: ["src/**/*.ts"],
     },
   },
-  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
+  // `zintljs` is never imported at the root. It is linked here so that inline
+  // contract fixtures materialized under `.tmp/fixtures/` can resolve the bare
+  // `zintljs` / `zintljs/vite` specifiers by walking up to the root
+  // node_modules — a runtime resolution need knip cannot observe statically.
+  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

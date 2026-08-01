@@ -40,7 +40,8 @@
     "@zintljs/testing": "workspace:*",
     "knip": "catalog:",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "zintljs": "workspace:*"
   },
   "engines": {
     "node": "^22.18.0 || >=24.11.0"

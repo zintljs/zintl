@@ -16,7 +16,8 @@ export type Capability =
   | "performance"
   | "transform"
   | "build"
-  | "graph";
+  | "graph"
+  | "assets";
 
 export interface BaseAdapter {
   /** Navigate to the app's initial state with source locale */
