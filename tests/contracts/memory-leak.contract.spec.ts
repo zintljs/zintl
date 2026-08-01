@@ -28,7 +28,6 @@ export const memoryLeakContract: Contract = {
     const baseline = await getHeapSize();
 
     // 3. Trigger 20 sequential HMR edits
-    const heading = lab.page.locator(adapter.headingSelector);
     for (let i = 0; i < 20; i++) {
       await lab.fs.edit(adapter.headingFile, (content) => {
         const target = i === 0 ? adapter.initialHeadingText : `Memory Iteration ${i - 1}`;
@@ -38,8 +37,7 @@ export const memoryLeakContract: Contract = {
         return content.replace(target, `Memory Iteration ${i}`);
       });
 
-      await heading.first().waitFor({ state: "visible", timeout: 10000 });
-      expect(await heading.first().textContent()).toContain(`Memory Iteration ${i}`);
+      await lab.assert.textEventually(adapter.headingSelector, `Memory Iteration ${i}`);
     }
 
     // 4. Trigger garbage collection and verify heap growth

@@ -19,20 +19,16 @@ export const assetsContract: Contract = {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
 
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.textContent()).toContain(assetsBasicText.source);
+    await lab.assert.textEventually(adapter.headingSelector, assetsBasicText.source);
 
     // 2. Target locale renders the localized copy.
     await lab.page.goto(`${lab.url}/?lang=ar`);
     await lab.clock.waitForIdle();
 
-    const arHeading = lab.page.locator(adapter.headingSelector);
-    await arHeading.waitFor({ state: "visible", timeout: 15000 });
-    const arText = await arHeading.textContent();
-    expect(arText).toContain(assetsBasicText.arabic);
+    await lab.assert.textEventually(adapter.headingSelector, assetsBasicText.arabic);
     // Substitution, not addition: the source asset must be gone, otherwise a
     // build that simply inlined the original would satisfy the check above.
+    const arText = await lab.page.locator(adapter.headingSelector).first().textContent();
     expect(arText).not.toContain(assetsBasicText.source);
   },
 };

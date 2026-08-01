@@ -24,6 +24,42 @@ export function setRunInRequestScope(fn: any) {
   runInRequestScope = fn;
 }
 
+/**
+ * Settle beacon for test harnesses.
+ *
+ * Every locale change and catalog application routes through `notify()`, so a
+ * counter incremented there is a *causal* signal that the store has processed
+ * something — which is what a test needs to wait on, instead of sleeping and
+ * hoping.
+ *
+ * `init` publishes a zero on runtime startup so that "the counter is absent"
+ * unambiguously means "no Zintl runtime on this page", rather than the
+ * ambiguous "runtime present but nothing has settled yet". A harness cannot act
+ * on a signal it can't distinguish from silence.
+ *
+ * Deliberately a free-standing monotonic counter rather than `store.version`:
+ * several instances may notify independently, and a harness only asks "has
+ * anything settled since I looked?".
+ *
+ * Client bundles drop this entirely — the bundler statically replaces
+ * `process.env.NODE_ENV` and eliminates the branch, so nothing ships to the
+ * browser and the zero-runtime guarantee is unaffected (verified:
+ * `__zintl_version` appears in no `dist/assets/*.js`). SSR server bundles keep
+ * the guard because Node evaluates `process.env.NODE_ENV` at runtime; in
+ * production the comparison is false and this is a no-op. The counter is
+ * process-global rather than request-scoped, which is safe precisely because
+ * nothing reads it except a harness driving a single page.
+ */
+function publishSettleBeacon(init = false) {
+  if (typeof process === "undefined" || process.env.NODE_ENV === "production") return;
+  const scope = globalThis as { __zintl_version?: number };
+  if (init) {
+    scope.__zintl_version ??= 0;
+    return;
+  }
+  scope.__zintl_version = (scope.__zintl_version ?? 0) + 1;
+}
+
 export class I18nStore {
   locale: string = "";
   sourceLocale: string = "en";
@@ -36,6 +72,7 @@ export class I18nStore {
   private listeners = new Set<() => void>();
 
   constructor() {
+    publishSettleBeacon(true);
     if (typeof document !== "undefined" && document.documentElement) {
       this.locale = document.documentElement.lang || "";
     }
@@ -76,6 +113,7 @@ export class I18nStore {
   }
 
   notify() {
+    publishSettleBeacon();
     this.listeners.forEach((l) => l());
   }
 

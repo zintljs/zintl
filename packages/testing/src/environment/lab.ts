@@ -42,6 +42,14 @@ export interface Lab {
   readonly driver: ViteDriver;
   readonly url: string;
   readonly root: string;
+  /**
+   * Wait until the Zintl runtime reports it has applied pending work.
+   *
+   * Causal where `clock.waitForIdle()` is a guess: it gates on the runtime's
+   * settle counter, which advances on every locale change and catalog
+   * application. Called automatically after each filesystem mutation.
+   */
+  waitForSettled(opts?: { timeout?: number }): Promise<void>;
   teardown(): Promise<void>;
 }
 
@@ -62,6 +70,7 @@ class LabImpl implements Lab {
   readonly root: string;
   private readonly mode: "dev" | "preview" | "project";
   private readonly project: MaterializedProject;
+  private settleBaseline: number | undefined;
   // private readonly exampleName: string;
 
   constructor(
@@ -103,6 +112,12 @@ class LabImpl implements Lab {
     this.pipeline = new LabPipeline(exampleName, root, zintlOptions);
     this.driver = this.pipeline.driver;
 
+    const beforeMutation = async () => {
+      if (mode !== "project") {
+        this.settleBaseline = await this.readSettleCounter();
+      }
+    };
+
     const onMutation = async () => {
       if (mode === "dev") {
         try {
@@ -111,14 +126,84 @@ class LabImpl implements Lab {
             this.ws.waitFor("full-reload", { timeout: 4000 }),
           ]);
         } catch {
-          // Fallback to time wait if no HMR packet or timeout
+          // No HMR packet — waitForSettled below still gates on the runtime.
         }
-        await this.clock.waitForIdle();
+        await this.waitForSettled();
       }
     };
 
     this.fs = fs;
+    this.fs.setBeforeMutationCallback(beforeMutation);
     this.fs.setMutationCallback(onMutation);
+  }
+
+  /**
+   * Read the runtime's settle counter, or `undefined` when it is unavailable
+   * (before first navigation, or on a page with no Zintl runtime).
+   */
+  private async readSettleCounter(): Promise<number | undefined> {
+    try {
+      return await this.page.evaluate(
+        () => (globalThis as { __zintl_version?: number }).__zintl_version,
+      );
+    } catch {
+      // Page not ready or navigating — no baseline to compare against.
+      return undefined;
+    }
+  }
+
+  async waitForSettled(opts?: { timeout?: number }): Promise<void> {
+    const timeout = opts?.timeout ?? 10000;
+    const baseline = this.settleBaseline;
+
+    if (baseline === undefined && process.env.ZINTL_STRICT_SETTLE) {
+      // No beacon at all — the runtime is not publishing __zintl_version, or
+      // the page had not loaded it when the mutation began. Silently degrading
+      // here is what made the old heuristic untrustworthy, so strict mode
+      // treats an absent signal exactly like a stalled one.
+      throw new Error(
+        `[Lab] No runtime settle beacon was captured before the mutation. ` +
+          `The page is not publishing __zintl_version.`,
+      );
+    }
+
+    if (baseline !== undefined) {
+      try {
+        /**
+         * `!==` rather than `>` on purpose: a full reload restarts the runtime
+         * and resets the counter, so waiting for it to *grow* would hang until
+         * timeout on exactly the updates that replace the whole page.
+         */
+        await this.page.waitForFunction(
+          (v) => (globalThis as { __zintl_version?: number }).__zintl_version !== v,
+          baseline,
+          { timeout },
+        );
+      } catch {
+        /**
+         * The runtime never reported settling. Normally fall through to the
+         * heuristic — assertions are the better place to report a stall,
+         * with the DOM state that explains it.
+         *
+         * `ZINTL_STRICT_SETTLE=1` turns this into a hard failure instead. Use
+         * it to prove the beacon is genuinely wired: a silent fallback and a
+         * working signal are otherwise indistinguishable, which is the exact
+         * failure mode that made `waitForIdle` untrustworthy.
+         */
+        if (process.env.ZINTL_STRICT_SETTLE) {
+          throw new Error(
+            `[Lab] Runtime settle beacon did not advance within ${timeout}ms ` +
+              `(baseline ${baseline}). The runtime either never applied the change ` +
+              `or is not publishing __zintl_version.`,
+          );
+        }
+      }
+      this.settleBaseline = undefined;
+    }
+
+    // The counter proves the store applied the change; frameworks still render
+    // on their own schedule, so yield one frame for paint.
+    await this.clock.waitForIdle({ timeout });
   }
 
   async teardown(): Promise<void> {

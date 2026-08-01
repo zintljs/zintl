@@ -12,6 +12,7 @@ export class LabFilesystem {
   private exampleRoot: string;
   private _mutations: FsMutation[] = [];
   private onMutationCallback?: () => Promise<void>;
+  private beforeMutationCallback?: () => Promise<void>;
   private catalogBackups = new Map<string, string>();
 
   constructor(exampleRoot: string, onMutation?: () => Promise<void>) {
@@ -21,6 +22,23 @@ export class LabFilesystem {
 
   setMutationCallback(onMutation: () => Promise<void>) {
     this.onMutationCallback = onMutation;
+  }
+
+  /**
+   * Runs immediately before a mutation touches disk.
+   *
+   * Exists so a caller can record the runtime's settle counter *before* the
+   * change it is about to cause. Reading it afterwards would race the very
+   * update being waited on.
+   */
+  setBeforeMutationCallback(beforeMutation: () => Promise<void>) {
+    this.beforeMutationCallback = beforeMutation;
+  }
+
+  private async runBeforeMutation(): Promise<void> {
+    if (this.beforeMutationCallback) {
+      await this.beforeMutationCallback();
+    }
   }
 
   private async findJsonFiles(dir: string): Promise<string[]> {
@@ -88,6 +106,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "edit", path: relativePath, original });
     }
 
+    await this.runBeforeMutation();
     await writeFile(fullPath, updated, "utf-8");
 
     if (this.onMutationCallback) {
@@ -111,6 +130,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "write", path: relativePath, existed, original });
     }
 
+    await this.runBeforeMutation();
     await writeFile(fullPath, content, "utf-8");
 
     if (this.onMutationCallback) {
@@ -125,6 +145,7 @@ export class LabFilesystem {
     const original = await readFile(fullPath, "utf-8");
     this._mutations.push({ type: "delete", path: relativePath, original });
 
+    await this.runBeforeMutation();
     await unlink(fullPath);
 
     if (this.onMutationCallback) {

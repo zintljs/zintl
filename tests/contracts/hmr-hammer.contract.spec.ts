@@ -1,4 +1,3 @@
-import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 import { writeFile } from "node:fs/promises";
@@ -39,9 +38,7 @@ export const hmrHammerContract: Contract = {
     });
 
     // 4. Assert that the browser eventually converged on the final text
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.textContent()).toContain("HMR Hammer works!");
+    await lab.assert.textEventually(adapter.headingSelector, "HMR Hammer works!");
   },
 };
 

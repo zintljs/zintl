@@ -11,6 +11,35 @@ export class LabAssertions {
     this.lab = lab;
   }
 
+  /**
+   * Assert an element's text eventually contains `expected`.
+   *
+   * Prefer this over `locator.waitFor({ state: "visible" })` followed by
+   * `textContent()`. That pair looks like it waits, but `waitFor` resolves
+   * immediately when the element is *already* visible showing the previous
+   * value — so the read races the update and the timeout never engages. Every
+   * flaky contract we have traced came from that shape.
+   *
+   * Polls the live DOM until the text matches or the timeout expires, and
+   * reports the last value it saw so a genuine stall is diagnosable.
+   */
+  async textEventually(
+    selector: string,
+    expected: string,
+    opts?: { timeout?: number; interval?: number },
+  ): Promise<void> {
+    const timeout = opts?.timeout ?? 15000;
+    const interval = opts?.interval ?? 50;
+    const locator = this.lab.page.locator(selector).first();
+
+    await expect
+      .poll(async () => (await locator.textContent().catch(() => null)) ?? "", {
+        timeout,
+        interval,
+      })
+      .toContain(expected);
+  }
+
   async noHydrationErrors(): Promise<void> {
     await this.lab.clock.waitForIdle();
     const errors = this.lab.console.errors;

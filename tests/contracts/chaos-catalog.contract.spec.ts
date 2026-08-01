@@ -1,4 +1,3 @@
-import { expect } from "vite-plus/test";
 import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 import { readdirSync, existsSync } from "node:fs";
@@ -61,9 +60,7 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
     });
 
     // Page must receive HMR update
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.first().waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.first().textContent()).toContain("Chaos Deletion");
+    await lab.assert.textEventually(adapter.headingSelector, "Chaos Deletion");
 
     // Switch locales - must not crash the page, fallbacks must load gracefully
     await adapter.switchLocale(lab, "es");
@@ -97,8 +94,7 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
     await lab.page.reload();
     await lab.clock.waitForIdle();
 
-    await heading.first().waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.first().textContent()).toContain("Chaos Recovered!");
+    await lab.assert.textEventually(adapter.headingSelector, "Chaos Recovered!");
   },
 };
 

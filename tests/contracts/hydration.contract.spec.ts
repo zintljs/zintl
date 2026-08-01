@@ -40,9 +40,7 @@ export const hydrationContract: Contract<SsrAdapter> = {
     }
 
     // 5. Assert the visual heading exists and is correct after hydration
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
   },
 };
 
