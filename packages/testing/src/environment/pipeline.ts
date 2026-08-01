@@ -49,6 +49,14 @@ export class LabPipeline {
          * `'../../reactivity/batch.js'`) and must be left untouched.
          */
         .replace(/(#(?:end)?region\s+)(?:\.\.\/)+/g, "$1<OUTSIDE_ROOT>/")
+        /**
+         * A worker-scoped copy is the *same project* as its origin, so its
+         * output must be byte-identical. Without this, snapshots would encode
+         * `.tmp/runs/w1/react-basic/...` and depend on which source kind and
+         * which worker produced them — the exact opposite of the identity these
+         * snapshots exist to pin.
+         */
+        .replace(/\.tmp[/\\]runs[/\\]w[^/\\]+[/\\]/g, "examples/")
     );
   }
 

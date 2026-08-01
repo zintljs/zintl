@@ -1,6 +1,6 @@
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { existsSync } from "node:fs";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { findMonorepoRoot } from "../utils.js";
 import type { ZintlPluginOptions } from "../environment/driver.js";
@@ -61,6 +61,85 @@ export function exampleSource(dir: string): ProjectSource {
         root,
         async cleanup() {
           // Nothing to release — the directory is version controlled.
+        },
+      };
+    },
+  };
+}
+
+/**
+ * Worker-scoped copies already prepared in this process.
+ *
+ * Granularity is deliberate. Dev servers are pooled by example name in module
+ * scope (`sharedServers` in `dev-server.ts`), so every lab for a given example
+ * inside one worker must resolve to the *same* root — a per-test copy would
+ * leave the pooled server rooted at a directory the next test no longer uses.
+ * Per-worker is also the level at which isolation is actually needed: workers
+ * run in separate processes, tests inside one run serially.
+ */
+const preparedCopies = new Set<string>();
+
+/** Build artefacts and caches — never worth copying, and stale by definition. */
+const COPY_EXCLUDED = new Set(["node_modules", "dist", ".next", ".vite", ".turbo", ".tmp"]);
+
+function workerId(): string {
+  return process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? String(process.pid);
+}
+
+/**
+ * An `examples/` project copied into a worker-private directory.
+ *
+ * Contracts mutate their project — `lab.fs.edit(adapter.headingFile)` — and
+ * several contracts target the same file of the same example. Run those in
+ * parallel against the shared `examples/` tree and workers overwrite each
+ * other's edits; measured, that produced 31 failures out of 72 and corrupted
+ * the working tree. Giving each worker its own copy removes the shared mutable
+ * state that makes `maxWorkers: 1` mandatory.
+ *
+ * `node_modules` is reproduced as a shallow farm of symlinks rather than copied
+ * or linked wholesale: linking the directory itself would send Vite's
+ * `node_modules/.vite` cache writes back into the real example, reintroducing
+ * cross-worker contention through the back door.
+ */
+export function copiedExampleSource(dir: string): ProjectSource {
+  return {
+    id: dir,
+    async materialize(): Promise<MaterializedProject> {
+      const origin = join(MONOREPO_ROOT, "examples", dir);
+      if (!existsSync(origin)) {
+        throw new Error(`Example fixture directory not found: ${dir}`);
+      }
+
+      const root = join(MONOREPO_ROOT, ".tmp", "runs", `w${workerId()}`, dir);
+
+      if (!preparedCopies.has(root)) {
+        await rm(root, { recursive: true, force: true });
+        await cp(origin, root, {
+          recursive: true,
+          filter: (src) => !COPY_EXCLUDED.has(basename(src)),
+        });
+
+        const originModules = join(origin, "node_modules");
+        if (existsSync(originModules)) {
+          const target = join(root, "node_modules");
+          await mkdir(target, { recursive: true });
+          for (const entry of await readdir(originModules)) {
+            await symlink(join(originModules, entry), join(target, entry)).catch(() => {
+              // Entry already linked, or unsupported — resolution falls back to
+              // walking up to the workspace root, which still resolves.
+            });
+          }
+        }
+
+        preparedCopies.add(root);
+      }
+
+      return {
+        root,
+        async cleanup() {
+          // Intentionally retained: the pooled dev server for this example
+          // outlives the lab and still needs this root. The whole
+          // `.tmp/runs/w<id>` tree is rebuilt on the worker's next first use.
         },
       };
     },

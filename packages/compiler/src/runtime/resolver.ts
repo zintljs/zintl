@@ -1,4 +1,3 @@
-declare const process: any;
 /**
  * Build-time sentinel, substituted to a literal `true`/`false` by
  * `getRuntimeCode()` before this module is ever served.

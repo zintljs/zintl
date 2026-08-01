@@ -5,16 +5,16 @@ import { allManifests } from "../manifests/index.js";
 /**
  * Wall-clock HMR propagation, measured end-to-end through a real browser.
  *
- * On developer hardware this is a tight regression check. Shared CI runners have
- * a far higher noise floor — an unchanged pipeline measured 404-534ms there — so
- * the budget is relaxed under CI to catch only catastrophic regressions. A tight
- * budget on shared hardware does not measure Zintl; it measures the runner, and
- * a suite that cries wolf is a suite everyone learns to ignore.
+ * Relaxed whenever the measurement cannot be trusted: on shared CI runners (an
+ * unchanged pipeline measured 404-534ms there) and whenever sibling workers are
+ * competing for the same machine. In both cases a tight budget measures the
+ * hardware, not Zintl, and a suite that cries wolf is one everyone learns to
+ * ignore.
  *
  * The meaningful number is the local one. Treat a CI failure here as "something
  * is badly wrong", and `vpr bench` as the real performance signal.
  */
-const BUDGET_MS = process.env.CI ? 1500 : 350;
+const BUDGET_MS = process.env.CI || process.env.ZINTL_PARALLEL ? 1500 : 350;
 
 export const performanceHmrContract: Contract = {
   name: "Performance HMR",

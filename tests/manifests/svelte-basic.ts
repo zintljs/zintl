@@ -1,4 +1,8 @@
-import { exampleSource, type ProjectManifest, type ZintlPluginOptions } from "@zintljs/testing";
+import {
+  copiedExampleSource,
+  type ProjectManifest,
+  type ZintlPluginOptions,
+} from "@zintljs/testing";
 
 const zintlOptions: ZintlPluginOptions = {
   sourceLocale: "en",
@@ -7,7 +11,7 @@ const zintlOptions: ZintlPluginOptions = {
 
 export const svelteBasic: ProjectManifest = {
   name: "svelte-basic",
-  source: exampleSource("svelte-basic"),
+  source: copiedExampleSource("svelte-basic"),
   zintlOptions,
   capabilities: [
     "spa",
