@@ -34,6 +34,14 @@ export default defineConfig({
   lint: {
     options: { typeAware: true, typeCheck: true },
   },
+  /**
+   * `__ZINTL_DEV__` is the runtime's build-time dev sentinel. `getRuntimeCode()`
+   * substitutes it to a literal before serving, but unit tests import the
+   * runtime modules directly and bypass that, so it must be defined here.
+   */
+  define: {
+    __ZINTL_DEV__: "true",
+  },
   test: {
     exclude: [...configDefaults.exclude, "**/__tests__/examples/**", "tests/**"],
     coverage: {

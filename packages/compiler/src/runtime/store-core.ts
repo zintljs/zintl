@@ -1,4 +1,14 @@
 declare const process: any;
+/**
+ * Build-time sentinel, substituted to a literal `true`/`false` by
+ * `getRuntimeCode()` before this module is ever served.
+ *
+ * A literal is the point: `typeof process !== "undefined" && ...` looked like a
+ * safe dev guard, but `process` is undefined in browsers, so it short-circuited
+ * to false and every branch behind it was dead client-side. With a literal,
+ * production builds eliminate the branch outright and dev builds keep it.
+ */
+declare const __ZINTL_DEV__: boolean;
 
 export type Catalog = Record<string, string | Function>;
 export type BoundaryCatalogs = Record<string, Catalog>;
@@ -41,17 +51,15 @@ export function setRunInRequestScope(fn: any) {
  * several instances may notify independently, and a harness only asks "has
  * anything settled since I looked?".
  *
- * Client bundles drop this entirely — the bundler statically replaces
- * `process.env.NODE_ENV` and eliminates the branch, so nothing ships to the
- * browser and the zero-runtime guarantee is unaffected (verified:
- * `__zintl_version` appears in no `dist/assets/*.js`). SSR server bundles keep
- * the guard because Node evaluates `process.env.NODE_ENV` at runtime; in
- * production the comparison is false and this is a no-op. The counter is
- * process-global rather than request-scoped, which is safe precisely because
- * nothing reads it except a harness driving a single page.
+ * Gated on `__ZINTL_DEV__`, which is substituted to a literal before this
+ * module is served — so production drops the whole function body and the
+ * zero-runtime guarantee is unaffected, on the client and on the server alike.
+ *
+ * The counter is process-global rather than request-scoped, which is safe
+ * precisely because nothing reads it except a harness driving a single page.
  */
 function publishSettleBeacon(init = false) {
-  if (typeof process === "undefined" || process.env.NODE_ENV === "production") return;
+  if (!__ZINTL_DEV__) return;
   const scope = globalThis as { __zintl_version?: number };
   if (init) {
     scope.__zintl_version ??= 0;
@@ -65,7 +73,15 @@ export class I18nStore {
   sourceLocale: string = "en";
   catalogs: Catalogs = {};
   locales: string[] = [];
-  debug: boolean = (typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true") || false;
+  /**
+   * Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+   * in a browser. The browser path exists because the env-var check alone is
+   * unreachable client-side, which is why client debug logging never appeared.
+   */
+  debug: boolean =
+    __ZINTL_DEV__ &&
+    ((typeof process !== "undefined" && process.env.ZINTL_DEBUG === "true") ||
+      (globalThis as { __ZINTL_DEBUG?: boolean }).__ZINTL_DEBUG === true);
   pendingBoundaries = new Set<string>();
   pendingPromises: Promise<any>[] = [];
   version: number = 0;
@@ -137,7 +153,7 @@ export class I18nStore {
     }
     if (changed) {
       this.version++;
-      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) {
+      if (__ZINTL_DEV__ && this.debug) {
         console.debug(
           "[Zintl] Catalogs updated:",
           Object.keys(newCatalogs).flatMap((l) =>
@@ -165,7 +181,7 @@ export class I18nStore {
       return;
     }
 
-    if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) {
+    if (__ZINTL_DEV__ && this.debug) {
       console.debug(`[Zintl] Switching to locale: ${locale}`);
     }
     this.locale = locale;
@@ -192,7 +208,7 @@ export class I18nStore {
           processResult(result);
         }
       } catch (err) {
-        if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+        if (__ZINTL_DEV__) {
           console.error(
             `[Zintl] Failed to load catalog for boundary "${boundaryId}" (${locale})`,
             err,
@@ -204,13 +220,13 @@ export class I18nStore {
     if (activePromises.length > 0) {
       await Promise.all(activePromises);
       this.version++;
-      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) {
+      if (__ZINTL_DEV__ && this.debug) {
         console.debug(`[Zintl] Locale "${locale}" hydrated.`);
       }
       this.notify();
     } else {
       this.version++;
-      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production" && this.debug) {
+      if (__ZINTL_DEV__ && this.debug) {
         console.debug(`[Zintl] Locale "${locale}" hydrated.`);
       }
       this.notify();
@@ -373,7 +389,7 @@ export function registerLoader(boundaryId: string, loader: Loader) {
       processResult(result);
     }
   } catch (err) {
-    if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+    if (__ZINTL_DEV__) {
       console.error(`[Zintl] Failed to load initial catalog for boundary "${boundaryId}"`, err);
     }
   }

@@ -1818,6 +1818,14 @@ export function getRuntimeCode(
   capabilities?: CapabilityFlags,
   isSsr?: boolean,
   sourceLocale?: string,
+  /**
+   * Whether the runtime is being served for development.
+   *
+   * Defaults to `false` so a caller that forgets gets the production runtime:
+   * the failure mode is "no debug output", never "debug machinery shipped to
+   * users".
+   */
+  isDev = false,
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -1840,6 +1848,15 @@ export function getRuntimeCode(
     throw new Error(`[Zintl] Runtime module not found: ${moduleName} (resolved to ${path})`);
   }
   let code = readFileSync(path, "utf-8");
+  /**
+   * Resolve the dev sentinel to a literal.
+   *
+   * This is the substitution that makes the guard actually work: as a literal
+   * `false`, minifiers eliminate the branch and its body; as a literal `true`,
+   * dev logging and the settle beacon are reachable in the browser — which they
+   * were not while the check depended on `typeof process`.
+   */
+  code = code.replace(/\b__ZINTL_DEV__\b/g, isDev ? "true" : "false");
   if (cleanName === "store-core" && sourceLocale) {
     code = code
       .replace(

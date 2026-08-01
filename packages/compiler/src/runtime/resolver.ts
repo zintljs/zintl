@@ -1,4 +1,14 @@
 declare const process: any;
+/**
+ * Build-time sentinel, substituted to a literal `true`/`false` by
+ * `getRuntimeCode()` before this module is ever served.
+ *
+ * A literal is the point: `typeof process !== "undefined" && ...` looked like a
+ * safe dev guard, but `process` is undefined in browsers, so it short-circuited
+ * to false and every branch behind it was dead client-side. With a literal,
+ * production builds eliminate the branch outright and dev builds keep it.
+ */
+declare const __ZINTL_DEV__: boolean;
 import { getActiveInstance } from "./store.js";
 
 export function _t(
@@ -48,7 +58,7 @@ export function _t(
       }
 
       if (message === undefined) {
-        if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+        if (__ZINTL_DEV__) {
           console.warn(
             `[Zintl] Missing key "${key}" in boundary "${targetBId || boundaryId}". Triggering hydration...`,
           );
@@ -56,7 +66,7 @@ export function _t(
         return ``;
       }
     } else {
-      if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+      if (__ZINTL_DEV__) {
         console.warn(`[Zintl] Missing key "${key}" and no manager provided.`);
       }
       return ``;

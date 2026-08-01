@@ -36,7 +36,12 @@ var I18nStore = class {
 	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
-	debug = typeof process !== "undefined" && {}.ZINTL_DEBUG === "true" || false;
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug = false;
 	pendingBoundaries = /* @__PURE__ */ new Set();
 	pendingPromises = [];
 	version = 0;

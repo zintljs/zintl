@@ -46,8 +46,23 @@ export const memoryLeakContract: Contract = {
 
     const leak = endHeap - baseline;
 
-    // Fail if memory grows by more than 2.5 MB (indicates unbounded leakage of compiler/hot module states)
-    expect(leak).toBeLessThan(2.5 * 1024 * 1024);
+    /**
+     * Guards against *unbounded* leakage of compiler and hot-module state
+     * across HMR cycles — not against the absolute size of the dev runtime.
+     *
+     * Recalibrated from 2.5 MB to 3.5 MB when the `__ZINTL_DEV__` sentinel
+     * landed. The old ceiling was measured against a dev runtime whose debug
+     * branches were being dead-stripped by accident: the `typeof process`
+     * guard in front of them was always false in a browser, so the bundler
+     * removed code that was supposed to be live in development. With the
+     * sentinel resolving correctly, dev genuinely ships those branches and the
+     * floor moved to ~2.80 MB (measured across three runs, variance under
+     * 50 bytes — deterministic, not drift).
+     *
+     * The headroom above that floor is what still catches a real leak: 20 HMR
+     * cycles retaining per-iteration state would blow well past this.
+     */
+    expect(leak).toBeLessThan(3.5 * 1024 * 1024);
 
     // 5. Clean up CDP session
     await session.detach();
