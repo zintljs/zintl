@@ -1,13 +1,13 @@
 <p align="center">
   <br>
   <br>
-  <a href="https://github.com/zintljs/zintl" target="_blank" rel="noopener noreferrer">
+  <!-- <a href="https://github.com/zintljs/zintl" target="_blank" rel="noopener noreferrer">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
       <img alt="Zintl logo" src="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg" height="80">
     </picture>
-  </a>
+  </a> -->
   <br>
   <br>
 </p>
