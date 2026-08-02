@@ -1,15 +1,11 @@
 <p align="center">
-  <br>
-  <br>
   <a href="https://github.com/zintljs/zintl" target="_blank" rel="noopener noreferrer">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg">
       <img alt="Zintl logo" src="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg" height="80">
-    </picture>
+    </picture>    
   </a>
-  <br>
-  <br>
 </p>
 
 <h1 align="center">Zintl(𝐢𝟖𝐧)</h1>
@@ -19,9 +15,11 @@
 </p>
 
 <p align="center">
-  <a href="https://npmjs.com/package/zintljs"><img src="https://img.shields.io/npm/v/zintljs.svg?color=863bff&label=" alt="npm package"></a>
-  <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/zintljs.svg?color=6a2ee3&label=node" alt="node compatibility"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/zintljs.svg?color=6a2ee3" alt="license"></a>
+  <a href="https://npmjs.com/package/zintljs"><img alt="npm version" src="https://img.shields.io/npm/v/zintljs?label=&color=F4795E&labelColor=1B1420&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48bWFzayBpZD0ibSI%2BPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNMTYgNDVWODRNMTYgMjR2MU02MiA4NFY1ME02MiA2MGExNCAxNCAwIDAgMSAyOCAwdjI0IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMTMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjIxLjUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9Ijc0IiByPSIyMyIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjE3LjUiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzOSIgY3k9IjczIiByPSIxOSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9Ijc0IiByPSI2LjUiLz48L21hc2s%2BPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmZmYiIG1hc2s9InVybCgjbSkiLz48L3N2Zz4%3D"></a>
+  <a href="https://github.com/zintljs/zintl/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/zintljs/zintl/ci.yml?branch=main&label=CI&labelColor=1B1420&logo=githubactions&logoColor=fff"></a>
+  <a href="https://nodejs.org/en/about/previous-releases"><img alt="node compatibility" src="https://img.shields.io/node/v/zintljs?label=node&color=E8309C&labelColor=1B1420&logo=nodedotjs&logoColor=fff"></a>
+  <a href="docs/"><img alt="documentation" src="https://img.shields.io/badge/docs-guide-B44BE0?labelColor=1B1420&logo=bookstack&logoColor=fff"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/zintljs?label=license&color=1B1420&labelColor=1B1420&logo=opensourceinitiative&logoColor=fff"></a>
 </p>
 
 <br/>
