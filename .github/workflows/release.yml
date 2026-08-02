@@ -89,10 +89,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Signs a verifiable link between this commit, this workflow run, and
-          # the published tarball — so "it came from zintljs/zintl on GitHub" is
-          # something anyone can check rather than something they take on trust.
+          # NOTE: this currently has NO EFFECT and is kept only as a marker.
           #
-          # Requires a PUBLIC repository and `id-token: write` above. If the repo
-          # is ever made private again, this must be removed or the publish fails.
+          # Changesets publishes through `pnpm publish` (it detects the package
+          # manager), and pnpm 11 has no provenance support — no `--provenance`
+          # flag, and it does not act on this variable. alpha.8 published with
+          # `NPM_CONFIG_PROVENANCE: true` set and produced no attestation:
+          #   https://registry.npmjs.org/-/npm/v1/attestations/zintljs@0.1.0-alpha.8
+          #   → {"error":"Not found"}
+          #
+          # It cannot simply be switched to `npm publish`: only pnpm rewrites the
+          # `catalog:` and `workspace:*` specifiers, so an npm publish straight
+          # from the workspace ships a package nobody can install.
+          #
+          # The workable route is to split pack from publish — `pnpm pack` to get
+          # a correct tarball, then `npm publish <tarball> --provenance` — which
+          # needs a release flow that does not delegate publishing to changesets.
+          # Until then, provenance is unavailable rather than merely unconfigured.
           NPM_CONFIG_PROVENANCE: true
