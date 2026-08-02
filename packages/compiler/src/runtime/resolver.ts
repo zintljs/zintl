@@ -50,9 +50,23 @@ export function _t(
         }
       } else {
         if (mgr.loader) {
-          void Promise.resolve().then(() => {
+          /**
+           * Trigger the load now, then re-read — the same shape the server
+           * branch above already uses.
+           *
+           * Deferring into a microtask meant a *synchronous* loader could not
+           * satisfy this call, so the first render tick after a hot update
+           * registered a new loader always returned "" even though the strings
+           * were available on that very tick. `loadLazyBoundary` handles the
+           * async case internally, so nothing is lost by calling it inline.
+           */
+          try {
             instance.loadLazyBoundary(mgr.id, mgr.loader);
-          });
+            const boundaryCatalogAfter = targetBId
+              ? instance.catalogs[locale]?.[targetBId]
+              : undefined;
+            if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+          } catch {}
         }
       }
 

@@ -13,6 +13,64 @@ var runInRequestScope$1 = (_urlOrReq, _locales, _defaultLocale, callback) => {
 function setRunInRequestScope(fn) {
 	runInRequestScope$1 = fn;
 }
+var DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	mint(channel, subject) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const seq = (this.minted.get(key) ?? 0) + 1;
+		this.minted.set(key, seq);
+		return {
+			channel,
+			subject,
+			seq,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) return false;
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {}
+};
 var I18nStore = class {
 	locale = "";
 	sourceLocale = "en";
@@ -28,6 +86,15 @@ var I18nStore = class {
 	pendingPromises = [];
 	version = 0;
 	listeners = /* @__PURE__ */ new Set();
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
 	constructor() {
 		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
 		if (!this.locale && typeof window !== "undefined") try {
@@ -49,14 +116,30 @@ var I18nStore = class {
 		this.listeners.add(listener);
 		return () => this.listeners.delete(listener);
 	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
 	notify() {
-		this.listeners.forEach((l) => l());
+		this.version++;
+		for (const listener of this.listeners) try {
+			listener();
+		} catch (err) {}
 	}
 	addCatalogs(newCatalogs) {
 		let changed = false;
+		const delivered = [];
 		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
 			if (!this.catalogs[locale]) this.catalogs[locale] = {};
 			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				delivered.push(locale + "/" + boundaryId);
 				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
 				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
 					this.catalogs[locale][boundaryId][key] = value;
@@ -64,10 +147,7 @@ var I18nStore = class {
 				}
 			}
 		}
-		if (changed) {
-			this.version++;
-			this.notify();
-		}
+		if (changed) this.notify();
 	}
 	async setLocale(locale) {
 		if (!locale) return;
@@ -78,6 +158,17 @@ var I18nStore = class {
 			} catch {}
 		}
 		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) return;
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
 		this.locale = locale;
 		const activePromises = [];
 		for (const [boundaryId, loader] of globalRegistry.entries()) try {
@@ -94,52 +185,87 @@ var I18nStore = class {
 				}));
 			} else processResult(result);
 		} catch (err) {}
-		if (activePromises.length > 0) {
-			await Promise.all(activePromises);
-			this.version++;
-			this.notify();
-		} else {
-			this.version++;
-			this.notify();
-		}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) return;
+		this.notify();
 	}
 	registerLoader(boundaryId, loader) {
 		globalRegistry.set(boundaryId, loader);
-		const result = loader(this.locale);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
 		const processResult = (res) => {
 			if (!res) return;
-			this.addCatalogs({ [this.locale]: res });
+			this.addCatalogs({ [target]: res });
 		};
-		if (isThenable(result)) {
-			this.pendingBoundaries.add(boundaryId);
-			return result.then((res) => {
-				processResult(res);
-				this.pendingBoundaries.delete(boundaryId);
-			});
-		} else processResult(result);
-	}
-	loadLazyBoundary(boundaryId, loader) {
-		if (this.catalogs[this.locale]?.[boundaryId]) return;
-		if (this.pendingBoundaries.has(boundaryId)) return;
-		this.pendingBoundaries.add(boundaryId);
 		try {
-			const result = loader(this.locale);
-			const processResult = (res) => {
-				this.pendingBoundaries.delete(boundaryId);
-				if (!res) return;
-				this.addCatalogs({ [this.locale]: res });
-			};
+			const result = loader(target);
 			if (isThenable(result)) {
-				const p = result.then((res) => {
-					processResult(res);
-				}).catch((err) => {
+				this.pendingBoundaries.add(boundaryId);
+				return result.then(processResult).catch((err) => {}).finally(() => {
 					this.pendingBoundaries.delete(boundaryId);
 				});
-				this.pendingPromises.push(p);
-				return p;
-			} else processResult(result);
-		} catch (err) {
+			}
+			processResult(result);
+		} catch (err) {}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		if (this.catalogs[target]?.[boundaryId]) return;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
 			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
 		}
 	}
 };
@@ -187,17 +313,21 @@ function setActiveInstance(instance) {
 function registerLoader(boundaryId, loader) {
 	globalRegistry.set(boundaryId, loader);
 	const instance = getActiveInstance();
-	if (instance.catalogs[instance.locale]?.[boundaryId]) return;
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
 	try {
-		const result = loader(instance.locale);
+		const result = loader(target);
 		const processResult = (res) => {
 			if (!res) return;
-			instance.addCatalogs({ [instance.locale]: res });
+			instance.addCatalogs({ [target]: res });
 		};
 		if (isThenable(result)) {
-			const p = result.then((res) => {
-				processResult(res);
-			});
+			const p = result.then(processResult).catch((err) => {});
 			if (instance.pendingPromises) instance.pendingPromises.push(p);
 			return p;
 		} else processResult(result);
@@ -462,9 +592,22 @@ function _t(key, params = {}, options) {
 					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
 				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
 			} catch {}
-		} else if (mgr.loader) Promise.resolve().then(() => {
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
 			instance.loadLazyBoundary(mgr.id, mgr.loader);
-		});
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
 		if (message === void 0) return ``;
 	} else return ``;
 	if (typeof message === "function") return message(params);

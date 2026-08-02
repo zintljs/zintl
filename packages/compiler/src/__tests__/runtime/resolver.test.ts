@@ -55,13 +55,17 @@ describe("Resolver", () => {
     const result = _t("any", {}, { _mgr: mgr });
     expect(result).toBe("");
 
-    // Await the microtask for resolver's trigger to start loadLazyBoundary
-    await Promise.resolve();
+    // `_t` triggers the load inline now, so the boundary is already pending.
     expect(store.pendingBoundaries.has("new_b")).toBe(true);
 
-    // Clean up by resolving the loader promise
+    /**
+     * Resolving the loader settles the load through `then → catch → finally`,
+     * so counting microtask ticks is a bet on the chain's depth — it broke the
+     * moment a `.catch` was added. A macrotask boundary drains all of them
+     * regardless of how the chain is built.
+     */
     resolveLoader({});
-    await Promise.resolve(); // Allow processResult microtask to execute
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(store.pendingBoundaries.has("new_b")).toBe(false);
   });
 });

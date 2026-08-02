@@ -54,11 +54,11 @@ interface Envelope {
 }
 
 type Channel =
-  | "runtime/catalog" // a catalog application, subject = boundaryId
-  | "runtime/locale" // a locale change,      subject = locale
-  | "build/hmr" // a file change → emit, subject = source file path
-  | "build/pipeline" // a compiler stage,     subject = stage name
-  | "io/write"; // an artifact write,    subject = output path
+  | "runtime/catalog" // subject = <locale>/<boundaryId>
+  | "runtime/locale" // subject = "active" — the one active-locale slot
+  | "build/hmr" // subject = source file path
+  | "build/pipeline" // subject = stage name
+  | "io/write"; // subject = output path
 ```
 
 `seq` and `subject` are production-grade. Everything else is development-only (§8).
@@ -119,13 +119,20 @@ Elimination gates on the `__ZINTL_DEV__` sentinel, which `getRuntimeCode()` subs
 
 A channel is a namespace of comparable work. Envelopes are ordered strictly within a channel, and never across channels — there is no global clock, and this is deliberate: the runtime store is request-scoped under SSR (`AsyncLocalStorage`), and a process-global counter would leak sequence state across concurrent requests.
 
-| Channel           | Subject $J$                           | Sequence source $Q$                                                  | Receiver holds                        |
-| :---------------- | :------------------------------------ | :------------------------------------------------------------------- | :------------------------------------ |
-| `runtime/catalog` | `boundaryId`                          | `boundaryRevisions` (compiler-minted, travels with the catalog)      | last applied revision per boundary    |
-| `runtime/locale`  | the target locale string              | store-local counter per locale                                       | last applied seq per locale           |
-| `build/hmr`       | absolute source file path             | the bundler's HMR `timestamp` (strictly monotonic, never duplicates) | last processed timestamp per file     |
-| `build/pipeline`  | stage name (`flush`, `graph`, `hive`) | stage generation counter                                             | last committed generation             |
-| `io/write`        | absolute output path                  | owning `build/pipeline` generation                                   | generation that owns the file on disk |
+| Channel           | Subject $J$                           | Sequence source $Q$                                                  | Receiver holds                         |
+| :---------------- | :------------------------------------ | :------------------------------------------------------------------- | :------------------------------------- |
+| `runtime/catalog` | `<locale>/<boundaryId>`               | `boundaryRevisions` (compiler-minted, travels with the catalog)      | last applied revision per subject      |
+| `runtime/locale`  | `"active"` — a single constant        | store-local counter                                                  | the seq holding the active-locale slot |
+| `build/hmr`       | absolute source file path             | the bundler's HMR `timestamp` (strictly monotonic, never duplicates) | last processed timestamp per file      |
+| `build/pipeline`  | stage name (`flush`, `graph`, `hive`) | stage generation counter                                             | last committed generation              |
+| `io/write`        | absolute output path                  | owning `build/pipeline` generation                                   | generation that owns the file on disk  |
+
+Two of those subjects are easy to get wrong, and both were wrong in this document's first draft:
+
+- **`runtime/catalog` is keyed by locale _and_ boundary.** A catalog is only meaningful for one language, and a boundary's Arabic and French catalogs are separate deliveries that must not supersede one another.
+- **`runtime/locale` has exactly one subject, not one per locale.** The thing being superseded is the store's _active-locale slot_, of which there is one. Keying by target locale would let a switch to `fr` and a switch to `ar` proceed as unrelated deliveries — which is the interleaving the channel exists to prevent.
+
+The general rule the two illustrate: **the subject is the resource being contested, not the value being delivered.**
 
 ### §3.1 — Sequence sources are adopted, not invented
 
@@ -193,7 +200,7 @@ The ledger is a **bounded ring** of envelopes and their outcomes, per channel. I
 
 - **Bounded is normative, not an optimization.** The `memory-leak` contract measures retained heap across twenty consecutive hot updates against a 3.5 MB budget with roughly 700 KB of headroom. An unbounded history fails it.
 - **Default capacity**: 128 entries per channel.
-- **Runtime view**: `globalThis.__zintl_ledger`. The settle beacon `globalThis.__zintl_version` survives as a _derived_ value — the count of `applied` outcomes — so every existing reader continues to work unchanged.
+- **Runtime view**: `globalThis.__zintl_ledger`. The settle beacon `globalThis.__zintl_version` survives as a _derived_ value — the count of **terminal outcomes**, not only `applied` — so every existing reader continues to work unchanged. Counting supersessions and failures too is deliberate: an observer asks "has the store finished with my change?", and `superseded` is a finished answer. Notifying subscribers stays a separate concern, and still happens only on real change.
 - **Compiler view**: exposed on `CompilerContext`, and therefore reachable by the test harness through the live-compiler handle. It is available in project mode, where there is no page and no socket.
 
 ### §5.1 — What the ledger is for
