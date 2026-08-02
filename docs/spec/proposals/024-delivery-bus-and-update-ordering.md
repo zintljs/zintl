@@ -42,6 +42,34 @@ And the DOM is two versions behind. Delivery works; **ordering does not**. Nothi
 
 Observed as `'Hammer 3'` and `'Hammer 4'` on different runs — the specific version it settles on varies, which is what a race looks like.
 
+#### 1.1a A second signature: the update is never sent
+
+A later CI run of the same contract failed differently, and the difference is load-bearing:
+
+```
+expected 'Hammer 4' to contain 'HMR Hammer works!'
+
+hmr packets:      {"update": 4}    ← FOUR packets, for FIVE writes
+settle beacon:    9
+console errors:   none
+selector h1 html: Hammer 4         ← the last state that WAS sent
+```
+
+`hmr-hammer` performs five writes (`Hammer 1`, then `2`–`4` at 30 ms intervals, then the final text). This run produced **four** packets, and the DOM settled on `Hammer 4` — the newest state the wire actually carried. The file on disk held the final text; no packet ever described it.
+
+Contrast with §1.1, where five packets were sent and the browser still ended up two versions behind.
+
+**The two signatures place the loss in different components:**
+
+|       | packets         | DOM lands on  | loss is                              |
+| :---- | :-------------- | :------------ | :----------------------------------- |
+| §1.1  | 5 (all sent)    | 2 behind      | downstream of arrival — ordering     |
+| §1.1a | 4 (one missing) | last one sent | upstream of the wire — never emitted |
+
+Packet accounting is inferential — the counts are totals, not a per-write mapping — so treat "the fifth write emitted nothing" as strongly indicated rather than proven. But the conclusion holds either way: **a design that only orders updates after they arrive would not have fixed §1.1a.** Whatever guarantees the bus provides must extend back to the point where a filesystem change becomes an update, not begin at the point where one is received.
+
+Practically, that means the write→emit path (watcher coalescing, debounce windows, whatever swallows a change under rapid succession) needs auditing before the ordering work is called complete.
+
 ### 1.2 A boundary can be abandoned in silence
 
 `_t()` returns `""` when a key is missing, in three separate places. Before returning, it fires a catalog load and forgets it:
@@ -128,7 +156,9 @@ A receiver holding the sequence number it last applied can discard anything olde
 
 The runtime already has the choke point: **`notify()`**. Every locale change and catalog application passes through it, which is exactly why the settle beacon lives there and works. A bus that owns dispatch is a generalisation of what `notify()` already is, not a new layer beside it.
 
-Do not put the bus between the dev server and the browser as a first move. The evidence in §1.1 shows the transport delivering correctly — the loss is downstream of arrival.
+§1.1 shows the transport delivering correctly with the loss downstream of arrival, which argues for starting at `notify()`. §1.1a shows a write that never became a packet at all, which argues the guarantee has to reach further back.
+
+Both are true, so scope the _guarantee_ end to end — a change on disk is accounted for until it is applied or explicitly superseded — while implementing it incrementally. Starting at `notify()` is still the right first move, because it is the choke point that already exists; just don't mistake a green `hmr-hammer` after that step for the whole problem being solved.
 
 ### 4.3 Scope discipline
 
