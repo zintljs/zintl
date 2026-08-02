@@ -1,227 +1,123 @@
-# Zintl System Agent Specification
+# CLAUDE.md
 
-## System Overview
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Zintl is a compiler-driven internationalization system for modern web applications. It transforms static string literals in source code into optimized, chunk-aware translation catalogs that align with modern bundlers (Vite, Webpack, Rollup).
+## What this is
 
-## Core Architecture
+Zintl is a compile-time internationalization engine. Apps write plain string literals; the compiler extracts them, builds a dependency graph from each `zintl(locale)` call, and emits chunk-aware translation catalogs aligned with the bundler's own code splitting. No `t()` wrappers, no manually maintained key dictionaries.
 
-### Three-Package System
+This is a pnpm workspace monorepo built on **Vite+** (`vp`/`vpr` CLI, wraps Vite/Rolldown/Vitest/tsdown/Oxlint/Oxfmt). Run `vp help` / `vp <command> --help` for tool help; docs are at `node_modules/vite-plus/docs`.
 
-- **@zintljs/extractor**: AST-based string extraction with dependency tracking
-- **@zintljs/compiler**: Boundary graph algorithm and catalog generation, and minimalist runtime for translation loading softly injected.
-- **zintl**: plugin for build tools (currently, support only vite), and the entry point for using the macros and zintl facets.
+Requires Node `^22.18.0 || >=24.11.0` and pnpm. `vp install` sets everything up (`prepare` runs `vp config`).
 
-### Processing Pipeline
+## Commands
+
+**Build (always run before lint or tests):**
+
+```bash
+vpr build          # root script, builds packages in dependency order (--transitive)
+```
+
+Do **not** use `vp run -r build` as a substitute — it builds in parallel, so `zintljs#build` can run before `@zintljs/compiler`'s `dist` exists and fails. Only `vpr build` (or `vpr --transitive <pkg>#build`) respects package build order.
+
+Type-aware lint resolves workspace imports through each package's `dist/*.d.mts`, and also covers `examples/`, which need their sibling packages' dists and vinext's generated `.next` types. Linting before building on a fresh checkout produces ~172 phantom "Cannot find module" errors — build first, always.
+
+**The two verification gates:**
+
+```bash
+vpr verify         # build:examples → lint → knip → unit tests → format check   (~1 min)
+vpr ready:examples # build 18 example apps → 72 contract e2e tests              (~2-5 min)
+vpr ready           # verify + bench, local pre-handoff check
+vpr ci              # ready + ready:examples, what CI runs
+```
+
+`vpr verify` is the fast loop. `vpr ready:examples` drives real Playwright browsers against real example apps and is what catches integration regressions — run both for anything touching the extractor, compiler, or boundary graph.
+
+**Single package / single test:**
+
+```bash
+vpr <package_name>#<command>        # e.g. vpr @zintljs/compiler#build
+vp test <dir-or-file>               # e.g. vp test packages/compiler/src/__tests__/pipeline
+vp test --config=tests/vitest.config.ts   # contract suite only (also: vp run test:contracts)
+```
+
+**Other:**
+
+```bash
+vpr bench     # extraction/HMR performance budgets (NODE_OPTIONS=--expose-gc)
+vpr smoke     # packs real tarballs, npm-installs outside the repo, builds against stock Vite — run before releasing
+vpr change    # add a changeset (say what changed and why — becomes the changelog)
+```
+
+Piping `vpr verify`/`vpr ready*` into `tail`/`grep` reports the _pipe's_ exit code, not the gate's — a failing suite can look like success. Redirect to a file and check `$?` on the command itself if you need a reliable pass/fail signal.
+
+## Layout
+
+| Path                 | What it is                                                                                                                                                                                       |
+| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/zintl`     | Published as `zintljs`. Vite plugin + macro. Most users only install this.                                                                                                                       |
+| `packages/compiler`  | Published as `@zintljs/compiler`. Boundary graph, chunking, ICU baking, runtime source.                                                                                                          |
+| `packages/extractor` | Published as `@zintljs/extractor`. Framework-blind AST string extraction.                                                                                                                        |
+| `packages/testing`   | Internal, never published. Contract-test harness (`Lab`, assertions, environment).                                                                                                               |
+| `examples/`          | 18 real apps (React/Vue/Svelte/vanilla × SPA/SSR/MPA). Not demos — the contract suite drives them through real browsers.                                                                         |
+| `tests/`             | Contract specs, fixtures, manifests — shared across examples.                                                                                                                                    |
+| `docs/`              | User docs (`architecture.md`, `configuration.md`, `directives.md`, `icu.md`, `glossary.md`). `docs/spec/` has internal design notes; `zrs-*` test names refer to sections of `docs/spec/ZRS.md`. |
+
+## Architecture
+
+### Pipeline
 
 ```
-Source Code -> Extractor (Intelligent Stitching) -> Compiler → Boundary Graph → Chunks -> loadI18nInstance (Transformation) -> Runtime
-
+Source Code → Extractor (Intelligent Stitching) → Compiler → Boundary Graph → Chunks → Managers → Runtime
 ```
 
-## Key Concepts
+- **Extractor** (`@zintljs/extractor`) reads source with an AST parser (oxc) and reports what it finds. Never modifies files, carries no framework knowledge — React/Vue/Svelte behavior arrives as configuration.
+- **Compiler** (`@zintljs/compiler`) decides what belongs together: builds the boundary graph, computes entry/lazy/shared chunks, bakes ICU grammar into JS conditionals, reconciles translations across edits (Levenshtein-based), and generates runtime source.
+- **Plugin + runtime** (`zintljs`) wires the compiler into Vite and into the browser. The compiler itself is bundler-agnostic — Vite is the only integration today, but nothing about the compiler assumes it.
 
-### Boundary Graph Algorithm
+### Boundary graph
 
-- **Boundary**: A file with extractable strings reachable from a Trust Anchor.
-- **Entry Point**: A file calling `zintl()`.
-- **Top-Level Anchor**: A `zintl` call at the module level.
-- **Independence**: Every `zintl()` call, whether at the module level or nested within a function, represents an independent trust anchor with its own hydration lifecycle and dedicated catalog boundary. It 'opts out' from any parent context to ensure deterministic loading.
-- **Smart Manager**: A generated loader function that inlines the anchor locale (for speed) while remaining lazy for other locales.
-- **Synchronous Boost**: The runtime's ability to update the locale and catalogs immediately if the loader returns a synchronous value.
+- **Trust anchor**: a call to `zintl(locale)` — the point an app declares what language it's in. Every anchor is independent, with its own hydration lifecycle; nested anchors don't inherit from parents.
+- **Entry point**: a file with a _top-level_ `zintl()` call (vs. one nested in a function).
+- **Boundary**: the set of strings reachable (via imports) from one trust anchor. Becomes one catalog chunk. Identity is content-based (`b_<hash>`), not path-based, so moving/renaming files doesn't orphan translations.
+- **Stitched unit**: the actual unit of extraction — template literals, JSX fragments, and HTML strings are stitched into logical pieces before extraction (not extracted as raw strings), so a sentence split across tags stays one key, and interpolations normalize to stable placeholders (`{input}`, `{inputN}`).
+- What's passed to an anchor matters: a **variable** (`zintl(locale)`) ships every locale, switchable at runtime, with a catalog chunk emitted. A **literal** (`zintl("fr")`) is a build-time fact — the compiler bakes that locale in and emits no catalog chunk at all; other locales, including the source locale, are never built.
 
-### Dual Output Modes & Ghost Sources
+### Ghost mode & runtime splitting
 
-- **Development Mode**: Served via `virtual:zintl/content/<locale>/<boundary>`.
-- **Runtime Mode**: Handled via generated Managers that either inline content or import chunk-based catalogs.
-- **Ghost Mode (Source Locale)**: The `sourceLocale` (typically English) is entirely diskless. The compiler virtualizes it from the extraction manifest. If not the active locale, it is lazily imported via the Manager to keep the initial bundle lean.
+- **Ghost mode**: the source locale (`sourceLocale`) is never written to disk — the compiler virtualizes it from the extraction manifest, and lazily imports it via the generated Manager only if it's the active locale.
+- **Smart manager**: generated loader that inlines the anchor's locale for a fast start while keeping other locales lazy ("synchronous boost" when the loader resolves synchronously).
+- Virtual modules: `virtual:zintl/content/<locale>/<boundary>` (dev), `virtual:zintl/catalog/{entry,lazy,shared}:<id>` (build).
+- The reactive store is split by environment to avoid shipping unneeded code: `runtime/store-core.ts` (shared store/loader/resolver logic), `store-client.ts` (SPA popstate + `MutationObserver` locale sync, gated by the `clientLocaleSync` capability), `store-server.ts` (Node `AsyncLocalStorage` request scoping + HTML stream injection, gated by `serverRequestScope`). `getRuntimeCode()` composes the final `store.js` from resolved capabilities.
 
-### Virtual Module System
+### Faceted compiler architecture
 
-- **(boundary graph)**: `virtual:zintl/catalog/entry:<id>`, `virtual:zintl/catalog/lazy:<id>`, `virtual:zintl/catalog/shared:<id>`
+Framework and toolchain behavior (React/Vue/Svelte, SSR, Vite, client-SPA, etc.) is composed from discrete **facets** rather than scattered conditionals — each facet owns one orthogonal concern. Array/boolean capabilities merge via union; function hooks are first-contributor-wins with conflict detection (two facets claiming the same file extension or a conflicting bundler hook is a hard error at construction, not a silent override). Adding a framework or build tool means contributing a facet, not editing the core — nothing framework-specific belongs in the extractor, nothing bundler-specific belongs in the compiler.
 
-### Intelligent Stitching & Fragmentation
+### Testing architecture
 
-- **Unit of Extraction**: Zintl does not extract raw strings. It stitches template literals, JSX fragments, and HTML strings into logical **Stitched Units**.
-- **HTML Fragmentation**: Large innerHTML strings are automatically fragmented by HTML tags. Translatable text between tags becomes a separate key, while tags themselves are preserved as structure.
-- **Variable Normalization**: Unnamed expressions (e.g., `${"✅"}`) are normalized to stable placeholders like `{input}` or `{inputN}`. This ensures that identical UI fragments share the same translation key regardless of their absolute index in a template.
-- **Dataflow Tracing (Deprecated)**: Manual tracing of variables to sinks is replaced by this aggressive, scope-aware stitching engine.
+Unit tests live beside code in `__tests__/`. Above that sits a **contract** layer (`tests/contracts/`):
 
-## Faceted Compiler Architecture
+- A contract declares `requires: Capability[]` (e.g. `["spa", "hmr"]`) and runs against every project claiming those capabilities — it never names a specific app.
+- Projects come from a **manifest**: `copiedExampleSource("react-basic")` (a real app under `examples/`, copied per worker so parallel runs don't collide) or `fixtureSource({ id, files })` (a project defined inline for cases no example covers). Prefer a fixture over a new example app when testing one feature against one framework.
+- The harness handed to a contract is a **Lab**: page, filesystem, console, HMR socket, compiler, assertions. Per-project quirks (which selector holds the heading, which file to edit) live in an **adapter**, not in the contract.
+- **No retries** (`retry: 0`), deliberately — every flake traced in this suite turned out to be a real defect. If a test needs a retry to pass, treat that as a bug report, not flakiness.
+- Assert with `lab.assert.textEventually(...)`, never `locator.waitFor({ state: "visible" })` followed by `textContent()` — `waitFor` resolves immediately if the element is already visible showing the _previous_ value, so the read races the update.
+- Contract failures attach page state automatically (HMR packet counts, the settle beacon, console errors, DOM contents) — read it before assuming "just flaky".
 
-Zintl decouples framework-specific and toolchain-specific capabilities into a modular, conflict-free **Faceted Compiler Architecture**. Rather than using scattered framework conditionals and booleans, behavior is resolved at compiler instantiation by combining discrete facets.
+## Principles
 
-A Facet is a composable implementation of a single compiler/plugin concern. This Concern-Faceted Compiler Architecture builds upon a Dimension-Constrained composition system where facets contribute orthogonal, non-overlapping dimensions of compiler behavior.
+- **No fallback to the source locale, ever.** A missing translation is a build-time error (`verifyIntegrity`), not "show English instead." Don't add a fallback path; make the failure louder instead.
+- **Nothing ships that isn't used.** Grammar compiles to JS at build time. The source locale is never written to disk. Dev-only code is eliminated at build time via the `__ZINTL_DEV__` sentinel, not guarded at runtime — a runtime guard the bundler can't fold is dead weight in someone's bundle.
+- **Identity is content-based**, not path-based. Anything that ties boundary/translation identity to a file path or line number is a regression.
+- **Source stays plain.** Grammatical complexity belongs in catalogs where translators work, not threaded through application code.
+- **Frameworks and build tools are facets.** Support for another framework/bundler is additive work, not a core rewrite.
 
-### Core Principles
+## Publishing
 
-- **Discrete Concerns**: System capabilities are separated by concern, not bundled together (e.g., `["react", "ssr", "vite", "client-spa"]` rather than a monolith React-SSR facet).
-- **Sub-Interfaces**: Subsystems define narrow interfaces to avoid interface bloat.
-- **Conflict Detection**: Array and boolean capabilities are merged via Union/OR, while function hooks use first-contributor-wins with conflict detection. If two facets claim the same file extension or provide conflicting bundler hooks, Zintl throws an error.
+Packages use pnpm `catalog:`/`workspace:*` protocols — **never run `npm publish`** in this repo; it ships those specifiers verbatim and breaks every non-pnpm consumer. `vpr release` (`changeset publish`) detects pnpm and shells out correctly. The bare name `zintl` is unobtainable on npm (similarity filter), hence the published names `zintljs`/`@zintljs/*`; the `zintl()` macro identifier is intentionally unrelated to the package name. We are using GitHub Action to publish our packages, please do not publish untill you are asked to do so.
 
-### Runtime Splitting
-
-To optimize client-side bundle sizes and avoid shipping environment-specific code to vanilla environments, the core reactive store is split into:
-
-1. `store-core.ts`: Contains the standard reactive store logic, loaders registry, and translation resolver.
-2. `store-client.ts`: Contains client-side SPA history popstate monkeypatches and `MutationObserver` for syncing language changes. Gated by the `clientLocaleSync` capability.
-3. `store-server.ts`: Contains Node.js `AsyncLocalStorage`-based request scoping and HTML response/stream injector. Gated by the `serverRequestScope` capability.
-
-The compiler's `getRuntimeCode()` dynamically composes `store.js` exports at runtime based on these resolved capabilities.
-
-## Development Workflow
-
-### Using Vite+, the Unified Toolchain for the Web
-
-This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
-
-Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
-
-### Build System
-
-- Uses Vite+ unified toolchain
-- Commands: `vpr @zintljs/compiler#build`, `vp test`, `vp lint`
-- Build all packages: `vp run -r build`, or `vpr build` (we need to build before testing or running/building the example apps)
-- run single command for any project/package: `vpr <package_name>#<command>` (e.g. `vpr @zintljs/compiler#build`)
-- TypeScript strict mode enabled
-- Test structure follows Vitest patterns
-
-#### Testing
-
-- Run `vp test` to run all tests
-- Run `vp test <dir>` or `vp test <dir-or-filename.test>` to run specific files
-
-#### Ready
-
-Run `vpr ready` to make sure the project is ready to hand the task, it is a task to run multiple gates to check if the repo is ready to hand the task to the developer.
-
-#### Benchmarking
-
-Run `vpr bench` to run benchmarks.
-
-#### notes
-
-- This project is experimental, so breaking changes are expected.
-- Do not use any tools (like CLI, utils, etc.) in the source code, only use `vp`, `vpr` and `vpx` (Vite Project Runner).
-- The goal is to provide the best developer experience (DX) and speed. Also, we are optimizing for performance or bundle size. Just a little bit.
-- Do not use `pnpm` or `npm` or `yarn` in the source code, only use `vp`, `vpr` and `vpx`.
-- use git only for diff (no pager), anything else is not allowed.
-
-## Critical Implementation Details
-
-### Transform Method Behavior
-
-- Calls `extract()` to get messages and dependencies.
-- Identifies **Anchor Sites** (`zintl` calls) and their argument types (literal vs. expression).
-- **Injection**: Replaces `zintl(arg)` with `loadI18nInstance({ locale: arg, loaders: { [boundaryId]: _manager } })`.
-- **Manager Inlining**: Prepends a "Smart Manager" function that handles synchronous mapping for the anchor locale.
-
-- Chunk-based: `generateChunkVirtualPath(boundaryId, mode)`
-- Determines chunk type (entry/lazy/shared) based on usage and mode
-
-### Selective Inlining Logic
-
-- **Static Literals**: If `zintl("ar")` is used, the Arabic catalog is inlined directly into the manager for a 0ms start.
-- **Source Locale**: Only inlined if it is the anchor. Otherwise, it is made lazy to optimize the non-English initialization path.
-
-### Catalog Generation & Schema Enforcements
-
-- **Development Mode**: Handled via `generateBoundaryCatalogs()` which hooks into configurable `catalogFormat` tokens mapping (e.g. `[locale]/[dir]/[name]`).
-- **Runtime Mode**: Extracted safely via `generateChunkCatalogs()`.
-- **JSON Schemas**: The compiler inherently calculates active keys running in the app, creating real-time strict schemas injected as `$schema` tags directly inside development `.json` files to strictly block illegal edits implicitly.
-
-### Smart Reconciliation & Typo Recovery
-
-- The compiler utilizes Levenshtein distance on boundary graphs (`similarityThreshold`) over successive developer cycles. Minor string typos immediately map translations forward without translation loss, eliminating translator roundtrips.
-
-### Zero-Disk Source Locale (Ghost Mode)
-
-- Generating `{ "key": "key" }` is redundant. The compiler skips extracting `en.json` (the generic `sourceLocale`) to the local disk, removing clutter for developers. The compiler natively uses the AST `manifest.json` strings to dynamically virtualize the source locale during mapping chunks without physical files!
-
-### Target-Language Asymmetry (The Escape Hatch)
-
-- Zintl acknowledges that target languages often require more grammatical context than the source.
-- Developers use `@zintl-pass` to bind invisible context variables to a stitched unit without modifying the application's runtime logic.
-- These variables appear in the generated JSON schema, allowing translators to utilize ICU-like pluralization or gender-based variations based on the "passed" context.
-
-## Testing Strategy
-
-### Test Coverage Areas
-
-- Entry point detection with `zintl` processing
-- Static vs dynamic import classification
-- Boundary ID stability and hashing
-- Virtual module generation
-- Chunk computation and catalog generation
-- Nested boundary isolation behavior
-
-### Test Patterns
-
-- Use Vitest framework
-- Mock file processing with realistic code patterns
-- Verify internal state through compiler behavior
-
-## Common Gotchas
-
-### Import Dependencies
-
-- Must use `type` imports for TypeScript interfaces
-- BoundaryDep type from extractor requires careful handling
-- Circular dependency considerations between packages
-
-### Build Process
-
-- Extractor must be built before compiler
-- Type definitions need proper export/re-export chains
-- Virtual module paths must match runtime expectations
-
-### Performance Considerations
-
-- Boundary graph reconstruction on every transform in dev mode
-- Hash caching for unchanged files
-- Catalog merging can be expensive for large projects
-
-## Development Guidelines
-
-### When Modifying Compiler
-
-- The project is under design, no need to preserve backward compatibility at all for the changes, so you can change the design as you see fit.
-- Update both type definitions and implementations together
-- Add corresponding tests for new features
-- Consider impact on virtual module generation
-
-### When Adding Features
-
-- Update configuration options in ZintlOptions interface
-- Consider micro-frontend implications
-- Test with both static and dynamic import patterns
-
-### Debugging Tips
-
-- Check extractor results first for extraction issues
-- Verify boundary graph construction for chunk problems
-- Use virtual module inspection for runtime loading issues
-- Enable verbose logging for boundary graph algorithm debugging
-
----
-
-## Zintl Identity Crux: Precision Architecture, Logical Surgery
-
-1.  **High-Fidelity Proofs**: We do not accept "maybe it works." All integration tests must be "System Proofs"—character-perfect `toBe()` assertions that measure output down to the last byte. No loose `toContain` logic is permitted for core architectural verification.
-2.  **Measurements Before Sharpening**: Before fixing a flaw, we establish the "Baseline of Shame." We accurately measure and document existing technical debt, so that our sharpening is non-destructive and definitive.
-3.  **Entry-Dominant Philosophy**: The Entry Point is the Dictator of State. Static dependencies must remain **Primal** (logic-less source). Consolidation, handshaking, and registry management are centralized responsibilities.
-4.  **Zero-Runtime Guarantee**: Macro baking must be aggressive and cross-boundary.
-5.  **Clean & Visual Proofs**: Test files are the source of truth. Keep fixtures linear, readable, and visual to ensure the "Identity of the Output" is always the star of the show.
-
-## Agent Safeguards
-
-### Repetitive Response & Loop Prevention
-
-- **No Periodic Repetition**: Do not output the same status, instructions, warnings, or message sequences across multiple turns.
-- **Self-Termination Guard**: If you observe that your previous 2 turns generated identical or highly similar messages, instructions, or planning statuses, immediately halt execution and output a single message asking the user for manual guidance.
-- **Duplicate Tool Calls**: Do not execute the same tool with identical arguments more than twice in the same conversation thread.
-
-### Mantras Picking
+## Mantras Picking
 
 you can pick one of the following mantras to use in your responses:
 
