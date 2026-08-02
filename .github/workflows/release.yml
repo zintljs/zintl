@@ -33,6 +33,18 @@ jobs:
       - name: Run Gated Verifications
         run: pnpm verify # build, lint, knip, test, format check (no benchmarks — too noisy on shared runners)
 
+      # The outside-in gate, and the last thing standing between a mistake and
+      # a published package. It packs the real tarballs, installs them with npm
+      # into a throwaway project outside the repo, and builds against stock Vite
+      # 6, 7 and 8 — deliberately using none of this repo's own tooling.
+      #
+      # This is what catches the failures every internal test passes over:
+      # pnpm-only `catalog:` specifiers leaking into the tarball, a peer range
+      # that excludes the current Vite, a `files` field that omits something the
+      # package needs at runtime.
+      - name: Smoke Test the Publishable Artifacts
+        run: pnpm smoke
+
   # 2. Release Job — gated on manual dispatch from main.
   release:
     name: Release to npm
@@ -77,6 +89,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # npm provenance requires a PUBLIC source repository. Uncomment once
-          # zintljs/zintl is public; leaving it on while private fails the publish.
-          # NPM_CONFIG_PROVENANCE: true
+          # Signs a verifiable link between this commit, this workflow run, and
+          # the published tarball — so "it came from zintljs/zintl on GitHub" is
+          # something anyone can check rather than something they take on trust.
+          #
+          # Requires a PUBLIC repository and `id-token: write` above. If the repo
+          # is ever made private again, this must be removed or the publish fails.
+          NPM_CONFIG_PROVENANCE: true
