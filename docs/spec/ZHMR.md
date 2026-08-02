@@ -1,8 +1,7 @@
 # Zintl HMR Specification (ZHMR)
 
 **Version**: 1.0  
-**Status**: Active  
-**Mantra**: _Measure the shame, sharpen the architecture, Bakalau!_
+**Status**: Active
 
 ---
 
@@ -125,5 +124,3 @@ Static assets participate in a specialized HMR track.
 - **Shared/Lazy Component HMR Invalidation Failures / Nested Anchor Invalidation**: If component or catalog updates do not trigger manager invalidation, verify the boundary graph reachability traversal (`isReachable`). Reachability checking must support mapping boundary IDs back to file paths and matching them correctly, ensuring that nested entry anchors (like `bootstrap()` functions) propagate HMR invalidations from dependencies back to their virtual manager modules.
 
 ---
-
-_The bloat is dead, the paths are readable, Claritas!_

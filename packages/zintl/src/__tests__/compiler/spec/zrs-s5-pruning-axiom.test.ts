@@ -10,7 +10,7 @@ import { createTestDir, type TestContext } from "../../helpers/fs.js";
  * correctly downleveled to Vassal status, and that the $M (Marker)
  * exception preserves Kingdom infrastructure for library stubs.
  *
- * Reference: SPEC/ZRS.md §5.1, §5.2, §5.3
+ * Reference: docs/spec/ZRS.md §5.1, §5.2, §5.3
  */
 describe("ZRS §5: Pruning Axiom", () => {
   beforeEach(async (context: TestContext) => {

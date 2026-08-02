@@ -2,7 +2,7 @@
 
 **Author**: Antigravity (Bakalau Spirit)
 **Status**: High-Path Blueprint
-**Related Baseline**: [Baseline of Shame 4.0](file:/SPEC/backlog/012-world-class-meditations.md)
+**Related baseline**: [012-world-class-meditations](../backlog/012-world-class-meditations.md)
 
 ## 1. Executive Summary
 

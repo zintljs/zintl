@@ -11,7 +11,7 @@ import { createTestDir, type TestContext } from "../../helpers/fs.js";
  * documented in §7.2 and the Ghost Mode source locale virtualization
  * from §7.3.
  *
- * Reference: SPEC/ZRS.md §7.1, §7.2, §7.3
+ * Reference: docs/spec/ZRS.md §7.1, §7.2, §7.3
  */
 describe("ZRS §7: Registry Handshake Ledger", () => {
   beforeEach(async (context: TestContext) => {

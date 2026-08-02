@@ -2,7 +2,7 @@
 
 **Author**: Antigravity (Bakalau Spirit)
 **Status**: Draft / High-Path Blueprint
-**Related Baseline**: [Baseline of Shame 2.0 (Nightmare Meditations)](file:/packages/vite/src/__tests__/nightmare-scenarios.test.ts)
+**Related Baseline**: `packages/vite/src/__tests__/nightmare-scenarios.test.ts` (historical path; that package is now `packages/zintl`)
 
 ## 1. Executive Summary
 

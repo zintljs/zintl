@@ -10,7 +10,7 @@ import { createTestDir, type TestContext } from "../../helpers/fs.js";
  * in the ZRS §10 resolution table. These are the edge cases that would
  * otherwise cause "undefined behavior" in the system.
  *
- * Reference: SPEC/ZRS.md §10
+ * Reference: docs/spec/ZRS.md §10
  */
 describe("ZRS §10: Conflict Resolution", () => {
   beforeEach(async (context: TestContext) => {

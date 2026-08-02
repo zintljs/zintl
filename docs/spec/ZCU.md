@@ -1,8 +1,7 @@
 # Zintl ICU Reference Specification (ZCU)
 
 **Version**: 1.0  
-**Status**: Draft  
-**Mantra**: _Measure the shame, sharpen the ZCU, Bakalau!_
+**Status**: Draft
 
 ---
 
@@ -195,5 +194,3 @@ if (typeof message === "function") {
 - Ensure `$schema` rigorously exports all explicitly extracted variables and `@zintl-pass` directives so IDEs prompt the translator effectively.
 
 ---
-
-_The bloat is dead, the parsers are baked, Claritas!_

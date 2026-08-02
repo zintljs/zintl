@@ -4,9 +4,9 @@ Zintl is a precision-engineered i18n system for modern web applications. It move
 
 ---
 
-## 1. The Zintl Identity Crux
+## 1. Design principles
 
-Zintl is governed by the philosophy of **Logical Surgery**. We do not accept "maybe it works." The system is built on precision, deterministic behavior, and the **Bakalau** spirit—measurable architecture and non-destructive sharpening.
+Zintl does not accept "maybe it works." Behaviour is deterministic, output is measured rather than assumed, and changes are made by sharpening what exists rather than replacing it wholesale.
 
 ### Core Pillars:
 
@@ -135,5 +135,3 @@ In production builds, Zintl aggressively reduces runtime overhead through **Macr
 - **Collision-Free Logic**: Universal `_zintl_mgr` prefix prevent variable shadowing in nightmare scenarios.
 
 ---
-
-**Mantra**: _Measure the shame, sharpen the architecture, bakalau!_

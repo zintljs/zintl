@@ -10,7 +10,7 @@ import { mkdir, writeFile, readFile } from "node:fs/promises";
  * Verifies that the compiler correctly classifies anchors into their
  * respective tiers and generates the appropriate Manager strategy.
  *
- * Reference: SPEC/ZRS.md §2.1, §2.2, §2.3
+ * Reference: docs/spec/ZRS.md §2.1, §2.2, §2.3
  */
 describe("ZRS §2: Anchor Hierarchy", () => {
   beforeEach(async (context: TestContext) => {

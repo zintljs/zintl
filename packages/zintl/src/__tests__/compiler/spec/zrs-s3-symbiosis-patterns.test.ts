@@ -12,7 +12,7 @@ type LocalContext = TestContext & { compiler?: ZintlCompiler };
  * Verifies that the compiler correctly classifies modules into the three
  * fundamental patterns based on their symbolic markers and graph position.
  *
- * Reference: SPEC/ZRS.md §3.1, §3.2, §3.3
+ * Reference: docs/spec/ZRS.md §3.1, §3.2, §3.3
  */
 describe("ZRS §3: Symbiosis Patterns", () => {
   // ── §3.1 — Pattern V: Vassal (Slaves) ─────────────────────────────────

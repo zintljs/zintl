@@ -12,7 +12,7 @@ type LocalContext = TestContext & { compiler?: ZintlCompiler };
  * These tests verify the five axioms that resolve every ambiguity in boundary
  * ownership. Each test maps to exactly one axiom and proves it mechanically.
  *
- * Reference: SPEC/ZRS.md §4
+ * Reference: docs/spec/ZRS.md §4
  */
 describe("ZRS §4: Handshake Axioms", () => {
   beforeEach(async (context: LocalContext) => {

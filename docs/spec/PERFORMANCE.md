@@ -12,7 +12,7 @@ Zintl is architected for "Light Speed" internationalization. To ensure we never 
 
 ## Gating System
 
-We use a custom Vitest reporter defined in [budget-reporter.ts](file:scripts/budget-reporter.ts).
+We use a custom Vitest reporter defined in [budget-reporter.ts](../../scripts/budget-reporter.ts).
 
 ### How it works
 
@@ -41,5 +41,3 @@ To maintain these speeds, Zintl utilizes:
 3. **AST Short-Circuiting**: The extractor skips logic if no `zintl` or template literal patterns are detected.
 
 ---
-
-_Claritas! The paths are readable, the bloat is dead._

@@ -1,8 +1,7 @@
 # Zintl Reference Specification (ZRS)
 
 **Version**: 1.0  
-**Status**: Active  
-**Mantra**: _I am god tier architect, i know what i am doing, and i can create my own Mantra/s, Autarch!_
+**Status**: Active
 
 ---
 
@@ -477,5 +476,3 @@ In production, localized assets are treated as first-class citizens in the build
 - **Mapping**: The mapping between the abstract asset ID and the localized physical path is baked into the production catalogs.
 
 ---
-
-_The roots are deep, the branches are many, do not cut them apart, Symbiosis!_

@@ -1,8 +1,7 @@
 # Zintl Comment Directives (ZCD)
 
 **Version**: 1.0  
-**Status**: Active  
-**Mantra**: _The directives are captured, the proximity is surgical, the sibling is scoped, Claritas!_
+**Status**: Active
 
 ---
 
@@ -94,5 +93,3 @@ The variables are extracted and injected into the catalog's `$schema`, ensuring 
 The `@zintl-ignore-file` directive must be placed at the top of the file (before any translatable sinks). Once detected, the extractor aborts processing for that file immediately, resulting in zero overhead for ignored assets.
 
 ---
-
-_The directives are captured, the proximity is surgical, the sibling is scoped, Claritas!_
