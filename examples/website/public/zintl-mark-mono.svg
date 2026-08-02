@@ -1,8 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Zintl">
  <defs>
-  <linearGradient id="g" x1="10" y1="92" x2="92" y2="16" gradientUnits="userSpaceOnUse">
-   <stop offset="0" stop-color="#F4795E"></stop><stop offset=".55" stop-color="#E8309C"></stop><stop offset="1" stop-color="#B44BE0"></stop>
-  </linearGradient>
   <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
    <rect width="100" height="100" fill="#000"></rect>
    <g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
@@ -13,5 +10,5 @@
    <circle cx="39" cy="52" r="5" fill="#000"></circle><circle cx="39" cy="74" r="6.5" fill="#000"></circle>
   </mask>
  </defs>
- <rect width="100" height="100" fill="url(#g)" mask="url(#m)"></rect>
+ <rect width="100" height="100" fill="currentColor" mask="url(#m)"></rect>
 </svg>
