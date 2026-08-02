@@ -6,4 +6,5 @@ export * from "./result.js";
 export * from "./graph.js";
 export * from "./compiler.js";
 export * from "./pipeline.js";
+export type * from "./delivery.js";
 export type * from "./capabilities.js";

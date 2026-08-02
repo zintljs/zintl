@@ -12,10 +12,13 @@ They're kept in the repository because the reasoning behind a decision is the mo
 | [ZRS.md](ZRS.md)                 | **Reference specification** — entities, anchors, boundary resolution | Active |
 | [ZCD.md](ZCD.md)                 | Comment directives (`@zintl-ignore`, `@zintl-note`, `@zintl-pass`)   | Active |
 | [ZHMR.md](ZHMR.md)               | Hot module replacement behaviour                                     | Active |
+| [ZDB.md](ZDB.md)                 | **Delivery bus** — update ordering, custody, failure outcomes        | Draft  |
 | [ZCU.md](ZCU.md)                 | ICU handling and compilation                                         | Draft  |
 | [PERFORMANCE.md](PERFORMANCE.md) | Performance budgets and what they protect                            | Active |
 
 **ZRS.md is the one to read first.** It's also directly referenced by the test suite: files named `zrs-s2-anchor-hierarchy`, `zrs-s4-handshake-axioms`, `zrs-s7-handshake-ledger` and so on assert the behaviour of the correspondingly numbered sections. If you change behaviour ZRS describes, the spec and its tests should move together.
+
+ZDB.md is the newest and the one with the widest reach: it governs ordering and failure outcomes wherever a change is delivered, which is the runtime, the hot-update path, the compiler pipeline and disk writes. Its §6 **replaces** ZRS §9.1 — read them in that order, since ZRS's original failure model described a fallback and a retry that never existed in the code.
 
 ## Backlog & proposals
 

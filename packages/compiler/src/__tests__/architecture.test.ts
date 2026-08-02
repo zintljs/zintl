@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 const SRC = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 /** Directories that constitute the compiler core. */
-const CORE_DIRS = ["pipeline", "managers", "types", "utils", "capabilities", "runtime"];
+const CORE_DIRS = ["pipeline", "managers", "types", "utils", "capabilities", "runtime", "bus"];
 const CORE_ROOT_FILES = ["index.ts", "reconcile.ts", "constants.ts", "types.ts"];
 
 async function walk(dir: string): Promise<string[]> {

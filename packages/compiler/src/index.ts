@@ -63,6 +63,19 @@ export type * from "./types/capabilities.js";
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
 
+// The delivery bus (docs/spec/ZDB.md). Exported because the host plugin owns
+// the hot-update seam and the test harness reads the ledger, so both need to
+// name these without reaching into the compiler's internals.
+export { DeliveryBus, DEFAULT_HISTORY_LIMIT } from "./bus/index.js";
+export type { DeliveryBusOptions } from "./bus/index.js";
+export type {
+  DeliveryChannel,
+  DeliveryLedgerEntry,
+  DeliveryOutcome,
+  Envelope,
+  TerminalOutcome,
+} from "./types/delivery.js";
+
 export class ZintlCompiler {
   public readonly io: IOManager;
   public readonly graph: GraphManager;

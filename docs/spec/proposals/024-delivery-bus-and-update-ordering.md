@@ -1,9 +1,28 @@
 # Proposal 024: The Delivery Bus — Update Ordering and Failure Surfaces
 
-## Status: PROPOSAL
+## Status: ABSORBED into [ZDB.md](../ZDB.md)
 
 **Date**: 2026-08-01
 **Supersedes**: nothing. **Depends on**: the settle beacon (`__zintl_version`), shipped with the `__ZINTL_DEV__` sentinel.
+
+> **This proposal was adopted and promoted to a specification.** Read [ZDB.md](../ZDB.md) for the
+> normative rules; read this document for the **evidence** that produced them, which the spec does
+> not repeat. Everything in §1 (the measured failures), §2 (why retry is the wrong fix) and §7 (the
+> mistakes made during the investigation) remains accurate and is the reason ZDB says what it says.
+>
+> Three things changed on the way to the spec, and this document is **not** correct on them:
+>
+> - **§4.3 recommended deferring build-time artifact ordering.** The same defect shape was found in
+>   the compiler's own flush and graph-rebuild paths, so ZDB governs all four subsystems from the
+>   start. The phased delivery order survives; the scoping does not.
+> - **§1.3's `full-reload: 5` was attributed to Zintl requesting reloads.** The hot-update hook is
+>   invoked once _per environment_, so an SSR project runs it twice per file change. Separately,
+>   there is no `import.meta.hot.dispose()` anywhere in the codebase — the `createRoot`
+>   double-mount is most likely that, not an ordering problem.
+> - **§1.1a's "the write never became a packet" was labelled inferential.** A concrete mechanism was
+>   found: the compiler re-reads the changed file itself rather than using the content the hook is
+>   handed, so under two concurrent watcher runs the earlier invocation observes the later content
+>   and the later one finds nothing to emit.
 
 ---
 
