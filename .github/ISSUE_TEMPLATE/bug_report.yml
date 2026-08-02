@@ -1,0 +1,65 @@
+name: Bug report
+description: Something behaves differently than you expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Zintl is in alpha — a clear bug report is genuinely one of the most useful things you can contribute right now.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+      placeholder: |
+        I expected the heading to switch to French, but it rendered blank.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: |
+        The smallest set of steps that shows it. A link to a repository is ideal; a `vite.config` plus the relevant source file is usually enough.
+
+        Reports without a reproduction are still welcome — they just take much longer to act on.
+      placeholder: |
+        1. Configure zintl with locales: ["en", "fr"]
+        2. Call `await zintl(locale)` in src/main.ts
+        3. Run `vite build`
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Your Zintl config
+      description: The options you passed to the plugin.
+      render: ts
+      placeholder: |
+        zintl({ locales: ["en", "fr"], outputDir: "locales" })
+    validations:
+      required: false
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Zintl, Vite, Node, and your framework if relevant.
+      placeholder: zintljs 0.1.0-alpha.8, vite 8.2.0, node 24.11.0, react 19
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Console or build output
+      description: |
+        Any errors, from the terminal or the browser console.
+
+        Setting `globalThis.__ZINTL_DEBUG = true` before your app boots turns on runtime tracing, which is often the fastest way to see what the runtime thought it was doing.
+      render: shell
+    validations:
+      required: false

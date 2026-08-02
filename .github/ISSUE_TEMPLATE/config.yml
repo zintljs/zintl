@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or "how do I…?"
+    url: https://github.com/zintljs/zintl/discussions
+    about: Ask here. If the docs didn't answer it, that's a documentation bug and gets treated as one.
+  - name: Documentation
+    url: https://github.com/zintljs/zintl/tree/main/docs
+    about: Configuration, comment directives, plurals, architecture, and a glossary.
+  - name: Report a security vulnerability
+    url: https://github.com/zintljs/zintl/security/advisories/new
+    about: Please report privately rather than opening a public issue.
