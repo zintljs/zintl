@@ -1,5 +1,13 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.9
+
+### Patch Changes
+
+- 60517d0: - Add branding assets.
+  - Update README files with improved logo branding and unified shield badges.
+  - @zintljs/extractor@0.1.0-alpha.9
+
 ## 0.1.0-alpha.8
 
 ### Minor Changes
