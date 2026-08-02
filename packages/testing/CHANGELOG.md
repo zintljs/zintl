@@ -1,5 +1,13 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [60517d0]
+  - @zintljs/compiler@0.1.0-alpha.9
+  - zintljs@0.1.0-alpha.9
+
 ## 0.1.0-alpha.8
 
 ### Minor Changes
