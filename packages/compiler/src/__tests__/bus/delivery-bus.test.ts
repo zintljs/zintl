@@ -82,6 +82,24 @@ describe("Axiom D1 — monotonic supersession", () => {
     expect(bus.accept(bus.mint("io/write", "x", { seq: 1 }))).toBe(true);
   });
 
+  it("observes position without deciding fate, for accumulating work", () => {
+    // `observe` is for channels where an out-of-order arrival is still
+    // processed (ZDB §4.1a). It reports position and advances the high-water
+    // mark, but leaves the outcome to the caller — unlike `accept`, which
+    // settles a rejected envelope as `superseded`, a label that would be a
+    // plain lie when the work in fact ran.
+    const bus = dev();
+    expect(bus.observe(bus.mint("build/hmr", "src/App.tsx", { seq: 5 }))).toBe(true);
+
+    const late = bus.mint("build/hmr", "src/App.tsx", { seq: 3 });
+    expect(bus.observe(late)).toBe(false);
+    expect(late.outcome).toBe("pending");
+    expect(bus.history("build/hmr")).toEqual([]);
+
+    // The mark still tracks the newest thing seen.
+    expect(bus.lastApplied("build/hmr", "src/App.tsx")).toBe(5);
+  });
+
   it("mints a per-subject sequence when the caller has no counter of its own", () => {
     const bus = dev();
     expect(bus.mint("build/pipeline", "flush").seq).toBe(1);

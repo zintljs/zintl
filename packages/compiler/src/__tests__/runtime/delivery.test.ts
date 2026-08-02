@@ -63,6 +63,54 @@ describe("runtime delivery", () => {
       expect(store.locale).toBe("fr");
     });
 
+    it("discards a catalog that arrives after a newer generation", () => {
+      const store = new I18nStore();
+      store.addCatalogs({ ar: { b1: { hi: "new" } } }, 6);
+      store.addCatalogs({ ar: { b1: { hi: "old" } } }, 5);
+
+      expect(store.catalogs["ar"]?.["b1"]?.["hi"]).toBe("new");
+    });
+
+    it("converges on the newest generation whatever the arrival order", () => {
+      // This is the `hmr-hammer` mechanism at the catalog level: five edits,
+      // delivered in the worst order the network can produce. The final state
+      // is the newest generation *by construction* — an out-of-order arrival is
+      // discarded by number, so it cannot win a race it never entered.
+      for (const arrival of [
+        [1, 2, 3, 4, 5],
+        [5, 4, 3, 2, 1],
+        [3, 1, 5, 2, 4],
+        [2, 5, 1, 4, 3],
+      ]) {
+        const store = new I18nStore();
+        for (const generation of arrival) {
+          store.addCatalogs({ ar: { b1: { hi: `v${generation}` } } }, generation);
+        }
+        expect(store.catalogs["ar"]?.["b1"]?.["hi"]).toBe("v5");
+      }
+    });
+
+    it("applies a catalog with no generation, having nothing to compare", () => {
+      // A loader hands back a catalog with no upstream sequence. There is
+      // nothing to order against, so ordering must not silently reject it.
+      const store = new I18nStore();
+      store.addCatalogs({ ar: { b1: { hi: "from a loader" } } });
+
+      expect(store.catalogs["ar"]?.["b1"]?.["hi"]).toBe("from a loader");
+    });
+
+    it("orders catalogs per locale and boundary, not globally", () => {
+      // A boundary's Arabic and French catalogs are separate deliveries; one
+      // must not be able to supersede the other.
+      const store = new I18nStore();
+      store.addCatalogs({ ar: { b1: { hi: "مرحبا" } } }, 9);
+      store.addCatalogs({ fr: { b1: { hi: "bonjour" } } }, 1);
+      store.addCatalogs({ ar: { b2: { hi: "أهلا" } } }, 1);
+
+      expect(store.catalogs["fr"]?.["b1"]?.["hi"]).toBe("bonjour");
+      expect(store.catalogs["ar"]?.["b2"]?.["hi"]).toBe("أهلا");
+    });
+
     it("keys the locale channel on one subject, not one per locale", () => {
       // A switch to "fr" and a switch to "ar" contest the same thing — the
       // store's active-locale slot. Keying by target locale would let them run

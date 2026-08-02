@@ -36,6 +36,7 @@ import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
+import { DeliveryBus } from "./bus/index.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
@@ -176,6 +177,42 @@ export class ZintlCompiler {
   private readonly confirmedOnDisk = new Set<string>();
   private reachableCache: Set<string> | null = null;
 
+  /**
+   * Delivery accounting — see `docs/spec/ZDB.md`.
+   *
+   * Public because the host plugin owns the hot-update seam and the test harness
+   * reads the ledger; both need it without reaching into compiler internals.
+   */
+  public readonly bus: DeliveryBus;
+  /**
+   * The in-flight invalidation for each file, and the sequence that owns it.
+   *
+   * The hot-update hook runs once *per environment* — a client pass, then one
+   * for every other environment — so one filesystem change asks the compiler to
+   * invalidate the same file two or more times. Holding the first pass's work
+   * here lets the later passes join it (Axiom D3) instead of racing it and
+   * double-counting the boundary revision.
+   */
+  private readonly updateCustody = new Map<string, { seq: number; work: Promise<string[]> }>();
+  /**
+   * Monotonic catalog generation, stamped into every generated content module.
+   *
+   * The receiver compares it per `<locale>/<boundaryId>` and discards anything
+   * older, so a catalog module that arrives after a newer one has already been
+   * applied cannot win.
+   *
+   * Deliberately a single counter bumped only when an invalidation actually
+   * found boundaries, rather than one per module generation. A per-generation
+   * number would change the emitted text every time a module was rebuilt —
+   * including rebuilds of unchanged content — and the bundler would treat each
+   * of those as a real change. The predecessor of this counter made a worse
+   * version of the same mistake: it *summed* boundary revisions across a file,
+   * which is not injective (two boundaries at revision 1 is indistinguishable
+   * from one at revision 2) and emitted the total into a source comment that
+   * nothing ever read.
+   */
+  private catalogGeneration = 0;
+
   public _options: CompilerOptions;
 
   constructor(options: CompilerOptions, root: string = process.cwd(), isDev: boolean = false) {
@@ -192,6 +229,9 @@ export class ZintlCompiler {
     this.root = root;
     this.isDev = isDev;
     this.debug = options.debug;
+    // Recording is the diagnosis half and is development-only (Axiom D5); the
+    // sequence state it needs for ordering is kept either way.
+    this.bus = new DeliveryBus({ record: isDev });
 
     const ZL = (Extractor as any).ZintlLogger;
     this.logger = new ZL({
@@ -243,6 +283,7 @@ export class ZintlCompiler {
       io: this.io,
       logger: this.logger,
       catalog: this.catalog,
+      bus: this.bus,
       getDependencyGraph: () => this.messages.dependencyGraph,
       getHive: () => this.messages.hive,
       markHiveDirty: () => this.messages.markHiveDirty(),
@@ -365,8 +406,110 @@ export class ZintlCompiler {
     return this.graph.boundaryGraph?.entries.has(id) || false;
   }
 
-  public async invalidateFile(filePath: string, force = false): Promise<string[]> {
-    if (!force && this.io.writingFiles.has(filePath)) return [];
+  /**
+   * Invalidate a file for one hot-update event, once, however many callers ask.
+   *
+   * The hot-update hook is invoked once *per environment* — a client pass, then
+   * one for each other environment — so a single filesystem change reaches the
+   * compiler two or more times with the same event sequence. Each pass still has
+   * its own module graph to invalidate, but the compiler-side work must happen
+   * once: running it twice bumped the boundary revision twice and let two
+   * re-extractions of the same file race each other.
+   *
+   * `seq` is the bundler's hot-update timestamp, which is already strictly
+   * monotonic and never repeats. Adopting it beats minting a parallel clock that
+   * would then have to be kept in step with the one the browser already sees on
+   * rewritten imports.
+   */
+  public async invalidateForUpdate(
+    filePath: string,
+    seq: number,
+    force = false,
+    content?: string,
+  ): Promise<string[]> {
+    const subject = this.io.getNormalizedId(filePath);
+    const envelope = this.bus.mint("build/hmr", subject, { seq });
+
+    const held = this.updateCustody.get(subject);
+    if (held && held.seq === seq) {
+      /**
+       * Axiom D3 — another environment reporting the *same* event joins the
+       * first pass's custody rather than starting a competing one. The promise
+       * is what is shared, not a cached result, because the first pass is
+       * usually still running when the second arrives.
+       */
+      this.bus.settle(envelope, "superseded", "joined the in-flight update for this file");
+      return held.work;
+    }
+
+    /**
+     * Recorded for ordering, but **not** used to discard the work.
+     *
+     * This is where D1 does not apply, and getting it wrong cost a regression.
+     * D1 governs deliveries that *replace* state: a newer catalog makes an older
+     * one irrelevant, so discarding the older one loses nothing. Invalidation is
+     * not that. It **accumulates** — it marks boundaries dirty, clears caches and
+     * re-extracts — and each watcher event may describe a different file state.
+     * Dropping an event because a higher sequence was already seen throws away
+     * work no later event will redo, and the update it would have produced is
+     * simply never emitted.
+     *
+     * So ordering is enforced downstream, where the delivery really is a
+     * replacement: every generated catalog carries `catalogGeneration`, and the
+     * runtime discards one that arrives after a newer one. Here the sequence
+     * only records, for diagnosis, that events arrived out of order.
+     */
+    if (!this.bus.observe(envelope)) {
+      this.bus.settle(
+        envelope,
+        "applied",
+        "processed out of order; ordering is applied downstream",
+      );
+    } else {
+      this.bus.settle(envelope, "applied");
+    }
+
+    const work = this.invalidateFile(filePath, force, content).catch((err) => {
+      this.logger.error(`Invalidation failed for ${subject}: ${String(err)}`);
+      return [] as string[];
+    });
+    this.updateCustody.set(subject, { seq, work });
+
+    return work;
+  }
+
+  public async invalidateFile(
+    filePath: string,
+    force = false,
+    /**
+     * The file's contents as the caller already read them.
+     *
+     * Re-reading from disk here is what let a later write become a no-op: the
+     * watcher is unqueued, so two changes in quick succession produce two
+     * concurrent invalidations, and both read whatever is on disk *now*. The
+     * earlier invocation would observe the later content, and the later one
+     * would then find nothing changed and emit nothing at all.
+     */
+    content?: string,
+  ): Promise<string[]> {
+    if (!force && this.io.writingFiles.has(filePath)) {
+      /**
+       * A write this compiler made is echoing back through the watcher.
+       *
+       * Named rather than dropped (Axiom D2), because the guard is a time window
+       * and a genuine edit landing inside it is silently discarded. That window
+       * is a known weakness — Corollary D1a says a timing window is never a
+       * guard — but narrowing it needs a content-identity check that survives
+       * the formatter rewriting the file after the write, which is Phase 4 work.
+       * Until then the loss is at least visible.
+       */
+      this.bus.settle(
+        this.bus.mint("io/write", this.io.getNormalizedId(filePath)),
+        "failed",
+        "suppressed by the self-write guard",
+      );
+      return [];
+    }
 
     const normalizedPath = this.io.getNormalizedId(filePath);
     const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
@@ -407,7 +550,9 @@ export class ZintlCompiler {
     if (boundaries) {
       if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
-          const code = await this.io.readFile(filePath);
+          // Prefer the content the caller was handed. Falling back to disk is
+          // only for callers that have none — see the `content` parameter.
+          const code = content ?? (await this.io.readFile(filePath));
           await this.transform(code, filePath, undefined, true);
         } catch (e) {
           this.logger.error(`Failed to re-extract messages during invalidation: ${String(e)}`);
@@ -449,6 +594,11 @@ export class ZintlCompiler {
     for (const bId of foundBoundaryIds) {
       delete this.catalog.getCache()[bId];
       this.boundaryRevisions.set(bId, (this.boundaryRevisions.get(bId) || 0) + 1);
+    }
+    if (foundBoundaryIds.length > 0) {
+      // A real change: every catalog generated from here on describes a newer
+      // world than anything already delivered.
+      this.catalogGeneration++;
     }
     if (foundBoundaryIds.length === 0 && filePath.endsWith(".json")) {
       this.catalog.setCache({});
@@ -1722,8 +1872,11 @@ export class ZintlCompiler {
       const serialized = this.catalog.serializeCatalog(cat, loc, 4, this.logger);
       let code = `${importsCode}const catalog = ${serialized};\n`;
       if (this.isDev) {
+        // The generation travels with the catalog so the receiver can discard an
+        // out-of-order arrival by number (ZDB Axiom D1) instead of applying
+        // whichever fetch happened to land last.
         code += `if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-  globalThis.__zintl_active.addCatalogs({ [${JSON.stringify(loc)}]: catalog });
+  globalThis.__zintl_active.addCatalogs({ [${JSON.stringify(loc)}]: catalog }, ${this.catalogGeneration});
 }\n`;
       }
       code += `export default catalog;`;

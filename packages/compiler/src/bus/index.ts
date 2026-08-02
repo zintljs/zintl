@@ -187,6 +187,27 @@ export class DeliveryBus {
     });
   }
 
+  /**
+   * Note an envelope's position without deciding its fate — for work that
+   * **accumulates** rather than replaces (ZDB §4.1a).
+   *
+   * Returns whether this envelope is newer than anything seen for its subject,
+   * and advances the high-water mark when it is. It never settles: the caller
+   * still owns the outcome, because on an accumulating channel an out-of-order
+   * arrival is processed rather than discarded.
+   *
+   * `accept` is the wrong tool there. It settles a rejected envelope as
+   * `superseded`, which on such a channel is simply untrue — the work ran — and
+   * a ledger that misreports what happened is worse than no ledger.
+   */
+  observe(envelope: Envelope): boolean {
+    const key = envelope.channel + KEY_SEP + envelope.subject;
+    const prior = this.applied.get(key);
+    if (prior !== undefined && envelope.seq <= prior) return false;
+    this.applied.set(key, envelope.seq);
+    return true;
+  }
+
   /** The highest sequence accepted for a subject, or `undefined` if none. */
   lastApplied(channel: DeliveryChannel, subject: string): number | undefined {
     return this.applied.get(channel + KEY_SEP + subject);

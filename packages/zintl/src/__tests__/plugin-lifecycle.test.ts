@@ -234,8 +234,11 @@ describe("Zintl Vite Plugin HMR", () => {
     await (plugin as any).transform("const a = 1;", "/mock/src/file.ts");
 
     expect(compiler.getAffectedChunks).toHaveBeenCalledWith("src/file");
-    expect(invalidateModuleSpy).toHaveBeenCalledWith({ id: "mod1" });
-    expect(invalidateModuleSpy).not.toHaveBeenCalledWith({ id: "mod2" });
+    // `objectContaining` because invalidation also stamps the module with an
+    // ordering timestamp — an exact-shape match here asserts the absence of
+    // fields the test has no opinion about.
+    expect(invalidateModuleSpy).toHaveBeenCalledWith(expect.objectContaining({ id: "mod1" }));
+    expect(invalidateModuleSpy).not.toHaveBeenCalledWith(expect.objectContaining({ id: "mod2" }));
   });
 
   it("should return affected virtual modules from handleHotUpdate", async () => {
@@ -280,7 +283,9 @@ describe("Zintl Vite Plugin HMR", () => {
 
     const result = await (plugin as any).handleHotUpdate(context);
 
-    expect(compiler.invalidateFile).toHaveBeenCalledWith("/mock/src/file.ts");
+    // Invalidation now runs under a delivery envelope, which passes the force
+    // flag and the content the bundler already read (absent in this context).
+    expect(compiler.invalidateFile).toHaveBeenCalledWith("/mock/src/file.ts", false, undefined);
     expect(result).toContain(mod1);
     expect(result).toContain(mod2);
     expect(result).toContain(mod3);

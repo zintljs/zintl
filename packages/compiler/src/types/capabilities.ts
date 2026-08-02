@@ -28,6 +28,7 @@ import type {
 import type { IOManager } from "../managers/IOManager.js";
 import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "./compiler.js";
+import type { DeliveryBus } from "../bus/index.js";
 
 /**
  * The declarative extraction vocabulary, re-exported so that facet authors and
@@ -474,6 +475,14 @@ export interface CompilerContext {
   io: IOManager;
   logger: ZintlLogger;
   catalog: CatalogManager;
+  /**
+   * Delivery accounting (`docs/spec/ZDB.md`).
+   *
+   * A facet that performs ordered or repeatable work — a write, a flush
+   * contribution, a lifecycle step — takes custody of it here rather than
+   * relying on the surrounding sequential `await` to notice a failure.
+   */
+  bus: DeliveryBus;
   getDependencyGraph: () => Record<string, any[]>;
   getHive: () => Record<string, Record<string, any>>;
   markHiveDirty: () => void;

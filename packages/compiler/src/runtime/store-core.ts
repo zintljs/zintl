@@ -116,11 +116,18 @@ class Delivery {
   private readonly minted = new Map<string, number>();
   private readonly applied = new Map<string, number>();
 
-  mint(channel: string, subject: string): Envelope {
+  /**
+   * `seq` is supplied wherever an upstream monotonic counter already exists —
+   * the compiler stamps generated catalogs with the generation that produced
+   * them. Minting a parallel clock beside one the producer already has would
+   * only create a second thing to keep in step.
+   */
+  mint(channel: string, subject: string, seq?: number): Envelope {
     const key = channel + DELIVERY_KEY_SEP + subject;
-    const seq = (this.minted.get(key) ?? 0) + 1;
-    this.minted.set(key, seq);
-    return { channel, subject, seq, outcome: "pending" };
+    const prior = this.minted.get(key) ?? 0;
+    const next = seq ?? prior + 1;
+    if (next > prior) this.minted.set(key, next);
+    return { channel, subject, seq: next, outcome: "pending" };
   }
 
   /**
@@ -295,7 +302,12 @@ export class I18nStore {
     }
   }
 
-  addCatalogs(newCatalogs: Catalogs) {
+  /**
+   * @param seq The generation that produced this catalog, when the producer has
+   * one. Supplied by compiler-generated content modules; absent when a loader
+   * hands back a catalog, where there is nothing to order against.
+   */
+  addCatalogs(newCatalogs: Catalogs, seq?: number) {
     let changed = false;
     const delivered: string[] = [];
 
@@ -304,7 +316,24 @@ export class I18nStore {
         this.catalogs[locale] = {};
       }
       for (const [boundaryId, messages] of Object.entries(boundaries)) {
-        delivered.push(locale + "/" + boundaryId);
+        const subject = locale + "/" + boundaryId;
+
+        /**
+         * Axiom D1 — a catalog carrying a sequence can be overtaken.
+         *
+         * The compiler stamps each generated catalog module with the generation
+         * that produced it, so a module arriving after a newer one has already
+         * been applied is discarded *by number* rather than by luck. This is
+         * what makes a burst of rapid edits settle on the last one by
+         * construction: an out-of-order arrival cannot win, however the network
+         * happens to order the fetches.
+         */
+        if (seq !== undefined) {
+          const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+          if (!this.delivery.accept(envelope)) continue;
+        }
+
+        delivered.push(subject);
         if (!this.catalogs[locale][boundaryId]) {
           this.catalogs[locale][boundaryId] = {};
         }
@@ -747,8 +776,8 @@ export function subscribe(listener: () => void) {
   return getActiveInstance().subscribe(listener);
 }
 
-export function addCatalogs(catalogs: Catalogs) {
-  return getActiveInstance().addCatalogs(catalogs);
+export function addCatalogs(catalogs: Catalogs, seq?: number) {
+  return getActiveInstance().addCatalogs(catalogs, seq);
 }
 
 export function getStoreVersion() {

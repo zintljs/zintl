@@ -167,6 +167,20 @@ function accept(env: Envelope, lastApplied: Map<string, number>): boolean {
 
 Note `<=`, not `<`. A redelivery at the same sequence is `superseded`, not `applied` — it carries no new information, and saying otherwise would let a duplicate masquerade as progress.
 
+### §4.1a — Where D1 does **not** apply
+
+D1 governs deliveries that **replace** state. A newer catalog makes an older one irrelevant, so discarding the older one loses nothing — that is what makes supersession safe.
+
+Work that **accumulates** is not a delivery in this sense, and must never be discarded by sequence. Compiler invalidation is the clear case: each watcher event marks boundaries dirty, clears caches and re-extracts, and each may describe a different state of the file. Dropping one because a higher sequence was already seen throws away work no later event will redo — and the update it would have produced is simply never emitted.
+
+The test for which kind you have:
+
+> If the newest envelope alone would leave the system in the correct state, it replaces, and D1 applies. If earlier envelopes contributed something the newest does not carry, it accumulates, and D1 does not.
+
+For accumulating work, use custody (D3) to **deduplicate one event reported more than once**, and enforce ordering downstream at the point where the result really is a replacement. On the `build/hmr` channel that means: several environments reporting the same event join one invalidation, every event is processed, and the ordering guarantee is carried by the generation stamped into each generated catalog.
+
+This is not hypothetical. Applying D1 to invalidation directly regressed `hmr-hammer` from zero failures in seventeen runs to two, reproducing the exact signature §1.1a records — one fewer packet than there were writes.
+
 ### §4.2 — In-flight work
 
 When a newer envelope arrives for a subject with work already in flight, the in-flight work is **allowed to complete and its result discarded by D1**. It is not cancelled.
