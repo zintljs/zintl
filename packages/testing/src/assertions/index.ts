@@ -85,6 +85,89 @@ export class LabAssertions {
       lines.push("settle beacon: unreadable (page navigating or closed)");
     }
 
+    /**
+     * The delivery ledger — what the runtime was actually asked to do.
+     *
+     * Packet counts and a beacon say *how much* happened; they cannot say which
+     * boundary, in what order, or whether anything was superseded or failed.
+     * That is the difference between "the update did not arrive" and "it
+     * arrived and was discarded as older than one already applied", which have
+     * completely different fixes and used to cost a fresh investigation each.
+     */
+    try {
+      const ledger = await this.lab.page.evaluate(
+        () =>
+          (
+            globalThis as {
+              __zintl_ledger?: {
+                channel: string;
+                subject: string;
+                seq: number;
+                outcome: string;
+                reason?: string;
+              }[];
+            }
+          ).__zintl_ledger,
+      );
+      if (ledger === undefined) {
+        lines.push("delivery ledger: ABSENT — no Zintl runtime, or a production build");
+      } else if (ledger.length === 0) {
+        lines.push("delivery ledger: EMPTY — the runtime was never asked to apply anything");
+      } else {
+        const notable = ledger.filter((e) => e.outcome !== "applied");
+        lines.push(
+          `delivery ledger: ${ledger.length} entries, last 6 (oldest first):\n` +
+            ledger
+              .slice(-6)
+              .map(
+                (e) =>
+                  `    ${e.channel} ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
+              )
+              .join("\n") +
+            (notable.length > 0
+              ? `\n  not applied: ${notable.length} (${[...new Set(notable.map((e) => e.outcome))].join(", ")})`
+              : ""),
+        );
+      }
+    } catch {
+      lines.push("delivery ledger: unreadable (page navigating or closed)");
+    }
+
+    /**
+     * The compiler's own ledger, which survives the page.
+     *
+     * Reachable in project mode too, where there is no page and no socket — and
+     * it is the only place a flush that failed, or an update the self-write
+     * guard swallowed, is recorded at all.
+     */
+    try {
+      const bus = (
+        this.lab.compiler as { instance?: { bus?: { history: (c?: string) => unknown[] } } }
+      ).instance?.bus;
+      const build = (bus?.history("build/hmr") ?? []) as {
+        subject: string;
+        seq: number;
+        outcome: string;
+        reason?: string;
+      }[];
+      const pipeline = (bus?.history("build/pipeline") ?? []) as typeof build;
+      const notable = [...build, ...pipeline].filter((e) => e.outcome !== "applied");
+      if (notable.length > 0) {
+        lines.push(
+          `compiler ledger: ${notable.length} non-applied:\n` +
+            notable
+              .slice(-5)
+              .map(
+                (e) =>
+                  `    ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
+              )
+              .join("\n"),
+        );
+      }
+    } catch {
+      // Project mode without a live compiler, or a compiler with recording off.
+    }
+
     try {
       const errors = this.lab.console.errors ?? [];
       lines.push(

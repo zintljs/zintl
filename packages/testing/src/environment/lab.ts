@@ -20,7 +20,26 @@ export interface LabOptions {
   port?: number;
   env?: Record<string, string>;
   headless?: boolean;
+  /**
+   * Why this lab is exempt from strict delivery, when it is.
+   *
+   * Set from the contract's own declaration. Assigned after construction rather
+   * than threaded through the constructor, which already takes nine positional
+   * arguments — one more optional tail parameter is how a call site ends up
+   * silently passing eight of nine and disabling a branch nobody notices.
+   */
+  strictDeliveryExempt?: string;
 }
+
+/**
+ * Why a delivery wait finished.
+ *
+ * Three outcomes, not a boolean, because "there was nothing to wait on" and "I
+ * waited and it never came" need opposite responses: the first should fall back
+ * to another signal, the second has already spent the budget and must not spend
+ * it again. Collapsing them is how a wait costs double on every mutation.
+ */
+export type DeliveryWaitResult = "delivered" | "unavailable" | "timeout";
 
 export interface ProjectLabOptions {
   source: ProjectSource;
@@ -50,10 +69,22 @@ export interface Lab {
    * application. Called automatically after each filesystem mutation.
    */
   waitForSettled(opts?: { timeout?: number }): Promise<void>;
+  /**
+   * Wait until this change reaches the browser, by identity rather than by
+   * volume.
+   *
+   * Resolves `true` when the page's delivery ledger shows a catalog at least as
+   * new as the generation the compiler stamped; `false` when there is nothing
+   * causal to gate on, so the caller can fall back. Called automatically after
+   * each filesystem mutation.
+   */
+  waitForDelivered(opts?: { timeout?: number }): Promise<DeliveryWaitResult>;
   teardown(): Promise<void>;
 }
 
 class LabImpl implements Lab {
+  /** Why strict delivery does not apply here; see `LabOptions`. */
+  strictDeliveryExempt?: string;
   readonly page: Page;
   readonly browser: LabBrowser;
   readonly server: LabDevServer | LabPreviewServer;
@@ -71,6 +102,17 @@ class LabImpl implements Lab {
   private readonly mode: "dev" | "preview" | "project";
   private readonly project: MaterializedProject;
   private settleBaseline: number | undefined;
+  /**
+   * Whether the causal delivery signal is usable for this project.
+   *
+   * Not every app receives catalogs through a generation-stamped content
+   * module: where they arrive via the manager's loader instead, no sequence
+   * travels with them and the wait can never be satisfied. Probing once and
+   * remembering the answer keeps that case to a single short wait per lab
+   * rather than one per mutation — which is the difference between a contract
+   * that does twenty edits passing and timing out.
+   */
+  private deliverySignalUsable = true;
   // private readonly exampleName: string;
 
   constructor(
@@ -119,7 +161,29 @@ class LabImpl implements Lab {
     };
 
     const onMutation = async () => {
-      if (mode === "dev") {
+      if (mode !== "dev") return;
+
+      /**
+       * Wait for *this* change to reach the browser, not for any packet.
+       *
+       * The old wait raced the first `update` or `full-reload` off the wire,
+       * which carries no identity: it resolves on whatever arrives first,
+       * including an update caused by another worker's contract or a stale
+       * flush. `waitForDelivered` instead reads the generation the compiler
+       * stamped after this write and waits until the page's ledger shows a
+       * catalog delivery at least that new — a causal chain from the write to
+       * the applied catalog.
+       *
+       * It degrades rather than replaces: when no generation is available
+       * (production preview, a compiler that has not processed the file, a page
+       * without the runtime) it falls through to the beacon, exactly as before.
+       */
+      let delivered: DeliveryWaitResult = "unavailable";
+      if (this.deliverySignalUsable) {
+        delivered = await this.waitForDelivered({ timeout: 2000 });
+        if (delivered === "timeout") this.deliverySignalUsable = false;
+      }
+      if (delivered !== "delivered") {
         try {
           await Promise.race([
             this.ws.waitFor("update", { timeout: 4000 }),
@@ -128,8 +192,8 @@ class LabImpl implements Lab {
         } catch {
           // No HMR packet — waitForSettled below still gates on the runtime.
         }
-        await this.waitForSettled();
       }
+      await this.waitForSettled();
     };
 
     this.fs = fs;
@@ -152,11 +216,69 @@ class LabImpl implements Lab {
     }
   }
 
+  /**
+   * Wait until a catalog at least as new as the compiler's current generation
+   * has been applied in the page.
+   *
+   * Returns `false` when there is nothing causal to wait on — no live compiler,
+   * no generation yet, or a page with no delivery ledger (a production build,
+   * where the ledger is eliminated). The caller then falls back; a wait that
+   * silently reports success when it did nothing is the failure mode that made
+   * the old heuristic untrustworthy.
+   */
+  /**
+   * Whether a missing or stalled signal should fail rather than fall through.
+   *
+   * A contract that deliberately breaks the application is exempt: a syntax
+   * error *should* stall the runtime, so reporting it as a stall is reporting
+   * correct behaviour as a defect.
+   */
+  private get strictDeliveryEnforced(): boolean {
+    return !!process.env.ZINTL_STRICT_SETTLE && !this.strictDeliveryExempt;
+  }
+
+  async waitForDelivered(opts?: { timeout?: number }): Promise<DeliveryWaitResult> {
+    const timeout = opts?.timeout ?? 10000;
+
+    let target: number | undefined;
+    try {
+      target = this.compiler.instance?.generation;
+    } catch {
+      return "unavailable";
+    }
+    if (typeof target !== "number" || target === 0) return "unavailable";
+
+    try {
+      await this.page.waitForFunction(
+        (want: number) => {
+          const ledger = (globalThis as { __zintl_ledger?: { channel: string; seq: number }[] })
+            .__zintl_ledger;
+          if (!ledger) return true; // No ledger to gate on — let the caller fall back.
+          return ledger.some((e) => e.channel === "runtime/catalog" && e.seq >= want);
+        },
+        target,
+        { timeout },
+      );
+    } catch {
+      return "timeout";
+    }
+
+    // Distinguish "the ledger confirmed it" from "there was no ledger".
+    try {
+      const hasLedger = await this.page.evaluate(
+        () => (globalThis as { __zintl_ledger?: unknown }).__zintl_ledger !== undefined,
+      );
+      return hasLedger ? "delivered" : "unavailable";
+    } catch {
+      return "unavailable";
+    }
+  }
+
   async waitForSettled(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? 10000;
     const baseline = this.settleBaseline;
 
-    if (baseline === undefined && process.env.ZINTL_STRICT_SETTLE) {
+    if (baseline === undefined && this.strictDeliveryEnforced) {
       // No beacon at all — the runtime is not publishing __zintl_version, or
       // the page had not loaded it when the mutation began. Silently degrading
       // here is what made the old heuristic untrustworthy, so strict mode
@@ -190,7 +312,7 @@ class LabImpl implements Lab {
          * working signal are otherwise indistinguishable, which is the exact
          * failure mode that made `waitForIdle` untrustworthy.
          */
-        if (process.env.ZINTL_STRICT_SETTLE) {
+        if (this.strictDeliveryEnforced) {
           throw new Error(
             `[Lab] Runtime settle beacon did not advance within ${timeout}ms ` +
               `(baseline ${baseline}). The runtime either never applied the change ` +
@@ -222,8 +344,13 @@ class LabImpl implements Lab {
       // } catch {}
     }
     try {
+      /**
+       * `teardown()` restores the original `ws.send`, so the interceptor is
+       * gone and no listener can ever fire again. The `waitFor` that used to
+       * follow this line could only ever time out — a guaranteed two-second
+       * sleep on every browser lab teardown, dressed as a wait.
+       */
       this.ws.teardown();
-      await this.ws.waitFor("update", { timeout: 2000 });
     } catch {}
     try {
       await this.fs.restoreAll();
@@ -279,6 +406,7 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
     opts.source.id,
     {},
   );
+  lab.strictDeliveryExempt = opts.strictDeliveryExempt;
 
   return lab;
 }

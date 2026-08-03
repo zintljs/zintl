@@ -284,11 +284,15 @@ The bus is the synchronization primitive. A harness waits on a **delivered seque
 
 ### §9.1 — Causal waiting
 
-A mutation returns a handle carrying its `(channel, subject, seq)`. `waitForDelivered(handle)` resolves when that envelope reaches a terminal outcome, and rejects — with the outcome and reason — when it is `failed`.
+After a mutation, the harness reads the generation the compiler stamped and waits until the page's ledger shows a `runtime/catalog` delivery at least that new. That is a causal chain from the write to the applied catalog.
 
-This replaces waiting on the first packet of a given _type_, which is identity-free: it resolves on any update, including one caused by a concurrent test in another worker.
+It replaces waiting on the first packet of a given _type_, which is identity-free: it resolves on any update, including one caused by a concurrent test in another worker.
 
-Corollary D2a is what makes this possible. Until an idempotent update produces an outcome, no causal wait can distinguish "applied, unchanged" from "lost", and a correct no-op is indistinguishable from a stall.
+Corollary D2a is what makes it possible. Until an idempotent update produces an outcome, no causal wait can distinguish "applied, unchanged" from "lost", and a correct no-op is indistinguishable from a stall.
+
+**A causal wait must report why it finished.** Three outcomes, not two: _delivered_, _unavailable_ (nothing to gate on — no live compiler, or a production page with no ledger), and _timed out_. Collapsing the last two is expensive in both directions: a wait that reports success when it did nothing is the failure mode that made the old heuristic untrustworthy, and a caller that falls back after already spending its budget spends it twice on every mutation.
+
+**Where no sequence travels with the catalog** — an app whose catalogs arrive through the manager's loader rather than a generation-stamped content module — the wait cannot be satisfied at all. Probe once and remember the answer, rather than paying the timeout on every mutation; a contract performing twenty edits is the difference between passing and not.
 
 ### §9.2 — Strict delivery
 

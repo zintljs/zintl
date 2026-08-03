@@ -81,6 +81,19 @@ export interface Contract<TAdapter = BaseAdapter> {
   readonly description: string;
   /** The capabilities this contract requires */
   readonly requires: ReadonlyArray<Capability>;
+  /**
+   * Exempt this contract from strict delivery, with the reason.
+   *
+   * Some contracts deliberately break the application: a syntax error *should*
+   * stall the runtime, and a deleted or corrupted catalog *should* fail to
+   * apply. Under `ZINTL_STRICT_SETTLE` those are correct behaviour reported as
+   * failures, so the exemption is declared here alongside `requires` rather
+   * than inferred, passed by an environment variable, or decided per call site.
+   *
+   * A string, not a boolean, because an exemption without a reason is
+   * indistinguishable from one nobody revisited.
+   */
+  readonly strictDeliveryExempt?: string;
   /** The invariant steps — manifest is the third arg for build/compile contracts */
   execute(lab: Lab, adapter: TAdapter, manifest: ProjectManifest): Promise<void>;
 }

@@ -12,9 +12,7 @@ export const hmrContract: Contract<HmrAdapter> = {
     await lab.clock.waitForIdle();
 
     // 1. Verify initial text
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
     // 2. Perform a smart filesystem mutation
     await lab.fs.edit(adapter.headingFile, (content) => {
@@ -27,8 +25,7 @@ export const hmrContract: Contract<HmrAdapter> = {
     });
 
     // 3. Verify that the change was rendered automatically in the browser via HMR
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.textContent()).toContain("HMR works!");
+    await lab.assert.textEventually(adapter.headingSelector, "HMR works!");
   },
 };
 

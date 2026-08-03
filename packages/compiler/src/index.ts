@@ -215,6 +215,19 @@ export class ZintlCompiler {
    */
   private catalogGeneration = 0;
 
+  /**
+   * The generation stamped into catalogs generated from now on.
+   *
+   * Public so a test harness can wait causally: read it after a write, then
+   * wait until the page's ledger shows a `runtime/catalog` delivery at least
+   * that new. That is a real end-to-end signal — this change reached the
+   * browser — where waiting on the first update packet of any kind resolves on
+   * whatever happened to arrive first, including another worker's.
+   */
+  public get generation(): number {
+    return this.catalogGeneration;
+  }
+
   public _options: CompilerOptions;
 
   constructor(options: CompilerOptions, root: string = process.cwd(), isDev: boolean = false) {

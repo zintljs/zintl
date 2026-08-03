@@ -36,6 +36,7 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
   description:
     "Verifies compiler and runtime resilience when translation catalogs are deleted or corrupted",
   requires: ["spa", "hmr", "chaos"],
+  strictDeliveryExempt: "deletes and corrupts catalogs; the runtime legitimately cannot apply them",
   async execute(lab, adapter) {
     const catalogPath = findCatalogPath(lab.root);
     const originalCatalog = await lab.fs.read(catalogPath);

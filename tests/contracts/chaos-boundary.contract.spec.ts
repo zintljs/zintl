@@ -67,6 +67,7 @@ export const chaosBoundaryContract: Contract = {
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
   requires: ["spa", "hmr", "chaos"],
+  strictDeliveryExempt: "deletes and renames boundary sources",
   async execute(lab, adapter) {
     // const exampleName = basename(lab.root);
     // const cfg = getRenameConfig(exampleName);
@@ -93,9 +94,7 @@ export const chaosBoundaryContract: Contract = {
     // // 4. Delete the old boundary component file (now safe, parent imports the new one)
     // await lab.fs.delete(cfg.fromPath);
 
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.first().waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.first().textContent()).toContain(adapter.initialHeadingText);
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
     // // 6. Edit the newly renamed boundary component file to trigger a message HMR change
     // await lab.fs.edit(cfg.toPath, (content) => {

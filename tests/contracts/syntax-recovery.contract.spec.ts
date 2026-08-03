@@ -7,14 +7,14 @@ export const syntaxRecoveryContract: Contract = {
   description:
     "Verifies HMR recovers cleanly without manual refresh after fixing compilation errors",
   requires: ["spa", "hmr"],
+  strictDeliveryExempt:
+    "introduces a deliberate compile error; the intermediate write must not settle",
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
 
     // 1. Verify initial text
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.textContent()).toContain(adapter.initialHeadingText);
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
     // 2. Introduce a syntax error at the bottom of the file
     const syntaxErrorToken = "\nconst syntaxErrorToken = ;";
@@ -30,8 +30,7 @@ export const syntaxRecoveryContract: Contract = {
     });
 
     // 4. Assert that the heading successfully updated to "Recovered!" after recovery
-    await heading.waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.textContent()).toContain("Recovered!");
+    await lab.assert.textEventually(adapter.headingSelector, "Recovered!");
   },
 };
 

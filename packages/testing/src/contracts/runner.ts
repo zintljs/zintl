@@ -12,7 +12,13 @@ export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
 
   for (const manifest of eligible) {
     test(`[${contract.name}] ${manifest.name}`, async () => {
-      const lab = await createLab({ source: manifest.source, mode: "dev" });
+      const lab = await createLab({
+        source: manifest.source,
+        mode: "dev",
+        // Declared on the contract, so an exemption travels with the thing it
+        // exempts rather than living in the harness's environment.
+        strictDeliveryExempt: contract.strictDeliveryExempt,
+      });
       try {
         await contract.execute(lab, manifest.adapter as TAdapter, manifest);
       } catch (err) {

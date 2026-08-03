@@ -30,9 +30,7 @@ export const performanceHmrContract: Contract = {
       return content.replace(adapter.initialHeadingText, "Perf HMR Works!");
     });
 
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.first().waitFor({ state: "visible", timeout: 10000 });
-    expect(await heading.first().textContent()).toContain("Perf HMR Works!");
+    await lab.assert.textEventually(adapter.headingSelector, "Perf HMR Works!");
 
     const duration = performance.now() - start;
 
