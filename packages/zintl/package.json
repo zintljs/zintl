@@ -1,6 +1,6 @@
 {
   "name": "zintljs",
-  "version": "0.1.0-alpha.9",
+  "version": "0.1.0-alpha.10",
   "description": "Compile-time internationalization for Vite — no keys, no wrappers, and only the translations each screen actually needs.",
   "keywords": [
     "code-splitting",
