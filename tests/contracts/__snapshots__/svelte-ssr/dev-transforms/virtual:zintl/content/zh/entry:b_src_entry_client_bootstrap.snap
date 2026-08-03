@@ -1,0 +1,25 @@
+const catalog = {
+    "b_src_App_svelte": {
+      "Get started": "开始",
+      "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "编辑 <code>src/App.svelte</code> 并保存以测试 <code>HMR</code>",
+      "Documentation": "文档",
+      "Your questions, answered": "您的问题已解答",
+      "Explore Vite": "探索 Vite",
+      "Learn more": "了解更多",
+      "Connect with us": "与我们联系",
+      "Join the Vite community": "加入 Vite 社区",
+      "Svelte logo": "Svelte 图标",
+      "Vite logo": "Vite 图标",
+    },
+    "b_src_lib_Counter_svelte": {
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

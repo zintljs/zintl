@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script id="zintl-multiplex-redirect">
+      (function() {
+        try {
+          const lang = (navigator.language || 'en').split('-')[0];
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const target = supported.includes(lang) ? lang : 'en';
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/' + target + '/' + path + window.location.search + window.location.hash);
+        } catch (e) {
+          const supported = ["en","ar","es","zh"];
+          const parts = window.location.pathname.split('/').filter(Boolean);
+          if (parts.length > 0 && supported.includes(parts[0])) return;
+          const path = window.location.pathname.replace(/^/+/, '');
+          window.location.replace('/en/' + path);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

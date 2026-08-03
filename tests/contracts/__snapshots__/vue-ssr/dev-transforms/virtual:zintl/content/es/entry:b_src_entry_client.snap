@@ -1,0 +1,27 @@
+const catalog = {
+    "b_src_components_HelloWorld_vue": {
+      "Get started": "Empezar",
+      "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `El recuento es ${params['count']}`;
+  },
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "Explore Vite": "Explorar Vite",
+      "Learn more": "Aprende más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+      "Vue logo": "Logotipo de Vue",
+      "Vite logo": "Logotipo de Vite",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

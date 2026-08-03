@@ -1,0 +1,101 @@
+<script lang="ts">
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import { _t, getLocale } from "virtual:zintl/runtime/internal";
+
+  import svelteLogo from './assets/svelte.svg'
+  import viteLogo from './assets/vite.svg'
+  import heroImg from './assets/hero.png'
+  import Counter from './lib/Counter.svelte'
+  import LocaleSwitcher from './lib/LocaleSwitcher.svelte'
+  
+
+  let activeLang = $state(getLocale() || "en");
+</script>
+
+<LocaleSwitcher lang={activeLang} />
+
+{#key activeLang}
+<section id="center">
+  <div class="hero">
+    <img src={heroImg} class="base" width="170" height="179" alt="" />
+    <img src={svelteLogo} class="framework" alt={_t('Svelte logo', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' })} />
+    <img src={viteLogo} class="vite" alt={_t('Vite logo', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' })} />
+  </div>
+  <div>
+    <h1>{ _t('Get started', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }</h1>
+    <p>{@html _t('Edit <code>src/App.svelte</code> and save to test <code>HMR</code>', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte', _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]') }) }</p>
+  </div>
+  <Counter />
+</section>
+
+<div class="ticks"></div>
+
+<section id="next-steps">
+  <div id="docs">
+    <svg class="icon" role="presentation" aria-hidden="true">
+      <use href="/icons.svg#documentation-icon"></use>
+    </svg>
+    <h2>{ _t('Documentation', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }</h2>
+    <p>{ _t('Your questions, answered', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }</p>
+    <ul>
+      <li>
+        <a href="https://vite.dev/" target="_blank" rel="noreferrer">
+          <img class="logo" src={viteLogo} alt="" />
+          { _t('Explore Vite', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }
+        </a>
+      </li>
+      <li>
+        <a href="https://svelte.dev/" target="_blank" rel="noreferrer">
+          <img class="button-icon" src={svelteLogo} alt="" />
+          { _t('Learn more', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div id="social">
+    <svg class="icon" role="presentation" aria-hidden="true">
+      <use href="/icons.svg#social-icon"></use>
+    </svg>
+    <h2>{ _t('Connect with us', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }</h2>
+    <p>{ _t('Join the Vite community', { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_App_svelte' }) }</p>
+    <!-- @zintl-ignore -->
+    <ul>
+      <li>
+        <a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">
+          <svg class="button-icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#github-icon"></use>
+          </svg>
+          GitHub
+        </a>
+      </li>
+      <li>
+        <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
+          <svg class="button-icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#discord-icon"></use>
+          </svg>
+          Discord
+        </a>
+      </li>
+      <li>
+        <a href="https://x.com/vite_js" target="_blank" rel="noreferrer">
+          <svg class="button-icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#x-icon"></use>
+          </svg>
+          X.com
+        </a>
+      </li>
+      <li>
+        <a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">
+          <svg class="button-icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#bluesky-icon"></use>
+          </svg>
+          Bluesky
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<div class="ticks"></div>
+<section id="spacer"></section>
+{/key}

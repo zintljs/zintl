@@ -1,0 +1,186 @@
+{
+  "boundaryToOwner": {
+    "compression": "compression",
+    "dist/server/entry-server": "dist/server/entry-server",
+    "sirv": "sirv",
+    "src/App.vue": "src/entry-client",
+    "src/components/HelloWorld.vue": "src/entry-client",
+    "src/components/LocaleSwitcher.vue": "src/entry-client",
+    "src/entry-client": "src/entry-client",
+    "src/entry-server:render": "src/entry-server:render",
+    "src/main:createApp": "src/entry-client",
+    "vite": "vite"
+  },
+  "chunks": {
+    "entry_b_764631960fa9": {
+      "boundaries": [
+        "src/entry-client",
+        "src/style.css"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-client"
+      ],
+      "id": "entry_b_764631960fa9",
+      "type": "entry"
+    },
+    "entry_b_f0c6267f2b46": {
+      "boundaries": [
+        "src/entry-server:render",
+        "vue/server-renderer"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-server:render"
+      ],
+      "id": "entry_b_f0c6267f2b46",
+      "type": "entry"
+    },
+    "lazy_b_65fc4ebd27a8": {
+      "boundaries": [
+        "sirv"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "sirv"
+      ],
+      "id": "lazy_b_65fc4ebd27a8",
+      "type": "lazy"
+    },
+    "lazy_b_66991b731a46": {
+      "boundaries": [
+        "dist/server/entry-server"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "dist/server/entry-server"
+      ],
+      "id": "lazy_b_66991b731a46",
+      "type": "lazy"
+    },
+    "lazy_b_9907d3c4bf84": {
+      "boundaries": [
+        "vite"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "vite"
+      ],
+      "id": "lazy_b_9907d3c4bf84",
+      "type": "lazy"
+    },
+    "lazy_b_e4c94651c6df": {
+      "boundaries": [
+        "compression"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "compression"
+      ],
+      "id": "lazy_b_e4c94651c6df",
+      "type": "lazy"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_07f886859652": {
+      "boundaries": [
+        "src/components/HelloWorld.vue"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_07f886859652",
+      "type": "shared"
+    },
+    "shared_b_2a25802a2d14": {
+      "boundaries": [
+        "src/assets/vue.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_2a25802a2d14",
+      "type": "shared"
+    },
+    "shared_b_509fc19b0b3a": {
+      "boundaries": [
+        "src/components/LocaleSwitcher.vue"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_509fc19b0b3a",
+      "type": "shared"
+    },
+    "shared_b_5441d5289c77": {
+      "boundaries": [
+        "src/App.vue"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_5441d5289c77",
+      "type": "shared"
+    },
+    "shared_b_735f20cd61c1": {
+      "boundaries": [
+        "vue"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_735f20cd61c1",
+      "type": "shared"
+    },
+    "shared_b_744e9e03c6cc": {
+      "boundaries": [
+        "src/main:createApp"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_744e9e03c6cc",
+      "type": "shared"
+    },
+    "shared_b_7c1737176de1": {
+      "boundaries": [
+        "src/assets/vite.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_7c1737176de1",
+      "type": "shared"
+    },
+    "shared_b_8413c2e4a806": {
+      "boundaries": [
+        "src/assets/hero.png"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_8413c2e4a806",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/entry-client": "entry_b_764631960fa9",
+    "src/entry-server:render": "entry_b_f0c6267f2b46"
+  },
+  "lazyChunks": [
+    "lazy_b_65fc4ebd27a8",
+    "lazy_b_66991b731a46",
+    "lazy_b_9907d3c4bf84",
+    "lazy_b_e4c94651c6df"
+  ],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_07f886859652",
+    "shared_b_2a25802a2d14",
+    "shared_b_509fc19b0b3a",
+    "shared_b_5441d5289c77",
+    "shared_b_735f20cd61c1",
+    "shared_b_744e9e03c6cc",
+    "shared_b_7c1737176de1",
+    "shared_b_8413c2e4a806"
+  ]
+}

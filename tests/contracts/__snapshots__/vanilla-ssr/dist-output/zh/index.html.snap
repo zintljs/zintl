@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zintl | 基础单页应用多语言示例</title>
+    <!--app-head-->
+    <script type="module" crossorigin src="/assets/zh/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/style.js">
+    <link rel="stylesheet" crossorigin href="/assets/style-CUFt-qr9.css">
+  </head>
+  <body>
+    <div id="app"><!--app-html--></div>
+  </body>
+</html>

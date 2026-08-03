@@ -1,0 +1,21 @@
+const catalog = {
+    "b_src_entry_server_render": {
+      "Get started": "ابدأ الآن",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
+      "Documentation": "وثائق",
+      "Your questions, answered": "إجابات لأسئلتك",
+      "Explore Vite": "استكشف Vite",
+      "Learn more": "تعرف على المزيد",
+      "Connect with us": "تواصل معنا",
+      "Join the Vite community": "انضم إلى مجتمع Vite",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

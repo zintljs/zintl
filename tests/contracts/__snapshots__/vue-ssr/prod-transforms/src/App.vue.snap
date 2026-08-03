@@ -1,0 +1,9 @@
+<script setup lang="ts">
+import HelloWorld from "./components/HelloWorld.vue";
+import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+</script>
+
+<template>
+  <LocaleSwitcher />
+  <HelloWorld />
+</template>

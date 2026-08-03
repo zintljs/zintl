@@ -1,0 +1,165 @@
+{
+  "boundaryToOwner": {
+    "compression": "compression",
+    "dist/server/entry-server": "dist/server/entry-server",
+    "sirv": "sirv",
+    "src/App.svelte": "src/entry-client:bootstrap",
+    "src/entry-client:bootstrap": "src/entry-client:bootstrap",
+    "src/entry-server:render": "src/entry-server:render",
+    "src/lib/Counter.svelte": "src/entry-client:bootstrap",
+    "vite": "vite"
+  },
+  "chunks": {
+    "entry_b_429b1674e079": {
+      "boundaries": [
+        "src/app.css",
+        "src/entry-client:bootstrap",
+        "svelte"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-client:bootstrap"
+      ],
+      "id": "entry_b_429b1674e079",
+      "type": "entry"
+    },
+    "entry_b_f0c6267f2b46": {
+      "boundaries": [
+        "src/entry-server:render",
+        "svelte/server"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-server:render"
+      ],
+      "id": "entry_b_f0c6267f2b46",
+      "type": "entry"
+    },
+    "lazy_b_65fc4ebd27a8": {
+      "boundaries": [
+        "sirv"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "sirv"
+      ],
+      "id": "lazy_b_65fc4ebd27a8",
+      "type": "lazy"
+    },
+    "lazy_b_66991b731a46": {
+      "boundaries": [
+        "dist/server/entry-server"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "dist/server/entry-server"
+      ],
+      "id": "lazy_b_66991b731a46",
+      "type": "lazy"
+    },
+    "lazy_b_9907d3c4bf84": {
+      "boundaries": [
+        "vite"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "vite"
+      ],
+      "id": "lazy_b_9907d3c4bf84",
+      "type": "lazy"
+    },
+    "lazy_b_e4c94651c6df": {
+      "boundaries": [
+        "compression"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "compression"
+      ],
+      "id": "lazy_b_e4c94651c6df",
+      "type": "lazy"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_5355f7ea4996": {
+      "boundaries": [
+        "src/lib/LocaleSwitcher.svelte"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_5355f7ea4996",
+      "type": "shared"
+    },
+    "shared_b_7c1737176de1": {
+      "boundaries": [
+        "src/assets/vite.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_7c1737176de1",
+      "type": "shared"
+    },
+    "shared_b_8413c2e4a806": {
+      "boundaries": [
+        "src/assets/hero.png"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_8413c2e4a806",
+      "type": "shared"
+    },
+    "shared_b_878798524ed1": {
+      "boundaries": [
+        "src/assets/svelte.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_878798524ed1",
+      "type": "shared"
+    },
+    "shared_b_b071a5cc9dda": {
+      "boundaries": [
+        "src/App.svelte"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_b071a5cc9dda",
+      "type": "shared"
+    },
+    "shared_b_cd9034670a6d": {
+      "boundaries": [
+        "src/lib/Counter.svelte"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_cd9034670a6d",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/entry-client:bootstrap": "entry_b_429b1674e079",
+    "src/entry-server:render": "entry_b_f0c6267f2b46"
+  },
+  "lazyChunks": [
+    "lazy_b_65fc4ebd27a8",
+    "lazy_b_66991b731a46",
+    "lazy_b_9907d3c4bf84",
+    "lazy_b_e4c94651c6df"
+  ],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_5355f7ea4996",
+    "shared_b_7c1737176de1",
+    "shared_b_8413c2e4a806",
+    "shared_b_878798524ed1",
+    "shared_b_b071a5cc9dda",
+    "shared_b_cd9034670a6d"
+  ]
+}

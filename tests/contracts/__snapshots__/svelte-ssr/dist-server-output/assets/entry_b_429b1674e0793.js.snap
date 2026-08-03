@@ -1,0 +1,21 @@
+//#region \0virtual:zintl/content/zh/entry:b_429b1674e079
+var catalog = {
+	"b_b071a5cc9dda": {
+		"90e40d50": "开始",
+		"b339a4ca": "编辑 <code>src/App.svelte</code> 并保存以测试 <code>HMR</code>",
+		"9e9cf322": "文档",
+		"d0f7666b": "您的问题已解答",
+		"e49cb0ee": "探索 Vite",
+		"824d76b1": "了解更多",
+		"65ac13a7": "与我们联系",
+		"15545bc4": "加入 Vite 社区",
+		"2200eef1": "Svelte 图标",
+		"3473a536": "Vite 图标"
+	},
+	"b_cd9034670a6d": { "aa624128": (params) => {
+		const { count } = params;
+		return `计数为 ${params["count"]}`;
+	} }
+};
+//#endregion
+export { catalog as default };

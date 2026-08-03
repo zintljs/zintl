@@ -1,0 +1,3078 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+//#region \0virtual:zintl/runtime/store-core
+var storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+var runInRequestScope$1 = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope$1 = fn;
+}
+var DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) return false;
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {}
+};
+var I18nStore = class {
+	locale = "";
+	sourceLocale = "en";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug = false;
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	notify() {
+		this.version++;
+		for (const listener of this.listeners) try {
+			listener();
+		} catch (err) {}
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		if (changed) this.notify();
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) return;
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				return result.then(processResult).catch((err) => {}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+				});
+			}
+			processResult(result);
+		} catch (err) {}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		if (this.catalogs[target]?.[boundaryId]) return;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+		}
+	}
+};
+var globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+var defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+var currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {}
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+//#region \0virtual:zintl/runtime/store-client
+var syncLocale = () => {
+	const inst = getActiveInstance();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+//#region \0virtual:zintl/runtime/store-server
+var storage = new AsyncLocalStorage();
+setStoreStorage(storage);
+function serializeValue(val) {
+	if (typeof val === "function") return val.toString();
+	if (val === null) return "null";
+	if (val === void 0) return "undefined";
+	if (typeof val === "string") return JSON.stringify(val);
+	if (typeof val === "number" || typeof val === "boolean") return val.toString();
+	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
+	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => `${JSON.stringify(k)}:${serializeValue(v)}`).join(",") + "}";
+	return "null";
+}
+function injectIntoStream(stream, store) {
+	const reader = stream.getReader();
+	const encoder = new TextEncoder();
+	const decoder = new TextDecoder();
+	let injected = false;
+	return new ReadableStream({
+		async pull(controller) {
+			try {
+				const { done, value } = await reader.read();
+				if (done) {
+					if (!injected) {
+						const catalogs = store.catalogs;
+						if (Object.keys(catalogs).length > 0) {
+							const script = `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>`;
+							controller.enqueue(encoder.encode(script));
+						}
+						injected = true;
+					}
+					controller.close();
+					return;
+				}
+				let chunkText = "";
+				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
+				else if (typeof value === "string") chunkText = value;
+				if (!injected) if (chunkText.includes("</body>")) {
+					const catalogs = store.catalogs;
+					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+					chunkText = chunkText.replace("</body>", `${script}</body>`);
+					injected = true;
+					controller.enqueue(encoder.encode(chunkText));
+				} else if (chunkText.includes("</html>")) {
+					const catalogs = store.catalogs;
+					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+					chunkText = chunkText.replace("</html>", `${script}</html>`);
+					injected = true;
+					controller.enqueue(encoder.encode(chunkText));
+				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
+				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
+			} catch (err) {
+				controller.error(err);
+			}
+		},
+		cancel(reason) {
+			return reader.cancel(reason);
+		}
+	});
+}
+function injectBakedCatalogs(result, store) {
+	if (!result || !store) return result;
+	if (typeof Response !== "undefined" && result instanceof Response) {
+		if (result.body && typeof result.body.getReader === "function") {
+			const transformedBody = injectIntoStream(result.body, store);
+			return new Response(transformedBody, {
+				status: result.status,
+				statusText: result.statusText,
+				headers: result.headers
+			});
+		}
+		return result.text().then((html) => {
+			if (html.includes("</body>") || html.includes("</html>")) {
+				const modifiedHtml = injectBakedCatalogs(html, store);
+				return new Response(modifiedHtml, {
+					status: result.status,
+					statusText: result.statusText,
+					headers: result.headers
+				});
+			}
+			return new Response(html, {
+				status: result.status,
+				statusText: result.statusText,
+				headers: result.headers
+			});
+		});
+	}
+	if (typeof result === "string") {
+		const catalogs = store.catalogs;
+		if (Object.keys(catalogs).length > 0) {
+			const script = `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>`;
+			if (result.includes("</body>")) return result.replace("</body>", `${script}</body>`);
+			if (result.includes("</html>")) return result.replace("</html>", `${script}</html>`);
+			const lower = result.toLowerCase();
+			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
+			return result;
+		}
+	}
+	if (typeof result === "object") {
+		if (typeof result.getReader === "function") return injectIntoStream(result, store);
+		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
+		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
+		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
+		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
+	}
+	return result;
+}
+function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
+	let locale = defaultLocale;
+	if (urlOrReq) {
+		let pathname = "";
+		const extractPath = (val) => {
+			if (!val) return "";
+			if (typeof val === "string") return val;
+			if (typeof val === "object") {
+				if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
+				if (typeof val.path === "string") return val.path;
+				if (typeof val.pathname === "string") return val.pathname;
+				if (val.navigationContext) {
+					const nav = val.navigationContext;
+					if (typeof nav.pathname === "string") return nav.pathname;
+				}
+			}
+			return "";
+		};
+		if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
+			pathname = extractPath(arg);
+			if (pathname) break;
+		}
+		else pathname = extractPath(urlOrReq);
+		if (pathname) {
+			pathname = pathname.split("?")[0].split("#")[0];
+			if (pathname.includes("://")) try {
+				pathname = new URL(pathname).pathname;
+			} catch {
+				pathname = pathname.replace(/^https?:\/\/[^/]+/, "");
+			}
+			else {
+				pathname = pathname.replace(/^[^/]+:\d+/, "");
+				pathname = pathname.replace(/^[^/]+\.[^/]+/, "");
+			}
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
+		}
+	}
+	const store = new I18nStore();
+	store.locale = locale;
+	store.locales = locales;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	const promises = [];
+	for (const [_, loader] of globalRegistry.entries()) try {
+		const result = loader(locale);
+		const processResult = (res) => {
+			if (!res) return;
+			store.addCatalogs({ [locale]: res });
+		};
+		if (isThenable(result)) promises.push(result.then((res) => {
+			processResult(res);
+		}));
+		else processResult(result);
+	} catch {}
+	const runCallback = () => {
+		return storage.run(store, () => {
+			const result = callback();
+			const processStorePromisesAndInject = (resolvedResult) => {
+				if (store.pendingPromises.length > 0) {
+					const currentPromises = [...store.pendingPromises];
+					store.pendingPromises = [];
+					return Promise.all(currentPromises).then(() => {
+						return processStorePromisesAndInject(resolvedResult);
+					});
+				}
+				return injectBakedCatalogs(resolvedResult, store);
+			};
+			if (result && typeof result.then === "function") return result.then((resolvedResult) => {
+				return processStorePromisesAndInject(resolvedResult);
+			});
+			if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
+			return injectBakedCatalogs(result, store);
+		});
+	};
+	if (promises.length > 0) return Promise.all(promises).then(runCallback);
+	return runCallback();
+}
+setRunInRequestScope(runInRequestScope);
+//#endregion
+//#region \0virtual:zintl/runtime/resolver
+function _t(key, params = {}, options) {
+	const instance = getActiveInstance();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = mgr.loader(locale);
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) return ``;
+	} else return ``;
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+//#region \0virtual:zintl/runtime/internal
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = getActiveInstance();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = registerLoader(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+//#region \0virtual:zintl/manager/none/entry:b_429b1674e079
+var entry_b_429b1674e079_default = {
+	id: "b_429b1674e079",
+	loader: (locale) => {
+		switch (locale) {
+			case "en": return {
+				"b_b071a5cc9dda": {
+					"90e40d50": "Get started",
+					"b339a4ca": "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>",
+					"9e9cf322": "Documentation",
+					"d0f7666b": "Your questions, answered",
+					"e49cb0ee": "Explore Vite",
+					"824d76b1": "Learn more",
+					"65ac13a7": "Connect with us",
+					"15545bc4": "Join the Vite community",
+					"2200eef1": "Svelte logo",
+					"3473a536": "Vite logo"
+				},
+				"b_cd9034670a6d": { "aa624128": (params) => {
+					const { count } = params;
+					return `Count is ${params["count"]}`;
+				} }
+			};
+			case "ar": return import("./entry_b_429b1674e079.js").then((m) => m.default);
+			case "es": return import("./entry_b_429b1674e0792.js").then((m) => m.default);
+			case "zh": return import("./entry_b_429b1674e0793.js").then((m) => m.default);
+			default: return {};
+		}
+	},
+	manifest: []
+};
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/constants.js
+var FILENAME = Symbol("filename");
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/escaping.js
+var ATTR_REGEX = /[&"<]/g;
+var CONTENT_REGEX = /[&<]/g;
+/**
+* @template V
+* @param {V} value
+* @param {boolean} [is_attr]
+*/
+function escape_html(value, is_attr) {
+	const str = String(value ?? "");
+	const pattern = is_attr ? ATTR_REGEX : CONTENT_REGEX;
+	pattern.lastIndex = 0;
+	let escaped = "";
+	let last = 0;
+	while (pattern.test(str)) {
+		const i = pattern.lastIndex - 1;
+		const ch = str[i];
+		escaped += str.substring(last, i) + (ch === "&" ? "&amp;" : ch === "\"" ? "&quot;" : "&lt;");
+		last = i + 1;
+	}
+	return escaped + str.substring(last);
+}
+//#endregion
+//#region node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
+function r(e) {
+	var t, f, n = "";
+	if ("string" == typeof e || "number" == typeof e) n += e;
+	else if ("object" == typeof e) if (Array.isArray(e)) {
+		var o = e.length;
+		for (t = 0; t < o; t++) e[t] && (f = r(e[t])) && (n && (n += " "), n += f);
+	} else for (f in e) e[f] && (n && (n += " "), n += f);
+	return n;
+}
+function clsx$1() {
+	for (var e, t, f = 0, n = "", o = arguments.length; f < o; f++) (e = arguments[f]) && (t = r(e)) && (n && (n += " "), n += t);
+	return n;
+}
+Array.isArray;
+Array.prototype.indexOf;
+Array.prototype.includes;
+Array.from;
+Array.prototype;
+var has_own_property = Object.prototype.hasOwnProperty;
+var noop = () => {};
+/**
+* TODO replace with Promise.withResolvers once supported widely enough
+* @template [T=void]
+*/
+function deferred() {
+	/** @type {(value: T) => void} */
+	var resolve;
+	/** @type {(reason: any) => void} */
+	var reject;
+	return {
+		promise: new Promise((res, rej) => {
+			resolve = res;
+			reject = rej;
+		}),
+		resolve,
+		reject
+	};
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/attributes.js
+/**
+* `<div translate={false}>` should be rendered as `<div translate="no">` and _not_
+* `<div translate="false">`, which is equivalent to `<div translate="yes">`. There
+* may be other odd cases that need to be added to this list in future
+* @type {Record<string, Map<any, string>>}
+*/
+var replacements = { translate: /* @__PURE__ */ new Map([[true, "yes"], [false, "no"]]) };
+/**
+* @template V
+* @param {string} name
+* @param {V} value
+* @param {boolean} [is_boolean]
+* @returns {string}
+*/
+function attr(name, value, is_boolean = false) {
+	if (name === "hidden" && value !== "until-found") is_boolean = true;
+	if (value == null || !value && is_boolean) return "";
+	const normalized = has_own_property.call(replacements, name) && replacements[name].get(value) || value;
+	return ` ${name}${is_boolean ? `=""` : `="${escape_html(normalized, true)}"`}`;
+}
+/**
+* Small wrapper around clsx to preserve Svelte's (weird) handling of falsy values.
+* TODO Svelte 6 revisit this, and likely turn all falsy values into the empty string (what clsx also does)
+* @param  {any} value
+*/
+function clsx(value) {
+	if (typeof value === "object") return clsx$1(value);
+	else return value ?? "";
+}
+var whitespace = [..." 	\n\r\f\xA0\v﻿"];
+/**
+* @param {any} value
+* @param {string | null} [hash]
+* @param {Record<string, boolean>} [directives]
+* @returns {string | null}
+*/
+function to_class(value, hash, directives) {
+	var classname = value == null ? "" : "" + value;
+	if (hash) classname = classname ? classname + " " + hash : hash;
+	if (directives) {
+		for (var key of Object.keys(directives)) if (directives[key]) classname = classname ? classname + " " + key : key;
+		else if (classname.length) {
+			var len = key.length;
+			var a = 0;
+			while ((a = classname.indexOf(key, a)) >= 0) {
+				var b = a + len;
+				if ((a === 0 || whitespace.includes(classname[a - 1])) && (b === classname.length || whitespace.includes(classname[b]))) classname = (a === 0 ? "" : classname.substring(0, a)) + classname.substring(b + 1);
+				else a = b;
+			}
+		}
+	}
+	return classname === "" ? null : classname;
+}
+/**
+*
+* @param {Record<string,any>} styles
+* @param {boolean} important
+*/
+function append_styles(styles, important = false) {
+	var separator = important ? " !important;" : ";";
+	var css = "";
+	for (var key of Object.keys(styles)) {
+		var value = styles[key];
+		if (value != null && value !== "") css += " " + key + ": " + value + separator;
+	}
+	return css;
+}
+/**
+* @param {string} name
+* @returns {string}
+*/
+function to_css_name(name) {
+	if (name[0] !== "-" || name[1] !== "-") return name.toLowerCase();
+	return name;
+}
+/**
+* @param {any} value
+* @param {Record<string, any> | [Record<string, any>, Record<string, any>]} [styles]
+* @returns {string | null}
+*/
+function to_style(value, styles) {
+	if (styles) {
+		var new_style = "";
+		/** @type {Record<string,any> | undefined} */
+		var normal_styles;
+		/** @type {Record<string,any> | undefined} */
+		var important_styles;
+		if (Array.isArray(styles)) {
+			normal_styles = styles[0];
+			important_styles = styles[1];
+		} else normal_styles = styles;
+		if (value) {
+			value = String(value).replaceAll(/\s*\/\*.*?\*\/\s*/g, "").trim();
+			/** @type {boolean | '"' | "'"} */
+			var in_str = false;
+			var in_apo = 0;
+			var in_comment = false;
+			var reserved_names = [];
+			if (normal_styles) reserved_names.push(...Object.keys(normal_styles).map(to_css_name));
+			if (important_styles) reserved_names.push(...Object.keys(important_styles).map(to_css_name));
+			var start_index = 0;
+			var name_index = -1;
+			const len = value.length;
+			for (var i = 0; i < len; i++) {
+				var c = value[i];
+				if (in_comment) {
+					if (c === "/" && value[i - 1] === "*") in_comment = false;
+				} else if (in_str) {
+					if (in_str === c) in_str = false;
+				} else if (c === "/" && value[i + 1] === "*") in_comment = true;
+				else if (c === "\"" || c === "'") in_str = c;
+				else if (c === "(") in_apo++;
+				else if (c === ")") in_apo--;
+				if (!in_comment && in_str === false && in_apo === 0) {
+					if (c === ":" && name_index === -1) name_index = i;
+					else if (c === ";" || i === len - 1) {
+						if (name_index !== -1) {
+							var name = to_css_name(value.substring(start_index, name_index).trim());
+							if (!reserved_names.includes(name)) {
+								if (c !== ";") i++;
+								var property = value.substring(start_index, i).trim();
+								new_style += " " + property + ";";
+							}
+						}
+						start_index = i + 1;
+						name_index = -1;
+					}
+				}
+			}
+		}
+		if (normal_styles) new_style += append_styles(normal_styles);
+		if (important_styles) new_style += append_styles(important_styles, true);
+		new_style = new_style.trim();
+		return new_style === "" ? null : new_style;
+	}
+	return value == null ? null : String(value);
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/constants.js
+var CLEAN = 1024;
+var DIRTY = 2048;
+var MAYBE_DIRTY = 4096;
+/**
+* 'Transparent' effects do not create a transition boundary.
+* This is on a block effect 99% of the time but may also be on a branch effect if its parent block effect was pruned
+*/
+var EFFECT_TRANSPARENT = 65536;
+var EFFECT_PRESERVED = 1 << 19;
+/** allow users to ignore aborted signal errors if `reason.name === 'StaleReactionError` */
+var STALE_REACTION = new class StaleReactionError extends Error {
+	name = "StaleReactionError";
+	message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
+}();
+globalThis.document?.contentType;
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/flags/index.js
+/** True if experimental.async=true */
+var async_mode_flag = false;
+~(DIRTY | MAYBE_DIRTY | CLEAN);
+EFFECT_TRANSPARENT | EFFECT_PRESERVED;
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/hydration.js
+var BLOCK_OPEN = `<!--[-->`;
+var BLOCK_CLOSE = `<!--]-->`;
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/utils.js
+var regex_return_characters = /\r/g;
+/**
+* @param {string} str
+* @returns {string}
+*/
+function hash(str) {
+	str = str.replace(regex_return_characters, "");
+	let hash = 5381;
+	let i = str.length;
+	while (i--) hash = (hash << 5) - hash ^ str.charCodeAt(i);
+	return (hash >>> 0).toString(36);
+}
+/**
+* Attributes that are boolean, i.e. they are present or not present.
+*/
+var DOM_BOOLEAN_ATTRIBUTES = [
+	"allowfullscreen",
+	"async",
+	"autofocus",
+	"autoplay",
+	"checked",
+	"controls",
+	"default",
+	"disabled",
+	"formnovalidate",
+	"indeterminate",
+	"inert",
+	"ismap",
+	"loop",
+	"multiple",
+	"muted",
+	"nomodule",
+	"novalidate",
+	"open",
+	"playsinline",
+	"readonly",
+	"required",
+	"reversed",
+	"seamless",
+	"selected",
+	"webkitdirectory",
+	"defer",
+	"disablepictureinpicture",
+	"disableremoteplayback"
+];
+/**
+* Returns `true` if `name` is a boolean attribute
+* @param {string} name
+*/
+function is_boolean_attribute(name) {
+	return DOM_BOOLEAN_ATTRIBUTES.includes(name);
+}
+[...DOM_BOOLEAN_ATTRIBUTES];
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/abort-signal.js
+/** @type {AbortController | null} */
+var controller = null;
+function abort() {
+	controller?.abort(STALE_REACTION);
+	controller = null;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/errors.js
+/**
+* The node API `AsyncLocalStorage` is not available, but is required to use async server rendering.
+* @returns {never}
+*/
+function async_local_storage_unavailable() {
+	const error = /* @__PURE__ */ new Error(`async_local_storage_unavailable\nThe node API \`AsyncLocalStorage\` is not available, but is required to use async server rendering.\nhttps://svelte.dev/e/async_local_storage_unavailable`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
+* Encountered asynchronous work while rendering synchronously.
+* @returns {never}
+*/
+function await_invalid() {
+	const error = /* @__PURE__ */ new Error(`await_invalid\nEncountered asynchronous work while rendering synchronously.\nhttps://svelte.dev/e/await_invalid`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
+* The `html` property of server render results has been deprecated. Use `body` instead.
+* @returns {never}
+*/
+function html_deprecated() {
+	const error = /* @__PURE__ */ new Error(`html_deprecated\nThe \`html\` property of server render results has been deprecated. Use \`body\` instead.\nhttps://svelte.dev/e/html_deprecated`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
+* `csp.nonce` was set while `csp.hash` was `true`. These options cannot be used simultaneously.
+* @returns {never}
+*/
+function invalid_csp() {
+	const error = /* @__PURE__ */ new Error(`invalid_csp\n\`csp.nonce\` was set while \`csp.hash\` was \`true\`. These options cannot be used simultaneously.\nhttps://svelte.dev/e/invalid_csp`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
+* The `idPrefix` option cannot include `--`.
+* @returns {never}
+*/
+function invalid_id_prefix() {
+	const error = /* @__PURE__ */ new Error(`invalid_id_prefix\nThe \`idPrefix\` option cannot include \`--\`.\nhttps://svelte.dev/e/invalid_id_prefix`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
+* Could not resolve `render` context.
+* @returns {never}
+*/
+function server_context_required() {
+	const error = /* @__PURE__ */ new Error(`server_context_required\nCould not resolve \`render\` context.\nhttps://svelte.dev/e/server_context_required`);
+	error.name = "Svelte error";
+	throw error;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/context.js
+/** @import { SSRContext } from '#server' */
+/** @type {SSRContext | null} */
+var ssr_context = null;
+/** @param {SSRContext | null} v */
+function set_ssr_context(v) {
+	ssr_context = v;
+}
+/**
+* @param {Function} [fn]
+*/
+function push(fn) {
+	ssr_context = {
+		p: ssr_context,
+		c: null,
+		r: null
+	};
+	ssr_context.function = fn;
+	ssr_context.element = ssr_context.p?.element;
+}
+function pop() {
+	ssr_context = ssr_context.p;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/warnings.js
+var bold = "font-weight: bold";
+var normal = "font-weight: normal";
+/**
+* A `hydratable` value with key `%key%` was created, but at least part of it was not used during the render.
+* 
+* The `hydratable` was initialized in:
+* %stack%
+* @param {string} key
+* @param {string} stack
+*/
+function unresolved_hydratable(key, stack) {
+	console.warn(`%c[svelte] unresolved_hydratable\n%cA \`hydratable\` value with key \`${key}\` was created, but at least part of it was not used during the render.
+
+The \`hydratable\` was initialized in:
+${stack}\nhttps://svelte.dev/e/unresolved_hydratable`, bold, normal);
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/render-context.js
+/** @import { AsyncLocalStorage } from 'node:async_hooks' */
+/** @import { RenderContext } from '#server' */
+/** @type {Promise<void> | null} */
+var current_render = null;
+/** @type {RenderContext | null} */
+var context = null;
+/** @returns {RenderContext} */
+function get_render_context() {
+	const store = context ?? als?.getStore();
+	if (!store) server_context_required();
+	return store;
+}
+/**
+* @template T
+* @param {() => Promise<T>} fn
+* @returns {Promise<T>}
+*/
+async function with_render_context(fn) {
+	context = { hydratable: {
+		lookup: /* @__PURE__ */ new Map(),
+		comparisons: [],
+		unresolved_promises: /* @__PURE__ */ new Map()
+	} };
+	if (in_webcontainer()) {
+		const { promise, resolve } = deferred();
+		const previous_render = current_render;
+		current_render = promise;
+		await previous_render;
+		return fn().finally(resolve);
+	}
+	try {
+		if (als === null) async_local_storage_unavailable();
+		return als.run(context, fn);
+	} finally {
+		context = null;
+	}
+}
+/** @type {AsyncLocalStorage<RenderContext | null> | null} */
+var als = null;
+/** @type {Promise<void> | null} */
+var als_import = null;
+/**
+*
+* @returns {Promise<void>}
+*/
+function init_render_context() {
+	als_import ??= import("node:async_hooks").then((hooks) => {
+		als = new hooks.AsyncLocalStorage();
+	}).then(noop, noop);
+	return als_import;
+}
+function in_webcontainer() {
+	return !!globalThis.process?.versions?.webcontainer;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/crypto.js
+var text_encoder;
+var crypto;
+/** @param {string} module_name */
+var obfuscated_import = (module_name) => import(
+	/* @vite-ignore */
+	module_name
+);
+/** @param {string} data */
+async function sha256(data) {
+	text_encoder ??= new TextEncoder();
+	crypto ??= globalThis.crypto?.subtle?.digest ? globalThis.crypto : (await obfuscated_import("node:crypto")).webcrypto;
+	return base64_encode(await crypto.subtle.digest("SHA-256", text_encoder.encode(data)));
+}
+/**
+* @param {Uint8Array} bytes
+* @returns {string}
+*/
+function base64_encode(bytes) {
+	if (globalThis.Buffer) return globalThis.Buffer.from(bytes).toString("base64");
+	let binary = "";
+	for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+	return btoa(binary);
+}
+var MAX_ARRAY_INDEX = 2 ** 32 - 1 - 1;
+//#endregion
+//#region node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/src/utils.js
+/** @type {Record<string, string>} */
+var escaped = {
+	"<": "\\u003C",
+	"\\": "\\\\",
+	"\b": "\\b",
+	"\f": "\\f",
+	"\n": "\\n",
+	"\r": "\\r",
+	"	": "\\t",
+	"\u2028": "\\u2028",
+	"\u2029": "\\u2029"
+};
+var DevalueError = class extends Error {
+	/**
+	* @param {string} message
+	* @param {string[]} keys
+	* @param {any} [value] - The value that failed to be serialized
+	* @param {any} [root] - The root value being serialized
+	*/
+	constructor(message, keys, value, root) {
+		super(message);
+		this.name = "DevalueError";
+		this.path = keys.join("");
+		this.value = value;
+		this.root = root;
+	}
+};
+/** @param {any} thing */
+function is_primitive(thing) {
+	return thing === null || typeof thing !== "object" && typeof thing !== "function";
+}
+var object_proto_names = /* @__PURE__ */ Object.getOwnPropertyNames(Object.prototype).sort().join("\0");
+/** @param {any} thing */
+function is_plain_object(thing) {
+	const proto = Object.getPrototypeOf(thing);
+	return proto === Object.prototype || proto === null || Object.getPrototypeOf(proto) === null || Object.getOwnPropertyNames(proto).sort().join("\0") === object_proto_names;
+}
+/** @param {any} thing */
+function get_type(thing) {
+	return Object.prototype.toString.call(thing).slice(8, -1);
+}
+/** @param {string} char */
+function get_escaped_char(char) {
+	switch (char) {
+		case "\"": return "\\\"";
+		case "<": return "\\u003C";
+		case "\\": return "\\\\";
+		case "\n": return "\\n";
+		case "\r": return "\\r";
+		case "	": return "\\t";
+		case "\b": return "\\b";
+		case "\f": return "\\f";
+		case "\u2028": return "\\u2028";
+		case "\u2029": return "\\u2029";
+		default: return char < " " ? `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}` : "";
+	}
+}
+/** @param {string} str */
+function stringify_string(str) {
+	let result = "";
+	let last_pos = 0;
+	const len = str.length;
+	for (let i = 0; i < len; i += 1) {
+		const char = str[i];
+		const replacement = get_escaped_char(char);
+		if (replacement) {
+			result += str.slice(last_pos, i) + replacement;
+			last_pos = i + 1;
+		}
+	}
+	return `"${last_pos === 0 ? str : result + str.slice(last_pos)}"`;
+}
+/** @param {Record<string | symbol, any>} object */
+function enumerable_symbols(object) {
+	return Object.getOwnPropertySymbols(object).filter((symbol) => Object.getOwnPropertyDescriptor(object, symbol).enumerable);
+}
+var is_identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+/** @param {string} key */
+function stringify_key(key) {
+	return is_identifier.test(key) ? "." + key : "[" + JSON.stringify(key) + "]";
+}
+/** @param {number} n */
+function is_valid_array_index(n) {
+	if (!Number.isInteger(n)) return false;
+	if (n < 0) return false;
+	if (n > MAX_ARRAY_INDEX) return false;
+	return true;
+}
+/** @param {string} s */
+function is_valid_array_index_string(s) {
+	if (s.length === 0) return false;
+	if (s.length > 1 && s.charCodeAt(0) === 48) return false;
+	for (let i = 0; i < s.length; i++) {
+		const c = s.charCodeAt(i);
+		if (c < 48 || c > 57) return false;
+	}
+	return is_valid_array_index(+s);
+}
+/**
+* Finds the populated indices of an array.
+* @param {unknown[]} array
+*/
+function valid_array_indices(array) {
+	const keys = Object.keys(array);
+	for (var i = keys.length - 1; i >= 0; i--) if (is_valid_array_index_string(keys[i])) break;
+	keys.length = i + 1;
+	return keys;
+}
+//#endregion
+//#region node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/src/uneval.js
+var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
+var unsafe_chars = /[<\b\f\n\r\t\0\u2028\u2029]/g;
+var reserved = /^(?:do|if|in|for|int|let|new|try|var|byte|case|char|else|enum|goto|long|this|void|with|await|break|catch|class|const|final|float|short|super|throw|while|yield|delete|double|export|import|native|return|switch|throws|typeof|boolean|default|extends|finally|package|private|abstract|continue|debugger|function|volatile|interface|protected|transient|implements|instanceof|synchronized)$/;
+/**
+* Turn a value into the JavaScript that creates an equivalent value
+* @param {any} value
+* @param {(value: any, uneval: (value: any) => string) => string | void} [replacer]
+*/
+function uneval(value, replacer) {
+	const counts = /* @__PURE__ */ new Map();
+	/** @type {string[]} */
+	const keys = [];
+	const custom = /* @__PURE__ */ new Map();
+	/** @param {any} thing */
+	function walk(thing) {
+		if (!is_primitive(thing)) {
+			if (counts.has(thing)) {
+				counts.set(thing, counts.get(thing) + 1);
+				return;
+			}
+			counts.set(thing, 1);
+			if (replacer) {
+				const str = replacer(thing, (value) => uneval(value, replacer));
+				if (typeof str === "string") {
+					custom.set(thing, str);
+					return;
+				}
+			}
+			if (typeof thing === "function") throw new DevalueError(`Cannot stringify a function`, keys, thing, value);
+			switch (get_type(thing)) {
+				case "Number":
+				case "BigInt":
+				case "String":
+				case "Boolean":
+				case "Date":
+				case "RegExp":
+				case "URL":
+				case "URLSearchParams": return;
+				case "Array":
+					/** @type {any[]} */ thing.forEach((value, i) => {
+						keys.push(`[${i}]`);
+						walk(value);
+						keys.pop();
+					});
+					break;
+				case "Set":
+					Array.from(thing).forEach(walk);
+					break;
+				case "Map":
+					for (const [key, value] of thing) {
+						keys.push(`.get(${is_primitive(key) ? stringify_primitive(key) : "..."})`);
+						walk(value);
+						keys.pop();
+					}
+					break;
+				case "Int8Array":
+				case "Uint8Array":
+				case "Uint8ClampedArray":
+				case "Int16Array":
+				case "Uint16Array":
+				case "Float16Array":
+				case "Int32Array":
+				case "Uint32Array":
+				case "Float32Array":
+				case "Float64Array":
+				case "BigInt64Array":
+				case "BigUint64Array":
+				case "DataView":
+					walk(thing.buffer);
+					return;
+				case "ArrayBuffer": return;
+				case "Temporal.Duration":
+				case "Temporal.Instant":
+				case "Temporal.PlainDate":
+				case "Temporal.PlainTime":
+				case "Temporal.PlainDateTime":
+				case "Temporal.PlainMonthDay":
+				case "Temporal.PlainYearMonth":
+				case "Temporal.ZonedDateTime": return;
+				default:
+					if (!is_plain_object(thing)) throw new DevalueError(`Cannot stringify arbitrary non-POJOs`, keys, thing, value);
+					if (enumerable_symbols(thing).length > 0) throw new DevalueError(`Cannot stringify POJOs with symbolic keys`, keys, thing, value);
+					for (const key of Object.keys(thing)) {
+						if (key === "__proto__") throw new DevalueError(`Cannot stringify objects with __proto__ keys`, keys, thing, value);
+						keys.push(stringify_key(key));
+						walk(thing[key]);
+						keys.pop();
+					}
+			}
+		} else if (typeof thing === "symbol") throw new DevalueError(`Cannot stringify a Symbol primitive`, keys, thing, value);
+	}
+	walk(value);
+	const names = /* @__PURE__ */ new Map();
+	Array.from(counts).filter((entry) => entry[1] > 1).sort((a, b) => b[1] - a[1]).forEach((entry, i) => {
+		names.set(entry[0], get_name(i));
+	});
+	/**
+	* @param {any} thing
+	* @returns {string}
+	*/
+	function stringify(thing) {
+		if (names.has(thing)) return names.get(thing);
+		if (is_primitive(thing)) return stringify_primitive(thing);
+		if (custom.has(thing)) return custom.get(thing);
+		const type = get_type(thing);
+		switch (type) {
+			case "Number":
+			case "String":
+			case "Boolean":
+			case "BigInt": return `Object(${stringify(thing.valueOf())})`;
+			case "RegExp":
+				const { source, flags } = thing;
+				return flags ? `new RegExp(${stringify_string(source)},"${flags}")` : `new RegExp(${stringify_string(source)})`;
+			case "Date": return `new Date(${thing.getTime()})`;
+			case "URL": return `new URL(${stringify_string(thing.toString())})`;
+			case "URLSearchParams": return `new URLSearchParams(${stringify_string(thing.toString())})`;
+			case "Array": {
+				let has_holes = false;
+				let result = "[";
+				for (let i = 0; i < thing.length; i += 1) {
+					if (i > 0) result += ",";
+					if (Object.hasOwn(thing, i)) result += stringify(thing[i]);
+					else if (!has_holes) {
+						const populated_keys = valid_array_indices(thing);
+						const population = populated_keys.length;
+						const d = String(thing.length).length;
+						if (thing.length + 2 > 25 + d + population * (d + 2)) {
+							const entries = populated_keys.map((k) => `${k}:${stringify(thing[k])}`).join(",");
+							return `Object.assign(Array(${thing.length}),{${entries}})`;
+						}
+						has_holes = true;
+						i -= 1;
+					}
+				}
+				const tail = thing.length === 0 || thing.length - 1 in thing ? "" : ",";
+				return result + tail + "]";
+			}
+			case "Set":
+			case "Map": return `new ${type}([${Array.from(thing).map(stringify).join(",")}])`;
+			case "Int8Array":
+			case "Uint8Array":
+			case "Uint8ClampedArray":
+			case "Int16Array":
+			case "Uint16Array":
+			case "Float16Array":
+			case "Int32Array":
+			case "Uint32Array":
+			case "Float32Array":
+			case "Float64Array":
+			case "BigInt64Array":
+			case "BigUint64Array": {
+				let str = `new ${type}`;
+				if (!names.has(thing.buffer)) {
+					const array = new thing.constructor(thing.buffer);
+					str += `([${array}])`;
+				} else str += `(${stringify(thing.buffer)})`;
+				if (thing.byteLength !== thing.buffer.byteLength) {
+					const start = thing.byteOffset / thing.BYTES_PER_ELEMENT;
+					const end = start + thing.length;
+					str += `.subarray(${start},${end})`;
+				}
+				return str;
+			}
+			case "DataView": {
+				let str = `new DataView`;
+				if (!names.has(thing.buffer)) str += `(new Uint8Array([${new Uint8Array(thing.buffer)}]).buffer`;
+				else str += `(${stringify(thing.buffer)}`;
+				if (thing.byteLength !== thing.buffer.byteLength) str += `,${thing.startOffset},${thing.byteLength}`;
+				return str + ")";
+			}
+			case "ArrayBuffer": return `new Uint8Array([${new Uint8Array(thing).toString()}]).buffer`;
+			case "Temporal.Duration":
+			case "Temporal.Instant":
+			case "Temporal.PlainDate":
+			case "Temporal.PlainTime":
+			case "Temporal.PlainDateTime":
+			case "Temporal.PlainMonthDay":
+			case "Temporal.PlainYearMonth":
+			case "Temporal.ZonedDateTime": return `${type}.from(${stringify_string(thing.toString())})`;
+			default:
+				const keys = Object.keys(thing);
+				const obj = keys.map((key) => `${safe_key(key)}:${stringify(thing[key])}`).join(",");
+				if (Object.getPrototypeOf(thing) === null) return keys.length > 0 ? `{${obj},__proto__:null}` : `{__proto__:null}`;
+				return `{${obj}}`;
+		}
+	}
+	const str = stringify(value);
+	if (names.size) {
+		/** @type {string[]} */
+		const params = [];
+		/** @type {string[]} */
+		const statements = [];
+		/** @type {string[]} */
+		const values = [];
+		names.forEach((name, thing) => {
+			params.push(name);
+			if (custom.has(thing)) {
+				values.push(custom.get(thing));
+				return;
+			}
+			if (is_primitive(thing)) {
+				values.push(stringify_primitive(thing));
+				return;
+			}
+			const type = get_type(thing);
+			switch (type) {
+				case "Number":
+				case "String":
+				case "Boolean":
+				case "BigInt":
+					values.push(`Object(${stringify(thing.valueOf())})`);
+					break;
+				case "RegExp":
+					const { source, flags } = thing;
+					const regexp = flags ? `new RegExp(${stringify_string(source)},"${flags}")` : `new RegExp(${stringify_string(source)})`;
+					values.push(regexp);
+					break;
+				case "Date":
+					values.push(`new Date(${thing.getTime()})`);
+					break;
+				case "URL":
+					values.push(`new URL(${stringify_string(thing.toString())})`);
+					break;
+				case "URLSearchParams":
+					values.push(`new URLSearchParams(${stringify_string(thing.toString())})`);
+					break;
+				case "Array":
+					values.push(`Array(${thing.length})`);
+					/** @type {any[]} */ thing.forEach((v, i) => {
+						statements.push(`${name}[${i}]=${stringify(v)}`);
+					});
+					break;
+				case "Set":
+					values.push(`new Set`);
+					statements.push(`${name}.${Array.from(thing).map((v) => `add(${stringify(v)})`).join(".")}`);
+					break;
+				case "Map":
+					values.push(`new Map`);
+					statements.push(`${name}.${Array.from(thing).map(([k, v]) => `set(${stringify(k)}, ${stringify(v)})`).join(".")}`);
+					break;
+				case "Int8Array":
+				case "Uint8Array":
+				case "Uint8ClampedArray":
+				case "Int16Array":
+				case "Uint16Array":
+				case "Float16Array":
+				case "Int32Array":
+				case "Uint32Array":
+				case "Float32Array":
+				case "Float64Array":
+				case "BigInt64Array":
+				case "BigUint64Array": {
+					let str = `new ${type}`;
+					if (!names.has(thing.buffer)) {
+						const array = new thing.constructor(thing.buffer);
+						str += `([${array}])`;
+					} else str += `(${stringify(thing.buffer)})`;
+					if (thing.byteLength !== thing.buffer.byteLength) {
+						const start = thing.byteOffset / thing.BYTES_PER_ELEMENT;
+						const end = start + thing.length;
+						str += `.subarray(${start},${end})`;
+					}
+					values.push(`{}`);
+					statements.push(`${name}=${str}`);
+					break;
+				}
+				case "DataView": {
+					let str = `new DataView`;
+					if (!names.has(thing.buffer)) str += `(new Uint8Array([${new Uint8Array(thing.buffer)}]).buffer`;
+					else str += `(${stringify(thing.buffer)}`;
+					if (thing.byteLength !== thing.buffer.byteLength) str += `,${thing.byteOffset},${thing.byteLength}`;
+					str += ")";
+					values.push(`{}`);
+					statements.push(`${name}=${str}`);
+					break;
+				}
+				case "ArrayBuffer":
+					values.push(`new Uint8Array([${new Uint8Array(thing)}]).buffer`);
+					break;
+				default:
+					values.push(Object.getPrototypeOf(thing) === null ? "Object.create(null)" : "{}");
+					Object.keys(thing).forEach((key) => {
+						statements.push(`${name}${safe_prop(key)}=${stringify(thing[key])}`);
+					});
+			}
+		});
+		statements.push(`return ${str}`);
+		return `(function(${params.join(",")}){${statements.join(";")}}(${values.join(",")}))`;
+	} else return str;
+}
+/** @param {number} num */
+function get_name(num) {
+	let name = "";
+	do {
+		name = chars[num % 54] + name;
+		num = ~~(num / 54) - 1;
+	} while (num >= 0);
+	return reserved.test(name) ? `${name}0` : name;
+}
+/** @param {string} c */
+function escape_unsafe_char(c) {
+	return escaped[c] || c;
+}
+/** @param {string} str */
+function escape_unsafe_chars(str) {
+	return str.replace(unsafe_chars, escape_unsafe_char);
+}
+/** @param {string} key */
+function safe_key(key) {
+	return /^[_$a-zA-Z][_$a-zA-Z0-9]*$/.test(key) ? key : escape_unsafe_chars(JSON.stringify(key));
+}
+/** @param {string} key */
+function safe_prop(key) {
+	return /^[_$a-zA-Z][_$a-zA-Z0-9]*$/.test(key) ? `.${key}` : `[${escape_unsafe_chars(JSON.stringify(key))}]`;
+}
+/** @param {any} thing */
+function stringify_primitive(thing) {
+	const type = typeof thing;
+	if (type === "string") return stringify_string(thing);
+	if (thing === void 0) return "void 0";
+	if (thing === 0 && 1 / thing < 0) return "-0";
+	const str = String(thing);
+	if (type === "number") return str.replace(/^(-)?0\./, "$1.");
+	if (type === "bigint") return thing + "n";
+	return str;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/renderer.js
+/** @import { Component } from 'svelte' */
+/** @import { Csp, HydratableContext, RenderOutput, SSRContext, SyncRenderOutput, Sha256Source } from './types.js' */
+/** @import { MaybePromise } from '#shared' */
+/** @typedef {'head' | 'body'} RendererType */
+/** @typedef {{ [key in RendererType]: string }} AccumulatedContent */
+/**
+* @typedef {string | Renderer} RendererItem
+*/
+/**
+* Renderers are basically a tree of `string | Renderer`s, where each `Renderer` in the tree represents
+* work that may or may not have completed. A renderer can be {@link collect}ed to aggregate the
+* content from itself and all of its children, but this will throw if any of the children are
+* performing asynchronous work. To asynchronously collect a renderer, just `await` it.
+*
+* The `string` values within a renderer are always associated with the {@link type} of that renderer. To switch types,
+* call {@link child} with a different `type` argument.
+*/
+var Renderer = class Renderer {
+	/**
+	* The contents of the renderer.
+	* @type {RendererItem[]}
+	*/
+	#out = [];
+	/**
+	* Any `onDestroy` callbacks registered during execution of this renderer.
+	* @type {(() => void)[] | undefined}
+	*/
+	#on_destroy = void 0;
+	/**
+	* Whether this renderer is a component body.
+	* @type {boolean}
+	*/
+	#is_component_body = false;
+	/**
+	* If set, this renderer is an error boundary. When async collection
+	* of the children fails, the failed snippet is rendered instead.
+	* @type {{
+	* 	failed: (renderer: Renderer, error: unknown, reset: () => void) => void;
+	* 	transformError: (error: unknown) => unknown;
+	* 	context: SSRContext | null;
+	* } | null}
+	*/
+	#boundary = null;
+	/**
+	* The type of string content that this renderer is accumulating.
+	* @type {RendererType}
+	*/
+	type;
+	/** @type {Renderer | undefined} */
+	#parent;
+	/**
+	* Asynchronous work associated with this renderer
+	* @type {Promise<void> | undefined}
+	*/
+	promise = void 0;
+	/**
+	* State which is associated with the content tree as a whole.
+	* It will be re-exposed, uncopied, on all children.
+	* @type {SSRState}
+	* @readonly
+	*/
+	global;
+	/**
+	* State that is local to the branch it is declared in.
+	* It will be shallow-copied to all children.
+	*
+	* @type {{ select_value: string | undefined }}
+	*/
+	local;
+	/**
+	* @param {SSRState} global
+	* @param {Renderer | undefined} [parent]
+	*/
+	constructor(global, parent) {
+		this.#parent = parent;
+		this.global = global;
+		this.local = parent ? { ...parent.local } : { select_value: void 0 };
+		this.type = parent ? parent.type : "body";
+	}
+	/**
+	* @param {(renderer: Renderer) => void} fn
+	*/
+	head(fn) {
+		const head = new Renderer(this.global, this);
+		head.type = "head";
+		this.#out.push(head);
+		head.child(fn);
+	}
+	/**
+	* @param {Array<Promise<void>>} blockers
+	* @param {(renderer: Renderer) => void} fn
+	*/
+	async_block(blockers, fn) {
+		this.#out.push(BLOCK_OPEN);
+		this.async(blockers, fn);
+		this.#out.push(BLOCK_CLOSE);
+	}
+	/**
+	* @param {Array<Promise<void>>} blockers
+	* @param {(renderer: Renderer) => void} fn
+	*/
+	async(blockers, fn) {
+		let callback = fn;
+		if (blockers.length > 0) {
+			const context = ssr_context;
+			callback = (renderer) => {
+				return Promise.all(blockers).then(() => {
+					const previous_context = ssr_context;
+					try {
+						set_ssr_context(context);
+						return fn(renderer);
+					} finally {
+						set_ssr_context(previous_context);
+					}
+				});
+			};
+		}
+		this.child(callback);
+	}
+	/**
+	* @param {Array<() => void>} thunks
+	*/
+	run(thunks) {
+		const context = ssr_context;
+		let promise = Promise.resolve(thunks[0]());
+		const promises = [promise];
+		for (const fn of thunks.slice(1)) {
+			promise = promise.then(() => {
+				const previous_context = ssr_context;
+				set_ssr_context(context);
+				try {
+					return fn();
+				} finally {
+					set_ssr_context(previous_context);
+				}
+			});
+			promises.push(promise);
+		}
+		promise.catch(noop);
+		this.promise = promise;
+		return promises;
+	}
+	/**
+	* @param {(renderer: Renderer) => MaybePromise<void>} fn
+	*/
+	child_block(fn) {
+		this.#out.push(BLOCK_OPEN);
+		this.child(fn);
+		this.#out.push(BLOCK_CLOSE);
+	}
+	/**
+	* Create a child renderer. The child renderer inherits the state from the parent,
+	* but has its own content.
+	* @param {(renderer: Renderer) => MaybePromise<void>} fn
+	*/
+	child(fn) {
+		const child = new Renderer(this.global, this);
+		this.#out.push(child);
+		const parent = ssr_context;
+		set_ssr_context({
+			...ssr_context,
+			p: parent,
+			c: null,
+			r: child
+		});
+		const result = fn(child);
+		set_ssr_context(parent);
+		if (result instanceof Promise) {
+			result.catch(noop);
+			result.finally(() => set_ssr_context(null)).catch(noop);
+			if (child.global.mode === "sync") await_invalid();
+			child.promise = result;
+		}
+		return child;
+	}
+	/**
+	* Render children inside an error boundary. If the children throw and the API-level
+	* `transformError` transform handles the error (doesn't re-throw), the `failed` snippet is
+	* rendered instead. Otherwise the error propagates.
+	*
+	* @param {{ failed?: (renderer: Renderer, error: unknown, reset: () => void) => void }} props
+	* @param {(renderer: Renderer) => MaybePromise<void>} children_fn
+	*/
+	boundary(props, children_fn) {
+		const child = new Renderer(this.global, this);
+		this.#out.push(child);
+		const parent_context = ssr_context;
+		if (props.failed) child.#boundary = {
+			failed: props.failed,
+			transformError: this.global.transformError,
+			context: parent_context
+		};
+		set_ssr_context({
+			...ssr_context,
+			p: parent_context,
+			c: null,
+			r: child
+		});
+		try {
+			const result = children_fn(child);
+			set_ssr_context(parent_context);
+			if (result instanceof Promise) {
+				if (child.global.mode === "sync") await_invalid();
+				result.catch(noop);
+				child.promise = result;
+			}
+		} catch (error) {
+			set_ssr_context(parent_context);
+			const failed_snippet = props.failed;
+			if (!failed_snippet) throw error;
+			const result = this.global.transformError(error);
+			child.#out.length = 0;
+			child.#boundary = null;
+			if (result instanceof Promise) {
+				if (this.global.mode === "sync") await_invalid();
+				child.promise = result.then((transformed) => {
+					set_ssr_context(parent_context);
+					child.#out.push(Renderer.#serialize_failed_boundary(transformed));
+					failed_snippet(child, transformed, noop);
+					child.#out.push(BLOCK_CLOSE);
+				});
+				child.promise.catch(noop);
+			} else {
+				child.#out.push(Renderer.#serialize_failed_boundary(result));
+				failed_snippet(child, result, noop);
+				child.#out.push(BLOCK_CLOSE);
+			}
+		}
+	}
+	/**
+	* Create a component renderer. The component renderer inherits the state from the parent,
+	* but has its own content. It is treated as an ordering boundary for ondestroy callbacks.
+	* @param {(renderer: Renderer) => MaybePromise<void>} fn
+	* @param {Function} [component_fn]
+	* @returns {void}
+	*/
+	component(fn, component_fn) {
+		push(component_fn);
+		const child = this.child(fn);
+		child.#is_component_body = true;
+		pop();
+	}
+	/**
+	* @param {Record<string, any>} attrs
+	* @param {(renderer: Renderer) => void} fn
+	* @param {string | undefined} [css_hash]
+	* @param {Record<string, boolean> | undefined} [classes]
+	* @param {Record<string, string> | undefined} [styles]
+	* @param {number | undefined} [flags]
+	* @param {boolean | undefined} [is_rich]
+	* @returns {void}
+	*/
+	select(attrs, fn, css_hash, classes, styles, flags, is_rich) {
+		const { value, ...select_attrs } = attrs;
+		this.push(`<select${attributes(select_attrs, css_hash, classes, styles, flags)}>`);
+		this.child((renderer) => {
+			renderer.local.select_value = value;
+			fn(renderer);
+		});
+		this.push(`${is_rich ? "<!>" : ""}</select>`);
+	}
+	/**
+	* @param {Record<string, any>} attrs
+	* @param {string | number | boolean | ((renderer: Renderer) => void)} body
+	* @param {string | undefined} [css_hash]
+	* @param {Record<string, boolean> | undefined} [classes]
+	* @param {Record<string, string> | undefined} [styles]
+	* @param {number | undefined} [flags]
+	* @param {boolean | undefined} [is_rich]
+	*/
+	option(attrs, body, css_hash, classes, styles, flags, is_rich) {
+		this.#out.push(`<option${attributes(attrs, css_hash, classes, styles, flags)}`);
+		/**
+		* @param {Renderer} renderer
+		* @param {any} value
+		* @param {{ head?: string, body: any }} content
+		*/
+		const close = (renderer, value, { head, body }) => {
+			if (has_own_property.call(attrs, "value")) value = attrs.value;
+			if (value === this.local.select_value) renderer.#out.push(" selected=\"\"");
+			renderer.#out.push(`>${body}${is_rich ? "<!>" : ""}</option>`);
+			if (head) renderer.head((child) => child.push(head));
+		};
+		if (typeof body === "function") this.child((renderer) => {
+			const r = new Renderer(this.global, this);
+			body(r);
+			if (this.global.mode === "async") return r.#collect_content_async().then((content) => {
+				close(renderer, content.body.replaceAll("<!---->", ""), content);
+			});
+			else {
+				const content = r.#collect_content();
+				close(renderer, content.body.replaceAll("<!---->", ""), content);
+			}
+		});
+		else close(this, body, { body: escape_html(body) });
+	}
+	/**
+	* @param {(renderer: Renderer) => void} fn
+	*/
+	title(fn) {
+		const path = this.get_path();
+		/** @param {string} head */
+		const close = (head) => {
+			this.global.set_title(head, path);
+		};
+		this.child((renderer) => {
+			const r = new Renderer(renderer.global, renderer);
+			fn(r);
+			if (renderer.global.mode === "async") return r.#collect_content_async().then((content) => {
+				close(content.head);
+			});
+			else {
+				const content = r.#collect_content();
+				close(content.head);
+			}
+		});
+	}
+	/**
+	* @param {string | (() => Promise<string>)} content
+	*/
+	push(content) {
+		if (typeof content === "function") this.child(async (renderer) => renderer.push(await content()));
+		else this.#out.push(content);
+	}
+	/**
+	* @param {() => void} fn
+	*/
+	on_destroy(fn) {
+		(this.#on_destroy ??= []).push(fn);
+	}
+	/**
+	* @returns {number[]}
+	*/
+	get_path() {
+		return this.#parent ? [...this.#parent.get_path(), this.#parent.#out.indexOf(this)] : [];
+	}
+	/**
+	* @deprecated this is needed for legacy component bindings
+	*/
+	copy() {
+		const copy = new Renderer(this.global, this.#parent);
+		copy.#out = this.#out.map((item) => item instanceof Renderer ? item.copy() : item);
+		copy.promise = this.promise;
+		return copy;
+	}
+	/**
+	* @param {Renderer} other
+	* @deprecated this is needed for legacy component bindings
+	*/
+	subsume(other) {
+		if (this.global.mode !== other.global.mode) throw new Error("invariant: A renderer cannot switch modes. If you're seeing this, there's a compiler bug. File an issue!");
+		this.local = other.local;
+		this.#out = other.#out.map((item, i) => {
+			const current = this.#out[i];
+			if (current instanceof Renderer && item instanceof Renderer) {
+				current.subsume(item);
+				return current;
+			}
+			return item;
+		});
+		this.promise = other.promise;
+		this.type = other.type;
+	}
+	get length() {
+		return this.#out.length;
+	}
+	/**
+	* Creates the hydration comment that marks the start of a failed boundary.
+	* The error is JSON-serialized and embedded inside an HTML comment for the client
+	* to parse during hydration. The JSON is escaped to prevent `-->` or `<!--` sequences
+	* from breaking out of the comment (XSS). Uses unicode escapes which `JSON.parse()`
+	* handles transparently.
+	* @param {unknown} error
+	* @returns {string}
+	*/
+	static #serialize_failed_boundary(error) {
+		return `<!--[?${JSON.stringify(error).replace(/>/g, "\\u003e").replace(/</g, "\\u003c")}-->`;
+	}
+	/**
+	* Only available on the server and when compiling with the `server` option.
+	* Takes a component and returns an object with `body` and `head` properties on it, which you can use to populate the HTML when server-rendering your app.
+	* @template {Record<string, any>} Props
+	* @param {Component<Props>} component
+	* @param {{ props?: Omit<Props, '$$slots' | '$$events'>; context?: Map<any, any>; idPrefix?: string; csp?: Csp }} [options]
+	* @returns {RenderOutput}
+	*/
+	static render(component, options = {}) {
+		/** @type {AccumulatedContent | undefined} */
+		let sync;
+		/** @type {Promise<AccumulatedContent & { hashes: { script: Sha256Source[] } }> | undefined} */
+		let async;
+		const result = {};
+		Object.defineProperties(result, {
+			html: { get: () => {
+				return (sync ??= Renderer.#render(component, options)).body;
+			} },
+			head: { get: () => {
+				return (sync ??= Renderer.#render(component, options)).head;
+			} },
+			body: { get: () => {
+				return (sync ??= Renderer.#render(component, options)).body;
+			} },
+			hashes: { value: { script: "" } },
+			then: { value: (onfulfilled, onrejected) => {
+				if (!async_mode_flag) {
+					const result = sync ??= Renderer.#render(component, options);
+					const user_result = onfulfilled({
+						head: result.head,
+						body: result.body,
+						html: result.body,
+						hashes: { script: [] }
+					});
+					return Promise.resolve(user_result);
+				}
+				async ??= init_render_context().then(() => with_render_context(() => Renderer.#render_async(component, options)));
+				return async.then((result) => {
+					Object.defineProperty(result, "html", { get: () => {
+						html_deprecated();
+					} });
+					return onfulfilled(result);
+				}, onrejected);
+			} }
+		});
+		return result;
+	}
+	/**
+	* Collect all of the `onDestroy` callbacks registered during rendering. In an async context, this is only safe to call
+	* after awaiting `collect_async`.
+	*
+	* Child renderers are "porous" and don't affect execution order, but component body renderers
+	* create ordering boundaries. Within a renderer, callbacks run in order until hitting a component boundary.
+	* @returns {Iterable<() => void>}
+	*/
+	*#collect_on_destroy() {
+		for (const component of this.#traverse_components()) yield* component.#collect_ondestroy();
+	}
+	/**
+	* Performs a depth-first search of renderers, yielding the deepest components first, then additional components as we backtrack up the tree.
+	* @returns {Iterable<Renderer>}
+	*/
+	*#traverse_components() {
+		for (const child of this.#out) if (typeof child !== "string") yield* child.#traverse_components();
+		if (this.#is_component_body) yield this;
+	}
+	/**
+	* @returns {Iterable<() => void>}
+	*/
+	*#collect_ondestroy() {
+		if (this.#on_destroy) for (const fn of this.#on_destroy) yield fn;
+		for (const child of this.#out) if (child instanceof Renderer && !child.#is_component_body) yield* child.#collect_ondestroy();
+	}
+	/**
+	* Render a component. Throws if any of the children are performing asynchronous work.
+	*
+	* @template {Record<string, any>} Props
+	* @param {Component<Props>} component
+	* @param {{ props?: Omit<Props, '$$slots' | '$$events'>; context?: Map<any, any>; idPrefix?: string }} options
+	* @returns {AccumulatedContent}
+	*/
+	static #render(component, options) {
+		var previous_context = ssr_context;
+		try {
+			const renderer = Renderer.#open_render("sync", component, options);
+			const content = renderer.#collect_content();
+			return Renderer.#close_render(content, renderer);
+		} finally {
+			abort();
+			set_ssr_context(previous_context);
+		}
+	}
+	/**
+	* Render a component.
+	*
+	* @template {Record<string, any>} Props
+	* @param {Component<Props>} component
+	* @param {{ props?: Omit<Props, '$$slots' | '$$events'>; context?: Map<any, any>; idPrefix?: string; csp?: Csp }} options
+	* @returns {Promise<AccumulatedContent & { hashes: { script: Sha256Source[] } }>}
+	*/
+	static async #render_async(component, options) {
+		const previous_context = ssr_context;
+		try {
+			const renderer = Renderer.#open_render("async", component, options);
+			const content = await renderer.#collect_content_async();
+			const hydratables = await renderer.#collect_hydratables();
+			if (hydratables !== null) content.head = hydratables + content.head;
+			return Renderer.#close_render(content, renderer);
+		} finally {
+			set_ssr_context(previous_context);
+			abort();
+		}
+	}
+	/**
+	* Collect all of the code from the `out` array and return it as a string, or a promise resolving to a string.
+	* @param {AccumulatedContent} content
+	* @returns {AccumulatedContent}
+	*/
+	#collect_content(content = {
+		head: "",
+		body: ""
+	}) {
+		for (const item of this.#out) if (typeof item === "string") content[this.type] += item;
+		else if (item instanceof Renderer) item.#collect_content(content);
+		return content;
+	}
+	/**
+	* Collect all of the code from the `out` array and return it as a string.
+	* @param {AccumulatedContent} content
+	* @returns {Promise<AccumulatedContent>}
+	*/
+	async #collect_content_async(content = {
+		head: "",
+		body: ""
+	}) {
+		await this.promise;
+		for (const item of this.#out) if (typeof item === "string") content[this.type] += item;
+		else if (item instanceof Renderer) if (item.#boundary) {
+			/** @type {AccumulatedContent} */
+			const boundary_content = {
+				head: "",
+				body: ""
+			};
+			try {
+				await item.#collect_content_async(boundary_content);
+				content.head += boundary_content.head;
+				content.body += boundary_content.body;
+			} catch (error) {
+				const { context, failed, transformError } = item.#boundary;
+				set_ssr_context(context);
+				let promise = transformError(error);
+				set_ssr_context(null);
+				let transformed = await promise;
+				set_ssr_context(context);
+				const failed_renderer = new Renderer(item.global, item);
+				failed_renderer.type = item.type;
+				failed_renderer.#out.push(Renderer.#serialize_failed_boundary(transformed));
+				failed(failed_renderer, transformed, noop);
+				failed_renderer.#out.push(BLOCK_CLOSE);
+				await failed_renderer.#collect_content_async(content);
+			}
+		} else await item.#collect_content_async(content);
+		return content;
+	}
+	async #collect_hydratables() {
+		const ctx = get_render_context().hydratable;
+		for (const [_, key] of ctx.unresolved_promises) unresolved_hydratable(key, ctx.lookup.get(key)?.stack ?? "<missing stack trace>");
+		for (const comparison of ctx.comparisons) await comparison;
+		return await this.#hydratable_block(ctx);
+	}
+	/**
+	* @template {Record<string, any>} Props
+	* @param {'sync' | 'async'} mode
+	* @param {import('svelte').Component<Props>} component
+	* @param {{ props?: Omit<Props, '$$slots' | '$$events'>; context?: Map<any, any>; idPrefix?: string; csp?: Csp; transformError?: (error: unknown) => unknown }} options
+	* @returns {Renderer}
+	*/
+	static #open_render(mode, component, options) {
+		if (options.idPrefix?.includes("--")) invalid_id_prefix();
+		var previous_context = ssr_context;
+		try {
+			const renderer = new Renderer(new SSRState(mode, options.idPrefix ? options.idPrefix + "-" : "", options.csp, options.transformError));
+			set_ssr_context({
+				p: null,
+				c: options.context ?? null,
+				r: renderer
+			});
+			renderer.push(BLOCK_OPEN);
+			component(renderer, options.props ?? {});
+			renderer.push(BLOCK_CLOSE);
+			return renderer;
+		} finally {
+			set_ssr_context(previous_context);
+		}
+	}
+	/**
+	* @param {AccumulatedContent} content
+	* @param {Renderer} renderer
+	* @returns {AccumulatedContent & { hashes: { script: Sha256Source[] } }}
+	*/
+	static #close_render(content, renderer) {
+		for (const cleanup of renderer.#collect_on_destroy()) cleanup();
+		let head = content.head + renderer.global.get_title();
+		let body = content.body;
+		for (const { hash, code } of renderer.global.css) head += `<style id="${hash}">${code}</style>`;
+		return {
+			head,
+			body,
+			hashes: { script: renderer.global.csp.script_hashes }
+		};
+	}
+	/**
+	* @param {HydratableContext} ctx
+	*/
+	async #hydratable_block(ctx) {
+		if (ctx.lookup.size === 0) return null;
+		let entries = [];
+		let has_promises = false;
+		for (const [k, v] of ctx.lookup) {
+			if (v.promises) {
+				has_promises = true;
+				for (const p of v.promises) await p;
+			}
+			entries.push(`[${uneval(k)},${v.serialized}]`);
+		}
+		let prelude = `const h = (window.__svelte ??= {}).h ??= new Map();`;
+		if (has_promises) prelude = `const r = (v) => Promise.resolve(v);
+				${prelude}`;
+		const body = `
+			{
+				${prelude}
+
+				for (const [k, v] of [
+					${entries.join(",\n					")}
+				]) {
+					h.set(k, v);
+				}
+			}
+		`;
+		let csp_attr = "";
+		if (this.global.csp.nonce) csp_attr = ` nonce="${this.global.csp.nonce}"`;
+		else if (this.global.csp.hash) {
+			const hash = await sha256(body);
+			this.global.csp.script_hashes.push(`sha256-${hash}`);
+		}
+		return `\n\t\t<script${csp_attr}>${body}<\/script>`;
+	}
+};
+var SSRState = class {
+	/** @readonly @type {Csp & { script_hashes: Sha256Source[] }} */
+	csp;
+	/** @readonly @type {'sync' | 'async'} */
+	mode;
+	/** @readonly @type {() => string} */
+	uid;
+	/** @readonly @type {Set<{ hash: string; code: string }>} */
+	css = /* @__PURE__ */ new Set();
+	/**
+	* `transformError` passed to `render`. Called when an error boundary catches an error.
+	* Throws by default if unset in `render`.
+	* @type {(error: unknown) => unknown}
+	*/
+	transformError;
+	/** @type {{ path: number[], value: string }} */
+	#title = {
+		path: [],
+		value: ""
+	};
+	/**
+	* @param {'sync' | 'async'} mode
+	* @param {string} id_prefix
+	* @param {Csp} csp
+	* @param {((error: unknown) => unknown) | undefined} [transformError]
+	*/
+	constructor(mode, id_prefix = "", csp = { hash: false }, transformError) {
+		this.mode = mode;
+		this.csp = {
+			...csp,
+			script_hashes: []
+		};
+		this.transformError = transformError ?? ((error) => {
+			throw error;
+		});
+		let uid = 1;
+		this.uid = () => `${id_prefix}s${uid++}`;
+	}
+	get_title() {
+		return this.#title.value;
+	}
+	/**
+	* Performs a depth-first (lexicographic) comparison using the path. Rejects sets
+	* from earlier than or equal to the current value.
+	* @param {string} value
+	* @param {number[]} path
+	*/
+	set_title(value, path) {
+		const current = this.#title.path;
+		let i = 0;
+		let l = Math.min(path.length, current.length);
+		while (i < l && path[i] === current[i]) i += 1;
+		if (path[i] === void 0) return;
+		if (current[i] === void 0 || path[i] > current[i]) {
+			this.#title.path = path;
+			this.#title.value = value;
+		}
+	}
+};
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/blocks/html.js
+/**
+* @param {string} value
+*/
+function html(value) {
+	var html = String(value ?? "");
+	return `<!--${hash(html)}-->` + html + "<!---->";
+}
+/**
+* Map of elements that have certain elements that are not allowed inside them, in the sense that the browser will somehow repair the HTML.
+* There are more elements that are invalid inside other elements, but they're not repaired and so don't break SSR and are therefore not listed here.
+* @type {Record<string, { direct: string[]} | { descendant: string[]; reset_by?: string[]; only?: string[] } | { only: string[] }>}
+*/
+var disallowed_children = {
+	li: { direct: ["li"] },
+	dt: {
+		descendant: ["dt", "dd"],
+		reset_by: ["dl"]
+	},
+	dd: {
+		descendant: ["dt", "dd"],
+		reset_by: ["dl"]
+	},
+	p: { descendant: [
+		"address",
+		"article",
+		"aside",
+		"blockquote",
+		"div",
+		"dl",
+		"fieldset",
+		"footer",
+		"form",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"header",
+		"hgroup",
+		"hr",
+		"main",
+		"menu",
+		"nav",
+		"ol",
+		"p",
+		"pre",
+		"section",
+		"table",
+		"ul"
+	] },
+	rt: { descendant: ["rt", "rp"] },
+	rp: { descendant: ["rt", "rp"] },
+	optgroup: { descendant: ["optgroup"] },
+	option: { descendant: ["option", "optgroup"] },
+	thead: { direct: ["tbody", "tfoot"] },
+	tbody: { direct: ["tbody", "tfoot"] },
+	tfoot: { direct: ["tbody"] },
+	tr: { direct: ["tr", "tbody"] },
+	td: { direct: [
+		"td",
+		"th",
+		"tr"
+	] },
+	th: { direct: [
+		"td",
+		"th",
+		"tr"
+	] },
+	form: { descendant: ["form"] },
+	a: { descendant: ["a"] },
+	button: { descendant: ["button"] },
+	h1: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	h2: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	h3: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	h4: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	h5: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	h6: { descendant: [
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6"
+	] },
+	tr: { only: [
+		"th",
+		"td",
+		"style",
+		"script",
+		"template"
+	] },
+	tbody: { only: [
+		"tr",
+		"style",
+		"script",
+		"template"
+	] },
+	thead: { only: [
+		"tr",
+		"style",
+		"script",
+		"template"
+	] },
+	tfoot: { only: [
+		"tr",
+		"style",
+		"script",
+		"template"
+	] },
+	colgroup: { only: ["col", "template"] },
+	table: { only: [
+		"caption",
+		"colgroup",
+		"tbody",
+		"thead",
+		"tfoot",
+		"style",
+		"script",
+		"template"
+	] },
+	head: { only: [
+		"base",
+		"basefont",
+		"bgsound",
+		"link",
+		"meta",
+		"title",
+		"noscript",
+		"noframes",
+		"style",
+		"script",
+		"template"
+	] },
+	html: { only: [
+		"head",
+		"body",
+		"frameset"
+	] },
+	frameset: { only: ["frame"] },
+	"#document": { only: ["html"] }
+};
+/**
+* Returns an error message if the tag is not allowed inside the ancestor tag (which is grandparent and above) such that it will result
+* in the browser repairing the HTML, which will likely result in an error during hydration.
+* @param {string} child_tag
+* @param {string[]} ancestors All nodes starting with the parent, up until the ancestor, which means two entries minimum
+* @param {string} [child_loc]
+* @param {string} [ancestor_loc]
+* @returns {string | null}
+*/
+function is_tag_valid_with_ancestor(child_tag, ancestors, child_loc, ancestor_loc) {
+	if (child_tag.includes("-")) return null;
+	const ancestor_tag = ancestors[ancestors.length - 1];
+	const disallowed = disallowed_children[ancestor_tag];
+	if (!disallowed) return null;
+	if ("reset_by" in disallowed && disallowed.reset_by) for (let i = ancestors.length - 2; i >= 0; i--) {
+		if (ancestors[i].includes("-")) return null;
+		if (disallowed.reset_by.includes(ancestors[i])) return null;
+	}
+	if ("descendant" in disallowed && disallowed.descendant.includes(child_tag)) return `${child_loc ? `\`<${child_tag}>\` (${child_loc})` : `\`<${child_tag}>\``} cannot be a descendant of ${ancestor_loc ? `\`<${ancestor_tag}>\` (${ancestor_loc})` : `\`<${ancestor_tag}>\``}`;
+	return null;
+}
+/**
+* Returns an error message if the tag is not allowed inside the parent tag such that it will result
+* in the browser repairing the HTML, which will likely result in an error during hydration.
+* @param {string} child_tag
+* @param {string} parent_tag
+* @param {string} [child_loc]
+* @param {string} [parent_loc]
+* @returns {string | null}
+*/
+function is_tag_valid_with_parent(child_tag, parent_tag, child_loc, parent_loc) {
+	if (child_tag.includes("-") || parent_tag?.includes("-")) return null;
+	if (parent_tag === "template") return null;
+	const disallowed = disallowed_children[parent_tag];
+	const child = child_loc ? `\`<${child_tag}>\` (${child_loc})` : `\`<${child_tag}>\``;
+	const parent = parent_loc ? `\`<${parent_tag}>\` (${parent_loc})` : `\`<${parent_tag}>\``;
+	if (disallowed) {
+		if ("direct" in disallowed && disallowed.direct.includes(child_tag)) return `${child} cannot be a direct child of ${parent}`;
+		if ("descendant" in disallowed && disallowed.descendant.includes(child_tag)) return `${child} cannot be a child of ${parent}`;
+		if ("only" in disallowed && disallowed.only) if (disallowed.only.includes(child_tag)) return null;
+		else return `${child} cannot be a child of ${parent}. \`<${parent_tag}>\` only allows these children: ${disallowed.only.map((d) => `\`<${d}>\``).join(", ")}`;
+	}
+	switch (child_tag) {
+		case "body":
+		case "caption":
+		case "col":
+		case "colgroup":
+		case "frameset":
+		case "frame":
+		case "head":
+		case "html": return `${child} cannot be a child of ${parent}`;
+		case "thead":
+		case "tbody":
+		case "tfoot": return `${child} must be the child of a \`<table>\`, not a ${parent}`;
+		case "td":
+		case "th": return `${child} must be the child of a \`<tr>\`, not a ${parent}`;
+		case "tr": return `\`<tr>\` must be the child of a \`<thead>\`, \`<tbody>\`, or \`<tfoot>\`, not a ${parent}`;
+	}
+	return null;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/dev.js
+/** @import { SSRContext } from '#server' */
+/**
+* @typedef {{
+* 	tag: string;
+* 	parent: undefined | Element;
+*  filename: undefined | string;
+*  line: number;
+*  column: number;
+* }} Element
+*/
+/**
+* This is exported so that it can be cleared between tests
+* @type {Set<string>}
+*/
+var seen;
+/**
+* @param {Renderer} renderer
+* @param {string} message
+*/
+function print_error(renderer, message) {
+	message = `node_invalid_placement_ssr: ${message}\n\nThis can cause content to shift around as the browser repairs the HTML, and will likely result in a \`hydration_mismatch\` warning.`;
+	if ((seen ??= /* @__PURE__ */ new Set()).has(message)) return;
+	seen.add(message);
+	console.error(message);
+	renderer.head((r) => r.push(`<script>console.error(${JSON.stringify(message).replaceAll("</", "<\\u002f")})<\/script>`));
+}
+/**
+* @param {Renderer} renderer
+* @param {string} tag
+* @param {number} line
+* @param {number} column
+*/
+function push_element(renderer, tag, line, column) {
+	var context = ssr_context;
+	var filename = context.function[FILENAME];
+	var parent = context.element;
+	var element = {
+		tag,
+		parent,
+		filename,
+		line,
+		column
+	};
+	if (parent !== void 0) {
+		var ancestor = parent.parent;
+		var ancestors = [parent.tag];
+		const child_loc = filename ? `${filename}:${line}:${column}` : void 0;
+		const parent_loc = parent.filename ? `${parent.filename}:${parent.line}:${parent.column}` : void 0;
+		const message = is_tag_valid_with_parent(tag, parent.tag, child_loc, parent_loc);
+		if (message) print_error(renderer, message);
+		while (ancestor != null) {
+			ancestors.push(ancestor.tag);
+			const message = is_tag_valid_with_ancestor(tag, ancestors, child_loc, ancestor.filename ? `${ancestor.filename}:${ancestor.line}:${ancestor.column}` : void 0);
+			if (message) print_error(renderer, message);
+			ancestor = ancestor.parent;
+		}
+	}
+	set_ssr_context({
+		...context,
+		p: context,
+		element
+	});
+}
+function pop_element() {
+	set_ssr_context(
+		/** @type {SSRContext} */
+		ssr_context.p
+	);
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/index.js
+var INVALID_ATTR_NAME_CHAR_REGEX = /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
+/**
+* Only available on the server and when compiling with the `server` option.
+* Takes a component and returns an object with `body` and `head` properties on it, which you can use to populate the HTML when server-rendering your app.
+* @template {Record<string, any>} Props
+* @param {Component<Props> | ComponentType<SvelteComponent<Props>>} component
+* @param {{ props?: Omit<Props, '$$slots' | '$$events'>; context?: Map<any, any>; idPrefix?: string; csp?: Csp; transformError?: (error: unknown) => unknown }} [options]
+* @returns {RenderOutput}
+*/
+function render$1(component, options = {}) {
+	if (options.csp?.hash && options.csp.nonce) invalid_csp();
+	return Renderer.render(component, options);
+}
+/**
+* @param {Record<string, unknown>} attrs
+* @param {string} [css_hash]
+* @param {Record<string, boolean>} [classes]
+* @param {Record<string, string>} [styles]
+* @param {number} [flags]
+* @returns {string}
+*/
+function attributes(attrs, css_hash, classes, styles, flags = 0) {
+	if (styles) attrs.style = to_style(attrs.style, styles);
+	if (attrs.class) attrs.class = clsx(attrs.class);
+	if (css_hash || classes) attrs.class = to_class(attrs.class, css_hash, classes);
+	let attr_str = "";
+	let name;
+	const is_html = (flags & 1) === 0;
+	const lowercase = (flags & 2) === 0;
+	const is_input = (flags & 4) !== 0;
+	for (name of Object.keys(attrs)) {
+		if (typeof attrs[name] === "function") continue;
+		if (name[0] === "$" && name[1] === "$") continue;
+		if (name === "" || INVALID_ATTR_NAME_CHAR_REGEX.test(name)) continue;
+		var value = attrs[name];
+		var lower = name.toLowerCase();
+		if (lowercase) name = lower;
+		if (lower.length > 2 && lower.startsWith("on")) continue;
+		if (is_input) {
+			if (name === "defaultvalue" || name === "defaultchecked") {
+				name = name === "defaultvalue" ? "value" : "checked";
+				if (attrs[name]) continue;
+			}
+		}
+		attr_str += attr(name, value, is_html && is_boolean_attribute(name));
+	}
+	return attr_str;
+}
+/**
+* @param {any} value
+* @param {string | undefined} [hash]
+* @param {Record<string, boolean>} [directives]
+*/
+function attr_class(value, hash, directives) {
+	var result = to_class(value, hash, directives);
+	return result ? ` class="${escape_html(result, true)}"` : "";
+}
+/** @param {any} array_like_or_iterator */
+function ensure_array_like(array_like_or_iterator) {
+	if (array_like_or_iterator) return array_like_or_iterator.length !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
+	return [];
+}
+//#endregion
+//#region examples/svelte-ssr/src/assets/svelte.svg
+var svelte_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20aria-hidden='true'%20role='img'%20class='iconify%20iconify--logos'%20width='26.6'%20height='32'%20preserveAspectRatio='xMidYMid%20meet'%20viewBox='0%200%20256%20308'%3e%3cpath%20fill='%23FF3E00'%20d='M239.682%2040.707C211.113-.182%20154.69-12.301%20113.895%2013.69L42.247%2059.356a82.198%2082.198%200%200%200-37.135%2055.056a86.566%2086.566%200%200%200%208.536%2055.576a82.425%2082.425%200%200%200-12.296%2030.719a87.596%2087.596%200%200%200%2014.964%2066.244c28.574%2040.893%2084.997%2053.007%20125.787%2027.016l71.648-45.664a82.182%2082.182%200%200%200%2037.135-55.057a86.601%2086.601%200%200%200-8.53-55.577a82.409%2082.409%200%200%200%2012.29-30.718a87.573%2087.573%200%200%200-14.963-66.244'%3e%3c/path%3e%3cpath%20fill='%23FFF'%20d='M106.889%20270.841c-23.102%206.007-47.497-3.036-61.103-22.648a52.685%2052.685%200%200%201-9.003-39.85a49.978%2049.978%200%200%201%201.713-6.693l1.35-4.115l3.671%202.697a92.447%2092.447%200%200%200%2028.036%2014.007l2.663.808l-.245%202.659a16.067%2016.067%200%200%200%202.89%2010.656a17.143%2017.143%200%200%200%2018.397%206.828a15.786%2015.786%200%200%200%204.403-1.935l71.67-45.672a14.922%2014.922%200%200%200%206.734-9.977a15.923%2015.923%200%200%200-2.713-12.011a17.156%2017.156%200%200%200-18.404-6.832a15.78%2015.78%200%200%200-4.396%201.933l-27.35%2017.434a52.298%2052.298%200%200%201-14.553%206.391c-23.101%206.007-47.497-3.036-61.101-22.649a52.681%2052.681%200%200%201-9.004-39.849a49.428%2049.428%200%200%201%2022.34-33.114l71.664-45.677a52.218%2052.218%200%200%201%2014.563-6.398c23.101-6.007%2047.497%203.036%2061.101%2022.648a52.685%2052.685%200%200%201%209.004%2039.85a50.559%2050.559%200%200%201-1.713%206.692l-1.35%204.116l-3.67-2.693a92.373%2092.373%200%200%200-28.037-14.013l-2.664-.809l.246-2.658a16.099%2016.099%200%200%200-2.89-10.656a17.143%2017.143%200%200%200-18.398-6.828a15.786%2015.786%200%200%200-4.402%201.935l-71.67%2045.674a14.898%2014.898%200%200%200-6.73%209.975a15.9%2015.9%200%200%200%202.709%2012.012a17.156%2017.156%200%200%200%2018.404%206.832a15.841%2015.841%200%200%200%204.402-1.935l27.345-17.427a52.147%2052.147%200%200%201%2014.552-6.397c23.101-6.006%2047.497%203.037%2061.102%2022.65a52.681%2052.681%200%200%201%209.003%2039.848a49.453%2049.453%200%200%201-22.34%2033.12l-71.664%2045.673a52.218%2052.218%200%200%201-14.563%206.398'%3e%3c/path%3e%3c/svg%3e";
+//#endregion
+//#region examples/svelte-ssr/src/assets/vite.svg
+var vite_default = "/assets/vite-BF8QNONU.svg";
+//#endregion
+//#region examples/svelte-ssr/src/assets/hero.png
+var hero_default = "/assets/hero-CLDdwZDr.png";
+//#endregion
+//#region examples/svelte-ssr/src/lib/Counter.svelte
+Counter[FILENAME] = "examples/svelte-ssr/src/lib/Counter.svelte";
+function Counter($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let count = 0;
+		$$renderer.push(`<button class="counter">`);
+		push_element($$renderer, "button", 11, 0);
+		$$renderer.push(`${escape_html(_t("aa624128", { count }, {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_cd9034670a6d"
+		}))}</button>`);
+		pop_element();
+	}, Counter);
+}
+Counter.render = function() {
+	throw new Error("Component.render(...) is no longer valid in Svelte 5. See https://svelte.dev/docs/svelte/v5-migration-guide#Components-are-no-longer-classes for more information");
+};
+//#endregion
+//#region examples/svelte-ssr/src/lib/LocaleSwitcher.svelte
+LocaleSwitcher[FILENAME] = "examples/svelte-ssr/src/lib/LocaleSwitcher.svelte";
+function LocaleSwitcher($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { lang } = $$props;
+		const locales = [
+			{
+				id: "en",
+				name: "English"
+			},
+			{
+				id: "ar",
+				name: "العربية"
+			},
+			{
+				id: "es",
+				name: "Español"
+			},
+			{
+				id: "zh",
+				name: "中文"
+			}
+		];
+		$$renderer.push(`<section id="header">`);
+		push_element($$renderer, "section", 25, 0);
+		$$renderer.push(`<div id="switcher" class="switcher">`);
+		push_element($$renderer, "div", 26, 2);
+		$$renderer.push(`<!--[-->`);
+		const each_array = ensure_array_like(locales);
+		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+			let l = each_array[$$index];
+			$$renderer.push(`<button${attr_class(clsx(lang === l.id ? "active" : ""))}>`);
+			push_element($$renderer, "button", 28, 6);
+			$$renderer.push(`${escape_html(l.name)}</button>`);
+			pop_element();
+		}
+		$$renderer.push(`<!--]--></div>`);
+		pop_element();
+		$$renderer.push(` <div class="vertical-ticks">`);
+		push_element($$renderer, "div", 36, 2);
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div class="icon-border">`);
+		push_element($$renderer, "div", 37, 2);
+		$$renderer.push(`<svg class="icon" role="img" aria-hidden="true">`);
+		push_element($$renderer, "svg", 38, 4);
+		$$renderer.push(`<use href="/icons.svg#translate-icon">`);
+		push_element($$renderer, "use", 39, 6);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(`</section>`);
+		pop_element();
+		$$renderer.push(` <div class="ticks">`);
+		push_element($$renderer, "div", 43, 0);
+		$$renderer.push(`</div>`);
+		pop_element();
+	}, LocaleSwitcher);
+}
+LocaleSwitcher.render = function() {
+	throw new Error("Component.render(...) is no longer valid in Svelte 5. See https://svelte.dev/docs/svelte/v5-migration-guide#Components-are-no-longer-classes for more information");
+};
+//#endregion
+//#region examples/svelte-ssr/src/App.svelte
+App[FILENAME] = "examples/svelte-ssr/src/App.svelte";
+function App($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		LocaleSwitcher($$renderer, { lang: getLocale() || "en" });
+		$$renderer.push(`<!----> <!---->`);
+		$$renderer.push(`<section id="center">`);
+		push_element($$renderer, "section", 18, 0);
+		$$renderer.push(`<div class="hero">`);
+		push_element($$renderer, "div", 19, 2);
+		$$renderer.push(`<img${attr("src", hero_default)} class="base" width="170" height="179" alt=""/>`);
+		push_element($$renderer, "img", 20, 4);
+		pop_element();
+		$$renderer.push(` <img${attr("src", svelte_default)} class="framework"${attr("alt", _t("2200eef1", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}/>`);
+		push_element($$renderer, "img", 21, 4);
+		pop_element();
+		$$renderer.push(` <img${attr("src", vite_default)} class="vite"${attr("alt", _t("3473a536", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}/>`);
+		push_element($$renderer, "img", 22, 4);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div>`);
+		push_element($$renderer, "div", 24, 2);
+		$$renderer.push(`<h1>`);
+		push_element($$renderer, "h1", 25, 4);
+		$$renderer.push(`${escape_html(_t("90e40d50", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</h1>`);
+		pop_element();
+		$$renderer.push(` <p>`);
+		push_element($$renderer, "p", 26, 4);
+		$$renderer.push(`${html(_t("b339a4ca", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda",
+			_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]")
+		}))}</p>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` `);
+		Counter($$renderer, {});
+		$$renderer.push(`<!----></section>`);
+		pop_element();
+		$$renderer.push(` <div class="ticks">`);
+		push_element($$renderer, "div", 31, 0);
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <section id="next-steps">`);
+		push_element($$renderer, "section", 33, 0);
+		$$renderer.push(`<div id="docs">`);
+		push_element($$renderer, "div", 34, 2);
+		$$renderer.push(`<svg class="icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 35, 4);
+		$$renderer.push(`<use href="/icons.svg#documentation-icon">`);
+		push_element($$renderer, "use", 36, 6);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` <h2>`);
+		push_element($$renderer, "h2", 38, 4);
+		$$renderer.push(`${escape_html(_t("9e9cf322", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</h2>`);
+		pop_element();
+		$$renderer.push(` <p>`);
+		push_element($$renderer, "p", 39, 4);
+		$$renderer.push(`${escape_html(_t("d0f7666b", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</p>`);
+		pop_element();
+		$$renderer.push(` <ul>`);
+		push_element($$renderer, "ul", 40, 4);
+		$$renderer.push(`<li>`);
+		push_element($$renderer, "li", 41, 6);
+		$$renderer.push(`<a href="https://vite.dev/" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 42, 8);
+		$$renderer.push(`<img class="logo"${attr("src", vite_default)} alt=""/>`);
+		push_element($$renderer, "img", 43, 10);
+		pop_element();
+		$$renderer.push(` ${escape_html(_t("e49cb0ee", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(` <li>`);
+		push_element($$renderer, "li", 47, 6);
+		$$renderer.push(`<a href="https://svelte.dev/" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 48, 8);
+		$$renderer.push(`<img class="button-icon"${attr("src", svelte_default)} alt=""/>`);
+		push_element($$renderer, "img", 49, 10);
+		pop_element();
+		$$renderer.push(` ${escape_html(_t("824d76b1", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(`</ul>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div id="social">`);
+		push_element($$renderer, "div", 55, 2);
+		$$renderer.push(`<svg class="icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 56, 4);
+		$$renderer.push(`<use href="/icons.svg#social-icon">`);
+		push_element($$renderer, "use", 57, 6);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` <h2>`);
+		push_element($$renderer, "h2", 59, 4);
+		$$renderer.push(`${escape_html(_t("65ac13a7", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</h2>`);
+		pop_element();
+		$$renderer.push(` <p>`);
+		push_element($$renderer, "p", 60, 4);
+		$$renderer.push(`${escape_html(_t("15545bc4", {
+			_mgr: entry_b_429b1674e079_default,
+			_bId: "b_b071a5cc9dda"
+		}))}</p>`);
+		pop_element();
+		$$renderer.push(` <ul>`);
+		push_element($$renderer, "ul", 62, 4);
+		$$renderer.push(`<li>`);
+		push_element($$renderer, "li", 63, 6);
+		$$renderer.push(`<a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 64, 8);
+		$$renderer.push(`<svg class="button-icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 65, 10);
+		$$renderer.push(`<use href="/icons.svg#github-icon">`);
+		push_element($$renderer, "use", 66, 12);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` GitHub</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(` <li>`);
+		push_element($$renderer, "li", 71, 6);
+		$$renderer.push(`<a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 72, 8);
+		$$renderer.push(`<svg class="button-icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 73, 10);
+		$$renderer.push(`<use href="/icons.svg#discord-icon">`);
+		push_element($$renderer, "use", 74, 12);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` Discord</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(` <li>`);
+		push_element($$renderer, "li", 79, 6);
+		$$renderer.push(`<a href="https://x.com/vite_js" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 80, 8);
+		$$renderer.push(`<svg class="button-icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 81, 10);
+		$$renderer.push(`<use href="/icons.svg#x-icon">`);
+		push_element($$renderer, "use", 82, 12);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` X.com</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(` <li>`);
+		push_element($$renderer, "li", 87, 6);
+		$$renderer.push(`<a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">`);
+		push_element($$renderer, "a", 88, 8);
+		$$renderer.push(`<svg class="button-icon" role="presentation" aria-hidden="true">`);
+		push_element($$renderer, "svg", 89, 10);
+		$$renderer.push(`<use href="/icons.svg#bluesky-icon">`);
+		push_element($$renderer, "use", 90, 12);
+		$$renderer.push(`</use>`);
+		pop_element();
+		$$renderer.push(`</svg>`);
+		pop_element();
+		$$renderer.push(` Bluesky</a>`);
+		pop_element();
+		$$renderer.push(`</li>`);
+		pop_element();
+		$$renderer.push(`</ul>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(`</section>`);
+		pop_element();
+		$$renderer.push(` <div class="ticks">`);
+		push_element($$renderer, "div", 99, 0);
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <section id="spacer">`);
+		push_element($$renderer, "section", 100, 0);
+		$$renderer.push(`</section>`);
+		pop_element();
+		$$renderer.push(`<!---->`);
+	}, App);
+}
+App.render = function() {
+	throw new Error("Component.render(...) is no longer valid in Svelte 5. See https://svelte.dev/docs/svelte/v5-migration-guide#Components-are-no-longer-classes for more information");
+};
+//#endregion
+//#region examples/svelte-ssr/src/entry-server.ts
+async function _zintl_raw_render(_url) {
+	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_429b1674e079"]: entry_b_429b1674e079_default.loader } }));
+	return render$1(App);
+}
+async function render(urlOrReq, ...args) {
+	return runInRequestScope$1([urlOrReq, ...args], [
+		"en",
+		"ar",
+		"es",
+		"zh"
+	], "en", () => _zintl_raw_render(urlOrReq, ...args));
+}
+//#endregion
+export { render };

@@ -1,0 +1,11 @@
+import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client from "virtual:zintl/manager/none/entry:b_src_entry_client";
+export function setupCounter(element: HTMLButtonElement) {
+  let counter = 0;
+  const setCounter = (count: number) => {
+    counter = count;
+    element.innerHTML = _t("Count is {counter}", { counter: counter }, { _mgr: _zintl_mgr_b_src_entry_client, _bId: "b_src_counter_setupCounter" });
+  };
+  element.addEventListener("click", () => setCounter(counter + 1));
+  setCounter(0);
+}

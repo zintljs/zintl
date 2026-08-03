@@ -1,0 +1,107 @@
+{
+  "boundaryToOwner": {
+    "compression": "compression",
+    "dist/server/entry-server": "dist/server/entry-server",
+    "sirv": "sirv",
+    "src/counter:setupCounter": "src/entry-client",
+    "src/entry-client": "src/entry-client",
+    "src/entry-server:render": "src/entry-server:render",
+    "vite": "vite"
+  },
+  "chunks": {
+    "entry_b_764631960fa9": {
+      "boundaries": [
+        "src/counter:setupCounter",
+        "src/entry-client",
+        "src/style.css"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-client"
+      ],
+      "id": "entry_b_764631960fa9",
+      "type": "entry"
+    },
+    "entry_b_f0c6267f2b46": {
+      "boundaries": [
+        "src/assets/hero.png",
+        "src/assets/typescript.svg",
+        "src/assets/vite.svg",
+        "src/entry-server:render",
+        "src/switcher:LocaleSwitcher"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/entry-server:render"
+      ],
+      "id": "entry_b_f0c6267f2b46",
+      "type": "entry"
+    },
+    "lazy_b_65fc4ebd27a8": {
+      "boundaries": [
+        "sirv"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "sirv"
+      ],
+      "id": "lazy_b_65fc4ebd27a8",
+      "type": "lazy"
+    },
+    "lazy_b_66991b731a46": {
+      "boundaries": [
+        "dist/server/entry-server"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "dist/server/entry-server"
+      ],
+      "id": "lazy_b_66991b731a46",
+      "type": "lazy"
+    },
+    "lazy_b_9907d3c4bf84": {
+      "boundaries": [
+        "vite"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "vite"
+      ],
+      "id": "lazy_b_9907d3c4bf84",
+      "type": "lazy"
+    },
+    "lazy_b_e4c94651c6df": {
+      "boundaries": [
+        "compression"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "compression"
+      ],
+      "id": "lazy_b_e4c94651c6df",
+      "type": "lazy"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/entry-client": "entry_b_764631960fa9",
+    "src/entry-server:render": "entry_b_f0c6267f2b46"
+  },
+  "lazyChunks": [
+    "lazy_b_65fc4ebd27a8",
+    "lazy_b_66991b731a46",
+    "lazy_b_9907d3c4bf84",
+    "lazy_b_e4c94651c6df"
+  ],
+  "sharedChunks": [
+    "shared_b_006866fb4e10"
+  ]
+}

@@ -1,0 +1,21 @@
+//#region \0virtual:zintl/content/ar/entry:b_429b1674e079
+var catalog = {
+	"b_b071a5cc9dda": {
+		"90e40d50": "البدء",
+		"b339a4ca": "عدل <code>src/App.svelte</code> واحفظه لاختبار <code>HMR</code>",
+		"9e9cf322": "التوثيق",
+		"d0f7666b": "تمت الإجابة على أسئلتك",
+		"e49cb0ee": "استكشف فيت",
+		"824d76b1": "تعلم المزيد",
+		"65ac13a7": "تواصل معنا",
+		"15545bc4": "انضم إلى مجتمع فيت",
+		"2200eef1": "شعار سفتلي",
+		"3473a536": "شعار فيت"
+	},
+	"b_cd9034670a6d": { "aa624128": (params) => {
+		const { count } = params;
+		return `العدد هو ${params["count"]}`;
+	} }
+};
+//#endregion
+export { catalog as default };
