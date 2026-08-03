@@ -111,6 +111,43 @@ describe("runtime delivery", () => {
       expect(store.catalogs["ar"]?.["b2"]?.["hi"]).toBe("أهلا");
     });
 
+    it("does not publish a locale the store never adopted", async () => {
+      /**
+       * `__zintlApplyHtml` and the storage write are the only externally visible
+       * effects of a switch that do not go through the store. Performing them
+       * before claiming the slot let a switch that was then superseded rewrite
+       * `documentElement.lang` anyway — leaving Arabic content on a page
+       * announcing itself as English, which is what `locale-storm` caught.
+       */
+      const published: string[] = [];
+      const win = globalThis as { window?: unknown };
+      const hadWindow = "window" in globalThis;
+      win.window = { __zintlApplyHtml: (l: string) => published.push(l) };
+
+      try {
+        const store = new I18nStore();
+        store.locales = ["ar", "fr"];
+
+        let releaseAr!: (v: unknown) => void;
+        globalRegistry.set("b1", ((locale: string) =>
+          locale === "ar"
+            ? new Promise((r) => (releaseAr = r))
+            : Promise.resolve({ b1: { hi: "bonjour" } })) as never);
+
+        const overtaken = store.setLocale("ar");
+        const winner = store.setLocale("fr");
+        await winner;
+        releaseAr({ b1: { hi: "مرحبا" } });
+        await overtaken;
+
+        // The last thing published is the locale the store actually adopted.
+        expect(published[published.length - 1]).toBe("fr");
+        expect(store.locale).toBe("fr");
+      } finally {
+        if (!hadWindow) delete win.window;
+      }
+    });
+
     it("keys the locale channel on one subject, not one per locale", () => {
       // A switch to "fr" and a switch to "ar" contest the same thing — the
       // store's active-locale slot. Keying by target locale would let them run

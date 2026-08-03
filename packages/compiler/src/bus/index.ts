@@ -188,6 +188,18 @@ export class DeliveryBus {
   }
 
   /**
+   * Whether this envelope still holds its subject.
+   *
+   * Asked *after* an await, by work that claimed the subject before one. It is
+   * what lets a slow rebuild discover that a faster one started later and
+   * already won, so it discards its result instead of overwriting a newer
+   * world.
+   */
+  holds(envelope: Envelope): boolean {
+    return this.applied.get(envelope.channel + KEY_SEP + envelope.subject) === envelope.seq;
+  }
+
+  /**
    * Note an envelope's position without deciding its fate — for work that
    * **accumulates** rather than replaces (ZDB §4.1a).
    *

@@ -374,17 +374,27 @@ export class I18nStore {
     }
   }
 
+  /**
+   * Publish the switch to the document and to storage.
+   *
+   * Deliberately **not** called before the slot is claimed. These are the only
+   * externally visible effects of a locale change that are not routed through
+   * the store, so a switch that is about to be superseded must not perform
+   * them: it would leave `documentElement.lang` describing a language the store
+   * never adopted, and the page rendering one locale while announcing another.
+   */
+  private publishLocale(locale: string) {
+    if (typeof window === "undefined") return;
+    if ((window as any).__zintlApplyHtml) {
+      (window as any).__zintlApplyHtml(locale);
+    }
+    try {
+      localStorage.setItem("zintl-locale", locale);
+    } catch {}
+  }
+
   async setLocale(locale: string | null | undefined) {
     if (!locale) return;
-
-    if (typeof window !== "undefined") {
-      if ((window as any).__zintlApplyHtml) {
-        (window as any).__zintlApplyHtml(locale);
-      }
-      try {
-        localStorage.setItem("zintl-locale", locale);
-      } catch {}
-    }
 
     if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
       /**
@@ -399,6 +409,9 @@ export class I18nStore {
        * `setLocale` from a getter, so overlapping switches to the same locale
        * are routine rather than exotic.
        */
+      // Safe here without claiming: the store is already on this locale, so
+      // publishing it cannot make the document disagree with the store.
+      this.publishLocale(locale);
       if (__ZINTL_DEV__) {
         this.delivery.settle(
           this.delivery.mint("runtime/locale", "active"),
@@ -420,6 +433,17 @@ export class I18nStore {
      */
     const envelope = this.delivery.mint("runtime/locale", "active");
     this.delivery.accept(envelope);
+
+    /**
+     * Claim, then publish — in one synchronous block, with no await between.
+     *
+     * Claims are ordered, so whichever switch claims last also publishes last
+     * and the document ends up describing the locale the store actually
+     * adopted. Publishing *before* the claim let a switch that was then
+     * superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+     * on a page announcing itself as English.
+     */
+    this.publishLocale(locale);
 
     if (__ZINTL_DEV__ && this.debug) {
       console.debug(`[Zintl] Switching to locale: ${locale}`);

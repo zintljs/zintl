@@ -170,7 +170,11 @@ export class ZintlCompiler {
   private observationCache: Record<string, any> = {};
   private readonly boundaryRevisions = new Map<string, number>();
   private rebuildPromise: Promise<void> | null = null;
+  /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
+  private graphGeneration = 0;
   private flushPromise: Promise<void> | null = null;
+  /** The single follow-on shared by every caller that arrived mid-flush. */
+  private followOnFlush: Promise<void> | null = null;
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
   /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
@@ -759,6 +763,25 @@ export class ZintlCompiler {
     if (!this.graphDirty && this.rebuildPromise) return this.rebuildPromise;
     this.graphDirty = false;
     this.reachableCache = null;
+
+    /**
+     * The generation this rebuild belongs to.
+     *
+     * `graphDirty` is cleared *before* the async body runs, so a `transform`
+     * during the rebuild sets it again and the next call starts a second,
+     * concurrent rebuild. Both then assigned `boundaryGraph`/`chunkGraph` on
+     * completion, and the winner was whichever *finished* last rather than
+     * whichever started last — the same race as a stale hot update, in the
+     * compiler.
+     *
+     * A graph rebuild genuinely replaces state (unlike invalidation, ZDB §4.1a),
+     * so D1 is the right rule here: a rebuild whose generation has been overtaken
+     * discards its result instead of overwriting a newer world.
+     */
+    const generation = ++this.graphGeneration;
+    const envelope = this.bus.mint("build/pipeline", "graph", { seq: generation });
+    this.bus.accept(envelope);
+
     this.rebuildPromise = (async () => {
       const context = this.getCompilerContext();
       // In dev mode, we add a special shared boundary for assets
@@ -828,8 +851,15 @@ export class ZintlCompiler {
         this.messages.metadataGraph,
         this._resolved.system.virtualBoundaries,
       );
+      if (!this.bus.holds(envelope)) {
+        // A newer rebuild started while this one was running; its result is the
+        // current world. Discard ours rather than overwrite it.
+        this.bus.settle(envelope, "superseded", "a newer graph rebuild took the slot");
+        return;
+      }
       this.graph.boundaryGraph = g;
       this.graph.chunkGraph = c;
+      this.bus.settle(envelope, "applied");
       return;
     })();
     return this.rebuildPromise;
@@ -1187,6 +1217,28 @@ export class ZintlCompiler {
     );
     const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id, world.config);
     if (this.isDev) {
+      /**
+       * Route the pipeline's own diagnostics somewhere they can be read.
+       *
+       * `resolve` and `apply` have always produced a structured `Diagnostic[]`
+       * — overlapping rewrites dropped, duplicates merged, redundant edits
+       * suppressed — and every one of them was written to a field nobody ever
+       * looked at. A dropped rewrite is a source mutation that did not happen,
+       * which is exactly the class of loss the ledger exists to name.
+       *
+       * Only `warn` and `error` are recorded: `info` covers ordinary merges
+       * that happen on almost every transform, and a ledger that reports
+       * routine work is one nobody reads.
+       */
+      for (const diagnostic of [...plan.diagnostics, ...result.diagnostics]) {
+        if (diagnostic.severity === "info") continue;
+        this.bus.settle(
+          this.bus.mint("build/pipeline", `transform:${effectiveCleanId}`),
+          "failed",
+          `${diagnostic.severity}: ${diagnostic.message}`,
+        );
+      }
+
       const validation = validate(
         result,
         plan,
@@ -1195,6 +1247,16 @@ export class ZintlCompiler {
       );
       if (!validation.valid) {
         this.logger.error(`Validation failed for ${id}:`, validation.errors);
+        for (const error of validation.errors) {
+          this.bus.settle(
+            this.bus.mint("build/pipeline", `transform:${effectiveCleanId}`),
+            "failed",
+            // Serialized, not stringified: every variant is a discriminated
+            // object, so `String(error)` yields "[object Object]" and loses
+            // the one field that says what went wrong.
+            `validation: ${JSON.stringify(error)}`,
+          );
+        }
       }
     }
 
@@ -1446,13 +1508,76 @@ export class ZintlCompiler {
     this.autoFlushTimeout = setTimeout(() => this.flush(), SAVE_DEBOUNCE_MS);
   }
 
-  public async flush() {
+  public async flush(): Promise<void> {
     if (this.autoFlushTimeout) {
       clearTimeout(this.autoFlushTimeout);
       this.autoFlushTimeout = null;
     }
-    if (this.flushPromise) return this.flushPromise;
-    this.flushPromise = (async () => {
+
+    if (this.flushPromise) {
+      /**
+       * Axiom D3 — a caller arriving mid-flush is not served by the in-flight
+       * run, so it must not be handed that run's promise.
+       *
+       * The running flush snapshotted its dirty set before this caller's
+       * boundaries were added to it, so awaiting it means "someone else's work
+       * finished", not "your change was flushed". Queue a follow-on and resolve
+       * when *that* completes.
+       *
+       * The in-flight run's failure belongs to whoever started it; this caller
+       * only cares whether its own follow-on lands.
+       */
+      const queued = this.bus.mint("build/pipeline", "flush");
+      this.bus.settle(queued, "superseded", "queued behind the in-flight flush");
+
+      /**
+       * One follow-on, shared by every caller that arrived mid-flush.
+       *
+       * And it runs **only if something is genuinely still unflushed**. That
+       * condition is not defensive tidying: the flush body reaches back into
+       * the compiler — `syncGraphs` asks content facets for translations, which
+       * can transform — and `transform` schedules a flush. An unconditional
+       * follow-on therefore livelocks, each run dirtying just enough to justify
+       * the next. It presented as a dev server that stopped pushing updates and
+       * a contract that timed out, which is a long way from where it started.
+       */
+      this.followOnFlush ??= this.flushPromise
+        .catch(() => {})
+        .then(() => {
+          this.followOnFlush = null;
+          if (this.messages.dirtyBoundaries.size === 0 && !this.messages.hiveDirty) return;
+          return this.flush();
+        });
+      return this.followOnFlush;
+    }
+
+    const envelope = this.bus.mint("build/pipeline", "flush");
+    this.bus.observe(envelope);
+
+    this.flushPromise = this.runFlush();
+    try {
+      await this.flushPromise;
+      this.bus.settle(envelope, "applied");
+    } catch (err) {
+      this.bus.settle(envelope, "failed", String(err));
+      throw err;
+    } finally {
+      /**
+       * Always cleared, which it was not.
+       *
+       * This assignment used to be the last statement *inside* the async body,
+       * so a single throw left a rejected promise cached — and every subsequent
+       * flush for the life of the process returned that same rejection.
+       * `verifyIntegrity` throws by design on a missing translation, and the
+       * hot-update hook swallows the result with `.catch`, so the compiler could
+       * enter a state where it never flushed again and nothing said so.
+       */
+      this.flushPromise = null;
+    }
+  }
+
+  private async runFlush(): Promise<void> {
+    {
       this.logger.debug("Flushing compiler state...");
       await this.syncGraphs();
 
@@ -1526,7 +1651,17 @@ export class ZintlCompiler {
       }
       await this.messages.saveManifest(this.outputDir, contentStatesToSave);
 
-      const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
+      /**
+       * The dirty boundaries this run takes custody of.
+       *
+       * Held separately from `affectedBoundaries` because only these may be
+       * cleared at the end. Anything dirtied *while* this run is in flight was
+       * never adopted by it, and clearing the whole set destroyed exactly those
+       * — so a change that arrived mid-flush was not merely deferred, it was
+       * discarded, and the follow-on flush found nothing to do.
+       */
+      const adopted = new Set<string>(this.messages.dirtyBoundaries);
+      const affectedBoundaries = new Set<string>(adopted);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
       for (const move of changes.moves as any[]) {
         affectedBoundaries.add(move.fromBoundary);
@@ -1601,7 +1736,8 @@ export class ZintlCompiler {
           precomputedReachable,
         );
       }
-      this.messages.dirtyBoundaries.clear();
+      // Only what this run adopted — see `adopted` above.
+      for (const bId of adopted) this.messages.dirtyBoundaries.delete(bId);
 
       // Run flush on all content facets
       const flushCtx = this.getCompilerContext();
@@ -1614,9 +1750,17 @@ export class ZintlCompiler {
       await this.verifyIntegrity();
       this.logger.debug("Flush complete");
       this.messages.commitReconciliation();
-      this.flushPromise = null;
-    })();
-    return this.flushPromise;
+      /**
+       * Write the hive from the state this flush reconciled.
+       *
+       * The hive had its own debounce timer on the same 300 ms constant as the
+       * flush, and nothing sequenced the two — so a burst of edits could write
+       * the hive from a state the flush had not yet reconciled. Writing it here
+       * makes the flush the authority; the timer survives only as a fallback for
+       * when no flush follows, and is a no-op once this has run.
+       */
+      await this.messages.flushHive();
+    }
   }
 
   private async verifyIntegrity() {
