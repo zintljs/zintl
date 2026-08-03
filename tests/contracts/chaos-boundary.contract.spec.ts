@@ -56,39 +56,31 @@ export const chaosBoundaryContract: Contract = {
   requires: ["spa", "hmr", "chaos"],
   strictDeliveryExempt: "deletes and renames boundary sources",
   /**
-   * Restored and runnable — but held back on two blockers, both now identified.
-   * It passes on `react-basic`, `vue-basic` and `vanilla-spa-basic`; remove this
-   * line to run it.
+   * Live on three of four projects.
    *
-   * **1. The compiler never learns a file was deleted.** The bundler routes
-   * unlinks through a path that does not call `handleHotUpdate`/`hotUpdate`, and
-   * there is no watcher listener anywhere in the plugin, so a deleted boundary
-   * stays in the graph forever. That is not merely stale state: dev servers are
-   * pooled per worker, so the orphan leaks into every contract that runs after
-   * this one — enabling this contract silently added `src/AppNew.tsx` to four
-   * committed `boundary-graph` snapshots. **This is the blocker to fix first**,
-   * and it is upstream of the pruning the original TODO here described. Pruning
-   * itself now works: the no-orphan assertion below passes on three of four.
+   * **The deletion blocker is fixed.** The plugin now listens for `unlink` and
+   * tells the compiler to forget the file, so a deleted boundary no longer
+   * survives in the graph for the life of a pooled dev server — which used to
+   * leak into every contract that ran afterwards, and, through the shared
+   * manifest, into the committed examples themselves.
    *
-   * **1a. FIXED — the leak no longer escapes into the committed examples.**
-   * The symlink farm shared the compiler's persisted manifest between the copy
-   * and the real example, so this contract wrote a phantom boundary into four
-   * examples' manifests and the next `build:examples` generated catalogs for
-   * source that did not exist, into the tracked tree. `.zintl` is now copied
-   * per worker instead of linked, verified by running this contract live and
-   * confirming the examples stay clean.
-   *
-   * **2. Entry double-mount on `svelte-basic`** — proposal 024 §1.3. Renaming
-   * the file the entry imports rewrites the entry's own source, the entry
+   * What remains is `svelte-basic`, and it is proposal 024 §1.3: renaming the
+   * file the entry imports rewrites the entry's own source, the entry
    * self-accepts, re-executes, and mounts a second time onto a container that
    * already has a mount. The page renders twice and the heading selector reads
-   * the stale copy. See the note in `viteFacet.hmrInjectionCode`: the obvious
-   * fix (`invalidate()`) was measured and regresses the suite from ~75 s to
-   * ~127 s, so the real fix is a framework-side `dispose()`.
+   * the stale copy.
+   *
+   * See the note in `viteFacet.hmrInjectionCode`. The obvious fix —
+   * `import.meta.hot.invalidate()` — makes this pass and was measured: it turns
+   * every entry-adjacent edit into a full page reload, regressing `hmr-hammer`
+   * on every project and taking the suite from ~75 s to ~127 s. The real fix is
+   * a matching `dispose()` that tears the previous mount down, which is
+   * framework knowledge and belongs in a framework facet.
    */
-  pending:
-    "deleted boundaries are never removed from the compiler graph and leak across pooled dev servers; " +
-    "plus entry double-mount on svelte (024 §1.3) — see the comment above",
+  pendingFor: {
+    "svelte-basic":
+      "entry double-mount on rename (proposal 024 §1.3) — needs a framework-side hot.dispose()",
+  },
   async execute(lab, adapter) {
     const exampleName = basename(lab.root);
     const cfg = getRenameConfig(exampleName);

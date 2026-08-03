@@ -648,6 +648,72 @@ export class ZintlCompiler {
     return foundBoundaryIds;
   }
 
+  /**
+   * Forget a file that no longer exists, and everything it owned.
+   *
+   * Nothing called this before, because nothing told the compiler a file had
+   * been deleted: the bundler routes unlinks through a path that never reaches
+   * `handleHotUpdate`/`hotUpdate`, and the plugin registered no watcher of its
+   * own. A deleted boundary therefore stayed in the graph for the life of the
+   * process — and dev servers are pooled, so it outlived the thing that created
+   * it and leaked into everything downstream.
+   *
+   * `trackBoundaryChange` already knew how to drop the boundaries a file no
+   * longer owns; the gap was that a deletion never reached it. Passing an empty
+   * set is exactly "this file owns nothing now".
+   *
+   * The removed boundaries are marked dirty on purpose. Pruning reclaims their
+   * catalogs by comparing the output directory against the live graph, but the
+   * flush also has to be told something changed, or a deletion made during an
+   * idle moment sits unflushed until an unrelated edit happens to wake it.
+   */
+  public async removeFile(filePath: string): Promise<string[]> {
+    const fileId = this.io.getNormalizedId(filePath);
+    const owned = this.messages.boundaryOwnership.get(fileId);
+    const removed = owned ? [...owned] : [];
+
+    if (removed.length === 0 && !this.messages.metadataGraph[fileId]) {
+      // Not a file the compiler ever knew about — an asset, a stylesheet, or a
+      // file outside the boundary graph. Nothing to forget.
+      return [];
+    }
+
+    this.logger.debug(`Forgetting deleted file: ${fileId}`);
+
+    this.messages.trackBoundaryChange(fileId, new Set());
+    this.messages.boundaryOwnership.delete(fileId);
+    delete this.messages.metadataGraph[fileId];
+    delete this.messages.dependencyGraph[fileId];
+
+    for (const bId of removed) {
+      delete this.catalog.getCache()[bId];
+      delete this.messages.internalManifest[bId];
+      this.messages.dirtyBoundaries.add(bId);
+      this.boundaryRevisions.delete(bId);
+      this.confirmedOnDisk.delete(bId);
+      this.graph.boundaryGraph?.nodes.delete(bId);
+      this.graph.boundaryGraph?.entries.delete(bId);
+    }
+
+    delete this.hashCache[fileId];
+    delete this.observationCache[fileId];
+    delete this.hashCache[filePath];
+    delete this.observationCache[filePath];
+
+    this.graphDirty = true;
+    this.reachableCache = null;
+    if (removed.length > 0) this.catalogGeneration++;
+
+    this.bus.settle(
+      this.bus.mint("build/hmr", fileId),
+      "applied",
+      `deleted; forgot ${removed.length} boundar${removed.length === 1 ? "y" : "ies"}`,
+    );
+
+    if (this.isDev) this.scheduleFlush();
+    return removed;
+  }
+
   private isReachable(fromId: string, toId: string, visited = new Set<string>()): boolean {
     if (fromId === toId) return true;
     if (visited.has(fromId)) return false;

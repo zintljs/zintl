@@ -11,8 +11,9 @@ export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
   );
 
   for (const manifest of eligible) {
-    if (contract.pending) {
-      test.skip(`[${contract.name}] ${manifest.name} — PENDING: ${contract.pending}`, () => {});
+    const pending = contract.pending ?? contract.pendingFor?.[manifest.name];
+    if (pending) {
+      test.skip(`[${contract.name}] ${manifest.name} — PENDING: ${pending}`, () => {});
       continue;
     }
     test(`[${contract.name}] ${manifest.name}`, async () => {
@@ -57,8 +58,9 @@ export function executeProjectContract<TAdapter extends BaseAdapter = BaseAdapte
   );
 
   for (const manifest of eligible) {
-    if (contract.pending) {
-      test.skip(`[${contract.name}] ${manifest.name} — PENDING: ${contract.pending}`, () => {});
+    const pending = contract.pending ?? contract.pendingFor?.[manifest.name];
+    if (pending) {
+      test.skip(`[${contract.name}] ${manifest.name} — PENDING: ${pending}`, () => {});
       continue;
     }
     test(`[${contract.name}] ${manifest.name}`, async () => {
