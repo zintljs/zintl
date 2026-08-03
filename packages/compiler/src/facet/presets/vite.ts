@@ -20,6 +20,24 @@ export function viteFacet(): ZintlFacet {
     hmrInjectionCode: (fileId: string, hmrToken: number, hasAnchors?: boolean): string => {
       let code = "";
       if (hasAnchors) {
+        /**
+         * Known defect, deliberately left in place: this accepts an update it
+         * cannot actually apply.
+         *
+         * The callback only logs, which tells the bundler "handled" while
+         * nothing is handled — the module re-executes and its side effects run
+         * again. For an entry that means mounting a second time onto a container
+         * that already has a mount: in Svelte the whole app renders twice, in
+         * React it is `createRoot()` on an already-rooted container. That is
+         * proposal 024 §1.3, and `chaos-boundary` reproduces it on `svelte-basic`.
+         *
+         * `import.meta.hot.invalidate()` here is the obvious fix and was
+         * measured: it makes every entry-adjacent edit a full page reload,
+         * regressing `hmr-hammer` on every project and taking the contract suite
+         * from ~75 s to ~127 s. The real fix is a matching `dispose()` that tears
+         * the previous mount down — which is framework knowledge, and so belongs
+         * in a framework facet rather than in the bundler's injection hook.
+         */
         code += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
       }
       if (hmrToken > 0) {

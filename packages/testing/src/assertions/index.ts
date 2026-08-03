@@ -288,6 +288,56 @@ export class LabAssertions {
     }
   }
 
+  /**
+   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
+   *
+   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
+   * throws and the UI goes blank — but an orphan is silent: it sits in the
+   * output directory forever, gets committed, gets translated, and describes
+   * source that no longer exists.
+   */
+  async noOrphanedCatalogs(): Promise<void> {
+    const compiler = this.lab.compiler.instance as
+      | { graph?: { boundaryGraph?: { nodes: Map<string, unknown> } }; _outputDir?: string }
+      | undefined;
+    const graph = compiler?.graph?.boundaryGraph;
+    if (!graph) return;
+
+    const outputDir = join(this.lab.root, (this.lab.compiler as any).outputDir ?? "src/locales");
+    if (!existsSync(outputDir)) return;
+
+    const live = new Set<string>();
+    for (const id of graph.nodes.keys()) {
+      live.add(this.lab.compiler.getSafeBoundaryId(id));
+      live.add(id);
+    }
+
+    const orphans: string[] = [];
+    const walk = async (dir: string) => {
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(full);
+          continue;
+        }
+        if (!entry.name.endsWith(".json") || entry.name.endsWith(".schema.json")) continue;
+        const stem = entry.name.replace(/\.json$/, "");
+        const known = [...live].some((id) => stem.includes(id) || id.includes(stem));
+        if (!known) orphans.push(relative(this.lab.root, full));
+      }
+    };
+    await walk(outputDir);
+
+    if (orphans.length > 0) {
+      throw new Error(
+        `${orphans.length} catalog(s) on disk belong to no boundary the compiler knows about:\n` +
+          orphans.map((o) => `    ${o}`).join("\n") +
+          `\n\nA catalog that outlives its source is not inert — it is committed, translated, ` +
+          `and describes code nobody can find.`,
+      );
+    }
+  }
+
   async dir(expected: "ltr" | "rtl"): Promise<void> {
     const htmlDir = await this.lab.page.getAttribute("html", "dir");
     if (htmlDir !== expected) {
