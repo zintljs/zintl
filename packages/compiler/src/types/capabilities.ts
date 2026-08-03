@@ -173,6 +173,25 @@ export interface RuntimeFacet extends BaseFacet {
   /** Stream injection for SSR HTML responses (Response, ReadableStream) */
   streamInjection?: boolean;
   /**
+   * Whether re-executing an entry module is safe.
+   *
+   * Zintl injects `import.meta.hot.accept()` into files that declare a trust
+   * anchor, which are the files that mount. Accepting means the bundler
+   * re-executes the module — and whether that is harmless is a property of the
+   * framework, not of Zintl: setting `innerHTML` replaces, Svelte's `mount()`
+   * appends a second copy, and React's `createRoot()` throws on a container it
+   * already owns.
+   *
+   * A facet that mounts non-idempotently declares `false`, and the entry hands
+   * its updates back to the bundler instead of pretending to have applied them.
+   * Absent means `true`: the conservative direction is the one that keeps hot
+   * updates working, and a framework that needs the other must say so.
+   *
+   * Merged pessimistically — one facet declaring `false` decides it, because a
+   * project containing any non-replayable mount has one.
+   */
+  entryReexecutionSafe?: boolean;
+  /**
    * Custom locale detection from URL/request context.
    * Chained: first non-undefined result from any facet wins.
    */
@@ -189,7 +208,12 @@ export interface BundlerFacet extends BaseFacet {
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /** HMR injection code generation (appended to transformed files in dev) */
-  hmrInjectionCode?: (fileId: string, hmrToken: number, hasAnchors?: boolean) => string;
+  hmrInjectionCode?: (
+    fileId: string,
+    hmrToken: number,
+    hasAnchors?: boolean,
+    entryReexecutionSafe?: boolean,
+  ) => string;
 }
 
 /**
@@ -331,6 +355,13 @@ export interface CapabilityFlags {
 
   // ── Runtime Capabilities ──
 
+  /**
+   * True when re-executing an entry module is safe for every facet in play.
+   *
+   * False as soon as one framework mounts non-idempotently — see
+   * `RuntimeFacet.entryReexecutionSafe`.
+   */
+  entryReexecutionSafe: boolean;
   /** True when client-side locale sync is active (popstate, pushState, MutationObserver) */
   clientLocaleSync: boolean;
   /** True when server-side request scoping is active (AsyncLocalStorage) */
@@ -397,7 +428,12 @@ export interface CompilerSystemView {
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
   /** Resolved HMR injection code generator (undefined if no HMR facet) */
   hmrInjectionCode:
-    | ((fileId: string, hmrToken: number, hasAnchors?: boolean) => string)
+    | ((
+        fileId: string,
+        hmrToken: number,
+        hasAnchors?: boolean,
+        entryReexecutionSafe?: boolean,
+      ) => string)
     | undefined;
 
   // ── Runtime hooks (chained) ──

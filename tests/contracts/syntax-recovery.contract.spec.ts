@@ -1,4 +1,3 @@
-import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 

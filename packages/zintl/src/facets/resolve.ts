@@ -123,6 +123,7 @@ interface MergeState {
   clientLocaleSync: boolean;
   serverRequestScope: boolean;
   streamInjection: boolean;
+  entryReexecutionSafe: boolean;
   detectLocaleChain: ((context: LocaleDetectionContext) => string | undefined)[];
 
   // Bundler (highest-priority-wins)
@@ -133,7 +134,12 @@ interface MergeState {
   dynamicImportTemplateProvider: string;
   dynamicImportTemplatePriority: number;
   hmrInjectionCode:
-    | ((fileId: string, hmrToken: number, hasAnchors?: boolean) => string)
+    | ((
+        fileId: string,
+        hmrToken: number,
+        hasAnchors?: boolean,
+        entryReexecutionSafe?: boolean,
+      ) => string)
     | undefined;
   hmrInjectionCodeProvider: string;
   hmrInjectionCodePriority: number;
@@ -165,6 +171,7 @@ function createEmptyState(): MergeState {
     clientLocaleSync: false,
     serverRequestScope: false,
     streamInjection: false,
+    entryReexecutionSafe: true,
     detectLocaleChain: [],
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
@@ -286,6 +293,13 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       if (facet.clientLocaleSync) state.clientLocaleSync = true;
       if (facet.serverRequestScope) state.serverRequestScope = true;
       if (facet.streamInjection) state.streamInjection = true;
+      /**
+       * Pessimistic merge: one facet declaring re-execution unsafe decides it
+       * for the project, because a project containing any non-replayable mount
+       * has one. OR-ing these the usual way would let a safe facet vote away a
+       * real hazard another facet reported.
+       */
+      if (facet.entryReexecutionSafe === false) state.entryReexecutionSafe = false;
       if (facet.detectLocale) state.detectLocaleChain.push(facet.detectLocale);
       break;
     }
@@ -353,6 +367,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     clientLocaleSync: state.clientLocaleSync,
     serverRequestScope: state.serverRequestScope,
     streaming: state.streamInjection,
+    entryReexecutionSafe: state.entryReexecutionSafe,
 
     // SSR
     ssr:

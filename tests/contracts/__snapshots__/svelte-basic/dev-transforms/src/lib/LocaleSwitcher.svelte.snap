@@ -28,8 +28,10 @@ import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 
 
 if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/lib/LocaleSwitcher.svelte");
+  import.meta.hot.accept(() => {
+    // src/lib/LocaleSwitcher.svelte declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
   });
 }
 </script>

@@ -15,10 +15,16 @@
 > - **§4.3 recommended deferring build-time artifact ordering.** The same defect shape was found in
 >   the compiler's own flush and graph-rebuild paths, so ZDB governs all four subsystems from the
 >   start. The phased delivery order survives; the scoping does not.
-> - **§1.3's `full-reload: 5` was attributed to Zintl requesting reloads.** The hot-update hook is
->   invoked once _per environment_, so an SSR project runs it twice per file change. Separately,
->   there is no `import.meta.hot.dispose()` anywhere in the codebase — the `createRoot`
->   double-mount is most likely that, not an ordering problem.
+> - **§1.3 was never an ordering problem, and is now half fixed.** The `full-reload: 5` count came
+>   from the hot-update hook being invoked once _per environment_. The double-mount was Zintl's own
+>   injected `import.meta.hot.accept()` — a callback that only logged, telling the bundler the
+>   update was handled while the module re-executed and mounted again. Whether that is safe is
+>   framework knowledge (`innerHTML` replaces, Svelte's `mount()` appends, React's `createRoot()`
+>   throws), so frameworks declare it through `RuntimeFacet.entryReexecutionSafe`. The Svelte
+>   manifestation is reproduced and fixed under `chaos-boundary`. **The React `createRoot` case
+>   remains latent**: marking React unsafe reaches every framework-less project, because
+>   `FALLBACK_FRAMEWORK` is `"react"`, and it regressed `vanilla-spa-basic`. The fix is one facet
+>   field away once there is a reproduction to justify it.
 > - **§1.1a's "the write never became a packet" was labelled inferential.** A concrete mechanism was
 >   found: the compiler re-reads the changed file itself rather than using the content the hook is
 >   handed, so under two concurrent watcher runs the earlier invocation observes the later content

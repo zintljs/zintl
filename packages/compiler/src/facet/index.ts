@@ -28,7 +28,12 @@
 export { vanillaFacet } from "./presets/vanilla.js";
 export { reactExtractionFacet, reactCodegenFacet, reactFacet } from "./presets/react.js";
 export { vueExtractionFacet, vueCodegenFacet, vueFacet } from "./presets/vue.js";
-export { svelteExtractionFacet, svelteCodegenFacet, svelteFacet } from "./presets/svelte.js";
+export {
+  svelteExtractionFacet,
+  svelteCodegenFacet,
+  svelteRuntimeFacet,
+  svelteFacet,
+} from "./presets/svelte.js";
 export { htmlExtractionFacet, htmlProjectionFacet, htmlFacet } from "./presets/html.js";
 export {
   nextjsSsrFacet,

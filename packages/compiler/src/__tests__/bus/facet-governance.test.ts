@@ -9,7 +9,12 @@
 import { describe, it, expect, vi } from "vite-plus/test";
 import { ZintlCompiler } from "../../index.js";
 import { emptyCapabilities } from "../helpers/capabilities.js";
-import type { ContentFacet } from "../../types/capabilities.js";
+import type { ContentFacet, ZintlFacet } from "../../types/capabilities.js";
+import { viteFacet, svelteRuntimeFacet } from "../../facet/index.js";
+
+/** `ZintlFacet` is a union; the injection hook lives on the bundler member. */
+const inject = (...args: [string, number, boolean, boolean]) =>
+  (viteFacet() as Extract<ZintlFacet, { concern: "bundler" }>).hmrInjectionCode!(...args);
 
 function compilerWith(contentFacets: Partial<ContentFacet>[]) {
   const capabilities = emptyCapabilities({
@@ -121,5 +126,38 @@ describe("facet lifecycle — union, failures isolated and named", () => {
     expect(compiler.bus.history("build/pipeline")).toContainEqual(
       expect.objectContaining({ subject: "setup:broken", outcome: "failed" }),
     );
+  });
+});
+
+describe("entryReexecutionSafe — the framework decides, pessimistically", () => {
+  it("emits a self-accept when re-running the entry is safe", () => {
+    // Vanilla assigns innerHTML, which replaces. Self-accepting keeps hot
+    // updates hot — and `memory-leak` performs twenty sequential entry edits,
+    // so the alternative is twenty full page reloads.
+    const code = inject("src/main", 0, true, true);
+    expect(code).toContain("import.meta.hot.accept(");
+    expect(code).not.toContain("invalidate()");
+  });
+
+  it("hands the update back when re-running the entry is not safe", () => {
+    // Svelte's mount() appends and React's createRoot() throws. Accepting and
+    // immediately invalidating bubbles to a reload, which is what would have
+    // happened had the file never claimed to accept.
+    const code = inject("src/main", 0, true, false);
+    expect(code).toContain("import.meta.hot.invalidate()");
+  });
+
+  it("injects nothing for a file with no anchor either way", () => {
+    expect(inject("src/util", 0, false, true)).toBe("");
+    expect(inject("src/util", 0, false, false)).toBe("");
+  });
+
+  it("declares the framework whose mount cannot be replayed", () => {
+    /**
+     * Asserted on the facets rather than on a resolved project, because this is
+     * the claim itself: a framework says whether re-running its entry is safe,
+     * and the bundler's injection hook has no way to know.
+     */
+    expect(svelteRuntimeFacet()).toMatchObject({ entryReexecutionSafe: false });
   });
 });

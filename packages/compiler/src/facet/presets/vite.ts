@@ -17,28 +17,44 @@ export function viteFacet(): ZintlFacet {
     dynamicImportTemplate: (path: string, isDev: boolean): string => {
       return `import(${isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
     },
-    hmrInjectionCode: (fileId: string, hmrToken: number, hasAnchors?: boolean): string => {
+    hmrInjectionCode: (
+      fileId: string,
+      hmrToken: number,
+      hasAnchors?: boolean,
+      entryReexecutionSafe = true,
+    ): string => {
       let code = "";
       if (hasAnchors) {
         /**
-         * Known defect, deliberately left in place: this accepts an update it
-         * cannot actually apply.
+         * An anchor file is an entry, and an entry mounts.
          *
-         * The callback only logs, which tells the bundler "handled" while
-         * nothing is handled — the module re-executes and its side effects run
-         * again. For an entry that means mounting a second time onto a container
-         * that already has a mount: in Svelte the whole app renders twice, in
-         * React it is `createRoot()` on an already-rooted container. That is
-         * proposal 024 §1.3, and `chaos-boundary` reproduces it on `svelte-basic`.
+         * Accepting means the bundler re-executes this module, so whether
+         * accepting is safe depends entirely on whether re-running the mount is
+         * harmless — which is a property of the framework, not of Zintl.
+         * Assigning `innerHTML` replaces; Svelte's `mount()` appends a second
+         * copy; React's `createRoot()` throws on a container it already owns.
          *
-         * `import.meta.hot.invalidate()` here is the obvious fix and was
-         * measured: it makes every entry-adjacent edit a full page reload,
-         * regressing `hmr-hammer` on every project and taking the contract suite
-         * from ~75 s to ~127 s. The real fix is a matching `dispose()` that tears
-         * the previous mount down — which is framework knowledge, and so belongs
-         * in a framework facet rather than in the bundler's injection hook.
+         * Both directions were measured, and each is wrong for the other half:
+         *
+         * - Always self-accepting double-mounts Svelte on an entry rewrite —
+         *   proposal 024 §1.3, reproduced by `chaos-boundary`.
+         * - Never self-accepting turns every entry edit into a full page reload,
+         *   which times out `memory-leak` on `vanilla-spa-basic` (twenty
+         *   sequential edits, twenty reloads).
+         *
+         * So the framework decides, via `RuntimeFacet.entryReexecutionSafe`.
+         * Where re-execution is safe the entry self-accepts and hot updates stay
+         * hot. Where it is not, the entry accepts and immediately hands the
+         * update back, and the bundler bubbles it to a reload — which is what
+         * would have happened had the file never claimed to accept.
+         *
+         * Accepting-then-invalidating rather than staying silent keeps the
+         * decision explicit and greppable: "Zintl knows this file cannot
+         * hot-replace itself", not "nobody thought about this file".
          */
-        code += `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+        code += entryReexecutionSafe
+          ? `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`
+          : `\n\nif (import.meta.hot) {\n  import.meta.hot.accept(() => {\n    // ${fileId} declares a trust anchor and this framework's mount is not\n    // replayable: re-running it would mount again instead of replacing.\n    import.meta.hot.invalidate();\n  });\n}`;
       }
       if (hmrToken > 0) {
         code += `\n\n// Zintl HMR Token: ${hmrToken}`;

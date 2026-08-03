@@ -17,7 +17,9 @@ void bootstrap();
 
 
 if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/main");
+  import.meta.hot.accept(() => {
+    // src/main declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
   });
 }

@@ -77,10 +77,6 @@ export const chaosBoundaryContract: Contract = {
    * a matching `dispose()` that tears the previous mount down, which is
    * framework knowledge and belongs in a framework facet.
    */
-  pendingFor: {
-    "svelte-basic":
-      "entry double-mount on rename (proposal 024 §1.3) — needs a framework-side hot.dispose()",
-  },
   async execute(lab, adapter) {
     const exampleName = basename(lab.root);
     const cfg = getRenameConfig(exampleName);

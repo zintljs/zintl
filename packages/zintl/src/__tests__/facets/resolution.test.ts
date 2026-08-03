@@ -558,11 +558,14 @@ describe("Facet Resolution Engine", () => {
       expect(facets[1].name).toBe("vue-codegen");
     });
 
-    it("svelteFacet compiles to svelteExtractionFacet and svelteCodegenFacet", () => {
+    it("svelteFacet compiles to extraction, codegen and runtime facets", () => {
       const facets = svelteFacet();
-      expect(facets.length).toBe(2);
-      expect(facets[0].name).toBe("svelte-extraction");
-      expect(facets[1].name).toBe("svelte-codegen");
+      expect(facets.map((f) => f.name)).toEqual([
+        "svelte-extraction",
+        "svelte-codegen",
+        // Declares that re-running a Svelte entry is unsafe: mount() appends.
+        "svelte-runtime",
+      ]);
     });
 
     it("htmlFacet compiles to htmlExtractionFacet and htmlProjectionFacet", () => {

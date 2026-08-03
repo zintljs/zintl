@@ -11,7 +11,9 @@ export async function render(_url: string) {
 
 
 if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/entry-server");
+  import.meta.hot.accept(() => {
+    // src/entry-server declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
   });
 }

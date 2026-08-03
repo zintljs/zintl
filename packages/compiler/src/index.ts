@@ -1611,7 +1611,12 @@ export class ZintlCompiler {
       if (hmrFn) {
         const fileMeta = (this.messages as any)?.metadataGraph?.[fileId];
         const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
-        const hmrCode = hmrFn(fileId, hmrToken, hasAnchors);
+        const hmrCode = hmrFn(
+          fileId,
+          hmrToken,
+          hasAnchors,
+          this._resolved.flags.entryReexecutionSafe,
+        );
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
           if (scriptCloseIdx !== -1) {
