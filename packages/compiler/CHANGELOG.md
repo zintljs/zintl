@@ -1,5 +1,269 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.10
+
+### Minor Changes
+
+- 91662bd: Add the delivery bus — a governance discipline for ordered, repeatable work.
+
+  Zintl does the same shape of work in four places: something changes, a procedure runs, and a result is delivered elsewhere. A file changes and a packet is emitted. A catalog arrives and a store applies it. A flush is requested and disk is written. A facet is asked and contributes. Every one of those is repetitive, concurrent, and capable of conflicting with itself — and none of them had a name for **what** was being delivered, **in what order**, or **whether it landed**.
+
+  The measured consequences: a later update losing to an earlier one, a boundary rendering blank permanently with nothing recorded, a flush silently discarding the boundaries a second flush had dirtied, and outputs surviving on disk after the source that produced them was gone.
+
+  This is not a message queue and not a transport. It is five absolute axioms plus the smallest data structure that enforces them, specified in `docs/spec/ZDB.md` and promoted alongside ZRS/ZHMR/ZCD:
+
+  - **D1 Monotonic Supersession** — a receiver discards anything not newer than what it applied. Latest wins _by number_, never by arrival time and never by a debounce window.
+  - **D2 No Silent Abandonment** — every envelope reaches `applied`, `superseded` or `failed`. Coalescing is a named outcome, not a disappearance.
+  - **D3 Causal Custody** — a stage that coalesces inherits the superseded envelope's subjects, so no subject is left without a custodian.
+  - **D4 One Subject, One Owner** — competing contributors resolve by declared rank; a tie is a hard error at construction.
+  - **D5 Cost Asymmetry** — identity and sequence ship; the ledger and every reason string are development-only and eliminated at build time.
+
+  `DeliveryBus` is exported from `@zintljs/compiler`, with `mint`/`accept`/`holds` as the ordering machinery and a bounded ring for diagnosis. Recording is off by default, so a caller who forgets gets the cheap bus: the failure mode is "no diagnosis available", never "diagnostic machinery left on". The ring is bounded normatively rather than as an optimisation — `memory-leak` measures retained heap across twenty consecutive hot updates with only a few hundred kilobytes of headroom.
+
+  Two documents were reconciled against the code on the way in. Proposal 024 is marked ABSORBED, with the three things it got wrong called out. **ZRS §9.1 is superseded**: it promised a source-locale fallback and exponential-backoff retry, neither of which was ever implemented, and the first of which is forbidden outright — a missing translation is a build-time error, not a reason to render a different language. The original text is preserved rather than deleted, because knowing which model was intended and rejected is worth more than a silent removal.
+
+- cc88b36: Let frameworks declare whether re-running an entry is safe, and fix the Svelte double-mount.
+
+  Zintl injects `import.meta.hot.accept()` into files that declare a trust anchor — which are the files that mount. Accepting tells the bundler to re-execute the module, and the injected callback only logged, so it claimed the update was handled while the mount ran a second time.
+
+  Whether that matters is a property of the framework. Assigning `innerHTML` replaces. Svelte's `mount()` appends a second copy. `chaos-boundary` reproduces the Svelte case exactly: the page renders twice, 14,665 bytes instead of ~7,300, the locale switcher appearing twice, and the heading selector reading the stale copy.
+
+  Both blanket answers were measured, and each is wrong for the other half:
+
+  - **Always self-accept** double-mounts Svelte on an entry rewrite.
+  - **Never self-accept** turns every entry edit into a full page reload, which times out `memory-leak` on `vanilla-spa-basic` — twenty sequential entry edits become twenty reloads. (An earlier attempt used `import.meta.hot.invalidate()`, the same thing by another route: it regressed `hmr-hammer` on every project and took the suite from ~75 s to ~127 s.)
+
+  So the framework decides, through `RuntimeFacet.entryReexecutionSafe`. `svelteRuntimeFacet` declares `false` and joins the compound preset; everything else keeps the self-accept and keeps its hot updates hot. The flag merges **pessimistically** — one facet declaring re-execution unsafe decides it for the project, because a project containing any non-replayable mount has one, and OR-ing these the usual way would let a safe facet vote away a hazard another facet reported. Absent means safe: the conservative direction is the one that keeps hot updates working, and a framework needing the other has to say so.
+
+  **A trap worth knowing before adding any other runtime claim.** React was marked unsafe first — `createRoot()` does throw on a container it already owns, which is what proposal 024 §1.3 recorded. It had to be reverted, because **`FALLBACK_FRAMEWORK` is `"react"`**: a project where no framework is detected is assembled with the React facets, so `vanilla-spa-basic` silently inherited React's runtime claim and began full-reloading on every entry edit. `syntax-recovery` started timing out and the dev-transform snapshot showed vanilla emitting `invalidate()`. Any claim attached to the React facet reaches every framework-less project by default; a runtime constraint has to be worth that reach before it is added there.
+
+  React's `createRoot` case is therefore still latent. It is not reproduced anywhere in the suite, and fixing it speculatively cost more than it bought — the honest state is that the mechanism is now understood and the fix is one facet field away once a reproduction exists.
+
+  **`chaos-boundary` is fully live — 4 of 4**, no longer `pendingFor` anything; it was skipped entirely three changes ago. Only the Svelte snapshots moved, which is the scope of the change stated as a diff.
+
+- 2af5252: Make every facet fan-out declare how it composes, and draw the bundler-support line.
+
+  Axiom D4 was already enforced for four hooks — highest priority wins, a tie is a hard error at construction. Eight other fan-outs over the same facet set resolved silently and inconsistently. Two of them were outright defects:
+
+  - **`getTranslations` was `Object.assign` in a loop.** When two content facets produced the same key with different text, the last one in iteration order silently won and the other's content simply never appeared. That is not a merge, it is a coin toss decided by registration order. It is now a declared `union`, and a genuine collision — same key, different value — is a hard error naming both facets. Two facets _agreeing_ about a string is not a conflict and stays legal.
+  - **`transformHtml` returned inside its loop.** The first facet implementing it won and every later one was unreachable code: a facet could be registered, be asked for nothing, and have no way to find out. It is now a `chain` — each facet sees the previous one's output — which is also the semantics HTML transformation actually wants, since projections, preloads and bootstrap injection compose rather than compete.
+
+  Two more that were undocumented policy rather than bugs, now stated:
+
+  - **`wrapDefault`** kept the first contributor silently. Facets are already sorted by descending priority, so the outcome was right; what was missing was the tie being an error. Two facets disagreeing about how to wrap the default export at the same rank now fails at construction, like its four siblings.
+  - **Facet lifecycle steps** (`setup`, `flush`) ran in a bare sequential `await` loop, so a facet that threw took the loop with it and every facet after it in registration order silently never ran. Each step now settles a `build/pipeline` outcome naming the facet, and a failure stops the step rather than the remaining facets — the composition is `union`, so the facets are independent and one failing does not make the others wrong.
+
+  `ZDB` §7.1 now tabulates the declared composition of **every** fan-out, so the next contributor does not have to infer it from a loop body.
+
+  ## The bundler-support line
+
+  `ZDB` §7a states what a build tool must provide, in two tiers, because "support another bundler" has been an open-ended question and the answer is not uniform.
+
+  **Tier 1 — build.** Virtual modules, a `transform` hook with stable per-file ids, build lifecycle hooks, plugin ordering, and optionally HTML transformation. Every bundler unplugin targets can meet this, and it is where support for a new tool should start.
+
+  **Tier 2 — development.** Everything above plus a hot-update hook, module-graph invalidation, a per-module update token that reaches the client, and a server→client channel. Two of its rows are load-bearing and are why this tier is narrower:
+
+  - **A monotonic, non-repeating timestamp per hot-update event.** Without it there is no ordering authority and D1 cannot be enforced.
+  - **`read()` for the content of _that_ event.** Reading the file independently is precisely how a later write becomes a no-op (§4.1a).
+
+  A bundler offering a hot-update hook without those can deliver updates but cannot **order** them — which is the defect this entire specification exists to remove, so shipping dev support on such a tool would be shipping the bug back. And do not emulate the missing sequence with a counter of your own: a second clock that can disagree with the bundler's is worse than no clock at all.
+
+  **On verification.** The unit gate is green at 717 tests, and the facet-heavy contracts (`assets`, `initial-render`) pass in isolation with no facet conflict raised. Full-suite contract runs on the machine used here are unreliable — see the note in `artifact-lifetime`; the pre-change baseline fails worse than the current code under the same load. Re-run `vpr ready:examples` on a quiet machine before drawing contract-level conclusions.
+
+- 553cdae: Tell the compiler when a file is deleted.
+
+  Nothing ever did. The bundler handles `unlink` separately from `change` — it removes the module from its own graph and reloads, but never calls `handleHotUpdate` or `hotUpdate` — and the plugin registered no watcher of its own. A deleted boundary therefore stayed in the compiler's graph and manifest for the life of the process.
+
+  That is worse than stale state, because dev servers are pooled per worker: the orphan outlived the thing that created it. In the contract suite it leaked into every later contract's graph snapshot, and through the compiler's persisted manifest it reached the **committed examples** — twelve generated JSON files describing source that no longer existed, from a single test run.
+
+  `ZintlCompiler.removeFile()` forgets the file and everything it owned: manifest entries, boundary ownership, metadata and dependency graph entries, catalog caches, boundary revisions, and the graph nodes themselves. `MessageManager.trackBoundaryChange` already knew how to drop the boundaries a file no longer owns — passing it an empty set is exactly "this file owns nothing now", and the gap was only ever that a deletion never reached it. The removed boundaries are marked dirty as well: pruning finds orphans by comparing the output directory against the live graph, but the flush still has to be told something changed, or a deletion made during an idle moment sits unflushed until an unrelated edit wakes it.
+
+  The watcher is registered in `configureServer`, deliberately **before** the `appType === "custom"` early return. That exit skips the multiplex middleware, which SSR apps do not want — but they do want their deletions noticed, and registering after it would have left every SSR project with the exact bug this listener exists to fix.
+
+  **`chaos-boundary` is live again on three of four projects.** It had been skipped entirely; it now runs and passes on `react-basic`, `vue-basic` and `vanilla-spa-basic`, with the graph snapshots and the committed examples verified clean afterwards — which is the check that matters, since the leak's damage was always downstream of the contract that caused it.
+
+  Contracts can now declare `pendingFor` — a per-project gap, keyed by manifest name. A blocker is rarely uniform: skipping all four projects to describe a failure on one throws away the three that work, which is the same loss as marking the whole thing green would be, in the other direction. `chaos-boundary` uses it for `svelte-basic`, whose remaining failure is proposal 024 §1.3 — the entry self-accepts, re-executes and mounts twice — and needs a framework-side `hot.dispose()`, not anything here.
+
+  **Unrelated, and pre-existing:** `performance-size` failed once in seven runs during this work, at 10,972 bytes against a 10,240 budget. It is not a regression — it passes in isolation and in six of seven full runs — but it is not measuring what its name suggests either. It captures _dev-mode_ response bodies inside a timing window (its own comment sizes the budget for "Vite dev-mode wrapper overhead"), so which responses land in the window varies. Like `performance-hmr`, it is a smoke check shaped like a budget, and it will get less meaningful as more examples are added rather than more.
+
+- 91662bd: Take custody of hot updates from the watcher to the applied catalog.
+
+  The bundler's watcher is unqueued — `watcher.on("change", (file) => { onFileChange(file).catch(…) })` — so two rapid changes to one file spawn two concurrent update runs. Zintl cannot fix that upstream, but everything below was Zintl choosing not to defend against it.
+
+  - **Invalidation now runs once per event, not once per environment.** The hot-update hook is invoked once for the client environment and again for every other one, so a single filesystem change reached the compiler two or more times: the boundary revision was bumped twice and two re-extractions of the same file raced each other. Later passes now join the first pass's promise instead of starting a competing run. Each environment still invalidates its own module graph, which is the part that genuinely is per-environment.
+  - **The compiler stopped re-reading the changed file.** `invalidateFile` read from disk itself rather than using the content the hook was handed. Under two concurrent runs both read whatever was on disk _at that moment_, so the earlier invocation observed the later content and the later one then found nothing to emit — a concrete mechanism for proposal 024 §1.1a's "the write never became a packet".
+  - **Catalogs carry the generation that produced them.** Every generated content module is stamped with a monotonic `catalogGeneration`, and the runtime discards a catalog that arrives after a newer one has been applied. A burst of rapid edits now settles on the last one _by construction_ — an out-of-order arrival cannot win a race it never entered.
+  - **The summed HMR token is gone.** `boundaryRevisions` was summed across a file's boundaries, which is not injective (two boundaries at revision 1 is indistinguishable from one at revision 2), and emitted into a source comment nothing ever read. The generation replaces it and has an actual receiver.
+  - **The second invalidation path is stamped.** The `transform` hook invalidates virtual modules too and set no `lastHMRTimestamp` at all, so modules invalidated from there carried no ordering token whatsoever.
+  - **The self-write guard names what it swallows.** It still suppresses edits inside a 500 ms window — narrowing that needs a content-identity check surviving the formatter rewriting the file after the write — but a dropped edit is now recorded rather than silently discarded.
+
+  **A correction worth reading before extending this.** The first attempt applied D1 to invalidation directly: an event older than one already processed was discarded. That regressed `hmr-hammer` from 0 failures in 17 runs to 2 in 17, reproducing exactly the signature proposal 024 §1.1a records — one fewer packet than there were writes, and the DOM stuck on the last state that reached the wire.
+
+  D1 governs deliveries that **replace** state; a newer catalog makes an older one irrelevant, so discarding the older loses nothing. Invalidation does not replace, it **accumulates** — it marks boundaries dirty, clears caches and re-extracts, and each event may describe a different state of the file. Dropping one throws away work no later event redoes, and the update it would have produced is never emitted. The test for which kind you have: _if the newest envelope alone would leave the system correct, it replaces and D1 applies; if earlier envelopes contributed something the newest does not carry, it accumulates and D1 does not._
+
+  This is now `ZDB §4.1a` and a first-class API rather than a convention: `DeliveryBus.observe()` reports position and advances the high-water mark without settling, because `accept()` labels a rejected envelope `superseded`, which on an accumulating channel is a plain lie about what happened — and a ledger that misreports is worse than no ledger. Measured after the correction: 0 failures in 27 runs, against a 0-in-17 baseline.
+
+  `CompilerContext` gains a `bus` field, so a facet performing ordered or repeatable work can take custody of it rather than relying on the surrounding sequential `await` to notice a failure.
+
+- 9c10e78: Make the compiler's own stages recoverable, ordered and accountable.
+
+  The flush and the graph rebuild were the compiler's versions of the two defects the runtime had: one collapsed concurrent callers onto work that did not include their changes, the other let whichever rebuild _finished_ last decide the world.
+
+  - **A failing flush no longer poisons every later one.** `flushPromise = null` was the last statement _inside_ the async body, so a single throw left a rejected promise cached and every subsequent flush returned that same rejection for the life of the process. `verifyIntegrity` throws by design on a missing translation, and the hot-update hook swallows the result with `.catch` — so a compiler could stop flushing entirely and nothing would say so. Now cleared in a `finally`.
+  - **A flush no longer destroys work it never adopted.** The run snapshotted `dirtyBoundaries` near its start and cleared the whole set near its end, so a boundary dirtied _during_ the run was not deferred — it was discarded, and no later flush knew it existed. Only the boundaries a run actually adopted are cleared.
+  - **A caller arriving mid-flush gets a follow-on**, not the in-flight promise. Awaiting someone else's run resolves to "their work finished", which is not what the caller asked (Axiom D3).
+  - **A graph rebuild that was overtaken discards its result.** `graphDirty` is cleared _before_ the async body runs, so a transform during a rebuild starts a second concurrent one; both then assigned `boundaryGraph`/`chunkGraph` and the winner was whichever finished last. Rebuilds genuinely replace state, so D1 applies here — unlike invalidation, which accumulates (ZDB §4.1a).
+  - **The hive is written by the flush.** It had its own debounce on the same 300 ms constant, with nothing sequencing the two, so a burst of edits could write the hive from a state the flush had not reconciled. The timer survives only as a fallback for when no flush follows.
+  - **Pipeline diagnostics are no longer written to a field nobody reads.** `resolve` and `apply` have always produced a structured `Diagnostic[]` — overlapping rewrites dropped, duplicates merged — and every one was discarded. A dropped rewrite is a source mutation that did not happen. Warnings, errors and validation failures now reach the ledger; `info` is skipped, because a ledger reporting routine work is one nobody reads.
+
+  **Two regressions found by measurement, not review**, both worth knowing before touching this again.
+
+  The first: an unconditional follow-on flush **livelocks**. The flush body reaches back into the compiler — `syncGraphs` asks content facets for translations, which can transform, and `transform` schedules a flush — so each run dirtied just enough to justify the next. It presented as a dev server that stopped pushing updates and a contract timing out at 45 s, a long way from where it started. The follow-on now runs only when something is genuinely still unflushed.
+
+  The second was in the runtime, and only a full-suite run under load exposed it: `__zintlApplyHtml` and the `localStorage` write happened **before** a locale switch claimed the active-locale slot, so a switch that was then superseded rewrote `documentElement.lang` anyway. The page rendered Arabic while announcing itself as English, and `locale-switch` and `locale-storm` both caught it. Claim and publish now happen in one synchronous block: claims are ordered, so whichever switch claims last also publishes last, and the document ends up describing the locale the store actually adopted.
+
+  `hmr-hammer` remains intermittently red under full four-worker load with the signature proposal 024 §1.1a records — fewer packets than there were writes. That is the pre-existing failure the proposal measured at roughly one full-suite run in five, and it is upstream of anything here: the loss is a packet the watcher never produced, not one delivered out of order.
+
+- 91662bd: Order and account for every catalog and locale change in the runtime.
+
+  The store had no notion of which delivery was newer, so a slow one could overwrite a fast one that started later, and a failed one left no trace. Seven defects, all confirmed in source:
+
+  - **Locale cross-filing.** `loadLazyBoundary` and `registerLoader` called the loader with `this.locale` captured at call time, then filed the result under `this.locale` read _after_ the await. A switch landing mid-load stored one language's strings under another language's key. Both now capture once.
+  - **Overlapping locale switches.** Two switches each wrote `this.locale` and each notified, so the final state was decided by whichever set of promises happened to settle last. A switch now claims the store's active-locale slot and, after awaiting, checks it still holds it; an overtaken switch settles `superseded` and stays quiet.
+  - **The in-flight drop.** A concurrent request for a boundary already loading hit `if (pendingBoundaries.has(id)) return;` and was handed `undefined` — no promise to await, nothing to supersede, and a caller that believed it had started a load. It now joins the in-flight promise.
+  - **Three abandonment paths** — empty result, rejection, synchronous throw — each now settles `failed` with a reason. Deliberately still no retry: retry cannot fix ordering, and converts a loud failure into a slow one.
+  - **`pendingPromises` leaked in the browser.** The server drains it to gate stream injection; nothing drained it client-side, so a long-lived page retained every lazy load it ever performed.
+  - **Subscriber isolation.** `listeners.forEach((l) => l())` meant one throwing subscriber silently cancelled every subscriber registered after it.
+  - **`_t`'s browser branch** deferred the load into a microtask and never re-read, so the first render tick after a hot update registered a new loader always returned `""` even when the strings were available on that very tick. It now mirrors the server branch, which already had the re-read.
+
+  **The settle beacon changes meaning.** `globalThis.__zintl_version` used to advance only when a catalog value actually differed, so an idempotent redelivery advanced nothing — making "applied, unchanged" indistinguishable from "lost", which is precisely what an observer must be able to tell apart. It is now derived from delivery outcomes and counts every terminal outcome, including `superseded`: an observer asks "has the store finished with my change?", and `superseded` is a finished answer. Subscribers are a separate concern and still only run on real change. Anything asserting a specific beacon delta will need updating; anything asking "did something settle?" is unaffected.
+
+  A development-only ledger is published at `globalThis.__zintl_ledger` as a bounded ring.
+
+  Production carries only what makes an ordering decision: `mint`, `accept` and `holds` ship; `settle` compiles to an empty shell. Guarding `settle`'s _body_ turned out to be insufficient — the argument expressions still evaluated, so `"overtaken by seq " + prior` was doing string concatenation in production bundles. Guards now enclose the calls. The failure reporter also became a free function rather than a method, because as a method it compiled to a closure allocated per load returning `(reason, err) => {}`. Verified: zero delivery identifiers across every example's client bundle.
+
+  Two specification corrections that only surfaced in implementation, now in `docs/spec/ZDB.md`: `runtime/catalog` is keyed by `<locale>/<boundaryId>`, not boundary alone, because a boundary's Arabic and French catalogs are separate deliveries; and `runtime/locale` has exactly one subject rather than one per locale, because the contested resource is the active-locale slot. The rule both illustrate: **the subject is the resource being contested, not the value being delivered.**
+
+### Patch Changes
+
+- 69fed7f: Give written artifacts an owner, and stop the test scratch trees growing forever.
+
+  The author's account of this class was "a very little ones just shock the system and live for ever in a disk category". Two of those were measurable in the repository itself.
+
+  **The test scratch trees.** `createZintlContext` returned a `cleanup` that was an empty function. Every test dutifully awaited it in `afterEach` or `afterAll`, and every run left its directory behind: **5,308 directories, 53 MB**, invisible because `.tmp` is gitignored. A second helper, `createTestDir`, had no cleanup at all and no caller that removed anything, adding another ~20 MB of `html-deep-*` and friends to a different `.tmp` at the repository root. Two independent scratch trees, both unbounded, both hidden.
+
+  A cleanup contract that callers honour and the implementation ignores is worse than no contract — it makes the leak invisible to exactly the people looking for it. `cleanup` now removes the directory, the two helpers share one temp policy, and the base is cleared once per worker on first use so a context whose `cleanup` is never called costs one run rather than every run. Per-worker matters: Vitest runs workers as separate processes against one working directory, so a shared base would let whichever worker started last delete directories the others were still using. Measured across three consecutive full runs afterwards: **40–96 KB, stable.**
+
+  **Pruning consulted a branch that could not run, and would have thrown if it had.** `pruneOrphanedBoundaries` declared a `contentFacets` parameter that its only call site never passed, so the content-boundary protection was unreachable; and the call inside it passed a boundary's metadata where the facet contract declares a `CompilerContext`, so the moment it became reachable it threw `context.getMetadataGraph is not a function`. Two faults hiding each other — dead code does not get to be correct by never running. The facets now come from the field the manager already holds rather than an argument a caller has to remember, and the context is built in the shape the hooks actually read.
+
+  **A prune could be skipped because a counter matched.** The skip key hashed the _size_ of the active content-path set, so swapping one content path for another left it identical and the prune that should have reclaimed the old output never ran. It now hashes the contents.
+
+  **Every write and removal has an outcome.** `safeWriteFile` settles on all three paths — written, skipped as already identical, failed — and `rm` settles too, because an output that vanished and one that was never written look identical on disk. Only the ledger separates them, which is "artifacts outliving their source" in reverse.
+
+  **Pruning in development is named, not enabled.** It is disabled outright for real dev sessions, so a deleted source's catalogs survive the whole session. Turning it on is not a flag flip: `chaos-boundary`'s rename and delete body is commented out behind a "Fix Pruning Left-Over Catalogs on File Deletion" note, which says the reachability question this depends on is still open. Trading an accumulating leak for the chance of deleting a live catalog is much worse, so the staleness gets a name in the ledger instead.
+
+  Also removes two stray artifacts that had been tracked in git since July: an empty `pipeline/task.md` and `pipeline/intent.ts.clean_anchor.txt`.
+
+  **A Phase 3 revision.** The follow-on flush is gone. Its stronger reading of D3 — the caller's own promise resolving when its work lands — cost a full extra flush per hot update, because `runFlush` transforms and `transform` schedules a flush, so every run left a timer that fired afterwards. That timer is now cancelled when nothing is left to flush. What made the original defect a defect was the _destructive clear_, and that fix stays: a mid-flush caller's boundaries survive for the next run rather than being wiped. ZDB §4.3 now says explicitly that deferral satisfies D3 and only destruction violates it.
+
+  **On the measurements.** Contract failures during this work were chased for a while as regressions. They were not: re-running the pre-change baseline under the same conditions produced _more_ failures (8 across five contracts) than the new code (1), because the machine had been running suites back-to-back for hours. This is exactly the trap proposal 024 §7 records — "measure on a quiet machine … that data was worthless and nearly sent the investigation after a phantom". The follow-on removal above rests on the livelock, which is reproducible in a unit test, and on the mechanical fact of the doubled pass; not on the contaminated parallel data. Re-run the gates on a quiet machine before trusting any contract-level conclusion here.
+
+- d3a1100: Make the test harness wait on identity, and put the ledger in every failure.
+
+  **Strict delivery now passes the whole contract suite** — 72/72 under `ZINTL_STRICT_SETTLE=1`, with per-contract exemptions declared rather than assumed. That is proposal 024's third acceptance criterion, which previously had no mechanism to hang on at all: strictness was read straight from `process.env` inside the lab, with no way for a contract to say "I deliberately break the app".
+
+  Exemptions are a **string, not a boolean** — an exemption without a reason is indistinguishable from one nobody revisited. Three are declared: `syntax-recovery` (a compile error _should_ stall the runtime), `chaos-catalog` (deleted and corrupted catalogs _should_ fail to apply) and `chaos-boundary` (deleted and renamed sources). They live on the contract, next to `requires`, so an exemption travels with the thing it exempts.
+
+  **Waits are scaled to what the contract said to expect.** A contract declaring itself exempt has already announced that its writes will not settle — it introduces a syntax error, or deletes a catalog. Waiting the full budget for a stall the contract announced in advance is pure cost: a four-second packet race no packet will end, then a ten-second settle wait for a beacon that will never advance, on every such mutation. Those budgets are now short for exempt labs. Nothing is weakened, because the real gate is the assertion — `textEventually` polls for fifteen seconds either way.
+
+  That, plus deleting the dead two-second teardown sleep, takes the suite from **~119 s to ~72 s**, and collapses its variance: three consecutive runs at 71.4 / 72.5 / 72.1 s, against a previous spread of 78–88 s. The variance mattered as much as the mean — most of it was exempt contracts sitting in timeout loops whose duration depended on machine load.
+
+  An identity-based wait (read the compiler's generation, wait for the page ledger to reach it) was built and then **removed**. It measured no faster than the packet race, it cost a fixed probe on every lab, and it caused a `memory-leak` timeout that needed two follow-up patches. The ledger is where the value actually landed — as diagnosis, below — and a contract that genuinely needs identity-based waiting can read it in about ten lines.
+
+  **Every contract failure now carries the delivery ledger.** Packet counts and a beacon say _how much_ happened; they cannot say which boundary, in what order, or whether anything was superseded or failed — which is the difference between "the update never arrived" and "it arrived and was discarded as older than one already applied". Those have different fixes and used to cost a fresh investigation each. Both ledgers are attached: the page's, and the compiler's, which survives the page and is reachable in project mode where there is no browser at all.
+
+  Three long-standing harness defects fixed in passing:
+
+  - `lab.fs.rename()` fired **neither** mutation hook, so a contract that renamed a file and then asserted on the DOM was racing the dev server with no synchronisation whatsoever.
+  - Lab teardown called `ws.waitFor("update", { timeout: 2000 })` immediately after `ws.teardown()` had already restored the original `send`. No listener could ever fire, so it was a guaranteed two-second sleep on every browser lab teardown, dressed as a wait.
+  - The five surviving `waitFor({ state: "visible" })`-then-`textContent()` sites are migrated to `textEventually`. That pair looks like it waits but resolves immediately when the element is already visible showing the _previous_ value, so the read races the update — the shape every traced flake came from.
+
+- 2830f35: Make boundary ownership deterministic — the same source compiled to two different graphs.
+
+  `computeTranslationChunks` assigns ownership by walking each chunk root's static tree and keeping whichever root reached a boundary first. The root set came back from `getChunkRoots` in graph-insertion order, so for any boundary reachable from two roots, **iteration order decided the owner**.
+
+  Insertion order is not stable across runs. A compiler starting cold discovers in filesystem-traversal order; one reading a saved manifest gets the manifest's key order, and manifests are written sorted. So whether a previous build had run changed the graph.
+
+  It is directly observable in `react-basic`, whose `main.tsx` holds two nested anchors — `bootstrap` and an anonymous arrow function — both of which statically reach `App`. Warm, `src/App.tsx:App` was owned by `src/main.tsx:bootstrap`. Cold, by `src/main.tsx:f_547`. Both compiles were internally consistent; they simply disagreed, and the disagreement propagated into chunk assignment and four committed graph snapshots.
+
+  Roots are now sorted lexicographically before ownership is assigned. Cold and warm produce identical graphs, and the committed snapshots — recorded warm — remain correct, because `"bootstrap"` sorts before `"f_547"`.
+
+  **ZRS Axiom 4 already required this.** Its rule was stated for circular dependencies while its rationale — "deterministic, reproducible builds regardless of file system enumeration order" — was general, and the general case was where it was being violated. The axiom now says what the code does: wherever ownership is decided by which candidate is reached first, the candidates are ordered lexicographically, never by discovery order. Any first-wins resolution that is not explicitly ordered is an instance of this bug waiting to be found — which is the same rule ZDB Axiom D4 states for facet fan-outs, arrived at from the other direction.
+
+  Covered by `zrs-s4-ownership-determinism`, which feeds the same two roots in both orders and requires one answer. Both of its cases fail without the sort.
+
+- 90dd704: Stop contract runs writing into the committed examples, and add an SSR isolation contract.
+
+  **The per-worker copy was not actually isolated.** `copiedExampleSource` reproduces `node_modules` as a symlink farm that skipped `.vite`, `.cache` and `.vite-temp` — but not `.zintl`, which holds the compiler's persisted manifest. The copy and the real example therefore shared one, and the consequence escaped the test run entirely: a contract that renamed a file wrote a phantom boundary into four examples' manifests, and the next `build:examples` read it back and generated catalogs for source that did not exist — twelve untracked JSON files in the tracked `examples/` tree, from one contract.
+
+  `.zintl` is now **copied** per worker rather than linked. Omitting it was tried first and is wrong for a reason worth recording: a compiler starting cold resolves boundary ownership differently from one reading a saved manifest — `src/App.tsx:App` moved from `src/main.tsx:bootstrap` to an anonymous `src/main.tsx:f_547`, changing four committed graph snapshots. That difference deserves its own investigation, since ZRS Axiom 4 says ownership is deterministic; it is not the copy helper's job to absorb. Copying gives every worker the same warm starting state with no shared mutable file, which is the property the copy exists to provide. Verified by running the offending contract live and confirming `examples/` stays clean.
+
+  This is the same failure the `.vite` comment two lines above already warned about, missed for the same reason it gives: module resolution keeps working perfectly while the state underneath is shared, so nothing looks wrong until an artifact outlives the run that produced it.
+
+  **A new SSR request-isolation contract — marked `pending`, because it was falsified.** The store is request-scoped through `AsyncLocalStorage`, but `getActiveInstance` falls back to the process-global `globalThis.__zintl_active`, and every existing SSR contract issues one request at a time — precisely the condition under which that fallback is indistinguishable from the correct path.
+
+  The contract captures each locale uncontended, then interleaves them and requires every response to still match its own baseline. It passes. To find out whether that meant anything, request scoping was deliberately broken by disabling the `AsyncLocalStorage` lookup; the sabotage reached the served runtime (verified in `dist/runtime/store-core.mjs`, where the bundler had folded the branch away) and **the contract still passed**.
+
+  The reason is the example, not the contract: `react-ssr` renders with `renderToString`, which is synchronous. There is no await between entering the request scope and finishing the render, so no second request can interleave and observe the global. The leak is unreachable here by construction.
+
+  So it ships `pending` rather than green. The assertions and the baseline-then-interleave method are right; what is missing is a **streaming** SSR project — `renderToPipeableStream` with `injectIntoStream`, which the `streamInjection` capability and `store-server.ts` already exist to serve. One fixture away, and then one deleted line.
+
+- 8882138: Add the three unmanifested SSR examples to the contract suite.
+
+  `svelte-ssr`, `vue-ssr` and `vanilla-ssr` existed under `examples/` and were built by `build:examples`, but no contract had ever run against them — SSR coverage was React only. Every SSR-shaped contract now runs across four frameworks: **94 contract tests, up from 76, for about six seconds.**
+
+  That matters most where the frameworks genuinely differ. SSR codegen for Vue and Svelte single-file components goes through different facet paths than JSX, and until now the only thing checking either in SSR mode was a production build with nothing asserting its output. The three new manifests bring `transform`, `build`, `graph` and `boundary-graph` snapshots with them — 99 of them — so a change to SFC handling under SSR is now visible as a diff rather than as a downstream surprise.
+
+  **Their capability lists are deliberately narrower than `react-ssr`'s.** That manifest also claims `hmr`, `locale-switch` and `rtl`, and none of the three matches anything: every contract requiring them also requires `spa`, which an SSR project does not have. Inert claims cost nothing at runtime, but a capability list exists precisely to say what is covered, and one that overstates is the same failure as a contract whose body is commented out. The new manifests claim `ssr`, `boundary-graph`, `transform`, `build`, `graph` — all of which match.
+
+  The manifest index now carries the cost model too, since this is the file where it gets decided: cost is roughly (examples × matching contracts), each manifest also brings a per-worker copy and a pooled dev server, and `fixtureSource` remains the right tool when the question is "does this one feature work" rather than "does this whole app work".
+
+  None of the four streams — all render synchronously — so `ssr-isolation` stays `pending`. Its blocker is unchanged and now better bounded: what it needs is not another SSR example but a _streaming_ one.
+
+- c28c3aa: Add a streaming SSR fixture, and turn the request-isolation contract from unfalsifiable to proven.
+
+  `ssr-isolation` shipped `pending` because it could not fail. Every SSR project in the manifest renders synchronously, which leaves no window between entering the request scope and reading the store — so a request-scoped read and a read of the process-global `globalThis.__zintl_active` are indistinguishable, and the contract would have passed no matter what the runtime did.
+
+  The new `ssr-streaming` fixture supplies the two properties nothing else had:
+
+  - **An `await` inside the render.** One yield between entering the scope and producing translated output, which is the window a second request needs in order to observe the first's state.
+  - **A `ReadableStream` return.** `injectBakedCatalogs` routes that through `injectIntoStream` — machinery that ships in every SSR build and had no test touching it at all.
+
+  **Verified by falsification.** With the `AsyncLocalStorage` lookup in `getActiveInstance` deliberately disabled so every read fell through to the process-global, the contract failed on the fixture with **18 of 24 concurrent responses serving Arabic to English, Spanish and Chinese requests** — each one complete, well-formed, and belonging to somebody else. The four example projects kept passing throughout, correctly: they render synchronously and genuinely cannot leak. That split is the evidence the fixture was needed, and `ssr-isolation` is no longer `pending`.
+
+  Two things about the fixture are load-bearing and easy to get wrong. Its translatable strings sit in a **template literal carrying markup**, because that is what the extractor stitches — an earlier version passed the same text as a bare argument to `encoder.encode()` and produced no catalogs whatsoever, so the contract "passed" against a page with nothing to translate. And they are built **after** the yield, since that is where a contaminated read would occur; constructing them earlier would make the fixture look like it exercised the window while proving nothing.
+
+  Translations are seeded per locale so the four render visibly differently. The contract already refuses to run against identical baselines — a leak between locales that look the same is undetectable, and a test that cannot distinguish them should say so rather than report green.
+
+  Suite: 100 contract tests, ~72–74 s.
+
+- 1e25c60: Strengthen the contract suite, and stop one contract claiming coverage it does not have.
+
+  **Two new contracts, both asserting in a real browser.** The distinction matters more than it sounds: the runtime is served as _text-substituted source_ through `getRuntimeCode`, and the one time a guard could not be folded, every development branch in the browser was dead for the project's entire life while every unit test passed. A rule that only holds against a bare `I18nStore` is not a rule that holds.
+
+  - **Delivery Ordering** proves Axiom D1 the way `hmr-hammer` cannot. `hmr-hammer` can only observe the order the network happened to produce; it can never make an older catalog arrive _after_ a newer one. This one does, and asserts the older loses — and that it loses _by rule_, with the supersession recorded, since a correct result reached by accident is indistinguishable from one reached by rule and does not survive the next change. It asserts on the store rather than the DOM, deliberately: whether a framework re-renders is a different question with its own contracts, and asserting it here would report their failures as ordering failures.
+  - **Delivery Failure** is proposal 024's acceptance criterion 2 — an abandoned boundary is observable. It exercises all three abandonment paths (rejection, empty result, synchronous throw) and requires each to be named in the ledger _with a reason_, because "it failed" and "it resolved empty" call for different fixes. It also asserts the page survives: a failed lazy boundary is not a crash.
+
+  **`assert.localeCoherent()`** checks that the store and the document agree about the locale. `assert.locale()` only ever read `html[lang]`, so a page rendering Arabic while announcing English passed it — which is precisely the defect a superseded locale switch produced when it was still allowed to publish. Both halves were individually plausible; only their disagreement was the bug. Wired into `locale-switch` and `locale-storm`.
+
+  **A contract can now declare itself `pending`.** `chaos-boundary` had its entire body commented out behind a known blocker, so what it actually ran was `navigateHome` plus one heading assertion — an exact duplicate of `initial-render`, reporting green and claiming the `chaos` capability while covering none of it. That is the worst state a test can be in: it occupies the slot where the real coverage would go and tells everyone the slot is filled. It is now skipped with its reason in the test report. A visible gap beats a passing test that hides one.
+
+  **One assertion was written, measured, and removed** — worth recording because it looked rigorous and was wrong. `hmr-hammer` briefly asserted that the wire carried one packet per write. It failed on every project: 3 packets for 5 writes, consistently, while the DOM converged correctly every time. The conclusion is not that delivery is broken but that the invariant was false. **Coalescing rapid writes is correct** — two writes 30 ms apart may legitimately become one event, provided it carries the later content. Proposal 024 §1.1a is narrower than "fewer packets than writes": it is coalescing dropping the **final** state. That is what the convergence assertion already tests, and counting packets would only add a red that means nothing.
+
+  Suite: 76 contract tests (from 72), still ~73–82 s.
+
+  - @zintljs/extractor@0.1.0-alpha.10
+
 ## 0.1.0-alpha.9
 
 ### Patch Changes

@@ -1,5 +1,26 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [69fed7f]
+- Updated dependencies [d3a1100]
+- Updated dependencies [91662bd]
+- Updated dependencies [2830f35]
+- Updated dependencies [cc88b36]
+- Updated dependencies [2af5252]
+- Updated dependencies [553cdae]
+- Updated dependencies [90dd704]
+- Updated dependencies [91662bd]
+- Updated dependencies [9c10e78]
+- Updated dependencies [91662bd]
+- Updated dependencies [8882138]
+- Updated dependencies [c28c3aa]
+- Updated dependencies [1e25c60]
+  - @zintljs/compiler@0.1.0-alpha.10
+  - zintljs@0.1.0-alpha.10
+
 ## 0.1.0-alpha.9
 
 ### Patch Changes
