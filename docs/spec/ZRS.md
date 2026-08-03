@@ -151,9 +151,11 @@ The number of sinks ($S) in a file is **irrelevant** to its Pattern classificati
 
 ### Axiom 4: Discovery Dominance (The DFS Rule)
 
-> In the event of a circular dependency (A ↔ B), ownership is resolved by **lexicographic file path order**. The file with the lower path string is discovered first and becomes the owner.
+> Wherever ownership is decided by which candidate is reached **first**, the candidates are ordered **lexicographically** — never by discovery order. This covers a circular dependency (A ↔ B), where the file with the lower path string becomes the owner, and equally the root set from which ownership is assigned.
 
 This ensures deterministic, reproducible builds regardless of file system enumeration order.
+
+The second half is not a generalisation after the fact; it is where the axiom was being violated. Chunk roots were iterated in graph-insertion order and ownership went to whichever root reached a boundary first, so a file reachable from two roots could belong to either. Insertion order differs between a compiler starting cold and one reading a saved manifest — the manifest is written with sorted keys — so **the same source produced two different graphs depending on whether a previous build had run.** Any first-wins resolution that is not explicitly ordered is an instance of this bug waiting to be found.
 
 ### Axiom 5: Specificity Over Heredity (Dictator Supremacy)
 
