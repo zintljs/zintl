@@ -40,34 +40,22 @@ export const ssrIsolationContract: Contract<SsrAdapter> = {
     "Verifies concurrent requests for different locales never observe each other's state",
   requires: ["ssr"],
   /**
-   * Written, run, and **falsified — it cannot currently fail**, so it is not
-   * allowed to report green.
+   * **Verified falsifiable**, which for this contract is the whole question.
    *
-   * It passes today. To find out whether that means anything, request scoping
-   * was deliberately broken: the `AsyncLocalStorage` lookup in
-   * `getActiveInstance` was disabled so every read fell through to the
-   * process-global `globalThis.__zintl_active`. The sabotage reached the served
-   * runtime — verified in `dist/runtime/store-core.mjs`, where the bundler had
-   * folded the branch away entirely — and **the contract still passed**.
+   * It passes. To establish that this means something, request scoping was
+   * deliberately broken — the `AsyncLocalStorage` lookup in `getActiveInstance`
+   * was disabled so every read fell through to the process-global
+   * `globalThis.__zintl_active` — and the contract failed on `ssr-streaming`
+   * with 18 of 24 responses serving Arabic to English, Spanish and Chinese
+   * requests. The four example projects kept passing, correctly: they render
+   * synchronously and genuinely cannot leak.
    *
-   * The reason is in the example, not the contract. `react-ssr` renders with
-   * `renderToString`, which is synchronous: there is no await between entering
-   * the request scope and finishing the render, so no second request can
-   * interleave and observe the global. The fallback is unreachable here by
-   * construction, and no amount of concurrency will change that.
-   *
-   * So the leak this contract describes is real in principle and untestable on
-   * the only SSR project in the manifest. Making it falsifiable needs a
-   * **streaming** SSR project — `renderToPipeableStream` with
-   * `injectIntoStream`, which is what the `streamInjection` capability and
-   * `store-server.ts` already exist for. That is one fixture away.
-   *
-   * Kept rather than deleted: the assertions are right, the baseline-then-
-   * interleave method is right, and the moment a streaming project joins the
-   * manifest this becomes a real test by deleting one line.
+   * That split is the reason the fixture exists. A synchronous render leaves no
+   * window between entering the request scope and reading the store, so
+   * request-scoped and process-global reads are indistinguishable and this
+   * contract would pass no matter what the runtime did. An earlier version of
+   * this file shipped `pending` for exactly that reason.
    */
-  pending:
-    "unfalsifiable against renderToString — needs a streaming SSR project; see the comment above",
   async execute(lab, adapter) {
     const locales = ["en", "ar", "es", "zh"];
 

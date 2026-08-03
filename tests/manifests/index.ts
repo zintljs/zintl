@@ -7,6 +7,7 @@ import { svelteSsr } from "./svelte-ssr.js";
 import { vanillaSpaBasic } from "./vanilla-spa-basic.js";
 import { vanillaSsr } from "./vanilla-ssr.js";
 import { assetsBasic } from "../fixtures/assets-basic.js";
+import { ssrStreaming } from "../fixtures/ssr-streaming.js";
 import type { ProjectManifest } from "@zintljs/testing";
 
 /**
@@ -31,4 +32,5 @@ export const allManifests: ProjectManifest[] = [
   vanillaSpaBasic,
   vanillaSsr,
   assetsBasic,
+  ssrStreaming,
 ];
