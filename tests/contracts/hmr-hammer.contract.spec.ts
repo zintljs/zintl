@@ -39,6 +39,24 @@ export const hmrHammerContract: Contract = {
 
     // 4. Assert that the browser eventually converged on the final text
     await lab.assert.textEventually(adapter.headingSelector, "HMR Hammer works!");
+
+    /**
+     * Deliberately **not** asserted: that the wire carried one packet per write.
+     *
+     * That assertion was written, and it failed on every project — 3 packets for
+     * 5 writes, consistently, while the DOM converged correctly every time. The
+     * conclusion is not that delivery is broken; it is that the assertion
+     * encoded a false invariant.
+     *
+     * Coalescing rapid writes is *correct*. Two writes 30 ms apart may become
+     * one event, and that is fine as long as the event carries the later
+     * content. Proposal 024 §1.1a is a narrower defect than "fewer packets than
+     * writes": it is when coalescing drops the **final** state, leaving the DOM
+     * on an intermediate value with the file on disk saying otherwise.
+     *
+     * Which is exactly what the convergence check above tests. Counting packets
+     * would only add a red that means nothing.
+     */
   },
 };
 

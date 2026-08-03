@@ -85,6 +85,89 @@ export class LabAssertions {
       lines.push("settle beacon: unreadable (page navigating or closed)");
     }
 
+    /**
+     * The delivery ledger — what the runtime was actually asked to do.
+     *
+     * Packet counts and a beacon say *how much* happened; they cannot say which
+     * boundary, in what order, or whether anything was superseded or failed.
+     * That is the difference between "the update did not arrive" and "it
+     * arrived and was discarded as older than one already applied", which have
+     * completely different fixes and used to cost a fresh investigation each.
+     */
+    try {
+      const ledger = await this.lab.page.evaluate(
+        () =>
+          (
+            globalThis as {
+              __zintl_ledger?: {
+                channel: string;
+                subject: string;
+                seq: number;
+                outcome: string;
+                reason?: string;
+              }[];
+            }
+          ).__zintl_ledger,
+      );
+      if (ledger === undefined) {
+        lines.push("delivery ledger: ABSENT — no Zintl runtime, or a production build");
+      } else if (ledger.length === 0) {
+        lines.push("delivery ledger: EMPTY — the runtime was never asked to apply anything");
+      } else {
+        const notable = ledger.filter((e) => e.outcome !== "applied");
+        lines.push(
+          `delivery ledger: ${ledger.length} entries, last 6 (oldest first):\n` +
+            ledger
+              .slice(-6)
+              .map(
+                (e) =>
+                  `    ${e.channel} ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
+              )
+              .join("\n") +
+            (notable.length > 0
+              ? `\n  not applied: ${notable.length} (${[...new Set(notable.map((e) => e.outcome))].join(", ")})`
+              : ""),
+        );
+      }
+    } catch {
+      lines.push("delivery ledger: unreadable (page navigating or closed)");
+    }
+
+    /**
+     * The compiler's own ledger, which survives the page.
+     *
+     * Reachable in project mode too, where there is no page and no socket — and
+     * it is the only place a flush that failed, or an update the self-write
+     * guard swallowed, is recorded at all.
+     */
+    try {
+      const bus = (
+        this.lab.compiler as { instance?: { bus?: { history: (c?: string) => unknown[] } } }
+      ).instance?.bus;
+      const build = (bus?.history("build/hmr") ?? []) as {
+        subject: string;
+        seq: number;
+        outcome: string;
+        reason?: string;
+      }[];
+      const pipeline = (bus?.history("build/pipeline") ?? []) as typeof build;
+      const notable = [...build, ...pipeline].filter((e) => e.outcome !== "applied");
+      if (notable.length > 0) {
+        lines.push(
+          `compiler ledger: ${notable.length} non-applied:\n` +
+            notable
+              .slice(-5)
+              .map(
+                (e) =>
+                  `    ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
+              )
+              .join("\n"),
+        );
+      }
+    } catch {
+      // Project mode without a live compiler, or a compiler with recording off.
+    }
+
     try {
       const errors = this.lab.console.errors ?? [];
       lines.push(
@@ -160,6 +243,98 @@ export class LabAssertions {
     const htmlLang = await this.lab.page.getAttribute("html", "lang");
     if (htmlLang !== expected) {
       throw new Error(`Expected page locale to be "${expected}", but found "${htmlLang}"`);
+    }
+  }
+
+  /**
+   * Assert the store and the document agree about the locale.
+   *
+   * `locale()` checks `html[lang]` and nothing else, so a page rendering one
+   * language while announcing another passes it — which is exactly what
+   * happened when a superseded locale switch was still allowed to publish:
+   * Arabic content on a page declaring `lang="en"`. Both halves were
+   * individually plausible and only their disagreement was the bug.
+   *
+   * The store half is skipped when the runtime is not reachable (a production
+   * page, or one that has not booted), rather than failing — this asserts
+   * agreement, and there is nothing to disagree with.
+   */
+  async localeCoherent(expected?: string): Promise<void> {
+    const state = await this.lab.page.evaluate(() => {
+      const store = (globalThis as { __zintl_current_instance?: { locale?: string } })
+        .__zintl_current_instance;
+      const html = document.documentElement;
+      return {
+        storeLocale: store?.locale,
+        lang: html.getAttribute("lang"),
+        dir: html.getAttribute("dir"),
+      };
+    });
+
+    if (expected !== undefined && state.lang !== expected) {
+      throw new Error(
+        `Expected page locale to be "${expected}", but the document says "${state.lang}"` +
+          ` (store says "${state.storeLocale}")`,
+      );
+    }
+
+    if (state.storeLocale && state.lang && state.storeLocale !== state.lang) {
+      throw new Error(
+        `Locale incoherence: the store is on "${state.storeLocale}" but the document ` +
+          `announces "${state.lang}". The page is rendering one language and telling ` +
+          `assistive technology and search engines another.\n\n` +
+          (await this.describeStall()),
+      );
+    }
+  }
+
+  /**
+   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
+   *
+   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
+   * throws and the UI goes blank — but an orphan is silent: it sits in the
+   * output directory forever, gets committed, gets translated, and describes
+   * source that no longer exists.
+   */
+  async noOrphanedCatalogs(): Promise<void> {
+    const compiler = this.lab.compiler.instance as
+      | { graph?: { boundaryGraph?: { nodes: Map<string, unknown> } }; _outputDir?: string }
+      | undefined;
+    const graph = compiler?.graph?.boundaryGraph;
+    if (!graph) return;
+
+    const outputDir = join(this.lab.root, (this.lab.compiler as any).outputDir ?? "src/locales");
+    if (!existsSync(outputDir)) return;
+
+    const live = new Set<string>();
+    for (const id of graph.nodes.keys()) {
+      live.add(this.lab.compiler.getSafeBoundaryId(id));
+      live.add(id);
+    }
+
+    const orphans: string[] = [];
+    const walk = async (dir: string) => {
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(full);
+          continue;
+        }
+        if (!entry.name.endsWith(".json") || entry.name.endsWith(".schema.json")) continue;
+        const stem = entry.name.replace(/\.json$/, "");
+        const known = [...live].some((id) => stem.includes(id) || id.includes(stem));
+        if (!known) orphans.push(relative(this.lab.root, full));
+      }
+    };
+    await walk(outputDir);
+
+    if (orphans.length > 0) {
+      throw new Error(
+        `${orphans.length} catalog(s) on disk belong to no boundary the compiler knows about:\n` +
+          orphans.map((o) => `    ${o}`).join("\n") +
+          `\n\nA catalog that outlives its source is not inert — it is committed, translated, ` +
+          `and describes code nobody can find.`,
+      );
     }
   }
 

@@ -1,0 +1,182 @@
+import { a as hero_default, c as Fragment, d as createTextVNode, f as createVNode, g as toDisplayString, h as ref, i as vue_default, l as createBaseVNode, m as openBlock, n as _plugin_vue_export_helper_default, o as vite_default, p as defineComponent, r as icons_default, s as createSSRApp, t as LocaleSwitcher_default, u as createElementBlock } from "../LocaleSwitcher.js";
+//#region examples/vue-ssr/src/components/HelloWorld.zintl-es.vue?vue&type=script&setup=true&lang.ts
+var HelloWorld_zintl_es_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "HelloWorld.zintl-es",
+	setup(__props, { expose: __expose }) {
+		__expose();
+		const __returned__ = {
+			count: ref(0),
+			get viteLogo() {
+				return vite_default;
+			},
+			get heroImg() {
+				return hero_default;
+			},
+			get vueLogo() {
+				return vue_default;
+			}
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region examples/vue-ssr/src/components/HelloWorld.zintl-es.vue
+var _hoisted_1 = icons_default + "#documentation-icon";
+var _hoisted_2 = icons_default + "#social-icon";
+var _hoisted_3 = icons_default + "#github-icon";
+var _hoisted_4 = icons_default + "#discord-icon";
+var _hoisted_5 = icons_default + "#x-icon";
+var _hoisted_6 = icons_default + "#bluesky-icon";
+var _hoisted_7 = { id: "center" };
+var _hoisted_8 = { class: "hero" };
+var _hoisted_9 = ["src"];
+var _hoisted_10 = ["src"];
+var _hoisted_11 = ["src"];
+var _hoisted_12 = { id: "next-steps" };
+var _hoisted_13 = { id: "docs" };
+var _hoisted_14 = {
+	href: "https://vite.dev/",
+	target: "_blank"
+};
+var _hoisted_15 = ["src"];
+var _hoisted_16 = {
+	href: "https://vuejs.org/",
+	target: "_blank"
+};
+var _hoisted_17 = ["src"];
+function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
+	return openBlock(), createElementBlock(Fragment, null, [
+		createBaseVNode("section", _hoisted_7, [
+			createBaseVNode("div", _hoisted_8, [
+				createBaseVNode("img", {
+					src: $setup.heroImg,
+					class: "base",
+					width: "170",
+					height: "179",
+					alt: ""
+				}, null, 8, _hoisted_9),
+				createBaseVNode("img", {
+					src: $setup.vueLogo,
+					class: "framework",
+					alt: "Logotipo de Vue"
+				}, null, 8, _hoisted_10),
+				createBaseVNode("img", {
+					src: $setup.viteLogo,
+					class: "vite",
+					alt: "Logotipo de Vite"
+				}, null, 8, _hoisted_11)
+			]),
+			_cache[1] || (_cache[1] = createBaseVNode("div", null, [createBaseVNode("h1", null, "Empezar"), createBaseVNode("p", null, [
+				createTextVNode("Edita "),
+				createBaseVNode("code", null, "src/App.vue"),
+				createTextVNode(" y guarda para probar "),
+				createBaseVNode("code", null, "HMR")
+			])], -1)),
+			createBaseVNode("button", {
+				class: "counter",
+				onClick: _cache[0] || (_cache[0] = ($event) => $setup.count++)
+			}, toDisplayString(`El recuento es ${$setup.count}`), 1)
+		]),
+		_cache[8] || (_cache[8] = createBaseVNode("div", { class: "ticks" }, null, -1)),
+		createBaseVNode("section", _hoisted_12, [createBaseVNode("div", _hoisted_13, [
+			_cache[4] || (_cache[4] = createBaseVNode("svg", {
+				class: "icon",
+				role: "presentation",
+				"aria-hidden": "true"
+			}, [createBaseVNode("use", { href: _hoisted_1 })], -1)),
+			_cache[5] || (_cache[5] = createBaseVNode("h2", null, "Documentación", -1)),
+			_cache[6] || (_cache[6] = createBaseVNode("p", null, "Tus preguntas, respondidas", -1)),
+			createBaseVNode("ul", null, [createBaseVNode("li", null, [createBaseVNode("a", _hoisted_14, [createBaseVNode("img", {
+				class: "logo",
+				src: $setup.viteLogo,
+				alt: ""
+			}, null, 8, _hoisted_15), _cache[2] || (_cache[2] = createTextVNode(" Explorar Vite ", -1))])]), createBaseVNode("li", null, [createBaseVNode("a", _hoisted_16, [createBaseVNode("img", {
+				class: "button-icon",
+				src: $setup.vueLogo,
+				alt: ""
+			}, null, 8, _hoisted_17), _cache[3] || (_cache[3] = createTextVNode(" Aprende más ", -1))])])])
+		]), _cache[7] || (_cache[7] = createBaseVNode("div", { id: "social" }, [
+			createBaseVNode("svg", {
+				class: "icon",
+				role: "presentation",
+				"aria-hidden": "true"
+			}, [createBaseVNode("use", { href: _hoisted_2 })]),
+			createBaseVNode("h2", null, "Conéctate con nosotros"),
+			createBaseVNode("p", null, "Únete a la comunidad de Vite"),
+			createBaseVNode("ul", null, [
+				createBaseVNode("li", null, [createBaseVNode("a", {
+					href: "https://github.com/vitejs/vite",
+					target: "_blank"
+				}, [createBaseVNode("svg", {
+					class: "button-icon",
+					role: "presentation",
+					"aria-hidden": "true"
+				}, [createBaseVNode("use", { href: _hoisted_3 })]), createTextVNode(" GitHub ")])]),
+				createBaseVNode("li", null, [createBaseVNode("a", {
+					href: "https://chat.vite.dev/",
+					target: "_blank"
+				}, [createBaseVNode("svg", {
+					class: "button-icon",
+					role: "presentation",
+					"aria-hidden": "true"
+				}, [createBaseVNode("use", { href: _hoisted_4 })]), createTextVNode(" Discord ")])]),
+				createBaseVNode("li", null, [createBaseVNode("a", {
+					href: "https://x.com/vite_js",
+					target: "_blank"
+				}, [createBaseVNode("svg", {
+					class: "button-icon",
+					role: "presentation",
+					"aria-hidden": "true"
+				}, [createBaseVNode("use", { href: _hoisted_5 })]), createTextVNode(" X.com ")])]),
+				createBaseVNode("li", null, [createBaseVNode("a", {
+					href: "https://bsky.app/profile/vite.dev",
+					target: "_blank"
+				}, [createBaseVNode("svg", {
+					class: "button-icon",
+					role: "presentation",
+					"aria-hidden": "true"
+				}, [createBaseVNode("use", { href: _hoisted_6 })]), createTextVNode(" Bluesky ")])])
+			])
+		], -1))]),
+		_cache[9] || (_cache[9] = createBaseVNode("div", { class: "ticks" }, null, -1)),
+		_cache[10] || (_cache[10] = createBaseVNode("section", { id: "spacer" }, null, -1))
+	], 64);
+}
+var HelloWorld_zintl_es_default = /*#__PURE__*/ _plugin_vue_export_helper_default(HelloWorld_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.zintl-es.vue"]]);
+//#endregion
+//#region examples/vue-ssr/src/App.zintl-es.vue?vue&type=script&setup=true&lang.ts
+var App_zintl_es_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "App.zintl-es",
+	setup(__props, { expose: __expose }) {
+		__expose();
+		const __returned__ = {
+			HelloWorld: HelloWorld_zintl_es_default,
+			LocaleSwitcher: LocaleSwitcher_default
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region examples/vue-ssr/src/App.zintl-es.vue
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+	return openBlock(), createElementBlock(Fragment, null, [createVNode($setup["LocaleSwitcher"]), createVNode($setup["HelloWorld"])], 64);
+}
+var App_zintl_es_default = /*#__PURE__*/ _plugin_vue_export_helper_default(App_zintl_es_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.zintl-es.vue"]]);
+//#endregion
+//#region examples/vue-ssr/src/main.ts?zintl-multiplex=es
+function createApp() {
+	return { app: createSSRApp(App_zintl_es_default) };
+}
+//#endregion
+//#region examples/vue-ssr/src/entry-client.ts?zintl-multiplex=es
+var { app } = createApp();
+app.mount("#app");
+//#endregion

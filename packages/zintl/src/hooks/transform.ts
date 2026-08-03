@@ -46,11 +46,22 @@ export function transformHook(ctx: Context) {
 
       if (affectedChunkIds.length > 0) {
         vLogger.debug(`Invalidating ${affectedChunkIds.length} affected chunks for ${boundaryId}`);
+        /**
+         * Stamp the invalidation, the same way the hot-update hook does.
+         *
+         * This is a second, independent invalidation path, and it set no
+         * timestamp at all — so modules invalidated from here carried no
+         * ordering token, and the bundler had nothing to rewrite their import
+         * query with. Two of these racing produced fetches the browser could
+         * apply in either order.
+         */
+        const stamp = Date.now();
         for (const chunkModuleId of affectedChunkIds) {
           for (const [modId, mod] of mg.idToModuleMap) {
             if (modId.includes(chunkModuleId) && modId.includes("virtual:zintl")) {
               vLogger.debug(`[HMR] Invalidating virtual module: ${modId}`);
               mg.invalidateModule(mod);
+              mod.lastHMRTimestamp = stamp;
             }
           }
         }

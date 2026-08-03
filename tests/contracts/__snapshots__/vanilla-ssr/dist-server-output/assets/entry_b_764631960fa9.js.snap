@@ -1,0 +1,7 @@
+//#region \0virtual:zintl/content/ar/entry:b_764631960fa9
+var catalog = { "b_f05b8e5701f3": { "3aaf6932": (params) => {
+	const { counter } = params;
+	return `العدد هو ${params["counter"]}`;
+} } };
+//#endregion
+export { catalog as default };

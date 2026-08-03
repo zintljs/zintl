@@ -12,7 +12,7 @@ export const localeSwitchContract: Contract<LocaleSwitchAdapter> = {
     await lab.clock.waitForIdle();
 
     // 1. Verify initial state
-    await lab.assert.locale("en");
+    await lab.assert.localeCoherent("en");
 
     // 2. Start capturing network requests
     const networkCapture = lab.network.capture();
@@ -23,8 +23,10 @@ export const localeSwitchContract: Contract<LocaleSwitchAdapter> = {
 
     const requests = networkCapture.stop();
 
-    // 4. Verify DOM elements reflect Arabic locale
-    await lab.assert.locale("ar");
+    // 4. Verify DOM elements reflect Arabic locale — and that the store agrees.
+    // Checking the attribute alone passes a page that renders Arabic while
+    // announcing English, which is a real defect this suite has seen.
+    await lab.assert.localeCoherent("ar");
     await lab.assert.dir("rtl");
 
     // 5. Verify that the Arabic translation catalog request was captured

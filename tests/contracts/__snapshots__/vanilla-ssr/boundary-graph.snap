@@ -1,0 +1,221 @@
+{
+  "entries": [
+    "index.html",
+    "src/entry-client",
+    "src/entry-server:render"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/entry-client"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "server": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "compression"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "dist/server/entry-server"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "express"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "node:fs/promises"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "sirv"
+        },
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "vite"
+        }
+      ],
+      "filePath": "server",
+      "id": "server",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/counter:setupCounter": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/counter",
+      "id": "src/counter:setupCounter",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/entry-client": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/style.css"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/entry-client",
+      "id": "src/entry-client",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/entry-server": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/typescript.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "dynamic": false,
+          "id": "src/entry-server:render"
+        },
+        {
+          "bindings": [
+            "LocaleSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:LocaleSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/entry-server",
+      "id": "src/entry-server",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/entry-server:render": {
+      "activeLocales": [],
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/typescript.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "LocaleSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:LocaleSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/entry-server",
+      "id": "src/entry-server:render",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/vite"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

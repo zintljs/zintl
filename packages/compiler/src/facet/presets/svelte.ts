@@ -108,6 +108,27 @@ export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet
  *
  * Included in `"auto"` when Svelte or SvelteKit is detected.
  */
+/**
+ * Re-running this framework's entry is **not** safe.
+ *
+ * Svelte's `mount()` appends: running it again on a container that already
+ * has a mount renders the whole application a second time rather than
+ * replacing it. `chaos-boundary` reproduces exactly that — the page doubles in
+ * size and the heading selector reads the stale copy.
+ *
+ * Declaring it here rather than in the bundler facet is the point: whether a
+ * mount can be replayed is framework knowledge, and the injection hook has no
+ * way to know it. See `RuntimeFacet.entryReexecutionSafe`.
+ */
+export function svelteRuntimeFacet(): ZintlFacet {
+  return {
+    name: "svelte-runtime",
+    concern: "runtime",
+    priority: 100,
+    entryReexecutionSafe: false,
+  };
+}
+
 export function svelteFacet(options: SvelteFacetOptions = {}): ZintlFacet[] {
-  return [svelteExtractionFacet(options), svelteCodegenFacet(options)];
+  return [svelteExtractionFacet(options), svelteCodegenFacet(options), svelteRuntimeFacet()];
 }

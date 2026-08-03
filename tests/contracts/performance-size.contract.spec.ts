@@ -2,6 +2,26 @@ import { expect } from "vite-plus/test";
 import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
+/**
+ * TODO: measure the payload this contract's name promises.
+ *
+ * It captures response bodies inside a timing window and asserts each is under
+ * 10 KB — but it runs against the **dev server**, so what it measures is
+ * dev-wrapped modules, which its own budget comment concedes ("adjusted to 10KB
+ * to support Vite dev-mode wrapper overhead"). A dev module bears no fixed
+ * relationship to the bytes a user downloads.
+ *
+ * It is also timing-dependent in a way a size assertion should never be: which
+ * responses land inside the window varies run to run, and the URL filter
+ * includes any `.json`, so an unrelated response can be measured as a catalog.
+ * Observed failing once in seven runs at 10,972 bytes while passing 3/3 in
+ * isolation.
+ *
+ * What would actually answer the question: assert against the **built** output,
+ * the way `build.contract` already does — locate the emitted lazy catalog chunks
+ * in `dist` and check their size. That is deterministic, it is the number that
+ * matters to a user, and it needs no timing window at all.
+ */
 export const performanceSizeContract: Contract<LocaleSwitchAdapter> = {
   name: "Performance Size",
   description:

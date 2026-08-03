@@ -1,0 +1,24 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import "./app.css";
+import { hydrate } from "svelte";
+import App from "./App.svelte";
+
+
+async function bootstrap() {
+  await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client_bootstrap"]: _zintl_mgr_b_src_entry_client_bootstrap.loader } }));
+  hydrate(App, {
+    target: document.getElementById("app")!,
+  });
+}
+
+void bootstrap();
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    // src/entry-client declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
+  });
+}

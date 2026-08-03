@@ -1,0 +1,15 @@
+import "../style.js";
+//#region examples/vanilla-ssr/src/counter.ts?zintl-multiplex=es
+function setupCounter(element) {
+	let counter = 0;
+	const setCounter = (count) => {
+		counter = count;
+		element.innerHTML = `La cuenta es ${counter}`;
+	};
+	element.addEventListener("click", () => setCounter(counter + 1));
+	setCounter(0);
+}
+//#endregion
+//#region examples/vanilla-ssr/src/entry-client.ts?zintl-multiplex=es
+setupCounter(document.querySelector("#counter"));
+//#endregion

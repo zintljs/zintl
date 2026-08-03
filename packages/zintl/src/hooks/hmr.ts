@@ -4,7 +4,7 @@ import type Context from "../context.js";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 
 export function handleHotUpdateHook(ctx: Context) {
-  return async function (this: any, { file, server, modules, timestamp }: any) {
+  return async function (this: any, { file, server, modules, timestamp, read }: any) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
     if (ctx.compiler.isWritingFile(file)) return;
 
@@ -13,6 +13,30 @@ export function handleHotUpdateHook(ctx: Context) {
     const isAsset = file.endsWith(".md") || file.endsWith(".txt");
 
     if (!isJson && !isSource && !isAsset) return;
+
+    /**
+     * The sequence for this event, and the content it describes.
+     *
+     * `timestamp` is the bundler's own hot-update clock: strictly monotonic,
+     * never repeating, and already travelling to the browser as `?t=` on
+     * rewritten imports. Using it means the compiler and the browser order the
+     * same event by the same number.
+     *
+     * `read()` hands back the content the bundler saw for *this* event. Letting
+     * the compiler read the file itself instead is how a later write became a
+     * no-op — the watcher is unqueued, so two rapid changes run concurrently and
+     * both would read whatever happened to be on disk at that moment.
+     */
+    const seq = typeof timestamp === "number" ? timestamp : Date.now();
+    let content: string | undefined;
+    if (isSource && typeof read === "function") {
+      try {
+        content = await read();
+      } catch {
+        // Fall back to a disk read inside the compiler — a file that cannot be
+        // read here is usually one being rewritten, and the retry costs nothing.
+      }
+    }
 
     vLogger.debug(`HMR triggered for ${file}`);
     const invalidatedModules = new Set<ModuleNode>();
@@ -31,7 +55,7 @@ export function handleHotUpdateHook(ctx: Context) {
       if (isAsset) {
         await ctx.compiler.assets.registerAsset(file);
       }
-      const inv = await ctx.compiler.invalidateFile(file, true);
+      const inv = await ctx.compiler.invalidateForUpdate(file, seq, true);
       for (const b of inv) invalidatedBoundaries.push(b);
 
       if (inv.length === 0 && isJson) {
@@ -42,7 +66,7 @@ export function handleHotUpdateHook(ctx: Context) {
         }
       }
     } else {
-      const inv = await ctx.compiler.invalidateFile(file);
+      const inv = await ctx.compiler.invalidateForUpdate(file, seq, false, content);
       for (const b of inv) invalidatedBoundaries.push(b);
     }
 

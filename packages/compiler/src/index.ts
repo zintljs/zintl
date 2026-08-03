@@ -36,6 +36,7 @@ import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
+import { DeliveryBus } from "./bus/index.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { similarity } from "./reconcile.js";
@@ -62,6 +63,19 @@ export type * from "./types/capabilities.js";
 // the context, so they must be nameable from the package root.
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
+
+// The delivery bus (docs/spec/ZDB.md). Exported because the host plugin owns
+// the hot-update seam and the test harness reads the ledger, so both need to
+// name these without reaching into the compiler's internals.
+export { DeliveryBus, DEFAULT_HISTORY_LIMIT } from "./bus/index.js";
+export type { DeliveryBusOptions } from "./bus/index.js";
+export type {
+  DeliveryChannel,
+  DeliveryLedgerEntry,
+  DeliveryOutcome,
+  Envelope,
+  TerminalOutcome,
+} from "./types/delivery.js";
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -156,12 +170,63 @@ export class ZintlCompiler {
   private observationCache: Record<string, any> = {};
   private readonly boundaryRevisions = new Map<string, number>();
   private rebuildPromise: Promise<void> | null = null;
+  /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
+  private graphGeneration = 0;
   private flushPromise: Promise<void> | null = null;
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
   /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
   private readonly confirmedOnDisk = new Set<string>();
   private reachableCache: Set<string> | null = null;
+
+  /**
+   * Delivery accounting — see `docs/spec/ZDB.md`.
+   *
+   * Public because the host plugin owns the hot-update seam and the test harness
+   * reads the ledger; both need it without reaching into compiler internals.
+   */
+  public readonly bus: DeliveryBus;
+  /**
+   * The in-flight invalidation for each file, and the sequence that owns it.
+   *
+   * The hot-update hook runs once *per environment* — a client pass, then one
+   * for every other environment — so one filesystem change asks the compiler to
+   * invalidate the same file two or more times. Holding the first pass's work
+   * here lets the later passes join it (Axiom D3) instead of racing it and
+   * double-counting the boundary revision.
+   */
+  private readonly updateCustody = new Map<string, { seq: number; work: Promise<string[]> }>();
+  /**
+   * Monotonic catalog generation, stamped into every generated content module.
+   *
+   * The receiver compares it per `<locale>/<boundaryId>` and discards anything
+   * older, so a catalog module that arrives after a newer one has already been
+   * applied cannot win.
+   *
+   * Deliberately a single counter bumped only when an invalidation actually
+   * found boundaries, rather than one per module generation. A per-generation
+   * number would change the emitted text every time a module was rebuilt —
+   * including rebuilds of unchanged content — and the bundler would treat each
+   * of those as a real change. The predecessor of this counter made a worse
+   * version of the same mistake: it *summed* boundary revisions across a file,
+   * which is not injective (two boundaries at revision 1 is indistinguishable
+   * from one at revision 2) and emitted the total into a source comment that
+   * nothing ever read.
+   */
+  private catalogGeneration = 0;
+
+  /**
+   * The generation stamped into catalogs generated from now on.
+   *
+   * Public so a test harness can wait causally: read it after a write, then
+   * wait until the page's ledger shows a `runtime/catalog` delivery at least
+   * that new. That is a real end-to-end signal — this change reached the
+   * browser — where waiting on the first update packet of any kind resolves on
+   * whatever happened to arrive first, including another worker's.
+   */
+  public get generation(): number {
+    return this.catalogGeneration;
+  }
 
   public _options: CompilerOptions;
 
@@ -179,6 +244,9 @@ export class ZintlCompiler {
     this.root = root;
     this.isDev = isDev;
     this.debug = options.debug;
+    // Recording is the diagnosis half and is development-only (Axiom D5); the
+    // sequence state it needs for ordering is kept either way.
+    this.bus = new DeliveryBus({ record: isDev });
 
     const ZL = (Extractor as any).ZintlLogger;
     this.logger = new ZL({
@@ -198,6 +266,7 @@ export class ZintlCompiler {
       this.extensions,
       this._resolved.facets,
     );
+    this.io.bus = this.bus;
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
     this.catalog = new CatalogManager(
       this.io,
@@ -230,6 +299,7 @@ export class ZintlCompiler {
       io: this.io,
       logger: this.logger,
       catalog: this.catalog,
+      bus: this.bus,
       getDependencyGraph: () => this.messages.dependencyGraph,
       getHive: () => this.messages.hive,
       markHiveDirty: () => this.messages.markHiveDirty(),
@@ -295,6 +365,32 @@ export class ZintlCompiler {
     return this.io;
   }
 
+  /**
+   * Run one facet lifecycle step, under an envelope.
+   *
+   * These fan-outs were bare sequential `await` loops: a facet that threw took
+   * the loop with it, so every facet after it in registration order silently
+   * never ran, and the only evidence was whichever error happened to surface.
+   * Each step now reaches a terminal outcome naming the facet (Axiom D2), and a
+   * failure stops the step rather than the remaining facets — the composition is
+   * `union`, so the facets are independent and one failing does not make the
+   * others wrong.
+   */
+  private async runFacetStep(
+    step: string,
+    facetName: string,
+    run: () => Promise<void> | void,
+  ): Promise<void> {
+    const envelope = this.bus.mint("build/pipeline", `${step}:${facetName}`);
+    try {
+      await run();
+      this.bus.settle(envelope, "applied");
+    } catch (err) {
+      this.bus.settle(envelope, "failed", String(err));
+      this.logger.error(`Content facet "${facetName}" failed during ${step}: ${String(err)}`);
+    }
+  }
+
   public async setup() {
     await this.messages.loadMetadata();
     const context = this.getCompilerContext();
@@ -303,7 +399,7 @@ export class ZintlCompiler {
         const savedState =
           this.messages.savedContentStates[facet.name || ""] ||
           (facet.name === "system-static-assets" ? this.messages.registeredAssets : undefined);
-        await facet.setup(savedState, context);
+        await this.runFacetStep("setup", facet.name, () => facet.setup!(savedState, context));
       }
     }
     await this.catalog.harvestHive(
@@ -352,8 +448,110 @@ export class ZintlCompiler {
     return this.graph.boundaryGraph?.entries.has(id) || false;
   }
 
-  public async invalidateFile(filePath: string, force = false): Promise<string[]> {
-    if (!force && this.io.writingFiles.has(filePath)) return [];
+  /**
+   * Invalidate a file for one hot-update event, once, however many callers ask.
+   *
+   * The hot-update hook is invoked once *per environment* — a client pass, then
+   * one for each other environment — so a single filesystem change reaches the
+   * compiler two or more times with the same event sequence. Each pass still has
+   * its own module graph to invalidate, but the compiler-side work must happen
+   * once: running it twice bumped the boundary revision twice and let two
+   * re-extractions of the same file race each other.
+   *
+   * `seq` is the bundler's hot-update timestamp, which is already strictly
+   * monotonic and never repeats. Adopting it beats minting a parallel clock that
+   * would then have to be kept in step with the one the browser already sees on
+   * rewritten imports.
+   */
+  public async invalidateForUpdate(
+    filePath: string,
+    seq: number,
+    force = false,
+    content?: string,
+  ): Promise<string[]> {
+    const subject = this.io.getNormalizedId(filePath);
+    const envelope = this.bus.mint("build/hmr", subject, { seq });
+
+    const held = this.updateCustody.get(subject);
+    if (held && held.seq === seq) {
+      /**
+       * Axiom D3 — another environment reporting the *same* event joins the
+       * first pass's custody rather than starting a competing one. The promise
+       * is what is shared, not a cached result, because the first pass is
+       * usually still running when the second arrives.
+       */
+      this.bus.settle(envelope, "superseded", "joined the in-flight update for this file");
+      return held.work;
+    }
+
+    /**
+     * Recorded for ordering, but **not** used to discard the work.
+     *
+     * This is where D1 does not apply, and getting it wrong cost a regression.
+     * D1 governs deliveries that *replace* state: a newer catalog makes an older
+     * one irrelevant, so discarding the older one loses nothing. Invalidation is
+     * not that. It **accumulates** — it marks boundaries dirty, clears caches and
+     * re-extracts — and each watcher event may describe a different file state.
+     * Dropping an event because a higher sequence was already seen throws away
+     * work no later event will redo, and the update it would have produced is
+     * simply never emitted.
+     *
+     * So ordering is enforced downstream, where the delivery really is a
+     * replacement: every generated catalog carries `catalogGeneration`, and the
+     * runtime discards one that arrives after a newer one. Here the sequence
+     * only records, for diagnosis, that events arrived out of order.
+     */
+    if (!this.bus.observe(envelope)) {
+      this.bus.settle(
+        envelope,
+        "applied",
+        "processed out of order; ordering is applied downstream",
+      );
+    } else {
+      this.bus.settle(envelope, "applied");
+    }
+
+    const work = this.invalidateFile(filePath, force, content).catch((err) => {
+      this.logger.error(`Invalidation failed for ${subject}: ${String(err)}`);
+      return [] as string[];
+    });
+    this.updateCustody.set(subject, { seq, work });
+
+    return work;
+  }
+
+  public async invalidateFile(
+    filePath: string,
+    force = false,
+    /**
+     * The file's contents as the caller already read them.
+     *
+     * Re-reading from disk here is what let a later write become a no-op: the
+     * watcher is unqueued, so two changes in quick succession produce two
+     * concurrent invalidations, and both read whatever is on disk *now*. The
+     * earlier invocation would observe the later content, and the later one
+     * would then find nothing changed and emit nothing at all.
+     */
+    content?: string,
+  ): Promise<string[]> {
+    if (!force && this.io.writingFiles.has(filePath)) {
+      /**
+       * A write this compiler made is echoing back through the watcher.
+       *
+       * Named rather than dropped (Axiom D2), because the guard is a time window
+       * and a genuine edit landing inside it is silently discarded. That window
+       * is a known weakness — Corollary D1a says a timing window is never a
+       * guard — but narrowing it needs a content-identity check that survives
+       * the formatter rewriting the file after the write, which is Phase 4 work.
+       * Until then the loss is at least visible.
+       */
+      this.bus.settle(
+        this.bus.mint("io/write", this.io.getNormalizedId(filePath)),
+        "failed",
+        "suppressed by the self-write guard",
+      );
+      return [];
+    }
 
     const normalizedPath = this.io.getNormalizedId(filePath);
     const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
@@ -394,7 +592,9 @@ export class ZintlCompiler {
     if (boundaries) {
       if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
-          const code = await this.io.readFile(filePath);
+          // Prefer the content the caller was handed. Falling back to disk is
+          // only for callers that have none — see the `content` parameter.
+          const code = content ?? (await this.io.readFile(filePath));
           await this.transform(code, filePath, undefined, true);
         } catch (e) {
           this.logger.error(`Failed to re-extract messages during invalidation: ${String(e)}`);
@@ -437,10 +637,81 @@ export class ZintlCompiler {
       delete this.catalog.getCache()[bId];
       this.boundaryRevisions.set(bId, (this.boundaryRevisions.get(bId) || 0) + 1);
     }
+    if (foundBoundaryIds.length > 0) {
+      // A real change: every catalog generated from here on describes a newer
+      // world than anything already delivered.
+      this.catalogGeneration++;
+    }
     if (foundBoundaryIds.length === 0 && filePath.endsWith(".json")) {
       this.catalog.setCache({});
     }
     return foundBoundaryIds;
+  }
+
+  /**
+   * Forget a file that no longer exists, and everything it owned.
+   *
+   * Nothing called this before, because nothing told the compiler a file had
+   * been deleted: the bundler routes unlinks through a path that never reaches
+   * `handleHotUpdate`/`hotUpdate`, and the plugin registered no watcher of its
+   * own. A deleted boundary therefore stayed in the graph for the life of the
+   * process — and dev servers are pooled, so it outlived the thing that created
+   * it and leaked into everything downstream.
+   *
+   * `trackBoundaryChange` already knew how to drop the boundaries a file no
+   * longer owns; the gap was that a deletion never reached it. Passing an empty
+   * set is exactly "this file owns nothing now".
+   *
+   * The removed boundaries are marked dirty on purpose. Pruning reclaims their
+   * catalogs by comparing the output directory against the live graph, but the
+   * flush also has to be told something changed, or a deletion made during an
+   * idle moment sits unflushed until an unrelated edit happens to wake it.
+   */
+  public async removeFile(filePath: string): Promise<string[]> {
+    const fileId = this.io.getNormalizedId(filePath);
+    const owned = this.messages.boundaryOwnership.get(fileId);
+    const removed = owned ? [...owned] : [];
+
+    if (removed.length === 0 && !this.messages.metadataGraph[fileId]) {
+      // Not a file the compiler ever knew about — an asset, a stylesheet, or a
+      // file outside the boundary graph. Nothing to forget.
+      return [];
+    }
+
+    this.logger.debug(`Forgetting deleted file: ${fileId}`);
+
+    this.messages.trackBoundaryChange(fileId, new Set());
+    this.messages.boundaryOwnership.delete(fileId);
+    delete this.messages.metadataGraph[fileId];
+    delete this.messages.dependencyGraph[fileId];
+
+    for (const bId of removed) {
+      delete this.catalog.getCache()[bId];
+      delete this.messages.internalManifest[bId];
+      this.messages.dirtyBoundaries.add(bId);
+      this.boundaryRevisions.delete(bId);
+      this.confirmedOnDisk.delete(bId);
+      this.graph.boundaryGraph?.nodes.delete(bId);
+      this.graph.boundaryGraph?.entries.delete(bId);
+    }
+
+    delete this.hashCache[fileId];
+    delete this.observationCache[fileId];
+    delete this.hashCache[filePath];
+    delete this.observationCache[filePath];
+
+    this.graphDirty = true;
+    this.reachableCache = null;
+    if (removed.length > 0) this.catalogGeneration++;
+
+    this.bus.settle(
+      this.bus.mint("build/hmr", fileId),
+      "applied",
+      `deleted; forgot ${removed.length} boundar${removed.length === 1 ? "y" : "ies"}`,
+    );
+
+    if (this.isDev) this.scheduleFlush();
+    return removed;
   }
 
   private isReachable(fromId: string, toId: string, visited = new Set<string>()): boolean {
@@ -596,17 +867,30 @@ export class ZintlCompiler {
     if (!this.graphDirty && this.rebuildPromise) return this.rebuildPromise;
     this.graphDirty = false;
     this.reachableCache = null;
+
+    /**
+     * The generation this rebuild belongs to.
+     *
+     * `graphDirty` is cleared *before* the async body runs, so a `transform`
+     * during the rebuild sets it again and the next call starts a second,
+     * concurrent rebuild. Both then assigned `boundaryGraph`/`chunkGraph` on
+     * completion, and the winner was whichever *finished* last rather than
+     * whichever started last — the same race as a stale hot update, in the
+     * compiler.
+     *
+     * A graph rebuild genuinely replaces state (unlike invalidation, ZDB §4.1a),
+     * so D1 is the right rule here: a rebuild whose generation has been overtaken
+     * discards its result instead of overwriting a newer world.
+     */
+    const generation = ++this.graphGeneration;
+    const envelope = this.bus.mint("build/pipeline", "graph", { seq: generation });
+    this.bus.accept(envelope);
+
     this.rebuildPromise = (async () => {
       const context = this.getCompilerContext();
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
-        const assetTranslations: Record<string, string> = {};
-        for (const facet of this._resolved.system.contentFacets) {
-          if (facet.getTranslations) {
-            const tr = await facet.getTranslations(this.sourceLocale, context);
-            Object.assign(assetTranslations, tr);
-          }
-        }
+        const assetTranslations = await this.mergeFacetTranslations(this.sourceLocale, context);
         const assetKeys = Object.keys(assetTranslations).map((text) => ({
           text,
           id: "asset",
@@ -625,13 +909,7 @@ export class ZintlCompiler {
         }
 
         for (const loc of this.locales) {
-          const locAssets: Record<string, string> = {};
-          for (const facet of this._resolved.system.contentFacets) {
-            if (facet.getTranslations) {
-              const tr = await facet.getTranslations(loc, context);
-              Object.assign(locAssets, tr);
-            }
-          }
+          const locAssets = await this.mergeFacetTranslations(loc, context);
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
 
           let changed = false;
@@ -665,11 +943,56 @@ export class ZintlCompiler {
         this.messages.metadataGraph,
         this._resolved.system.virtualBoundaries,
       );
+      if (!this.bus.holds(envelope)) {
+        // A newer rebuild started while this one was running; its result is the
+        // current world. Discard ours rather than overwrite it.
+        this.bus.settle(envelope, "superseded", "a newer graph rebuild took the slot");
+        return;
+      }
       this.graph.boundaryGraph = g;
       this.graph.chunkGraph = c;
+      this.bus.settle(envelope, "applied");
       return;
     })();
     return this.rebuildPromise;
+  }
+
+  /**
+   * Merge every content facet's translations for one locale — composition
+   * `union`, with collisions treated as the conflict they are (ZDB Axiom D4).
+   *
+   * This was `Object.assign` in a loop, so when two facets produced the same key
+   * with different text the last facet in iteration order silently won. That is
+   * not a merge, it is a coin toss decided by facet registration order, and the
+   * losing facet's content simply never appeared.
+   *
+   * Identical values are not a conflict — two facets agreeing about a string is
+   * fine and common.
+   */
+  private async mergeFacetTranslations(
+    locale: string,
+    context: CompilerContext,
+  ): Promise<Record<string, string>> {
+    const merged: Record<string, string> = {};
+    const owner = new Map<string, string>();
+
+    for (const facet of this._resolved.system.contentFacets) {
+      if (!facet.getTranslations) continue;
+      const contributed = await facet.getTranslations(locale, context);
+      for (const [key, value] of Object.entries(contributed ?? {})) {
+        const previous = owner.get(key);
+        if (previous !== undefined && merged[key] !== value) {
+          throw new Error(
+            `[Zintl] Content facet conflict: "${previous}" and "${facet.name}" both provide ` +
+              `the key ${JSON.stringify(key)} for locale "${locale}" with different values. ` +
+              `Only one facet may own a content key — rename it in one of them.`,
+          );
+        }
+        merged[key] = value;
+        owner.set(key, facet.name);
+      }
+    }
+    return merged;
   }
 
   public async transformHtml(
@@ -678,12 +1001,23 @@ export class ZintlCompiler {
     preloads?: Record<string, string[]>,
   ): Promise<string> {
     const context = this.getCompilerContext();
+    /**
+     * Composition `chain`: every facet transforms in turn, each seeing the
+     * previous one's output (ZDB Axiom D4).
+     *
+     * This used to `return` inside the loop, so the first facet implementing
+     * `transformHtml` won and any later one was unreachable code — a facet could
+     * be registered, be asked for nothing, and never say so. A chain is also the
+     * semantics HTML transformation actually wants: projections, preloads and
+     * bootstrap injection compose rather than compete.
+     */
+    let result = html;
     for (const facet of this._resolved.system.contentFacets) {
       if (facet.transformHtml) {
-        return await facet.transformHtml(html, id, context, preloads);
+        result = await facet.transformHtml(result, id, context, preloads);
       }
     }
-    return html;
+    return result;
   }
 
   async transform(
@@ -1024,6 +1358,28 @@ export class ZintlCompiler {
     );
     const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id, world.config);
     if (this.isDev) {
+      /**
+       * Route the pipeline's own diagnostics somewhere they can be read.
+       *
+       * `resolve` and `apply` have always produced a structured `Diagnostic[]`
+       * — overlapping rewrites dropped, duplicates merged, redundant edits
+       * suppressed — and every one of them was written to a field nobody ever
+       * looked at. A dropped rewrite is a source mutation that did not happen,
+       * which is exactly the class of loss the ledger exists to name.
+       *
+       * Only `warn` and `error` are recorded: `info` covers ordinary merges
+       * that happen on almost every transform, and a ledger that reports
+       * routine work is one nobody reads.
+       */
+      for (const diagnostic of [...plan.diagnostics, ...result.diagnostics]) {
+        if (diagnostic.severity === "info") continue;
+        this.bus.settle(
+          this.bus.mint("build/pipeline", `transform:${effectiveCleanId}`),
+          "failed",
+          `${diagnostic.severity}: ${diagnostic.message}`,
+        );
+      }
+
       const validation = validate(
         result,
         plan,
@@ -1032,6 +1388,16 @@ export class ZintlCompiler {
       );
       if (!validation.valid) {
         this.logger.error(`Validation failed for ${id}:`, validation.errors);
+        for (const error of validation.errors) {
+          this.bus.settle(
+            this.bus.mint("build/pipeline", `transform:${effectiveCleanId}`),
+            "failed",
+            // Serialized, not stringified: every variant is a discriminated
+            // object, so `String(error)` yields "[object Object]" and loses
+            // the one field that says what went wrong.
+            `validation: ${JSON.stringify(error)}`,
+          );
+        }
       }
     }
 
@@ -1245,7 +1611,12 @@ export class ZintlCompiler {
       if (hmrFn) {
         const fileMeta = (this.messages as any)?.metadataGraph?.[fileId];
         const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
-        const hmrCode = hmrFn(fileId, hmrToken, hasAnchors);
+        const hmrCode = hmrFn(
+          fileId,
+          hmrToken,
+          hasAnchors,
+          this._resolved.flags.entryReexecutionSafe,
+        );
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
           if (scriptCloseIdx !== -1) {
@@ -1283,13 +1654,110 @@ export class ZintlCompiler {
     this.autoFlushTimeout = setTimeout(() => this.flush(), SAVE_DEBOUNCE_MS);
   }
 
-  public async flush() {
+  public async flush(): Promise<void> {
     if (this.autoFlushTimeout) {
       clearTimeout(this.autoFlushTimeout);
       this.autoFlushTimeout = null;
     }
-    if (this.flushPromise) return this.flushPromise;
-    this.flushPromise = (async () => {
+
+    if (this.flushPromise) {
+      /**
+       * Axiom D3 — a caller arriving mid-flush is not served by the in-flight
+       * run, so it must not be handed that run's promise.
+       *
+       * The running flush snapshotted its dirty set before this caller's
+       * boundaries were added to it, so awaiting it means "someone else's work
+       * finished", not "your change was flushed". Queue a follow-on and resolve
+       * when *that* completes.
+       *
+       * The in-flight run's failure belongs to whoever started it; this caller
+       * only cares whether its own follow-on lands.
+       */
+      /**
+       * A mid-flush caller joins the in-flight run, and its boundaries stay
+       * dirty for the next one.
+       *
+       * The stricter reading of Axiom D3 would be a follow-on flush, so the
+       * returned promise means "your change landed" rather than "someone else's
+       * work finished". That was built, and measured, and removed: the flush
+       * body reaches back into the compiler — `syncGraphs` asks content facets
+       * for translations, that can transform, and `transform` schedules a flush
+       * — so an unconditional follow-on livelocked, and a guarded one still cost
+       * a full extra pass per hot update and destabilised HMR contracts under
+       * parallel load.
+       *
+       * What actually made the defect a defect was the *destructive clear*: the
+       * in-flight run wiped the whole dirty set on the way out, including
+       * boundaries it never adopted, so a mid-flush change was not deferred but
+       * discarded. That is fixed in `runFlush`. With the dirt preserved, the
+       * next trigger flushes it — the debounce timer is already scheduled by the
+       * `transform` that dirtied it.
+       *
+       * So the guarantee here is "your change will be flushed", not "it has been
+       * flushed by the time this resolves". Weaker than D3 asks for, and stated
+       * rather than glossed: no caller in the compiler awaits this for
+       * read-after-write, and buying the stronger promise cost more than it was
+       * worth.
+       */
+      const queued = this.bus.mint("build/pipeline", "flush");
+      this.bus.settle(
+        queued,
+        "superseded",
+        "joined the in-flight flush; dirt retained for the next",
+      );
+      return this.flushPromise;
+    }
+
+    const envelope = this.bus.mint("build/pipeline", "flush");
+    this.bus.observe(envelope);
+
+    this.flushPromise = this.runFlush();
+    try {
+      await this.flushPromise;
+      this.bus.settle(envelope, "applied");
+    } catch (err) {
+      this.bus.settle(envelope, "failed", String(err));
+      throw err;
+    } finally {
+      /**
+       * Always cleared, which it was not.
+       *
+       * This assignment used to be the last statement *inside* the async body,
+       * so a single throw left a rejected promise cached — and every subsequent
+       * flush for the life of the process returned that same rejection.
+       * `verifyIntegrity` throws by design on a missing translation, and the
+       * hot-update hook swallows the result with `.catch`, so the compiler could
+       * enter a state where it never flushed again and nothing said so.
+       */
+      this.flushPromise = null;
+
+      /**
+       * Cancel a flush the flush itself asked for.
+       *
+       * `runFlush` reaches back into the compiler — `syncGraphs` asks content
+       * facets for translations, and that can transform, and `transform`
+       * schedules a flush. So every flush left a timer behind that fired 300 ms
+       * later and ran a second, entirely redundant one. Absorbing it used to be
+       * free, because a flush arriving mid-flight was silently dropped; now that
+       * callers get a real follow-on, the same timer costs a full extra pass on
+       * every hot update.
+       *
+       * Only cancelled when there is genuinely nothing left. Anything dirtied
+       * during the run stays in `dirtyBoundaries` and keeps its timer.
+       */
+      if (
+        this.autoFlushTimeout &&
+        this.messages.dirtyBoundaries.size === 0 &&
+        !this.messages.hiveDirty
+      ) {
+        clearTimeout(this.autoFlushTimeout);
+        this.autoFlushTimeout = null;
+      }
+    }
+  }
+
+  private async runFlush(): Promise<void> {
+    {
       this.logger.debug("Flushing compiler state...");
       await this.syncGraphs();
 
@@ -1363,7 +1831,17 @@ export class ZintlCompiler {
       }
       await this.messages.saveManifest(this.outputDir, contentStatesToSave);
 
-      const affectedBoundaries = new Set<string>(this.messages.dirtyBoundaries);
+      /**
+       * The dirty boundaries this run takes custody of.
+       *
+       * Held separately from `affectedBoundaries` because only these may be
+       * cleared at the end. Anything dirtied *while* this run is in flight was
+       * never adopted by it, and clearing the whole set destroyed exactly those
+       * — so a change that arrived mid-flush was not merely deferred, it was
+       * discarded, and the follow-on flush found nothing to do.
+       */
+      const adopted = new Set<string>(this.messages.dirtyBoundaries);
+      const affectedBoundaries = new Set<string>(adopted);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
       for (const move of changes.moves as any[]) {
         affectedBoundaries.add(move.fromBoundary);
@@ -1438,22 +1916,31 @@ export class ZintlCompiler {
           precomputedReachable,
         );
       }
-      this.messages.dirtyBoundaries.clear();
+      // Only what this run adopted — see `adopted` above.
+      for (const bId of adopted) this.messages.dirtyBoundaries.delete(bId);
 
       // Run flush on all content facets
       const flushCtx = this.getCompilerContext();
       for (const facet of this._resolved.system.contentFacets) {
         if (facet.flush) {
-          await facet.flush(flushCtx);
+          await this.runFacetStep("flush", facet.name, () => facet.flush!(flushCtx));
         }
       }
 
       await this.verifyIntegrity();
       this.logger.debug("Flush complete");
       this.messages.commitReconciliation();
-      this.flushPromise = null;
-    })();
-    return this.flushPromise;
+      /**
+       * Write the hive from the state this flush reconciled.
+       *
+       * The hive had its own debounce timer on the same 300 ms constant as the
+       * flush, and nothing sequenced the two — so a burst of edits could write
+       * the hive from a state the flush had not yet reconciled. Writing it here
+       * makes the flush the authority; the timer survives only as a fallback for
+       * when no flush follows, and is a no-op once this has run.
+       */
+      await this.messages.flushHive();
+    }
   }
 
   private async verifyIntegrity() {
@@ -1709,8 +2196,11 @@ export class ZintlCompiler {
       const serialized = this.catalog.serializeCatalog(cat, loc, 4, this.logger);
       let code = `${importsCode}const catalog = ${serialized};\n`;
       if (this.isDev) {
+        // The generation travels with the catalog so the receiver can discard an
+        // out-of-order arrival by number (ZDB Axiom D1) instead of applying
+        // whichever fetch happened to land last.
         code += `if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-  globalThis.__zintl_active.addCatalogs({ [${JSON.stringify(loc)}]: catalog });
+  globalThis.__zintl_active.addCatalogs({ [${JSON.stringify(loc)}]: catalog }, ${this.catalogGeneration});
 }\n`;
       }
       code += `export default catalog;`;

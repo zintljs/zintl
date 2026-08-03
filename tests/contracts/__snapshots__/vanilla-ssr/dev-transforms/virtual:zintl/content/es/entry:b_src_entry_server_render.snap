@@ -1,0 +1,21 @@
+const catalog = {
+    "b_src_entry_server_render": {
+      "Get started": "Empezar",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "Explore Vite": "Explorar Vite",
+      "Learn more": "Leer más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+      "GitHub": "GitHub",
+      "Discord": "Discord",
+      "X.com": "X.com",
+      "Bluesky": "Bluesky",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

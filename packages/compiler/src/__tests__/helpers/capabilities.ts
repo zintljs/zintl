@@ -24,6 +24,7 @@ const NO_FLAGS: CapabilityFlags = {
   clientLocaleSync: false,
   serverRequestScope: false,
   streaming: false,
+  entryReexecutionSafe: true,
   ssr: false,
   hmr: false,
   localeRouting: false,

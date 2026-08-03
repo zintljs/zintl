@@ -14,6 +14,16 @@ describe("HMR Integration", () => {
         }),
       },
       invalidateFile: vi.fn(),
+      /**
+       * Delegates the way the real one does: it takes custody of the update —
+       * so a second environment pass for the same event joins rather than
+       * re-running — and then performs exactly one invalidation. Keeping the
+       * delegation here means the assertions below still describe what the
+       * compiler is actually asked to do.
+       */
+      invalidateForUpdate: vi.fn((file: string, _seq: number, force?: boolean, content?: string) =>
+        mockCtx.compiler.invalidateFile(file, force, content),
+      ),
       getNormalizedId: (p: string) => p.replace("/root/", ""),
       isWritingFile: () => false,
       assets: {

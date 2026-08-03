@@ -159,7 +159,18 @@ export class LabFilesystem {
 
     this._mutations.push({ type: "rename", from: fromRelative, to: toRelative });
 
+    /**
+     * A rename is a mutation like any other, and this was the only one that
+     * fired neither hook — so no settle baseline was taken and nothing waited
+     * for the result. A contract renaming a file then asserting on the DOM was
+     * racing the dev server with no synchronisation at all.
+     */
+    await this.runBeforeMutation();
     await rename(fromFullPath, toFullPath);
+
+    if (this.onMutationCallback) {
+      await this.onMutationCallback();
+    }
   }
 
   async read(relativePath: string): Promise<string> {

@@ -18,7 +18,7 @@ const catalog = {
     },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog });
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
 }
 export default catalog;
 if (import.meta.hot) { import.meta.hot.accept(); }

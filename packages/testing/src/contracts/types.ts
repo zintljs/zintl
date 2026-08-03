@@ -81,6 +81,43 @@ export interface Contract<TAdapter = BaseAdapter> {
   readonly description: string;
   /** The capabilities this contract requires */
   readonly requires: ReadonlyArray<Capability>;
+  /**
+   * Exempt this contract from strict delivery, with the reason.
+   *
+   * Some contracts deliberately break the application: a syntax error *should*
+   * stall the runtime, and a deleted or corrupted catalog *should* fail to
+   * apply. Under `ZINTL_STRICT_SETTLE` those are correct behaviour reported as
+   * failures, so the exemption is declared here alongside `requires` rather
+   * than inferred, passed by an environment variable, or decided per call site.
+   *
+   * A string, not a boolean, because an exemption without a reason is
+   * indistinguishable from one nobody revisited.
+   */
+  readonly strictDeliveryExempt?: string;
+  /**
+   * Why this contract does not yet assert what its name claims.
+   *
+   * Set it and the contract is *skipped*, with the reason in the report. A
+   * contract whose body has been commented out still runs, still passes, and
+   * still reports its capability as covered — which is the worst state a test
+   * can be in: it occupies the slot where the real coverage would go and tells
+   * everyone the slot is filled.
+   *
+   * A string, not a boolean, for the same reason as `strictDeliveryExempt`: a
+   * gap without a stated cause is one nobody can pick up.
+   */
+  readonly pending?: string;
+  /**
+   * Why this contract does not yet hold **for particular projects**, keyed by
+   * manifest name.
+   *
+   * A blocker is rarely uniform. `chaos-boundary` passes on three frameworks
+   * and fails on one, and skipping all four to describe that throws away the
+   * three that work — which is the same loss as marking the whole contract
+   * green would be, in the other direction. Per-project keeps the coverage that
+   * exists and names only the gap that does not.
+   */
+  readonly pendingFor?: Record<string, string>;
   /** The invariant steps — manifest is the third arg for build/compile contracts */
   execute(lab: Lab, adapter: TAdapter, manifest: ProjectManifest): Promise<void>;
 }

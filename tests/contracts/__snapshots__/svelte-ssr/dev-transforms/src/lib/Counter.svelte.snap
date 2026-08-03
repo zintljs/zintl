@@ -1,0 +1,13 @@
+<script lang="ts">
+import _zintl_mgr_b_src_entry_client_bootstrap from "virtual:zintl/manager/none/entry:b_src_entry_client_bootstrap";
+import { _t } from "virtual:zintl/runtime/internal";
+
+  let count: number = $state(0)
+  const increment = () => {
+    count += 1
+  }
+</script>
+
+<button class="counter" onclick={increment}>
+  { _t('Count is \x7bcount\x7d', { count: count }, { _mgr: _zintl_mgr_b_src_entry_client_bootstrap, _bId: 'b_src_lib_Counter_svelte' }) }
+</button>

@@ -1,0 +1,17 @@
+//#region \0virtual:zintl/content/es/entry:b_f0c6267f2b46
+var catalog = { "b_f0c6267f2b46": {
+	"90e40d50": "Empezar",
+	"e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+	"9e9cf322": "Documentación",
+	"d0f7666b": "Tus preguntas, respondidas",
+	"e49cb0ee": "Explorar Vite",
+	"824d76b1": "Leer más",
+	"65ac13a7": "Conéctate con nosotros",
+	"15545bc4": "Únete a la comunidad de Vite",
+	"5442e2b6": "GitHub",
+	"bccc14ee": "Discord",
+	"b3c83ea6": "X.com",
+	"daf16c03": "Bluesky"
+} };
+//#endregion
+export { catalog as default };

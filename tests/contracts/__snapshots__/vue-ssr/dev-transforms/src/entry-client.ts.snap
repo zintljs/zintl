@@ -1,0 +1,17 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_entry_client from "virtual:zintl/manager/none/entry:b_src_entry_client";
+import "./style.css";
+import { createApp } from "./main";
+
+
+const { app } = createApp();
+
+await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_src_entry_client"]: _zintl_mgr_b_src_entry_client.loader } }));
+app.mount("#app");
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/entry-client");
+  });
+}

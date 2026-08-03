@@ -54,7 +54,7 @@ export const localeStormContract: Contract<LocaleSwitchAdapter> = {
     await lab.clock.waitForIdle();
 
     // 5. Assert the page successfully converges on Arabic and RTL layout direction
-    await lab.assert.locale("ar");
+    await lab.assert.localeCoherent("ar");
     await lab.assert.dir("rtl");
 
     // 6. Assert no undefined translations or hydration mismatch errors occurred

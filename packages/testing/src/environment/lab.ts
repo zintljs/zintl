@@ -20,6 +20,15 @@ export interface LabOptions {
   port?: number;
   env?: Record<string, string>;
   headless?: boolean;
+  /**
+   * Why this lab is exempt from strict delivery, when it is.
+   *
+   * Set from the contract's own declaration. Assigned after construction rather
+   * than threaded through the constructor, which already takes nine positional
+   * arguments — one more optional tail parameter is how a call site ends up
+   * silently passing eight of nine and disabling a branch nobody notices.
+   */
+  strictDeliveryExempt?: string;
 }
 
 export interface ProjectLabOptions {
@@ -54,6 +63,8 @@ export interface Lab {
 }
 
 class LabImpl implements Lab {
+  /** Why strict delivery does not apply here; see `LabOptions`. */
+  strictDeliveryExempt?: string;
   readonly page: Page;
   readonly browser: LabBrowser;
   readonly server: LabDevServer | LabPreviewServer;
@@ -119,17 +130,33 @@ class LabImpl implements Lab {
     };
 
     const onMutation = async () => {
-      if (mode === "dev") {
-        try {
-          await Promise.race([
-            this.ws.waitFor("update", { timeout: 4000 }),
-            this.ws.waitFor("full-reload", { timeout: 4000 }),
-          ]);
-        } catch {
-          // No HMR packet — waitForSettled below still gates on the runtime.
-        }
-        await this.waitForSettled();
+      if (mode !== "dev") return;
+
+      /**
+       * A contract that declared itself strict-delivery exempt has already told
+       * us this write is not expected to settle — it introduces a syntax error,
+       * or deletes a catalog. Waiting the full budget for a stall the contract
+       * announced in advance is pure cost: a 4 s packet race that no packet will
+       * end, then a 10 s settle wait for a beacon that will never advance, on
+       * every such mutation.
+       *
+       * The real gate is the assertion. `textEventually` polls for fifteen
+       * seconds, so shortening these does not weaken anything — it stops the
+       * harness blocking on an outcome it was told not to expect.
+       */
+      const expected = !this.strictDeliveryExempt;
+      const packetTimeout = expected ? 4000 : 400;
+      const settleTimeout = expected ? 10000 : 1500;
+
+      try {
+        await Promise.race([
+          this.ws.waitFor("update", { timeout: packetTimeout }),
+          this.ws.waitFor("full-reload", { timeout: packetTimeout }),
+        ]);
+      } catch {
+        // No HMR packet — waitForSettled below still gates on the runtime.
       }
+      await this.waitForSettled({ timeout: settleTimeout });
     };
 
     this.fs = fs;
@@ -152,11 +179,22 @@ class LabImpl implements Lab {
     }
   }
 
+  /**
+   * Whether a missing or stalled signal should fail rather than fall through.
+   *
+   * A contract that deliberately breaks the application is exempt: a syntax
+   * error *should* stall the runtime, so reporting it as a stall is reporting
+   * correct behaviour as a defect.
+   */
+  private get strictDeliveryEnforced(): boolean {
+    return !!process.env.ZINTL_STRICT_SETTLE && !this.strictDeliveryExempt;
+  }
+
   async waitForSettled(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? 10000;
     const baseline = this.settleBaseline;
 
-    if (baseline === undefined && process.env.ZINTL_STRICT_SETTLE) {
+    if (baseline === undefined && this.strictDeliveryEnforced) {
       // No beacon at all — the runtime is not publishing __zintl_version, or
       // the page had not loaded it when the mutation began. Silently degrading
       // here is what made the old heuristic untrustworthy, so strict mode
@@ -167,6 +205,7 @@ class LabImpl implements Lab {
       );
     }
 
+    let confirmed = false;
     if (baseline !== undefined) {
       try {
         /**
@@ -179,6 +218,7 @@ class LabImpl implements Lab {
           baseline,
           { timeout },
         );
+        confirmed = true;
       } catch {
         /**
          * The runtime never reported settling. Normally fall through to the
@@ -190,7 +230,7 @@ class LabImpl implements Lab {
          * working signal are otherwise indistinguishable, which is the exact
          * failure mode that made `waitForIdle` untrustworthy.
          */
-        if (process.env.ZINTL_STRICT_SETTLE) {
+        if (this.strictDeliveryEnforced) {
           throw new Error(
             `[Lab] Runtime settle beacon did not advance within ${timeout}ms ` +
               `(baseline ${baseline}). The runtime either never applied the change ` +
@@ -201,9 +241,21 @@ class LabImpl implements Lab {
       this.settleBaseline = undefined;
     }
 
-    // The counter proves the store applied the change; frameworks still render
-    // on their own schedule, so yield one frame for paint.
-    await this.clock.waitForIdle({ timeout });
+    /**
+     * The counter proves the store applied the change; frameworks still render
+     * on their own schedule, so yield one frame for paint.
+     *
+     * Only one frame. The full idle heuristic — 500 ms of network silence plus
+     * a fixed 100 ms — is the declared *fallback*, for when nothing causal
+     * confirmed anything. Running it unconditionally meant every mutation in
+     * the suite paid for a guess even when it had a reliable answer, and left
+     * the suite unable to show how much of itself was genuinely synchronised.
+     */
+    if (confirmed) {
+      await this.clock.waitForPaint();
+    } else {
+      await this.clock.waitForIdle({ timeout });
+    }
   }
 
   async teardown(): Promise<void> {
@@ -222,8 +274,13 @@ class LabImpl implements Lab {
       // } catch {}
     }
     try {
+      /**
+       * `teardown()` restores the original `ws.send`, so the interceptor is
+       * gone and no listener can ever fire again. The `waitFor` that used to
+       * follow this line could only ever time out — a guaranteed two-second
+       * sleep on every browser lab teardown, dressed as a wait.
+       */
       this.ws.teardown();
-      await this.ws.waitFor("update", { timeout: 2000 });
     } catch {}
     try {
       await this.fs.restoreAll();
@@ -279,6 +336,7 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
     opts.source.id,
     {},
   );
+  lab.strictDeliveryExempt = opts.strictDeliveryExempt;
 
   return lab;
 }

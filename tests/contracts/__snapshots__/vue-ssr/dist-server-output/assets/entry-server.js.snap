@@ -1,0 +1,1009 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+import { renderToString, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
+import { createSSRApp, defineComponent, ref, useSSRContext } from "vue";
+//#region \0virtual:zintl/runtime/store-core
+var storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+var runInRequestScope$1 = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope$1 = fn;
+}
+var DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) return false;
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {}
+};
+var I18nStore = class {
+	locale = "";
+	sourceLocale = "en";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug = false;
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	notify() {
+		this.version++;
+		for (const listener of this.listeners) try {
+			listener();
+		} catch (err) {}
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		if (changed) this.notify();
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) return;
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				return result.then(processResult).catch((err) => {}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+				});
+			}
+			processResult(result);
+		} catch (err) {}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		if (this.catalogs[target]?.[boundaryId]) return;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) return;
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+		}
+	}
+};
+var globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+var defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+var currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {}
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+//#region \0virtual:zintl/runtime/store-client
+var syncLocale = () => {
+	const inst = getActiveInstance();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+//#region \0virtual:zintl/runtime/store-server
+var storage = new AsyncLocalStorage();
+setStoreStorage(storage);
+function serializeValue(val) {
+	if (typeof val === "function") return val.toString();
+	if (val === null) return "null";
+	if (val === void 0) return "undefined";
+	if (typeof val === "string") return JSON.stringify(val);
+	if (typeof val === "number" || typeof val === "boolean") return val.toString();
+	if (Array.isArray(val)) return "[" + val.map(serializeValue).join(",") + "]";
+	if (typeof val === "object") return "{" + Object.entries(val).map(([k, v]) => `${JSON.stringify(k)}:${serializeValue(v)}`).join(",") + "}";
+	return "null";
+}
+function injectIntoStream(stream, store) {
+	const reader = stream.getReader();
+	const encoder = new TextEncoder();
+	const decoder = new TextDecoder();
+	let injected = false;
+	return new ReadableStream({
+		async pull(controller) {
+			try {
+				const { done, value } = await reader.read();
+				if (done) {
+					if (!injected) {
+						const catalogs = store.catalogs;
+						if (Object.keys(catalogs).length > 0) {
+							const script = `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>`;
+							controller.enqueue(encoder.encode(script));
+						}
+						injected = true;
+					}
+					controller.close();
+					return;
+				}
+				let chunkText = "";
+				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
+				else if (typeof value === "string") chunkText = value;
+				if (!injected) if (chunkText.includes("</body>")) {
+					const catalogs = store.catalogs;
+					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+					chunkText = chunkText.replace("</body>", `${script}</body>`);
+					injected = true;
+					controller.enqueue(encoder.encode(chunkText));
+				} else if (chunkText.includes("</html>")) {
+					const catalogs = store.catalogs;
+					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+					chunkText = chunkText.replace("</html>", `${script}</html>`);
+					injected = true;
+					controller.enqueue(encoder.encode(chunkText));
+				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
+				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
+			} catch (err) {
+				controller.error(err);
+			}
+		},
+		cancel(reason) {
+			return reader.cancel(reason);
+		}
+	});
+}
+function injectBakedCatalogs(result, store) {
+	if (!result || !store) return result;
+	if (typeof Response !== "undefined" && result instanceof Response) {
+		if (result.body && typeof result.body.getReader === "function") {
+			const transformedBody = injectIntoStream(result.body, store);
+			return new Response(transformedBody, {
+				status: result.status,
+				statusText: result.statusText,
+				headers: result.headers
+			});
+		}
+		return result.text().then((html) => {
+			if (html.includes("</body>") || html.includes("</html>")) {
+				const modifiedHtml = injectBakedCatalogs(html, store);
+				return new Response(modifiedHtml, {
+					status: result.status,
+					statusText: result.statusText,
+					headers: result.headers
+				});
+			}
+			return new Response(html, {
+				status: result.status,
+				statusText: result.statusText,
+				headers: result.headers
+			});
+		});
+	}
+	if (typeof result === "string") {
+		const catalogs = store.catalogs;
+		if (Object.keys(catalogs).length > 0) {
+			const script = `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>`;
+			if (result.includes("</body>")) return result.replace("</body>", `${script}</body>`);
+			if (result.includes("</html>")) return result.replace("</html>", `${script}</html>`);
+			const lower = result.toLowerCase();
+			if (lower.includes("<!doctype") || lower.includes("<html") || lower.includes("<body")) return result + script;
+			return result;
+		}
+	}
+	if (typeof result === "object") {
+		if (typeof result.getReader === "function") return injectIntoStream(result, store);
+		else if (result.htmlStream && typeof result.htmlStream.getReader === "function") result.htmlStream = injectIntoStream(result.htmlStream, store);
+		else if (result.body && typeof result.body.getReader === "function") result.body = injectIntoStream(result.body, store);
+		else if (typeof result.html === "string") result.html = injectBakedCatalogs(result.html, store);
+		else if (typeof result.body === "string") result.body = injectBakedCatalogs(result.body, store);
+	}
+	return result;
+}
+function runInRequestScope(urlOrReq, locales, defaultLocale, callback) {
+	let locale = defaultLocale;
+	if (urlOrReq) {
+		let pathname = "";
+		const extractPath = (val) => {
+			if (!val) return "";
+			if (typeof val === "string") return val;
+			if (typeof val === "object") {
+				if (val.url) return typeof val.url === "string" ? val.url : val.url.pathname || String(val.url);
+				if (typeof val.path === "string") return val.path;
+				if (typeof val.pathname === "string") return val.pathname;
+				if (val.navigationContext) {
+					const nav = val.navigationContext;
+					if (typeof nav.pathname === "string") return nav.pathname;
+				}
+			}
+			return "";
+		};
+		if (Array.isArray(urlOrReq)) for (const arg of urlOrReq) {
+			pathname = extractPath(arg);
+			if (pathname) break;
+		}
+		else pathname = extractPath(urlOrReq);
+		if (pathname) {
+			pathname = pathname.split("?")[0].split("#")[0];
+			if (pathname.includes("://")) try {
+				pathname = new URL(pathname).pathname;
+			} catch {
+				pathname = pathname.replace(/^https?:\/\/[^/]+/, "");
+			}
+			else {
+				pathname = pathname.replace(/^[^/]+:\d+/, "");
+				pathname = pathname.replace(/^[^/]+\.[^/]+/, "");
+			}
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) locale = parts[0];
+		}
+	}
+	const store = new I18nStore();
+	store.locale = locale;
+	store.locales = locales;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	const promises = [];
+	for (const [_, loader] of globalRegistry.entries()) try {
+		const result = loader(locale);
+		const processResult = (res) => {
+			if (!res) return;
+			store.addCatalogs({ [locale]: res });
+		};
+		if (isThenable(result)) promises.push(result.then((res) => {
+			processResult(res);
+		}));
+		else processResult(result);
+	} catch {}
+	const runCallback = () => {
+		return storage.run(store, () => {
+			const result = callback();
+			const processStorePromisesAndInject = (resolvedResult) => {
+				if (store.pendingPromises.length > 0) {
+					const currentPromises = [...store.pendingPromises];
+					store.pendingPromises = [];
+					return Promise.all(currentPromises).then(() => {
+						return processStorePromisesAndInject(resolvedResult);
+					});
+				}
+				return injectBakedCatalogs(resolvedResult, store);
+			};
+			if (result && typeof result.then === "function") return result.then((resolvedResult) => {
+				return processStorePromisesAndInject(resolvedResult);
+			});
+			if (store.pendingPromises.length > 0) return processStorePromisesAndInject(result);
+			return injectBakedCatalogs(result, store);
+		});
+	};
+	if (promises.length > 0) return Promise.all(promises).then(runCallback);
+	return runCallback();
+}
+setRunInRequestScope(runInRequestScope);
+//#endregion
+//#region \0virtual:zintl/runtime/resolver
+function _t(key, params = {}, options) {
+	const instance = getActiveInstance();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = mgr.loader(locale);
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) return ``;
+	} else return ``;
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+//#region \0virtual:zintl/runtime/internal
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new I18nStore();
+	setActiveInstance(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = getActiveInstance();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = registerLoader(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = getActiveInstance();
+			setActiveInstance(store);
+			try {
+				return _t(key, params);
+			} finally {
+				setActiveInstance(prev);
+			}
+		}
+	};
+}
+//#endregion
+//#region \0virtual:zintl/manager/none/entry:b_764631960fa9
+var entry_b_764631960fa9_default = {
+	id: "b_764631960fa9",
+	loader: (locale) => {
+		switch (locale) {
+			case "en": return { "b_07f886859652": {
+				"90e40d50": "Get started",
+				"6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+				"aa624128": (params) => {
+					const { count } = params;
+					return `Count is ${params["count"]}`;
+				},
+				"9e9cf322": "Documentation",
+				"d0f7666b": "Your questions, answered",
+				"e49cb0ee": "Explore Vite",
+				"824d76b1": "Learn more",
+				"65ac13a7": "Connect with us",
+				"15545bc4": "Join the Vite community",
+				"5442e2b6": "GitHub",
+				"bccc14ee": "Discord",
+				"b3c83ea6": "X.com",
+				"daf16c03": "Bluesky",
+				"7d8158dc": "Vue logo",
+				"3473a536": "Vite logo"
+			} };
+			case "ar": return import("./entry_b_764631960fa9.js").then((m) => m.default);
+			case "es": return import("./entry_b_764631960fa92.js").then((m) => m.default);
+			case "zh": return import("./entry_b_764631960fa93.js").then((m) => m.default);
+			default: return {};
+		}
+	},
+	manifest: []
+};
+//#endregion
+//#region examples/vue-ssr/src/assets/vite.svg
+var vite_default = "/assets/vite-BF8QNONU.svg";
+//#endregion
+//#region examples/vue-ssr/src/assets/hero.png
+var hero_default = "/assets/hero-CLDdwZDr.png";
+//#endregion
+//#region examples/vue-ssr/src/assets/vue.svg
+var vue_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20aria-hidden='true'%20role='img'%20class='iconify%20iconify--logos'%20width='37.07'%20height='36'%20preserveAspectRatio='xMidYMid%20meet'%20viewBox='0%200%20256%20198'%3e%3cpath%20fill='%2341B883'%20d='M204.8%200H256L128%20220.8L0%200h97.92L128%2051.2L157.44%200h47.36Z'%3e%3c/path%3e%3cpath%20fill='%2341B883'%20d='m0%200l128%20220.8L256%200h-51.2L128%20132.48L50.56%200H0Z'%3e%3c/path%3e%3cpath%20fill='%2335495E'%20d='M50.56%200L128%20133.12L204.8%200h-47.36L128%2051.2L97.92%200H50.56Z'%3e%3c/path%3e%3c/svg%3e";
+//#endregion
+//#region examples/vue-ssr/src/components/HelloWorld.vue?vue&type=script&setup=true&lang.ts
+var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "HelloWorld",
+	setup(__props, { expose: __expose }) {
+		__expose();
+		const __returned__ = {
+			count: ref(0),
+			get _zintl_mgr_b_764631960fa9() {
+				return entry_b_764631960fa9_default;
+			},
+			get _t() {
+				return _t;
+			},
+			get viteLogo() {
+				return vite_default;
+			},
+			get heroImg() {
+				return hero_default;
+			},
+			get vueLogo() {
+				return vue_default;
+			}
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region <OUTSIDE_ROOT>/icons.svg
+var icons_default = "/icons.svg";
+//#endregion
+//#region \0plugin-vue:export-helper
+var _plugin_vue_export_helper_default = (sfc, props) => {
+	const target = sfc.__vccOpts || sfc;
+	for (const [key, val] of props) target[key] = val;
+	return target;
+};
+//#endregion
+//#region examples/vue-ssr/src/components/HelloWorld.vue
+function _sfc_ssrRender$2(_ctx, _push, _parent, _attrs, $props, $setup, $data, $options) {
+	_push(`<!--[--><section id="center"><div class="hero"><img${ssrRenderAttr("src", $setup.heroImg)} class="base" width="170" height="179" alt=""><img${ssrRenderAttr("src", $setup.vueLogo)} class="framework"${ssrRenderAttr("alt", $setup._t("7d8158dc", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}><img${ssrRenderAttr("src", $setup.viteLogo)} class="vite"${ssrRenderAttr("alt", $setup._t("3473a536", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}></div><div><h1>${ssrInterpolate($setup._t("90e40d50", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</h1><p><span>${$setup._t("6c65d65b", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652",
+		_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]")
+	}) ?? ""}</span></p></div><button class="counter">${ssrInterpolate($setup._t("aa624128", { count: $setup.count }, {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</button></section><div class="ticks"></div><section id="next-steps"><div id="docs"><svg class="icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#documentation-icon")}></use></svg><h2>${ssrInterpolate($setup._t("9e9cf322", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</h2><p>${ssrInterpolate($setup._t("d0f7666b", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</p><ul><li><a href="https://vite.dev/" target="_blank"><img class="logo"${ssrRenderAttr("src", $setup.viteLogo)} alt=""> ${ssrInterpolate($setup._t("e49cb0ee", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li><li><a href="https://vuejs.org/" target="_blank"><img class="button-icon"${ssrRenderAttr("src", $setup.vueLogo)} alt=""> ${ssrInterpolate($setup._t("824d76b1", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li></ul></div><div id="social"><svg class="icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#social-icon")}></use></svg><h2>${ssrInterpolate($setup._t("65ac13a7", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</h2><p>${ssrInterpolate($setup._t("15545bc4", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</p><ul><li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#github-icon")}></use></svg> ${ssrInterpolate($setup._t("5442e2b6", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li><li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#discord-icon")}></use></svg> ${ssrInterpolate($setup._t("bccc14ee", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li><li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#x-icon")}></use></svg> ${ssrInterpolate($setup._t("b3c83ea6", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li><li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#bluesky-icon")}></use></svg> ${ssrInterpolate($setup._t("daf16c03", {
+		_mgr: $setup._zintl_mgr_b_764631960fa9,
+		_bId: "b_07f886859652"
+	}))}</a></li></ul></div></section><div class="ticks"></div><section id="spacer"></section><!--]-->`);
+}
+var _sfc_setup$2 = HelloWorld_vue_vue_type_script_setup_true_lang_default.setup;
+HelloWorld_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/components/HelloWorld.vue");
+	return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
+};
+var HelloWorld_default = /*#__PURE__*/ _plugin_vue_export_helper_default(HelloWorld_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$2], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/HelloWorld.vue"]]);
+//#endregion
+//#region packages/zintl/dist/macro.mjs
+/**
+* The locale currently active.
+*
+* The plugin rewrites this import to the real runtime binding, so it reflects
+* the live store — including a locale set after the anchor resolved. Returns
+* `""` when no boundary has been established yet.
+*/
+function getLocale() {
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active.locale;
+	return "";
+}
+//#endregion
+//#region examples/vue-ssr/src/components/LocaleSwitcher.vue?vue&type=script&setup=true&lang.ts
+var LocaleSwitcher_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "LocaleSwitcher",
+	emits: ["switch"],
+	setup(__props, { expose: __expose, emit: __emit }) {
+		__expose();
+		const locale = getLocale();
+		const locales = [
+			{
+				id: "en",
+				name: "English"
+			},
+			{
+				id: "ar",
+				name: "العربية"
+			},
+			{
+				id: "es",
+				name: "Español"
+			},
+			{
+				id: "zh",
+				name: "中文"
+			}
+		];
+		const emit = __emit;
+		const handleSwitch = async (lang) => {
+			const url = new URL(window.location.href);
+			const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
+			url.pathname = `/${lang}${path === "/" ? "/" : path}`;
+			window.history.pushState({}, "", url.pathname + url.search);
+			location.reload();
+		};
+		const __returned__ = {
+			locale,
+			locales,
+			emit,
+			handleSwitch
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region examples/vue-ssr/src/components/LocaleSwitcher.vue
+function _sfc_ssrRender$1(_ctx, _push, _parent, _attrs, $props, $setup, $data, $options) {
+	_push(`<!--[--><section id="header"><div id="switcher" class="switcher"><!--[-->`);
+	ssrRenderList($setup.locales, (l) => {
+		_push(`<button class="${ssrRenderClass({ active: $setup.locale === l.id })}">${ssrInterpolate(l.name)}</button>`);
+	});
+	_push(`<!--]--></div><div class="vertical-ticks"></div><div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#translate-icon")}></use></svg></div></section><div class="ticks"></div><!--]-->`);
+}
+var _sfc_setup$1 = LocaleSwitcher_vue_vue_type_script_setup_true_lang_default.setup;
+LocaleSwitcher_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/components/LocaleSwitcher.vue");
+	return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
+};
+var LocaleSwitcher_default = /*#__PURE__*/ _plugin_vue_export_helper_default(LocaleSwitcher_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender$1], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/components/LocaleSwitcher.vue"]]);
+//#endregion
+//#region examples/vue-ssr/src/App.vue?vue&type=script&setup=true&lang.ts
+var App_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "App",
+	setup(__props, { expose: __expose }) {
+		__expose();
+		const __returned__ = {
+			HelloWorld: HelloWorld_default,
+			LocaleSwitcher: LocaleSwitcher_default
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region examples/vue-ssr/src/App.vue
+function _sfc_ssrRender(_ctx, _push, _parent, _attrs, $props, $setup, $data, $options) {
+	_push(`<!--[-->`);
+	_push(ssrRenderComponent($setup["LocaleSwitcher"], null, null, _parent));
+	_push(ssrRenderComponent($setup["HelloWorld"], null, null, _parent));
+	_push(`<!--]-->`);
+}
+var _sfc_setup = App_vue_vue_type_script_setup_true_lang_default.setup;
+App_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("src/App.vue");
+	return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+var App_default = /*#__PURE__*/ _plugin_vue_export_helper_default(App_vue_vue_type_script_setup_true_lang_default, [["ssrRender", _sfc_ssrRender], ["__file", "<MONOREPO_ROOT>/examples/vue-ssr/src/App.vue"]]);
+//#endregion
+//#region examples/vue-ssr/src/main.ts
+function createApp() {
+	return { app: createSSRApp(App_default) };
+}
+//#endregion
+//#region examples/vue-ssr/src/entry-server.ts
+async function _zintl_raw_render(_url) {
+	const { app } = createApp();
+	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: { ["b_764631960fa9"]: entry_b_764631960fa9_default.loader } }));
+	return { html: await renderToString(app, {}) };
+}
+async function render(urlOrReq, ...args) {
+	return runInRequestScope$1([urlOrReq, ...args], [
+		"en",
+		"ar",
+		"es",
+		"zh"
+	], "en", () => _zintl_raw_render(urlOrReq, ...args));
+}
+//#endregion
+export { render };

@@ -7,6 +7,32 @@ export function configureServerHook(ctx: Context) {
   return function (server: ViteDevServer) {
     ctx.server = server;
 
+    /**
+     * Deletions, which reach the plugin through no other route.
+     *
+     * The bundler handles `unlink` separately from `change`: it removes the
+     * module from its graph and reloads, but never calls `handleHotUpdate` or
+     * `hotUpdate`. Without this listener the compiler simply never learns, and
+     * the deleted boundary stays in its graph and manifest for the life of the
+     * process.
+     *
+     * Registered **before** the `appType === "custom"` return below. That early
+     * exit skips the multiplex middleware, which SSR apps do not want — but they
+     * do want their deletions noticed, and putting this after it would leave
+     * every SSR project with the bug this listener exists to fix.
+     *
+     * Optional-chained because a server without a watcher has no deletions to
+     * report: a build-mode server, or a test double that only models the parts
+     * of the interface it cares about.
+     */
+    server.watcher?.on?.("unlink", (file: string) => {
+      void ctx.compiler.removeFile(file).catch((err: unknown) => {
+        ctx.compiler._logger
+          .withPrefix("Vite")
+          .error(`Failed to forget deleted file ${file}: ${String(err)}`);
+      });
+    });
+
     if (server.config?.appType === "custom") {
       return;
     }

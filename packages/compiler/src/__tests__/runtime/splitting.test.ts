@@ -10,6 +10,7 @@ describe("Runtime Splitting - getRuntimeCode", () => {
     clientLocaleSync: false,
     serverRequestScope: false,
     streaming: false,
+    entryReexecutionSafe: true,
     ssr: false,
     hmr: false,
     localeRouting: false,

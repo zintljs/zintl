@@ -1,0 +1,220 @@
+import { A as next, C as set, D as push, E as pop, M as FILENAME, O as tag, S as proxy, T as add_svelte_meta, _ as get, a as getLocale, b as first_child, c as check_target, d as set_text, f as append, g as add_locations, h as delegated, i as svelte_default, j as reset, k as tag_proxy, l as legacy_api, m as delegate, n as hero_default, o as set_attribute, p as from_html, r as vite_default, s as key, t as LocaleSwitcher, u as hydrate, v as template_effect, w as state, x as sibling, y as child } from "../LocaleSwitcher.js";
+//#region examples/svelte-ssr/src/lib/Counter.zintl-es.svelte
+Counter_zintl_es[FILENAME] = "examples/svelte-ssr/src/lib/Counter.zintl-es.svelte";
+var root$1 = add_locations(from_html(`<button class="counter"> </button>`), Counter_zintl_es[FILENAME], [[9, 0]]);
+function Counter_zintl_es($$anchor, $$props) {
+	check_target(new.target);
+	push($$props, true, Counter_zintl_es);
+	let count = tag(state(0), "count");
+	const increment = () => {
+		set(count, get(count) + 1);
+	};
+	var $$exports = { ...legacy_api() };
+	var button = root$1();
+	var text = child(button, true);
+	reset(button);
+	template_effect(() => set_text(text, `El valor es ${get(count)}`));
+	delegated("click", button, increment);
+	append($$anchor, button);
+	return pop($$exports);
+}
+delegate(["click"]);
+//#endregion
+//#region examples/svelte-ssr/src/App.zintl-es.svelte
+App_zintl_es[FILENAME] = "examples/svelte-ssr/src/App.zintl-es.svelte";
+var root = add_locations(from_html(`<section id="center"><div class="hero"><img class="base" width="170" height="179" alt=""/> <img class="framework" alt="Logo de Svelte"/> <img class="vite" alt="Logo de Vite"/></div> <div><h1>Comenzar</h1> <p>Edite <code>src/App.svelte</code> y guarde para probar <code>HMR</code></p></div> <!></section> <div class="ticks"></div> <section id="next-steps"><div id="docs"><svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg> <h2>Documentación</h2> <p>Tus preguntas, respondidas</p> <ul><li><a href="https://vite.dev/" target="_blank" rel="noreferrer"><img class="logo" alt=""/> Explorar Vite</a></li> <li><a href="https://svelte.dev/" target="_blank" rel="noreferrer"><img class="button-icon" alt=""/> Aprender más</a></li></ul></div> <div id="social"><svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg> <h2>Conéctate con nosotros</h2> <p>Únete a la comunidad de Vite</p> <ul><li><a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg> GitHub</a></li> <li><a href="https://chat.vite.dev/" target="_blank" rel="noreferrer"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg> Discord</a></li> <li><a href="https://x.com/vite_js" target="_blank" rel="noreferrer"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg> X.com</a></li> <li><a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg> Bluesky</a></li></ul></div></section> <div class="ticks"></div> <section id="spacer"></section>`, 1), App_zintl_es[FILENAME], [
+	[
+		17,
+		0,
+		[[
+			18,
+			2,
+			[
+				[19, 4],
+				[20, 4],
+				[21, 4]
+			]
+		], [
+			23,
+			2,
+			[[24, 4], [
+				25,
+				4,
+				[[25, 13], [25, 62]]
+			]]
+		]]
+	],
+	[30, 0],
+	[
+		32,
+		0,
+		[[
+			33,
+			2,
+			[
+				[
+					34,
+					4,
+					[[35, 6]]
+				],
+				[37, 4],
+				[38, 4],
+				[
+					39,
+					4,
+					[[
+						40,
+						6,
+						[[
+							41,
+							8,
+							[[42, 10]]
+						]]
+					], [
+						46,
+						6,
+						[[
+							47,
+							8,
+							[[48, 10]]
+						]]
+					]]
+				]
+			]
+		], [
+			54,
+			2,
+			[
+				[
+					55,
+					4,
+					[[56, 6]]
+				],
+				[58, 4],
+				[59, 4],
+				[
+					61,
+					4,
+					[
+						[
+							62,
+							6,
+							[[
+								63,
+								8,
+								[[
+									64,
+									10,
+									[[65, 12]]
+								]]
+							]]
+						],
+						[
+							70,
+							6,
+							[[
+								71,
+								8,
+								[[
+									72,
+									10,
+									[[73, 12]]
+								]]
+							]]
+						],
+						[
+							78,
+							6,
+							[[
+								79,
+								8,
+								[[
+									80,
+									10,
+									[[81, 12]]
+								]]
+							]]
+						],
+						[
+							86,
+							6,
+							[[
+								87,
+								8,
+								[[
+									88,
+									10,
+									[[89, 12]]
+								]]
+							]]
+						]
+					]
+				]
+			]
+		]]
+	],
+	[98, 0],
+	[99, 0]
+]);
+var root_1 = add_locations(from_html(`<!> <!>`, 1), App_zintl_es[FILENAME], []);
+function App_zintl_es($$anchor, $$props) {
+	check_target(new.target);
+	push($$props, true, App_zintl_es);
+	let activeLang = tag_proxy(proxy(getLocale() || "en"), "activeLang");
+	var $$exports = { ...legacy_api() };
+	var fragment = root_1();
+	var node = first_child(fragment);
+	add_svelte_meta(() => LocaleSwitcher(node, { get lang() {
+		return activeLang;
+	} }), "component", App_zintl_es, 14, 0, { componentTag: "LocaleSwitcher" });
+	var node_1 = sibling(node, 2);
+	add_svelte_meta(() => key(node_1, () => activeLang, ($$anchor) => {
+		var fragment_1 = root();
+		var section = first_child(fragment_1);
+		var div = child(section);
+		var img = child(div);
+		var img_1 = sibling(img, 2);
+		var img_2 = sibling(img_1, 2);
+		reset(div);
+		var node_2 = sibling(div, 4);
+		add_svelte_meta(() => Counter_zintl_es(node_2, {}), "component", App_zintl_es, 27, 2, { componentTag: "Counter" });
+		reset(section);
+		var section_1 = sibling(section, 4);
+		var div_1 = child(section_1);
+		var ul = sibling(child(div_1), 6);
+		var li = child(ul);
+		var a = child(li);
+		var img_3 = child(a);
+		next();
+		reset(a);
+		reset(li);
+		var li_1 = sibling(li, 2);
+		var a_1 = child(li_1);
+		var img_4 = child(a_1);
+		next();
+		reset(a_1);
+		reset(li_1);
+		reset(ul);
+		reset(div_1);
+		next(2);
+		reset(section_1);
+		next(4);
+		template_effect(() => {
+			set_attribute(img, "src", hero_default);
+			set_attribute(img_1, "src", svelte_default);
+			set_attribute(img_2, "src", vite_default);
+			set_attribute(img_3, "src", vite_default);
+			set_attribute(img_4, "src", svelte_default);
+		});
+		append($$anchor, fragment_1);
+	}), "key", App_zintl_es, 16, 0);
+	append($$anchor, fragment);
+	return pop($$exports);
+}
+//#endregion
+//#region examples/svelte-ssr/src/entry-client.ts?zintl-multiplex=es
+async function bootstrap() {
+	hydrate(App_zintl_es, { target: document.getElementById("app") });
+}
+bootstrap();
+//#endregion

@@ -1,118 +1,148 @@
-import { expect } from "vite-plus/test";
 import { executeContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
-// import { basename } from "node:path";
+import { basename } from "node:path";
+
+interface RenameConfig {
+  fromPath: string;
+  toPath: string;
+  parentPath: string;
+  importSearch: string;
+  importReplace: string;
+}
+
+function getRenameConfig(exampleName: string): RenameConfig {
+  switch (exampleName) {
+    case "vue-basic":
+      return {
+        fromPath: "src/components/HelloWorld.vue",
+        toPath: "src/components/Hello.vue",
+        parentPath: "src/App.vue",
+        importSearch: "./components/HelloWorld.vue",
+        importReplace: "./components/Hello.vue",
+      };
+    case "react-basic":
+      return {
+        fromPath: "src/App.tsx",
+        toPath: "src/AppNew.tsx",
+        parentPath: "src/main.tsx",
+        importSearch: "./App",
+        importReplace: "./AppNew",
+      };
+    case "svelte-basic":
+      return {
+        fromPath: "src/App.svelte",
+        toPath: "src/AppNew.svelte",
+        parentPath: "src/main.ts",
+        importSearch: "./App.svelte",
+        importReplace: "./AppNew.svelte",
+      };
+    case "vanilla-spa-basic":
+      return {
+        fromPath: "src/main.ts",
+        toPath: "src/mainNew.ts",
+        parentPath: "index.html",
+        importSearch: "/src/main.ts",
+        importReplace: "/src/mainNew.ts",
+      };
+    default:
+      throw new Error(`Unsupported example for boundary rename: ${exampleName}`);
+  }
+}
 
 /**
- * TODO: Fix Pruning Left-Over Catalogs on File Deletion
+ * TODO: reproduce the React half of proposal 024 §1.3.
  *
- * When files are deleted/unlinked during development or testing, the compiler fails to prune
- * the corresponding localized translation catalog (.json) and schema files from the disk.
+ * This contract reproduced the Svelte double-mount — rename the file the entry
+ * imports, the entry's own source changes, it self-accepts, re-executes, and
+ * mounts again — and `RuntimeFacet.entryReexecutionSafe` fixed it. React has the
+ * same shape and a louder symptom: `createRoot()` throws on a container it
+ * already owns, which is the unmountable 103-byte page §1.3 recorded.
  *
- * The fix should:
- * - Detect file deletion in invalidateFile.
- * - Track boundary removal in MessageManager and marking them as dirty.
- * - Pass affected boundary IDs (including deleted ones) to syncPathCatalogs to ensure that
- *   catalogs with zero active boundaries are correctly pruned.
+ * It does **not** reproduce here. `react-basic` passes this contract with the
+ * self-accept in place, so whatever conditions §1.3 hit are not the ones this
+ * rename creates — most likely because React Fast Refresh stops propagation at
+ * `App.tsx` and `main.tsx` never re-executes.
+ *
+ * Why this needs a reproduction before a fix, rather than after: marking React
+ * unsafe was tried and reverted, because `FALLBACK_FRAMEWORK` is `"react"` — a
+ * project with no detected framework is assembled with the React facets, so
+ * `vanilla-spa-basic` inherited the claim and began full-reloading on every
+ * entry edit. Any runtime constraint attached to the React facet reaches every
+ * framework-less project by default. The fix is one facet field
+ * (`reactRuntimeFacet` with `entryReexecutionSafe: false`); what is missing is a
+ * failing test that justifies its blast radius.
+ *
+ * A reproduction probably needs an entry whose *own* source changes in a way
+ * Fast Refresh will not absorb — editing a non-component export in `main.tsx`,
+ * or a project without the React plugin's refresh boundary.
  */
-// interface RenameConfig {
-//   fromPath: string;
-//   toPath: string;
-//   parentPath: string;
-//   importSearch: string;
-//   importReplace: string;
-// }
-
-// function getRenameConfig(exampleName: string): RenameConfig {
-//   switch (exampleName) {
-//     case "vue-basic":
-//       return {
-//         fromPath: "src/components/HelloWorld.vue",
-//         toPath: "src/components/Hello.vue",
-//         parentPath: "src/App.vue",
-//         importSearch: "./components/HelloWorld.vue",
-//         importReplace: "./components/Hello.vue",
-//       };
-//     case "react-basic":
-//       return {
-//         fromPath: "src/App.tsx",
-//         toPath: "src/AppNew.tsx",
-//         parentPath: "src/main.tsx",
-//         importSearch: "./App",
-//         importReplace: "./AppNew",
-//       };
-//     case "svelte-basic":
-//       return {
-//         fromPath: "src/App.svelte",
-//         toPath: "src/AppNew.svelte",
-//         parentPath: "src/main.ts",
-//         importSearch: "./App.svelte",
-//         importReplace: "./AppNew.svelte",
-//       };
-//     case "vanilla-spa-basic":
-//       return {
-//         fromPath: "src/main.ts",
-//         toPath: "src/mainNew.ts",
-//         parentPath: "index.html",
-//         importSearch: "/src/main.ts",
-//         importReplace: "/src/mainNew.ts",
-//       };
-//     default:
-//       throw new Error(`Unsupported example for boundary rename: ${exampleName}`);
-//   }
-// }
-
 export const chaosBoundaryContract: Contract = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
   requires: ["spa", "hmr", "chaos"],
+  strictDeliveryExempt: "deletes and renames boundary sources",
+  /**
+   * Live on three of four projects.
+   *
+   * **The deletion blocker is fixed.** The plugin now listens for `unlink` and
+   * tells the compiler to forget the file, so a deleted boundary no longer
+   * survives in the graph for the life of a pooled dev server — which used to
+   * leak into every contract that ran afterwards, and, through the shared
+   * manifest, into the committed examples themselves.
+   *
+   * What remains is `svelte-basic`, and it is proposal 024 §1.3: renaming the
+   * file the entry imports rewrites the entry's own source, the entry
+   * self-accepts, re-executes, and mounts a second time onto a container that
+   * already has a mount. The page renders twice and the heading selector reads
+   * the stale copy.
+   *
+   * See the note in `viteFacet.hmrInjectionCode`. The obvious fix —
+   * `import.meta.hot.invalidate()` — makes this pass and was measured: it turns
+   * every entry-adjacent edit into a full page reload, regressing `hmr-hammer`
+   * on every project and taking the suite from ~75 s to ~127 s. The real fix is
+   * a matching `dispose()` that tears the previous mount down, which is
+   * framework knowledge and belongs in a framework facet.
+   */
   async execute(lab, adapter) {
-    // const exampleName = basename(lab.root);
-    // const cfg = getRenameConfig(exampleName);
+    const exampleName = basename(lab.root);
+    const cfg = getRenameConfig(exampleName);
 
     await adapter.navigateHome(lab);
-    await lab.clock.waitForIdle();
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
-    // // 1. Read original content of the boundary component
-    // const boundaryContent = await lab.fs.read(cfg.fromPath);
+    // 1. Read original content of the boundary component
+    const boundaryContent = await lab.fs.read(cfg.fromPath);
 
-    // // 2. Write the new boundary component file (so it exists on disk before parent imports it)
-    // await lab.fs.write(cfg.toPath, boundaryContent);
+    // 2. Write the new file first, so it exists before the parent imports it
+    await lab.fs.write(cfg.toPath, boundaryContent);
 
-    // // 3. Update parent import statement to point to the new file
-    // await lab.fs.edit(cfg.parentPath, (content) => {
-    //   if (!content.includes(cfg.importSearch)) {
-    //     throw new Error(
-    //       `Could not find import statement "${cfg.importSearch}" in ${cfg.parentPath}`,
-    //     );
-    //   }
-    //   return content.replace(cfg.importSearch, cfg.importReplace);
-    // });
+    // 3. Point the parent's import at the new file
+    await lab.fs.edit(cfg.parentPath, (content) => {
+      if (!content.includes(cfg.importSearch)) {
+        throw new Error(`Could not find import "${cfg.importSearch}" in ${cfg.parentPath}`);
+      }
+      return content.replace(cfg.importSearch, cfg.importReplace);
+    });
 
-    // // 4. Delete the old boundary component file (now safe, parent imports the new one)
-    // await lab.fs.delete(cfg.fromPath);
+    // 4. Delete the old file — now safe, the parent imports the new one
+    await lab.fs.delete(cfg.fromPath);
 
-    const heading = lab.page.locator(adapter.headingSelector);
-    await heading.first().waitFor({ state: "visible", timeout: 15000 });
-    expect(await heading.first().textContent()).toContain(adapter.initialHeadingText);
+    // 5. The app still renders: a rename must not lose the translations
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
-    // // 6. Edit the newly renamed boundary component file to trigger a message HMR change
-    // await lab.fs.edit(cfg.toPath, (content) => {
-    //   if (!content.includes(adapter.initialHeadingText)) {
-    //     throw new Error(
-    //       `Heading text "${adapter.initialHeadingText}" not found in renamed file: ${cfg.toPath}`,
-    //     );
-    //   }
-    //   return content.replace(adapter.initialHeadingText, "Boundary Rename Worked!");
-    // });
+    // 6. The renamed boundary still propagates hot updates
+    await lab.fs.edit(cfg.toPath, (content) => {
+      if (!content.includes(adapter.initialHeadingText)) {
+        throw new Error(`Heading "${adapter.initialHeadingText}" not found in ${cfg.toPath}`);
+      }
+      return content.replace(adapter.initialHeadingText, "Boundary Rename Worked!");
+    });
 
-    // // 7. Verify browser heading converged to the updated message
-    // const target = lab.page.locator(adapter.headingSelector, {
-    //   hasText: "Boundary Rename Worked!",
-    // });
-    // await target.first().waitFor({ state: "visible", timeout: 15000 });
-    // expect(await target.first().textContent()).toContain("Boundary Rename Worked!");
+    await lab.assert.textEventually(adapter.headingSelector, "Boundary Rename Worked!");
+
+    // 7. The deleted boundary's catalogs are reclaimed, not left orphaned
+    await lab.assert.noOrphanedCatalogs();
   },
 };
 

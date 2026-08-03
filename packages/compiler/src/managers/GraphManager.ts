@@ -11,6 +11,7 @@ import {
 import { type ZintlLogger } from "@zintljs/extractor";
 import type { IOManager } from "./IOManager.js";
 import type { ContentFacet } from "../types/capabilities.js";
+import { compareStrings } from "../utils/serialization.js";
 /**
  * Manages boundary and chunk graphs.
  */
@@ -514,7 +515,29 @@ export class GraphManager {
     }
     for (const node of graph.nodes.values())
       for (const dep of node.deps) if (dep.dynamic) roots.add(dep.id);
-    return roots;
+
+    /**
+     * Sorted, because callers resolve ties by *first writer wins* over this set.
+     *
+     * `computeTranslationChunks` assigns ownership by walking each root's static
+     * tree and keeping whichever root reached a boundary first, so the iteration
+     * order of this set decides who owns anything reachable from two roots. The
+     * order came from `graph.entries` and `graph.nodes`, which are populated in
+     * discovery order — and discovery order differs between a compiler starting
+     * cold and one reading a saved manifest, because the manifest is written
+     * with sorted keys.
+     *
+     * The observable effect was that the same source produced two different
+     * graphs. In `react-basic`, `src/App.tsx:App` was owned by
+     * `src/main.tsx:bootstrap` when a manifest existed and by an anonymous
+     * `src/main.tsx:f_547` when one did not — the file has two nested anchors
+     * (`bootstrap` and an arrow function), both of which statically reach `App`.
+     *
+     * ZRS Axiom 4 already requires exactly this: ownership resolves by
+     * lexicographic order so builds are reproducible "regardless of file system
+     * enumeration order". The rule was written down and never applied here.
+     */
+    return new Set([...roots].sort(compareStrings));
   }
 
   public getStaticDependencyTree(entryId: string, graph: BoundaryGraph): Set<string> {
