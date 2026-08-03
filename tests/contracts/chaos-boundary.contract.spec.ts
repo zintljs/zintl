@@ -49,6 +49,33 @@ function getRenameConfig(exampleName: string): RenameConfig {
   }
 }
 
+/**
+ * TODO: reproduce the React half of proposal 024 §1.3.
+ *
+ * This contract reproduced the Svelte double-mount — rename the file the entry
+ * imports, the entry's own source changes, it self-accepts, re-executes, and
+ * mounts again — and `RuntimeFacet.entryReexecutionSafe` fixed it. React has the
+ * same shape and a louder symptom: `createRoot()` throws on a container it
+ * already owns, which is the unmountable 103-byte page §1.3 recorded.
+ *
+ * It does **not** reproduce here. `react-basic` passes this contract with the
+ * self-accept in place, so whatever conditions §1.3 hit are not the ones this
+ * rename creates — most likely because React Fast Refresh stops propagation at
+ * `App.tsx` and `main.tsx` never re-executes.
+ *
+ * Why this needs a reproduction before a fix, rather than after: marking React
+ * unsafe was tried and reverted, because `FALLBACK_FRAMEWORK` is `"react"` — a
+ * project with no detected framework is assembled with the React facets, so
+ * `vanilla-spa-basic` inherited the claim and began full-reloading on every
+ * entry edit. Any runtime constraint attached to the React facet reaches every
+ * framework-less project by default. The fix is one facet field
+ * (`reactRuntimeFacet` with `entryReexecutionSafe: false`); what is missing is a
+ * failing test that justifies its blast radius.
+ *
+ * A reproduction probably needs an entry whose *own* source changes in a way
+ * Fast Refresh will not absorb — editing a non-component export in `main.tsx`,
+ * or a project without the React plugin's refresh boundary.
+ */
 export const chaosBoundaryContract: Contract = {
   name: "Chaos Boundary",
   description:

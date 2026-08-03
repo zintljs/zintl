@@ -14,6 +14,27 @@ import { allManifests } from "../manifests/index.js";
  * The meaningful number is the local one. Treat a CI failure here as "something
  * is badly wrong", and `vpr bench` as the real performance signal.
  */
+/**
+ * TODO: make this measure Zintl rather than the machine.
+ *
+ * The budget is already relaxed 4x under CI or parallel workers, which is an
+ * admission that the number is about the hardware. In practice it is the single
+ * most frequent false red in the suite: it failed repeatedly during a long
+ * session at 1,893-3,689ms against a 1,500ms budget while passing 5/5 in
+ * isolation, and every one of those was the machine being busy.
+ *
+ * An absolute wall-clock budget cannot survive that, and it gets *less*
+ * meaningful as examples are added, not more — more workers, more contention,
+ * wider spread.
+ *
+ * The fix is to measure a **ratio against a same-run baseline**: time a no-op
+ * mutation (one that changes no extractable string) in the same lab, then time
+ * the real edit, and assert the second is within some multiple of the first.
+ * That cancels machine speed and load out of the measurement, which is exactly
+ * what an absolute threshold cannot do.
+ *
+ * Until then, treat a failure here as "look at `vpr bench`", not as a defect.
+ */
 const BUDGET_MS = process.env.CI || process.env.ZINTL_PARALLEL ? 1500 : 350;
 
 export const performanceHmrContract: Contract = {
