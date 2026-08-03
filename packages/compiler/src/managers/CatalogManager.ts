@@ -6,7 +6,7 @@ import type { ZintlLogger, BoundaryGraph } from "../types/index.js";
 import type { IOManager } from "./IOManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
-import type { ContentFacet } from "../types/capabilities.js";
+import type { CompilerContext, ContentFacet } from "../types/capabilities.js";
 
 /**
  * Manages translation catalogs and JSON schemas.
@@ -1131,27 +1131,87 @@ export class CatalogManager {
     _chunkGraph?: any,
     /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
     precomputedReachable?: Set<string> | null,
-    contentFacets?: ContentFacet[],
   ) {
     if (!this.prune) return;
-    if (this.isDev && !this.isTestEnv) return; // Skip pruning in dev mode in real environments
+    if (this.isDev && !this.isTestEnv) {
+      /**
+       * Pruning is disabled for real development sessions, so a source file's
+       * catalogs and schema survive on disk for the whole session after the
+       * source is deleted. That is the "artifacts outliving their source"
+       * complaint, exactly.
+       *
+       * Named rather than fixed here on purpose. Turning it on is not a flag
+       * flip: `chaos-boundary`'s rename and delete body is commented out behind
+       * a "Fix Pruning Left-Over Catalogs on File Deletion" note, which says the
+       * reachability question this depends on is still open. Enabling it blind
+       * would trade an accumulating leak for the chance of deleting a live
+       * catalog, which is much worse. Until then the staleness has a name in the
+       * ledger instead of being invisible.
+       */
+      this.io.bus?.settle(
+        this.io.bus.mint("io/write", "prune"),
+        "superseded",
+        "pruning is disabled in development; stale outputs are retained",
+      );
+      return;
+    }
 
-    const isContentBoundary = (id: string, meta: any) => {
-      if (contentFacets) {
-        for (const facet of contentFacets) {
-          if (facet.isContentBoundary && facet.isContentBoundary(id, meta)) {
-            return true;
-          }
+    /**
+     * Whether a boundary belongs to a content facet, and so must survive pruning.
+     *
+     * This was doubly broken and the two faults hid each other. The parameter
+     * carrying the facets was declared but never passed by the only call site,
+     * so the branch was unreachable — and the call inside it passed a boundary's
+     * metadata where the facet contract declares a `CompilerContext`, so the
+     * moment it *did* become reachable it threw. Dead code does not get to be
+     * correct by never running.
+     *
+     * The facets now come from the field the manager already holds, rather than
+     * an argument a caller has to remember; and the context is built here, in
+     * the shape the hooks actually read. Same pattern as the protected-keys
+     * context built for `syncPathCatalogs`.
+     */
+    const facetContext = {
+      root: this.root,
+      outputDir: this.outputDir,
+      sourceLocale: this.sourceLocale,
+      locales,
+      isDev: this.isDev,
+      io: this.io,
+      logger: this.logger,
+      catalog: this,
+      getMetadataGraph: () => metadataGraph ?? {},
+      getDependencyGraph: () => dependencyGraph ?? {},
+      getBoundaryGraph: () => null,
+      internalManifest: {},
+      getHive: () => ({}),
+      markHiveDirty: () => {},
+      leadsToBoundary: () => ({ leads: false, dynamic: false }),
+      transform: async () => ({ code: "" }),
+    } as unknown as CompilerContext;
+
+    const isFacetContentBoundary = (id: string) => {
+      for (const facet of this.contentFacets) {
+        if (facet.isContentBoundary && facet.isContentBoundary(id, facetContext)) {
+          return true;
         }
       }
       return false;
     };
 
-    // Optimization: Skip if the graph hasn't changed since last prune
+    /**
+     * Skip when nothing has changed since the last prune.
+     *
+     * The key includes the *contents* of the active path set, not its size.
+     * Hashing the size meant swapping one content path for another left the key
+     * identical, and the prune that should have reclaimed the old output was
+     * skipped — a stale artifact surviving because a counter happened to match.
+     */
     const manifestHash =
       Array.from(graph.nodes.keys())
         .sort((a: any, b: any) => String(a).localeCompare(String(b)))
-        .join(",") + (activeContentPaths ? `|content:${activeContentPaths.size}` : "");
+        .join(",") +
+      (activeContentPaths ? `|content:${Array.from(activeContentPaths).sort().join(",")}` : "");
     if (this.lastPrunedManifestHash === manifestHash) return;
     this.lastPrunedManifestHash = manifestHash;
 
@@ -1205,8 +1265,8 @@ export class CatalogManager {
     }
 
     if (metadataGraph && dependencyGraph && graphManager) {
-      for (const [id, meta] of Object.entries(metadataGraph)) {
-        if (isContentBoundary(id, meta)) {
+      for (const id of Object.keys(metadataGraph)) {
+        if (isFacetContentBoundary(id)) {
           const check = graphManager.leadsToBoundary(id, dependencyGraph, metadataGraph);
           if (check.leads) {
             for (const locale of locales) {
@@ -1221,8 +1281,8 @@ export class CatalogManager {
       }
     } else if (metadataGraph) {
       // Fallback for simple pruning
-      for (const [id, meta] of Object.entries(metadataGraph)) {
-        if (isContentBoundary(id, meta) && graph.nodes.has(id)) {
+      for (const id of Object.keys(metadataGraph)) {
+        if (isFacetContentBoundary(id) && graph.nodes.has(id)) {
           for (const locale of locales) {
             if (locale === this.sourceLocale) continue;
             const p = this.getCatalogPath(id, locale);

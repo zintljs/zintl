@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 /**
  * utils.ts
  *
@@ -5,7 +6,6 @@
  * Import from here — never duplicate these across context files.
  */
 
-import { createHash } from "node:crypto";
 import type { Rollup } from "vite";
 import { expect } from "vite-plus/test";
 import { generateMessageId } from "@zintljs/compiler";
@@ -106,11 +106,8 @@ export function collectOutput(
   return files;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-export function sha1(str: string): string {
+/** Local to this file: the harness no longer names its temp dirs by hash. */
+function sha1(str: string): string {
   return createHash("sha1").update(str).digest("hex").slice(0, 8);
 }
 

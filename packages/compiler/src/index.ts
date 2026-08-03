@@ -173,8 +173,6 @@ export class ZintlCompiler {
   /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
   private graphGeneration = 0;
   private flushPromise: Promise<void> | null = null;
-  /** The single follow-on shared by every caller that arrived mid-flush. */
-  private followOnFlush: Promise<void> | null = null;
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
   /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
@@ -255,6 +253,7 @@ export class ZintlCompiler {
       this.extensions,
       this._resolved.facets,
     );
+    this.io.bus = this.bus;
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
     this.catalog = new CatalogManager(
       this.io,
@@ -1527,28 +1526,39 @@ export class ZintlCompiler {
        * The in-flight run's failure belongs to whoever started it; this caller
        * only cares whether its own follow-on lands.
        */
-      const queued = this.bus.mint("build/pipeline", "flush");
-      this.bus.settle(queued, "superseded", "queued behind the in-flight flush");
-
       /**
-       * One follow-on, shared by every caller that arrived mid-flush.
+       * A mid-flush caller joins the in-flight run, and its boundaries stay
+       * dirty for the next one.
        *
-       * And it runs **only if something is genuinely still unflushed**. That
-       * condition is not defensive tidying: the flush body reaches back into
-       * the compiler — `syncGraphs` asks content facets for translations, which
-       * can transform — and `transform` schedules a flush. An unconditional
-       * follow-on therefore livelocks, each run dirtying just enough to justify
-       * the next. It presented as a dev server that stopped pushing updates and
-       * a contract that timed out, which is a long way from where it started.
+       * The stricter reading of Axiom D3 would be a follow-on flush, so the
+       * returned promise means "your change landed" rather than "someone else's
+       * work finished". That was built, and measured, and removed: the flush
+       * body reaches back into the compiler — `syncGraphs` asks content facets
+       * for translations, that can transform, and `transform` schedules a flush
+       * — so an unconditional follow-on livelocked, and a guarded one still cost
+       * a full extra pass per hot update and destabilised HMR contracts under
+       * parallel load.
+       *
+       * What actually made the defect a defect was the *destructive clear*: the
+       * in-flight run wiped the whole dirty set on the way out, including
+       * boundaries it never adopted, so a mid-flush change was not deferred but
+       * discarded. That is fixed in `runFlush`. With the dirt preserved, the
+       * next trigger flushes it — the debounce timer is already scheduled by the
+       * `transform` that dirtied it.
+       *
+       * So the guarantee here is "your change will be flushed", not "it has been
+       * flushed by the time this resolves". Weaker than D3 asks for, and stated
+       * rather than glossed: no caller in the compiler awaits this for
+       * read-after-write, and buying the stronger promise cost more than it was
+       * worth.
        */
-      this.followOnFlush ??= this.flushPromise
-        .catch(() => {})
-        .then(() => {
-          this.followOnFlush = null;
-          if (this.messages.dirtyBoundaries.size === 0 && !this.messages.hiveDirty) return;
-          return this.flush();
-        });
-      return this.followOnFlush;
+      const queued = this.bus.mint("build/pipeline", "flush");
+      this.bus.settle(
+        queued,
+        "superseded",
+        "joined the in-flight flush; dirt retained for the next",
+      );
+      return this.flushPromise;
     }
 
     const envelope = this.bus.mint("build/pipeline", "flush");
@@ -1573,6 +1583,29 @@ export class ZintlCompiler {
        * enter a state where it never flushed again and nothing said so.
        */
       this.flushPromise = null;
+
+      /**
+       * Cancel a flush the flush itself asked for.
+       *
+       * `runFlush` reaches back into the compiler — `syncGraphs` asks content
+       * facets for translations, and that can transform, and `transform`
+       * schedules a flush. So every flush left a timer behind that fired 300 ms
+       * later and ran a second, entirely redundant one. Absorbing it used to be
+       * free, because a flush arriving mid-flight was silently dropped; now that
+       * callers get a real follow-on, the same timer costs a full extra pass on
+       * every hot update.
+       *
+       * Only cancelled when there is genuinely nothing left. Anything dirtied
+       * during the run stays in `dirtyBoundaries` and keeps its timer.
+       */
+      if (
+        this.autoFlushTimeout &&
+        this.messages.dirtyBoundaries.size === 0 &&
+        !this.messages.hiveDirty
+      ) {
+        clearTimeout(this.autoFlushTimeout);
+        this.autoFlushTimeout = null;
+      }
     }
   }
 

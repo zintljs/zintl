@@ -202,6 +202,8 @@ if (inFlight) {
 
 Returning `inFlight.promise` _without_ the adoption is the defect: the caller receives a completion signal for work that never included its change, and — where the coalescing stage also clears a shared dirty set on completion — the second caller's subjects are actively destroyed rather than merely deferred.
 
+**Deferral satisfies this axiom; destruction does not.** Once the subjects survive, returning the in-flight promise is permitted: the guarantee D3 asks for is that no subject is left without a custodian, not that the caller's own promise is the one that resolves when its work lands. Upgrading to the stronger reading — a follow-on run per mid-flight caller — is a real cost and occasionally a hazard, because a stage whose body re-enters the system can queue its own successor forever. Pay for it only where a caller genuinely reads back what it wrote.
+
 ### §4.4 — Locale capture
 
 Any procedure that reads a locale, performs an `await`, and then writes a result **MUST** use the locale captured before the await, never the instance's current locale after it. Reading the mutable field after an await files locale A's catalog under locale B's key whenever a switch lands mid-flight.

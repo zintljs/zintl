@@ -10,6 +10,7 @@ import {
   WRITE_GUARD_DELAY_MS,
 } from "../constants.js";
 import type { ZintlFacet, ZintlLogger } from "../types/index.js";
+import type { DeliveryBus } from "../bus/index.js";
 
 /** The only slice of compiler options the I/O layer actually reads. */
 export interface IOManagerOptions {
@@ -27,6 +28,17 @@ export class IOManager {
   private readonly boundaryIdCache = new Map<string, string>();
   private readonly normalizedIdCache = new Map<string, string>();
   private readonly extensions: string[];
+
+  /**
+   * Delivery accounting for artifact writes (`docs/spec/ZDB.md`, `io/write`).
+   *
+   * Assigned by the compiler after construction rather than taken as another
+   * positional argument — this constructor already has six, and a seventh
+   * optional one that most callers ignore is how signatures rot. Optional
+   * because the manager is usable without it; every write simply goes
+   * unrecorded then.
+   */
+  public bus?: DeliveryBus;
 
   /** Resolved source extensions, for callers that probe extensionless dep ids. */
   public get resolvedExtensions(): readonly string[] {
@@ -172,6 +184,19 @@ export class IOManager {
     return formatted;
   }
 
+  /**
+   * Record the fate of one artifact write or removal.
+   *
+   * Every path through `safeWriteFile` — written, skipped as identical, failed —
+   * reaches a terminal outcome (Axiom D2), so an output that exists on disk can
+   * be traced to the write that put it there, and one that does not can be
+   * traced to the write that never happened.
+   */
+  private settleWrite(path: string, outcome: "applied" | "superseded" | "failed", reason?: string) {
+    if (!this.bus) return;
+    this.bus.settle(this.bus.mint("io/write", this.getNormalizedId(path)), outcome, reason);
+  }
+
   public async safeWriteFile(path: string | null, content: string) {
     if (!path) return;
     let finalContent = content;
@@ -183,6 +208,10 @@ export class IOManager {
       if (await this.exists(path)) {
         const existing = await this.readFile(path);
         if (existing.trim().replace(/\r\n/g, "\n") === finalContent.trim().replace(/\r\n/g, "\n")) {
+          // Not a no-op worth hiding: an artifact that is already correct is a
+          // delivery that landed, and saying nothing makes it indistinguishable
+          // from one that never ran.
+          this.settleWrite(path, "superseded", "content already identical");
           return;
         }
       }
@@ -197,6 +226,10 @@ export class IOManager {
       await mkdir(dir, { recursive: true });
       await writeFile(path, finalContent, "utf-8");
       await this.formatFile(path);
+      this.settleWrite(path, "applied");
+    } catch (err) {
+      this.settleWrite(path, "failed", String(err));
+      throw err;
     } finally {
       setTimeout(() => {
         this.writingFiles.delete(path);
@@ -270,7 +303,16 @@ export class IOManager {
   }
 
   public async rm(path: string) {
-    await rm(path, { recursive: true, force: true });
+    // Reclaiming an artifact is a delivery too. An output that vanished and one
+    // that was never written look identical on disk; only the ledger separates
+    // them, which is the whole of "artifacts outliving their source" in reverse.
+    try {
+      await rm(path, { recursive: true, force: true });
+      this.settleWrite(path, "applied", "reclaimed");
+    } catch (err) {
+      this.settleWrite(path, "failed", `could not reclaim: ${String(err)}`);
+      throw err;
+    }
   }
 
   public async stat(path: string) {

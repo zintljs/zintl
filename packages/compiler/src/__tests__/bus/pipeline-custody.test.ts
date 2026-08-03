@@ -66,48 +66,42 @@ describe("flush custody", () => {
     );
   });
 
-  it("runs a follow-on for a caller whose work the in-flight run had not adopted", async () => {
+  it("keeps a mid-flush caller's boundaries dirty instead of destroying them", async () => {
     /**
-     * Axiom D3. Handing the second caller the in-flight promise meant awaiting
-     * it resolved to "someone else's work finished" — the running flush had
-     * already snapshotted its dirty set before this caller's boundaries were
-     * added to it, and then cleared the whole set on the way out.
+     * The defect was never that the second caller got the wrong promise — it was
+     * that the in-flight run wiped the *whole* dirty set on the way out,
+     * including boundaries dirtied after its own snapshot. Those changes were
+     * not deferred, they were discarded, and no later flush knew they existed.
+     *
+     * A mid-flush caller now joins the in-flight run, and the dirt it added
+     * survives for the next one. A follow-on flush was built for the stronger
+     * guarantee and removed: it cost a full extra pass per hot update and
+     * destabilised HMR contracts under parallel load.
      */
     const compiler = makeCompiler();
     let release!: () => void;
     const first = new Promise<void>((resolve) => (release = resolve));
 
-    let runs = 0;
     stubRunFlush(compiler, async () => {
-      runs++;
-      if (runs === 1) {
-        await first;
-        // Adopted nothing; this boundary was dirtied after the snapshot.
-        compiler.messages.dirtyBoundaries.add("b_late");
-      } else {
-        compiler.messages.dirtyBoundaries.clear();
-      }
+      await first;
+      // Stands in for the real body, which deletes only what it adopted.
+      compiler.messages.dirtyBoundaries.delete("b_adopted");
     });
 
+    compiler.messages.dirtyBoundaries.add("b_adopted");
     const a = compiler.flush();
+    compiler.messages.dirtyBoundaries.add("b_late");
     const b = compiler.flush();
     release();
     await Promise.all([a, b]);
 
-    expect(runs).toBe(2);
+    expect([...compiler.messages.dirtyBoundaries]).toEqual(["b_late"]);
     expect(compiler.bus.history("build/pipeline")).toContainEqual(
-      expect.objectContaining({ subject: "flush", reason: "queued behind the in-flight flush" }),
+      expect.objectContaining({ subject: "flush", outcome: "superseded" }),
     );
   });
 
-  it("does not follow on when nothing is left unflushed", async () => {
-    /**
-     * The flush body reaches back into the compiler — `syncGraphs` asks content
-     * facets for translations, which can transform, and `transform` schedules a
-     * flush. An unconditional follow-on therefore livelocks, each run dirtying
-     * just enough to justify the next. It surfaced as a dev server that stopped
-     * pushing updates and a contract that timed out at 45 s.
-     */
+  it("does not run a second flush for callers arriving mid-flush", async () => {
     const compiler = makeCompiler();
     let release!: () => void;
     const first = new Promise<void>((resolve) => (release = resolve));
@@ -115,7 +109,7 @@ describe("flush custody", () => {
     let runs = 0;
     stubRunFlush(compiler, async () => {
       runs++;
-      if (runs === 1) await first;
+      await first;
     });
 
     const all = [compiler.flush(), compiler.flush(), compiler.flush()];
@@ -123,30 +117,6 @@ describe("flush custody", () => {
     await Promise.all(all);
 
     expect(runs).toBe(1);
-  });
-
-  it("collapses several mid-flush callers onto one follow-on", async () => {
-    const compiler = makeCompiler();
-    let release!: () => void;
-    const first = new Promise<void>((resolve) => (release = resolve));
-
-    let runs = 0;
-    stubRunFlush(compiler, async () => {
-      runs++;
-      if (runs === 1) {
-        await first;
-        compiler.messages.dirtyBoundaries.add("b_late");
-      } else {
-        compiler.messages.dirtyBoundaries.clear();
-      }
-    });
-
-    const all = [compiler.flush(), compiler.flush(), compiler.flush(), compiler.flush()];
-    release();
-    await Promise.all(all);
-
-    // One in-flight run plus exactly one follow-on covering all three waiters.
-    expect(runs).toBe(2);
   });
 });
 

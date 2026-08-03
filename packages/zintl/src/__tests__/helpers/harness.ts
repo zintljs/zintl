@@ -13,9 +13,8 @@
  *   await ctx.cleanup();
  */
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { build as viteBuild, mergeConfig, type InlineConfig, type Rollup } from "vite";
 import zintl from "../../vite.js";
 import {
@@ -24,8 +23,8 @@ import {
   collectOutput,
   createZintlMatchers,
   BASE_TEST_OVERRIDES,
-  sha1,
 } from "./utils.ts";
+import { createTestDir } from "./fs.ts";
 
 // ---------------------------------------------------------------------------
 
@@ -49,16 +48,16 @@ function testPluginOptions(options: any = {}) {
 }
 
 export async function createZintlContext(options: any = {}): Promise<TestContext> {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const tmpBase = join(__dirname, ".tmp");
-  await mkdir(tmpBase, { recursive: true });
-
-  // Unique dir name to prevent parallel workers/tests from colliding.
-  const root = join(
-    tmpBase,
-    `zintl-test-${sha1(JSON.stringify(options))}-${Math.random().toString(36).slice(2, 8)}`,
-  );
-  await mkdir(root, { recursive: true });
+  /**
+   * One temp-dir policy, not two.
+   *
+   * This used to keep its own `.tmp` beside the helper, with its own naming and
+   * no clearing — so the project had two independent scratch trees, both
+   * gitignored, both growing forever. Sharing `createTestDir` means the
+   * per-worker base is cleared once per run for this too, and a context whose
+   * `cleanup` is never called costs one run rather than every run.
+   */
+  const root = await createTestDir("zintl-test-");
 
   const rawPlugin = zintl(testPluginOptions(options));
 
@@ -174,7 +173,25 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
   // -------------------------------------------------------------------------
   // cleanup
   // -------------------------------------------------------------------------
-  const cleanup = async (): Promise<void> => {};
+  /**
+   * Remove this context's project directory.
+   *
+   * This was an empty function. Every test dutifully awaited it in `afterEach`
+   * or `afterAll`, and each run left its directory behind — 5,308 of them, 53 MB,
+   * accumulated silently because `.tmp` is gitignored. A cleanup contract that
+   * callers honour and the implementation ignores is worse than no contract:
+   * it makes the leak invisible to exactly the people looking for it.
+   *
+   * Failures are swallowed. A directory that cannot be removed — held open on
+   * Windows, already gone — must never fail the test that created it.
+   */
+  const cleanup = async (): Promise<void> => {
+    try {
+      await rm(root, { recursive: true, force: true });
+    } catch {
+      // Best effort; the next run reuses the same base directory anyway.
+    }
+  };
 
   return {
     root,
