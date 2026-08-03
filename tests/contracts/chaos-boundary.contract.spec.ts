@@ -70,15 +70,13 @@ export const chaosBoundaryContract: Contract = {
    * and it is upstream of the pruning the original TODO here described. Pruning
    * itself now works: the no-orphan assertion below passes on three of four.
    *
-   * **1a. And the leak reaches the committed examples.** `copiedExampleSource`
-   * reproduces `node_modules` as a symlink farm that skips `.vite`, `.vite-temp`
-   * and `.cache` — but **not** `.zintl`, so the per-worker copy and the real
-   * example share one persisted manifest. Enabling this contract wrote the
-   * phantom boundary into each example's `node_modules/.zintl/manifest.json`, and
-   * the next `build:examples` read it back and generated catalogs for a file
-   * that does not exist — into the tracked source tree. Twelve untracked JSON
-   * files across four examples, from one test run. Add `.zintl` to
-   * `MODULES_NOT_LINKED` before enabling this.
+   * **1a. FIXED — the leak no longer escapes into the committed examples.**
+   * The symlink farm shared the compiler's persisted manifest between the copy
+   * and the real example, so this contract wrote a phantom boundary into four
+   * examples' manifests and the next `build:examples` generated catalogs for
+   * source that did not exist, into the tracked tree. `.zintl` is now copied
+   * per worker instead of linked, verified by running this contract live and
+   * confirming the examples stay clean.
    *
    * **2. Entry double-mount on `svelte-basic`** — proposal 024 §1.3. Renaming
    * the file the entry imports rewrites the entry's own source, the entry

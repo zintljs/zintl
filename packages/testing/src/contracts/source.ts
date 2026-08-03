@@ -91,7 +91,27 @@ const COPY_EXCLUDED = new Set(["node_modules", "dist", ".next", ".vite", ".turbo
  * module resolution keeps working perfectly while the cache underneath is being
  * raced by four processes.
  */
-const MODULES_NOT_LINKED = new Set([".vite", ".cache", ".vite-temp"]);
+const MODULES_NOT_LINKED = new Set([
+  ".vite",
+  ".cache",
+  ".vite-temp",
+  /**
+   * `.zintl` holds the compiler's persisted manifest, and linking it made the
+   * per-worker copy and the **real example** share one.
+   *
+   * The consequence was not confined to the test run. A contract that renamed a
+   * file wrote the phantom boundary into the shared manifest; the next
+   * `build:examples` read it back and generated catalogs for source that did
+   * not exist — into the tracked `examples/` tree. Twelve untracked JSON files
+   * across four examples, from a single contract.
+   *
+   * This is the same rule as `.vite` above, and it was missed for the same
+   * reason: module resolution keeps working perfectly while the state
+   * underneath is shared, so nothing looks wrong until an artifact outlives the
+   * run that produced it.
+   */
+  ".zintl",
+]);
 
 function workerId(): string {
   return process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? String(process.pid);
@@ -147,6 +167,32 @@ export function copiedExampleSource(dir: string): ProjectSource {
               // Entry already linked, or unsupported — resolution falls back to
               // walking up to the workspace root, which still resolves.
             });
+          }
+
+          /**
+           * `.zintl` is **copied**, not linked and not omitted.
+           *
+           * Linking it shares the compiler's persisted manifest between the copy
+           * and the real example, so a contract that renames or deletes a file
+           * writes a phantom boundary into `examples/`, and the next
+           * `build:examples` generates catalogs for source that no longer exists
+           * — into the tracked tree.
+           *
+           * Omitting it is not the fix either, and that was measured: a compiler
+           * starting cold resolves boundary ownership differently from one
+           * reading a saved manifest (`src/App.tsx:App` moved from
+           * `src/main.tsx:bootstrap` to an anonymous `src/main.tsx:f_547`), which
+           * changed four committed graph snapshots. That difference is worth
+           * investigating on its own — ZRS Axiom 4 says ownership is
+           * deterministic — but it is not this function's problem to absorb.
+           *
+           * Copying gives every worker the same warm starting state with no
+           * shared mutable file, which is the property the whole per-worker copy
+           * exists to provide.
+           */
+          const originZintl = join(originModules, ".zintl");
+          if (existsSync(originZintl)) {
+            await cp(originZintl, join(target, ".zintl"), { recursive: true });
           }
         }
 

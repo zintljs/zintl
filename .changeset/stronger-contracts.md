@@ -1,5 +1,5 @@
 ---
-"@zintljs/testing": patch
+"@zintljs/compiler": patch
 ---
 
 Strengthen the contract suite, and stop one contract claiming coverage it does not have.
