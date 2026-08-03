@@ -94,6 +94,19 @@ export interface Contract<TAdapter = BaseAdapter> {
    * indistinguishable from one nobody revisited.
    */
   readonly strictDeliveryExempt?: string;
+  /**
+   * Why this contract does not yet assert what its name claims.
+   *
+   * Set it and the contract is *skipped*, with the reason in the report. A
+   * contract whose body has been commented out still runs, still passes, and
+   * still reports its capability as covered — which is the worst state a test
+   * can be in: it occupies the slot where the real coverage would go and tells
+   * everyone the slot is filled.
+   *
+   * A string, not a boolean, for the same reason as `strictDeliveryExempt`: a
+   * gap without a stated cause is one nobody can pick up.
+   */
+  readonly pending?: string;
   /** The invariant steps — manifest is the third arg for build/compile contracts */
   execute(lab: Lab, adapter: TAdapter, manifest: ProjectManifest): Promise<void>;
 }

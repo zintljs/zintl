@@ -68,6 +68,19 @@ export const chaosBoundaryContract: Contract = {
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
   requires: ["spa", "hmr", "chaos"],
   strictDeliveryExempt: "deletes and renames boundary sources",
+  /**
+   * Everything this contract exists to prove is commented out below, so what it
+   * actually ran was `navigateHome` and one heading assertion — an exact
+   * duplicate of `initial-render`, reporting green and claiming the `chaos`
+   * capability while covering none of it.
+   *
+   * Marked pending rather than deleted: the body is the specification of what
+   * needs to work, and the blocker is named in the TODO above it. A visible gap
+   * is worth more than a passing test that fills the slot where the real
+   * coverage belongs.
+   */
+  pending:
+    "boundary rename/delete needs catalog pruning on unlink — see the TODO at the top of this file",
   async execute(lab, adapter) {
     // const exampleName = basename(lab.root);
     // const cfg = getRenameConfig(exampleName);

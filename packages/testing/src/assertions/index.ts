@@ -246,6 +246,48 @@ export class LabAssertions {
     }
   }
 
+  /**
+   * Assert the store and the document agree about the locale.
+   *
+   * `locale()` checks `html[lang]` and nothing else, so a page rendering one
+   * language while announcing another passes it — which is exactly what
+   * happened when a superseded locale switch was still allowed to publish:
+   * Arabic content on a page declaring `lang="en"`. Both halves were
+   * individually plausible and only their disagreement was the bug.
+   *
+   * The store half is skipped when the runtime is not reachable (a production
+   * page, or one that has not booted), rather than failing — this asserts
+   * agreement, and there is nothing to disagree with.
+   */
+  async localeCoherent(expected?: string): Promise<void> {
+    const state = await this.lab.page.evaluate(() => {
+      const store = (globalThis as { __zintl_current_instance?: { locale?: string } })
+        .__zintl_current_instance;
+      const html = document.documentElement;
+      return {
+        storeLocale: store?.locale,
+        lang: html.getAttribute("lang"),
+        dir: html.getAttribute("dir"),
+      };
+    });
+
+    if (expected !== undefined && state.lang !== expected) {
+      throw new Error(
+        `Expected page locale to be "${expected}", but the document says "${state.lang}"` +
+          ` (store says "${state.storeLocale}")`,
+      );
+    }
+
+    if (state.storeLocale && state.lang && state.storeLocale !== state.lang) {
+      throw new Error(
+        `Locale incoherence: the store is on "${state.storeLocale}" but the document ` +
+          `announces "${state.lang}". The page is rendering one language and telling ` +
+          `assistive technology and search engines another.\n\n` +
+          (await this.describeStall()),
+      );
+    }
+  }
+
   async dir(expected: "ltr" | "rtl"): Promise<void> {
     const htmlDir = await this.lab.page.getAttribute("html", "dir");
     if (htmlDir !== expected) {
