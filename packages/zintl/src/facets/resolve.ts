@@ -116,6 +116,8 @@ interface MergeState {
   ssrWrapCodePriority: number;
   ssrWrapExports: string[];
   ssrWrapDefault: boolean | "fetch" | undefined;
+  ssrWrapDefaultProvider: string;
+  ssrWrapDefaultPriority: number;
 
   // Runtime (OR-merged booleans, chained detectLocale)
   clientLocaleSync: boolean;
@@ -158,6 +160,8 @@ function createEmptyState(): MergeState {
     ssrWrapCodePriority: -1,
     ssrWrapExports: [],
     ssrWrapDefault: undefined,
+    ssrWrapDefaultProvider: "",
+    ssrWrapDefaultPriority: -1,
     clientLocaleSync: false,
     serverRequestScope: false,
     streamInjection: false,
@@ -249,8 +253,32 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       if (facet.wrapExports) {
         state.ssrWrapExports.push(...facet.wrapExports);
       }
-      if (facet.wrapDefault !== undefined && state.ssrWrapDefault === undefined) {
-        state.ssrWrapDefault = facet.wrapDefault;
+      /**
+       * Composition `ranked`, like every other single-provider hook — this was
+       * the one that silently kept the first contributor (ZDB Axiom D4).
+       *
+       * Facets are already sorted by descending priority, so keeping the first
+       * value is the correct *outcome*; what was missing is the tie being an
+       * error. Two facets disagreeing about how to wrap the default export at
+       * the same rank is a real conflict, and picking one by registration order
+       * makes the loser's intent vanish without a word.
+       */
+      if (facet.wrapDefault !== undefined) {
+        if (state.ssrWrapDefault === undefined) {
+          state.ssrWrapDefault = facet.wrapDefault;
+          state.ssrWrapDefaultProvider = facet.name;
+          state.ssrWrapDefaultPriority = priority;
+        } else if (
+          state.ssrWrapDefaultPriority === priority &&
+          state.ssrWrapDefault !== facet.wrapDefault
+        ) {
+          throw new Error(
+            `[Zintl] Facet conflict: both "${state.ssrWrapDefaultProvider}" and "${facet.name}" ` +
+              `provide "wrapDefault" at the same priority (${priority}), with different values ` +
+              `(${JSON.stringify(state.ssrWrapDefault)} vs ${JSON.stringify(facet.wrapDefault)}). ` +
+              `Only one facet may decide this — increase priority on one, or remove the other.`,
+          );
+        }
       }
       break;
     }

@@ -257,7 +257,62 @@ A fan-out whose composition is not declared is a specification violation. In par
 - A `for … await` loop over facets that assigns into a shared object is `union` only if key collisions are impossible; otherwise it is `ranked` and must say so.
 - A loop that `break`s or `return`s on the first implementer is `ranked` with an undeclared rank, which makes every later contributor unreachable. It must become an explicit `ranked` or an explicit `chain`.
 
-Facet lifecycle steps (`setup`, `discover`, `flush`) are `build/pipeline` subjects: a facet that fails is named by the ledger rather than swallowed by the surrounding sequential await.
+Facet lifecycle steps (`setup`, `discover`, `flush`) are `build/pipeline` subjects: a facet that fails is named by the ledger rather than swallowed by the surrounding sequential await. It also does not take the remaining facets with it — the composition is `union`, so the facets are independent and one failing does not make the others wrong.
+
+### §7.1 — The declared composition of every fan-out
+
+| Fan-out                                                                | Composition  | Conflict                                                  |
+| :--------------------------------------------------------------------- | :----------- | :-------------------------------------------------------- |
+| extraction targets, extensions, rules                                  | `union`      | none possible                                             |
+| runtime capability booleans                                            | `union` (OR) | none possible                                             |
+| `getTranslations`                                                      | `union`      | same key, different value → **hard error**                |
+| `getProtectedCatalogKeys`                                              | `union`      | none — the result is a set                                |
+| `transformHtml`                                                        | `chain`      | none — each facet sees the previous output                |
+| `detectLocale`                                                         | `chain`      | none — first non-`undefined` wins, order declared         |
+| `getBoundaryForLocalizedOutput`                                        | `chain`      | none — first claim wins, order declared                   |
+| `wrapCode`, `wrapDefault`                                              | `ranked`     | tie at equal priority → **hard error**                    |
+| `resolveVirtualPath`, `dynamicImportTemplate`, `hmrInjectionCode`      | `ranked`     | tie at equal priority → **hard error**                    |
+| codegen facets (per extension)                                         | `ranked`     | two claiming one extension at equal rank → **hard error** |
+| `setup`, `discover`, `flush`, `getStateToSave`, `getActiveOutputPaths` | `union`      | none — independent, failures isolated and named           |
+
+---
+
+## §7a — Bundler Requirements
+
+Zintl's compiler is bundler-agnostic; the host plugin is not. Support for another build tool is a facet, not a rewrite (SPEC §1) — but a facet can only be written where the tool provides what the channels below need. Two tiers, and the line between them is exactly the `build/hmr` channel.
+
+### Tier 1 — Build
+
+Everything Zintl does at build time. Needs only:
+
+| Requirement                                 | Used for                                                                                         |
+| :------------------------------------------ | :----------------------------------------------------------------------------------------------- |
+| Virtual modules                             | catalogs, content and managers (`resolveId` + `load`, with an opaque-id convention such as `\0`) |
+| A `transform` hook with stable per-file ids | extraction and source mutation                                                                   |
+| Build lifecycle hooks                       | `buildStart` → discovery, `buildEnd` → flush                                                     |
+| Plugin ordering                             | Zintl must run before framework transforms (`enforce: "pre"`)                                    |
+| HTML transformation                         | projections and the bootstrap script — optional, HTML entries only                               |
+
+Every bundler unplugin targets can meet this tier. It is where support for a new tool should start.
+
+### Tier 2 — Development
+
+Hot updates. Needs everything above, plus:
+
+| Requirement                                        | Used for                                                                                              |
+| :------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
+| A hot-update hook carrying the changed file        | the `build/hmr` subject                                                                               |
+| **A monotonic, non-repeating timestamp per event** | the `build/hmr` sequence (§3.1) — without it there is no ordering authority and D1 cannot be enforced |
+| **`read()` for the content of _that_ event**       | §4.1a — reading the file independently is how a later write becomes a no-op                           |
+| Module-graph access with per-module invalidation   | invalidating managers, catalogs and content modules                                                   |
+| A per-module update token that reaches the client  | cache-busting the re-fetch (`?t=`)                                                                    |
+| A server→client message channel                    | full reloads for server-only boundaries                                                               |
+
+The second and third rows are the load-bearing ones, and they are why this tier is narrower than the first. A bundler that provides a hot-update hook without a monotonic per-event sequence can deliver updates but cannot **order** them — which is the defect this entire specification exists to remove, so shipping dev support on such a tool would be shipping the bug back.
+
+### Where to start
+
+Take a bundler unplugin already supports, implement Tier 1 as a `BundlerFacet`, and confirm the build contracts pass. Only then look at Tier 2, and only for tools that genuinely provide the two load-bearing rows — do not emulate them with a counter of your own, because a second clock that can disagree with the bundler's is worse than no clock at all.
 
 ---
 

@@ -365,6 +365,32 @@ export class ZintlCompiler {
     return this.io;
   }
 
+  /**
+   * Run one facet lifecycle step, under an envelope.
+   *
+   * These fan-outs were bare sequential `await` loops: a facet that threw took
+   * the loop with it, so every facet after it in registration order silently
+   * never ran, and the only evidence was whichever error happened to surface.
+   * Each step now reaches a terminal outcome naming the facet (Axiom D2), and a
+   * failure stops the step rather than the remaining facets — the composition is
+   * `union`, so the facets are independent and one failing does not make the
+   * others wrong.
+   */
+  private async runFacetStep(
+    step: string,
+    facetName: string,
+    run: () => Promise<void> | void,
+  ): Promise<void> {
+    const envelope = this.bus.mint("build/pipeline", `${step}:${facetName}`);
+    try {
+      await run();
+      this.bus.settle(envelope, "applied");
+    } catch (err) {
+      this.bus.settle(envelope, "failed", String(err));
+      this.logger.error(`Content facet "${facetName}" failed during ${step}: ${String(err)}`);
+    }
+  }
+
   public async setup() {
     await this.messages.loadMetadata();
     const context = this.getCompilerContext();
@@ -373,7 +399,7 @@ export class ZintlCompiler {
         const savedState =
           this.messages.savedContentStates[facet.name || ""] ||
           (facet.name === "system-static-assets" ? this.messages.registeredAssets : undefined);
-        await facet.setup(savedState, context);
+        await this.runFacetStep("setup", facet.name, () => facet.setup!(savedState, context));
       }
     }
     await this.catalog.harvestHive(
@@ -798,13 +824,7 @@ export class ZintlCompiler {
       const context = this.getCompilerContext();
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
-        const assetTranslations: Record<string, string> = {};
-        for (const facet of this._resolved.system.contentFacets) {
-          if (facet.getTranslations) {
-            const tr = await facet.getTranslations(this.sourceLocale, context);
-            Object.assign(assetTranslations, tr);
-          }
-        }
+        const assetTranslations = await this.mergeFacetTranslations(this.sourceLocale, context);
         const assetKeys = Object.keys(assetTranslations).map((text) => ({
           text,
           id: "asset",
@@ -823,13 +843,7 @@ export class ZintlCompiler {
         }
 
         for (const loc of this.locales) {
-          const locAssets: Record<string, string> = {};
-          for (const facet of this._resolved.system.contentFacets) {
-            if (facet.getTranslations) {
-              const tr = await facet.getTranslations(loc, context);
-              Object.assign(locAssets, tr);
-            }
-          }
+          const locAssets = await this.mergeFacetTranslations(loc, context);
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
 
           let changed = false;
@@ -877,18 +891,67 @@ export class ZintlCompiler {
     return this.rebuildPromise;
   }
 
+  /**
+   * Merge every content facet's translations for one locale — composition
+   * `union`, with collisions treated as the conflict they are (ZDB Axiom D4).
+   *
+   * This was `Object.assign` in a loop, so when two facets produced the same key
+   * with different text the last facet in iteration order silently won. That is
+   * not a merge, it is a coin toss decided by facet registration order, and the
+   * losing facet's content simply never appeared.
+   *
+   * Identical values are not a conflict — two facets agreeing about a string is
+   * fine and common.
+   */
+  private async mergeFacetTranslations(
+    locale: string,
+    context: CompilerContext,
+  ): Promise<Record<string, string>> {
+    const merged: Record<string, string> = {};
+    const owner = new Map<string, string>();
+
+    for (const facet of this._resolved.system.contentFacets) {
+      if (!facet.getTranslations) continue;
+      const contributed = await facet.getTranslations(locale, context);
+      for (const [key, value] of Object.entries(contributed ?? {})) {
+        const previous = owner.get(key);
+        if (previous !== undefined && merged[key] !== value) {
+          throw new Error(
+            `[Zintl] Content facet conflict: "${previous}" and "${facet.name}" both provide ` +
+              `the key ${JSON.stringify(key)} for locale "${locale}" with different values. ` +
+              `Only one facet may own a content key — rename it in one of them.`,
+          );
+        }
+        merged[key] = value;
+        owner.set(key, facet.name);
+      }
+    }
+    return merged;
+  }
+
   public async transformHtml(
     html: string,
     id: string,
     preloads?: Record<string, string[]>,
   ): Promise<string> {
     const context = this.getCompilerContext();
+    /**
+     * Composition `chain`: every facet transforms in turn, each seeing the
+     * previous one's output (ZDB Axiom D4).
+     *
+     * This used to `return` inside the loop, so the first facet implementing
+     * `transformHtml` won and any later one was unreachable code — a facet could
+     * be registered, be asked for nothing, and never say so. A chain is also the
+     * semantics HTML transformation actually wants: projections, preloads and
+     * bootstrap injection compose rather than compete.
+     */
+    let result = html;
     for (const facet of this._resolved.system.contentFacets) {
       if (facet.transformHtml) {
-        return await facet.transformHtml(html, id, context, preloads);
+        result = await facet.transformHtml(result, id, context, preloads);
       }
     }
-    return html;
+    return result;
   }
 
   async transform(
@@ -1789,7 +1852,7 @@ export class ZintlCompiler {
       const flushCtx = this.getCompilerContext();
       for (const facet of this._resolved.system.contentFacets) {
         if (facet.flush) {
-          await facet.flush(flushCtx);
+          await this.runFacetStep("flush", facet.name, () => facet.flush!(flushCtx));
         }
       }
 
