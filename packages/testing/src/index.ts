@@ -5,7 +5,6 @@ export {
   type Lab,
   type LabOptions,
   type ProjectLabOptions,
-  type DeliveryWaitResult,
 } from "./environment/lab.js";
 export type { LabBrowser } from "./environment/browser.js";
 export type { LabDevServer } from "./environment/dev-server.js";
