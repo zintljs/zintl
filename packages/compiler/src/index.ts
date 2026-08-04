@@ -603,7 +603,7 @@ export class ZintlCompiler {
 
       for (const bId of boundaries) {
         foundBoundaryIds.push(bId);
-        this.messages.dirtyBoundaries.add(bId);
+        this.messages.markDirty(bId);
       }
     }
 
@@ -615,7 +615,7 @@ export class ZintlCompiler {
         const catPath = this.catalog.getCatalogPath(bId, locale);
         if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
           foundBoundaryIds.push(bId);
-          this.messages.dirtyBoundaries.add(bId);
+          this.messages.markDirty(bId);
           break;
         }
       }
@@ -627,7 +627,7 @@ export class ZintlCompiler {
         const bId = await facet.getBoundaryForLocalizedOutput(filePath, context);
         if (bId && !foundBoundaryIds.includes(bId)) {
           foundBoundaryIds.push(bId);
-          this.messages.dirtyBoundaries.add(bId);
+          this.messages.markDirty(bId);
           break;
         }
       }
@@ -688,7 +688,7 @@ export class ZintlCompiler {
     for (const bId of removed) {
       delete this.catalog.getCache()[bId];
       delete this.messages.internalManifest[bId];
-      this.messages.dirtyBoundaries.add(bId);
+      this.messages.markDirty(bId);
       this.boundaryRevisions.delete(bId);
       this.confirmedOnDisk.delete(bId);
       this.graph.boundaryGraph?.nodes.delete(bId);
@@ -1839,8 +1839,22 @@ export class ZintlCompiler {
        * never adopted by it, and clearing the whole set destroyed exactly those
        * — so a change that arrived mid-flush was not merely deferred, it was
        * discarded, and the follow-on flush found nothing to do.
+       *
+       * That guarded against a *different* boundary dirtied mid-flush, but not
+       * the *same* one: this run's own catalog write for an adopted id is
+       * awaited below, and a `markDirty` for that exact id can land after the
+       * write but before the cleanup at the bottom of this method. The id is
+       * still in `adopted`, so an unconditional delete would clear a dirty
+       * flag a *newer* edit had just set — discarding that edit with nothing
+       * left to schedule it for a later flush. `adoptedRevisions` records what
+       * `dirtyRevisions` read at adoption time so the cleanup can tell the two
+       * cases apart.
        */
       const adopted = new Set<string>(this.messages.dirtyBoundaries);
+      const adoptedRevisions = new Map<string, number>();
+      for (const bId of adopted) {
+        adoptedRevisions.set(bId, this.messages.dirtyRevisions.get(bId) ?? 0);
+      }
       const affectedBoundaries = new Set<string>(adopted);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
       for (const move of changes.moves as any[]) {
@@ -1916,8 +1930,13 @@ export class ZintlCompiler {
           precomputedReachable,
         );
       }
-      // Only what this run adopted — see `adopted` above.
-      for (const bId of adopted) this.messages.dirtyBoundaries.delete(bId);
+      // Only what this run adopted, and only if nothing re-dirtied it since —
+      // see `adoptedRevisions` above.
+      for (const bId of adopted) {
+        if (this.messages.dirtyRevisions.get(bId) === adoptedRevisions.get(bId)) {
+          this.messages.dirtyBoundaries.delete(bId);
+        }
+      }
 
       // Run flush on all content facets
       const flushCtx = this.getCompilerContext();
