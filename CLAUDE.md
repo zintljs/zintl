@@ -115,7 +115,9 @@ Unit tests live beside code in `__tests__/`. Above that sits a **contract** laye
 
 ## Publishing
 
-Packages use pnpm `catalog:`/`workspace:*` protocols — **never run `npm publish`** in this repo; it ships those specifiers verbatim and breaks every non-pnpm consumer. `vpr release` (`changeset publish`) detects pnpm and shells out correctly. The bare name `zintl` is unobtainable on npm (similarity filter), hence the published names `zintljs`/`@zintljs/*`; the `zintl()` macro identifier is intentionally unrelated to the package name. We are using GitHub Action to publish our packages, please do not publish untill you are asked to do so.
+Packages use pnpm `catalog:`/`workspace:*` protocols — **never run `npm publish`** in this repo; it ships those specifiers verbatim and breaks every non-pnpm consumer. `vpr release` (`changeset publish`) detects pnpm and shells out correctly. There is no npm token: publishing authenticates with the workflow's own OIDC identity — pnpm has done trusted publishing since 11.0.7 — trusted per package on npmjs.com and pinned to the `ci.yml` filename. The bare name `zintl` is unobtainable on npm (similarity filter), hence the published names `zintljs`/`@zintljs/*`; the `zintl()` macro identifier is intentionally unrelated to the package name. We are using GitHub Action to publish our packages, please do not publish untill you are asked to do so.
+
+Releases are never dispatched. PRs target `alpha`; a push to a channel branch (`alpha`/`beta`/`main`) opens a `chore: version packages` PR, and merging that PR is what publishes. The channel — version suffix and npm dist-tag — comes from the `.changeset/pre.json` committed on the branch, so adding a channel means creating a branch, not editing `.github/workflows/ci.yml`.
 
 ## Mantras Picking
 

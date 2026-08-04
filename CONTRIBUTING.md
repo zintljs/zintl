@@ -95,6 +95,45 @@ Contract failures attach page state automatically — HMR packet counts, the run
    vpr change
    ```
    Say what changed and _why_ — changesets become the changelog people read when something breaks.
-4. Open a PR. CI runs verification on every push; contracts and the publish smoke test run on pull requests.
+4. Open a PR against `alpha`. Open it as a **draft** while you iterate — CI holds off until you mark it ready, so work-in-progress pushes cost nothing.
+
+## CI, channels, and releasing
+
+Every gate runs **once per commit**. On a PR: `verify`, `contracts`, and the publish smoke test when packaging files change. On a push to a channel branch: `verify`, then the release machinery. Nothing re-runs what a green check already covered.
+
+**`CI Gate` is the only required status check.** It aggregates the others and is red whenever a gate that was supposed to run failed, so nothing merges without contracts passing. Individual gates are deliberately not required — a required check that skips (as `contracts` does on the machine-generated version PR) would block that PR forever.
+
+**Releases are never dispatched.** Merging into a channel branch opens a `chore: version packages` PR and stops there. Merging _that_ PR is the release decision: its push is what publishes.
+
+**There is no npm token.** Publishing authenticates with the workflow's own OIDC identity — pnpm has supported trusted publishing since 11.0.7, and it takes precedence over any static token — which is why the packages are configured on npmjs.com to trust `zintljs/zintl` + the `ci.yml` workflow. That trust is pinned to the filename: renaming or splitting the workflow breaks publishing until the trusted publisher is updated to match.
+
+A branch is a release channel because of the `.changeset/pre.json` committed on it:
+
+| Branch  | Prerelease state        | Publishes       | npm dist-tag |
+| ------- | ----------------------- | --------------- | ------------ |
+| `alpha` | `mode: pre, tag: alpha` | `0.2.0-alpha.N` | `alpha`      |
+| `beta`  | `mode: pre, tag: beta`  | `0.2.0-beta.N`  | `beta`       |
+| `main`  | none                    | `0.2.0`         | `latest`     |
+
+Cutting a new channel is a branch plus one PR — no workflow change:
+
+```bash
+git switch -c beta alpha && git push -u origin beta
+git switch -c chore/enter-beta
+
+vp exec changeset pre exit    # mode -> "exit"; the applied-changeset list survives
+rm .changeset/pre.json        # forget that the alpha line already applied them
+vp exec changeset pre enter beta
+```
+
+**The `rm` is the part that matters.** In prerelease mode `changeset version` does not delete changeset files — it appends their names to `pre.json`'s `changesets` array and leaves the files on disk, so an eventual stable release can aggregate the whole line into one entry. `pre enter` carries that array over, so `pre exit && pre enter beta` on its own produces a beta that bumps _nothing_: every changeset is already marked applied and the packages keep their alpha versions. Dropping `pre.json` first makes the line unapplied again, so the beta carries the same content the alpha did.
+
+Two things to expect: the prerelease counter continues rather than restarting (`0.1.0-alpha.10` → `0.1.0-beta.11`), and the channel's changelog entries are re-emitted under the beta version.
+
+Merge that PR, then merge the `chore: version packages` PR it produces, and the beta publishes. It lands on the `beta` dist-tag, not `latest` — changesets only diverts a prerelease to `latest` while _every_ published version carries the current pre tag, which stops being true the moment the tag changes.
+
+A fix that must reach several live channels is one PR per channel, each carrying the same cherry-picked commit and its own changeset. Cherry-pick rather than merging `main` → `beta` → `alpha`: version numbers diverge per channel by design, so branch-to-branch merges conflict in `package.json` and `CHANGELOG.md` every time.
+
+> npm's `latest` currently points at an alpha. That is changesets working as designed — while _every_ published version is a prerelease it publishes to `latest` ("because there has not been a regular release of it yet"). Once a stable ships, prereleases move to their own dist-tags on their own.
 
 Design notes, specifications, and proposals live in [`docs/spec/`](docs/spec). Worth a look before a large change — the reasoning behind a decision is usually recorded there, and `zrs-*` test names refer to sections of [`ZRS.md`](docs/spec/ZRS.md).

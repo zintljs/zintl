@@ -1,107 +1,320 @@
 name: CI
 
+# One workflow for verification AND release. That is deliberate: it is what lets
+# the publishing jobs say `needs: verify` instead of a second workflow re-running
+# the same gate — or interrogating the API to find out whether it passed.
+#
+# Two rules shape everything below.
+#
+# 1. EVERY GATE RUNS ONCE PER COMMIT. A release cycle used to pay for `verify`
+#    four times and needed two manual dispatches. Now: PRs run the gates, pushes
+#    run the release machinery, and nothing re-runs what a green check already
+#    covers.
+#
+# 2. NOTHING PUBLISHES WITHOUT A HUMAN MERGE. There is no dispatch path to npm.
+#    A push with pending changesets opens a version PR and stops. Merging that PR
+#    is the release decision, and its push is what publishes.
+#
+# Channels are branches. `alpha`, `beta` and `main` run this same pipeline; what
+# differs is the `.changeset/pre.json` committed on each, which decides the
+# version suffix and the npm dist-tag. Adding a channel means creating a branch,
+# not editing this file (`beta` is listed below before it exists — an entry for a
+# missing branch is inert).
+#
+# Docs-only PRs are deliberately NOT path-filtered: `vp fmt --check` and knip
+# cover Markdown, and a skipped required check blocks a PR forever.
+
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
-  # Lets the PR-only jobs below be exercised on demand, without opening a PR.
+    branches: [alpha, beta, main]
+    # ready_for_review is required on top of the defaults: promoting a draft
+    # fires neither `opened` nor `synchronize`, so without it a draft marked
+    # ready would never get its first run.
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [alpha, beta, main]
+  # Debugging only. Every publishing job below is gated on `github.event_name ==
+  # 'push'`, so a dispatch can never reach npm.
   workflow_dispatch:
 
-# Supersede in-flight runs for the same ref — saves Actions minutes on rapid pushes.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Supersede in-flight PR runs on rapid pushes. Never cancel a push run — those
+  # can publish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
-  # Fast gate — runs on every push. Build first: type-aware lint resolves
-  # workspace imports through each package's dist/*.d.mts.
+  # Fast gate. Build first: type-aware lint resolves workspace imports through
+  # each package's dist/*.d.mts.
   verify:
     name: Verify
+    # Drafts are an explicit "not ready" signal; CI starts when it is marked ready.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The workflow-level `contents: read` drops every other scope, and the
+      # packaging check below reads the PR's file list.
+      pull-requests: read
+    outputs:
+      packaging: ${{ steps.packaging.outputs.changed }}
+      pending: ${{ steps.release-state.outputs.pending }}
+      unpublished: ${{ steps.release-state.outputs.unpublished }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
+      # Decides whether `smoke` runs, without spending a job on the question.
+      # Anything that changes what lands in a tarball — manifests, the lockfile,
+      # build config, the smoke script itself — arms the publish gate early.
+      - name: Detect Packaging Changes
+        id: packaging
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate --jq '.[].filename')
+          pattern='^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|scripts/smoke\.js|packages/[^/]+/(package\.json|tsdown\.config\..*|vite\.config\..*))$'
+          if printf '%s\n' "$files" | grep -qE "$pattern"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Packaging files changed — the publish smoke test will run."
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No packaging files changed — skipping the publish smoke test."
+          fi
 
-      - name: Install Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: pnpm
+      # Decides which half of the release machinery runs, and is why no dispatch
+      # is needed:
+      #
+      #   pending=true      unconsumed changesets are sitting in .changeset/, so
+      #                     this push should open/update a version PR.
+      #   unpublished=true  a workspace version is not on the registry, which is
+      #                     what a just-merged version PR looks like. Comparing
+      #                     against npm rather than pattern-matching the commit
+      #                     message keeps this correct under squash, rebase and
+      #                     merge commits alike, on any channel.
+      #
+      # Both can be true at once (a version PR and a feature merged together);
+      # the two jobs are independent so that push publishes AND reopens a version
+      # PR, instead of dropping one.
+      - name: Inspect Release State
+        id: release-state
+        if: github.event_name == 'push'
+        run: |
+          pending=$(node -e "
+            const fs = require('node:fs');
+            const files = fs.readdirSync('.changeset')
+              .filter((f) => f.endsWith('.md') && f !== 'README.md')
+              .map((f) => f.slice(0, -3));
+            // Counting files is NOT enough. In prerelease mode changeset files
+            // survive versioning — pre.json records which ones have been applied
+            // and the files stay on disk so an eventual stable release can
+            // aggregate them into one entry. On this repo that is 66 applied
+            // files sitting next to the unapplied ones, so a file count would
+            // report 'pending' forever and re-open a version PR on every push.
+            const pre = fs.existsSync('.changeset/pre.json')
+              ? JSON.parse(fs.readFileSync('.changeset/pre.json', 'utf8'))
+              : {};
+            const applied = new Set(pre.changesets ?? []);
+            console.log(files.some((f) => !applied.has(f)));
+          ")
+          echo "pending=$pending" >> "$GITHUB_OUTPUT"
+          echo "Unconsumed changesets present: $pending"
 
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          unpublished=false
+          for manifest in packages/*/package.json; do
+            if [ "$(node -p "!!require('./$manifest').private")" = "true" ]; then
+              continue
+            fi
+            name=$(node -p "require('./$manifest').name")
+            version=$(node -p "require('./$manifest').version")
+            if [ -z "$(npm view "$name@$version" version 2>/dev/null)" ]; then
+              unpublished=true
+              echo "$name@$version is not on the registry."
+            fi
+          done
+          echo "unpublished=$unpublished" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
 
       - name: Build, Lint, Knip, Test, Format
-        run: pnpm verify
+        run: vp run verify
 
-  # Full e2e gate — 18 example builds + 17 contract specs through real browsers.
-  # PR-only: it needs Playwright browsers and takes ~5min, so it is not worth
-  # spending on every push while the repo is private and minutes are metered.
-  # Outside-in publish gate. Proves the tarballs we would actually upload install
-  # with npm and build against stock Vite. Not on every push: it pulls Vite from
-  # the registry, so it can fail for reasons unrelated to this repo.
-  smoke:
-    name: Publish Smoke
-    needs: verify
-    if: github.event_name != 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v5
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Install Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Packages
-        run: pnpm build
-
-      - name: Smoke Test Published Artifacts
-        run: pnpm smoke
-
+  # Full e2e gate — 18 example builds + contract specs through real browsers.
+  # PR-only, and never on a changesets version PR: that PR changes versions and
+  # changelogs, nothing a browser could observe, and the tree inside it already
+  # passed contracts on the feature PR.
   contracts:
     name: Contracts (e2e)
     needs: verify
-    if: github.event_name != 'push'
+    if: github.event_name != 'push' && !startsWith(github.head_ref, 'changeset-release/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
 
-      - name: Install Node.js
-        uses: actions/setup-node@v5
+      # A ~40s download keyed to the Playwright version, which only moves with
+      # the lockfile. `--with-deps` (apt packages) is only needed on a miss; the
+      # runner image already carries most of them.
+      - name: Restore Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v6
         with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: vp run browsers
 
       # `ready:examples` -> `build:examples` -> `vpr build` + example builds,
       # so packages are built as part of this; no separate build step needed.
       - name: Build Examples and Run Contracts
-        run: pnpm ready:examples
+        run: vp run ready:examples
+
+  # Outside-in publish gate: packs the real tarballs, installs them with npm into
+  # a throwaway project outside the repo, and builds against stock Vite — using
+  # none of this repo's tooling. It catches what every internal test passes over:
+  # pnpm-only `catalog:` specifiers leaking into a tarball, a peer range that
+  # excludes the current Vite, a `files` field missing a runtime file.
+  #
+  # Conditional here because `publish` runs it unconditionally before every
+  # release. On PRs it only earns its minutes when packaging files moved.
+  smoke:
+    name: Publish Smoke
+    needs: verify
+    if: needs.verify.outputs.packaging == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
+
+      - name: Build Packages
+        run: vp run build
+
+      - name: Smoke Test Published Artifacts
+        run: vp run smoke
+
+  # THE required status check — the only one branch protection should list.
+  #
+  # Marking `contracts` itself required would deadlock every version PR, because
+  # a required check that is skipped never reports. This job always runs, so it
+  # always reports, and it is red whenever a gate that was supposed to run failed.
+  # Nothing merges without contracts passing.
+  gate:
+    name: CI Gate
+    needs: [verify, contracts, smoke]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Gate Results
+        run: |
+          failed=0
+          for result in ${{ join(needs.*.result, ' ') }}; do
+            case "$result" in
+              success | skipped) ;;
+              *)
+                echo "::error::A required gate concluded '$result'."
+                failed=1
+                ;;
+            esac
+          done
+          if [ "$failed" = "1" ]; then
+            exit 1
+          fi
+          echo "All required gates passed."
+
+  # Opens (or updates) the "chore: version packages" PR on the channel branch —
+  # and only that. It is handed the `version` input alone, so it has no path to
+  # npm even if something goes wrong. Merging its PR is the release decision.
+  version:
+    name: Version Packages
+    needs: verify
+    if: github.event_name == 'push' && needs.verify.outputs.pending == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Commit the version bumps onto the release branch
+      pull-requests: write # Open the versioning PR
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # changesets diffs against history to build the changelog
+
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
+
+      - name: Create or Update the Version PR
+        uses: changesets/action@v1
+        with:
+          version: vp run version-packages
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publishes what the merged version PR produced. Reached only when a workspace
+  # version is missing from the registry, so an ordinary merge into a channel
+  # branch does not pay for it.
+  #
+  # There is no npm token. Authentication is this workflow's own OIDC identity,
+  # which npmjs.com is configured to trust per package (Settings → Trusted
+  # publisher: repository `zintljs/zintl`, workflow `ci.yml`). That trust is
+  # pinned to THIS FILENAME — renaming or splitting this workflow breaks
+  # publishing until the trusted publisher is updated to match.
+  publish:
+    name: Publish to npm
+    needs: verify
+    if: github.event_name == 'push' && needs.verify.outputs.unpublished == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Push the release git tags
+      id-token: write # REQUIRED: the OIDC token IS the npm credential
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # No registry-url: there is no token to wire into an .npmrc. pnpm copes
+      # either way — since 11.1.3 it treats an unresolved `${NODE_AUTH_TOKEN}`
+      # placeholder as empty instead of sending it as a bearer token, which is
+      # what used to break OIDC behind `actions/setup-node` — but an auth line
+      # for a credential that does not exist is just noise.
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
+
+      - name: Run Build
+        run: vp run build
+
+      # The last thing standing between a mistake and a published package.
+      - name: Smoke Test the Publishable Artifacts
+        run: vp run smoke
+
+      # `changeset publish` shells out to `pnpm publish`, which performs the OIDC
+      # exchange itself (trusted publishing, pnpm >= 11.0.7) and takes precedence
+      # over any static token. The action is here rather than a bare `vp run
+      # release` because it parses the CLI's "New tag:" output to create the git
+      # tags and GitHub releases for what actually went out.
+      - name: Publish
+        uses: changesets/action@v1
+        with:
+          publish: vp run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # Benchmarks are deliberately absent. Perf budgets are noise-sensitive enough to
 # fail on a quiet local machine; on shared runners they would be pure flake.
 # Run them locally with `vpr bench`.
+# npm dist-tag add zintljs@0.1.0-alpha.11 alpha && npm dist-tag add @zintljs/compiler@0.1.0-alpha.11 alpha && npm dist-tag add @zintljs/extractor@0.1.0-alpha.11 alpha
