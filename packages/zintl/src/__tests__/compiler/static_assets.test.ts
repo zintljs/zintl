@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { createTestCompilerWith } from "../helpers/compiler.js";
 import { ZintlCompiler } from "@zintljs/compiler";
-import { assetsFacet } from "@zintljs/compiler/facets";
+import { assetsFacet, type AssetManager } from "@zintljs/compiler/facets";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -48,7 +48,7 @@ This is plain text.`;
     await compiler.discover();
 
     // Verify assets registered
-    const assets = compiler.assets.getRegisteredAssets();
+    const assets = (compiler.assets as AssetManager).getRegisteredAssets();
     expect(assets).toContain("src/docs/about.md");
     expect(assets).toContain("src/docs/notice.txt");
 
@@ -56,8 +56,8 @@ This is plain text.`;
     await compiler.flush();
 
     // Verify correct target file paths are generated
-    const mdArPath = compiler.assets.getAssetPath("src/docs/about.md", "ar");
-    const txtArPath = compiler.assets.getAssetPath("src/docs/notice.txt", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/about.md", "ar");
+    const txtArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/notice.txt", "ar");
 
     expect(mdArPath).toContain("locales/src/docs/about.ar.md");
     expect(txtArPath).toContain("locales/src/docs/notice.ar.txt");
@@ -72,10 +72,10 @@ This is plain text.`;
     expect(txtArContent).toContain("Hello world.\nThis is plain text.");
 
     // Test getTranslationOnly returns translation as-is
-    const mdStripped = compiler.assets.getTranslationOnly(mdArContent, ".md");
+    const mdStripped = (compiler.assets as AssetManager).getTranslationOnly(mdArContent, ".md");
     expect(mdStripped).toBe(mdArContent);
 
-    const txtStripped = compiler.assets.getTranslationOnly(txtArContent, ".txt");
+    const txtStripped = (compiler.assets as AssetManager).getTranslationOnly(txtArContent, ".txt");
     expect(txtStripped).toBe(txtArContent);
   });
 
@@ -88,7 +88,7 @@ This is plain text.`;
     await compiler.discover();
     await compiler.flush();
 
-    const mdArPath = compiler.assets.getAssetPath("src/docs/about.md", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/about.md", "ar");
 
     // Simulate translator editing the file
     const translatedArContent = `---
@@ -132,8 +132,8 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const txtArPath = compiler.assets.getAssetPath("src/docs/notice.txt", "ar");
-    const txtFrPath = compiler.assets.getAssetPath("src/docs/notice.txt", "fr");
+    const txtArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/notice.txt", "ar");
+    const txtFrPath = (compiler.assets as AssetManager).getAssetPath("src/docs/notice.txt", "fr");
 
     expect(existsSync(txtArPath)).toBe(true);
     expect(existsSync(txtFrPath)).toBe(true);
@@ -188,14 +188,14 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const mdxArPath = compiler.assets.getAssetPath("src/docs/intro.mdx", "ar");
+    const mdxArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/intro.mdx", "ar");
     expect(mdxArPath).toBe(join(root, "locales/docs/ar/intro.mdx"));
     expect(existsSync(mdxArPath)).toBe(true);
     const mdxContent = await readFile(mdxArPath, "utf-8");
     expect(mdxContent).toContain("title: Intro");
     expect(mdxContent).toContain("Hello MDX");
 
-    const pngArPath = compiler.assets.getAssetPath("src/public/hero.png", "ar");
+    const pngArPath = (compiler.assets as AssetManager).getAssetPath("src/public/hero.png", "ar");
     expect(pngArPath).toBe(join(root, "locales/assets/ar/hero.png"));
     expect(existsSync(pngArPath)).toBe(true);
     const pngContent = await readFile(pngArPath, "utf-8");
@@ -221,7 +221,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const logoPath = compiler.assets.getAssetPath("src/assets/logo.png", "ar");
+    const logoPath = (compiler.assets as AssetManager).getAssetPath("src/assets/logo.png", "ar");
     // Ensure the catalog path includes the original file path to avoid collision
     expect(logoPath).toBe(join(root, "locales/translations/src/assets/logo.ar.png"));
     expect(existsSync(logoPath)).toBe(true);
@@ -260,7 +260,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const arPath = compiler.assets.getAssetPath("src/docs/custom.txt", "ar");
+    const arPath = (compiler.assets as AssetManager).getAssetPath("src/docs/custom.txt", "ar");
     expect(existsSync(arPath)).toBe(true);
     const content = await readFile(arPath, "utf-8");
     expect(content).toBe("[ar] HELLO CUSTOM STRATEGY");
@@ -276,7 +276,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const mdArPath = compiler.assets.getAssetPath("src/docs/notice.md", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/notice.md", "ar");
     expect(existsSync(mdArPath)).toBe(true);
 
     // Verify initial translated file matches source
@@ -323,7 +323,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const mdArPath = compiler.assets.getAssetPath("src/docs/welcome.md", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/welcome.md", "ar");
     expect(existsSync(mdArPath)).toBe(true);
 
     // 2. Translate it
@@ -346,7 +346,10 @@ author: Khalid
 
     // 6. Verify the old target is gone, and the new target is restored with translation
     expect(existsSync(mdArPath)).toBe(false);
-    const newMdArPath = compiler.assets.getAssetPath("src/docs/greeting.md", "ar");
+    const newMdArPath = (compiler.assets as AssetManager).getAssetPath(
+      "src/docs/greeting.md",
+      "ar",
+    );
     expect(existsSync(newMdArPath)).toBe(true);
     const content = await readFile(newMdArPath, "utf-8");
     expect(content).toContain("title: أهلاً بك");
@@ -374,7 +377,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const pngArPath = compiler.assets.getAssetPath("src/docs/logo.png", "ar");
+    const pngArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/logo.png", "ar");
     expect(existsSync(pngArPath)).toBe(true);
 
     // 2. Translate it by writing a different buffer
@@ -397,7 +400,10 @@ author: Khalid
 
     // 6. Verify restoration
     expect(existsSync(pngArPath)).toBe(false);
-    const newPngArPath = compiler.assets.getAssetPath("src/docs/brand-logo.png", "ar");
+    const newPngArPath = (compiler.assets as AssetManager).getAssetPath(
+      "src/docs/brand-logo.png",
+      "ar",
+    );
     expect(existsSync(newPngArPath)).toBe(true);
     const content = await readFile(newPngArPath);
     expect(content.toString("utf-8")).toBe("BINARY_LOGO_CONTENT_ARABIC");
@@ -416,7 +422,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const mdArPath = compiler.assets.getAssetPath("src/docs/waterfall.md", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/waterfall.md", "ar");
     expect(existsSync(mdArPath)).toBe(true);
 
     // 2. Translate
@@ -475,7 +481,7 @@ author: Khalid
     await compiler.discover();
     await compiler.flush();
 
-    const mdArPath = compiler.assets.getAssetPath("src/docs/fuzzy_move.md", "ar");
+    const mdArPath = (compiler.assets as AssetManager).getAssetPath("src/docs/fuzzy_move.md", "ar");
     expect(existsSync(mdArPath)).toBe(true);
 
     // 2. Translate
@@ -501,7 +507,10 @@ author: Khalid
 
     // 6. Verify restoration with warning
     expect(existsSync(mdArPath)).toBe(false);
-    const newMdArPath = compiler.assets.getAssetPath("src/docs/fuzzy_moved.md", "ar");
+    const newMdArPath = (compiler.assets as AssetManager).getAssetPath(
+      "src/docs/fuzzy_moved.md",
+      "ar",
+    );
     expect(existsSync(newMdArPath)).toBe(true);
 
     const content = await readFile(newMdArPath, "utf-8");

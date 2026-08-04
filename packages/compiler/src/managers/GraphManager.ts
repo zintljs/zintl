@@ -5,12 +5,14 @@ import {
   type Boundary,
   type ChunkInfo,
   type BoundaryMetadata,
-  type ObservedDependency,
+  type DependencyGraph,
   type ObservedAnchor,
 } from "../types/index.js";
 import { type ZintlLogger } from "@zintljs/extractor";
+import type { BoundaryDep } from "@zintljs/extractor";
 import type { IOManager } from "./IOManager.js";
-import type { ContentFacet } from "../types/capabilities.js";
+import type { CompilerContext, ContentFacet } from "../types/capabilities.js";
+import type { Manifest } from "../reconcile.js";
 import { compareStrings } from "../utils/serialization.js";
 /**
  * Manages boundary and chunk graphs.
@@ -19,7 +21,7 @@ export class GraphManager {
   public boundaryGraph: BoundaryGraph | null = null;
   public chunkGraph: ChunkGraph | null = null;
 
-  private lastManifest: Record<string, any[]> = {};
+  private lastManifest: Manifest = {};
   private lastMetadata: Record<string, BoundaryMetadata> = {};
   private readonly isContentCache = new Map<string, boolean>();
 
@@ -33,7 +35,7 @@ export class GraphManager {
   private resolveDependencyFileId(
     depFileId: string,
     ownerId: string,
-    dependencyGraph: Record<string, any>,
+    dependencyGraph: DependencyGraph,
   ): string {
     let resolved = depFileId.startsWith(".") ? join(dirname(ownerId), depFileId) : depFileId;
     const clean = this.io.getNormalizedId(resolved);
@@ -55,12 +57,12 @@ export class GraphManager {
   }
 
   public buildBoundaryGraph(
-    internalManifest: Record<string, any[]>,
+    internalManifest: Manifest,
     metadataGraph: Record<string, BoundaryMetadata>,
-    dependencyGraph: Record<string, ObservedDependency[]>,
+    dependencyGraph: DependencyGraph,
     virtualBoundaries?: string[],
     contentFacets: ContentFacet[] = [],
-    context?: any,
+    context?: CompilerContext,
   ): BoundaryGraph {
     this.logger.debug("Starting boundary graph construction...");
     const vbList = virtualBoundaries || (this.isDev ? ["b_assets"] : []);
@@ -94,7 +96,7 @@ export class GraphManager {
       };
     }
 
-    const normalizedManifest: Record<string, any[]> = {};
+    const normalizedManifest: Manifest = {};
     for (const [k, v] of Object.entries(internalManifest)) {
       if (!Array.isArray(v)) continue;
       const nId = k;
@@ -104,7 +106,7 @@ export class GraphManager {
     this.lastManifest = normalizedManifest;
     this.lastMetadata = normalizedMetadata;
 
-    const normalizedDeps: Record<string, any[]> = {};
+    const normalizedDeps: DependencyGraph = {};
     const inverseDynamicDependencies = new Set<string>();
     for (const [ownerId, ownerDeps] of Object.entries(dependencyGraph)) {
       if (!Array.isArray(ownerDeps)) continue;
@@ -154,7 +156,7 @@ export class GraphManager {
       if (!isDictator && !hasContent) {
         if (isContent || rawDeps.length === 0) continue;
       }
-      const resolvedDeps: any[] = [];
+      const resolvedDeps: BoundaryDep[] = [];
       for (const dep of rawDeps) {
         const cleanDepFileId = this.resolveDependencyFileId(dep.id, fileId, dependencyGraph);
         const depMeta = normalizedMetadata[cleanDepFileId];
@@ -256,7 +258,7 @@ export class GraphManager {
 
       nodes.set(normalizedBId, {
         id: normalizedBId,
-        mode: (mode === "entry" ? "entry" : "boundary") as any,
+        mode: mode === "entry" ? "entry" : "boundary",
         deps: allDeps,
         usageCount: 0,
         filePath: fileId,
@@ -272,7 +274,7 @@ export class GraphManager {
         if (!nodes.has(vb)) {
           nodes.set(vb, {
             id: vb,
-            mode: "boundary" as any,
+            mode: "boundary",
             deps: [],
             usageCount: 1,
             filePath: "virtual-content",
@@ -326,7 +328,7 @@ export class GraphManager {
 
   public computeTranslationChunks(
     graph: BoundaryGraph,
-    internalManifest: Record<string, any[]>,
+    internalManifest: Manifest,
     metadataGraph: Record<string, BoundaryMetadata>,
     virtualBoundaries?: string[],
   ): ChunkGraph {
@@ -480,7 +482,7 @@ export class GraphManager {
 
   private getChunkRoots(
     graph: BoundaryGraph,
-    internalManifest: Record<string, any[]>,
+    internalManifest: Manifest,
     metadataGraph: Record<string, BoundaryMetadata>,
   ): Set<string> {
     const roots = new Set<string>();
@@ -497,7 +499,7 @@ export class GraphManager {
       const fileId = bId.split(":")[0];
       const meta = metadataGraph[fileId];
       const isDictator =
-        (meta?.anchorSites || []).some((s: any) => s.isTopLevel) ||
+        (meta?.anchorSites || []).some((s) => s.isTopLevel) ||
         bId.includes(":") ||
         meta?.hasZintlMarker;
       const hasContent = (internalManifest[bId]?.length || 0) > 0;
@@ -553,7 +555,7 @@ export class GraphManager {
     return tree;
   }
 
-  public isLiveOwner(ownerId: string, internalManifest: Record<string, any[]>): boolean {
+  public isLiveOwner(ownerId: string, internalManifest: Manifest): boolean {
     if (!this.boundaryGraph || !this.chunkGraph) return false;
     let cleanId = ownerId.includes(":") ? ownerId.substring(ownerId.indexOf(":") + 1) : ownerId;
     try {
@@ -578,7 +580,7 @@ export class GraphManager {
 
   public leadsToBoundary(
     fileId: string,
-    dependencyGraph: Record<string, ObservedDependency[]>,
+    dependencyGraph: DependencyGraph,
     metadataGraph: Record<string, BoundaryMetadata>,
     visited = new Set<string>(),
   ): { leads: boolean; dynamic: boolean; bakedLocale?: string } {
@@ -595,7 +597,7 @@ export class GraphManager {
       const anchors = meta.anchorSites;
       for (const a of anchors) {
         const isContextual =
-          (a.locale as any).type === "none" ||
+          a.locale.type === "none" ||
           (a.locale.type === "expression" && !a.locale.source) ||
           (a.locale.type === "literal" && a.locale.value === "none");
         const isSovereign = a.locale.type === "literal" && a.locale.value === "*";

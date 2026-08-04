@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
 import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
+import type { AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,
@@ -85,17 +86,17 @@ export function resolveIdHook(ctx: Context) {
     }
 
     const cleanId = id.split("?")[0];
-    if (ctx.compiler.assets.isSupportedAsset(cleanId)) {
+    if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId)) {
       let absolutePath = cleanId;
       if (cleanId.startsWith(".") && importer) {
         absolutePath = join(dirname(importer.split("?")[0]), cleanId);
       }
-      await ctx.compiler.assets.registerAsset(absolutePath);
+      await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
     }
 
     if (id.includes("zintl-multiplex=")) {
       const cleanId = id.split("?")[0];
-      if (ctx.compiler.assets.isSupportedAsset(cleanId)) {
+      if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId)) {
         const locale = ctx.getMultiplexLocale(id);
         if (locale) {
           let absolutePath = cleanId;
@@ -103,7 +104,7 @@ export function resolveIdHook(ctx: Context) {
             absolutePath = join(dirname(importer.split("?")[0]), cleanId);
           }
 
-          await ctx.compiler.assets.registerAsset(absolutePath);
+          await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
 
           const queries = id.split("?")[1] || "";
           const cleanQueries = queries
@@ -122,7 +123,7 @@ export function resolveIdHook(ctx: Context) {
             return `\0virtual:zintl/asset/${locale}/${assetId}${suffix}`;
           }
 
-          const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
+          const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(assetId, locale);
 
           if (existsSync(localizedPath)) {
             return localizedPath + suffix;
@@ -156,7 +157,7 @@ export function resolveIdHook(ctx: Context) {
         const isEligible =
           !ext ||
           ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext) ||
-          ctx.compiler.assets.isSupportedAsset(cleanId);
+          (ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId);
 
         if (isEligible) {
           // Resolve clean first to check for translation neutrality
@@ -177,9 +178,11 @@ export function resolveIdHook(ctx: Context) {
 
                 const cleanFileId = fileId.split("?")[0];
                 const res = (() => {
-                  if (ctx.compiler.assets.isSupportedAsset(cleanFileId)) return true;
+                  if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanFileId))
+                    return true;
 
-                  const registeredAssets = ctx.compiler?.assets?.getRegisteredAssets() || [];
+                  const registeredAssets =
+                    (ctx.compiler?.assets as AssetManager | undefined)?.getRegisteredAssets() || [];
                   if (
                     registeredAssets.some(
                       (asset: string) =>
@@ -258,8 +261,8 @@ export function resolveIdHook(ctx: Context) {
               const resolvedId = typeof resolved === "string" ? resolved : resolved.id;
               const cleanResolvedId = resolvedId.split("?")[0];
 
-              if (ctx.compiler.assets.isSupportedAsset(cleanResolvedId)) {
-                await ctx.compiler.assets.registerAsset(cleanResolvedId);
+              if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanResolvedId)) {
+                await (ctx.compiler.assets as AssetManager).registerAsset(cleanResolvedId);
 
                 if (locale === (ctx.compiler as any).sourceLocale) {
                   return resolved;
@@ -280,7 +283,10 @@ export function resolveIdHook(ctx: Context) {
                   };
                 }
 
-                const localizedPath = ctx.compiler.assets.getAssetPath(assetId, locale);
+                const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(
+                  assetId,
+                  locale,
+                );
 
                 if (existsSync(localizedPath)) {
                   const finalId = localizedPath + suffix;
@@ -328,7 +334,7 @@ export function loadHook(ctx: Context) {
 
         if (existsSync(originalPath)) {
           this.addWatchFile(originalPath);
-          const config = ctx.compiler.assets.resolveAssetConfig(assetId);
+          const config = (ctx.compiler.assets as AssetManager).resolveAssetConfig(assetId);
 
           if (config?.strategy === "binary-passthrough") {
             const sourceBuffer = readFileSync(originalPath);
@@ -351,7 +357,9 @@ export function loadHook(ctx: Context) {
             });
             return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
           } else {
-            const translations = await ctx.compiler.assets.getAssetTranslations(locale);
+            const translations = await (ctx.compiler.assets as AssetManager).getAssetTranslations(
+              locale,
+            );
             const content =
               translations[`@zintl/asset:${assetId}`] ?? readFileSync(originalPath, "utf-8");
 
@@ -411,7 +419,10 @@ export function loadHook(ctx: Context) {
       if (existsSync(cleanId)) {
         const content = readFileSync(cleanId, "utf-8");
         const ext = cleanId.endsWith(".md") ? ".md" : ".txt";
-        const translationOnly = ctx.compiler.assets.getTranslationOnly(content, ext);
+        const translationOnly = (ctx.compiler.assets as AssetManager).getTranslationOnly(
+          content,
+          ext,
+        );
         this.addWatchFile(cleanId);
 
         if (id.includes("?zintl-raw")) {
@@ -423,7 +434,7 @@ export function loadHook(ctx: Context) {
         }
 
         const assetId = ctx.compiler.getNormalizedId(cleanId);
-        await ctx.compiler.assets.registerAsset(cleanId);
+        await (ctx.compiler.assets as AssetManager).registerAsset(cleanId);
 
         if (id.includes("?raw")) {
           const multiplexLocale = ctx.getMultiplexLocale(id);
@@ -433,7 +444,7 @@ export function loadHook(ctx: Context) {
             const localizedPath =
               multiplexLocale === sourceLocale
                 ? cleanId
-                : ctx.compiler.assets.getAssetPath(assetId, multiplexLocale);
+                : (ctx.compiler.assets as AssetManager).getAssetPath(assetId, multiplexLocale);
 
             const content = existsSync(localizedPath)
               ? readFileSync(localizedPath, "utf-8")
@@ -448,7 +459,7 @@ export function loadHook(ctx: Context) {
           const locales = ctx.options.locales;
           for (const loc of locales) {
             if (loc === sourceLocale) continue;
-            const localizedPath = ctx.compiler.assets.getAssetPath(assetId, loc);
+            const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(assetId, loc);
             if (existsSync(localizedPath)) {
               this.addWatchFile(localizedPath);
             }
@@ -516,7 +527,10 @@ if (import.meta.hot) {
           let html = readFileSync(originalPath, "utf-8");
           let dir = matchedLocale === "ar" ? "rtl" : "ltr";
           try {
-            const catalogPath = ctx.compiler.html.getCatalogPath(originalHtmlFile, matchedLocale);
+            const catalogPath = (ctx.compiler.html as HtmlManager).getCatalogPath(
+              originalHtmlFile,
+              matchedLocale,
+            );
             if (existsSync(catalogPath)) {
               const cat = JSON.parse(readFileSync(catalogPath, "utf-8"));
               const isMulti = ctx.compiler.isMultilingualFormat();

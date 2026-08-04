@@ -29,6 +29,9 @@ import type { IOManager } from "../managers/IOManager.js";
 import type { CatalogManager } from "../managers/CatalogManager.js";
 import type { ZintlLogger } from "./compiler.js";
 import type { DeliveryBus } from "../bus/index.js";
+import type { DependencyGraph, MetadataGraph, BoundaryGraph } from "./graph.js";
+import type { Manifest } from "../reconcile.js";
+import type { SourceMap } from "magic-string";
 
 /**
  * The declarative extraction vocabulary, re-exported so that facet authors and
@@ -236,7 +239,7 @@ export interface ContentFacet extends BaseFacet {
    * The usual pattern is a manager class holding whatever `discover` collects,
    * lazily constructed on first call.
    */
-  getManagerInstance?: (context: CompilerContext) => any;
+  getManagerInstance?: (context: CompilerContext) => unknown;
   /** Whether this facet owns `filePath`. The one required member. */
   match: (filePath: string, context: CompilerContext) => boolean;
   /**
@@ -244,7 +247,7 @@ export interface ContentFacet extends BaseFacet {
    * {@link ContentFacet.getStateToSave | `getStateToSave`} (`undefined` on a
    * cold start).
    */
-  setup?: (savedState: any, context: CompilerContext) => Promise<void> | void;
+  setup?: (savedState: unknown, context: CompilerContext) => Promise<void> | void;
   /** Register a matched file. Called once per file, before `flush`. */
   discover?: (filePath: string, context: CompilerContext) => Promise<void> | void;
   /** Emit everything for the discovered files — written output, catalog updates. */
@@ -264,7 +267,7 @@ export interface ContentFacet extends BaseFacet {
    */
   getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
   /** State to persist for the next run's `setup`. Must be JSON-serializable. */
-  getStateToSave?: (context: CompilerContext) => any;
+  getStateToSave?: (context: CompilerContext) => unknown;
   /**
    * Boundary ids this facet owns that correspond to no source file.
    *
@@ -519,21 +522,21 @@ export interface CompilerContext {
    * relying on the surrounding sequential `await` to notice a failure.
    */
   bus: DeliveryBus;
-  getDependencyGraph: () => Record<string, any[]>;
-  getHive: () => Record<string, Record<string, any>>;
+  getDependencyGraph: () => DependencyGraph;
+  getHive: () => Record<string, Record<string, string>>;
   markHiveDirty: () => void;
-  getBoundaryGraph: () => { entries: Set<string>; nodes: Map<string, any> } | null;
-  getMetadataGraph: () => Record<string, any>;
-  internalManifest: Record<string, any[]>;
+  getBoundaryGraph: () => BoundaryGraph | null;
+  getMetadataGraph: () => MetadataGraph;
+  internalManifest: Manifest;
   leadsToBoundary: (
     startId: string,
-    dependencyGraph: Record<string, any>,
-    metadataGraph: Record<string, any>,
+    dependencyGraph: DependencyGraph,
+    metadataGraph: MetadataGraph,
   ) => { leads: boolean; dynamic: boolean; bakedLocale?: string };
   transform: (
     code: string,
     id: string,
     virtualInjectionTarget?: string,
     isDev?: boolean,
-  ) => Promise<any>;
+  ) => Promise<{ code: string; map: SourceMap } | undefined>;
 }

@@ -99,6 +99,13 @@ describe("CatalogManager", () => {
     };
     const metadataGraph = {
       b1: {
+        hasZintlMacro: false,
+        hasZintlMarker: false,
+        isEntry: false,
+        anchorSites: [],
+        needsLoader: false,
+        exportedBoundaries: {},
+        internalDependencies: {},
         htmlProjection: { title: "title", dir: "ltr", scripts: [] },
       },
     };

@@ -17,7 +17,7 @@ import type {
   ResolvedPlan,
   ValidationError,
   ZintlLogger,
-} from "./types.js";
+} from "../types/index.js";
 
 /**
  * Validate the transformation result against the original observation.

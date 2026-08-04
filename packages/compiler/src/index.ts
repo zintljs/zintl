@@ -14,6 +14,10 @@ import {
   type WorldState,
 } from "./pipeline/index.js";
 import { sha1, generateMessageId } from "./utils/hashing.js";
+import type { ManifestEntry } from "./reconcile.js";
+import { selfAcceptHmrSnippet } from "./utils/hmr.js";
+import { toPosixPath, isExamplePath } from "./utils/paths.js";
+import { isTestEnvironment } from "./utils/env.js";
 import {
   DEFAULT_SOURCE_LOCALE,
   DEFAULT_LOCALES,
@@ -30,7 +34,11 @@ import {
   type CompilerCapabilities,
   type CapabilityFlags,
   type CompilerContext,
+  type FileObservation,
+  type BoundaryGraph,
+  type SourceLocation,
 } from "./types/index.js";
+import type { SourceMap } from "magic-string";
 
 import { IOManager } from "./managers/IOManager.js";
 import { GraphManager } from "./managers/GraphManager.js";
@@ -39,14 +47,12 @@ import { MessageManager } from "./managers/MessageManager.js";
 import { DeliveryBus } from "./bus/index.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
-export { similarity } from "./reconcile.js";
-export { serializeDeterministic, sortObjectKeys, compareStrings } from "./utils/serialization.js";
+export { serializeDeterministic } from "./utils/serialization.js";
 export { compileExtractionState } from "./capabilities/compile-targets.js";
 export type { ExtractionContribution } from "./capabilities/compile-targets.js";
 import type { HtmlProjectionPayload } from "@zintljs/extractor";
 export type {
   CompilerOptions,
-  ZintlLogger,
   LogLevel,
   AssetTargetConfig,
   AssetMergeStrategy,
@@ -64,19 +70,6 @@ export type * from "./types/capabilities.js";
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
 
-// The delivery bus (docs/spec/ZDB.md). Exported because the host plugin owns
-// the hot-update seam and the test harness reads the ledger, so both need to
-// name these without reaching into the compiler's internals.
-export { DeliveryBus, DEFAULT_HISTORY_LIMIT } from "./bus/index.js";
-export type { DeliveryBusOptions } from "./bus/index.js";
-export type {
-  DeliveryChannel,
-  DeliveryLedgerEntry,
-  DeliveryOutcome,
-  Envelope,
-  TerminalOutcome,
-} from "./types/delivery.js";
-
 export class ZintlCompiler {
   public readonly io: IOManager;
   public readonly graph: GraphManager;
@@ -88,24 +81,18 @@ export class ZintlCompiler {
   /** Pre-resolved facet capabilities + hooks. Set in constructor. */
   public readonly _resolved: CompilerCapabilities;
 
-  public get assets(): any {
+  public get assets(): unknown {
     const facet = this._resolved?.system.contentFacets.find(
       (a) => a.name === "system-static-assets",
     );
-    if (facet && (facet as any).getManagerInstance) {
-      return (facet as any).getManagerInstance(this.getCompilerContext());
-    }
-    return undefined;
+    return facet?.getManagerInstance?.(this.getCompilerContext());
   }
 
-  public get html(): any {
+  public get html(): unknown {
     const facet = this._resolved?.system.contentFacets.find(
       (a) => a.name === "system-html-projection",
     );
-    if (facet && (facet as any).getManagerInstance) {
-      return (facet as any).getManagerInstance(this.getCompilerContext());
-    }
-    return undefined;
+    return facet?.getManagerInstance?.(this.getCompilerContext());
   }
 
   private graphDirty = true;
@@ -166,8 +153,8 @@ export class ZintlCompiler {
     });
   }
 
-  private hashCache: Record<string, any> = {};
-  private observationCache: Record<string, any> = {};
+  private hashCache: Record<string, string> = {};
+  private observationCache: Record<string, FileObservation> = {};
   private readonly boundaryRevisions = new Map<string, number>();
   private rebuildPromise: Promise<void> | null = null;
   /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
@@ -248,12 +235,11 @@ export class ZintlCompiler {
     // sequence state it needs for ordering is kept either way.
     this.bus = new DeliveryBus({ record: isDev });
 
-    const ZL = (Extractor as any).ZintlLogger;
-    this.logger = new ZL({
+    this.logger = new Extractor.ZintlLogger({
       level: options.logLevel,
       prefix: "Zintl/Compiler",
       debug: options.debug,
-    }) as ZintlLogger;
+    });
 
     this._outputDir = options.outputDir || DEFAULT_OUTPUT_DIR;
     this._prune = options.prune ?? true;
@@ -329,37 +315,37 @@ export class ZintlCompiler {
     return this.messages.internalManifest;
   }
   public set internalManifest(v) {
-    (this.messages as any).internalManifest = v;
+    this.messages.internalManifest = v;
   }
   public get dependencyGraph() {
     return this.messages.dependencyGraph;
   }
   public set dependencyGraph(v) {
-    (this.messages as any).dependencyGraph = v;
+    this.messages.dependencyGraph = v;
   }
   public get metadataGraph() {
     return this.messages.metadataGraph;
   }
   public set metadataGraph(v) {
-    (this.messages as any).metadataGraph = v;
+    this.messages.metadataGraph = v;
   }
   public get dirtyBoundaries() {
     return this.messages.dirtyBoundaries;
   }
   public set dirtyBoundaries(v) {
-    (this.messages as any).dirtyBoundaries = v;
+    this.messages.dirtyBoundaries = v;
   }
   public get boundaryGraph() {
     return this.graph.boundaryGraph;
   }
   public set boundaryGraph(v) {
-    (this.graph as any).boundaryGraph = v;
+    this.graph.boundaryGraph = v;
   }
   public get _chunkGraph() {
     return this.graph.chunkGraph;
   }
   public set _chunkGraph(v) {
-    (this.graph as any).chunkGraph = v;
+    this.graph.chunkGraph = v;
   }
   public get ioManager() {
     return this.io;
@@ -410,10 +396,10 @@ export class ZintlCompiler {
     );
   }
 
-  public async safeGenerateSchema(path: string, msgs: any[]) {
+  public async safeGenerateSchema(path: string, msgs: ManifestEntry[]) {
     return this.catalog.generateSchema(path, msgs);
   }
-  public ensureSchemaAtTop(cat: any, sPath: string, cPath: string) {
+  public ensureSchemaAtTop(cat: Record<string, string>, sPath: string, cPath: string) {
     return this.catalog.ensureSchemaAtTop(cat, sPath, cPath);
   }
 
@@ -430,7 +416,7 @@ export class ZintlCompiler {
     return this.io.safeWriteFile(path, content);
   }
   public isWritingFile(path: string) {
-    return (this.io as any).writingFiles.has(path);
+    return this.io.writingFiles.has(path);
   }
   public isLiveOwner(id: string) {
     return this.graph.isLiveOwner(id, this.messages.internalManifest);
@@ -588,7 +574,7 @@ export class ZintlCompiler {
 
     // 1. Check if it's a source file (boundary ownership)
     const fileId = this.io.getNormalizedId(filePath);
-    const boundaries = (this.messages as any).boundaryOwnership.get(fileId);
+    const boundaries = this.messages.boundaryOwnership.get(fileId);
     if (boundaries) {
       if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
@@ -809,14 +795,14 @@ export class ZintlCompiler {
     const absoluteOutputDir = isAbsolute(this.catalog.outputDir)
       ? this.catalog.outputDir
       : join(this.root, this.catalog.outputDir);
-    const normalizedOutputDir = absoluteOutputDir.replace(/\\/g, "/");
+    const normalizedOutputDir = toPosixPath(absoluteOutputDir);
 
     const doDisc = async (d: string) => {
       const entries = await this.io.readEntries(d);
       const tasks: Promise<void>[] = [];
       for (const entry of entries) {
         const fullPath = join(d, entry.name);
-        const normalizedFullPath = fullPath.replace(/\\/g, "/");
+        const normalizedFullPath = toPosixPath(fullPath);
         if (
           normalizedFullPath === normalizedOutputDir ||
           normalizedFullPath.startsWith(normalizedOutputDir + "/")
@@ -891,20 +877,23 @@ export class ZintlCompiler {
       // In dev mode, we add a special shared boundary for assets
       if (this.isDev) {
         const assetTranslations = await this.mergeFacetTranslations(this.sourceLocale, context);
-        const assetKeys = Object.keys(assetTranslations).map((text) => ({
+        const assetKeys: ManifestEntry[] = Object.keys(assetTranslations).map((text) => ({
           text,
           id: "asset",
           boundaryId: "b_assets",
+          location: { start: 0, end: 0, line: 0, column: 0 },
         }));
-        this.messages.internalManifest["b_assets"] = assetKeys as any;
+        this.messages.internalManifest["b_assets"] = assetKeys;
 
         if (!this.messages.metadataGraph["b_assets"]) {
           this.messages.metadataGraph["b_assets"] = {
+            hasZintlMacro: false,
+            hasZintlMarker: false,
             isEntry: false,
             needsLoader: false,
             anchorSites: [],
-            internalDependencies: [],
-            exportedBoundaries: [],
+            internalDependencies: {},
+            exportedBoundaries: {},
           };
         }
 
@@ -1027,7 +1016,7 @@ export class ZintlCompiler {
     onlyExtract = false,
     multiplexLocale?: string,
     ssr?: boolean,
-  ): Promise<{ code: string; map: any } | undefined> {
+  ): Promise<{ code: string; map: SourceMap } | undefined> {
     const isTargetSsrEntry = this.isSsrEntryTarget(id);
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
@@ -1110,9 +1099,14 @@ export class ZintlCompiler {
           anchors: [],
           sinks: [],
           manualTranslations: [],
+          imports: [],
           dependencies: [],
-          internalDependencies: [],
-          exportedBoundaries: [],
+          boundaries: [],
+          directives: [],
+          contentHash: fileHash,
+          existingRuntimeImports: [],
+          internalDependencies: {},
+          exportedBoundaries: {},
         };
         this.observationCache[effectiveCleanId] = observation;
         this.messages.dependencyGraph[fileId] = [];
@@ -1122,8 +1116,8 @@ export class ZintlCompiler {
           isEntry: true,
           anchorSites: [],
           needsLoader: false,
-          exportedBoundaries: [],
-          internalDependencies: [],
+          exportedBoundaries: {},
+          internalDependencies: {},
           htmlProjection: undefined,
           sinks: [],
         };
@@ -1152,8 +1146,15 @@ export class ZintlCompiler {
           sinks: observation.sinks,
         };
 
-        const messagesByBoundary: Record<string, any[]> = {};
-        const processMsg = (msg: any) => {
+        const messagesByBoundary: Record<string, ManifestEntry[]> = {};
+        const processMsg = (msg: {
+          text: string;
+          boundaryId: string;
+          location: SourceLocation;
+          note?: string;
+          variables?: { name: string }[];
+          passVars?: Record<string, string>;
+        }) => {
           if (!messagesByBoundary[msg.boundaryId]) messagesByBoundary[msg.boundaryId] = [];
           messagesByBoundary[msg.boundaryId].push({
             id: generateMessageId(msg.text),
@@ -1163,19 +1164,19 @@ export class ZintlCompiler {
             note: msg.note,
             variables: [
               ...new Set([
-                ...(msg.variables?.map((v: any) => v.name) || []),
+                ...(msg.variables?.map((v) => v.name) || []),
                 ...Object.keys(msg.passVars || {}),
               ]),
             ],
           });
         };
         observation.sinks.forEach(processMsg);
-        observation.manualTranslations.forEach((m: any) =>
-          processMsg({ text: m.key, boundaryId: m.boundaryId }),
+        observation.manualTranslations.forEach((m) =>
+          processMsg({ text: m.key, boundaryId: m.boundaryId, location: m.location }),
         );
 
         const trackedBoundaries = new Set(Object.keys(messagesByBoundary));
-        observation.anchors.forEach((a: any) => trackedBoundaries.add(a.boundaryId));
+        observation.anchors.forEach((a) => trackedBoundaries.add(a.boundaryId));
         if (
           this.messages.metadataGraph[fileId].isEntry ||
           this.messages.metadataGraph[fileId].htmlProjection
@@ -1191,9 +1192,9 @@ export class ZintlCompiler {
 
     if (!onlyExtract && observation) {
       const bIds = new Set<string>();
-      observation.sinks.forEach((s: any) => bIds.add(s.boundaryId || fileId));
-      observation.manualTranslations.forEach((m: any) => bIds.add(m.boundaryId || fileId));
-      observation.anchors.forEach((a: any) => bIds.add(a.boundaryId));
+      observation.sinks.forEach((s) => bIds.add(s.boundaryId || fileId));
+      observation.manualTranslations.forEach((m) => bIds.add(m.boundaryId || fileId));
+      observation.anchors.forEach((a) => bIds.add(a.boundaryId));
       const meta = this.messages.metadataGraph[fileId];
       if (meta && (meta.isEntry || meta.htmlProjection)) {
         bIds.add(fileId);
@@ -1225,10 +1226,8 @@ export class ZintlCompiler {
     if (!onlyExtract) {
       let isZintlizing = true;
       if (this.graph.boundaryGraph) {
-        const isTestEnv =
-          typeof process !== "undefined" &&
-          (process.env.NODE_ENV === "test" || !!process.env.VITEST);
-        const isExample = cleanId.replace(/\\/g, "/").includes("/examples/");
+        const isTestEnv = isTestEnvironment();
+        const isExample = isExamplePath(cleanId);
         if (this.graph.boundaryGraph.entries.size === 0) {
           isZintlizing = isTestEnv && !isExample;
         } else {
@@ -1245,12 +1244,12 @@ export class ZintlCompiler {
     // Clone observation to avoid mutating the cached pristine copy
     const activeObservation = {
       ...observation,
-      anchors: observation.anchors.map((a: any) => ({
+      anchors: observation.anchors.map((a) => ({
         ...a,
         locale: { ...a.locale },
       })),
-      sinks: observation.sinks.map((s: any) => ({ ...s })),
-      manualTranslations: observation.manualTranslations.map((m: any) => ({ ...m })),
+      sinks: observation.sinks.map((s) => ({ ...s })),
+      manualTranslations: observation.manualTranslations.map((m) => ({ ...m })),
     };
 
     if (effectiveMultiplexLocale) {
@@ -1313,8 +1312,8 @@ export class ZintlCompiler {
     const catalogs: Record<string, Record<string, any>> = {};
     if (bakedLocale) {
       const relevant = new Set([fileId]);
-      activeObservation.sinks.forEach((s: any) => relevant.add(s.boundaryId));
-      activeObservation.manualTranslations.forEach((m: any) => relevant.add(m.boundaryId));
+      activeObservation.sinks.forEach((s) => relevant.add(s.boundaryId));
+      activeObservation.manualTranslations.forEach((m) => relevant.add(m.boundaryId));
       await Promise.all(
         Array.from(relevant).map(async (bId) => {
           catalogs[bId] = await this.catalog.loadUserCatalog(
@@ -1601,7 +1600,7 @@ export class ZintlCompiler {
     if (this.isDev) {
       const hmrFn = this._resolved.system.hmrInjectionCode;
       let hmrToken = 0;
-      const fileBoundaries = (this.messages as any).boundaryOwnership.get(fileId);
+      const fileBoundaries = this.messages.boundaryOwnership.get(fileId);
       if (fileBoundaries) {
         for (const bId of fileBoundaries) {
           hmrToken += this.boundaryRevisions.get(bId) || 0;
@@ -1609,7 +1608,7 @@ export class ZintlCompiler {
       }
 
       if (hmrFn) {
-        const fileMeta = (this.messages as any)?.metadataGraph?.[fileId];
+        const fileMeta = this.messages.metadataGraph?.[fileId];
         const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
         const hmrCode = hmrFn(
           fileId,
@@ -1631,7 +1630,7 @@ export class ZintlCompiler {
         }
       } else {
         if (this.messages.metadataGraph[fileId].anchorSites.length > 0) {
-          const hmrCode = `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`;
+          const hmrCode = selfAcceptHmrSnippet(fileId);
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
           if (scriptCloseIdx !== -1) {
             finalCode =
@@ -1769,7 +1768,7 @@ export class ZintlCompiler {
       };
       const normalizePath = (p?: string) => {
         if (!p) return "";
-        return resolvePath(p).replace(/\\/g, "/").replace(/\/+$/, "");
+        return toPosixPath(resolvePath(p)).replace(/\/+$/, "");
       };
       if (this.prune && lastOut && normalizePath(lastOut) !== normalizePath(this.outputDir)) {
         const old = resolvePath(lastOut);
@@ -1823,7 +1822,7 @@ export class ZintlCompiler {
         );
       }
 
-      const contentStatesToSave: Record<string, any> = {};
+      const contentStatesToSave: Record<string, unknown> = {};
       for (const facet of this._resolved.system.contentFacets) {
         if (facet.getStateToSave && facet.name) {
           contentStatesToSave[facet.name] = facet.getStateToSave(context);
@@ -1857,7 +1856,7 @@ export class ZintlCompiler {
       }
       const affectedBoundaries = new Set<string>(adopted);
       for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
-      for (const move of changes.moves as any[]) {
+      for (const move of changes.moves) {
         affectedBoundaries.add(move.fromBoundary);
         affectedBoundaries.add(move.toBoundary);
       }
@@ -1995,8 +1994,7 @@ export class ZintlCompiler {
 
     for (const [fileId, meta] of Object.entries(this.messages.metadataGraph)) {
       const fileBoundaries =
-        (this.messages as any).boundaryOwnership.get(fileId) ||
-        new Set([this.io.getNormalizedId(fileId)]);
+        this.messages.boundaryOwnership.get(fileId) || new Set([this.io.getNormalizedId(fileId)]);
       // Only integrity-check boundaries that are genuinely reachable from an anchor.
       const isReachable = Array.from(fileBoundaries).some((b) =>
         reachableFromEntry.has(b as string),
@@ -2032,13 +2030,6 @@ export class ZintlCompiler {
             !bg.entries.has(bId as string) &&
             !isChunkRoot
           ) {
-            // DEBUG: trace why owner is missing
-            // console.error(`[DEBUG] bId="${bId}" owner=${owner}`);
-            // console.error(
-            //   `[DEBUG] boundaryToOwner keys: ${Array.from(cg.boundaryToOwner.keys()).join(", ")}`,
-            // );
-            // console.error(`[DEBUG] bg.entries: ${Array.from(bg.entries).join(", ")}`);
-            // console.error(`[DEBUG] bg.nodes has?: ${bg.nodes.has(bId as string)}`);
             this.logger.warn(
               `Boundary "${bId}" in "${fileId}" is detected but has no owner chunk. It may fail to hydrate at runtime.`,
             );
@@ -2109,10 +2100,10 @@ export class ZintlCompiler {
       this.getCompilerContext(),
     );
   }
-  public _computeUsageCounts(graph: any) {
+  public _computeUsageCounts(graph: BoundaryGraph) {
     return this.graph.computeUsageCounts(graph);
   }
-  public _computeTranslationChunks(graph: any) {
+  public _computeTranslationChunks(graph: BoundaryGraph) {
     return this.graph.computeTranslationChunks(
       graph,
       this.messages.internalManifest,
@@ -2122,12 +2113,12 @@ export class ZintlCompiler {
   }
 
   private createWorldState(
-    catalogs: Record<string, Record<string, any>> = {},
+    catalogs: Record<string, Record<string, string>> = {},
     isDevOverride?: boolean,
     bakedLocale?: string,
   ): WorldState {
     return {
-      manifest: this.messages.internalManifest as any,
+      manifest: this.messages.internalManifest,
       dependencyGraph: this.messages.dependencyGraph,
       metadataGraph: { ...this.messages.metadataGraph },
       boundaryGraph: this.graph.boundaryGraph!,
@@ -2187,7 +2178,7 @@ export class ZintlCompiler {
       const meta = this.messages.metadataGraph[fileId];
       if (meta?.anchorSites) {
         const anchor = meta.anchorSites.find(
-          (s: any) => this.io.getSafeBoundaryId(s.boundaryId) === bId,
+          (s) => this.io.getSafeBoundaryId(s.boundaryId) === bId,
         );
         if (anchor) {
           const world = this.createWorldState({}, undefined, loc);

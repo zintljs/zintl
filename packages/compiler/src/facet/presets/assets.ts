@@ -7,6 +7,7 @@ import type { ZintlLogger } from "@zintljs/extractor";
 import type { AssetMergeStrategy, AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { similarity } from "../../reconcile.js";
+import { toPosixPath } from "../../utils/paths.js";
 
 /**
  * How similar an asset's source body must be to a remembered one before its
@@ -58,9 +59,13 @@ export interface AssetFacetConfig {
 
 /**
  * Manages translation for static assets like Markdown (.md) and Text (.txt) files.
- * Internal class wrapped by the system content facet.
+ *
+ * Constructed only by the system content facet's `getManagerInstance` — never
+ * instantiate directly. Exported as a type so consumers reading it back off
+ * `ZintlCompiler.assets` (typed `unknown` at the compiler-core level, since the
+ * core cannot know about specific facets) have something to narrow to.
  */
-class AssetManager {
+export class AssetManager {
   private registeredAssets = new Set<string>();
 
   public getRegisteredAssetsRaw(): string[] {
@@ -97,12 +102,12 @@ class AssetManager {
     const bg = this.getBoundaryGraph?.();
     if (bg && bg.entries.size === 0) return false;
 
-    const normAssetId = assetId.replace(/\\/g, "/");
+    const normAssetId = toPosixPath(assetId);
     for (const deps of Object.values(depGraph)) {
       if (Array.isArray(deps)) {
         for (const dep of deps) {
           if (dep && typeof dep.id === "string") {
-            const cleanDepId = dep.id.split("?")[0].replace(/\\/g, "/");
+            const cleanDepId = toPosixPath(dep.id.split("?")[0]);
             if (cleanDepId === normAssetId) {
               return true;
             }
@@ -119,7 +124,7 @@ class AssetManager {
     outputPattern?: string;
   } | null {
     const absolutePath = isAbsolute(filePath) ? filePath : join(this.root, filePath);
-    const relativePath = relative(this.root, absolutePath).replace(/\\/g, "/");
+    const relativePath = toPosixPath(relative(this.root, absolutePath));
 
     const assetsTarget = this.options.targets ?? DEFAULT_ASSET_TARGETS;
 
@@ -183,8 +188,8 @@ class AssetManager {
       ? this.catalog.outputDir
       : join(this.root, this.catalog.outputDir);
 
-    const normalizedPath = filePath.replace(/\\/g, "/");
-    const normalizedOutputDir = absoluteOutputDir.replace(/\\/g, "/");
+    const normalizedPath = toPosixPath(filePath);
+    const normalizedOutputDir = toPosixPath(absoluteOutputDir);
     if (
       normalizedPath === normalizedOutputDir ||
       normalizedPath.startsWith(normalizedOutputDir + "/")
@@ -468,9 +473,9 @@ class AssetManager {
       return isAbsolute(formatted) ? formatted : join(this.root, formatted);
     }
 
-    const hasCatalogFormat = !!(this.catalog as any).catalogFormat;
+    const hasCatalogFormat = !!this.catalog.catalogFormat;
     const isMultilingual =
-      hasCatalogFormat && !(this.catalog as any).catalogFormat.includes("[locale]");
+      hasCatalogFormat && !(this.catalog.catalogFormat as string).includes("[locale]");
 
     if (!hasCatalogFormat || isMultilingual) {
       const baseDir = isAbsolute(this.catalog.outputDir)
@@ -812,7 +817,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
           : mgr.getAssetPath(assetId, locale);
         if (existsSync(localizedPath)) {
           const varName = `_zintl_asset_${assetCounter++}`;
-          imports.push(`import ${varName} from "${localizedPath.replace(/\\/g, "/")}?zintl-raw";`);
+          imports.push(`import ${varName} from "${toPosixPath(localizedPath)}?zintl-raw";`);
           const assetKey = context.isDev
             ? `@zintl/asset:${assetId}`
             : generateMessageId(`@zintl/asset:${assetId}`);

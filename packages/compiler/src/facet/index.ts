@@ -53,7 +53,7 @@ export type { VanillaFacetOptions } from "./presets/vanilla.js";
 export type { ReactFacetOptions } from "./presets/react.js";
 export type { VueFacetOptions } from "./presets/vue.js";
 export type { SvelteFacetOptions } from "./presets/svelte.js";
-export type { HtmlExtractionOptions, HtmlFacetOptions } from "./presets/html.js";
+export type { HtmlExtractionOptions, HtmlFacetOptions, HtmlManager } from "./presets/html.js";
 export type {
   NextjsExtractionOptions,
   NextjsSsrOptions,
@@ -62,4 +62,4 @@ export type {
 } from "./presets/nextjs.js";
 export type { SsrWrappingOptions, SsrRuntimeOptions, SsrFacetOptions } from "./presets/ssr.js";
 export type { ClientSpaFacetOptions } from "./presets/client-spa.js";
-export type { AssetFacetConfig } from "./presets/assets.js";
+export type { AssetFacetConfig, AssetManager } from "./presets/assets.js";

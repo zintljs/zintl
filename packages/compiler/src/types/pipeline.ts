@@ -6,6 +6,7 @@ import type { TransformIntent } from "./intent.js";
 import type { ResolvedPlan } from "./plan.js";
 import type { TransformResult, ValidationResult } from "./result.js";
 import type { CapabilityFlags, CompilerSystemView } from "./capabilities.js";
+import type { CatalogFormatContext } from "./compiler.js";
 
 /**
  * The immutable world state available during intent formation.
@@ -17,7 +18,7 @@ export interface WorldState {
   boundaryGraph: BoundaryGraph;
   chunkGraph: ChunkGraph;
   config: ZintlConfig;
-  catalogs: Record<string, Record<string, any>>;
+  catalogs: Record<string, Record<string, string>>;
   logger: ZintlLogger;
 }
 
@@ -30,7 +31,7 @@ export interface ZintlConfig {
   root: string;
   extensions?: string[];
 
-  catalogFormat?: string | ((ctx: any) => string);
+  catalogFormat?: string | ((ctx: CatalogFormatContext) => string);
   similarityThreshold?: number;
   logLevel?: LogLevel;
   debug?: boolean | string;

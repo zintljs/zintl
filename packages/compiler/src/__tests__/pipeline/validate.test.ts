@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { validate } from "../../pipeline/validate.js";
-import type { TransformResult, FileObservation, ResolvedPlan } from "../../pipeline/types.js";
+import type { TransformResult, FileObservation, ResolvedPlan } from "../../types/index.js";
+import type { SourceMap } from "magic-string";
 
 const mockLogger = {
   debug: () => {},
@@ -32,7 +33,7 @@ describe("Pipeline Phase 5: validate()", () => {
     const result: TransformResult = {
       code: `import { t } from "zintljs";\nt("msg");`,
       diagnostics: [],
-      map: {},
+      map: {} as unknown as SourceMap,
     };
     const plan: ResolvedPlan = {
       imports: [{ source: "zintljs", specifiers: ["t"], strategy: "merge" }],
@@ -50,7 +51,7 @@ describe("Pipeline Phase 5: validate()", () => {
     const result: TransformResult = {
       code: `ok`,
       diagnostics: [],
-      map: {},
+      map: {} as unknown as SourceMap,
     };
     const plan: ResolvedPlan = {
       imports: [{ source: "zintljs", specifiers: ["_t"], strategy: "new" }],
@@ -68,7 +69,7 @@ describe("Pipeline Phase 5: validate()", () => {
     const result: TransformResult = {
       code: `import { t } from "zintljs";\nzintl("en");`,
       diagnostics: [],
-      map: {},
+      map: {} as unknown as SourceMap,
     };
 
     const vResult = validate(

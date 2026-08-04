@@ -4,7 +4,7 @@ import { vueCodegenFacet, svelteCodegenFacet } from "../../facet/index.js";
 import type { CodegenFacet } from "../../types/capabilities.js";
 import { emptyCapabilities } from "../helpers/capabilities.js";
 import MagicString from "magic-string";
-import type { ResolvedPlan } from "../../pipeline/types.js";
+import type { ResolvedPlan } from "../../types/index.js";
 
 const mockLogger = {
   debug: () => {},

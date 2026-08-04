@@ -1,3 +1,4 @@
+import type { SourceMap } from "magic-string";
 import type { SourceLocation } from "./ast.js";
 import type { Diagnostic } from "./plan.js";
 
@@ -6,7 +7,7 @@ import type { Diagnostic } from "./plan.js";
  */
 export interface TransformResult {
   code: string;
-  map: any;
+  map: SourceMap;
   diagnostics: Diagnostic[];
 }
 

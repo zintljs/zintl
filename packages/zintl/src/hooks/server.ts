@@ -2,6 +2,7 @@ import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type Context from "../context.js";
+import type { HtmlManager } from "@zintljs/compiler/facets";
 
 export function configureServerHook(ctx: Context) {
   return function (server: ViteDevServer) {
@@ -55,7 +56,10 @@ export function configureServerHook(ctx: Context) {
             let html = readFileSync(originalPath, "utf-8");
             let dir = locale === "ar" ? "rtl" : "ltr";
             try {
-              const catalogPath = ctx.compiler.html.getCatalogPath(htmlFilename, locale);
+              const catalogPath = (ctx.compiler.html as HtmlManager).getCatalogPath(
+                htmlFilename,
+                locale,
+              );
               if (existsSync(catalogPath)) {
                 const cat = JSON.parse(readFileSync(catalogPath, "utf-8"));
                 const isMulti = ctx.compiler.isMultilingualFormat();

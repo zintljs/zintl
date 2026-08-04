@@ -10,7 +10,13 @@
  */
 
 import MagicString from "magic-string";
-import type { ResolvedPlan, TransformResult, ApplyFn, ZintlLogger, ZintlConfig } from "./types.js";
+import type {
+  ResolvedPlan,
+  TransformResult,
+  ApplyFn,
+  ZintlLogger,
+  ZintlConfig,
+} from "../types/index.js";
 
 /**
  * Apply a resolved transformation plan to source code.

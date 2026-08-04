@@ -3,6 +3,7 @@ import { mkdir, writeFile, readFile, rm, stat, readdir } from "node:fs/promises"
 import { join, dirname, relative, isAbsolute } from "node:path";
 import { spawn } from "node:child_process";
 import { calculateBoundaryId, calculateSafeBoundaryId } from "../utils/hashing.js";
+import { toPosixPath } from "../utils/paths.js";
 import {
   COMPILER_METADATA_DIR,
   MANIFEST_FILENAME,
@@ -21,8 +22,8 @@ export interface IOManagerOptions {
  * Handles all I/O operations, formatting, and hashing.
  */
 export class IOManager {
-  public readonly manifestPath: string;
-  public readonly hivePath: string;
+  public manifestPath: string;
+  public hivePath: string;
   public readonly writingFiles = new Set<string>();
   private detectedFormatter: { bin: string; args: string[] } | null = null;
   private readonly boundaryIdCache = new Map<string, string>();
@@ -74,8 +75,8 @@ export class IOManager {
   public setMetadataDir(dir?: string) {
     const metaDir = this.resolveMetadataDir(dir);
 
-    (this as any).manifestPath = join(metaDir, MANIFEST_FILENAME);
-    (this as any).hivePath = join(metaDir, HIVE_FILENAME);
+    this.manifestPath = join(metaDir, MANIFEST_FILENAME);
+    this.hivePath = join(metaDir, HIVE_FILENAME);
   }
 
   private detectFormatter() {
@@ -134,7 +135,7 @@ export class IOManager {
       abs = join(this.root, targetId);
     }
 
-    const rel = relative(this.root, abs).replace(/\\/g, "/");
+    const rel = toPosixPath(relative(this.root, abs));
 
     const sfcExts = (this.facets || [])
       .map((a) => {
