@@ -13,7 +13,7 @@
  */
 
 // Re-export all types
-export * from "./types.js";
+export * from "../types/index.js";
 
 // Phase 1: Observe
 export { observe } from "./observe.js";

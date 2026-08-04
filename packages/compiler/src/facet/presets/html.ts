@@ -7,9 +7,13 @@ import { sortObjectKeys } from "../../utils/serialization.js";
 
 /**
  * Manages HTML-specific projections, schemas, and disk catalogs.
- * Internal class wrapped by the system html-projection facet.
+ *
+ * Constructed only by the system html-projection facet's `getManagerInstance`
+ * — never instantiate directly. Exported as a type so consumers reading it back
+ * off `ZintlCompiler.html` (typed `unknown` at the compiler-core level, since
+ * the core cannot know about specific facets) have something to narrow to.
  */
-class HtmlManager {
+export class HtmlManager {
   constructor(
     private readonly io: IOManager,
     private readonly root: string,

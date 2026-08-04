@@ -1,4 +1,5 @@
 import type { ZintlFacet } from "@zintljs/compiler";
+import { selfAcceptHmrSnippet } from "../../utils/hmr.js";
 
 /**
  * The Vite bundler contribution: virtual module resolution, the dynamic-import
@@ -53,7 +54,7 @@ export function viteFacet(): ZintlFacet {
          * hot-replace itself", not "nobody thought about this file".
          */
         code += entryReexecutionSafe
-          ? `\n\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n    console.debug("[Zintl] HMR update accepted for: ${fileId}");\n  });\n}`
+          ? selfAcceptHmrSnippet(fileId)
           : `\n\nif (import.meta.hot) {\n  import.meta.hot.accept(() => {\n    // ${fileId} declares a trust anchor and this framework's mount is not\n    // replayable: re-running it would mount again instead of replacing.\n    import.meta.hot.invalidate();\n  });\n}`;
       }
       if (hmrToken > 0) {

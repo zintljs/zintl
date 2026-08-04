@@ -35,7 +35,7 @@ export type DeliveryChannel =
  * reach one of the other three: coalescing is `superseded`, not a disappearance,
  * and an envelope left `pending` is by definition a defect.
  */
-export type DeliveryOutcome = "pending" | "applied" | "superseded" | "failed";
+type DeliveryOutcome = "pending" | "applied" | "superseded" | "failed";
 
 /** The terminal subset of {@link DeliveryOutcome}. */
 export type TerminalOutcome = Exclude<DeliveryOutcome, "pending">;

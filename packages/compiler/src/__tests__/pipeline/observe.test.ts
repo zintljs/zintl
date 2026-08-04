@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { observe } from "../../pipeline/observe.js";
-import type { FileObservation } from "../../pipeline/types.js";
+import type { FileObservation } from "../../types/index.js";
 import { baseExtraction } from "../helpers/capabilities.js";
 
 // The extractor has no default target set; a caller must declare its sinks.

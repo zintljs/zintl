@@ -3,6 +3,16 @@ import { GraphManager } from "../managers/GraphManager.js";
 import { IOManager } from "../managers/IOManager.js";
 import { logger } from "@zintljs/extractor";
 import type { BoundaryMetadata, ObservedDependency } from "../types.ts";
+import type { ManifestEntry } from "../reconcile.js";
+
+const ZERO_LOCATION = { start: 0, end: 0, line: 0, column: 0 };
+const entry = (key: string, boundaryId: string): ManifestEntry => ({
+  id: key,
+  text: key,
+  context: "",
+  boundaryId,
+  location: ZERO_LOCATION,
+});
 
 describe("GraphManager", () => {
   it("should construct and build a simple boundary graph", () => {
@@ -10,7 +20,7 @@ describe("GraphManager", () => {
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
 
     const internalManifest = {
-      "src/main": ["key1"],
+      "src/main": [entry("key1", "src/main")],
     };
 
     const metadataGraph: Record<string, BoundaryMetadata> = {
@@ -50,7 +60,7 @@ describe("GraphManager", () => {
     const graphMgr = new GraphManager(io, true, logger, ["en", "ar"]);
 
     const internalManifest = {
-      "index.html": ["key_html"],
+      "index.html": [entry("key_html", "index.html")],
       "src/main": [],
     };
 
@@ -232,8 +242,8 @@ describe("GraphManager", () => {
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
 
     const internalManifest = {
-      "src/entry": ["key1"],
-      "src/shared": ["key2"],
+      "src/entry": [entry("key1", "src/entry")],
+      "src/shared": [entry("key2", "src/shared")],
     };
     const metadataGraph: Record<string, BoundaryMetadata> = {
       "src/entry": {

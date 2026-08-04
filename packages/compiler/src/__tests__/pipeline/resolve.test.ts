@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { resolve } from "../../pipeline/resolve.js";
-import type { FileObservation, TransformIntent } from "../../pipeline/types.js";
+import type { FileObservation, TransformIntent } from "../../types/index.js";
 
 const createMockObs = (overrides: Partial<FileObservation> = {}): FileObservation => ({
   sinks: [],

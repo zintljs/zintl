@@ -28,12 +28,16 @@
  * rather than silent. See `ReconcileResult.renamed`.
  */
 
-type ManifestEntry = {
+import type { SourceLocation } from "./types/ast.js";
+
+export type ManifestEntry = {
   id: string;
   text: string;
-  context: string;
+  /** Translator-facing disambiguation context. Declared but never populated or read today. */
+  context?: string;
   boundaryId: string;
-  location: any;
+  location: SourceLocation;
+  note?: string;
   variables?: string[];
 };
 export type Manifest = Record<string, ManifestEntry[]>;

@@ -1,8 +1,14 @@
 import type { BoundaryDep, HtmlProjectionPayload } from "@zintljs/extractor";
-import type { ObservedAnchor, ObservedSink } from "./observation.js";
+import type { ObservedAnchor, ObservedSink, ObservedDependency } from "./observation.js";
 
-/** Maps boundary id → its direct dependencies. */
-export type DependencyGraph = Record<string, BoundaryDep[]>;
+/**
+ * Maps boundary id → its direct dependencies, as observed straight from
+ * extraction (`FileObservation.dependencies`) — the raw per-file graph
+ * `GraphManager` consumes to build the resolved `BoundaryGraph`. Distinct
+ * from `Boundary.deps` below: that one is post-resolution, where `bindings`
+ * may be genuinely absent (e.g. anchor/virtual-boundary edges).
+ */
+export type DependencyGraph = Record<string, ObservedDependency[]>;
 
 export interface BoundaryMetadata {
   hasZintlMacro: boolean;

@@ -12,7 +12,6 @@
  * Current implementation: uses native observation data from the extractor.
  */
 
-import type { ZintlLogger } from "../types.js";
 import {
   extract,
   type ExtractionResult,
@@ -21,6 +20,7 @@ import {
 } from "@zintljs/extractor";
 import { sha1 } from "../utils/hashing.js";
 import type {
+  ZintlLogger,
   FileObservation,
   ObservedSink,
   ObservedManualT,
@@ -30,7 +30,7 @@ import type {
   ObservedBoundary,
   SourceLocation,
   AnchorLocale,
-} from "./types.js";
+} from "../types/index.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public API

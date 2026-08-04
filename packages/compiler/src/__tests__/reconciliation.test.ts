@@ -21,13 +21,16 @@ import {
   type Manifest,
 } from "../reconcile.js";
 import { MessageManager } from "../managers/MessageManager.js";
+import type { SourceLocation } from "../types/ast.js";
+
+const ZERO_LOCATION: SourceLocation = { start: 0, end: 0, line: 0, column: 0 };
 
 const msg = (text: string, boundaryId: string, variables?: string[]) => ({
   id: text,
   text,
   context: "",
   boundaryId,
-  location: {},
+  location: ZERO_LOCATION,
   ...(variables ? { variables } : {}),
 });
 
@@ -291,7 +294,7 @@ describe("reconciliation reporting", () => {
     text,
     context: "",
     boundaryId: "b",
-    location: {},
+    location: ZERO_LOCATION,
   });
 
   function run(previous: string[], current: string[]) {

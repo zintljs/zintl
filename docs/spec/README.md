@@ -23,7 +23,7 @@ ZDB.md is the newest and the one with the widest reach: it governs ordering and 
 ## Backlog & proposals
 
 - [`backlog/`](backlog) — 17 numbered work items, largely historical. They record what a change was meant to achieve and what it replaced. `005-deprecating-dataflow-tracing.md` and `004-commit-to-intelligent-stitching.md` explain why extraction works the way it does today.
-- [`proposals/`](proposals) — 16 design explorations, at varying stages. Not all were adopted.
+- [`proposals/`](proposals) — 17 design explorations, at varying stages. Not all were adopted.
 
 Both directories are archives as much as plans. A document describing an approach that was later replaced is still worth keeping — knowing which paths were tried and rejected saves the next person from retrying them.
 

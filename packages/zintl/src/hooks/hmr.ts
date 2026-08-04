@@ -1,6 +1,7 @@
 import type { ModuleNode } from "vite";
 import { isAbsolute, join } from "node:path";
 import type Context from "../context.js";
+import type { AssetManager } from "@zintljs/compiler/facets";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 
 export function handleHotUpdateHook(ctx: Context) {
@@ -53,7 +54,7 @@ export function handleHotUpdateHook(ctx: Context) {
 
     if (isJson || isAsset) {
       if (isAsset) {
-        await ctx.compiler.assets.registerAsset(file);
+        await (ctx.compiler.assets as AssetManager).registerAsset(file);
       }
       const inv = await ctx.compiler.invalidateForUpdate(file, seq, true);
       for (const b of inv) invalidatedBoundaries.push(b);

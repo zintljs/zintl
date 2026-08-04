@@ -2,6 +2,8 @@ import { reconcileManifests, type Manifest, type ReconcileResult } from "../reco
 import type { IOManager } from "./IOManager.js";
 import { SAVE_DEBOUNCE_MS } from "../constants.js";
 import { sortObjectKeys } from "../utils/serialization.js";
+import type { DependencyGraph, MetadataGraph } from "../types/graph.js";
+import type { ZintlLogger } from "../types/compiler.js";
 
 /**
  * Manages translation messages, manifests, and the global hive.
@@ -9,13 +11,13 @@ import { sortObjectKeys } from "../utils/serialization.js";
 export class MessageManager {
   public internalManifest: Manifest = {};
   public previousManifest: Manifest = {};
-  public dependencyGraph: Record<string, any[]> = {};
-  public metadataGraph: Record<string, any> = {};
-  public hive: Record<string, Record<string, any>> = {};
+  public dependencyGraph: DependencyGraph = {};
+  public metadataGraph: MetadataGraph = {};
+  public hive: Record<string, Record<string, string>> = {};
   public hiveDirty = false;
   public lastOutputDir?: string;
   public registeredAssets: string[] = [];
-  public savedContentStates: Record<string, any> = {};
+  public savedContentStates: Record<string, unknown> = {};
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   public boundaryOwnership = new Map<string, Set<string>>();
   public dirtyBoundaries = new Set<string>();
@@ -37,7 +39,7 @@ export class MessageManager {
   constructor(
     private readonly io: IOManager,
     private readonly threshold?: number,
-    private readonly logger?: any,
+    private readonly logger?: ZintlLogger,
   ) {}
 
   public async loadMetadata() {
@@ -133,7 +135,7 @@ export class MessageManager {
     this.hiveDirty = false;
   }
 
-  public async saveManifest(outputDir?: string, contentStates?: Record<string, any>) {
+  public async saveManifest(outputDir?: string, contentStates?: Record<string, unknown>) {
     this.logger?.debug("Saving compiler manifest...");
     const data = {
       manifest: this.internalManifest,

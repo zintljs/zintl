@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { formIntent } from "../../pipeline/intent.js";
 import { emptyCapabilities } from "../helpers/capabilities.js";
-import type { FileObservation, WorldState, ZintlConfig } from "../../pipeline/types.js";
+import type { FileObservation, WorldState, ZintlConfig } from "../../types/index.js";
 
 const { flags: capabilities, system } = emptyCapabilities();
 
