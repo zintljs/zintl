@@ -37,6 +37,7 @@
     "hmr-timing-and-ssr-auto-refresh-fixes",
     "hot-update-custody",
     "kill-contract-flakes",
+    "mid-flush-boundary-overwrite",
     "modular-adapter-decoupling-and-custom-formats",
     "parallel-contracts-via-copied-examples",
     "phantom-boundary-and-asset-reachability-fix",
@@ -73,6 +74,10 @@
     "zzz-perf-zintl-compiler",
     "zzzz-auto-deps-zintl-compiler-6sdx3bnl",
     "zzzz-auto-deps-zintl-extractor-0f8hwvqv",
-    "zzzz-auto-deps-zintl-xae3apx0"
+    "zzzz-auto-deps-zintl-xae3apx0",
+    "zzzz-auto-deps-zintljs-compiler-3dn9bgm1",
+    "zzzz-auto-deps-zintljs-eaumau3s",
+    "zzzz-auto-deps-zintljs-extractor-2nz9d8er",
+    "zzzz-auto-deps-zintljs-testing-tncsyb1n"
   ]
 }

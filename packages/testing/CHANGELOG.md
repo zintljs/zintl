@@ -1,5 +1,21 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.11
+
+### Patch Changes
+
+- 7c69554: Updated external dependencies:
+
+  - @playwright/test@^1.62.1
+  - vite-plus@0.2.7
+  - vite@0.2.7
+
+- Updated dependencies [43ebb95]
+- Updated dependencies [7c69554]
+- Updated dependencies [7c69554]
+  - @zintljs/compiler@0.1.0-alpha.11
+  - zintljs@0.1.0-alpha.11
+
 ## 0.1.0-alpha.10
 
 ### Patch Changes
