@@ -13,6 +13,8 @@
     "verify": "vpr build:examples && vp lint && knip && vp test && vp fmt --check",
     "ready": "vpr build:examples && vp lint && knip && vp test && vp fmt && vp run bench",
     "test:contracts": "vp test --config=tests/vitest.config.ts",
+    "//browsers": "The browsers `test:contracts` drives. A script rather than an inline CI command on purpose: knip resolves the root's `@playwright/test` through this script, and CI runs the same line you would.",
+    "browsers": "playwright install --with-deps chromium",
     "dev:examples": "pnpm run --filter='./examples/*' --parallel dev",
     "build:examples": "vpr build && vpr --filter='./examples/*' build",
     "test:examples": "vpr test:contracts",
