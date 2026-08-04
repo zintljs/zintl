@@ -19,6 +19,18 @@ export class MessageManager {
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   public boundaryOwnership = new Map<string, Set<string>>();
   public dirtyBoundaries = new Set<string>();
+  /**
+   * `(boundary id) → times marked dirty.`
+   *
+   * A flush snapshots this alongside `dirtyBoundaries` when it adopts a
+   * boundary, so it can tell — after its own async catalog write — whether a
+   * *newer* edit landed for that same id while it was writing. Without this,
+   * `runFlush`'s cleanup deleted an adopted id unconditionally, which
+   * discarded exactly that newer edit: it deleted the dirty flag a fresher
+   * `markDirty` had just set, and nothing was left to schedule the boundary
+   * for a later flush. See `runFlush`.
+   */
+  public dirtyRevisions = new Map<string, number>();
   public currentReconciliation?: ReconcileResult;
   private lastManifestContent: string | null = null;
 
@@ -61,7 +73,13 @@ export class MessageManager {
       for (const bId of oldBoundaries) if (!boundaryIds.has(bId)) delete this.internalManifest[bId];
     }
     this.boundaryOwnership.set(fileId, boundaryIds);
-    for (const bId of boundaryIds) this.dirtyBoundaries.add(bId);
+    for (const bId of boundaryIds) this.markDirty(bId);
+  }
+
+  /** The one place a boundary becomes dirty — see `dirtyRevisions`. */
+  public markDirty(bId: string) {
+    this.dirtyBoundaries.add(bId);
+    this.dirtyRevisions.set(bId, (this.dirtyRevisions.get(bId) ?? 0) + 1);
   }
 
   public reconcile(): ReconcileResult {
