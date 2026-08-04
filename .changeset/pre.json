@@ -14,6 +14,7 @@
     "bus-driven-harness",
     "bypass-non-zintlized-transforms",
     "centralized-option-defaults",
+    "compiler-beta-prep-typing-and-deadcode",
     "contract-determinism-and-ci-split",
     "decouple-content-managers-into-adapters",
     "decouple-framework-extensions-and-targets",
