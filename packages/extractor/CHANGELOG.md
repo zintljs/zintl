@@ -1,5 +1,13 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.11
+
+### Patch Changes
+
+- 7c69554: Updated external dependencies:
+
+  - vite-plus@0.2.7
+
 ## 0.1.0-alpha.10
 
 ## 0.1.0-alpha.9
