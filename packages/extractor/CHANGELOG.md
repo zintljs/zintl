@@ -1,5 +1,7 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.12
+
 ## 0.1.0-alpha.11
 
 ### Patch Changes
