@@ -440,6 +440,39 @@ Writing the serializer, the first draft read `ssrWrapCode` off the facets and re
 
 And with that corrected, the golden files show that `ssr-wrapping` contributes `wrapCode` but **no `entryTargets`, `wrapExports` or `wrapDefault`** — `assembleFacets` constructs `ssrFacet()` with no options, so generic SSR wrapping locates its targets somewhere other than the facet that appears to own them. Not a defect; the SSR examples pass their contracts. But "where does generic SSR get its entry targets" is now a question a reader can _ask_, which it was not before.
 
+### L-011 — Every Vite project resolves as SSR
+
+|                             |                                                                           |
+| :-------------------------- | :------------------------------------------------------------------------ |
+| **Status**                  | **Open — reproduced, tracked as `pendingFor` on the fidelity contract**   |
+| **Bucket**                  | **3 — delete the guess** (probably; the replacement is the open question) |
+| **Facet contract changed?** | No — but it is the sharpest evidence for §2.3                             |
+
+Found by the fidelity contract on its first run, which is the entire argument for having written it.
+
+**What failed.** `vanilla-spa-basic` — a vanilla SPA with no server anything — resolves this in a real build:
+
+```
+live:      react-extraction, react-codegen, ssr-wrapping, ssr-runtime, client-spa, …
+predicted: react-extraction, react-codegen,                            client-spa, …
+```
+
+`ssr-wrapping` and `ssr-runtime` are present in a project that has neither. The same four ways: `react-basic`, `vue-basic`, `svelte-basic`, `vanilla-spa-basic`. Every SSR manifest passes, and so does `rsbuild-spa`.
+
+**The cause.** `viteHostView` derives SSR as:
+
+```ts
+isSsr: Boolean(config.build?.ssr) || (config as any).ssr !== undefined;
+```
+
+On current Vite the second clause is **always true** — `ResolvedConfig.ssr` is always a populated object — so `isSsr` is unconditionally true and every project gets the SSR facets. This is §6.3 exactly: _"some of what looks like a deep Vite coupling may be an obsolete Vite pattern we never migrated."_ The expression predates this work (verified against the parent commit); Phase 0a moved it verbatim into `viteHostView`.
+
+**Severity: latent, not shipped.** `getRuntimeCode` gates `store-server.js` on `isSsr` _again_ at codegen time, so no server runtime reaches a client bundle — verified by grepping the committed `vanilla-spa-basic` build snapshots for `AsyncLocalStorage`, `async_hooks` and `runInRequestScope`, all absent. So the output is correct and the **capability flags lie**. "Nothing ships that isn't used" is being upheld by the second gate rather than the first, which is exactly the kind of redundancy that looks like robustness until one of the two gates is removed.
+
+**Why it is not fixed here.** Deleting the clause makes `config.build.ssr` the only signal. That is right for builds and wrong for SSR **dev**, where nothing in the resolved config distinguishes an SSR project — the plugin detects SSR per-module at that point, via `this.environment.config.consumer === "server"`, but the compiler is constructed once with a single `isSsr`. Picking the replacement heuristic is a design decision that deserves its own change and its own evidence from the `hydration` and `ssr-isolation` contracts. Recorded and tracked rather than guessed at mid-spike.
+
+**What it demonstrates about the method.** The golden files could not have found this: they derive their own inputs, so both sides of the comparison would have been wrong in the same direction. It took a second derivation that was allowed to disagree. That is the same shape as L-002a — two plausible derivations of one fact, differing silently — and it is the argument for §2.3's rule that host-supplied values need a loud absence rather than a plausible default.
+
 ---
 
 ## Deliverable 3 — should Rsbuild become a supported target?
