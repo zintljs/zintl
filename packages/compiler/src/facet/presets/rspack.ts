@@ -65,5 +65,17 @@ export function rspackFacet(): ZintlFacet {
     hmrInjectionCode: (_fileId: string, hmrToken: number): string => {
       return hmrToken > 0 ? `\n\n// Zintl HMR Token: ${hmrToken}` : "";
     },
+
+    /**
+     * Nothing, for the same reason {@link hmrInjectionCode} emits no acceptance
+     * call: Tier 2 is not implemented on this host.
+     *
+     * Supplying the hook at all is still what matters. Before it existed the
+     * compiler hardcoded `import.meta.hot` for generated catalogs and managers
+     * and consulted no facet, so this host received Vite's API regardless.
+     * Declaring "no hot-update story yet" is the honest answer, and it is the
+     * one that stops the wrong one being emitted.
+     */
+    hmrSelfAcceptCode: (): string => "",
   };
 }

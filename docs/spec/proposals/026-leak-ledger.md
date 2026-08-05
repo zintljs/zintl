@@ -618,7 +618,36 @@ So this is "nothing ships that isn't used" being upheld by the _host_ rather tha
 
 That last one is a declaration of a known gap rather than an omission, and it is the interesting part. Rspack uses `module.hot`, so the inherited Vite snippet is simply wrong — but emitting the `module.hot` equivalent would be worse. ZDB §7a makes dev support conditional on two load-bearing properties, a monotonic non-repeating per-event sequence and a `read()` scoped to that event, and neither has been shown to exist on this host. Shipping hot updates without them ships back the ordering defect the delivery-bus specification exists to remove. **Returning a function at all is what matters here: it takes core off its `import.meta.hot` fallback path. Wrong code is worse than no code.**
 
-**Still open.** Four generated virtual modules — the per-locale content modules and the manager — continue to emit `import.meta.hot` in dev, because `index.ts:2218` and `:2289` hardcode it and **never consult `system.hmrInjectionCode`**. This is the leak Phase 1 predicted as item 6 and Deliverable 2 §2.2 describes: the facet seam exists and two call sites bypass it. Dev-only, and out of scope while Rspack is Tier 1, but it is the next thing to route through the facet if Tier 2 is ever attempted.
+### L-016 — Generated modules bypassed the facet seam entirely
+
+|                             |                                |
+| :-------------------------- | :----------------------------- |
+| **Status**                  | Fixed                          |
+| **Bucket**                  | **1 — facet it**               |
+| **Facet contract changed?** | Yes — adds `hmrSelfAcceptCode` |
+
+Predicted by Phase 1 as item 6, described by Deliverable 2 §2.2, and confirmed by grepping the Rspack snapshots after L-015: four generated virtual modules — the three per-locale content modules and the manager — still emitted `import.meta.hot`, because two call sites in the compiler hardcoded it and **consulted no facet at all**.
+
+So the seam existed and two callers walked around it. That is the more interesting half of the finding: L-015 was a _missing_ facet, this was a _bypassed_ one, and only the second kind survives adding the facet.
+
+**Why the existing hook could not be reused.** `hmrInjectionCode` decorates a _source_ file and has to reason about whether re-executing an entry is safe — the `entryReexecutionSafe` question that exists because Svelte's `mount()` appends where `innerHTML` replaces. A generated catalog or manager has no such question: it is Zintl's own code and always safe to replace. What it _does_ need, and what the source-file hook cannot express, is an accept **with a callback body** — the manager re-registers its loader on update.
+
+**The fix.** A new `BundlerFacet.hmrSelfAcceptCode(callbackBody?)`. Vite spells it with `import.meta.hot`; Rspack returns `""`, declaring it has no hot-update story yet rather than being handed someone else's. When no bundler facet supplies it, nothing is emitted — which is the right default, and a change from the old behaviour of emitting Vite's API unconditionally.
+
+**Verified:** `import.meta.hot` no longer appears anywhere in Rspack output, dev or production. Vite snapshots are byte-identical — the only files that changed in the whole suite were the four `rsbuild-spa` ones.
+
+### Where the `import.meta.hot` leaks stood, in the end
+
+Three separate defects, found in sequence, each hidden by the one before it:
+
+|       | Leak                                             | Why it was invisible on Vite                                 |
+| :---- | :----------------------------------------------- | :----------------------------------------------------------- |
+| L-012 | `@vite-ignore` in Rspack output                  | The annotation is inert to anyone but Vite                   |
+| L-014 | `import.meta.hot` in a **production** bundle     | Vite folds it to `undefined`; the branch was eliminated      |
+| L-015 | Core's fallback emits Vite's HMR API on any host | Justified as a test-only path; no non-Vite host had ever run |
+| L-016 | Two generated-module call sites bypass the facet | The seam existed and was simply not used                     |
+
+None of them had a symptom on the supported path. All four were one grep apart once a second host existed.
 
 ### On the user-facing surface
 

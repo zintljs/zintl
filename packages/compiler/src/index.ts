@@ -2254,7 +2254,7 @@ export class ZintlCompiler {
       }
       code += `export default catalog;`;
       if (this.isDev) {
-        code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
+        code += this._resolved.system.hmrSelfAcceptCode?.() ?? "";
       }
       return {
         code,
@@ -2325,13 +2325,12 @@ export class ZintlCompiler {
   }
   return manager;
 })();`;
-      code += `\nif (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
-    }
-  });
-}`;
+      code +=
+        this._resolved.system.hmrSelfAcceptCode?.(
+          `    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {\n` +
+            `      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);\n` +
+            `    }`,
+        ) ?? "";
     } else {
       code += `export default ${managerObj};`;
     }

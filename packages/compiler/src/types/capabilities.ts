@@ -315,6 +315,25 @@ export interface BundlerFacet extends BaseFacet {
   resolveVirtualPath?: (id: string) => string;
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
+  /**
+   * How this host spells "accept my own updates", for **generated** modules.
+   *
+   * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
+   * has to reason about whether re-executing an entry is safe. A generated
+   * catalog or manager has no such question — it is Zintl's own code and always
+   * safe to replace — but it does sometimes need to run something on update,
+   * which the source-file hook cannot express.
+   *
+   * `callbackBody` receives `newModule` in scope when supplied.
+   *
+   * This exists because two call sites in the compiler hardcoded
+   * `import.meta.hot` and consulted no facet at all, so every host was handed
+   * Vite's API for its generated modules regardless of who was building. A
+   * facet returning `""` declares that it has no hot-update story yet, which is
+   * a better answer than the wrong API.
+   */
+  hmrSelfAcceptCode?: (callbackBody?: string) => string;
+
   /** HMR injection code generation (appended to transformed files in dev) */
   hmrInjectionCode?: (
     fileId: string,
@@ -534,6 +553,11 @@ export interface CompilerSystemView {
   resolveVirtualPath: (id: string) => string;
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
+  /**
+   * Resolved self-accept generator for generated modules (undefined if no
+   * bundler facet supplies one, which means: emit nothing).
+   */
+  hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
   /** Resolved HMR injection code generator (undefined if no HMR facet) */
   hmrInjectionCode:
     | ((

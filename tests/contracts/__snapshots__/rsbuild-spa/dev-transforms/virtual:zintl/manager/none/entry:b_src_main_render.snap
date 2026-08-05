@@ -34,10 +34,3 @@ export default (() => {
   }
   return manager;
 })();
-if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
-    }
-  });
-}

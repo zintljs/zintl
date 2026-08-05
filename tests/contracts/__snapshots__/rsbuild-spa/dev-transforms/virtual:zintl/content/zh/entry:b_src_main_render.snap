@@ -20,4 +20,3 @@ if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
 }
 export default catalog;
-if (import.meta.hot) { import.meta.hot.accept(); }
