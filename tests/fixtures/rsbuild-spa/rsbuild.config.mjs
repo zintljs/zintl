@@ -17,6 +17,7 @@ export default defineConfig({
       outputDir: "./src/i18n",
       catalogFormat: "translations.json",
       similarityThreshold: 0.01,
+      assetsTarget: ["txt"],
     }),
   ],
   source: { entry: { index: "./src/main.ts" } },

@@ -1,3 +1,4 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-spa/src/about.txt?zintl-raw";
 export default (() => {
   const manager = { id: "b_src_main_render", loader: (locale) => {
       switch(locale) { 
@@ -15,6 +16,9 @@ export default (() => {
     return `Count is ${params['counter']}`;
   },
     },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+  },
   };
                 case "ar":
           return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_render").then(m => m.default);

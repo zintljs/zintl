@@ -1,3 +1,4 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-spa/src/i18n/src/about.zh.txt?zintl-raw";
 const catalog = {
     "b_ae1e7cbb2f74": {
       "90e40d50": "开始使用",
@@ -11,5 +12,8 @@ const catalog = {
     return `计数为 ${params['counter']}`;
   },
     },
+    "b_assets": {
+    "749ed136": _zintl_asset_0,
+  },
   };
 export default catalog;

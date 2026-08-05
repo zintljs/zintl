@@ -252,6 +252,75 @@ Worth recording for two reasons. A mis-rooted compiler **writes**, so a wrong ro
 
 **The fix.** `nativeHostView(pluginContext)` reads unplugin's `getNativeBuildContext()` and takes `compiler.options.context` as the root on the Rspack/webpack shape, falling back only when the host genuinely offers nothing. This is the first concrete answer to §9 Q4 — _what does a facet get to ask about its host?_ — and the answer so far is "its root, and it must actually ask."
 
+### L-009 — Module _type_ is the host's decision, and Zintl assumes it owns it
+
+|                             |                                                                                       |
+| :-------------------------- | :------------------------------------------------------------------------------------ |
+| **Status**                  | **Open — reproduced, deliberately not fixed.** The highest-value finding of the spike |
+| **Bucket**                  | **2 — relocate** (identity), not 1                                                    |
+| **Facet contract changed?** | **Yes** — and this is the one that should shape it                                    |
+
+**Nothing failed.** The build succeeded, all four contracts passed, and the output is wrong. This is precisely the failure mode §5.3 warned breakage-driven discovery would miss, and it was caught by reading the snapshot rather than by a red test.
+
+**What is wrong.** With a localizable `.txt` asset in the fixture, the `ar` catalog contains:
+
+```js
+"b_assets": {
+  "749ed136": _…_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0,
+},
+```
+
+and that module is:
+
+```js
+module.exports = "data:text/plain;base64,ZXhwb3J0IGRlZmF1bHQgItmK2KjZgtmK…";
+```
+
+which decodes to:
+
+```js
+export default "يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.\n";
+```
+
+Zintl generated **correct JavaScript**. Rspack then classified the `.txt` resource as an _asset_, base64-encoded that JavaScript source into a `data:` URI, and stored the URI in the catalog. At runtime `_t("749ed136")` returns the string `"data:text/plain;base64,…"`, so the page renders a data URI where Arabic text belongs.
+
+**The assumption.** _"If my `load` hook returns JavaScript, the module is JavaScript."_ True on Rollup and Vite, where loading a module is what makes it a module. On Rspack, **module type is a property of the resource's extension**, decided by configured rules — the host had already decided `.txt` is an asset, and no plugin returning JS changes that. Unplugin's load rule does carry `type: "javascript/auto"`, but it is one rule among several matching the same resource and it does not win.
+
+**Why this is bucket 2 and not bucket 1.** The tempting fix is a bundler escape hatch that rewrites Rspack's module rules — which is §8's fork, wearing a facet's clothes. The actual defect is one layer up: **Zintl identifies a generated module by the original file's path plus a query** (`…/about.ar.txt?zintl-raw`), so the generated module inherits an extension that means something to the host. A generated module's identity should not carry the source file's file type, because on a host that types by extension it is then typed as the wrong thing.
+
+Zintl already contains the portable shape — `virtualAssets: true` routes assets through `\0virtual:zintl/asset/<locale>/<id>`, an id with no extension, which every host types as JavaScript. `INFERRED`, and worth stating as such: that path could not be exercised here because both of its return sites are multiplex-gated (see L-005), so "the virtual path fixes this" is reasoned, not reproduced.
+
+**Not fixed, on purpose.** The fix is either a rule-rewriting escape hatch (the fork) or a change to asset module identity that touches the multiplex, asset and HTML paths at once — outside §7's scope and too large to land inside the timebox without evidence from the paths it would disturb. It is specified here instead, which is what §7 asks of a deferral.
+
+**The committed snapshot deliberately records the broken output.** `tests/contracts/__snapshots__/rsbuild-spa/dist-output/static/js/async/0.js.snap` contains the `data:` URI. That is not an oversight and should not be "corrected": it is the tripwire that turns fixing this leak into a visible diff. Anyone who makes that snapshot stop containing a data URI has fixed L-009.
+
+### L-010 — Rspack bakes the absolute source path into generated identifiers
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | Harness normalization added; the underlying cause is L-009's |
+| **Bucket**                  | **2 — relocate** (same identity problem)                     |
+| **Facet contract changed?** | No — more evidence for §2.1                                  |
+
+**What failed.** A snapshot mismatch that differed only by worker id:
+
+```diff
+- var _Users_khalid_Lingua_lingua_tmp_runs_w1_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0
++ var _Users_khalid_Lingua_lingua_tmp_runs_w2_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0
+```
+
+Rspack names a module's binding after its **absolute resource path**, with every separator flattened to an underscore. `LabPipeline.sanitizeCode` already normalizes the checkout root and the worker directory, but its rules match slash-shaped paths and slide straight past the flattened form.
+
+**Two things worth separating.** The harness fix is routine and has been applied — the same two normalizations, extended to the underscore form. But the reason there is a long path in the identifier at all is L-009's cause again: Zintl identifies a generated asset module by the **source file's real path plus a query**, so the host has a full absolute path to flatten. An extension-free virtual id flattens to something short and stable, and would not be mistyped either.
+
+Recording it separately because it is independent evidence for the same contract change (§2.1), arriving from a completely different direction — snapshot instability rather than wrong output. Also worth noting on its own terms: a build output that embeds the absolute source path is not portable between machines, which is a property worth knowing about the host regardless of Zintl.
+
+### L-005 — revised: unreachable within the agreed scope
+
+`emitFile` and `import.meta.ROLLUP_FILE_URL_*` could not be exercised. Both `\0virtual:zintl/asset/` return sites in `resolveIdHook` sit inside multiplex-gated branches — one behind `id.includes("zintl-multiplex=")`, the other inside the multiplex propagation block — and multiplex is the HTML fan-out path §7 explicitly excluded.
+
+So the leak stands as read from source in Phase 1 and remains **unreproduced**. Recording the reason precisely, because "we did not get to it" and "it is behind a path this spike deliberately excluded" are different statements, and only the second one tells the next person where to start.
+
 ### What worked — and one of these is the whole thesis
 
 **Chunk-aligned catalogs survived the port intact.** The Rsbuild build emitted three async chunks, one per non-source locale, each carrying only its own catalog:
@@ -303,3 +372,84 @@ The **no-op calibration** regressed on both runs, and `Catalog Serialization Log
 **`INFERRED`: that L-003 carries no meaningful cost on the Vite path.** Not reproduced. It needs a quiet machine, or many samples, before the deletion can be defended on performance grounds rather than on correctness grounds. Correctness is not in doubt — the allow-list was answering the wrong question — but "and it costs nothing" is currently unmeasured.
 
 **`vpr verify` — passed** (lint, knip, 728 unit tests, format). The one initial failure was a pre-existing format issue in `026-rsbuild-as-falsification-harness.md` itself, unrelated to any code change.
+
+---
+
+## Deliverable 2 — the revised facet authoring contract
+
+§7 item 2, assembled from the entries above rather than reasoned from first principles. This is the input to the self-activation inversion (§10), which should not freeze the facet API before absorbing it.
+
+Five changes, in descending order of how much evidence sits behind them.
+
+### 2.1 A facet must be able to declare a module's **type**, not just its content
+
+`BundlerFacet` today has three hooks, all about _text_: `resolveVirtualPath`, `dynamicImportTemplate`, `hmrInjectionCode`. Every one assumes that producing the right characters is sufficient.
+
+L-009 shows it is not. On a host that types modules by extension, generated JavaScript that keeps a `.txt` identity is treated as an asset no matter what it contains. The contract needs a way to say _"this module is JavaScript"_ — or, better, for generated modules to carry identities that cannot be mistyped.
+
+Two shapes, and the second is preferred:
+
+- `BundlerFacet.moduleTypeFor(id)` — a per-host declaration. Honest, but it puts a webpack concept in every facet's vocabulary and Rollup facets would return `undefined` forever.
+- **Generated modules get extension-free virtual identities**, so type is never ambiguous on any host. Zintl already has this shape in `virtualAssets` mode; it is opt-in and multiplex-gated. Making it the only path removes the question rather than answering it per host.
+
+### 2.2 Hook **applicability** is part of the contract, not an implementation detail
+
+L-006 and L-007. On Rollup a hook that declines is free; on Rspack, `load` is a module rule that retypes what it claims, so an undeclared filter is destructive. Filters must be first-class and **exact** — over-claiming is not the safe direction, which inverts the usual instinct.
+
+`unplugin` already provides `loadInclude` / `transformInclude`, and Zintl now uses both. The facet contract should carry the same idea: a facet that contributes codegen or content handling declares the ids it applies to, and the plugin composes those declarations rather than each hook re-deriving them internally. Zintl's own hooks had this information — it was in their first ten lines, just not where a host could read it.
+
+### 2.3 Host-supplied values need a loud absence, not a plausible default
+
+L-008. `fallbackHostView()` returned `process.cwd()` — reachable only on the path with no test coverage, where it silently rooted the compiler at the monorepo and wrote 2 MB into a directory that does not exist in this repo.
+
+`BundlerHostView` is the right shape and should be part of the frozen contract. The rule to freeze with it: a field the host must supply has no default. Absence should fail at construction with the host's name in the message, not resolve to something that looks reasonable.
+
+This is also the concrete start of an answer to §9 Q4 — _what does a facet get to ask about its host?_ So far: `root`, `isDev`, `isSsr`, `pluginNames`, `logLevel`. Only `root` has been shown to be load-bearing on a second host.
+
+### 2.4 Recognition and construction of virtual ids must go through the same seam
+
+L-004. `resolveVirtualPath` exists to _construct_ virtual ids, and `viteFacet` implements it as `id => id` while the plugin adds the `\0` — so the hook does not do what its documentation says. Meanwhile core _recognizes_ virtual ids by testing `id.startsWith("\0")` at seven sites, going through no facet at all.
+
+On Rspack this currently survives by coincidence: the `\0` test fails, but an adjacent `id.includes("node_modules")` test passes because unplugin's virtual filesystem happens to live under `node_modules/.virtual/`. **Verified masked, not verified correct.** It breaks the day unplugin relocates that directory.
+
+The contract needs `isVirtualId` alongside `resolveVirtualPath`, and core must ask it. Not fixed here, deliberately: nothing fails today, and fixing what does not fail is the audit pass §2 rejects. It is specified so the inversion can include it.
+
+### 2.5 What the evidence did _not_ support
+
+Worth recording, because a contract revision that only grows is a contract nobody trusts:
+
+- **No `bundler:*` capability dimension** (§9 Q1). The positive-only subset match already scoped a second host to build-time contracts with zero contract edits.
+- **No per-host `compile()`**. `RsbuildDriver` and `ViteDriver` share one `compileWithZintl()` verbatim. The compiler contract needed no adaptation on a second host, and nothing observed suggests it will.
+- **No chunking hook.** Catalog/chunk alignment held on `splitChunks` with no Rspack-specific code. The design of emitting one virtual module per chunk behind a dynamic import is genuinely host-independent.
+
+---
+
+## Deliverable 3 — should Rsbuild become a supported target?
+
+**Recommendation: no, not now. Keep it as a harness.** Revisit only when someone asks for it with a real application.
+
+**What works today (ZDB §7a Tier 1).** Build, extraction, boundary and chunk graphs, catalog generation, ghost mode, chunk-aligned per-locale catalogs, ICU baking. Four project contracts pass. This is more than expected going in.
+
+**What is unbuilt, and roughly what it costs.**
+
+| Gap                             | Cost                                                                                                                          |
+| :------------------------------ | :---------------------------------------------------------------------------------------------------------------------------- |
+| L-009 — asset module typing     | Medium. Needs generated-module identity reworked (§2.1), touching the asset, multiplex and HTML paths together                |
+| L-005 — asset emission          | Unknown, unreproduced. Behind multiplex; `emitFile` returns no reference id, so the URL strategy needs replacing, not porting |
+| HTML projection / MPA fan-out   | Large. `transformIndexHtml` has no counterpart; HTML comes from a plugin, not the graph                                       |
+| SSR                             | Large, untouched                                                                                                              |
+| **Tier 2 — dev server and HMR** | **Largest, and gated on a question, not on effort**                                                                           |
+
+Tier 2 is the one to be careful about. ZDB §7a makes dev support conditional on two load-bearing properties — a monotonic non-repeating per-event timestamp, and a `read()` scoped to _that_ event. Neither has been shown to exist on this host. Shipping dev support without them would ship back the ordering defect ZDB exists to remove, so the honest sequence is to answer that question before estimating the work, not after.
+
+**Why not now, in one line:** supporting a target means a CI matrix, a second set of snapshots, and a promise to users, and §2.1's counterweight applies — what kills a project at alpha is spending the window on a tool nobody has installed. The door is open and the cost is now written down; that is what this phase was for.
+
+---
+
+## Timebox status
+
+Roughly half the five-day box, spent as: Phase 0 fixes, harness proof, driver seam and fixture, one loop iteration.
+
+**Not hitting §7's stop conditions.** No leak required a second parallel code path in the compiler, and the buckets have not collapsed into "facet the difference" — the four fixed leaks are bucket 2, 2, 3 and 1/1, and the two open ones are bucket 2. The harness is still teaching.
+
+**Where a resumption should start:** L-009. It is reproduced, it has a committed snapshot as its tripwire, and it is the finding that most shapes §2.1 of the contract revision.

@@ -2,6 +2,8 @@
 (self["rspackChunkrsbuild_spa_fixture"] = self["rspackChunkrsbuild_spa_fixture"] || []).push([[3], {
 7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
+/* import */ var <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0 = __webpack_require__(8);
+
 /* export default */ __webpack_exports__["default"] = ({ id: "b_ae1e7cbb2f74", loader: (locale) => {
       switch(locale) { 
         case "en":
@@ -18,13 +20,16 @@ __webpack_require__.r(__webpack_exports__);
     return `Count is ${params['counter']}`;
   },
     },
+    "b_assets": {
+    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0,
+  },
   };
                 case "ar":
-          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 10)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 12)).then(m => m.default);
         case "es":
-          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 11)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 14)).then(m => m.default);
         case "zh":
-          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 12)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 16)).then(m => m.default);
         default: return {};
       }
     }, manifest: [] });

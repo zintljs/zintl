@@ -6,6 +6,7 @@ const zintlOptions: ZintlPluginOptions = {
   outputDir: "./src/i18n",
   catalogFormat: "translations.json",
   similarityThreshold: 0.01,
+  assetsTarget: ["txt"],
 };
 
 /**

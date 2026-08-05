@@ -43,6 +43,13 @@
       "deps": [
         {
           "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
+        {
+          "bindings": [
             "setupCounter"
           ],
           "dynamic": false,
@@ -79,6 +86,13 @@
     "src/main:render": {
       "activeLocales": "all",
       "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
         {
           "bindings": [
             "setupCounter"

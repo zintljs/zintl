@@ -66,6 +66,26 @@ export class LabPipeline {
          * snapshots exist to pin.
          */
         .replace(/\.tmp[/\\]runs[/\\]w[^/\\]+[/\\]/g, "examples/")
+        /**
+         * The same two normalizations again, for paths that are no longer
+         * paths.
+         *
+         * Rspack names a module's binding after its absolute resource path with
+         * every separator flattened to an underscore, so an import arrives as
+         * `_Users_me_repo__tmp_runs_w1_project_src_about_txt_…`. The rules above
+         * only match slash-shaped paths and slide straight past it, which makes
+         * the output vary by checkout location and by which worker produced it —
+         * exactly what those rules exist to prevent.
+         *
+         * Worth noticing rather than just fixing: a build output that embeds the
+         * absolute source path is not portable between machines, and Zintl
+         * invites it here by identifying generated asset modules with the source
+         * file's real path plus a query. An extension-free virtual id would
+         * flatten to something short and stable. See ledger L-009.
+         */
+        .split(escapedMonorepoRoot.replace(/[/\\.]/g, "_"))
+        .join("<MONOREPO_ROOT>")
+        .replace(/_tmp_runs_w[^_]+_/g, "_tmp_runs_wN_")
     );
   }
 

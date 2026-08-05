@@ -1,7 +1,9 @@
 "use strict";
 (self["rspackChunkrsbuild_spa_fixture"] = self["rspackChunkrsbuild_spa_fixture"] || []).push([[1], {
-11(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+14(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
+/* import */ var <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_i18n_src_about_es_txt_zintl_raw__rspack_import_0 = __webpack_require__(15);
+
 const catalog = {
     "b_ae1e7cbb2f74": {
       "90e40d50": "Empezar",
@@ -15,8 +17,15 @@ const catalog = {
     return `La cuenta es ${params['counter']}`;
   },
     },
+    "b_assets": {
+    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_i18n_src_about_es_txt_zintl_raw__rspack_import_0,
+  },
   };
 /* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+15(module) {
+module.exports = "data:text/plain;base64,ZXhwb3J0IGRlZmF1bHQgIlppbnRsIG1hbnRpZW5lIGxhcyB0cmFkdWNjaW9uZXMganVudG8gYWwgY8OzZGlnbyBxdWUgbGFzIG5lY2VzaXRhLlxuIjs=";
 
 },
 

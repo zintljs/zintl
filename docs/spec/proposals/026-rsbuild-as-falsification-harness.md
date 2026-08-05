@@ -1,6 +1,8 @@
 # Proposal 026: Rsbuild as a Falsification Harness
 
-**Status**: OPEN — method proposed, no work started, no code written.
+**Status**: IN PROGRESS — Phases 0–3 run; findings in [026-leak-ledger.md](026-leak-ledger.md).
+Nine leaks recorded, four fixed on the Vite path, two open and specified. Rsbuild builds an SPA and passes the four
+build-time contracts; **it is a harness, not a supported target** (see the ledger's Deliverable 3).
 **Date**: 2026-08-05
 **Kind**: Method proposal. This one is different from its neighbours — see §0.
 **Depends on**: the faceted compiler architecture (CLAUDE.md, "Faceted compiler architecture"), the contract-test layer (`tests/contracts/`), and the Unplugin migration already landed in `packages/zintl`.

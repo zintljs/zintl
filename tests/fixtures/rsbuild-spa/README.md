@@ -15,7 +15,20 @@ Scope is ZDB §7a **Tier 1** — build only. Its manifest claims `build`, `graph
 and `transform` and nothing else, so the 17 dev-server contracts never select it.
 
 It mirrors `examples/vanilla-spa-basic` as closely as the host allows, minus the
-`?raw` and binary asset imports. That omission is deliberate rather than
-incidental: asset localisation depends on `emitFile` returning a reference id,
-which Rspack does not do (ledger L-005), so including assets here would mix a
-known-open leak into every unrelated trace.
+binary asset imports.
+
+## Its snapshots record a known bug on purpose
+
+`src/about.txt` and its localized copies under `src/i18n/src/` reproduce **ledger
+L-009**, and the committed build snapshot is the evidence.
+
+Rspack types modules by file extension, so it classifies `.txt` as an asset and
+base64-encodes the JavaScript Zintl generated for it into a `data:` URI. The
+catalog then holds that URI instead of the translated text, and the page renders
+`data:text/plain;base64,…` where Arabic should be. **The build succeeds and every
+contract passes** — it is a silent wrong answer, not a failure.
+
+So `__snapshots__/rsbuild-spa/dist-output/static/js/async/0.js.snap` contains a
+`data:` URI, deliberately. Do not "fix" the snapshot. It is the tripwire: whoever
+makes it stop containing a data URI has fixed L-009, and the diff is how they
+will know.

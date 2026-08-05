@@ -1,6 +1,7 @@
 import { zintl } from "zintljs/macro";
 import { setupCounter } from "./counter.ts";
 import { setupSwitcher } from "./switcher.ts";
+import aboutText from "./about.txt?raw";
 
 async function render() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
@@ -23,6 +24,7 @@ async function render() {
   <div id="docs">
     <h2>Documentation</h2>
     <p>Your questions, answered</p>
+    <p id="about">${aboutText}</p>
   </div>
 </section>
 `;

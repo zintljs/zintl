@@ -3,6 +3,7 @@ import _zintl_mgr_b_src_main_render from "virtual:zintl/manager/none/entry:b_src
 
 import { setupCounter } from "./counter.ts";
 import { setupSwitcher } from "./switcher.ts";
+import aboutText from "./about.txt?raw";
 
 async function render() {
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
@@ -25,6 +26,7 @@ async function render() {
   <div id="docs">
     <h2>${_t("Documentation", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</h2>
     <p>${_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</p>
+    <p id="about">${aboutText}</p>
   </div>
 </section>
 `;

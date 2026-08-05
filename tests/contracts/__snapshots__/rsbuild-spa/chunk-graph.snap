@@ -6,6 +6,7 @@
   "chunks": {
     "entry_b_ae1e7cbb2f74": {
       "boundaries": [
+        "src/about.txt?raw",
         "src/counter:setupCounter",
         "src/main:render",
         "src/switcher:setupSwitcher",

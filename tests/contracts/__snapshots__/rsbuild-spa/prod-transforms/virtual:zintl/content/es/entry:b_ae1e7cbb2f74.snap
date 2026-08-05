@@ -1,3 +1,4 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-spa/src/i18n/src/about.es.txt?zintl-raw";
 const catalog = {
     "b_ae1e7cbb2f74": {
       "90e40d50": "Empezar",
@@ -11,5 +12,8 @@ const catalog = {
     return `La cuenta es ${params['counter']}`;
   },
     },
+    "b_assets": {
+    "749ed136": _zintl_asset_0,
+  },
   };
 export default catalog;

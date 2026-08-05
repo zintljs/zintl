@@ -1,0 +1,1 @@
+Zintl mantiene las traducciones junto al código que las necesita.
