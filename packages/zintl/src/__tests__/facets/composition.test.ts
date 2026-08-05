@@ -55,33 +55,13 @@ function exampleNames(): string[] {
     .sort();
 }
 
-/**
- * Whether this example builds for SSR.
- *
- * Derived from an `entry-server.*` source file, which is what the SSR examples
- * actually name their server entry, and stands in for the `config.build.ssr`
- * that `viteHostView` reads in production.
- *
- * Note what the golden files then show: `ssrFacet()` is assembled with no
- * options, so `ssr-wrapping` contributes `wrapCode` but **no** `entryTargets`,
- * `wrapExports` or `wrapDefault` — generic SSR wrapping finds its targets
- * somewhere other than the facet. That is an observation this file exists to
- * surface, not a defect: the SSR examples pass their contracts.
- */
-function isSsrExample(root: string): boolean {
-  const src = join(root, "src");
-  if (!existsSync(src)) return false;
-  return readdirSync(src).some((f) => f.startsWith("entry-server."));
-}
-
 /** Facets declaring a given single-provider hook, in resolution order. */
 function declarersOf(facets: ZintlFacet[], hook: string): string[] {
   return facets.filter((f) => typeof (f as never)[hook] === "function").map((f) => f.name);
 }
 
-function describeComposition(name: string): string {
+function describeComposition(name: string, ssr: boolean): string {
   const root = join(EXAMPLES_DIR, name);
-  const ssr = isSsrExample(root);
   const frameworks = detectFrameworksOrFallback({ root });
   const facets = assembleFacets({ frameworks, ssr, facets: ["auto"] });
   const resolved = resolveFacets(facets);
@@ -155,8 +135,21 @@ describe("resolved facet composition per example", () => {
   });
 
   for (const name of names) {
-    it(name, () => {
-      expect(describeComposition(name)).toMatchSnapshot();
+    /**
+     * Both variants, for every project, because SSR-ness is an input to
+     * resolution rather than a property of the application.
+     *
+     * An SSR app resolves *two* compositions — its client build carries no SSR
+     * facets, its server build does — so "the composition of react-ssr" is not a
+     * well-formed question. Recording both also removes the guess this file used
+     * to make (sniffing for an `entry-server.*` file), which was the one place it
+     * could disagree with the plugin about what it was describing.
+     */
+    it(`${name} (client)`, () => {
+      expect(describeComposition(name, false)).toMatchSnapshot();
+    });
+    it(`${name} (ssr)`, () => {
+      expect(describeComposition(name, true)).toMatchSnapshot();
     });
   }
 });
@@ -177,7 +170,7 @@ describe("composition invariants", () => {
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
-          ssr: isSsrExample(root),
+          ssr: false,
           facets: ["auto"],
         }),
       );
@@ -202,7 +195,7 @@ describe("composition invariants", () => {
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
-          ssr: isSsrExample(root),
+          ssr: false,
           facets: ["auto"],
         }),
       );

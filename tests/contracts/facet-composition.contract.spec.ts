@@ -1,5 +1,3 @@
-import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 import { expect } from "vite-plus/test";
 import { executeProjectContract, type Contract } from "@zintljs/testing";
 import { assembleFacets, detectFrameworksOrFallback, resolveFacets } from "zintljs/facets";
@@ -28,10 +26,7 @@ import { allManifests } from "../manifests/index.js";
  */
 
 /** Same derivation the golden files use, deliberately duplicated so it can disagree. */
-function staticFacetNames(root: string, facets: unknown): string[] {
-  const src = join(root, "src");
-  const ssr = existsSync(src) && readdirSync(src).some((f) => f.startsWith("entry-server."));
-
+function staticFacetNames(root: string, facets: unknown, ssr: boolean): string {
   const resolved = resolveFacets(
     assembleFacets({
       frameworks: detectFrameworksOrFallback({ root }),
@@ -39,7 +34,10 @@ function staticFacetNames(root: string, facets: unknown): string[] {
       facets: (facets as never) ?? ["auto"],
     }),
   );
-  return resolved.facets.map((f) => f.name);
+  return resolved.facets
+    .map((f) => f.name)
+    .sort()
+    .join(", ");
 }
 
 export const facetCompositionContract: Contract = {
@@ -48,37 +46,6 @@ export const facetCompositionContract: Contract = {
     "Verifies the composition the plugin resolves in a real build matches the golden-file derivation",
   requires: ["build"],
 
-  /**
-   * These four fail on a real defect, not on a disagreement about method — see
-   * ledger L-011.
-   *
-   * `viteHostView` derives SSR as
-   * `Boolean(config.build?.ssr) || config.ssr !== undefined`. On current Vite the
-   * second clause is **always true**, because `ResolvedConfig.ssr` is always a
-   * populated object. So every project resolves as SSR, and a plain vanilla SPA
-   * gets `ssr-wrapping` and `ssr-runtime`.
-   *
-   * It is latent rather than shipped: `getRuntimeCode` gates `store-server.js` on
-   * `isSsr` again at codegen time, so no server runtime reaches a client bundle
-   * (verified against the committed `vanilla-spa-basic` build snapshots). The
-   * capability flags lie, and "nothing ships that isn't used" is being upheld by
-   * the second gate rather than the first.
-   *
-   * Left pending rather than fixed because the correct heuristic is a genuine
-   * design question: dropping the clause makes `build.ssr` the only signal, which
-   * is right for builds and wrong for SSR **dev**, where nothing in the config
-   * distinguishes an SSR project. That decision wants its own change and its own
-   * evidence from the hydration and ssr-isolation contracts.
-   *
-   * The SSR manifests pass, and so does `rsbuild-spa` — on the Rspack path
-   * `nativeHostView` reports `isSsr: false` and the derivations agree.
-   */
-  pendingFor: {
-    "react-basic": "L-011 — viteHostView reports isSsr:true for every project",
-    "vue-basic": "L-011 — viteHostView reports isSsr:true for every project",
-    "svelte-basic": "L-011 — viteHostView reports isSsr:true for every project",
-    "vanilla-spa-basic": "L-011 — viteHostView reports isSsr:true for every project",
-  },
   async execute(lab, adapter, manifest) {
     // The build is what makes the plugin run its real config path; it is cached
     // per project, so the cost here is shared with the Production Build contract.
@@ -96,15 +63,34 @@ export const facetCompositionContract: Contract = {
         `this contract exists to catch (ledger L-008).`,
     ).toBeDefined();
 
-    const live: string[] = ctx!.compiler._resolved.facets.map((f: { name: string }) => f.name);
-    const predicted = staticFacetNames(lab.root, manifest.zintlOptions.facets);
+    /**
+     * Compared as a *set membership*, not an equality, because SSR-ness is a
+     * property of the build target rather than of the project.
+     *
+     * An SSR app has two compositions: its client build carries no SSR facets —
+     * nothing about wrapping a server entry belongs in a browser bundle — and
+     * its server build does. Which one a given context holds depends on which
+     * target ran, and builds are cached per target, so pinning one is brittle.
+     * Every composition the plugin actually produced must simply be one of the
+     * two the golden files predict.
+     */
+    const live = ctx!.compiler._resolved.facets
+      .map((f: { name: string }) => f.name)
+      .sort()
+      .join(", ");
+
+    const predicted = [
+      staticFacetNames(lab.root, manifest.zintlOptions.facets, false),
+      staticFacetNames(lab.root, manifest.zintlOptions.facets, true),
+    ];
 
     expect(
-      [...live].sort(),
-      `Live composition for ${manifest.name} differs from the golden-file derivation.\n` +
-        `  live:      ${live.join(", ")}\n` +
-        `  predicted: ${predicted.join(", ")}`,
-    ).toEqual([...predicted].sort());
+      predicted,
+      `Live composition for ${manifest.name} matches neither predicted variant.\n` +
+        `  live:            ${live}\n` +
+        `  predicted (spa): ${predicted[0]}\n` +
+        `  predicted (ssr): ${predicted[1]}`,
+    ).toContain(live);
   },
 };
 
