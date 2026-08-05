@@ -100,6 +100,182 @@ Worth stating because §4.2 warns bucket 3 is systematically under-found: a face
 
 ---
 
+## Phase 1 — the harness, proven in isolation (§6.5)
+
+A throwaway unplugin plugin — one `transform`, one virtual module, two emitted assets — built under Rsbuild `2.1.10` before Zintl was pointed at anything. Deliberately noisy: it logs what each hook is handed, because that is the baseline every later trace is measured against.
+
+**It builds, and the output is correct**: the transform applied, the virtual module resolved and loaded, both assets emitted. So Tier 1 (ZDB §7a) is reachable on this host — the failures from here on are ours, not "we are holding Rsbuild wrong".
+
+Everything below is **reproduced**, not inferred. Reproduction lives in `.tmp/spike-026/hello-rsbuild/` (gitignored, throwaway, installed outside the workspace so `vpr verify` and `knip` are untouched).
+
+### L-004 — `\0` survives `resolveId`→`load` but **not** `transform`
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | Open — no fix attempted yet                           |
+| **Bucket**                  | **2 — relocate** (provisional)                        |
+| **Facet contract changed?** | Likely — needs an `isVirtualId` question core can ask |
+
+**What happened.** The same virtual module is presented to two hooks under two different identities:
+
+```
+load      called with id: "�virtual:spike/greeting"
+transform called with id: "/…/node_modules/.virtual/%00virtual%3Aspike%2Fgreeting"
+```
+
+`resolveId` returned `"\0virtual:spike/greeting"` and `load` received it back **verbatim**. But unplugin materializes non-existent ids into a real file under `node_modules/.virtual/` with the id percent-encoded into the filename, and it is that path which reaches `transform` and the module graph.
+
+**Correction to an earlier reading.** Before running anything, the Phase 0 notes recorded that virtual module identity "stops being an opaque string and becomes an absolute path inside `node_modules/`". That is half right and the half matters: it is true at the `transform` boundary and in the module graph, and false at the `resolveId`/`load` boundary. The `\0` convention is not simply unavailable on Rspack — it is available in two of the three places Zintl uses it. A fix that assumed uniform loss would have been wrong.
+
+**Why it has not broken anything yet — and why that is not reassuring.** Zintl's transform guard is:
+
+```ts
+(id.includes("node_modules") && !isTargetSsrEntry) ||
+(id.startsWith("\0") && !isTargetSsrEntry) || …
+```
+
+On Rspack the second clause is **false** for virtual modules, so the intended guard does not fire. The first clause is **true** — because the vfs path happens to live under `node_modules/` — so the module is skipped anyway. **The code is right for the wrong reason.** Two independent guards compose into correct behaviour by coincidence, and the coincidence is a path segment in another project's implementation detail.
+
+The same `\0` test appears in core at `index.ts:141`, `:598`, `:1023`, `IOManager.ts:117`, `GraphManager.ts:123`, `CatalogManager.ts:197`/`:265`. `IOManager.getNormalizedId` is the one to watch: it returns `\0` ids untouched, so on Rspack a virtual module would instead be normalized as a real file path and could contribute a boundary id derived from `node_modules/.virtual/%00virtual%3A…`.
+
+**Note on the existing seam.** `BundlerFacet.resolveVirtualPath` is documented as mapping `"virtual:zintl/…"` → `"\0virtual:zintl/…"`, but `viteFacet` implements it as `id => id` and the `\0` is added by the plugin (`hooks/resolve.ts:68`, `:85`). The hook does not do what its doc comment says, and core never routes its `\0` _recognition_ through a facet at all — only its construction, and not even that. Recognition is the half that breaks here.
+
+### L-005 — `emitFile` returns nothing, so there is no asset URL to reference
+
+|                             |                                                 |
+| :-------------------------- | :---------------------------------------------- |
+| **Status**                  | Open — no fix attempted yet                     |
+| **Bucket**                  | **1 or 2** — undecided                          |
+| **Facet contract changed?** | Yes — `BundlerFacet` has no asset-emission hook |
+
+**What happened.** Both emission shapes were tried:
+
+```
+emitFile({ name: "spike-named.txt", source }) → returned undefined
+emitFile({ fileName: "spike-filename.txt", source }) → returned undefined
+```
+
+Both files were written (`dist/spike-named.txt`, `dist/spike-filename.txt`), and note that `name` was honoured **verbatim** — no content hash, unlike Rollup, where `name` is a hint and the real filename is hashed.
+
+**The assumption.** _"Emitting an asset gives me a handle I can reference from generated code."_ That is Rollup's contract: `emitFile` returns a `referenceId` which `import.meta.ROLLUP_FILE_URL_<id>` later resolves to the final hashed URL. Zintl depends on it twice, at `hooks/resolve.ts:353-358` and `:374-379`, both in asset localisation.
+
+Rspack's `emitFile` is `compilation.emitAsset(name, source)` — fire and forget, `undefined` returned. **There is no reference id to interpolate**, so the current asset localisation strategy has no counterpart rather than a different spelling.
+
+Not triaged yet, because the two candidate answers differ a lot in cost: a `BundlerFacet.emitAsset` hook returning a URL-or-reference abstraction (bucket 1), versus the compiler owning output naming so a stable path can be emitted without asking the bundler for one (bucket 2). Deferred to Phase 3, where the asset contracts will force the choice with evidence.
+
+### Confirmed available on the Rspack path
+
+Reproduced, and relevant because ZDB §7a Tier 1 depends on all of it:
+
+| Capability                                | Result                                                                                |
+| :---------------------------------------- | :------------------------------------------------------------------------------------ |
+| `buildStart` / `buildEnd` / `writeBundle` | all fire                                                                              |
+| `resolveId` / `load` / `transform`        | all fire; `enforce: "pre"` honoured                                                   |
+| Build context members                     | exactly `addWatchFile`, `emitFile`, `getNativeBuildContext`, `getWatchFiles`, `parse` |
+| `this.resolve`                            | **`undefined`** — L-002's premise, now reproduced rather than read from source        |
+| Virtual modules                           | work end to end                                                                       |
+
+**Phase 2 input, confirmed from shipped types.** `BuildOptions` is `{ watch?: boolean }` and `BuildResult` is `{ close, stats? }` (`@rsbuild/core/dist/types/rsbuild.d.ts:35-49`). **There is no `write: false` and no in-memory bundle**, so `ViteDriver`'s approach — build in memory, read `bundle.output[].code` — has no counterpart. An `RsbuildDriver` must build to a directory and read it back. Programmatic entry points are `createRsbuild()` and `loadConfig()`.
+
+---
+
+## Phase 2 — the contract suite, pointed at a second host
+
+`tests/fixtures/rsbuild-spa` is now a registered manifest driven by an `RsbuildDriver`, and **all four project contracts pass against it**: `build`, `graph`, `transform-dev`, `transform-prod`. Total suite 108/108, the 104 Vite cases unchanged.
+
+Three leaks surfaced getting there. All three were found by the harness failing, none by inspection.
+
+### L-006 — An unfiltered `load` hook retypes every module on Rspack
+
+|                             |                                                            |
+| :-------------------------- | :--------------------------------------------------------- |
+| **Status**                  | Fixed                                                      |
+| **Bucket**                  | **1 — declare it** (the plugin must state what it handles) |
+| **Facet contract changed?** | No                                                         |
+
+**What failed.** The build died parsing the HTML template as JavaScript:
+
+```
+× Module parse failed: JavaScript parse error: Expected ';', '}' or <eof>
+  ╭─[1:10]
+1 │ <!doctype html>
+```
+
+**The assumption.** _"A `load` hook that returns `undefined` costs nothing."_ True on Rollup and Vite, where an unclaimed id simply falls through to the next plugin.
+
+**Not true on Rspack.** Unplugin implements `load` as a module rule carrying **`type: "javascript/auto"`**, whose `include()` is the plugin's `loadInclude`. With no filter declared, the rule matches every module in the graph and **retypes all of them as JavaScript** — so the HTML template reached the JS parser. Merely _claiming_ a module is destructive there.
+
+**The fix.** A `loadIncludeHook` naming exactly the ids `loadHook` can answer for. This is information the hook already had — its first ten lines are prefix tests — just never declared where the host could read it.
+
+**The sharp edge, worth carrying forward:** the filter has to be **exact, not generous**. `.html` is claimed only under multiplex, the sole mode where `loadHook` returns HTML. Claiming it unconditionally — the naturally cautious choice — reintroduces the bug for every non-multiplex app. On Rollup an over-broad filter is free; here it is the defect.
+
+### L-007 — `transform` had no idea what kinds of file it handles
+
+|                             |                    |
+| :-------------------------- | :----------------- |
+| **Status**                  | Fixed              |
+| **Bucket**                  | **1 — declare it** |
+| **Facet contract changed?** | No                 |
+
+**What failed.** With L-006 fixed, the HTML template still reached `transformHook`, which rewrote it as though it were a source module.
+
+**The assumption.** _"Everything arriving at `transform` is a script module."_ This is **true of Zintl's design** — HTML projection goes through `transformIndexHtml` and `compiler.transformHtml()`, never through `transform` — but it was never _stated_, because on Vite HTML is not a module in the graph and so never arrived. On Rspack the HTML template is processed through a loader chain, and unplugin inserts `transform` into it.
+
+**The fix.** A `transformIncludeHook` excluding `.html`. The belief the code held was correct; the fix is that it is now written down where a host can honour it.
+
+**Why this is not a reversal of L-003.** These look contradictory — L-003 _deleted_ an extension list, L-007 _adds_ an extension test — and they are not, because they answer different questions. L-003's list gated _whether a dependency needs a per-locale copy_: a question about content, which the graph owns. L-007's test asks _whether this hook can parse this file at all_: a question about the file's language, which the plugin owns. Getting the bucket right depends entirely on naming the question, not the mechanism.
+
+### L-008 — The host view has to come from the host
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | Fixed                                                       |
+| **Bucket**                  | **2 — relocate**                                            |
+| **Facet contract changed?** | Yes — `BundlerHostView` must be host-derived, not defaulted |
+
+**What failed.** `JSON.stringify` threw `RangeError: Invalid string length` inside `MessageManager.saveManifest`. Probing the live compiler showed why:
+
+```
+manifest keys: 217
+sample keys: ['coverage/index.html', 'examples/react-basic/index.html', …]
+```
+
+The compiler had rooted itself at the **monorepo root** and discovered 217 boundaries across the entire repository — every example app, plus `coverage/` — producing a manifest too large to serialize.
+
+**This one is self-inflicted, which is the interesting part.** L-001 introduced `fallbackHostView()` as a safety net, with `root: process.cwd()`. On Vite it is unreachable, so it looked free. On Rspack — the one host it exists for — it is the _only_ path, and `process.cwd()` is wherever the test runner started.
+
+A fallback that is only ever exercised on the path nobody tests is not a safety net; it is an untested default wearing one. The general lesson for the facet contract: a host-supplied value needs a way to be _absent_ that is loud, not a plausible-looking default.
+
+**The blast radius was wider than the error.** The `RangeError` was only the symptom that surfaced. While mis-rooted, the compiler also treated the repository's own `README.md`, `CLAUDE.md` and `docs/**/*.md` as translatable assets, and wrote **2 MB of translated Markdown into `<repo>/src/i18n/`** — a directory this monorepo does not otherwise have. It was untracked, has been removed, and nothing reached the tracked tree.
+
+Worth recording for two reasons. A mis-rooted compiler **writes**, so a wrong root is not a read-only mistake. And the write landed at a path that does not exist in this repo, which is exactly why it was invisible — had it collided with something real it would have been noticed at once. This is the hazard `copiedExampleSource` documents at length for `.zintl` — an artifact outliving the run that produced it — arrived at by a different route.
+
+**The fix.** `nativeHostView(pluginContext)` reads unplugin's `getNativeBuildContext()` and takes `compiler.options.context` as the root on the Rspack/webpack shape, falling back only when the host genuinely offers nothing. This is the first concrete answer to §9 Q4 — _what does a facet get to ask about its host?_ — and the answer so far is "its root, and it must actually ask."
+
+### What worked — and one of these is the whole thesis
+
+**Chunk-aligned catalogs survived the port intact.** The Rsbuild build emitted three async chunks, one per non-source locale, each carrying only its own catalog:
+
+```
+dist/static/js/async/0.js →  "b_ae1e7cbb2f74": { "90e40d50": "ابدأ الآن" }
+dist/static/js/async/1.js →  "b_ae1e7cbb2f74": { "90e40d50": "Empezar" }
+dist/static/js/async/2.js →  "b_ae1e7cbb2f74": { "90e40d50": "开始使用" }
+```
+
+No `en` chunk — ghost mode held, the source locale was never written. **Zintl contains no Rspack chunking code**; the compiler emits one virtual module per chunk behind a dynamic import and lets the host's own splitter place them. That the same mechanism produces aligned output on `splitChunks` as on `manualChunks` is the strongest evidence yet that the chunking design is genuinely host-independent — and §5.3 predicted this was where a _quiet_ failure would hide, so it is worth stating that it did not.
+
+**Extraction needed no adaptation.** Five keys, correct stitching across `<code>` tags, correct `{counter}` placeholder normalisation — from an unchanged extractor.
+
+**§9 Q1 — answered: no.**
+
+> _Does the contract capability set need a genuine `bundler:*` dimension?_
+
+**It does not.** Capability matching is a positive-only subset test, so a manifest claiming exactly `build`, `graph` and `transform` selects the four project contracts and is skipped by the other seventeen — no contract edits, no `excludes` mechanism, no new dimension. The existing model expressed "run only the build-time contracts against this host" without extension. Recorded as an answer rather than a non-event, because adding the dimension pre-emptively would have answered the question by assumption.
+
+**`compile()` is shared verbatim.** `RsbuildDriver.compile()` and `ViteDriver.compile()` call one `compileWithZintl()` with no per-host branching. The compiler contract needed no adaptation at all; everything that made portability hard lived in the plugin.
+
+---
+
 ## Verification notes for Phase 0
 
 Recorded because §6.6 asks for what could not be verified, and because two of the repo's own gates turned out not to be usable signals on this machine.

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
-import { ensureCompiler, fallbackHostView } from "../host.js";
+import { ensureCompiler, nativeHostView } from "../host.js";
 import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
 import type { AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
@@ -46,7 +46,7 @@ export function resolveIdHook(ctx: Context) {
     importer: string | undefined,
     options?: { ssr?: boolean },
   ) {
-    ensureCompiler(ctx, fallbackHostView());
+    ensureCompiler(ctx, nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     if (id.includes(".zintl-")) {
       const cleanId = id.split("?")[0];
@@ -268,9 +268,42 @@ export function resolveIdHook(ctx: Context) {
   };
 }
 
+/**
+ * Which ids {@link loadHook} may return content for.
+ *
+ * On Rollup and Vite this is an optimisation: an unfiltered `load` that returns
+ * `undefined` is a no-op, so declaring the filter only saves calls.
+ *
+ * On Rspack it is **load-bearing**. Unplugin implements `load` as a module rule
+ * carrying `type: "javascript/auto"`, and the rule's `include()` is this
+ * predicate. A hook with no filter matches every module in the graph and
+ * retypes all of them as JavaScript — so the HTML template reaches the JS
+ * parser and the build dies on `<!doctype html>`. Merely *claiming* a module is
+ * destructive there, where on Rollup it is free.
+ *
+ * That asymmetry is why this must be exact rather than generous. In particular
+ * `.html` is claimed only under multiplex, which is the sole mode where
+ * {@link loadHook} returns HTML; claiming it unconditionally would reintroduce
+ * the retyping bug for every non-multiplex app.
+ */
+export function loadIncludeHook(ctx: Context) {
+  return function (id: string): boolean {
+    const cleanId = id.split("?")[0];
+
+    if (cleanId.startsWith("\0virtual:zintl/") || cleanId.startsWith(RESOLVED_VIRTUAL_PREFIX)) {
+      return true;
+    }
+    if (cleanId.includes(".zintl-")) return true;
+    if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) return true;
+    if (cleanId.endsWith(".html")) return ctx.getMultiplex();
+
+    return false;
+  };
+}
+
 export function loadHook(ctx: Context) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
-    ensureCompiler(ctx, fallbackHostView());
+    ensureCompiler(ctx, nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {

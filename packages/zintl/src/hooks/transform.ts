@@ -1,11 +1,34 @@
 import { join, dirname } from "node:path";
 import type Context from "../context.js";
-import { ensureCompiler, fallbackHostView } from "../host.js";
+import { ensureCompiler, nativeHostView } from "../host.js";
 import { VIRTUAL_PREFIX } from "../constants.js";
+
+/**
+ * Which ids {@link transformHook} may rewrite.
+ *
+ * HTML is the whole point of this filter. Zintl does transform HTML, but never
+ * here — projections and the bootstrap script go through `transformIndexHtml`
+ * and `compiler.transformHtml()`. On Vite that separation needed no enforcement
+ * because HTML is not a module in the graph, so it simply never arrived at
+ * `transform`.
+ *
+ * On Rspack it does: the HTML template is processed through a loader chain, and
+ * unplugin inserts this hook into it. Zintl then rewrote the template as if it
+ * were a source module and handed JavaScript-shaped output to a parser that got
+ * `<!doctype html>`.
+ *
+ * So the rule the code always relied on — "everything reaching `transform` is a
+ * script module" — is now stated rather than assumed.
+ */
+export function transformIncludeHook() {
+  return function (id: string): boolean {
+    return !id.split("?")[0].endsWith(".html");
+  };
+}
 
 export function transformHook(ctx: Context) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
-    ensureCompiler(ctx, fallbackHostView());
+    ensureCompiler(ctx, nativeHostView(this));
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");

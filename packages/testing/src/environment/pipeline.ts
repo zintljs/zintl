@@ -1,6 +1,7 @@
 import { findMonorepoRoot } from "../utils.js";
 import { ViteDriver } from "./vite-driver.js";
-import type { BuildOutput, ZintlPluginOptions } from "./driver.js";
+import { RsbuildDriver } from "./rsbuild-driver.js";
+import type { BuildOutput, BuildToolDriver, DriverKind, ZintlPluginOptions } from "./driver.js";
 
 /**
  * LabPipeline is a thin façade over BuildToolDriver.
@@ -9,13 +10,21 @@ import type { BuildOutput, ZintlPluginOptions } from "./driver.js";
  */
 export class LabPipeline {
   public readonly exampleName: string;
-  public readonly driver: ViteDriver;
+  public readonly driver: BuildToolDriver;
   private readonly MONOREPO_ROOT: string;
 
-  constructor(exampleName: string, exampleRoot: string, zintlOptions: ZintlPluginOptions) {
+  constructor(
+    exampleName: string,
+    exampleRoot: string,
+    zintlOptions: ZintlPluginOptions,
+    driver: DriverKind = "vite",
+  ) {
     this.exampleName = exampleName;
     this.MONOREPO_ROOT = findMonorepoRoot(exampleRoot);
-    this.driver = new ViteDriver(exampleName, exampleRoot, zintlOptions);
+    this.driver =
+      driver === "rsbuild"
+        ? new RsbuildDriver(exampleName, exampleRoot, zintlOptions)
+        : new ViteDriver(exampleName, exampleRoot, zintlOptions);
   }
 
   async project(

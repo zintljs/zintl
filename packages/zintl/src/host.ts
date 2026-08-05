@@ -57,13 +57,48 @@ export interface BundlerHostView {
  * Deriving a real view from a foreign bundler's native build context is host
  * work, and belongs in whichever facet or entry point knows that bundler.
  */
-export function fallbackHostView(): BundlerHostView {
+function fallbackHostView(): BundlerHostView {
   return {
     root: process.cwd(),
     isDev: false,
     isSsr: false,
     pluginNames: [],
   };
+}
+
+/**
+ * Build a host view from whatever the host's own plugin context exposes,
+ * falling back to {@link fallbackHostView} when it exposes nothing useful.
+ *
+ * The fallback's `process.cwd()` is not a harmless default, and that was
+ * measured rather than reasoned about: on Rspack — where `configResolved` never
+ * runs — a compiler rooted at `process.cwd()` discovered the entire monorepo
+ * from the directory the test runner happened to start in. 217 boundaries,
+ * including `coverage/index.html` and every example app, and a manifest large
+ * enough that `JSON.stringify` exceeded V8's maximum string length.
+ *
+ * So a host that has a real root must be asked for it. Unplugin exposes one
+ * through `getNativeBuildContext()`, whose shape is per-framework; each branch
+ * here reads only that framework's own documented field.
+ */
+export function nativeHostView(pluginContext: unknown): BundlerHostView {
+  const base = fallbackHostView();
+  const getNative = (pluginContext as { getNativeBuildContext?: () => unknown } | undefined)
+    ?.getNativeBuildContext;
+  if (typeof getNative !== "function") return base;
+
+  const native = getNative.call(pluginContext) as
+    | { framework?: string; compiler?: { options?: { context?: string } } }
+    | undefined;
+
+  // Rspack (and webpack, which shares the shape): the project root is the
+  // compiler's `context`.
+  const context = native?.compiler?.options?.context;
+  if (typeof context === "string" && context.length > 0) {
+    return { ...base, root: context };
+  }
+
+  return base;
 }
 
 /**

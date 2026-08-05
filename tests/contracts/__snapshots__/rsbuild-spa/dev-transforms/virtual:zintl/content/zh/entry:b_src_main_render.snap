@@ -1,0 +1,19 @@
+const catalog = {
+    "b_src_main_render": {
+      "Get started": "开始使用",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
+      "Documentation": "文档",
+      "Your questions, answered": "你的问题，已有答案",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `计数为 ${params['counter']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

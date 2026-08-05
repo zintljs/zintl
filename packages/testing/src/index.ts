@@ -16,8 +16,10 @@ export type { LabConsole, ConsoleMessage, ConsoleCapture } from "./environment/c
 export type { LabClock } from "./environment/clock.js";
 export { LabPipeline } from "./environment/pipeline.js";
 export { ViteDriver } from "./environment/vite-driver.js";
+export { RsbuildDriver } from "./environment/rsbuild-driver.js";
 export type {
   BuildToolDriver,
+  DriverKind,
   CompilationResult,
   BuildOutput,
   BuildTarget,

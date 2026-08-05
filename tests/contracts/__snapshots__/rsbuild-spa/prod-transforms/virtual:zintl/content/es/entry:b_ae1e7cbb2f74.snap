@@ -1,0 +1,15 @@
+const catalog = {
+    "b_ae1e7cbb2f74": {
+      "90e40d50": "Empezar",
+      "e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+      "9e9cf322": "Documentación",
+      "d0f7666b": "Tus preguntas, respondidas",
+    },
+    "b_f05b8e5701f3": {
+      "3aaf6932": (params) => {
+    const { counter } = params;
+    return `La cuenta es ${params['counter']}`;
+  },
+    },
+  };
+export default catalog;

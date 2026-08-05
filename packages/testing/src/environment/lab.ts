@@ -10,8 +10,7 @@ import { LabConsole } from "./console.js";
 import { LabClock } from "./clock.js";
 import { LabAssertions } from "../assertions/index.js";
 import { LabPipeline } from "./pipeline.js";
-import type { ZintlPluginOptions } from "./driver.js";
-import { ViteDriver } from "./vite-driver.js";
+import type { BuildToolDriver, DriverKind, ZintlPluginOptions } from "./driver.js";
 import type { MaterializedProject, ProjectSource } from "../contracts/source.js";
 
 export interface LabOptions {
@@ -34,6 +33,8 @@ export interface LabOptions {
 export interface ProjectLabOptions {
   source: ProjectSource;
   zintlOptions: ZintlPluginOptions;
+  /** Which build tool to drive. Defaults to Vite. */
+  driver?: DriverKind;
 }
 
 export interface Lab {
@@ -48,7 +49,7 @@ export interface Lab {
   readonly clock: LabClock;
   readonly assert: LabAssertions;
   readonly pipeline: LabPipeline;
-  readonly driver: ViteDriver;
+  readonly driver: BuildToolDriver;
   readonly url: string;
   readonly root: string;
   /**
@@ -76,7 +77,7 @@ class LabImpl implements Lab {
   readonly clock: LabClock;
   readonly assert: LabAssertions;
   readonly pipeline: LabPipeline;
-  readonly driver: ViteDriver;
+  readonly driver: BuildToolDriver;
   readonly url: string;
   readonly root: string;
   private readonly mode: "dev" | "preview" | "project";
@@ -94,6 +95,7 @@ class LabImpl implements Lab {
     fs: LabFilesystem,
     exampleName: string,
     zintlOptions: ZintlPluginOptions,
+    driver: DriverKind = "vite",
   ) {
     this.mode = mode;
     this.project = project;
@@ -120,7 +122,7 @@ class LabImpl implements Lab {
     this.clock = mode === "project" ? throwNoAccess("clock") : new LabClock(this.page);
     this.compiler = new LabCompiler(devServer);
     this.assert = new LabAssertions(this);
-    this.pipeline = new LabPipeline(exampleName, root, zintlOptions);
+    this.pipeline = new LabPipeline(exampleName, root, zintlOptions, driver);
     this.driver = this.pipeline.driver;
 
     const beforeMutation = async () => {
@@ -361,6 +363,7 @@ export async function createProjectLab(opts: ProjectLabOptions): Promise<Lab> {
     fs,
     opts.source.id,
     opts.zintlOptions,
+    opts.driver,
   );
 
   return lab;

@@ -67,6 +67,7 @@ export function executeProjectContract<TAdapter extends BaseAdapter = BaseAdapte
       const lab = await createProjectLab({
         source: manifest.source,
         zintlOptions: manifest.zintlOptions,
+        driver: manifest.driver,
       });
       try {
         await contract.execute(lab, manifest.adapter as TAdapter, manifest);

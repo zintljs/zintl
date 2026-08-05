@@ -168,12 +168,14 @@ Obvious. Written down anyway, because these are the steps that get skipped by wh
 
 **6.4 — Pin exact versions and record them here.** Add a table to this document — tool, exact version, date checked — and update it on every resume. A finding without a version attached is not reproducible, and "this doesn't work on Rspack" ages into a lie the moment Rspack ships a minor.
 
-| Tool            | Version     | Date checked | Notes |
-| :-------------- | :---------- | :----------- | :---- |
-| `@rsbuild/core` | _(fill in)_ |              |       |
-| `@rspack/core`  | _(fill in)_ |              |       |
-| `unplugin`      | _(fill in)_ |              |       |
-| `vite`          | _(fill in)_ |              |       |
+| Tool            | Version  | Date checked | Notes                                                                                                          |
+| :-------------- | :------- | :----------- | :------------------------------------------------------------------------------------------------------------- |
+| `@rsbuild/core` | `2.1.10` | 2026-08-05   | Pulls `@rspack/core` itself (`~2.1.8`). Programmatic API: `createRsbuild()` + `loadConfig()`                   |
+| `@rspack/core`  | `2.1.8`  | 2026-08-05   | Transitive via `@rsbuild/core`, not pinned directly                                                            |
+| `unplugin`      | `3.3.0`  | 2026-08-05   | Already a `zintljs` dependency. Rspack + Rsbuild targets present but never exercised before this spike         |
+| `vite`          | `8.1.5`  | 2026-08-05   | **Aliased**: `pnpm-workspace.yaml` maps `vite` → `npm:@voidzero-dev/vite-plus-core@0.2.7`, which wraps `8.1.5` |
+
+The `vite` row is itself a §6.3 finding. Our peer range is `^6.0.0 || ^7.0.0 || ^8.0.0`, but nothing in this repo is built or tested against stock Vite — the resolved package is Vite+ core. "The Vite way" here means "the Vite+ 0.2.7 way", and any conclusion about a Vite coupling should say which of the two it was checked against.
 
 **6.5 — Prove the harness before blaming the system.** Get a trivial hello-world Unplugin plugin — one `transform`, one virtual module, one emitted asset — running under Rsbuild _before_ pointing Zintl at it. Without that baseline, every early failure is ambiguous between "Zintl is Vite-coupled" (the finding we want) and "we are holding Rsbuild wrong" (noise). Half a day here saves a week of misattributed traces.
 

@@ -1,0 +1,19 @@
+const catalog = {
+    "b_src_main_render": {
+      "Get started": "ابدأ الآن",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
+      "Documentation": "وثائق",
+      "Your questions, answered": "إجابات لأسئلتك",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `العدد هو ${params['counter']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

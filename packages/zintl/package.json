@@ -51,6 +51,10 @@
       "types": "./dist/vite.d.mts",
       "import": "./dist/vite.mjs"
     },
+    "./rsbuild": {
+      "types": "./dist/rsbuild.d.mts",
+      "import": "./dist/rsbuild.mjs"
+    },
     "./macro": {
       "types": "./dist/macro.d.mts",
       "import": "./dist/macro.mjs"

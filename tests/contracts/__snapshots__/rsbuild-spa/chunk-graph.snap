@@ -1,0 +1,27 @@
+{
+  "boundaryToOwner": {
+    "src/counter:setupCounter": "src/main:render",
+    "src/main:render": "src/main:render"
+  },
+  "chunks": {
+    "entry_b_ae1e7cbb2f74": {
+      "boundaries": [
+        "src/counter:setupCounter",
+        "src/main:render",
+        "src/switcher:setupSwitcher",
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/main:render"
+      ],
+      "id": "entry_b_ae1e7cbb2f74",
+      "type": "entry"
+    }
+  },
+  "entryChunks": {
+    "src/main:render": "entry_b_ae1e7cbb2f74"
+  },
+  "lazyChunks": [],
+  "sharedChunks": []
+}
