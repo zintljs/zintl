@@ -1,8 +1,6 @@
 import type { ResolvedConfig } from "vite";
-import { ZintlCompiler, type LogLevel } from "@zintljs/compiler";
-import { resolveFacets } from "../facets/resolve.js";
-import { detectFrameworksOrFallback } from "../facets/detect.js";
-import { assembleFacets } from "../facets/assemble.js";
+import type { LogLevel } from "@zintljs/compiler";
+import { ensureCompiler, type BundlerHostView } from "../host.js";
 import type Context from "../context.js";
 import { isAbsolute, relative } from "node:path";
 
@@ -84,43 +82,28 @@ export function configHook(ctx: Context) {
   };
 }
 
+/**
+ * Translate a Vite `ResolvedConfig` into the host view compiler construction
+ * needs.
+ *
+ * This function is the whole of what was Vite-specific about building a
+ * compiler. Everything downstream of it is shared with every other host.
+ */
+function viteHostView(config: ResolvedConfig): BundlerHostView {
+  return {
+    root: config.root,
+    isDev: config.command === "serve",
+    isSsr: Boolean(config.build?.ssr) || (config as any).ssr !== undefined,
+    pluginNames: Array.isArray(config.plugins)
+      ? config.plugins.map((p) => p?.name).filter(Boolean)
+      : [],
+    logLevel: (config as any).logLevel as LogLevel | undefined,
+  };
+}
+
 export function configResolvedHook(ctx: Context) {
   return function (config: ResolvedConfig) {
-    // The two Vite-dependent defaults, each applied exactly once. Everything
-    // else was already resolved by resolveOptions() at plugin creation.
-    const logLevel: LogLevel = ctx.options.logLevel ?? (config as any).logLevel ?? "info";
-    const verifyIntegrity = ctx.options.verifyIntegrity ?? config.command === "build";
-
-    // Orchestration, in three visible steps: detect → assemble → resolve.
-    const frameworks = detectFrameworksOrFallback({
-      pluginNames: Array.isArray(config.plugins)
-        ? config.plugins.map((p) => p?.name).filter(Boolean)
-        : [],
-      root: config.root,
-    });
-
-    const facets = assembleFacets({
-      frameworks,
-      ssr: Boolean(config.build?.ssr) || (config as any).ssr !== undefined,
-      facets: ctx.options.facets,
-      assetsTarget: ctx.options.assetsTarget,
-      virtualAssets: ctx.options.virtualAssets,
-    });
-
-    // The compiler is handed the result and never learns which facets produced it.
-    const capabilities = resolveFacets(facets);
-
-    ctx.compiler = new ZintlCompiler(
-      {
-        ...ctx.options,
-        capabilities,
-        logLevel,
-        verifyIntegrity,
-      },
-      config.root,
-      config.command === "serve",
-    );
-
+    ensureCompiler(ctx, viteHostView(config));
     ctx.getMultiplex(config);
   };
 }

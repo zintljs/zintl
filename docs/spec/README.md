@@ -23,7 +23,7 @@ ZDB.md is the newest and the one with the widest reach: it governs ordering and 
 ## Backlog & proposals
 
 - [`backlog/`](backlog) — 17 numbered work items, largely historical. They record what a change was meant to achieve and what it replaced. `005-deprecating-dataflow-tracing.md` and `004-commit-to-intelligent-stitching.md` explain why extraction works the way it does today.
-- [`proposals/`](proposals) — 17 design explorations, at varying stages. Not all were adopted.
+- [`proposals/`](proposals) — 18 design explorations, at varying stages. Not all were adopted. [`026-rsbuild-as-falsification-harness.md`](proposals/026-rsbuild-as-falsification-harness.md) is the odd one out: a **method** proposal rather than a design, describing how to use a second build tool to find the Vite-shaped assumptions the facet layer never reached. Read it before freezing the facet authoring contract. Its findings accumulate in [`026-leak-ledger.md`](proposals/026-leak-ledger.md) — one entry per assumption, with the verdict that was reached and why.
 
 Both directories are archives as much as plans. A document describing an approach that was later replaced is still worth keeping — knowing which paths were tried and rejected saves the next person from retrying them.
 

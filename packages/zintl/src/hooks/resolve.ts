@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
+import { ensureCompiler, fallbackHostView } from "../host.js";
 import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
 import type { AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
@@ -45,6 +46,7 @@ export function resolveIdHook(ctx: Context) {
     importer: string | undefined,
     options?: { ssr?: boolean },
   ) {
+    ensureCompiler(ctx, fallbackHostView());
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     if (id.includes(".zintl-")) {
       const cleanId = id.split("?")[0];
@@ -154,84 +156,30 @@ export function resolveIdHook(ctx: Context) {
         const cleanId = id.split("?")[0];
         const extMatch = cleanId.match(/\.([a-zA-Z0-9]+)$/);
         const ext = extMatch ? extMatch[1].toLowerCase() : "";
-        const isEligible =
-          !ext ||
-          ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext) ||
-          (ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId);
 
-        if (isEligible) {
-          // Resolve clean first to check for translation neutrality
+        {
+          /**
+           * Resolve first, then ask the graph.
+           *
+           * There used to be a hardcoded extension allow-list here — `js`, `ts`,
+           * `vue`, `svelte`… — gating whether the edge was even considered. It
+           * was app-agnostic (a Vue-only app paid for `.svelte`) and it was
+           * answering the wrong question: "might this file contain strings" is a
+           * guess, where "does my graph place this module inside translated
+           * content" is a fact the compiler already holds.
+           *
+           * What remains of the bundler's involvement is the resolution itself:
+           * the graph is keyed by file ids, so a bare or aliased specifier has
+           * to become a path before it can be looked up. That residue is real,
+           * and it is much smaller than the traversal it replaced.
+           */
           const resolvedClean = await this.resolve(id, importer, { skipSelf: true, ssr: isSsr });
           if (resolvedClean) {
             const cleanResolvedId = (
               typeof resolvedClean === "string" ? resolvedClean : resolvedClean.id
             ).split("?")[0];
-            let isTranslationNeutral = false;
-            if (ctx.compiler?.messages?.metadataGraph) {
-              const startFileId = ctx.compiler.getNormalizedId(cleanResolvedId);
-              const hasActiveZintlTransitive = (
-                fileId: string,
-                visited = new Set<string>(),
-              ): boolean => {
-                if (typeof fileId !== "string" || visited.has(fileId)) return false;
-                visited.add(fileId);
 
-                const cleanFileId = fileId.split("?")[0];
-                const res = (() => {
-                  if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanFileId))
-                    return true;
-
-                  const registeredAssets =
-                    (ctx.compiler?.assets as AssetManager | undefined)?.getRegisteredAssets() || [];
-                  if (
-                    registeredAssets.some(
-                      (asset: string) =>
-                        asset === cleanFileId || asset.startsWith(cleanFileId + "."),
-                    )
-                  ) {
-                    return true;
-                  }
-
-                  const meta = ctx.compiler.messages.metadataGraph[cleanFileId];
-                  if (meta) {
-                    const hasOwnContent =
-                      meta.hasZintlMarker ||
-                      meta.hasZintlMacro ||
-                      (meta.anchorSites && meta.anchorSites.length > 0) ||
-                      meta.needsLoader;
-                    if (hasOwnContent) return true;
-                  }
-
-                  const manifestKeys = Object.keys(ctx.compiler?.messages?.internalManifest || {});
-                  for (const key of manifestKeys) {
-                    if (key === cleanFileId || key.startsWith(cleanFileId + ":")) {
-                      const msgs = ctx.compiler.messages.internalManifest[key];
-                      if (msgs && msgs.length > 0) return true;
-                    }
-                  }
-
-                  const deps = ctx.compiler.messages.dependencyGraph[cleanFileId];
-                  if (deps) {
-                    for (const dep of deps) {
-                      const depId = typeof dep === "string" ? dep : dep?.id;
-                      if (depId) {
-                        const depFileId = depId.startsWith(".")
-                          ? join(dirname(cleanFileId), depId)
-                          : depId;
-                        const nDepId = ctx.compiler.getNormalizedId(depFileId);
-                        if (hasActiveZintlTransitive(nDepId, visited)) return true;
-                      }
-                    }
-                  }
-                  return false;
-                })();
-                return res;
-              };
-
-              isTranslationNeutral = !hasActiveZintlTransitive(startFileId);
-            }
-
-            if (isTranslationNeutral) {
+            if (ctx.compiler.isTranslationNeutral(cleanResolvedId)) {
               return resolvedClean;
             }
           }
@@ -322,6 +270,7 @@ export function resolveIdHook(ctx: Context) {
 
 export function loadHook(ctx: Context) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
+    ensureCompiler(ctx, fallbackHostView());
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {

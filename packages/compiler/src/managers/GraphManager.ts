@@ -578,6 +578,95 @@ export class GraphManager {
     return false;
   }
 
+  /**
+   * Does this file, or anything it transitively imports, carry translatable
+   * content?
+   *
+   * The question a bundler integration actually needs when it is deciding
+   * whether to propagate a locale across an import edge: a module with nothing
+   * to translate does not need a per-locale copy. Its negation is
+   * "translation-neutral".
+   *
+   * **This is not {@link leadsToBoundary}, and the two are not interchangeable**
+   * even though they read as if they were. `leadsToBoundary` asks whether a file
+   * reaches a *trust anchor*, which is a question about locale ownership; this
+   * one asks whether a file reaches *content*, which is a question about
+   * payload. A plain component holding strings but declaring no anchor answers
+   * `false` to the first and `true` to this — and it is by far the common case,
+   * so answering the wrong one silently drops that component's translations.
+   *
+   * `isAssetLike` is injected because assets belong to a content facet, and this
+   * manager has no business knowing which extensions that facet claims.
+   */
+  public hasTranslatableContent(
+    fileId: string,
+    dependencyGraph: DependencyGraph,
+    metadataGraph: Record<string, BoundaryMetadata>,
+    internalManifest: Manifest,
+    isAssetLike: (cleanFileId: string) => boolean,
+    visited = new Set<string>(),
+  ): boolean {
+    if (typeof fileId !== "string" || visited.has(fileId)) return false;
+    visited.add(fileId);
+
+    const cleanFileId = fileId.split("?")[0];
+
+    if (isAssetLike(cleanFileId)) return true;
+
+    const meta = metadataGraph[cleanFileId];
+    if (meta) {
+      const hasOwnContent =
+        meta.hasZintlMarker ||
+        meta.hasZintlMacro ||
+        (meta.anchorSites && meta.anchorSites.length > 0) ||
+        meta.needsLoader;
+      if (hasOwnContent) return true;
+    }
+
+    for (const key of Object.keys(internalManifest)) {
+      if (key === cleanFileId || key.startsWith(cleanFileId + ":")) {
+        const msgs = internalManifest[key];
+        if (msgs && msgs.length > 0) return true;
+      }
+    }
+
+    const deps = dependencyGraph[cleanFileId];
+    if (deps) {
+      for (const dep of deps) {
+        const depId = typeof dep === "string" ? dep : dep?.id;
+        if (!depId) continue;
+        /**
+         * Deliberately *not* `resolveDependencyFileId`, which would additionally
+         * try each known extension. This walk is a straight move of the one the
+         * Vite plugin ran inline, and matching it exactly is what makes the move
+         * provably behaviour-neutral.
+         *
+         * The consequence is that an extensionless import (`./counter`) does not
+         * resolve to `src/counter.ts` here, so the walk stops early and the file
+         * is reported neutral. That looks like a latent defect rather than a
+         * decision, but confirming it is a separate change with its own
+         * evidence — see the leak ledger.
+         */
+        const depFileId = depId.startsWith(".") ? join(dirname(cleanFileId), depId) : depId;
+        const nDepId = this.io.getNormalizedId(depFileId);
+        if (
+          this.hasTranslatableContent(
+            nDepId,
+            dependencyGraph,
+            metadataGraph,
+            internalManifest,
+            isAssetLike,
+            visited,
+          )
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   public leadsToBoundary(
     fileId: string,
     dependencyGraph: DependencyGraph,

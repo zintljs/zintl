@@ -1,9 +1,11 @@
 import { join, dirname } from "node:path";
 import type Context from "../context.js";
+import { ensureCompiler, fallbackHostView } from "../host.js";
 import { VIRTUAL_PREFIX } from "../constants.js";
 
 export function transformHook(ctx: Context) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
+    ensureCompiler(ctx, fallbackHostView());
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
