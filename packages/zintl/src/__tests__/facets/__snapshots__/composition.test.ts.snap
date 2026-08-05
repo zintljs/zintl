@@ -1,0 +1,1020 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`resolved facet composition per example > custom-facets 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > custom-facets-demo 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > react-basic 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > react-ssr 1`] = `
+"frameworks: react
+ssr: true
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > svelte-basic 1`] = `
+"frameworks: svelte
+ssr: false
+
+facets (resolution order):
+  svelte-extraction  [extraction]  priority=100
+  svelte-codegen  [codegen]  priority=100
+  svelte-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: false
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: false
+  sfc: true
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .svelte, .ts
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: svelte-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > svelte-ssr 1`] = `
+"frameworks: svelte
+ssr: true
+
+facets (resolution order):
+  svelte-extraction  [extraction]  priority=100
+  svelte-codegen  [codegen]  priority=100
+  svelte-runtime  [runtime]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: false
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: true
+  sfc: true
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .svelte, .ts
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: svelte-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-mpa-baked-i18n 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-mpa-basic 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-mpa-shared 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-spa 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-spa-basic 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-spa-i18n-baked 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vanilla-ssr 1`] = `
+"frameworks: react
+ssr: true
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vinext-basic 1`] = `
+"frameworks: react, nextjs
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  nextjs-extraction  [extraction]  priority=100
+  nextjs-ssr-wrapping  [ssr]  priority=100
+  nextjs-runtime  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: false
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 1
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: nextjs-ssr-wrapping
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 4
+  wrapExports: handleApiRoute, handleSsr, renderPage, runMiddleware
+  wrapDefault: fetch"
+`;
+
+exports[`resolved facet composition per example > vue-basic 1`] = `
+"frameworks: vue
+ssr: false
+
+facets (resolution order):
+  vue-extraction  [extraction]  priority=100
+  vue-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: false
+  sfc: true
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts, .vue
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: vue-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vue-mpa 1`] = `
+"frameworks: vue
+ssr: false
+
+facets (resolution order):
+  vue-extraction  [extraction]  priority=100
+  vue-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: false
+  sfc: true
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts, .vue
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: vue-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vue-spa 1`] = `
+"frameworks: vue
+ssr: false
+
+facets (resolution order):
+  vue-extraction  [extraction]  priority=100
+  vue-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: false
+  sfc: true
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts, .vue
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: vue-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > vue-ssr 1`] = `
+"frameworks: vue
+ssr: true
+
+facets (resolution order):
+  vue-extraction  [extraction]  priority=100
+  vue-codegen  [codegen]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: true
+  sfc: true
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts, .vue
+  targets: 27
+  sfcRules: 1
+  suppressionRules: 0
+  mustacheRules: 1
+  codegenFacets: vue-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;
+
+exports[`resolved facet composition per example > website 1`] = `
+"frameworks: react
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined"
+`;

@@ -424,6 +424,24 @@ Worth recording, because a contract revision that only grows is a contract nobod
 
 ---
 
+## The §8 guardrail — resolved facet composition as a golden file
+
+`packages/zintl/src/__tests__/facets/composition.test.ts`, one snapshot per example application (19), plus two assertions.
+
+§8 asks for this by name: _"snapshot the resolved capability set per example app as a golden file, so composition stays inspectable as a flat artifact."_ It matters more now than when the proposal was written, because Deliverable 2 proposes new hooks and this is the artifact that makes adding one visible.
+
+Each golden file records the detected frameworks, the resolved facet list in resolution order with concerns and priorities, every capability flag, the extraction surface, and — separately — which facets _declare_ each single-provider hook versus what the merged system view _resolved_. Declaring facets are listed in order rather than as a single winner: resolution is highest-priority-wins with a hard error on ties, so a second name appearing under `hmrInjectionCode` is precisely the condition §10 wants visible before facets self-activate and registration order stops being a readable list.
+
+The two assertions are deliberately not snapshots. Every example must resolve **exactly one** bundler facet (`vite`), which fails loudly if a second host ever leaks into the default composition; and no example may resolve more than twelve facets, which is the blunt number that moves when "just one more capability" happens repeatedly.
+
+**It found two things immediately, and both are about visibility rather than correctness.**
+
+Writing the serializer, the first draft read `ssrWrapCode` off the facets and reported `(none)` for every SSR example — because a facet declares `wrapCode` and only the _merged view_ calls it `ssrWrapCode`. A plausible-looking "nobody provides this" for a hook that is provided. The file now reports both sides, which is why the mistake is worth keeping in the record: the two vocabularies are easy to confuse from outside, and the contract revision should consider whether they need to differ at all.
+
+And with that corrected, the golden files show that `ssr-wrapping` contributes `wrapCode` but **no `entryTargets`, `wrapExports` or `wrapDefault`** — `assembleFacets` constructs `ssrFacet()` with no options, so generic SSR wrapping locates its targets somewhere other than the facet that appears to own them. Not a defect; the SSR examples pass their contracts. But "where does generic SSR get its entry targets" is now a question a reader can _ask_, which it was not before.
+
+---
+
 ## Deliverable 3 — should Rsbuild become a supported target?
 
 **Recommendation: no, not now. Keep it as a harness.** Revisit only when someone asks for it with a real application.
