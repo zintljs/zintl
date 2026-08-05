@@ -87,6 +87,6 @@ That last point is what lets translations survive refactors. Moving a component 
 
 Framework support, SSR, asset handling, and bundler integration are separate composable pieces called **facets**, resolved when the compiler is constructed rather than being conditionals scattered through it.
 
-Practically: adding a framework or a build tool means contributing a facet, not editing the core. Conflicting facets — two claiming the same file extension, say — are a hard error rather than a silent last-one-wins.
+Practically: adding a framework or a build tool means contributing a facet, not editing the core. Each facet declares when it applies, so nothing in the core maps frameworks to facets — and every activation decision is traced, so "why is that facet on?" has an answer. Conflicting facets — two claiming the same file extension, say — are a hard error rather than a silent last-one-wins.
 
 That's the design that makes "more frameworks and build tools are coming" a matter of work rather than of rewriting.

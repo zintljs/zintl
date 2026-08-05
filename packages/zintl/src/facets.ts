@@ -3,7 +3,7 @@
  *
  * Facets — the composable units the compiler's behavior is assembled from.
  *
- * Most projects never import from here: `facets: ["auto"]` detects the framework
+ * Most projects never import from here: `facets: ["builtins"]` detects the framework
  * and installs the right presets. Reach for this entry to pin a preset
  * explicitly, or to write a facet of your own for a file type or framework Zintl
  * does not know about.
@@ -20,7 +20,7 @@
  * import { reactFacet, ssrFacet } from "zintljs/facets";
  *
  * zintl({ facets: [reactFacet(), ssrFacet()] });   // exactly these
- * zintl({ facets: ["auto", myFacet()] });          // the defaults, plus yours
+ * zintl({ facets: ["builtins", myFacet()] });      // the defaults, plus yours
  * ```
  *
  * @example
@@ -86,7 +86,16 @@ export type {
 } from "@zintljs/compiler";
 
 export { resolveFacets } from "./facets/resolve.js";
-export { assembleFacets, autoFacets, flattenFacets } from "./facets/assemble.js";
+export {
+  assembleFacets,
+  assembleFacetsWithTrace,
+  builtinFacets,
+  excludeFacet,
+  flattenFacets,
+  BUILTINS,
+} from "./facets/assemble.js";
+export { activateFacets, formatFacetTrace } from "./facets/activate.js";
+export type { ActivationResult, FacetTraceEntry } from "./facets/activate.js";
 export {
   detectFrameworks,
   detectFrameworksOrFallback,

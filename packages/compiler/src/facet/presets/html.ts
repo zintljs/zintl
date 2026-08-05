@@ -1026,7 +1026,7 @@ export function htmlProjectionFacet(): ZintlFacet {
 /**
  * Full HTML support: {@link htmlExtractionFacet} plus {@link htmlProjectionFacet}.
  *
- * Included in `"auto"`, for every project — even a framework app has an
+ * Included in the built-in set, for every project — even a framework app has an
  * `index.html` with a title worth translating.
  */
 export function htmlFacet(options: HtmlFacetOptions = {}): ZintlFacet[] {

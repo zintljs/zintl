@@ -131,6 +131,7 @@ function isViteSsr(config: ResolvedConfig): boolean {
 function viteHostView(config: ResolvedConfig): BundlerHostView {
   return {
     root: config.root,
+    bundler: "vite",
     isDev: config.command === "serve",
     isSsr: isViteSsr(config),
     pluginNames: Array.isArray(config.plugins)

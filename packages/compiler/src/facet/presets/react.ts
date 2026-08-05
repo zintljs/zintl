@@ -48,6 +48,7 @@ export interface ReactFacetOptions {
 export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFacet {
   return {
     name: "react-extraction",
+    when: { framework: "react" },
     concern: "extraction",
     priority: 100,
     targets: (options.targets || [
@@ -84,6 +85,7 @@ export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFace
 export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet {
   return {
     name: "react-codegen",
+    when: { framework: "react" },
     concern: "codegen",
     // React needs this hook when the compiler injects client reactivity.
     // The compiler must not know that; the framework declares it.
@@ -106,7 +108,7 @@ export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet
  * extracted as whole stitched units rather than fragments, so a sentence broken
  * across `<strong>` reaches translators as one sentence.
  *
- * Included in `"auto"` when React is detected — and when nothing is detected at
+ * Included in the built-in set when React is detected — and when nothing is detected at
  * all, since React is the fallback.
  */
 export function reactFacet(options: ReactFacetOptions = {}): ZintlFacet[] {

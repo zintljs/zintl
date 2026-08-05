@@ -9,7 +9,7 @@ export function buildStartHook(ctx: Context) {
      * a no-op: `configResolved` has already run and `ensureCompiler` is
      * idempotent, so the real host view wins.
      */
-    ensureCompiler(ctx, nativeHostView(this));
+    ensureCompiler(ctx, () => nativeHostView(this));
 
     ctx.compiler._logger.withPrefix("Vite").debug("Build starting...");
     await ctx.compiler.setup();

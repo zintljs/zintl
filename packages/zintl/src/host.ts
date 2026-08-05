@@ -32,6 +32,15 @@ import type Context from "./context.js";
 export interface BundlerHostView {
   /** Project root. Absolute. */
   root: string;
+  /**
+   * Which build tool is hosting the plugin — `"vite"`, `"rspack"`, …
+   *
+   * Proposal 026 §9 Q4 asked whether a facet's detection context needs to see
+   * the bundler. It does: with a second host in play, the bundler facets are
+   * the clearest case of facets that must decide for themselves rather than be
+   * appended unconditionally by core.
+   */
+  bundler: string;
   /** Serving rather than building — Vite's `command === "serve"`. */
   isDev: boolean;
   /** This is an SSR build, so the SSR facets apply. */
@@ -60,6 +69,7 @@ export interface BundlerHostView {
 function fallbackHostView(): BundlerHostView {
   return {
     root: process.cwd(),
+    bundler: "unknown",
     isDev: false,
     isSsr: false,
     pluginNames: [],
@@ -91,14 +101,16 @@ export function nativeHostView(pluginContext: unknown): BundlerHostView {
     | { framework?: string; compiler?: { options?: { context?: string } } }
     | undefined;
 
+  const bundler = typeof native?.framework === "string" ? native.framework : base.bundler;
+
   // Rspack (and webpack, which shares the shape): the project root is the
   // compiler's `context`.
   const context = native?.compiler?.options?.context;
   if (typeof context === "string" && context.length > 0) {
-    return { ...base, root: context };
+    return { ...base, bundler, root: context };
   }
 
-  return base;
+  return { ...base, bundler };
 }
 
 /**
@@ -109,18 +121,37 @@ export function nativeHostView(pluginContext: unknown): BundlerHostView {
  * ordering is the reason the Vite path is unaffected — `configResolved` is
  * always first.
  */
-export function ensureCompiler(ctx: Context, host: BundlerHostView): ZintlCompiler {
+export function ensureCompiler(
+  ctx: Context,
+  host: BundlerHostView | (() => BundlerHostView),
+): ZintlCompiler {
   if (ctx.compiler) return ctx.compiler;
+
+  /**
+   * Resolved *after* the early return, which is the whole reason it may be a
+   * thunk.
+   *
+   * The universal hooks call this defensively on every `resolveId`, `load` and
+   * `transform`, so building a host view eagerly meant asking the bundler for
+   * its native build context on every module of every build — work whose result
+   * is discarded on all but the first call. Measured cost: enough to make the
+   * HMR-hammer contract miss its final update on `react-basic`.
+   */
+  const resolved = typeof host === "function" ? host() : host;
 
   // Orchestration, in three visible steps: detect → assemble → resolve.
   const frameworks = detectFrameworksOrFallback({
-    pluginNames: host.pluginNames,
-    root: host.root,
+    pluginNames: resolved.pluginNames,
+    root: resolved.root,
   });
 
   const facets = assembleFacets({
     frameworks,
-    ssr: host.isSsr,
+    bundler: resolved.bundler,
+    ssr: resolved.isSsr,
+    isDev: resolved.isDev,
+    root: resolved.root,
+    pluginNames: resolved.pluginNames,
     facets: ctx.options.facets,
     assetsTarget: ctx.options.assetsTarget,
     virtualAssets: ctx.options.virtualAssets,
@@ -135,11 +166,11 @@ export function ensureCompiler(ctx: Context, host: BundlerHostView): ZintlCompil
       capabilities,
       // The two host-dependent defaults, each applied exactly once. Everything
       // else was already resolved by resolveOptions() at plugin creation.
-      logLevel: ctx.options.logLevel ?? host.logLevel ?? "info",
-      verifyIntegrity: ctx.options.verifyIntegrity ?? !host.isDev,
+      logLevel: ctx.options.logLevel ?? resolved.logLevel ?? "info",
+      verifyIntegrity: ctx.options.verifyIntegrity ?? !resolved.isDev,
     },
-    host.root,
-    host.isDev,
+    resolved.root,
+    resolved.isDev,
   );
 
   return ctx.compiler;

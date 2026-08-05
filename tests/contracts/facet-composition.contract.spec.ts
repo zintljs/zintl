@@ -26,12 +26,14 @@ import { allManifests } from "../manifests/index.js";
  */
 
 /** Same derivation the golden files use, deliberately duplicated so it can disagree. */
-function staticFacetNames(root: string, facets: unknown, ssr: boolean): string {
+function staticFacetNames(root: string, facets: unknown, ssr: boolean, bundler: string): string {
   const resolved = resolveFacets(
     assembleFacets({
       frameworks: detectFrameworksOrFallback({ root }),
+      bundler,
+      root,
       ssr,
-      facets: (facets as never) ?? ["auto"],
+      facets: facets as never,
     }),
   );
   return resolved.facets
@@ -79,9 +81,12 @@ export const facetCompositionContract: Contract = {
       .sort()
       .join(", ");
 
+    // The host matters to composition now that bundler facets self-activate,
+    // and the manifest is the only thing that knows which driver ran.
+    const bundler = manifest.driver === "rsbuild" ? "rspack" : "vite";
     const predicted = [
-      staticFacetNames(lab.root, manifest.zintlOptions.facets, false),
-      staticFacetNames(lab.root, manifest.zintlOptions.facets, true),
+      staticFacetNames(lab.root, manifest.zintlOptions.facets, false, bundler),
+      staticFacetNames(lab.root, manifest.zintlOptions.facets, true, bundler),
     ];
 
     expect(

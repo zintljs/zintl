@@ -12,6 +12,7 @@ import { selfAcceptHmrSnippet } from "../../utils/hmr.js";
 export function viteFacet(): ZintlFacet {
   return {
     name: "vite",
+    when: { bundler: "vite" },
     concern: "bundler",
     priority: 100,
     resolveVirtualPath: (id: string): string => id,

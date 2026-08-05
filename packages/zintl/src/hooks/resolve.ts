@@ -46,7 +46,7 @@ export function resolveIdHook(ctx: Context) {
     importer: string | undefined,
     options?: { ssr?: boolean },
   ) {
-    ensureCompiler(ctx, nativeHostView(this));
+    ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     if (id.includes(".zintl-")) {
       const cleanId = id.split("?")[0];
@@ -303,7 +303,7 @@ export function loadIncludeHook(ctx: Context) {
 
 export function loadHook(ctx: Context) {
   return async function (this: any, id: string, options?: { ssr?: boolean }) {
-    ensureCompiler(ctx, nativeHostView(this));
+    ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {

@@ -30,7 +30,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vite-plus/test";
 import type { ZintlFacet } from "@zintljs/compiler";
-import { assembleFacets } from "../../facets/assemble.js";
+import { assembleFacets, assembleFacetsWithTrace } from "../../facets/assemble.js";
+import { formatFacetTrace } from "../../facets/activate.js";
 import { detectFrameworksOrFallback } from "../../facets/detect.js";
 import { resolveFacets } from "../../facets/resolve.js";
 
@@ -63,7 +64,12 @@ function declarersOf(facets: ZintlFacet[], hook: string): string[] {
 function describeComposition(name: string, ssr: boolean): string {
   const root = join(EXAMPLES_DIR, name);
   const frameworks = detectFrameworksOrFallback({ root });
-  const facets = assembleFacets({ frameworks, ssr, facets: ["auto"] });
+  const { facets, trace } = assembleFacetsWithTrace({
+    frameworks,
+    bundler: "vite",
+    root,
+    ssr,
+  });
   const resolved = resolveFacets(facets);
 
   const lines: string[] = [];
@@ -124,6 +130,13 @@ function describeComposition(name: string, ssr: boolean): string {
   lines.push(`  wrapExports: ${[...resolved.system.ssrWrapExports].sort().join(", ") || "(none)"}`);
   lines.push(`  wrapDefault: ${String(resolved.system.ssrWrapDefault)}`);
 
+  lines.push("", "activation trace:");
+  lines.push(
+    ...formatFacetTrace(trace)
+      .split("\n")
+      .map((l) => `  ${l}`),
+  );
+
   return lines.join("\n");
 }
 
@@ -170,8 +183,9 @@ describe("composition invariants", () => {
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
+          bundler: "vite",
+          root,
           ssr: false,
-          facets: ["auto"],
         }),
       );
       const bundlerFacets = resolved.facets.filter((f) => f.concern === "bundler");
@@ -195,8 +209,9 @@ describe("composition invariants", () => {
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
+          bundler: "vite",
+          root,
           ssr: false,
-          facets: ["auto"],
         }),
       );
       expect(

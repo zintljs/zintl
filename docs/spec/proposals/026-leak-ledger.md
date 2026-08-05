@@ -360,16 +360,16 @@ Recorded because §6.6 asks for what could not be verified, and because two of t
 
 Two of the three failures are on the **unmodified** tree, and all three are timeout-shaped. So this is contention on this machine, not a Phase 0 regression — but it is also not nothing. CLAUDE.md's "no retries, every flake was a real defect" says this deserves an investigation of its own, and it did not get one here because it is not what proposal 026 is about. **`INFERRED`: that the 4-worker failures are purely environmental. Reproduced: that they occur equally on the unmodified tree.**
 
-**`vpr bench` — no usable signal on this machine.** L-003 deletes a cheap pre-filter, so it trades one extra `this.resolve` per previously-skipped edge for a graph lookup; the budgets were the intended arbiter. They could not arbitrate:
+**`vpr bench` — initially unusable, later measured clean.** L-003 deletes a cheap pre-filter, trading one extra `this.resolve` per previously-skipped edge for a graph lookup, so the budgets were the intended arbiter. On the first attempt they could not arbitrate:
 
 | Run                | Budgets exceeded | Reference Calibration (No-Op) | Structural HMR |
 | :----------------- | :--------------- | :---------------------------- | :------------- |
 | Phase 0            | 2                | 0.98x                         | 0.53x          |
 | baseline (stashed) | 5                | 0.68x                         | 0.16x          |
 
-The **no-op calibration** regressed on both runs, and `Catalog Serialization Logic` — which neither change touches — regressed 0.75x on one and blew its budget on the other. The machine is the variable. Phase 0 measured _better_ than the tree it is compared against, which is not a claim that it is faster; it is a statement that the instrument could not resolve the difference.
+The **no-op calibration** regressed on both runs, and `Catalog Serialization Logic` — which neither change touches — regressed 0.75x on one and blew its budget on the other. The machine was the variable, and Phase 0 measured _better_ than the tree it was compared against, which is not a speed claim but a statement that the instrument could not resolve the difference.
 
-**`INFERRED`: that L-003 carries no meaningful cost on the Vite path.** Not reproduced. It needs a quiet machine, or many samples, before the deletion can be defended on performance grounds rather than on correctness grounds. Correctness is not in doubt — the allow-list was answering the wrong question — but "and it costs nothing" is currently unmeasured.
+**Re-run at the end of the work on a quiet machine: `PERF BUDGET OK`, exit 0, with the no-op calibration at 0.99x–1.00x.** So the earlier `INFERRED` note is retired: the allow-list deletion and the graph-owned neutrality walk carry **no measurable cost** on the Vite path. Recording both readings rather than replacing the first, because the first is the more useful one to remember — a green bench on a busy machine would have been just as meaningless as the red one was.
 
 **`vpr verify` — passed** (lint, knip, 728 unit tests, format). The one initial failure was a pre-existing format issue in `026-rsbuild-as-falsification-harness.md` itself, unrelated to any code change.
 
@@ -496,6 +496,90 @@ Both were corrected, and the guardrail came out better for it:
 **What it demonstrates about the method.** The golden files could not have found the original defect: they derive their own inputs, so both sides of a self-comparison would have been wrong in the same direction. It took a second derivation that was _allowed to disagree_ — the same shape as L-002a, two plausible derivations of one fact differing silently. And the fix then disagreed with the golden files a second time, which is how the per-target insight surfaced at all.
 
 **Verification.** `vpr verify` green (769 unit tests). Full contract suite 117/117 with nothing skipped. One run showed a single `[HMR Hammer] react-basic` failure; it passes in isolation, the suite passes on re-run, and the Phase 0 baseline established that this machine fails a _different_ contract on each high-load run against the **unmodified** tree — see the verification notes below. `react-basic` losing SSR facets in dev has no plausible HMR mechanism either, since `store-server.js` was already excluded from dev client bundles by the codegen-time gate.
+
+---
+
+## Post-spike: the facet self-activation inversion (§10)
+
+The inversion the whole exercise was sequenced to inform. Landed after the ledger above, using it as the input §10 asks for.
+
+**What changed.** `autoFacets` no longer chooses. It gathers every built-in facet as a _candidate_ and each facet answers for itself through `activateFacets`. The framework switch, `if (ssr && !isNext)` and `if (!isNext)` are gone; the decisions they encoded are now declarations on the facets that own them.
+
+**The three §10 constraints, and what each cost.**
+
+_Activation is not a boolean._ `provides` / `supersedes` / `conflicts` are first-class. The `isNext` guard — whose reason ("Next.js brings its own SSR facets; adding the generic ones would collide on `wrapCode` at the same priority") lived in a comment — is now `supersedes: ["ssr:wrapping"]` on `nextjs-ssr-wrapping` and `supersedes: ["ssr-runtime", "client-spa"]` on `nextjs-runtime`. Supersession targets a _provided capability_ as well as a name, so Next replaces "whatever provides SSR wrapping" rather than hardcoding a facet name.
+
+_There must be an explain path._ Every candidate produces a trace entry, including the negative ones, and the trace is committed to the composition golden files. For `vinext-basic`:
+
+```
+✓ nextjs-ssr-wrapping          framework=nextjs ✓
+✗ ssr-wrapping                 superseded by nextjs-ssr-wrapping
+✗ ssr-runtime                  superseded by nextjs-runtime
+✗ client-spa                   superseded by nextjs-runtime
+✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
+```
+
+This is why activation is a **declarative descriptor** rather than a predicate. A predicate can report that it said no; only data can say `when.framework=vue ✗ (detected: react, nextjs)`. An `activate(ctx)` escape hatch remains for conditions a descriptor cannot express, and facets using it get the vaguer trace entry they have earned.
+
+_Order must not be load-bearing._ Membership is decided by activation, precedence by `priority`. Neither consults registration order, which is the property §10 wanted before self-selection made that order invisible.
+
+**§9 Q4 — answered.** _Does the detection context need to see the bundler?_ **Yes**, and the bundler facets are the proof. `viteFacet` now declares `when: { bundler: "vite" }` instead of being appended unconditionally, so `FacetActivationContext` carries `bundler` and `BundlerHostView` supplies it.
+
+### L-012 — The unconditional Vite facet was emitting Vite syntax into Rspack output
+
+|                             |                              |
+| :-------------------------- | :--------------------------- |
+| **Status**                  | Fixed by the inversion       |
+| **Bucket**                  | **1 — facet it**             |
+| **Facet contract changed?** | Yes — this is §9 Q4's answer |
+
+Found by the inversion rather than by the harness, but only visible _because_ the harness exists. With `viteFacet` appended to every project regardless of host, the Rsbuild build was emitting:
+
+```js
+return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_render");
+```
+
+A Vite-specific annotation, in Rspack output, ignored by the tool reading it. Harmless in effect and wrong in principle — and precisely the class of thing that has no symptom until a host does care.
+
+It is the cleanest demonstration of what "always appended" costs: the old comment said the facet could not be opted out of because the plugin needs its hooks, which conflated _the plugin needs a bundler facet_ with _the plugin needs the Vite one_. Bundler facets remain unconditional **candidates** — opting out of the built-in set should not silently strip host integration — but being a candidate is no longer the same as being active.
+
+### L-013 — The defensive `ensureCompiler` built a host view on every hook call
+
+|                             |                                               |
+| :-------------------------- | :-------------------------------------------- |
+| **Status**                  | Fixed                                         |
+| **Bucket**                  | **2 — relocate** (the laziness, not the code) |
+| **Facet contract changed?** | No                                            |
+
+Self-inflicted, like L-008, and caught the same way — by baselining rather than by reasoning.
+
+**What failed.** `[HMR Hammer] react-basic` failed three full-suite runs in a row, with the DOM stuck on the intermediate `Hammer 4` while disk held the final text. The same tree had been green repeatedly an hour earlier, so the obvious reading was the machine — this repository's contract suite does have a load-sensitive failure mode, documented below.
+
+It was not the machine. **Stashing the inversion and re-running the full suite gave 117/117 green**, three of my runs to one of the baseline's. That asymmetry is the whole reason to keep taking baselines: "it passes in isolation and the machine is busy" is a story that fits both a flake and a real regression, and only the stashed comparison separates them.
+
+**The cause.** `ensureCompiler(ctx, host)` takes a host view and returns early if a compiler already exists. Every universal hook calls it defensively, so the call sites read:
+
+```ts
+ensureCompiler(ctx, nativeHostView(this));
+```
+
+The argument is evaluated **before** the early return. Since Phase 0a that was `fallbackHostView()` — cheap enough to be invisible. The inversion made it `nativeHostView(this)`, which calls the bundler's `getNativeBuildContext()`, and it ran on every `resolveId`, `load` and `transform` of every module, with the result discarded on all but the first.
+
+Not enough to fail a build. Enough to slow the hot path until a contract that hammers five rapid edits stopped converging — which is a good illustration of why that contract exists, since nothing else in the suite noticed.
+
+**The fix.** `ensureCompiler` accepts a thunk, resolved after the early return:
+
+```ts
+ensureCompiler(ctx, () => nativeHostView(this));
+```
+
+**The lesson, and it generalises past this bug.** A defensive call on a hot path has to be cheap _including its arguments_, and an argument's cost is invisible at the call site — it reads as one function call either way. Phase 0a introduced the pattern with a cheap argument and no note that cheapness was load-bearing; the inversion then made the argument expensive without touching the call sites. That is the same shape as L-011: something depended on a property nobody had written down.
+
+### On the user-facing surface
+
+`"auto"` was misnamed. It read as "be automatic", but automatic is not optional any more: every facet self-activates, and one with no condition is unconditional with no check performed. What the sentinel actually selects is which _set_ is on the table, so it is now `"builtins"` — and `"auto"` was **removed**, not aliased. Zintl is pre-1.0 with no users to migrate, and a silent second spelling is a migration nobody ever finishes; a type error is the cheaper conversation.
+
+`excludeFacet(name)` fills the gap that made the sentinel all-or-nothing — a project wanting everything except one facet previously had to list every facet by hand and keep that list in sync forever. Superseding is the right tool for _replacing_ a facet; this is for simply not wanting one.
 
 ---
 

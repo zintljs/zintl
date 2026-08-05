@@ -36,7 +36,7 @@ export const DEFAULTS = {
   prune: true,
   debug: false as boolean | string,
   virtualAssets: false,
-  facets: ["auto"] as FacetsInput[],
+  facets: ["builtins"] as FacetsInput[],
   /** `undefined` → auto-detect by scanning entry files for `zintl()` / `zintl("*")`. */
   multiplex: undefined as boolean | undefined,
   /** `undefined` → `true` for `vite build`, `false` for `vite serve`. */

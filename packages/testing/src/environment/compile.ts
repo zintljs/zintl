@@ -25,11 +25,15 @@ export async function compileWithZintl(
   root: string,
   zintlOptions: ZintlPluginOptions,
   mode: "development" | "production" = "production",
+  bundler = "vite",
 ): Promise<CompilationResult> {
   const isDev = mode === "development";
   const frameworks = detectFrameworksOrFallback({ root });
   const facets = assembleFacets({
     frameworks,
+    bundler,
+    root,
+    isDev,
     ssr: Boolean((zintlOptions as any).ssr),
     facets: zintlOptions.facets,
     assetsTarget: zintlOptions.assetsTarget,

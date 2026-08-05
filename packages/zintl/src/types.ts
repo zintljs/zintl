@@ -21,21 +21,22 @@ import type {
 /**
  * What a user may write in `facets: [...]`.
  *
- * Accepts the `"auto"` sentinel (expanded by framework detection), bare facets,
+ * Accepts the `"builtins"` sentinel (the built-in facet set), bare facets,
  * arrays, and thunks — all flattened during assembly before resolution.
  *
  * @example
  * ```ts
- * zintl({ facets: ["auto", myFacet()] })          // keep the defaults, add one
- * zintl({ facets: [reactFacet(), ssrFacet()] })   // opt out of "auto" entirely
+ * zintl({ facets: ["builtins", myFacet()] })      // the built-in set, plus yours
+ * zintl({ facets: [reactFacet(), ssrFacet()] })   // exactly these, nothing implicit
  * zintl({ facets: [() => expensiveFacet()] })     // thunk, evaluated at assembly
  * ```
  */
 export type FacetsInput =
-  | "auto"
+  | "builtins"
   | ZintlFacet
   | ZintlFacet[]
   | (() => ZintlFacet | ZintlFacet[])
+  | { readonly __zintlExclude: string }
   | FacetsInput[];
 
 /**
@@ -256,22 +257,31 @@ export interface Options {
    * Which capabilities the compiler is built with — framework support, SSR,
    * client locale sync, asset handling.
    *
-   * `"auto"` covers almost every project. It detects your framework from the
-   * Vite plugins and `package.json`, then adds the baselines: vanilla DOM and
-   * HTML extraction, static assets, client-side locale sync for SPAs, and SSR
-   * wrapping for SSR builds. The Vite bundler facet is always appended and
-   * cannot be opted out of.
+   * `"builtins"` covers almost every project. It does not mean "guess what I
+   * need" — it puts the built-in facets on the table, and each one decides for
+   * itself whether it applies: the React facets ask for React, the SSR facets
+   * ask for an SSR build, the Vite facet asks whether Vite is the host.
    *
-   * Listing facets without `"auto"` opts out of all of that and gives you
-   * exactly what you name. Two facets that claim the same file extension, or
-   * that provide the same hook at the same priority, are a hard error rather
-   * than a silent winner.
+   * The list is additive, so naming your own facet alongside it disturbs
+   * nothing. Omitting `"builtins"` gives you exactly what you name — with one
+   * exception: the bundler facet for your host stays a candidate, because
+   * opting out of the built-in set should not silently strip the integration
+   * that makes the plugin work at all.
    *
-   * @default ["auto"]
+   * To keep the set but drop one member, use `excludeFacet(name)` rather than
+   * re-listing everything.
+   *
+   * A facet you write has **no condition by default**, so it applies always —
+   * you added it on purpose. Declare `when` if it should not. Two facets that
+   * claim the same file extension, or provide the same hook at the same
+   * priority, are a hard error rather than a silent winner.
+   *
+   * @default ["builtins"]
    * @example
    * ```ts
-   * facets: ["auto", myMarkdownFacet()]   // defaults plus your own
-   * facets: [reactFacet(), ssrFacet()]    // exactly these, nothing implicit
+   * facets: ["builtins", myMarkdownFacet()]        // the built-in set, plus yours
+   * facets: ["builtins", excludeFacet("client-spa")] // all but one
+   * facets: [reactFacet(), ssrFacet()]             // exactly these, nothing implicit
    * ```
    */
   facets?: FacetsInput[];

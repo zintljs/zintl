@@ -27,7 +27,7 @@ export interface VanillaFacetOptions {
  * `description` / `tooltip` fields of plain objects. This is what makes a
  * framework-less app translatable with no annotation at all.
  *
- * Included in `"auto"`, for every project, alongside whichever framework was
+ * Included in the built-in set, for every project, alongside whichever framework was
  * detected.
  */
 export function vanillaFacet(options: VanillaFacetOptions = {}): ZintlFacet {

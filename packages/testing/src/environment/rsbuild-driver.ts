@@ -56,7 +56,7 @@ export class RsbuildDriver implements BuildToolDriver {
    * the plugin, not the compiler.
    */
   async compile(mode: "development" | "production" = "production"): Promise<CompilationResult> {
-    return compileWithZintl(this.root, this.zintlOptions, mode);
+    return compileWithZintl(this.root, this.zintlOptions, mode, "rspack");
   }
 
   async build(overrides: Record<string, any> = {}): Promise<BuildOutput> {

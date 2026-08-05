@@ -27,6 +27,7 @@ export interface SvelteFacetOptions {
 export function svelteExtractionFacet(options: SvelteFacetOptions = {}): ZintlFacet {
   return {
     name: "svelte-extraction",
+    when: { framework: "svelte" },
     concern: "extraction",
     priority: 100,
     targets: (options.targets || [
@@ -78,6 +79,7 @@ export function svelteExtractionFacet(options: SvelteFacetOptions = {}): ZintlFa
 export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet {
   return {
     name: "svelte-codegen",
+    when: { framework: "svelte" },
     concern: "codegen",
     priority: 100,
     extensions: options.extensions || [".svelte"],
@@ -106,7 +108,7 @@ export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet
 /**
  * Full Svelte support: {@link svelteExtractionFacet} plus {@link svelteCodegenFacet}.
  *
- * Included in `"auto"` when Svelte or SvelteKit is detected.
+ * Included in the built-in set when Svelte or SvelteKit is detected.
  */
 /**
  * Re-running this framework's entry is **not** safe.
@@ -123,6 +125,7 @@ export function svelteCodegenFacet(options: SvelteFacetOptions = {}): ZintlFacet
 export function svelteRuntimeFacet(): ZintlFacet {
   return {
     name: "svelte-runtime",
+    when: { framework: "svelte" },
     concern: "runtime",
     priority: 100,
     entryReexecutionSafe: false,

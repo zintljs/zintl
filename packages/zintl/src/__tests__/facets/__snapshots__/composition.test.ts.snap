@@ -50,7 +50,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > custom-facets (ssr) 1`] = `
@@ -105,7 +125,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > custom-facets-demo (client) 1`] = `
@@ -158,7 +198,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > custom-facets-demo (ssr) 1`] = `
@@ -213,7 +273,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > react-basic (client) 1`] = `
@@ -266,7 +346,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > react-basic (ssr) 1`] = `
@@ -321,7 +421,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > react-ssr (client) 1`] = `
@@ -374,7 +494,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > react-ssr (ssr) 1`] = `
@@ -429,7 +569,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > svelte-basic (client) 1`] = `
@@ -483,7 +643,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: svelte)
+  ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ svelte-extraction            framework=svelte ✓
+  ✓ svelte-codegen               framework=svelte ✓
+  ✓ svelte-runtime               framework=svelte ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > svelte-basic (ssr) 1`] = `
@@ -539,7 +719,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: svelte)
+  ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✓ svelte-extraction            framework=svelte ✓
+  ✓ svelte-codegen               framework=svelte ✓
+  ✓ svelte-runtime               framework=svelte ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > svelte-ssr (client) 1`] = `
@@ -593,7 +793,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: svelte)
+  ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ svelte-extraction            framework=svelte ✓
+  ✓ svelte-codegen               framework=svelte ✓
+  ✓ svelte-runtime               framework=svelte ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > svelte-ssr (ssr) 1`] = `
@@ -649,7 +869,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: svelte)
+  ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✓ svelte-extraction            framework=svelte ✓
+  ✓ svelte-codegen               framework=svelte ✓
+  ✓ svelte-runtime               framework=svelte ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (client) 1`] = `
@@ -702,7 +942,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (ssr) 1`] = `
@@ -757,7 +1017,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (client) 1`] = `
@@ -810,7 +1090,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (ssr) 1`] = `
@@ -865,7 +1165,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (client) 1`] = `
@@ -918,7 +1238,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (ssr) 1`] = `
@@ -973,7 +1313,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa (client) 1`] = `
@@ -1026,7 +1386,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa (ssr) 1`] = `
@@ -1081,7 +1461,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-basic (client) 1`] = `
@@ -1134,7 +1534,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-basic (ssr) 1`] = `
@@ -1189,7 +1609,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (client) 1`] = `
@@ -1242,7 +1682,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (ssr) 1`] = `
@@ -1297,7 +1757,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-ssr (client) 1`] = `
@@ -1350,7 +1830,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vanilla-ssr (ssr) 1`] = `
@@ -1405,7 +1905,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vinext-basic (client) 1`] = `
@@ -1460,7 +1980,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 4
   wrapExports: handleApiRoute, handleSsr, renderPage, runMiddleware
-  wrapDefault: fetch"
+  wrapDefault: fetch
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ nextjs-extraction            framework=nextjs ✓
+  ✓ nextjs-ssr-wrapping          framework=nextjs ✓
+  ✓ nextjs-runtime               framework=nextjs ✓
+  ✗ client-spa                   superseded by nextjs-runtime
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vinext-basic (ssr) 1`] = `
@@ -1515,7 +2055,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 4
   wrapExports: handleApiRoute, handleSsr, renderPage, runMiddleware
-  wrapDefault: fetch"
+  wrapDefault: fetch
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ nextjs-extraction            framework=nextjs ✓
+  ✓ nextjs-ssr-wrapping          framework=nextjs ✓
+  ✓ nextjs-runtime               framework=nextjs ✓
+  ✗ ssr-wrapping                 superseded by nextjs-ssr-wrapping
+  ✗ ssr-runtime                  superseded by nextjs-runtime
+  ✗ client-spa                   superseded by nextjs-runtime
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-basic (client) 1`] = `
@@ -1568,7 +2128,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-basic (ssr) 1`] = `
@@ -1623,7 +2203,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-mpa (client) 1`] = `
@@ -1676,7 +2276,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-mpa (ssr) 1`] = `
@@ -1731,7 +2351,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-spa (client) 1`] = `
@@ -1784,7 +2424,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-spa (ssr) 1`] = `
@@ -1839,7 +2499,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-ssr (client) 1`] = `
@@ -1892,7 +2572,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > vue-ssr (ssr) 1`] = `
@@ -1947,7 +2647,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: vue)
+  ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✓ vue-extraction               framework=vue ✓
+  ✓ vue-codegen                  framework=vue ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > website (client) 1`] = `
@@ -2000,7 +2720,27 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > website (ssr) 1`] = `
@@ -2055,5 +2795,25 @@ single-provider hooks — resolved on the system view:
 ssr:
   entryTargets: 0
   wrapExports: (none)
-  wrapDefault: undefined"
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;

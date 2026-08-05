@@ -52,12 +52,74 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 ## Build shape
 
-| Option      | Type            | Default       | What it does                                                                                                              |
-| :---------- | :-------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------ |
-| `facets`    | `FacetsInput[]` | `["auto"]`    | Which capabilities the compiler is built with. `"auto"` detects your framework from your Vite plugins and `package.json`. |
-| `multiplex` | `boolean`       | auto-detected | Build each locale as its own set of HTML entries.                                                                         |
+| Option      | Type            | Default        | What it does                                                                                                                                          |
+| :---------- | :-------------- | :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `facets`    | `FacetsInput[]` | `["builtins"]` | Which capabilities the compiler is built with. `"builtins"` puts the built-in facet set on the table; each one decides for itself whether it applies. |
+| `multiplex` | `boolean`       | auto-detected  | Build each locale as its own set of HTML entries.                                                                                                     |
 
-`facets` is the extension point. Framework support, SSR handling, asset handling, and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Listing facets without `"auto"` opts out of detection and gives you exactly what you name. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
+`facets` is the extension point. Framework support, SSR handling, asset handling and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
+
+### Facets decide for themselves
+
+`"builtins"` does not mean "guess what I need". It means _offer the built-in facets as candidates_ — each one then answers whether it applies, from its own declaration. The React facets ask for React, the SSR facets ask for an SSR build, the Vite facet asks whether Vite is the host.
+
+So the list is additive, and adding your own facet does not disturb that:
+
+```ts
+zintl({ facets: ["builtins", myMarkdownFacet()] }); // the built-in set, plus yours
+zintl({ facets: [reactFacet(), ssrFacet()] }); // exactly these, nothing implicit
+```
+
+Omitting `"builtins"` gives you precisely what you name — with one exception: the bundler facet for your host is always a candidate, because opting out of the built-in set should not silently strip the integration that makes the plugin work at all.
+
+To keep the built-in set but drop one member, name it rather than re-listing everything:
+
+```ts
+import { excludeFacet } from "zintljs/facets";
+
+zintl({ facets: ["builtins", excludeFacet("client-spa")] });
+```
+
+### Writing a facet
+
+A facet with **no condition is unconditional** — it applies always, with no check performed. That is the right default for a facet you added to your own project, because you added it on purpose.
+
+Declare a condition when a facet should not always apply:
+
+```ts
+{
+  name: "my-codegen",
+  concern: "codegen",
+  when: { framework: "react", ssr: false },
+  // ...
+}
+```
+
+`when` accepts `framework`, `bundler`, `dependency`, `ssr` and `dev`. Every field you set must hold; fields you omit are not constraints. For conditions this cannot express there is `activate(ctx)`, but prefer `when` where it fits — see the trace below for why.
+
+A facet can also declare its relationships:
+
+| Field        | Meaning                                                           |
+| :----------- | :---------------------------------------------------------------- |
+| `provides`   | Capability names other facets can target, e.g. `["ssr:wrapping"]` |
+| `supersedes` | Facets this one replaces, by name or by a capability they provide |
+| `conflicts`  | Facets this one cannot coexist with — a hard error, not a winner  |
+| `priority`   | Which facet wins a single-provider hook. Ties are a hard error    |
+
+`supersedes` exists because activation is not a boolean. The Next.js facets replace the generic SSR and client-SPA facets, and they say so rather than relying on the plugin to know it.
+
+### Why is that facet on?
+
+Every activation decision is recorded, including the negative ones — which are the ones you need when something you expected is missing:
+
+```
+✓ nextjs-ssr-wrapping   framework=nextjs ✓
+✗ ssr-wrapping          superseded by nextjs-ssr-wrapping
+✗ client-spa            superseded by nextjs-runtime
+✗ vue-extraction        when.framework=vue ✗ (detected: react, nextjs)
+```
+
+This is why `when` is data rather than a function: a predicate can only report _that_ it said no, where a descriptor can say which condition failed and what was found instead.
 
 ## Output
 

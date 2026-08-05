@@ -28,7 +28,7 @@ export function transformIncludeHook() {
 
 export function transformHook(ctx: Context) {
   return async function (this: any, code: string, id: string, options?: { ssr?: boolean }) {
-    ensureCompiler(ctx, nativeHostView(this));
+    ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
