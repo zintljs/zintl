@@ -476,8 +476,18 @@ const proxy = new Proxy({}, {
   }
 });
 export default proxy;
-if (import.meta.hot) {
-  import.meta.hot.accept();
+${
+  /**
+   * Dev-guarded, like the `?zintl-raw` branch above it — which this one was not.
+   *
+   * On Vite the omission was invisible: production folds `import.meta.hot` to
+   * `undefined` and the branch is eliminated, so nothing shipped. That is a Vite
+   * guarantee this code was silently relying on. Rspack performs no such
+   * substitution, so the accept call reached the production bundle intact
+   * (ledger L-014) — "nothing ships that isn't used", upheld by the host rather
+   * than by us.
+   */
+  ctx.compiler.isDev ? "if (import.meta.hot) {\n  import.meta.hot.accept();\n}" : ""
 }
 `;
         }

@@ -575,6 +575,51 @@ ensureCompiler(ctx, () => nativeHostView(this));
 
 **The lesson, and it generalises past this bug.** A defensive call on a hot path has to be cheap _including its arguments_, and an argument's cost is invisible at the call site — it reads as one function call either way. Phase 0a introduced the pattern with a cheap argument and no note that cheapness was load-bearing; the inversion then made the argument expensive without touching the call sites. That is the same shape as L-011: something depended on a property nobody had written down.
 
+### L-014 — Zintl relied on the host folding `import.meta.hot` in production
+
+|                             |                          |
+| :-------------------------- | :----------------------- |
+| **Status**                  | Fixed                    |
+| **Bucket**                  | **3 — delete the guess** |
+| **Facet contract changed?** | No                       |
+
+Found while adding the Rspack bundler facet, by grepping the production snapshots for something that should never be in one.
+
+**What failed.** `tests/contracts/__snapshots__/rsbuild-spa/dist-output/static/js/index.js.snap` — a **production** bundle — contained:
+
+```js
+export default proxy;
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}
+```
+
+No Vite production build contained it. Only Rspack's.
+
+**The assumption.** The `?raw` asset proxy in `loadHook` emitted that accept call unconditionally, where the `?zintl-raw` branch two lines above it is guarded by `ctx.compiler.isDev`. The omission was invisible on Vite because **Vite substitutes `import.meta.hot` with `undefined` in production builds**, so the branch folds and nothing ships. Rspack performs no such substitution, so it shipped.
+
+So this is "nothing ships that isn't used" being upheld by the _host_ rather than by us — a principle the project states plainly, satisfied by accident on one bundler and violated on the next. That is the most valuable kind of thing a second host finds: not a crash, but a guarantee we were consuming without knowing we depended on it.
+
+**The fix.** Guard the emission on `isDev`, matching its sibling. No change on Vite — the branch was already being eliminated — and the production bundle on Rspack is now clean. Verified by grep across every `dist-output` snapshot in the suite.
+
+### L-015 — Without a bundler facet, core injects Vite's HMR API into any host
+
+|                             |                                             |
+| :-------------------------- | :------------------------------------------ |
+| **Status**                  | Fixed for Rspack; the core fallback remains |
+| **Bucket**                  | **1 — facet it**                            |
+| **Facet contract changed?** | No — it used the contract as intended       |
+
+**What failed.** With no bundler facet active, `ZintlCompiler.transform` falls through to `selfAcceptHmrSnippet(fileId)`, which emits `import.meta.hot`. Five committed Rspack dev-transform snapshots carried it.
+
+`utils/hmr.ts` justifies that fallback as being for "the compiler's own unit tests" — a test-only path that turned out to ship the moment a real host had no facet of its own. Phase 0's ledger flagged it as a bucket-3 candidate on inspection; this is it happening.
+
+**The fix — `rspackFacet()`.** It contributes identity virtual-path resolution, an unannotated dynamic import (no `@vite-ignore`, and deliberately no `webpackIgnore`, since these are ids Zintl's own `resolveId` handles), and an `hmrInjectionCode` that emits **the HMR token and no acceptance call**.
+
+That last one is a declaration of a known gap rather than an omission, and it is the interesting part. Rspack uses `module.hot`, so the inherited Vite snippet is simply wrong — but emitting the `module.hot` equivalent would be worse. ZDB §7a makes dev support conditional on two load-bearing properties, a monotonic non-repeating per-event sequence and a `read()` scoped to that event, and neither has been shown to exist on this host. Shipping hot updates without them ships back the ordering defect the delivery-bus specification exists to remove. **Returning a function at all is what matters here: it takes core off its `import.meta.hot` fallback path. Wrong code is worse than no code.**
+
+**Still open.** Four generated virtual modules — the per-locale content modules and the manager — continue to emit `import.meta.hot` in dev, because `index.ts:2218` and `:2289` hardcode it and **never consult `system.hmrInjectionCode`**. This is the leak Phase 1 predicted as item 6 and Deliverable 2 §2.2 describes: the facet seam exists and two call sites bypass it. Dev-only, and out of scope while Rspack is Tier 1, but it is the next thing to route through the facet if Tier 2 is ever attempted.
+
 ### On the user-facing surface
 
 `"auto"` was misnamed. It read as "be automatic", but automatic is not optional any more: every facet self-activates, and one with no condition is unconditional with no check performed. What the sentinel actually selects is which _set_ is on the table, so it is now `"builtins"` — and `"auto"` was **removed**, not aliased. Zintl is pre-1.0 with no users to migrate, and a silent second spelling is a migration nobody ever finishes; a type error is the cheaper conversation.

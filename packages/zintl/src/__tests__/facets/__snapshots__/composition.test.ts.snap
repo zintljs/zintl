@@ -63,6 +63,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -136,6 +137,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -211,6 +213,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -284,6 +287,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -359,6 +363,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -432,6 +437,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -507,6 +513,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -580,6 +587,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -655,6 +663,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ svelte-extraction            framework=svelte ✓
   ✓ svelte-codegen               framework=svelte ✓
   ✓ svelte-runtime               framework=svelte ✓
@@ -729,6 +738,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ svelte-extraction            framework=svelte ✓
   ✓ svelte-codegen               framework=svelte ✓
   ✓ svelte-runtime               framework=svelte ✓
@@ -805,6 +815,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ svelte-extraction            framework=svelte ✓
   ✓ svelte-codegen               framework=svelte ✓
   ✓ svelte-runtime               framework=svelte ✓
@@ -879,6 +890,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ svelte-extraction            framework=svelte ✓
   ✓ svelte-codegen               framework=svelte ✓
   ✓ svelte-runtime               framework=svelte ✓
@@ -955,6 +967,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1028,6 +1041,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1103,6 +1117,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1176,6 +1191,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1251,6 +1267,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1324,6 +1341,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1399,6 +1417,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1472,6 +1491,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1547,6 +1567,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1620,6 +1641,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1695,6 +1717,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1768,6 +1791,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1843,6 +1867,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -1916,6 +1941,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -1990,6 +2016,7 @@ activation trace:
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
@@ -2063,6 +2090,7 @@ activation trace:
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
@@ -2141,6 +2169,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ client-spa                   unconditional
@@ -2214,6 +2243,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -2289,6 +2319,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ client-spa                   unconditional
@@ -2362,6 +2393,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -2437,6 +2469,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ client-spa                   unconditional
@@ -2510,6 +2543,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -2585,6 +2619,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ client-spa                   unconditional
@@ -2658,6 +2693,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
@@ -2733,6 +2769,7 @@ activation trace:
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
@@ -2806,6 +2843,7 @@ activation trace:
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓

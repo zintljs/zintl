@@ -21,6 +21,7 @@ import {
   htmlFacet,
   nextjsFacet,
   reactFacet,
+  rspackFacet,
   ssrFacet,
   svelteFacet,
   vanillaFacet,
@@ -125,12 +126,12 @@ export function builtinFacets(input: AssembleInput): ZintlFacet[] {
  * should not silently strip the host integration too.
  *
  * What changes under self-activation is that being a candidate is no longer the
- * same as being active. `viteFacet` now declares `when: { bundler: "vite" }`, so
- * a project built by another host simply does not get it, where before it was
- * handed the Vite facet no matter who was building.
+ * same as being active. Each declares the host it serves, so exactly one of them
+ * applies — where before every project was handed the Vite facet no matter who
+ * was building.
  */
 function bundlerFacets(): ZintlFacet[] {
-  return [viteFacet()];
+  return [viteFacet(), rspackFacet()];
 }
 
 /**

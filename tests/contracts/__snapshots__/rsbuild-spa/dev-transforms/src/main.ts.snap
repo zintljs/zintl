@@ -41,10 +41,3 @@ async function render() {
 }
 
 void render();
-
-
-if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/main");
-  });
-}
