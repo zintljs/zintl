@@ -1,5 +1,108 @@
 # zintl
 
+## 0.1.0-alpha.13
+
+### Minor Changes
+
+- 4df78f0: Facets now decide for themselves when they apply, instead of being selected by a table in the plugin. This is the self-activation inversion proposal 026 was sequenced to inform, and it uses that spike's leak ledger as its input.
+
+  `autoFacets` no longer chooses. Every built-in facet is offered as a candidate and each answers for itself: the framework switch, `if (ssr && !isNext)` and `if (!isNext)` are gone, and the decisions they encoded are declarations on the facets that own them. Adding a framework now means shipping a facet that knows its own condition rather than editing core.
+
+  **A facet declares its condition as data**, not as a predicate:
+
+  ```ts
+  { name: "react-codegen", when: { framework: "react" } }
+  ```
+
+  `when` supports `framework`, `bundler`, `dependency`, `ssr` and `dev`; all present fields must hold, and an omitted `when` means unconditional with no check performed. An optional `activate(ctx)` escape hatch covers what a descriptor cannot express. The reason for preferring data is the trace: a predicate can only report _that_ it said no, where a descriptor reports `when.framework=vue ✗ (detected: react, nextjs)`.
+
+  **Activation is not a boolean.** `provides` / `supersedes` / `conflicts` let one facet replace another — Next.js supersedes the generic SSR wrapper and client-SPA facets, targeting a provided capability rather than a hardcoded name. That was previously an `if (!isNext)` whose reason lived in a comment. `conflicts` is the hard-error case for pairs with no sensible winner.
+
+  **Every decision is explained.** Activation emits a trace covering active and inactive facets alike, and it is committed to the per-example composition golden files, so "why is React support off?" is answerable from a text file.
+
+  **Adds an experimental `rspackFacet()`**, activated by `when: { bundler: "rspack" }`. It is as much about what it prevents: with no bundler facet active, the compiler falls back to a snippet that emits `import.meta.hot` — Vite's API — into any host, and five Rspack dev-transform snapshots carried it. Its `hmrInjectionCode` deliberately emits the HMR token and **no acceptance call**, because Rspack uses `module.hot` and ZDB §7a forbids shipping hot updates on a host whose ordering guarantees have not been established. Returning a function at all is the point: it takes core off the wrong fallback.
+
+  **Routes generated modules through the facet seam.** The compiler hardcoded `import.meta.hot` when emitting catalog and manager modules and consulted no facet, so every host received Vite's HMR API for Zintl's own generated code. A new `BundlerFacet.hmrSelfAcceptCode(callbackBody?)` covers it — distinct from `hmrInjectionCode`, which decorates source files and must reason about whether re-executing an entry is safe; a generated module is always safe to replace but sometimes needs a callback body, which the source-file hook cannot express. With no bundler facet supplying it, nothing is emitted.
+
+  **Fixes `import.meta.hot` reaching production bundles.** The `?raw` asset proxy emitted an unguarded `import.meta.hot.accept()`, where its sibling branch was dev-guarded. This was invisible on Vite, which substitutes `import.meta.hot` with `undefined` in production so the branch folds — a host guarantee Zintl was silently relying on. Rspack does not substitute, so it shipped. Now dev-guarded; no change to Vite output.
+
+  **Bundler facets are now host-conditional.** `viteFacet` declares `when: { bundler: "vite" }` rather than being appended to every project. This fixes a real leak: Rspack builds were being handed `import(/* @vite-ignore */ …)`, a Vite annotation in output no Vite ever reads. Bundler facets remain unconditional _candidates_ — opting out of the built-in set should not silently strip host integration — but being a candidate is no longer the same as being active.
+
+  **Option surface — breaking.** `facets: ["auto", …]` becomes `facets: ["builtins", …]`, and `"auto"` is **removed rather than aliased**: it is now a type error. The sentinel was misnamed — it reads as "be automatic", but automatic is no longer optional; what it selects is which _set_ of facets is on the table. Zintl is pre-1.0 with no users to migrate, and a silent second spelling is a migration nobody ever finishes.
+
+  New `excludeFacet(name)` drops a single builtin, which previously required listing every facet by hand and keeping that list in sync.
+
+  Composition is unchanged for every existing example on Vite.
+
+- 3dfd12b: Moved compiler construction and multiplex propagation off the bundler's plugin context, so both are answerable without a Rollup-shaped host. This is the first phase of proposal 026, which uses a second build tool as a falsification harness for the claim that the compiler is bundler-agnostic.
+
+  - **Compiler construction is no longer a Vite-only hook.** `detect → assemble → resolve → construct` moved into a new `host.ts` behind an idempotent `ensureCompiler(ctx, host)`, keyed on a small `BundlerHostView` (`root`, `isDev`, `isSsr`, `pluginNames`, `logLevel`). `configResolved` now only translates Vite's `ResolvedConfig` into that view; `buildStart`, `resolveId`, `load` and `transform` call it defensively. Previously the compiler was assigned in `configResolved` alone — a hook unplugin drops entirely on every non-Vite target, so the plugin would load and then fail on `undefined` at the first resolution.
+
+  - **Multiplex propagation asks the graph instead of walking it.** The 58-line translation-neutrality closure inside `resolveId` — which reached into `metadataGraph`, `internalManifest` and `dependencyGraph` one import edge at a time — is replaced by `ZintlCompiler.isTranslationNeutral()`, backed by a new `GraphManager.hasTranslatableContent()`. The knowledge was always the compiler's; the resolver was rediscovering it per edge while consulting the very structure that had the answer.
+
+  - **Deleted the static extension allow-list** that gated multiplex propagation (`js`, `jsx`, `ts`, `tsx`, `md`, `txt`, `vue`, `svelte`). It was app-agnostic — a Vue-only project paid for `.svelte`, and a facet contributing a new extension was silently skipped — and it was answering "might this file contain strings" where the graph can answer "is this module inside translated content". Nothing replaced it.
+
+  Note that `hasTranslatableContent` is deliberately **not** `leadsToBoundary`: the latter asks whether a file reaches a trust anchor (locale ownership), while multiplexing needs to know whether it reaches translatable content (payload). A component holding strings but declaring no anchor answers differently to the two, so reusing the existing method would have silently dropped its translations.
+
+  No behaviour change on Vite.
+
+- cdbcc14: Added an experimental `zintljs/rsbuild` entry point and pointed the contract suite at it, as the second phase of proposal 026. Rsbuild is a falsification harness, not a supported target: the deliverable is the leak ledger, not Rsbuild support.
+
+  Zintl now builds a real SPA under Rsbuild, and all four project contracts (`build`, `graph`, `transform-dev`, `transform-prod`) pass against it. Notably, chunk-aligned catalogs survived the port with no Rspack-specific chunking code — the build emits one async chunk per non-source locale, each carrying only its own catalog, and ghost mode still omits the source locale entirely.
+
+  Three portability defects were found and fixed, all of which also make the Vite path more explicit:
+
+  - **The plugin now declares which ids its `load` hook handles** (`loadInclude`). On Rollup and Vite a `load` returning `undefined` is a free no-op; on Rspack, unplugin implements `load` as a module rule carrying `type: "javascript/auto"`, so an unfiltered hook claims every module and retypes it as JavaScript — which killed the build on the HTML template. The filter must be exact rather than generous: `.html` is claimed only under multiplex.
+
+  - **The plugin now declares which ids its `transform` hook handles** (`transformInclude`), excluding HTML. Zintl transforms HTML through `transformIndexHtml`, never through `transform` — true of its design all along, but never stated, because on Vite HTML is not a module in the graph and so never arrived there.
+
+  - **The host view is now derived from the host** rather than defaulting to `process.cwd()`. On a host with no config hook the default rooted the compiler at the monorepo root, discovering 217 boundaries across every example app and producing a manifest too large for `JSON.stringify`. `nativeHostView()` reads the root from unplugin's native build context.
+
+  Two further leaks are reproduced and deliberately left open, both tracing to one cause — Zintl identifies a generated asset module by the source file's real path plus a query, so that module inherits an extension and an absolute path that mean something to the host. On Rspack, which types modules by extension, a localized `.txt` asset is classified as an asset and the JavaScript Zintl generated for it is base64-encoded into a `data:` URI, so the catalog ships a URI where translated text belongs — with a green build and green contracts. The committed snapshot records that broken output on purpose, as the tripwire for whoever fixes it. Snapshot sanitization also grew a rule for identifiers Rspack names after the absolute resource path.
+
+  **Fixes SSR detection, which reported every Vite project as SSR.** `viteHostView` derived it as `Boolean(config.build?.ssr) || config.ssr !== undefined`, and on current Vite the second clause is always true — `ResolvedConfig.ssr` is always a populated object. So a vanilla SPA with no server anything resolved `ssr-wrapping` and `ssr-runtime`. Output stayed correct because `getRuntimeCode` gates the server store on `isSsr` a second time at codegen, but the capability flags were wrong.
+
+  Deleting the clause outright is not the fix, and this was measured rather than assumed: it took down all ten SSR contract cases, because `build.ssr` is unset in dev, so the always-true clause had been keeping SSR alive there by accident. Detection is now answered per phase — `build.ssr` for builds, and for dev the shape of an SSR dev server (`middlewareMode`, or `appType: "custom"`, a signal `configureServerHook` already trusts).
+
+  A consequence worth noting: the **client** build of an SSR app no longer resolves the SSR facets, which is the point — nothing about wrapping a server entry belongs in a browser bundle.
+
+  Also adds the guardrail proposal 026 §8 asks for: a golden file per example application recording its resolved facet composition — the facet list in resolution order, every capability flag, the extraction surface, and which facets declare each single-provider hook versus what the merged view resolved. Composition was previously a live object graph full of functions that nothing ever printed, so a change to what `react-ssr` resolves to could only be noticed as behaviour. Two accompanying assertions: every example resolves exactly one bundler facet, and none resolves more than twelve facets.
+
+  On the testing side, `BuildToolDriver` is now a real seam rather than a declared one: `LabPipeline` and `Lab` are typed on the interface instead of `ViteDriver`, a manifest can select its driver, and the bundler-free compile path is shared by both drivers unchanged. Adds `dirSource()` for checked-in project directories that should not join `examples/` and its build, lint and CI gates.
+
+  No behaviour change on Vite.
+
+### Patch Changes
+
+- bc1e1cf: Made the lab's dev server host-agnostic, so browser contracts can run against a build tool other than Vite.
+
+  `BuildToolDriver` already covered the build side; the serving side was hardwired to Vite, which is why seventeen of twenty-one contracts could not see a second host. `DevServerDriver` is its counterpart — `LabDevServerHandle` describes a running server in the lab's terms, with `ViteDevServerDriver` holding the existing logic and a new `RsbuildDevServerDriver` alongside it. A manifest selects its driver the same way it already did for builds.
+
+  Two collaborators stopped knowing what Vite is. `LabWebSocket` takes an intercept function rather than a `ViteDevServer`, with the `ws.send` patch moved into the Vite driver where host knowledge belongs; a host that cannot expose a hot-update channel simply omits it, rather than reporting "no packets" when it means "cannot see packets". `LabCompiler` identifies its compiler by project root rather than by a server object.
+
+  **Also fixes: every Rspack build looked like production, including the dev server.** `nativeHostView` filled in the bundler and root from the host's native context but left `isDev` at its default of `false`, so a page served in development was compiled as a production build — `__ZINTL_DEV__` folded away, no settle beacon, no dev logging. It went unnoticed because the app was otherwise correct. Dev is now read from `compiler.options.mode`, this family's equivalent of Vite's `command === "serve"`.
+
+- 6df4bc9: Fixed localized text assets shipping a `data:` URI instead of their translation on bundlers that type modules by file extension.
+
+  Zintl turns a `.md`/`.txt` import carrying `?raw` or `?zintl-raw` into a JavaScript module, but kept the source path as the module id — so the module still looked like a text file. On Rollup and Vite that is harmless, because module type follows from _who loaded the module_. On Rspack it is a property of the resource's extension, decided before any plugin speaks: it classified `about.txt?raw` as an asset and base64-encoded the JavaScript into a `data:text/plain` URI, which the catalog then shipped where the translated text belonged. The build succeeded and every contract passed.
+
+  These ids now resolve to an extension-free virtual id, decoded again at load so every existing branch is unchanged. The fix is in id spelling — the plugin's own responsibility — rather than in a bundler-specific escape hatch that rewrote module rules.
+
+  Two boundaries worth knowing:
+
+  - The encoding is base64url, not `encodeURIComponent`. Percent-encoding preserves `.`, so the encoded id still ended in `.txt`, and unplugin materialises a virtual module as a real file whose _name_ is that id — reproducing the same misclassification one layer down.
+  - The rewrite is applied _after_ multiplex resolution picks a per-locale file, not before it. Rewriting the identity first short-circuits that choice and hands every locale the source text.
+
+  The encoding covers the whole id, query included, so decoding reproduces byte-identical input. That is what lets the same rewrite be applied at each of the five places resolution can land on such a file without any downstream branch knowing it happened.
+
+  No change to Vite output.
+
+- Updated dependencies [6926203]
+- Updated dependencies [4df78f0]
+- Updated dependencies [3dfd12b]
+- Updated dependencies [49f299c]
+  - @zintljs/compiler@0.1.0-alpha.13
+
 ## 0.1.0-alpha.12
 
 ### Patch Changes

@@ -1,5 +1,75 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.13
+
+### Minor Changes
+
+- 4df78f0: Facets now decide for themselves when they apply, instead of being selected by a table in the plugin. This is the self-activation inversion proposal 026 was sequenced to inform, and it uses that spike's leak ledger as its input.
+
+  `autoFacets` no longer chooses. Every built-in facet is offered as a candidate and each answers for itself: the framework switch, `if (ssr && !isNext)` and `if (!isNext)` are gone, and the decisions they encoded are declarations on the facets that own them. Adding a framework now means shipping a facet that knows its own condition rather than editing core.
+
+  **A facet declares its condition as data**, not as a predicate:
+
+  ```ts
+  { name: "react-codegen", when: { framework: "react" } }
+  ```
+
+  `when` supports `framework`, `bundler`, `dependency`, `ssr` and `dev`; all present fields must hold, and an omitted `when` means unconditional with no check performed. An optional `activate(ctx)` escape hatch covers what a descriptor cannot express. The reason for preferring data is the trace: a predicate can only report _that_ it said no, where a descriptor reports `when.framework=vue ✗ (detected: react, nextjs)`.
+
+  **Activation is not a boolean.** `provides` / `supersedes` / `conflicts` let one facet replace another — Next.js supersedes the generic SSR wrapper and client-SPA facets, targeting a provided capability rather than a hardcoded name. That was previously an `if (!isNext)` whose reason lived in a comment. `conflicts` is the hard-error case for pairs with no sensible winner.
+
+  **Every decision is explained.** Activation emits a trace covering active and inactive facets alike, and it is committed to the per-example composition golden files, so "why is React support off?" is answerable from a text file.
+
+  **Adds an experimental `rspackFacet()`**, activated by `when: { bundler: "rspack" }`. It is as much about what it prevents: with no bundler facet active, the compiler falls back to a snippet that emits `import.meta.hot` — Vite's API — into any host, and five Rspack dev-transform snapshots carried it. Its `hmrInjectionCode` deliberately emits the HMR token and **no acceptance call**, because Rspack uses `module.hot` and ZDB §7a forbids shipping hot updates on a host whose ordering guarantees have not been established. Returning a function at all is the point: it takes core off the wrong fallback.
+
+  **Routes generated modules through the facet seam.** The compiler hardcoded `import.meta.hot` when emitting catalog and manager modules and consulted no facet, so every host received Vite's HMR API for Zintl's own generated code. A new `BundlerFacet.hmrSelfAcceptCode(callbackBody?)` covers it — distinct from `hmrInjectionCode`, which decorates source files and must reason about whether re-executing an entry is safe; a generated module is always safe to replace but sometimes needs a callback body, which the source-file hook cannot express. With no bundler facet supplying it, nothing is emitted.
+
+  **Fixes `import.meta.hot` reaching production bundles.** The `?raw` asset proxy emitted an unguarded `import.meta.hot.accept()`, where its sibling branch was dev-guarded. This was invisible on Vite, which substitutes `import.meta.hot` with `undefined` in production so the branch folds — a host guarantee Zintl was silently relying on. Rspack does not substitute, so it shipped. Now dev-guarded; no change to Vite output.
+
+  **Bundler facets are now host-conditional.** `viteFacet` declares `when: { bundler: "vite" }` rather than being appended to every project. This fixes a real leak: Rspack builds were being handed `import(/* @vite-ignore */ …)`, a Vite annotation in output no Vite ever reads. Bundler facets remain unconditional _candidates_ — opting out of the built-in set should not silently strip host integration — but being a candidate is no longer the same as being active.
+
+  **Option surface — breaking.** `facets: ["auto", …]` becomes `facets: ["builtins", …]`, and `"auto"` is **removed rather than aliased**: it is now a type error. The sentinel was misnamed — it reads as "be automatic", but automatic is no longer optional; what it selects is which _set_ of facets is on the table. Zintl is pre-1.0 with no users to migrate, and a silent second spelling is a migration nobody ever finishes.
+
+  New `excludeFacet(name)` drops a single builtin, which previously required listing every facet by hand and keeping that list in sync.
+
+  Composition is unchanged for every existing example on Vite.
+
+- 3dfd12b: Moved compiler construction and multiplex propagation off the bundler's plugin context, so both are answerable without a Rollup-shaped host. This is the first phase of proposal 026, which uses a second build tool as a falsification harness for the claim that the compiler is bundler-agnostic.
+
+  - **Compiler construction is no longer a Vite-only hook.** `detect → assemble → resolve → construct` moved into a new `host.ts` behind an idempotent `ensureCompiler(ctx, host)`, keyed on a small `BundlerHostView` (`root`, `isDev`, `isSsr`, `pluginNames`, `logLevel`). `configResolved` now only translates Vite's `ResolvedConfig` into that view; `buildStart`, `resolveId`, `load` and `transform` call it defensively. Previously the compiler was assigned in `configResolved` alone — a hook unplugin drops entirely on every non-Vite target, so the plugin would load and then fail on `undefined` at the first resolution.
+
+  - **Multiplex propagation asks the graph instead of walking it.** The 58-line translation-neutrality closure inside `resolveId` — which reached into `metadataGraph`, `internalManifest` and `dependencyGraph` one import edge at a time — is replaced by `ZintlCompiler.isTranslationNeutral()`, backed by a new `GraphManager.hasTranslatableContent()`. The knowledge was always the compiler's; the resolver was rediscovering it per edge while consulting the very structure that had the answer.
+
+  - **Deleted the static extension allow-list** that gated multiplex propagation (`js`, `jsx`, `ts`, `tsx`, `md`, `txt`, `vue`, `svelte`). It was app-agnostic — a Vue-only project paid for `.svelte`, and a facet contributing a new extension was silently skipped — and it was answering "might this file contain strings" where the graph can answer "is this module inside translated content". Nothing replaced it.
+
+  Note that `hasTranslatableContent` is deliberately **not** `leadsToBoundary`: the latter asks whether a file reaches a trust anchor (locale ownership), while multiplexing needs to know whether it reaches translatable content (payload). A component holding strings but declaring no anchor answers differently to the two, so reusing the existing method would have silently dropped its translations.
+
+  No behaviour change on Vite.
+
+### Patch Changes
+
+- 6926203: The document now announces the locale the store actually adopted, on every host.
+
+  Zintl publishes a locale change to `<html lang>` by calling `window.__zintlApplyHtml`, which is installed by the HTML projection script — and that script is injected through `transformIndexHtml`, a Vite-only hook. On any other bundler no projection exists, so a page could switch locale, render the new language, and go on announcing the old one to assistive technology and search engines.
+
+  `publishLocale` now sets `document.documentElement.lang` itself when no projection is installed. The store always knows the locale it adopted, so it can say so unaided, and the branch runs only when nothing better is present — the projection keeps full ownership wherever it exists.
+
+  `dir` is deliberately not handled here. Direction is per-locale data the projection reads out of catalogs at build time; giving the runtime its own table would put a list of RTL languages in the compiler core, which is knowledge that belongs to a facet.
+
+- 49f299c: Fixed the translation-neutrality walk skipping dependencies imported without a file extension.
+
+  `GraphManager.hasTranslatableContent` decides whether a module needs a per-locale copy during multiplex propagation. It resolved a relative dependency by path-joining alone, so `./counter` became `src/counter` — a key in no graph — and the walk stopped there, reporting the importer as having nothing to translate. It now resolves through `resolveDependencyFileId`, which tries each known source extension, as every other traversal in that file already did.
+
+  The failure direction is why this matters: "neutral" means _needs no per-locale copy_, so a false positive silently drops a module's translations, where a false negative only costs a redundant copy.
+
+  A second defect surfaced while testing it and is now closed: `resolveDependencyFileId` resolved against the manager's last-built graph state while its caller was handed graphs as arguments, so the two could disagree about which files exist. The graphs are now overridable parameters.
+
+  Resolution deliberately keeps **exact** key lookups. Also matching the manifest's `<file>:<boundary>` prefix during resolution looked correct but cost a `Object.keys` scan per candidate, per extension, per dependency edge, and blew the Structural and Colony HMR budgets by 48% and 23% on an idle machine. It bought nothing: a file with manifest entries is keyed in the metadata and dependency graphs too, and both are exact. Content discovery still prefix-matches, once per node rather than once per candidate.
+
+  No output changes: the predicate short-circuits as soon as the importing module itself has content, so a dependency's resolution only decides the answer for an inert module whose sole translatable content sits behind an extensionless import in a multiplexed project. Adds the first unit coverage this predicate has had.
+
+  - @zintljs/extractor@0.1.0-alpha.13
+
 ## 0.1.0-alpha.12
 
 ### Minor Changes
