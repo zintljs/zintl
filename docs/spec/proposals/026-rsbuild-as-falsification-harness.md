@@ -1,8 +1,8 @@
 # Proposal 026: Rsbuild as a Falsification Harness
 
-**Status**: IN PROGRESS — Phases 0–3 run; findings in [026-leak-ledger.md](026-leak-ledger.md).
-Nine leaks recorded, four fixed on the Vite path, two open and specified. Rsbuild builds an SPA and passes the four
-build-time contracts; **it is a harness, not a supported target** (see the ledger's Deliverable 3).
+**Status**: COMPLETE — see §11 for the outcome, and [026-leak-ledger.md](026-leak-ledger.md) for the findings.
+Nineteen leaks recorded, fifteen fixed, two open and specified, one partially closed, one unreproducible within scope.
+Rsbuild builds and serves an SPA and is driven by five contracts; **it remains a harness, not a supported target.**
 **Date**: 2026-08-05
 **Kind**: Method proposal. This one is different from its neighbours — see §0.
 **Depends on**: the faceted compiler architecture (CLAUDE.md, "Faceted compiler architecture"), the contract-test layer (`tests/contracts/`), and the Unplugin migration already landed in `packages/zintl`.
@@ -208,12 +208,15 @@ Named in advance so they are recognisable from inside, where they always look re
 - **Scope drift into support.** "While we're here" turns a spike into a shipped target with an implied maintenance commitment and a second CI matrix. §7's definition of done exists to make that a decision rather than a slide.
 - **The ledger written from memory at the end.** See §5.5. This is the most likely failure and the least dramatic.
 
-## 9. Open questions
+## 9. Open questions — answered
 
-1. Does the contract capability set need a genuine `bundler:*` dimension, or does the existing capability model already cover it without extension? Answering this is itself a test of the capability model.
-2. Can the multiplex plan (§4.1) be computed entirely from the compiler graph ahead of resolution, or does it have a genuine dependency on bundler-discovered modules that no static graph can supply? If the latter, the whole portability claim needs re-examining, and that would be the most important finding available here.
-3. Is Rsbuild's HTML handling close enough to model as a facet, or does the MPA/fan-out path need a fundamentally different design per bundler? Deliberately out of scope for the spike (§7), but the spike may produce evidence either way — record it if so.
-4. Does the self-activation inversion need a detection context rich enough to see the bundler itself, and if so, what does a facet get to ask about its host?
+**1. Does the capability set need a `bundler:*` dimension?** **No.** Contract matching is a positive-only subset test, so a manifest claiming exactly the capabilities it can satisfy is skipped by every contract requiring more — no contract edits, no `excludes` mechanism, no new dimension. Adding one pre-emptively would have answered the question by assumption. (Ledger, Phase 2.)
+
+**2. Can the multiplex plan be computed entirely from the compiler graph?** **No — but the residue is much smaller than the code implied.** The graph is keyed by normalized file ids, so a bare or aliased specifier must become a path before the graph can be asked about it, and module resolution is genuinely the host's job. Everything downstream of "which file is this" is now the compiler's. The portability claim survives in the form that matters — a bundler facet _applies_ id rewrites rather than rediscovering which are needed. (L-002.)
+
+**3. Is Rsbuild's HTML handling close enough to model as a facet?** **Evidence says not yet, and the spike produced it the hard way.** `api.modifyHTML` has the same signature as `compiler.transformHtml`, so wiring looked sufficient. It was attempted and reverted: an output filename where Vite passes a source path blanked the page; adding the catalog that direction needs destabilised it again; and the runtime never publishes itself globally on this host. Three layers, each surfacing the next. Closing it needs an HTML transform seam that is not `transformIndexHtml`, a decision about where per-locale direction lives, and host-independent dev globals. (L-019.)
+
+**4. Does the detection context need to see the bundler?** **Yes**, and the bundler facets are the proof. `viteFacet` now declares `when: { bundler: "vite" }` instead of being appended to every project — which immediately stopped Vite-specific syntax reaching Rspack output. What a facet gets to ask about its host is now `FacetActivationContext`: root, isDev, isSsr, bundler, frameworks, pluginNames, dependencies. (L-012, and the self-activation inversion.)
 
 ## 10. Relationship to the facet self-activation work
 
@@ -227,3 +230,48 @@ Two constraints the inversion will need regardless, surfaced by thinking about t
 
 - **Self-activation collides with first-contributor-wins.** Function-hook resolution is order-dependent; today the order is a readable list in core. Once facets self-select, registration order becomes both semantically meaningful and invisible. Resolve by sorting on **declared specificity**, not on who fired first.
 - **Activation is not a boolean.** Real conditions involve supersession — a Next facet subsuming a React facet, an Rsbuild facet subsuming a generic-Rspack facet. Independent predicates cannot express "I supersede you." Facets will need `provides` / `supersedes` / `conflicts` declarations and a small resolution pass, plus a resolution trace so "why is this facet on?" stays answerable. Distributed activation without an explain path is worse than the central switch it replaces.
+
+## 11. Outcome
+
+### Was the claim falsified?
+
+Partly, and usefully. _"The compiler is bundler-agnostic; the host plugin is not"_ held up better than expected — `compileWithZintl` runs unchanged on both hosts, extraction needed no adaptation, and **chunk-aligned catalogs survived the port with no Rspack-specific chunking code**, which is the project's central thesis and the thing most at risk. What did not hold was the boundary: a large amount of host-specific knowledge had settled _below_ the plugin, in the compiler and in the runtime, where nothing had ever contradicted it.
+
+Nineteen leaks. The pattern across them is more useful than the count: **almost none had a symptom on the supported path.** Vite folded `import.meta.hot` away in production, so an unguarded emission shipped nothing. Vite types modules by who loaded them, so an id that lied cost nothing. Vite has a config hook, so a compiler constructed only there looked fine. Each was a guarantee Zintl was consuming without knowing it depended on it — which is precisely what §2 predicted an abstraction validated at N=1 would contain.
+
+### The four costliest findings
+
+**L-009** — Zintl gave generated modules the source file's identity, so a host that types by extension typed them wrong: a localized `.txt` asset shipped a `data:` URI where the translation belonged, with a green build and green contracts. The quiet failure §5.3 said breakage-driven discovery would miss, caught by reading a snapshot.
+
+**L-011** — every Vite project resolved as SSR, because `config.ssr !== undefined` had quietly become a constant. Found by a _second derivation that was allowed to disagree_, not by the golden files, which derive their own inputs and would have been wrong in the same direction.
+
+**L-015 / L-016** — with no bundler facet, core injected Vite's HMR API into any host; and two generated-module call sites bypassed the facet seam entirely. A missing facet and a bypassed one, and only the second survives adding the facet.
+
+**L-013** — self-inflicted, and the one that most argues for the method. A defensive call's _argument_ became expensive, and the only thing that separated "real regression" from "known flaky machine" was stashing the change and re-running.
+
+### What the method actually cost, and what it bought
+
+Three times a change looked obviously correct and measurement disagreed — the L-002b prefix scan (48% over budget), L-013, and `build.ssr` alone (ten SSR contracts down). Twice a fix I had written up had to be corrected because the evidence went the other way. That ratio is the argument for the budgets and the baselines, not against them.
+
+The guardrails earned their place. `retry: 0` turned "flaky suite" into L-017, a real cross-worker race. The composition golden files made facet resolution inspectable and then immediately exposed that `ssr-wrapping` contributes no entry targets. The fidelity contract found L-011 on its first run.
+
+### Deliverable 3, revisited
+
+The Phase 4 recommendation was **no — keep it as a harness**, written before L-009 was fixed and before browser contracts could reach it. Both objections have since been removed, so the recommendation deserves re-asking rather than repeating.
+
+**It still stands.** Rsbuild now builds correctly, serves, and is driven by five contracts including a real browser. What it does not have is a **development story**: `rspackFacet` deliberately emits no hot-update code, because ZDB §7a makes that conditional on two ordering guarantees nobody has established here, and shipping without them would ship back the defect the delivery-bus specification exists to remove. Nor does it have HTML projection (L-019), so `<html dir>` never follows the locale.
+
+A supported target implies a CI matrix, a second snapshot set, and a promise. Zintl cannot yet make that promise for anything but production builds — and §2.1's counterweight is unchanged: **the risk at alpha is not a slightly-too-centralised resolver, it is spending the window on a tool nobody has installed.**
+
+Promote it when someone asks with a real application. The door is open, the cost is written down, and the remaining work is named rather than guessed at.
+
+### What remains open
+
+|                  |                                                                                                                                                          |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **L-004**        | `\0` recognition in core survives on Rspack _by coincidence_ — an adjacent `node_modules` test saves it. Verified masked, not verified correct           |
+| **L-005**        | `emitFile` returning no reference id — unreproducible, behind the multiplex path §7 excluded                                                             |
+| **L-019**        | `<html dir>` on non-Vite hosts; `lang` is fixed, direction needs a home                                                                                  |
+| **HMR ordering** | `hmr-hammer` loses one hot-update event in roughly eight full-suite runs at four workers. Diagnosed to "no event arrived", not to a cause. ZDB territory |
+
+`vpr ci` is green on the Vite path throughout, unchanged in behaviour and materially stronger in coverage: 780 unit tests and 118 contract cases, up from 728 and 104.

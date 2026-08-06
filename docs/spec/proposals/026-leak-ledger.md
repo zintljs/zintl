@@ -306,6 +306,27 @@ That property is what made the second pass small. A structured encoding would ha
 
 **Verified.** No `data:` URI anywhere in the suite's snapshots. Each locale chunk carries its real text — `يبقي Zintl…`, `Zintl mantiene…`, `Zintl 将翻译…` — and the catalog entry is now a module namespace access (`…["default"]`) rather than a string. Vite snapshots byte-identical; only `rsbuild-spa`'s moved.
 
+### L-010 — Rspack bakes the absolute source path into generated identifiers
+
+|                             |                                                |
+| :-------------------------- | :--------------------------------------------- |
+| **Status**                  | Harness normalization added; cause was L-009's |
+| **Bucket**                  | **2 — relocate** (same identity problem)       |
+| **Facet contract changed?** | No — further evidence for §2.1                 |
+
+**What failed.** A snapshot mismatch differing only by worker id:
+
+```diff
+- var _Users_khalid_Lingua_lingua_tmp_runs_w1_rsbuild_spa_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0
++ var _Users_khalid_Lingua_lingua_tmp_runs_w2_rsbuild_spa_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0
+```
+
+Rspack names a module's binding after its **absolute resource path**, every separator flattened to an underscore. `LabPipeline.sanitizeCode` already normalized the checkout root and the worker directory, but its rules match slash-shaped paths and slid straight past the flattened form.
+
+**Two things worth separating.** The harness fix is routine and was applied — the same two normalizations, extended to the underscore form. But the reason there was a long path in the identifier at all is L-009's cause: Zintl identified a generated asset module by the **source file's real path plus a query**, so the host had a full absolute path to flatten. With the extension-free virtual id in place the encoded name is short and stable, and the flattening is no longer interesting.
+
+Recorded separately because it is independent evidence for the same contract change, arriving from a completely different direction — snapshot instability rather than wrong output. Also worth knowing on its own terms: a build output that embeds the absolute source path is not portable between machines, which is a property of the host regardless of Zintl.
+
 ### L-005 — revised: unreachable within the agreed scope
 
 `emitFile` and `import.meta.ROLLUP_FILE_URL_*` could not be exercised. Both `\0virtual:zintl/asset/` return sites in `resolveIdHook` sit inside multiplex-gated branches — one behind `id.includes("zintl-multiplex=")`, the other inside the multiplex propagation block — and multiplex is the HTML fan-out path §7 explicitly excluded.
