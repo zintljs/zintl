@@ -369,16 +369,37 @@ No `en` chunk — ghost mode held, the source locale was never written. **Zintl 
 
 Recorded because §6.6 asks for what could not be verified, and because two of the repo's own gates turned out not to be usable signals on this machine.
 
-**Contract suite — green, but only below 4 workers.** `vp test --config=tests/vitest.config.ts --maxWorkers=2` → **104/104 passed**. At the committed `maxWorkers: 4` (`tests/vitest.config.ts:30`) every run fails exactly one test, and **a different one each time**:
+**Contract suite at 4 workers — one real defect found and fixed, one still open.**
 
-| Tree               | Workers | Result                                       |
-| :----------------- | :------ | :------------------------------------------- |
-| Phase 0            | 4       | 1 failed — `[HMR Hammer] react-basic`        |
-| baseline (stashed) | 4       | 1 failed — `[Localized Assets] assets-basic` |
-| baseline (stashed) | 4       | 1 failed — `[Memory Leak] react-basic`       |
-| Phase 0            | 2       | **104/104 passed**                           |
+Throughout this work the suite failed roughly one test per run at the committed `maxWorkers: 4`, and **a different one each time** — `hmr-hammer`, `assets-basic`, `memory-leak`, `ssr-streaming`, `performance-size`. Phase 0 established it happened on the unmodified tree too, so it was set aside as environmental and the work ran at `maxWorkers=2`. CLAUDE.md's rule — _"every flake traced in this suite turned out to be a real defect"_ — turned out to hold again.
 
-Two of the three failures are on the **unmodified** tree, and all three are timeout-shaped. So this is contention on this machine, not a Phase 0 regression — but it is also not nothing. CLAUDE.md's "no retries, every flake was a real defect" says this deserves an investigation of its own, and it did not get one here because it is not what proposal 026 is about. **`INFERRED`: that the 4-worker failures are purely environmental. Reproduced: that they occur equally on the unmodified tree.**
+**L-017 — inline fixtures were not worker-scoped.** `copiedExampleSource` and `dirSource` materialize into `.tmp/runs/w<worker>/`, memoize per worker, and make `cleanup()` a deliberate no-op because pooled dev servers outlive the labs that created them. `fixtureSource` did none of that: every worker materialized the same `.tmp/fixtures/<id>`, wiping it on the way in and **deleting it on the way out**.
+
+That is a race with two ways to lose. Worker A wipes the tree while worker B is mid-run against it; and worker A's cleanup deletes the tree worker B's pooled dev server is still serving. Both fixture-backed manifests — `assets-basic` and `ssr-streaming` — were among the observed victims.
+
+Fixed by aligning it with the other two sources: worker-scoped root, wiped once per worker rather than once per lab, and a no-op cleanup. Measured across full runs at `maxWorkers: 4`:
+
+| Tree        | Runs | Failed |
+| :---------- | :--- | :----- |
+| baseline    | 3    | 2      |
+| fixture fix | 8    | 1      |
+
+Small samples, and stated as such — but the two fixture manifests stopped appearing entirely.
+
+**Still open: `hmr-hammer` on `react-basic`, once in eight.** A different defect, and the harness's own failure diagnostics name it rather than leaving it to guesswork:
+
+```
+hmr packets: {"update": 4}          ← five writes, four hot-update events
+settle beacon: 12 (12 updates applied)
+delivery ledger: 12 entries, all applied — no failures
+compiler ledger: flush #6..#10 → superseded (joined the in-flight flush; dirt retained for the next)
+```
+
+Nothing failed. The runtime applied every update it received, and the DOM still held the intermediate `Hammer 4` while disk held the final text. So the loss is upstream of delivery: **one of the five writes produced no hot-update event at all**.
+
+The compiler's mid-flush handling is not obviously the cause — `runFlush` already guards the ABA case with `adoptedRevisions`, so a boundary re-dirtied during a flush keeps its dirty flag, and the retained dirt has a debounce timer behind it. The missing packet points instead at the watcher coalescing two rapid writes into one event whose `read()` had already captured pre-final content. ZDB §7a names exactly that property — _`read()` returning the content of **that** event_ — as one of the two load-bearing requirements for hot updates, and this is what it looks like when it is not quite true under load.
+
+Not fixed here: it is proposal 024 / ZDB territory rather than 026's, and it wants its own change with its own evidence. Recorded with the diagnostics because the expensive part of this bug is reproducing it, and that part is now done.
 
 **`vpr bench` — initially unusable, later measured clean.** L-003 deletes a cheap pre-filter, trading one extra `this.resolve` per previously-skipped edge for a graph lookup, so the budgets were the intended arbiter. On the first attempt they could not arbitrate:
 
