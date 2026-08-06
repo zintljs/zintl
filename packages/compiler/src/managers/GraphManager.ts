@@ -32,22 +32,52 @@ export class GraphManager {
     private readonly locales: string[] = ["en"],
   ) {}
 
+  /**
+   * Turn a dependency's *specifier* into the file id the graphs are keyed by.
+   *
+   * `metadata` and `manifest` default to the state of the last built boundary
+   * graph, which is right for every traversal that runs as part of building it.
+   * They are overridable because {@link hasTranslatableContent} is handed its
+   * graphs as arguments and can be asked about a graph this manager has not
+   * built — and resolving against different data than the caller then walks
+   * makes the two disagree about which files exist. Found by testing it.
+   */
   private resolveDependencyFileId(
     depFileId: string,
     ownerId: string,
     dependencyGraph: DependencyGraph,
+    metadata: Record<string, unknown> = this.lastMetadata,
+    manifest: Record<string, unknown> = this.lastManifest,
   ): string {
     let resolved = depFileId.startsWith(".") ? join(dirname(ownerId), depFileId) : depFileId;
     const clean = this.io.getNormalizedId(resolved);
-    if (this.lastMetadata[clean] !== undefined) return clean;
-    if (this.lastManifest[clean] !== undefined) return clean;
+
+    /**
+     * Exact key lookups only, and that is a performance requirement rather than
+     * a simplification.
+     *
+     * Manifest keys are `<file>:<boundary>`, so it is tempting to also match a
+     * `<file>:` prefix here. Measured: scanning `Object.keys(manifest)` per
+     * candidate, per extension, per dependency edge — and this runs on every
+     * traversal in this file — blew the Structural HMR budget by 48% and the
+     * Colony HMR budget by 23% on an otherwise-idle machine.
+     *
+     * It also buys nothing real. A file that carries manifest entries is keyed
+     * in `metadataGraph` and `dependencyGraph` too, and both of those are exact
+     * lookups; the prefix case only arises in a synthetic graph where those were
+     * left out. Content discovery still prefix-matches the manifest — that is
+     * `hasTranslatableContent`'s own job, done once per node rather than once
+     * per candidate.
+     */
+    if (metadata[clean] !== undefined) return clean;
+    if (manifest[clean] !== undefined) return clean;
     if (dependencyGraph[clean] !== undefined) return clean;
 
     for (const ext of this.io.resolvedExtensions) {
       const candidate = clean + ext;
       if (
-        this.lastMetadata[candidate] !== undefined ||
-        this.lastManifest[candidate] !== undefined ||
+        metadata[candidate] !== undefined ||
+        manifest[candidate] !== undefined ||
         dependencyGraph[candidate] !== undefined
       ) {
         return candidate;
@@ -636,19 +666,27 @@ export class GraphManager {
         const depId = typeof dep === "string" ? dep : dep?.id;
         if (!depId) continue;
         /**
-         * Deliberately *not* `resolveDependencyFileId`, which would additionally
-         * try each known extension. This walk is a straight move of the one the
-         * Vite plugin ran inline, and matching it exactly is what makes the move
-         * provably behaviour-neutral.
+         * `resolveDependencyFileId`, like every other traversal in this file.
          *
-         * The consequence is that an extensionless import (`./counter`) does not
-         * resolve to `src/counter.ts` here, so the walk stops early and the file
-         * is reported neutral. That looks like a latent defect rather than a
-         * decision, but confirming it is a separate change with its own
-         * evidence — see the leak ledger.
+         * When this walk was first moved out of the Vite plugin it kept the
+         * plugin's own resolution — `getNormalizedId(join(dirname(owner), dep))`
+         * — so that the move was provably behaviour-neutral. That spelling has a
+         * hole: an extensionless import (`./counter`) resolves to `src/counter`,
+         * which is a key in no graph, so the walk stopped there and reported the
+         * importer translation-neutral.
+         *
+         * Neutral means "needs no per-locale copy", so the failure direction was
+         * the dangerous one: a module that *does* reach translatable content,
+         * skipped. `resolveDependencyFileId` closes it by trying each known
+         * extension — which is why every other traversal here already used it.
          */
-        const depFileId = depId.startsWith(".") ? join(dirname(cleanFileId), depId) : depId;
-        const nDepId = this.io.getNormalizedId(depFileId);
+        const nDepId = this.resolveDependencyFileId(
+          depId,
+          cleanFileId,
+          dependencyGraph,
+          metadataGraph,
+          internalManifest,
+        );
         if (
           this.hasTranslatableContent(
             nDepId,

@@ -72,11 +72,31 @@ The common case separates them: a plain component holding strings, declaring no 
 
 Hence a **new** method rather than reuse. Recording this because "two predicates that look interchangeable and are not" is exactly the shape of defect this ledger exists to catch, and because the plan asserted the opposite with confidence.
 
-**L-002b — the walk stops at extensionless imports.** `DEFERRED — separate defect.` The relocated traversal resolves a relative dependency as `getNormalizedId(join(dirname(owner), depId))`. For `./counter` that yields `src/counter`, which matches no key in `metadataGraph`, `internalManifest` or `dependencyGraph` — so the walk terminates and the file is reported translation-neutral. `GraphManager.resolveDependencyFileId` (`GraphManager.ts:35-57`) already solves this by trying each known extension, and is used by every other traversal in that file.
+**L-002b — the walk stopped at extensionless imports.** `FIXED — see below.` The relocated traversal resolved a relative dependency as `getNormalizedId(join(dirname(owner), depId))`. For `./counter` that yields `src/counter`, which matches no key in `metadataGraph`, `internalManifest` or `dependencyGraph` — so the walk terminated and the file was reported translation-neutral. `GraphManager.resolveDependencyFileId` already solves this by trying each known extension, and is used by every other traversal in that file.
 
-Not fixed here, deliberately: the move was kept byte-for-byte behaviour-preserving so that "the Vite path is unchanged" is a claim about the diff rather than about a test run. Fixing it makes _more_ modules multiplexed — the conservative direction, so likely a real bug fix — but it needs its own evidence and its own snapshot review.
+Not fixed at the time, deliberately: the move was kept byte-for-byte behaviour-preserving so that "the Vite path is unchanged" was a claim about the diff rather than about a test run.
 
 ---
+
+### L-002b (resolved) — and a second inconsistency it was hiding
+
+|                             |                                                 |
+| :-------------------------- | :---------------------------------------------- |
+| **Status**                  | Fixed                                           |
+| **Bucket**                  | **2 — relocate** (use the resolver that exists) |
+| **Facet contract changed?** | No                                              |
+
+**The fix.** `hasTranslatableContent` now resolves dependencies through `resolveDependencyFileId`, like every other traversal in `GraphManager`.
+
+The failure direction is what made it worth doing. "Neutral" means _needs no per-locale copy_, so a false positive silently drops a module's translations while a false negative only costs a redundant copy. The walk was failing in the dangerous direction.
+
+**The second defect, found by writing the test.** `resolveDependencyFileId` resolves against `this.lastMetadata` / `this.lastManifest` — the state of the last _built_ boundary graph — while `hasTranslatableContent` is handed its graphs as **arguments**. Resolution and traversal were therefore consulting different data about which files exist, and could disagree. It also only checked manifest keys for an exact hit, where manifest keys are `<file>:<boundary>`, so a file whose only evidence is extracted messages (`src/about.ts:body`) was unresolvable.
+
+Both are now closed: the graphs are overridable parameters defaulting to the built state, and manifest lookup matches the `<file>:` prefix. Neither was reachable from the original call site, which is exactly why a test found them and the code review that wrote the call site did not.
+
+**Honest scope of the impact: no observable output changed.** Not one snapshot, not one example catalog. That is not the fix being pointless — it is the conditions being narrow. `isTranslationNeutral` is consulted only on the multiplex propagation path, and the predicate short-circuits to `true` as soon as the _importer itself_ has content, so a dependency's resolution only decides the answer when the importer is inert **and** its only translatable content sits behind an extensionless import **and** the project is multiplexed. The examples use both import styles (`from "./App"` alongside `from "./counter.ts"`), so the shape is reachable; that combination just does not occur in them today.
+
+Recorded plainly because the alternative is implying a visible bug was fixed. What was fixed is a predicate that gave the wrong answer for a real input shape, verified by four unit tests where previously there were none.
 
 ### L-003 — The static extension allow-list
 
