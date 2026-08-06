@@ -11,6 +11,8 @@ These ids now resolve to an extension-free virtual id, decoded again at load so 
 Two boundaries worth knowing:
 
 - The encoding is base64url, not `encodeURIComponent`. Percent-encoding preserves `.`, so the encoded id still ended in `.txt`, and unplugin materialises a virtual module as a real file whose _name_ is that id — reproducing the same misclassification one layer down.
-- The rewrite does not apply to multiplexed builds, which resolve an asset to a different file per locale further along in resolution. Multiplexed projects keep the path-based identity for now.
+- The rewrite is applied _after_ multiplex resolution picks a per-locale file, not before it. Rewriting the identity first short-circuits that choice and hands every locale the source text.
+
+The encoding covers the whole id, query included, so decoding reproduces byte-identical input. That is what lets the same rewrite be applied at each of the five places resolution can land on such a file without any downstream branch knowing it happened.
 
 No change to Vite output.

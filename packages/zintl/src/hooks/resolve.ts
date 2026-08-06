@@ -18,6 +18,39 @@ import {
   RESOLVED_RAW_ASSET_PREFIX,
 } from "../constants.js";
 
+/**
+ * Give a raw text asset an identity that does not claim to be a text file.
+ *
+ * `loadHook` turns a `.md`/`.txt` import carrying `?raw` or `?zintl-raw` into a
+ * JavaScript module. Keeping the source path as the module id leaves that module
+ * looking like text to the host, and a host that types modules by extension
+ * believes the extension: Rspack classified `about.txt?raw` as an asset and
+ * base64-encoded our JavaScript into a `data:` URI, so the catalog shipped a URI
+ * where the translation belonged (ledger L-009). Vite never showed it, because
+ * module type there follows from *who loaded the module* — the id could lie for
+ * free.
+ *
+ * The **whole id** is encoded, query and all, so `loadHook` decodes back to
+ * byte-identical input. That is what makes this safe to apply at the several
+ * places resolution can land on such a file: it changes identity and nothing
+ * else, so no branch downstream has to know it happened.
+ *
+ * base64url rather than `encodeURIComponent`, which was tried first and failed
+ * silently: percent-encoding preserves `.`, so the encoded id still ended in
+ * `.txt` — and unplugin materialises a virtual module as a real file *named*
+ * after the encoded id, reproducing the same misclassification one layer down.
+ *
+ * Returns `undefined` for anything Zintl does not convert, so a `.svg?raw` or
+ * any other host-handled `?raw` import keeps falling through untouched.
+ */
+function rawTextAssetId(fullId: string): string | undefined {
+  const clean = fullId.split("?")[0];
+  if (!/\.(md|txt)$/.test(clean)) return undefined;
+  if (!/[?&](raw|zintl-raw)(&|$)/.test(fullId)) return undefined;
+  if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
+  return `${RESOLVED_RAW_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
+}
+
 function injectMultiplexQuery(id: string, locale: string): string {
   const parts = id.split("?");
   const cleanId = parts[0];
@@ -98,59 +131,21 @@ export function resolveIdHook(ctx: Context) {
     }
 
     /**
-     * Give raw text assets an identity that does not claim to be a text file.
+     * The non-multiplex case, where the id resolution lands on directly.
      *
-     * `loadHook` turns a `.md`/`.txt` import carrying `?raw` or `?zintl-raw`
-     * into a JavaScript module. Keeping the source path as the module id leaves
-     * that module looking like text to the host, and a host that types modules
-     * by extension believes the extension: Rspack classified `about.txt?raw` as
-     * an asset and base64-encoded our JavaScript into a `data:` URI, so the
-     * catalog shipped a URI where the Arabic text belonged (ledger L-009).
-     *
-     * Vite never showed it because module type there follows from *who loaded
-     * the module*, not from its name — so the id could lie for free.
-     *
-     * Scoped to exactly the ids `loadHook` converts. A `.svg?raw` or any other
-     * `?raw` import Zintl does not handle must keep falling through to the host,
-     * which is what makes this safe to do unconditionally rather than behind the
-     * `virtualAssets` option.
-     *
-     * **Not applied under multiplex**, and that boundary was found by breaking
-     * it. Multiplexed builds resolve an asset to a *different file per locale*,
-     * in the branches below — so rewriting the id here short-circuits that and
-     * every locale gets the source text. Four asset scenarios caught it.
-     *
-     * The consequence is that multiplexed projects keep the path-based identity
-     * and so keep L-009 on a host that types by extension. That is the same
-     * scope §7 drew around the multiplex and HTML fan-out paths, and it is a
-     * known gap rather than an oversight: closing it means minting the virtual
-     * id after the per-locale file is chosen, in three more branches, with the
-     * HTML fan-out downstream of them.
+     * Multiplexed projects are handled at the branches below instead: they pick
+     * a *different file per locale*, so rewriting the identity this early would
+     * short-circuit that choice and hand every locale the source text. Four
+     * scenarios in `asset_scenarios.test.ts` demonstrated exactly that.
      */
-    if (!ctx.getMultiplex() && /\.(md|txt)$/.test(cleanId) && /[?&](raw|zintl-raw)(&|$)/.test(id)) {
+    if (!ctx.getMultiplex()) {
       const absolutePath =
         cleanId.startsWith(".") && importer
           ? join(dirname(importer.split("?")[0]), cleanId)
           : cleanId;
-      if (isAbsolute(absolutePath) && existsSync(absolutePath)) {
-        const mode = id.includes("?zintl-raw") || id.includes("&zintl-raw") ? "zintl-raw" : "raw";
-        // The multiplex locale rides along: it is part of *which* content this
-        // module resolves to, and stripping the query would silently drop it.
-        const locale = ctx.getMultiplexLocale(id) ?? "none";
-        /**
-         * base64url, not `encodeURIComponent` — which was the first attempt and
-         * did not work, for a reason worth keeping.
-         *
-         * Percent-encoding preserves `.`, so the encoded id still ended in
-         * `.txt`. Unplugin materialises a virtual module as a real file whose
-         * *name* is the encoded id, so Rspack saw a `.txt` filename again and
-         * typed it as an asset again — the identical bug, one layer down.
-         * base64url has no dots, so nothing downstream can read an extension
-         * out of it.
-         */
-        const encoded = Buffer.from(absolutePath, "utf8").toString("base64url");
-        return `${RESOLVED_RAW_ASSET_PREFIX}/${mode}/${locale}/${encoded}`;
-      }
+      const query = id.includes("?") ? "?" + id.split("?").slice(1).join("?") : "";
+      const virtualId = rawTextAssetId(absolutePath + query);
+      if (virtualId) return virtualId;
     }
 
     if (id.includes("zintl-multiplex=")) {
@@ -173,7 +168,7 @@ export function resolveIdHook(ctx: Context) {
           const suffix = cleanQueries ? `?${cleanQueries}` : "";
 
           if (locale === (ctx.compiler as any).sourceLocale) {
-            return absolutePath + suffix;
+            return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
           }
 
           const assetId = ctx.compiler.getNormalizedId(absolutePath);
@@ -185,9 +180,9 @@ export function resolveIdHook(ctx: Context) {
           const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(assetId, locale);
 
           if (existsSync(localizedPath)) {
-            return localizedPath + suffix;
+            return rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
           }
-          return absolutePath + suffix;
+          return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
         }
       }
     }
@@ -270,7 +265,11 @@ export function resolveIdHook(ctx: Context) {
                 await (ctx.compiler.assets as AssetManager).registerAsset(cleanResolvedId);
 
                 if (locale === (ctx.compiler as any).sourceLocale) {
-                  return resolved;
+                  const sourceVirtual = rawTextAssetId(resolvedId);
+                  if (!sourceVirtual) return resolved;
+                  return typeof resolved === "string"
+                    ? sourceVirtual
+                    : { ...resolved, id: sourceVirtual };
                 }
 
                 const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
@@ -294,7 +293,7 @@ export function resolveIdHook(ctx: Context) {
                 );
 
                 if (existsSync(localizedPath)) {
-                  const finalId = localizedPath + suffix;
+                  const finalId = rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
 
                   if (typeof resolved === "string") {
                     return finalId;
@@ -374,14 +373,9 @@ export function loadHook(ctx: Context) {
      */
     let id = rawId;
     if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
-      const [mode, locale, encoded] = rawId
-        .slice(RESOLVED_RAW_ASSET_PREFIX.length + 1)
-        .split("/", 3);
-      if (encoded) {
-        const filePath = Buffer.from(encoded, "base64url").toString("utf8");
-        const multiplex = locale !== "none" ? `&zintl-multiplex=${locale}` : "";
-        id = `${filePath}?${mode}${multiplex}`;
-      }
+      id = Buffer.from(rawId.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1), "base64url").toString(
+        "utf8",
+      );
     }
 
     const cleanId = id.split("?")[0];

@@ -276,7 +276,7 @@ Worth recording for two reasons. A mis-rooted compiler **writes**, so a wrong ro
 
 |                             |                                                            |
 | :-------------------------- | :--------------------------------------------------------- |
-| **Status**                  | **Fixed** for non-multiplex; multiplex deferred            |
+| **Status**                  | **Fixed**, including the multiplex paths                   |
 | **Bucket**                  | **2 — relocate** (identity), not 1                         |
 | **Facet contract changed?** | No — the fix is id spelling, which is the plugin's own job |
 
@@ -298,9 +298,11 @@ decoding to `export default "يبقي Zintl الترجمات بجانب الشي
 
 _`encodeURIComponent` was the wrong encoder, and the failure was invisible._ Percent-encoding preserves `.`, so the encoded id still ended in `.txt` — and unplugin materialises a virtual module as a **real file whose name is the encoded id**. Rspack read `.txt` off that filename and typed it as an asset again: the identical bug, one layer down, with the fix in place and apparently doing nothing. Diagnosed only by instrumenting `resolveId` and finding it _was_ firing, which killed every hypothesis about the condition. base64url has no dots.
 
-_The rewrite must not apply under multiplex._ Multiplexed builds resolve an asset to a **different file per locale**, in branches further down `resolveId`; rewriting the id first short-circuits that and hands every locale the source text. Four scenarios in `asset_scenarios.test.ts` caught it — a real break, not a stale assertion.
+_The rewrite must not fire before the per-locale file is chosen._ Multiplexed builds resolve an asset to a **different file per locale**, in branches further down `resolveId`; rewriting the id first short-circuits that and hands every locale the source text. Four scenarios in `asset_scenarios.test.ts` caught it — a real break, not a stale assertion.
 
-**What remains open.** Multiplexed projects keep the path-based identity, and therefore keep L-009 on a host that types by extension. That is the boundary §7 already drew around the multiplex and HTML fan-out paths. Closing it means minting the virtual id _after_ the per-locale file is chosen, across three more branches with the fan-out downstream — a change that wants its own evidence.
+**Multiplex, closed in a second pass.** The first fix stopped at the non-multiplex case and left multiplexed projects on the path-based identity. Closing the rest turned on one decision: encode **the whole id, query and all**, rather than a structured `mode/locale/path` triple. Decoding then reproduces byte-identical input, so the rewrite can be applied at each of the five places resolution can land on such a file — the direct case, both source-locale returns, and both localized-path returns — without any downstream branch knowing it happened. Identity changes; nothing else does.
+
+That property is what made the second pass small. A structured encoding would have needed each call site to reason about which fields it could supply, and the sites disagree: one has a locale in the query, one has stripped it, one has already swapped the file.
 
 **Verified.** No `data:` URI anywhere in the suite's snapshots. Each locale chunk carries its real text — `يبقي Zintl…`, `Zintl mantiene…`, `Zintl 将翻译…` — and the catalog entry is now a module namespace access (`…["default"]`) rather than a string. Vite snapshots byte-identical; only `rsbuild-spa`'s moved.
 
