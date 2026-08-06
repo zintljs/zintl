@@ -1,0 +1,22 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-spa/src/i18n/src/about.es.txt?zintl-raw";
+const catalog = {
+    "b_src_main_render": {
+      "Get started": "Empezar",
+      "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `La cuenta es ${params['counter']}`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+  },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;

@@ -79,6 +79,9 @@ export function exampleSource(dir: string): ProjectSource {
  */
 const preparedCopies = new Set<string>();
 
+/** The same, for inline fixtures — see {@link fixtureSource}. */
+const preparedFixtures = new Set<string>();
+
 /** Build artefacts and caches — never worth copying, and stale by definition. */
 const COPY_EXCLUDED = new Set(["node_modules", "dist", ".next", ".vite", ".turbo", ".tmp"]);
 
@@ -140,73 +143,115 @@ export function copiedExampleSource(dir: string): ProjectSource {
       if (!existsSync(origin)) {
         throw new Error(`Example fixture directory not found: ${dir}`);
       }
+      return prepareWorkerCopy(origin, dir);
+    },
+  };
+}
 
-      const root = join(MONOREPO_ROOT, ".tmp", "runs", `w${workerId()}`, dir);
+/**
+ * Copy a project into a worker-private directory, once per worker.
+ *
+ * Shared by {@link copiedExampleSource} and {@link dirSource}; the copy rules
+ * are the interesting part and are documented at their definitions above.
+ */
+async function prepareWorkerCopy(origin: string, id: string): Promise<MaterializedProject> {
+  const root = join(MONOREPO_ROOT, ".tmp", "runs", `w${workerId()}`, id);
 
-      if (!preparedCopies.has(root)) {
-        await rm(root, { recursive: true, force: true });
-        await cp(origin, root, {
-          recursive: true,
-          filter: (src) => !COPY_EXCLUDED.has(basename(src)),
+  if (!preparedCopies.has(root)) {
+    await rm(root, { recursive: true, force: true });
+    await cp(origin, root, {
+      recursive: true,
+      filter: (src) => !COPY_EXCLUDED.has(basename(src)),
+    });
+
+    const originModules = join(origin, "node_modules");
+    if (existsSync(originModules)) {
+      const target = join(root, "node_modules");
+      await mkdir(target, { recursive: true });
+      for (const entry of await readdir(originModules)) {
+        /**
+         * `.vite` must NOT be linked. It is Vite's dependency-optimization
+         * cache, which the dev server writes to — linking it sends every
+         * worker's writes into the one shared directory under `examples/`,
+         * which is the exact contention this copy exists to remove.
+         * Omitting it lets each copy create its own.
+         */
+        if (MODULES_NOT_LINKED.has(entry)) continue;
+        await symlink(join(originModules, entry), join(target, entry)).catch(() => {
+          // Entry already linked, or unsupported — resolution falls back to
+          // walking up to the workspace root, which still resolves.
         });
-
-        const originModules = join(origin, "node_modules");
-        if (existsSync(originModules)) {
-          const target = join(root, "node_modules");
-          await mkdir(target, { recursive: true });
-          for (const entry of await readdir(originModules)) {
-            /**
-             * `.vite` must NOT be linked. It is Vite's dependency-optimization
-             * cache, which the dev server writes to — linking it sends every
-             * worker's writes into the one shared directory under `examples/`,
-             * which is the exact contention this copy exists to remove.
-             * Omitting it lets each copy create its own.
-             */
-            if (MODULES_NOT_LINKED.has(entry)) continue;
-            await symlink(join(originModules, entry), join(target, entry)).catch(() => {
-              // Entry already linked, or unsupported — resolution falls back to
-              // walking up to the workspace root, which still resolves.
-            });
-          }
-
-          /**
-           * `.zintl` is **copied**, not linked and not omitted.
-           *
-           * Linking it shares the compiler's persisted manifest between the copy
-           * and the real example, so a contract that renames or deletes a file
-           * writes a phantom boundary into `examples/`, and the next
-           * `build:examples` generates catalogs for source that no longer exists
-           * — into the tracked tree.
-           *
-           * Omitting it is not the fix either, and that was measured: a compiler
-           * starting cold resolves boundary ownership differently from one
-           * reading a saved manifest (`src/App.tsx:App` moved from
-           * `src/main.tsx:bootstrap` to an anonymous `src/main.tsx:f_547`), which
-           * changed four committed graph snapshots. That difference is worth
-           * investigating on its own — ZRS Axiom 4 says ownership is
-           * deterministic — but it is not this function's problem to absorb.
-           *
-           * Copying gives every worker the same warm starting state with no
-           * shared mutable file, which is the property the whole per-worker copy
-           * exists to provide.
-           */
-          const originZintl = join(originModules, ".zintl");
-          if (existsSync(originZintl)) {
-            await cp(originZintl, join(target, ".zintl"), { recursive: true });
-          }
-        }
-
-        preparedCopies.add(root);
       }
 
-      return {
-        root,
-        async cleanup() {
-          // Intentionally retained: the pooled dev server for this example
-          // outlives the lab and still needs this root. The whole
-          // `.tmp/runs/w<id>` tree is rebuilt on the worker's next first use.
-        },
-      };
+      /**
+       * `.zintl` is **copied**, not linked and not omitted.
+       *
+       * Linking it shares the compiler's persisted manifest between the copy
+       * and the real example, so a contract that renames or deletes a file
+       * writes a phantom boundary into `examples/`, and the next
+       * `build:examples` generates catalogs for source that no longer exists
+       * — into the tracked tree.
+       *
+       * Omitting it is not the fix either, and that was measured: a compiler
+       * starting cold resolves boundary ownership differently from one
+       * reading a saved manifest (`src/App.tsx:App` moved from
+       * `src/main.tsx:bootstrap` to an anonymous `src/main.tsx:f_547`), which
+       * changed four committed graph snapshots. That difference is worth
+       * investigating on its own — ZRS Axiom 4 says ownership is
+       * deterministic — but it is not this function's problem to absorb.
+       *
+       * Copying gives every worker the same warm starting state with no
+       * shared mutable file, which is the property the whole per-worker copy
+       * exists to provide.
+       */
+      const originZintl = join(originModules, ".zintl");
+      if (existsSync(originZintl)) {
+        await cp(originZintl, join(target, ".zintl"), { recursive: true });
+      }
+    }
+
+    preparedCopies.add(root);
+  }
+
+  return {
+    root,
+    async cleanup() {
+      // Intentionally retained: the pooled dev server for this example
+      // outlives the lab and still needs this root. The whole
+      // `.tmp/runs/w<id>` tree is rebuilt on the worker's next first use.
+    },
+  };
+}
+
+/**
+ * A checked-in project directory anywhere in the repo, copied per worker.
+ *
+ * The gap this fills sits between the two sources above it.
+ * `copiedExampleSource` is hardcoded to `examples/`, and anything placed there
+ * joins `vpr build:examples`, lint, knip and CI — a maintenance commitment.
+ * `fixtureSource` avoids that but defines the project as an inline
+ * `Record<path, contents>`, which stops being readable somewhere around a
+ * dozen files and cannot hold binary assets at all.
+ *
+ * So: a real directory, version controlled and editable with normal tooling,
+ * that no build or lint gate walks into. It was added for the proposal 026
+ * Rsbuild target, which must not enter `vpr ci` while it is a spike, and is
+ * not specific to that.
+ *
+ * `dir` is relative to the monorepo root. Copy semantics — the exclusions, the
+ * `node_modules` symlink farm, the copied `.zintl` — are shared with
+ * {@link copiedExampleSource}, and the reasoning for each is documented there.
+ */
+export function dirSource(dir: string, id?: string): ProjectSource {
+  const sourceId = id ?? basename(dir);
+  return {
+    id: sourceId,
+    async materialize(): Promise<MaterializedProject> {
+      const origin = join(MONOREPO_ROOT, dir);
+      if (!existsSync(origin)) {
+        throw new Error(`Project directory not found: ${dir}`);
+      }
+      return prepareWorkerCopy(origin, sourceId);
     },
   };
 }
@@ -247,14 +292,38 @@ export interface FixtureDefinition {
  * inspection after a run.
  */
 export function fixtureSource(def: FixtureDefinition): ProjectSource {
-  const root = join(MONOREPO_ROOT, ".tmp", "fixtures", def.id);
+  /**
+   * Worker-scoped, for the same reasons {@link copiedExampleSource} is — and it
+   * was not, which made it the one shared mutable directory left in the harness.
+   *
+   * Every fixture materialized to `.tmp/fixtures/<id>`, wiped it on the way in
+   * and deleted it on the way out. With more than one worker that is a race with
+   * two ways to lose: worker A wipes the directory while worker B is mid-run
+   * against it, and worker A's cleanup deletes the tree that worker B's pooled
+   * dev server is still serving from. Both fixture-backed manifests
+   * (`assets-basic`, `ssr-streaming`) were among the tests observed failing at
+   * `maxWorkers: 4`, each time with a different victim — the signature of a
+   * race rather than a broken assertion.
+   */
+  const root = join(MONOREPO_ROOT, ".tmp", "fixtures", `w${workerId()}`, def.id);
 
   return {
     id: def.id,
     async materialize(): Promise<MaterializedProject> {
-      // Always start from nothing: a fixture is defined entirely by `files`, so
-      // leftovers from a previous run would be invisible extra inputs.
-      await rm(root, { recursive: true, force: true });
+      /**
+       * Wiped once per worker, not once per lab.
+       *
+       * The wipe exists so a previous *run*'s leftovers cannot become invisible
+       * extra inputs. Repeating it per lab does not serve that and actively
+       * breaks things: dev servers are pooled by name and outlive the lab that
+       * created them, so a second lab for the same fixture would delete the tree
+       * out from under a server still serving it. Same reasoning as
+       * `preparedCopies`.
+       */
+      if (!preparedFixtures.has(root)) {
+        await rm(root, { recursive: true, force: true });
+        preparedFixtures.add(root);
+      }
       await mkdir(root, { recursive: true });
 
       const files = { ...def.files };
@@ -271,15 +340,16 @@ export function fixtureSource(def: FixtureDefinition): ProjectSource {
       return {
         root,
         /**
-         * Best-effort. Determinism comes from the wipe in `materialize()`, not
-         * from here: dev servers are pooled and outlive an individual lab, so a
-         * server can flush catalogs and re-create part of this directory after
-         * its lab has torn down. Residue is inert — `.tmp/` is gitignored and
-         * the next run starts by deleting the directory outright.
+         * Intentionally a no-op, matching {@link copiedExampleSource}.
+         *
+         * Deleting here was the second half of the race: a lab tears down while
+         * the pooled dev server for that fixture is still running, and the next
+         * lab to reuse that server finds no project on disk. Determinism comes
+         * from the once-per-worker wipe in `materialize()`; residue is inert,
+         * since `.tmp/` is gitignored and the next run wipes on first use.
          */
         async cleanup() {
-          if (process.env.ZINTL_KEEP_FIXTURES) return;
-          await rm(root, { recursive: true, force: true });
+          // See above — the directory outlives the lab on purpose.
         },
       };
     },

@@ -19,6 +19,7 @@ export function executeContract<TAdapter extends BaseAdapter = BaseAdapter>(
     test(`[${contract.name}] ${manifest.name}`, async () => {
       const lab = await createLab({
         source: manifest.source,
+        driver: manifest.driver,
         mode: "dev",
         // Declared on the contract, so an exemption travels with the thing it
         // exempts rather than living in the harness's environment.
@@ -67,6 +68,7 @@ export function executeProjectContract<TAdapter extends BaseAdapter = BaseAdapte
       const lab = await createProjectLab({
         source: manifest.source,
         zintlOptions: manifest.zintlOptions,
+        driver: manifest.driver,
       });
       try {
         await contract.execute(lab, manifest.adapter as TAdapter, manifest);

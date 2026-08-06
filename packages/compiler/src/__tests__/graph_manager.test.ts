@@ -295,3 +295,111 @@ describe("GraphManager", () => {
     expect(usage).toBeDefined();
   });
 });
+
+/**
+ * `hasTranslatableContent` had no coverage at all until this file, which is
+ * part of why L-002b survived: the walk was moved out of the Vite plugin
+ * verbatim, and nothing asserted what it did with an import shape the plugin
+ * had never been given.
+ *
+ * The predicate's failure direction is the asymmetric one. "Neutral" means
+ * "needs no per-locale copy", so a false positive silently drops a module's
+ * translations, while a false negative only costs a redundant copy.
+ */
+describe("GraphManager.hasTranslatableContent", () => {
+  const NO_ASSETS = () => false;
+
+  /** A file with strings in it, and nothing else. */
+  const withContent = (): BoundaryMetadata => ({
+    hasZintlMacro: false,
+    hasZintlMarker: false,
+    isEntry: false,
+    anchorSites: [],
+    needsLoader: true,
+    exportedBoundaries: {},
+    internalDependencies: {},
+  });
+
+  const inert = (): BoundaryMetadata => ({ ...withContent(), needsLoader: false });
+
+  const setup = () => {
+    const io = new IOManager("/root", false, logger, {}, [".ts", ".tsx"], []);
+    return new GraphManager(io, false, logger, ["en", "ar"]);
+  };
+
+  it("follows an extensionless relative import to the file it means", () => {
+    const graphMgr = setup();
+    // `src/main` imports `./counter`, which is really `src/counter.ts` — the
+    // shape every TypeScript project uses and the one L-002b walked past.
+    const dependencyGraph = {
+      "src/main": [{ id: "./counter" }] as unknown as ObservedDependency[],
+      "src/counter.ts": [] as unknown as ObservedDependency[],
+    };
+    const metadataGraph: Record<string, BoundaryMetadata> = {
+      "src/main": inert(),
+      "src/counter.ts": withContent(),
+    };
+
+    expect(
+      graphMgr.hasTranslatableContent("src/main", dependencyGraph, metadataGraph, {}, NO_ASSETS),
+    ).toBe(true);
+  });
+
+  it("still reports a genuinely inert graph as having nothing", () => {
+    const graphMgr = setup();
+    const dependencyGraph = {
+      "src/main": [{ id: "./counter" }] as unknown as ObservedDependency[],
+      "src/counter.ts": [] as unknown as ObservedDependency[],
+    };
+    const metadataGraph: Record<string, BoundaryMetadata> = {
+      "src/main": inert(),
+      "src/counter.ts": inert(),
+    };
+
+    expect(
+      graphMgr.hasTranslatableContent("src/main", dependencyGraph, metadataGraph, {}, NO_ASSETS),
+    ).toBe(false);
+  });
+
+  it("finds content whose only evidence is a manifest entry", () => {
+    const graphMgr = setup();
+    /**
+     * `src/about.ts` is present in the dependency graph, which is how a real
+     * project looks: a file with extracted messages is also a node. Resolution
+     * uses exact lookups for speed, so the manifest's `<file>:<boundary>` keys
+     * are matched by content discovery rather than by resolution — the split
+     * that keeps the HMR budgets intact.
+     */
+    const dependencyGraph = {
+      "src/main": [{ id: "./about" }] as unknown as ObservedDependency[],
+      "src/about.ts": [] as unknown as ObservedDependency[],
+    };
+    const internalManifest = { "src/about.ts:body": [entry("hello", "src/about.ts:body")] };
+
+    expect(
+      graphMgr.hasTranslatableContent(
+        "src/main",
+        dependencyGraph,
+        { "src/main": inert() },
+        internalManifest,
+        NO_ASSETS,
+      ),
+    ).toBe(true);
+  });
+
+  it("terminates on a dependency cycle", () => {
+    const graphMgr = setup();
+    const dependencyGraph = {
+      "src/a.ts": [{ id: "./b" }] as unknown as ObservedDependency[],
+      "src/b.ts": [{ id: "./a" }] as unknown as ObservedDependency[],
+    };
+    const metadataGraph: Record<string, BoundaryMetadata> = {
+      "src/a.ts": inert(),
+      "src/b.ts": inert(),
+    };
+
+    expect(
+      graphMgr.hasTranslatableContent("src/a.ts", dependencyGraph, metadataGraph, {}, NO_ASSETS),
+    ).toBe(false);
+  });
+});

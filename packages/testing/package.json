@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@playwright/test": "catalog:",
+    "@rsbuild/core": "catalog:",
     "@zintljs/compiler": "workspace:*",
     "vite": "catalog:",
     "zintljs": "workspace:*"

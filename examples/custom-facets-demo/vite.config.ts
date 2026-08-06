@@ -11,7 +11,7 @@ export default defineConfig({
       outputDir: "./src/i18n",
       catalogFormat: "[path].[locale].json",
       verifyIntegrity: false,
-      facets: ["auto", handlebarsFacet(), multiBrandThemeFacet()],
+      facets: ["builtins", handlebarsFacet(), multiBrandThemeFacet()],
     }),
     {
       name: "hbs-compiler",

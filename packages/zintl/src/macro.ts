@@ -157,7 +157,7 @@ export function setLocale(_locale?: string | null): Promise<void> {
  *
  * The building block for wiring Zintl into a UI framework by hand. Call the
  * returned function to unsubscribe. Framework integrations built from the
- * `"auto"` facets already do this for you — React components, for instance, are
+ * The built-in facets already do this for you — React components, for instance, are
  * re-rendered through `useSyncExternalStore` without any subscription of yours.
  *
  * @returns An unsubscribe function.

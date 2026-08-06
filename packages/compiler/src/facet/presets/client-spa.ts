@@ -23,7 +23,7 @@ export interface ClientSpaFacetOptions {
  * Only the code this facet enables is shipped, so a non-SPA build carries none
  * of it.
  *
- * Included in `"auto"` for every project except Next.js, which handles routing
+ * Included in the built-in set for every project except Next.js, which handles routing
  * itself.
  */
 export function clientSpaFacet(options: ClientSpaFacetOptions = {}): ZintlFacet {

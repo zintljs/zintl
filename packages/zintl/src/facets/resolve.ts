@@ -143,6 +143,9 @@ interface MergeState {
     | undefined;
   hmrInjectionCodeProvider: string;
   hmrInjectionCodePriority: number;
+  hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
+  hmrSelfAcceptCodeProvider: string;
+  hmrSelfAcceptCodePriority: number;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -182,6 +185,9 @@ function createEmptyState(): MergeState {
     hmrInjectionCode: undefined,
     hmrInjectionCodeProvider: "",
     hmrInjectionCodePriority: -1,
+    hmrSelfAcceptCode: undefined,
+    hmrSelfAcceptCodeProvider: "",
+    hmrSelfAcceptCodePriority: -1,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -349,6 +355,21 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
           state.hmrInjectionCodePriority = priority;
         }
       }
+      if (facet.hmrSelfAcceptCode !== undefined) {
+        state.hmrSelfAcceptCode = mergeHook(
+          state.hmrSelfAcceptCode,
+          state.hmrSelfAcceptCodePriority,
+          facet.hmrSelfAcceptCode,
+          priority,
+          "bundler.hmrSelfAcceptCode",
+          state.hmrSelfAcceptCodeProvider,
+          name,
+        );
+        if (state.hmrSelfAcceptCode === facet.hmrSelfAcceptCode) {
+          state.hmrSelfAcceptCodeProvider = name;
+          state.hmrSelfAcceptCodePriority = priority;
+        }
+      }
       break;
     }
   }
@@ -439,6 +460,7 @@ function stateToHooks(state: MergeState): CompilerSystemView {
     resolveVirtualPath: state.resolveVirtualPath ?? DEFAULT_RESOLVE_VIRTUAL_PATH,
     dynamicImportTemplate: state.dynamicImportTemplate ?? DEFAULT_DYNAMIC_IMPORT_TEMPLATE,
     hmrInjectionCode: state.hmrInjectionCode,
+    hmrSelfAcceptCode: state.hmrSelfAcceptCode,
 
     detectLocale,
     getProtectedCatalogKeys,

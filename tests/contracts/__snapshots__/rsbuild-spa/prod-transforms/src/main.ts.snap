@@ -1,0 +1,43 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_ae1e7cbb2f74 from "virtual:zintl/manager/none/entry:b_ae1e7cbb2f74";
+
+import { setupCounter } from "./counter.ts";
+import { setupSwitcher } from "./switcher.ts";
+import aboutText from "./about.txt?raw";
+
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_ae1e7cbb2f74"]: _zintl_mgr_b_ae1e7cbb2f74.loader } }));
+
+  document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+<section id="header">
+  <div id="switcher" class="switcher"></div>
+</section>
+
+<section id="center">
+  <div>
+    <h1>${_t("90e40d50", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })}</h1>
+    <p>${_t("e2aae512", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+  </div>
+  <button id="counter" type="button" class="counter"></button>
+</section>
+
+<section id="next-steps">
+  <div id="docs">
+    <h2>${_t("9e9cf322", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })}</h2>
+    <p>${_t("d0f7666b", { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_ae1e7cbb2f74" })}</p>
+    <p id="about">${aboutText}</p>
+  </div>
+</section>
+`;
+
+  setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+  setupSwitcher(document.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

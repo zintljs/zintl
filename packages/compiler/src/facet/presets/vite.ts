@@ -12,9 +12,23 @@ import { selfAcceptHmrSnippet } from "../../utils/hmr.js";
 export function viteFacet(): ZintlFacet {
   return {
     name: "vite",
+    when: { bundler: "vite" },
     concern: "bundler",
     priority: 100,
     resolveVirtualPath: (id: string): string => id,
+    /**
+     * Self-acceptance for Zintl's own generated modules.
+     *
+     * Always safe here, unlike {@link ZintlFacet.hmrInjectionCode} on a source
+     * file: a catalog or manager is code Zintl wrote, so replacing it cannot
+     * double-mount anything. The optional body runs with `newModule` in scope.
+     */
+    hmrSelfAcceptCode: (callbackBody?: string): string => {
+      if (!callbackBody) {
+        return `\nif (import.meta.hot) { import.meta.hot.accept(); }`;
+      }
+      return `\nif (import.meta.hot) {\n  import.meta.hot.accept((newModule) => {\n${callbackBody}\n  });\n}`;
+    },
     dynamicImportTemplate: (path: string, isDev: boolean): string => {
       return `import(${isDev ? "/* @vite-ignore */ " : ""}${JSON.stringify(path)})`;
     },

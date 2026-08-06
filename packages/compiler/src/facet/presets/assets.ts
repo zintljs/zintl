@@ -725,7 +725,7 @@ export class AssetManager {
  * Edits are tracked by content, not by path, so rewording a paragraph carries
  * its translation forward instead of resetting the document.
  *
- * Included in `"auto"`, configured from the plugin's `assetsTarget` and
+ * Included in the built-in set, configured from the plugin's `assetsTarget` and
  * `virtualAssets` options.
  */
 export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {

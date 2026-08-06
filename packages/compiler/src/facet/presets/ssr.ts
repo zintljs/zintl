@@ -121,6 +121,8 @@ export interface SsrFacetOptions extends SsrWrappingOptions, SsrRuntimeOptions {
 export function ssrWrappingFacet(options: SsrWrappingOptions = {}): ZintlFacet {
   return {
     name: "ssr-wrapping",
+    when: { ssr: true },
+    provides: ["ssr:wrapping"],
     concern: "ssr",
     priority: 100,
     wrapCode: genericSsrWrapCode,
@@ -143,6 +145,7 @@ export function ssrWrappingFacet(options: SsrWrappingOptions = {}): ZintlFacet {
 export function ssrRuntimeFacet(options: SsrRuntimeOptions = {}): ZintlFacet {
   return {
     name: "ssr-runtime",
+    when: { ssr: true },
     concern: "runtime",
     priority: 100,
     serverRequestScope:
@@ -154,7 +157,7 @@ export function ssrRuntimeFacet(options: SsrRuntimeOptions = {}): ZintlFacet {
 /**
  * Full SSR support: {@link ssrWrappingFacet} plus {@link ssrRuntimeFacet}.
  *
- * Included in `"auto"` for SSR builds, except on Next.js — {@link nextjsFacet}
+ * Included in the built-in set for SSR builds, except on Next.js — {@link nextjsFacet}
  * brings its own, and installing both would collide on the same hook.
  */
 export function ssrFacet(options: SsrFacetOptions = {}): ZintlFacet[] {

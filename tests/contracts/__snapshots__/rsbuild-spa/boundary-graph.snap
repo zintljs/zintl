@@ -1,0 +1,124 @@
+{
+  "entries": [
+    "src/main:render"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/counter:setupCounter": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/counter",
+      "id": "src/counter:setupCounter",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:render"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main:render": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main:render",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

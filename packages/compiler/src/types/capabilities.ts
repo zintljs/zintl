@@ -61,6 +61,56 @@ export type {
 export type FacetConcern = "extraction" | "codegen" | "runtime" | "ssr" | "bundler" | "content";
 
 /**
+ * What a facet may ask about the project it is being resolved for.
+ *
+ * Deliberately small, and every field is something only the host can answer.
+ * `bundler` is here because proposal 026 asked whether a facet needs to see its
+ * host (§9 Q4) and then answered it: with two bundlers in play, the bundler
+ * facets are the clearest case of a facet that must decide for itself rather
+ * than be appended by core.
+ */
+export interface FacetActivationContext {
+  /** Project root. Absolute. */
+  root: string;
+  /** Serving rather than building. */
+  isDev: boolean;
+  /** This build targets SSR. */
+  isSsr: boolean;
+  /** Which build tool is hosting the plugin — `"vite"`, `"rspack"`, … */
+  bundler: string;
+  /** Frameworks detected for this project. */
+  frameworks: string[];
+  /** Names of the host's other plugins. */
+  pluginNames: string[];
+  /** Merged `dependencies` + `devDependencies` + `peerDependencies`. */
+  dependencies: Record<string, string>;
+}
+
+/**
+ * A declarative activation condition.
+ *
+ * Data rather than a function on purpose. A predicate can only report *that* it
+ * said no; a descriptor can report *why*, which is what makes the resolution
+ * trace worth reading — and §10 is explicit that distributed activation without
+ * an explain path is worse than the central switch it replaces.
+ *
+ * Every field is a narrowing condition, and all present fields must hold.
+ * An omitted field is not a constraint.
+ */
+export interface FacetWhen {
+  /** Active when any of these frameworks was detected. */
+  framework?: string | string[];
+  /** Active only when the build is (or is not) SSR. */
+  ssr?: boolean;
+  /** Active only in dev (`true`) or only in build (`false`). */
+  dev?: boolean;
+  /** Active when the host build tool is any of these. */
+  bundler?: string | string[];
+  /** Active when any of these packages is a project dependency. */
+  dependency?: string | string[];
+}
+
+/**
  * The BaseFacet interface represents the base contract for all facets.
  * It defines the common properties that all facets must have.
  */
@@ -69,8 +119,63 @@ export interface BaseFacet {
   name: string;
   /** Discriminator type for this facet */
   concern: FacetConcern;
-  /** Resolving priority. Default: 0, System: 100. Higher priority overrides. */
+  /**
+   * Resolving priority. Default: 0, System: 100. Higher priority overrides.
+   *
+   * This is the **declared specificity** §10 asks precedence to be sorted on.
+   * It decides which facet wins a single-provider hook; it does not decide
+   * whether a facet is active. Membership is {@link when} / {@link activate},
+   * precedence is this — and neither depends on the order facets were
+   * registered in.
+   */
   priority?: number;
+
+  /**
+   * When this facet applies. Omitted means **always**, with no check performed.
+   *
+   * Most facets outside this repository will never set it: a facet someone adds
+   * to their own project is there because they want it. It exists so the
+   * built-in set can decide for itself instead of being mapped by a table in
+   * core.
+   */
+  when?: FacetWhen;
+
+  /**
+   * Escape hatch for conditions {@link when} cannot express.
+   *
+   * Evaluated *after* `when` and only if `when` passed, so the two narrow
+   * together. Prefer `when` where it fits — a facet activated by a predicate
+   * can only be traced as "a function said yes".
+   */
+  activate?: (ctx: FacetActivationContext) => boolean;
+
+  /**
+   * Capability names this facet supplies, for {@link supersedes} to target.
+   *
+   * Lets one facet replace another without naming it directly — a Next.js facet
+   * can supersede whatever provides `ssr:wrapping` rather than hardcoding
+   * `"ssr-wrapping"`.
+   */
+  provides?: string[];
+
+  /**
+   * Facets this one replaces, by name or by a capability they `provide`.
+   *
+   * Activation is not a boolean (§10): a Next facet subsumes the generic SSR
+   * and client-SPA facets, and independent predicates cannot express "I replace
+   * you". A superseded facet is dropped even if its own condition held, and the
+   * trace records which facet displaced it.
+   */
+  supersedes?: string[];
+
+  /**
+   * Facets this one cannot coexist with, by name or provided capability.
+   *
+   * Unlike {@link supersedes}, this is a hard error rather than a resolution —
+   * for pairs where there is no sensible winner and silence would be worse than
+   * a failed build.
+   */
+  conflicts?: string[];
 }
 
 /**
@@ -210,6 +315,25 @@ export interface BundlerFacet extends BaseFacet {
   resolveVirtualPath?: (id: string) => string;
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
+  /**
+   * How this host spells "accept my own updates", for **generated** modules.
+   *
+   * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
+   * has to reason about whether re-executing an entry is safe. A generated
+   * catalog or manager has no such question — it is Zintl's own code and always
+   * safe to replace — but it does sometimes need to run something on update,
+   * which the source-file hook cannot express.
+   *
+   * `callbackBody` receives `newModule` in scope when supplied.
+   *
+   * This exists because two call sites in the compiler hardcoded
+   * `import.meta.hot` and consulted no facet at all, so every host was handed
+   * Vite's API for its generated modules regardless of who was building. A
+   * facet returning `""` declares that it has no hot-update story yet, which is
+   * a better answer than the wrong API.
+   */
+  hmrSelfAcceptCode?: (callbackBody?: string) => string;
+
   /** HMR injection code generation (appended to transformed files in dev) */
   hmrInjectionCode?: (
     fileId: string,
@@ -429,6 +553,11 @@ export interface CompilerSystemView {
   resolveVirtualPath: (id: string) => string;
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
+  /**
+   * Resolved self-accept generator for generated modules (undefined if no
+   * bundler facet supplies one, which means: emit nothing).
+   */
+  hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
   /** Resolved HMR injection code generator (undefined if no HMR facet) */
   hmrInjectionCode:
     | ((

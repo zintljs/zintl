@@ -145,6 +145,7 @@ export interface NextjsFacetOptions
 export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): ZintlFacet {
   return {
     name: "nextjs-extraction",
+    when: { framework: "nextjs" },
     concern: "extraction",
     priority: 100,
     targets: (options.targets || [
@@ -177,6 +178,9 @@ export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): Zi
 export function nextjsSsrFacet(options: NextjsSsrOptions = {}): ZintlFacet {
   return {
     name: "nextjs-ssr-wrapping",
+    when: { framework: "nextjs" },
+    provides: ["ssr:wrapping"],
+    supersedes: ["ssr:wrapping"],
     concern: "ssr",
     priority: 100,
     entryTargets: options.entryTargets || [
@@ -205,6 +209,8 @@ export function nextjsSsrFacet(options: NextjsSsrOptions = {}): ZintlFacet {
 export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFacet {
   return {
     name: "nextjs-runtime",
+    when: { framework: "nextjs" },
+    supersedes: ["ssr-runtime", "client-spa"],
     concern: "runtime",
     priority: 100,
     serverRequestScope:
@@ -217,7 +223,7 @@ export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFac
  * Full Next.js support: {@link nextjsExtractionFacet}, {@link nextjsSsrFacet}
  * and {@link nextjsRuntimeFacet}.
  *
- * Layered on top of React rather than replacing it — `"auto"` installs both
+ * Layered on top of React rather than replacing it — the built-in set installs both
  * when Next.js is detected, and skips the generic SSR and client-SPA facets,
  * whose jobs Next.js does itself.
  */

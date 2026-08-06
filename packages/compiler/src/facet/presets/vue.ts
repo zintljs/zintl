@@ -28,6 +28,7 @@ export interface VueFacetOptions {
 export function vueExtractionFacet(options: VueFacetOptions = {}): ZintlFacet {
   return {
     name: "vue-extraction",
+    when: { framework: "vue" },
     concern: "extraction",
     priority: 100,
     targets: (options.targets || [
@@ -86,6 +87,7 @@ export function vueExtractionFacet(options: VueFacetOptions = {}): ZintlFacet {
 export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
   return {
     name: "vue-codegen",
+    when: { framework: "vue" },
     concern: "codegen",
     priority: 100,
     extensions: options.extensions || [".vue"],
@@ -114,7 +116,7 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
 /**
  * Full Vue support: {@link vueExtractionFacet} plus {@link vueCodegenFacet}.
  *
- * Included in `"auto"` when Vue is detected.
+ * Included in the built-in set when Vue is detected.
  */
 export function vueFacet(options: VueFacetOptions = {}): ZintlFacet[] {
   return [vueExtractionFacet(options), vueCodegenFacet(options)];

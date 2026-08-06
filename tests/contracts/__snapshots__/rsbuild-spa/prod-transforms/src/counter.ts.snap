@@ -1,0 +1,11 @@
+import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_ae1e7cbb2f74 from "virtual:zintl/manager/none/entry:b_ae1e7cbb2f74";
+export function setupCounter(element: HTMLButtonElement) {
+  let counter = 0;
+  const setCounter = (count: number) => {
+    counter = count;
+    element.innerHTML = _t("3aaf6932", { counter: counter }, { _mgr: _zintl_mgr_b_ae1e7cbb2f74, _bId: "b_f05b8e5701f3" });
+  };
+  element.addEventListener("click", () => setCounter(counter + 1));
+  setCounter(0);
+}

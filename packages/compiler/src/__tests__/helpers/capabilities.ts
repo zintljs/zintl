@@ -48,6 +48,7 @@ function emptySystem(): CompilerSystemView {
     resolveVirtualPath: (id: string) => id,
     dynamicImportTemplate: (path: string) => `import(${JSON.stringify(path)})`,
     hmrInjectionCode: undefined,
+    hmrSelfAcceptCode: undefined,
     detectLocale: undefined,
     getProtectedCatalogKeys: async () => [],
   };

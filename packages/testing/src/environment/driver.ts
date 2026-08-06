@@ -17,6 +17,16 @@ export interface CompilationResult {
 
 export type BuildOutput = Record<string, string>;
 
+/**
+ * Which build tool a project is driven through.
+ *
+ * `"vite"` is the default and the supported path. `"rsbuild"` exists for
+ * proposal 026 — a second, non-Rollup host used to falsify the claim that the
+ * compiler is bundler-agnostic. A manifest opting into it is opting into
+ * ZDB §7a Tier 1 only: build, no dev server, no hot updates.
+ */
+export type DriverKind = "vite" | "rsbuild";
+
 export interface BuildTarget {
   /** Human label used for snapshot directory naming */
   name: string;

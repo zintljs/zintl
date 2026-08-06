@@ -718,6 +718,45 @@ export class ZintlCompiler {
     return false;
   }
 
+  /**
+   * Is this module free of anything a translation could change?
+   *
+   * A bundler integration propagating a locale across import edges needs this to
+   * decide whether a dependency needs a per-locale copy at all. It was
+   * previously answered inside the Vite plugin's `resolveId`, which walked
+   * `metadataGraph`, `internalManifest` and `dependencyGraph` by hand — the
+   * compiler's own structures, reached into from outside, one import edge at a
+   * time.
+   *
+   * The answer was always the graph's to give. Asking here instead means the
+   * plan can be computed without a Rollup plugin context, which is the whole
+   * portability question: a bundler facet should *apply* id rewrites, not
+   * rediscover which ones are needed.
+   */
+  public isTranslationNeutral(fileId: string): boolean {
+    if (!this.messages?.metadataGraph) return false;
+
+    const assets = this.assets as
+      | { isSupportedAsset(id: string): boolean; getRegisteredAssets(): string[] }
+      | undefined;
+
+    const isAssetLike = (cleanFileId: string): boolean => {
+      if (assets?.isSupportedAsset?.(cleanFileId)) return true;
+      const registered = assets?.getRegisteredAssets?.() ?? [];
+      return registered.some(
+        (asset) => asset === cleanFileId || asset.startsWith(cleanFileId + "."),
+      );
+    };
+
+    return !this.graph.hasTranslatableContent(
+      this.getNormalizedId(fileId),
+      this.messages.dependencyGraph,
+      this.messages.metadataGraph,
+      this.messages.internalManifest,
+      isAssetLike,
+    );
+  }
+
   public getAffectedChunks(boundaryId: string): string[] {
     const affected = new Set<string>();
     if (!this.graph.chunkGraph) return [];
@@ -2215,7 +2254,7 @@ export class ZintlCompiler {
       }
       code += `export default catalog;`;
       if (this.isDev) {
-        code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
+        code += this._resolved.system.hmrSelfAcceptCode?.() ?? "";
       }
       return {
         code,
@@ -2286,13 +2325,12 @@ export class ZintlCompiler {
   }
   return manager;
 })();`;
-      code += `\nif (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
-      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
-    }
-  });
-}`;
+      code +=
+        this._resolved.system.hmrSelfAcceptCode?.(
+          `    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {\n` +
+            `      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);\n` +
+            `    }`,
+        ) ?? "";
     } else {
       code += `export default ${managerObj};`;
     }

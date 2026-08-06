@@ -1,15 +1,19 @@
 /**
- * Facet assembly — turning detected frameworks and user input into a flat facet
- * list, ready for resolution.
+ * Facet assembly — gathering the candidate facets, then letting them decide.
  *
- * This is the one place that decides which facets a project gets. Every
- * previously-implicit default now lives here, in the open:
+ * This file used to *choose*: it mapped detected frameworks to facets and wrote
+ * the exceptions as conditionals, most tellingly `if (!isNext)`, whose reason
+ * lived in a comment. Under the self-activation inversion it only *gathers* —
+ * every built-in facet is offered as a candidate and each one answers for
+ * itself, via `activateFacets`.
  *
- * - the `"auto"` sentinel expands to the detected framework set plus baselines;
- * - `vanillaFacet`, `htmlFacet` and `assetsFacet` are always part of `"auto"`;
- * - `clientSpaFacet` is added unless the project is Next.js;
- * - `ssrFacet` is added for SSR builds that are not Next.js;
- * - `viteFacet` is always appended, and cannot be opted out of.
+ * What that buys is not tidiness. Adding a framework used to mean editing this
+ * file; now it means shipping a facet that knows its own condition, which is the
+ * difference between a plugin system and a table.
+ *
+ * The one thing core still knows is how to *detect* frameworks, because
+ * somebody has to read `package.json`. It reports what it found and does not
+ * decide what that implies.
  */
 import {
   assetsFacet,
@@ -17,22 +21,71 @@ import {
   htmlFacet,
   nextjsFacet,
   reactFacet,
+  rspackFacet,
   ssrFacet,
   svelteFacet,
   vanillaFacet,
   viteFacet,
   vueFacet,
 } from "@zintljs/compiler/facets";
-import type { AssetTargetConfig, ZintlFacet } from "@zintljs/compiler";
+import type { AssetTargetConfig, FacetActivationContext, ZintlFacet } from "@zintljs/compiler";
 import type { FacetsInput } from "../types.js";
-import type { Framework } from "./detect.js";
+import { activateFacets, type ActivationResult } from "./activate.js";
+
+/**
+ * The sentinel meaning "include the built-in facets".
+ *
+ * It replaced `"auto"`, which was misleading: it read as "be automatic", and
+ * automatic is not optional any more — every facet self-activates, and one with
+ * no condition is unconditional with no check performed. What the sentinel
+ * actually selects is *which set of facets is on the table*, so it is spelled
+ * for that. `"auto"` was removed rather than aliased; Zintl is pre-1.0 and a
+ * silent second spelling is a migration nobody ever finishes.
+ */
+export const BUILTINS = "builtins";
+
+/** Marker produced by {@link excludeFacet}, recognised during flattening. */
+interface FacetExclusion {
+  readonly __zintlExclude: string;
+}
+
+function isExclusion(value: unknown): value is FacetExclusion {
+  return typeof value === "object" && value !== null && "__zintlExclude" in value;
+}
+
+/**
+ * Drop one built-in facet by name.
+ *
+ * The gap this fills: `"builtins"` is all-or-nothing, so a project that wants
+ * everything except one facet previously had to list every facet by hand and
+ * keep that list in sync forever. Superseding is the right tool when you are
+ * *replacing* a facet; this is for simply not wanting one.
+ *
+ * @example
+ * ```ts
+ * zintl({ facets: ["builtins", excludeFacet("client-spa")] })
+ * ```
+ */
+export function excludeFacet(name: string): FacetsInput {
+  return { __zintlExclude: name } as unknown as FacetsInput;
+}
 
 export interface AssembleInput {
   /** Frameworks detected for this project. */
-  frameworks: Framework[];
+  frameworks: string[];
+  /**
+   * Which build tool is hosting the plugin. Required, and deliberately without
+   * a default — a plausible-looking default for a host-supplied value is how
+   * ledger L-008 and L-011 both happened.
+   */
+  bundler: string;
   /** Whether this build targets SSR. */
   ssr?: boolean;
-  /** User-declared facets; defaults to `["auto"]`. */
+  isDev?: boolean;
+  root?: string;
+  pluginNames?: string[];
+  dependencies?: Record<string, string>;
+  /** User-declared facets; defaults to `[BUILTINS]`. */
   facets?: FacetsInput[];
   /** Asset facet configuration drawn from plugin options. */
   assetsTarget?: (string | AssetTargetConfig)[];
@@ -40,44 +93,64 @@ export interface AssembleInput {
 }
 
 /**
- * The facet set that `"auto"` expands to.
+ * Every built-in facet, offered unconditionally.
+ *
+ * Note what is *not* here any more: no framework switch, no `isNext` guard, no
+ * `if (ssr)`. Each of those became a declaration on the facet that owned the
+ * decision.
  */
-export function autoFacets(input: AssembleInput): ZintlFacet[] {
-  const { frameworks, ssr = false, assetsTarget, virtualAssets } = input;
-  const out: unknown[] = [];
-
-  for (const f of frameworks) {
-    if (f === "vue") out.push(vueFacet());
-    else if (f === "react") out.push(reactFacet());
-    else if (f === "svelte") out.push(svelteFacet());
-    else if (f === "nextjs") out.push(reactFacet(), nextjsFacet());
-  }
-
-  const isNext = frameworks.includes("nextjs");
-
-  // Next.js brings its own SSR + runtime facets; adding the generic ones would
-  // collide on ssr.wrapCode at the same priority.
-  if (ssr && !isNext) out.push(ssrFacet());
-  if (!isNext) out.push(clientSpaFacet());
-
-  // The plugin option is `assetsTarget` (it names the subsystem); the facet
-  // option is `targets` (the facet is already about assets). This line is the
-  // one and only place the two are bridged.
-  out.push(vanillaFacet(), htmlFacet(), assetsFacet({ targets: assetsTarget, virtualAssets }));
-
-  return out.flat(Infinity) as ZintlFacet[];
+export function builtinFacets(input: AssembleInput): ZintlFacet[] {
+  const { assetsTarget, virtualAssets } = input;
+  return [
+    reactFacet(),
+    vueFacet(),
+    svelteFacet(),
+    nextjsFacet(),
+    ssrFacet(),
+    clientSpaFacet(),
+    vanillaFacet(),
+    htmlFacet(),
+    // The plugin option is `assetsTarget` (it names the subsystem); the facet
+    // option is `targets` (the facet is already about assets). This line is the
+    // one and only place the two are bridged.
+    assetsFacet({ targets: assetsTarget, virtualAssets }),
+  ].flat(Infinity) as ZintlFacet[];
 }
 
 /**
- * Flatten user facet input, expanding `"auto"`, thunks and nested arrays.
+ * Bundler facets, which are candidates regardless of what the user listed.
+ *
+ * The old code appended `viteFacet()` unconditionally and said the plugin
+ * "cannot function without it". That was half right: the hooks matter, but they
+ * are *infrastructure*, not a user choice — so opting out of the built-in set
+ * should not silently strip the host integration too.
+ *
+ * What changes under self-activation is that being a candidate is no longer the
+ * same as being active. Each declares the host it serves, so exactly one of them
+ * applies — where before every project was handed the Vite facet no matter who
+ * was building.
  */
-export function flattenFacets(inputs: FacetsInput[], auto: ZintlFacet[]): ZintlFacet[] {
-  const result: ZintlFacet[] = [];
+function bundlerFacets(): ZintlFacet[] {
+  return [viteFacet(), rspackFacet()];
+}
+
+/**
+ * Flatten user facet input, expanding the builtins sentinel, thunks and arrays.
+ *
+ * Exclusions are collected rather than returned: they are instructions about
+ * the list, not members of it.
+ */
+export function flattenFacets(
+  inputs: FacetsInput[],
+  builtins: ZintlFacet[],
+): { facets: ZintlFacet[]; excluded: Set<string> } {
+  const facets: ZintlFacet[] = [];
+  const excluded = new Set<string>();
 
   function processInput(input: unknown): void {
     if (!input) return;
-    if (input === "auto") {
-      for (const f of auto) processInput(f);
+    if (input === BUILTINS) {
+      for (const f of builtins) processInput(f);
       return;
     }
     if (typeof input === "function") {
@@ -88,27 +161,49 @@ export function flattenFacets(inputs: FacetsInput[], auto: ZintlFacet[]): ZintlF
       for (const item of input) processInput(item);
       return;
     }
+    if (isExclusion(input)) {
+      excluded.add(input.__zintlExclude);
+      return;
+    }
     if (typeof input === "object") {
-      result.push(input as ZintlFacet);
+      facets.push(input as ZintlFacet);
       return;
     }
   }
 
   for (const input of inputs) processInput(input);
 
-  return result;
+  return { facets, excluded };
+}
+
+function toContext(input: AssembleInput): FacetActivationContext {
+  return {
+    root: input.root ?? process.cwd(),
+    bundler: input.bundler,
+    isDev: input.isDev ?? false,
+    isSsr: input.ssr ?? false,
+    frameworks: input.frameworks,
+    pluginNames: input.pluginNames ?? [],
+    dependencies: input.dependencies ?? {},
+  };
 }
 
 /**
- * The complete facet list for a project: user input (with `"auto"` expanded)
- * plus the always-injected Vite bundler facet.
+ * The active facet list for a project, with the trace explaining every decision.
  */
+export function assembleFacetsWithTrace(input: AssembleInput): ActivationResult {
+  const { facets, excluded } = flattenFacets(input.facets ?? [BUILTINS], builtinFacets(input));
+  const candidates = [...facets, ...bundlerFacets()].filter((f) => !excluded.has(f.name));
+  const result = activateFacets(candidates, toContext(input));
+
+  for (const name of excluded) {
+    result.trace.push({ name, active: false, reason: "excluded by configuration" });
+  }
+
+  return result;
+}
+
+/** The active facet list for a project. */
 export function assembleFacets(input: AssembleInput): ZintlFacet[] {
-  const facets = flattenFacets(input.facets ?? ["auto"], autoFacets(input));
-
-  // The Vite bundler facet is always present — the plugin cannot function
-  // without its virtual-path, dynamic-import and HMR hooks.
-  facets.push(viteFacet());
-
-  return facets;
+  return assembleFacetsWithTrace(input).facets;
 }

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
+import { ensureCompiler, nativeHostView } from "../host.js";
 import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
 import type { AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
@@ -14,7 +15,41 @@ import {
   RESOLVED_MANAGER_PREFIX,
   RUNTIME_VIRTUAL_ID,
   RUNTIME_INTERNAL_VIRTUAL_ID,
+  RESOLVED_RAW_ASSET_PREFIX,
 } from "../constants.js";
+
+/**
+ * Give a raw text asset an identity that does not claim to be a text file.
+ *
+ * `loadHook` turns a `.md`/`.txt` import carrying `?raw` or `?zintl-raw` into a
+ * JavaScript module. Keeping the source path as the module id leaves that module
+ * looking like text to the host, and a host that types modules by extension
+ * believes the extension: Rspack classified `about.txt?raw` as an asset and
+ * base64-encoded our JavaScript into a `data:` URI, so the catalog shipped a URI
+ * where the translation belonged (ledger L-009). Vite never showed it, because
+ * module type there follows from *who loaded the module* — the id could lie for
+ * free.
+ *
+ * The **whole id** is encoded, query and all, so `loadHook` decodes back to
+ * byte-identical input. That is what makes this safe to apply at the several
+ * places resolution can land on such a file: it changes identity and nothing
+ * else, so no branch downstream has to know it happened.
+ *
+ * base64url rather than `encodeURIComponent`, which was tried first and failed
+ * silently: percent-encoding preserves `.`, so the encoded id still ended in
+ * `.txt` — and unplugin materialises a virtual module as a real file *named*
+ * after the encoded id, reproducing the same misclassification one layer down.
+ *
+ * Returns `undefined` for anything Zintl does not convert, so a `.svg?raw` or
+ * any other host-handled `?raw` import keeps falling through untouched.
+ */
+function rawTextAssetId(fullId: string): string | undefined {
+  const clean = fullId.split("?")[0];
+  if (!/\.(md|txt)$/.test(clean)) return undefined;
+  if (!/[?&](raw|zintl-raw)(&|$)/.test(fullId)) return undefined;
+  if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
+  return `${RESOLVED_RAW_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
+}
 
 function injectMultiplexQuery(id: string, locale: string): string {
   const parts = id.split("?");
@@ -45,6 +80,7 @@ export function resolveIdHook(ctx: Context) {
     importer: string | undefined,
     options?: { ssr?: boolean },
   ) {
+    ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     if (id.includes(".zintl-")) {
       const cleanId = id.split("?")[0];
@@ -94,6 +130,24 @@ export function resolveIdHook(ctx: Context) {
       await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
     }
 
+    /**
+     * The non-multiplex case, where the id resolution lands on directly.
+     *
+     * Multiplexed projects are handled at the branches below instead: they pick
+     * a *different file per locale*, so rewriting the identity this early would
+     * short-circuit that choice and hand every locale the source text. Four
+     * scenarios in `asset_scenarios.test.ts` demonstrated exactly that.
+     */
+    if (!ctx.getMultiplex()) {
+      const absolutePath =
+        cleanId.startsWith(".") && importer
+          ? join(dirname(importer.split("?")[0]), cleanId)
+          : cleanId;
+      const query = id.includes("?") ? "?" + id.split("?").slice(1).join("?") : "";
+      const virtualId = rawTextAssetId(absolutePath + query);
+      if (virtualId) return virtualId;
+    }
+
     if (id.includes("zintl-multiplex=")) {
       const cleanId = id.split("?")[0];
       if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId)) {
@@ -114,7 +168,7 @@ export function resolveIdHook(ctx: Context) {
           const suffix = cleanQueries ? `?${cleanQueries}` : "";
 
           if (locale === (ctx.compiler as any).sourceLocale) {
-            return absolutePath + suffix;
+            return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
           }
 
           const assetId = ctx.compiler.getNormalizedId(absolutePath);
@@ -126,9 +180,9 @@ export function resolveIdHook(ctx: Context) {
           const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(assetId, locale);
 
           if (existsSync(localizedPath)) {
-            return localizedPath + suffix;
+            return rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
           }
-          return absolutePath + suffix;
+          return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
         }
       }
     }
@@ -154,84 +208,30 @@ export function resolveIdHook(ctx: Context) {
         const cleanId = id.split("?")[0];
         const extMatch = cleanId.match(/\.([a-zA-Z0-9]+)$/);
         const ext = extMatch ? extMatch[1].toLowerCase() : "";
-        const isEligible =
-          !ext ||
-          ["js", "jsx", "ts", "tsx", "md", "txt", "vue", "svelte"].includes(ext) ||
-          (ctx.compiler.assets as AssetManager).isSupportedAsset(cleanId);
 
-        if (isEligible) {
-          // Resolve clean first to check for translation neutrality
+        {
+          /**
+           * Resolve first, then ask the graph.
+           *
+           * There used to be a hardcoded extension allow-list here — `js`, `ts`,
+           * `vue`, `svelte`… — gating whether the edge was even considered. It
+           * was app-agnostic (a Vue-only app paid for `.svelte`) and it was
+           * answering the wrong question: "might this file contain strings" is a
+           * guess, where "does my graph place this module inside translated
+           * content" is a fact the compiler already holds.
+           *
+           * What remains of the bundler's involvement is the resolution itself:
+           * the graph is keyed by file ids, so a bare or aliased specifier has
+           * to become a path before it can be looked up. That residue is real,
+           * and it is much smaller than the traversal it replaced.
+           */
           const resolvedClean = await this.resolve(id, importer, { skipSelf: true, ssr: isSsr });
           if (resolvedClean) {
             const cleanResolvedId = (
               typeof resolvedClean === "string" ? resolvedClean : resolvedClean.id
             ).split("?")[0];
-            let isTranslationNeutral = false;
-            if (ctx.compiler?.messages?.metadataGraph) {
-              const startFileId = ctx.compiler.getNormalizedId(cleanResolvedId);
-              const hasActiveZintlTransitive = (
-                fileId: string,
-                visited = new Set<string>(),
-              ): boolean => {
-                if (typeof fileId !== "string" || visited.has(fileId)) return false;
-                visited.add(fileId);
 
-                const cleanFileId = fileId.split("?")[0];
-                const res = (() => {
-                  if ((ctx.compiler.assets as AssetManager).isSupportedAsset(cleanFileId))
-                    return true;
-
-                  const registeredAssets =
-                    (ctx.compiler?.assets as AssetManager | undefined)?.getRegisteredAssets() || [];
-                  if (
-                    registeredAssets.some(
-                      (asset: string) =>
-                        asset === cleanFileId || asset.startsWith(cleanFileId + "."),
-                    )
-                  ) {
-                    return true;
-                  }
-
-                  const meta = ctx.compiler.messages.metadataGraph[cleanFileId];
-                  if (meta) {
-                    const hasOwnContent =
-                      meta.hasZintlMarker ||
-                      meta.hasZintlMacro ||
-                      (meta.anchorSites && meta.anchorSites.length > 0) ||
-                      meta.needsLoader;
-                    if (hasOwnContent) return true;
-                  }
-
-                  const manifestKeys = Object.keys(ctx.compiler?.messages?.internalManifest || {});
-                  for (const key of manifestKeys) {
-                    if (key === cleanFileId || key.startsWith(cleanFileId + ":")) {
-                      const msgs = ctx.compiler.messages.internalManifest[key];
-                      if (msgs && msgs.length > 0) return true;
-                    }
-                  }
-
-                  const deps = ctx.compiler.messages.dependencyGraph[cleanFileId];
-                  if (deps) {
-                    for (const dep of deps) {
-                      const depId = typeof dep === "string" ? dep : dep?.id;
-                      if (depId) {
-                        const depFileId = depId.startsWith(".")
-                          ? join(dirname(cleanFileId), depId)
-                          : depId;
-                        const nDepId = ctx.compiler.getNormalizedId(depFileId);
-                        if (hasActiveZintlTransitive(nDepId, visited)) return true;
-                      }
-                    }
-                  }
-                  return false;
-                })();
-                return res;
-              };
-
-              isTranslationNeutral = !hasActiveZintlTransitive(startFileId);
-            }
-
-            if (isTranslationNeutral) {
+            if (ctx.compiler.isTranslationNeutral(cleanResolvedId)) {
               return resolvedClean;
             }
           }
@@ -265,7 +265,11 @@ export function resolveIdHook(ctx: Context) {
                 await (ctx.compiler.assets as AssetManager).registerAsset(cleanResolvedId);
 
                 if (locale === (ctx.compiler as any).sourceLocale) {
-                  return resolved;
+                  const sourceVirtual = rawTextAssetId(resolvedId);
+                  if (!sourceVirtual) return resolved;
+                  return typeof resolved === "string"
+                    ? sourceVirtual
+                    : { ...resolved, id: sourceVirtual };
                 }
 
                 const assetId = ctx.compiler.getNormalizedId(cleanResolvedId);
@@ -289,7 +293,7 @@ export function resolveIdHook(ctx: Context) {
                 );
 
                 if (existsSync(localizedPath)) {
-                  const finalId = localizedPath + suffix;
+                  const finalId = rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
 
                   if (typeof resolved === "string") {
                     return finalId;
@@ -320,9 +324,60 @@ export function resolveIdHook(ctx: Context) {
   };
 }
 
+/**
+ * Which ids {@link loadHook} may return content for.
+ *
+ * On Rollup and Vite this is an optimisation: an unfiltered `load` that returns
+ * `undefined` is a no-op, so declaring the filter only saves calls.
+ *
+ * On Rspack it is **load-bearing**. Unplugin implements `load` as a module rule
+ * carrying `type: "javascript/auto"`, and the rule's `include()` is this
+ * predicate. A hook with no filter matches every module in the graph and
+ * retypes all of them as JavaScript — so the HTML template reaches the JS
+ * parser and the build dies on `<!doctype html>`. Merely *claiming* a module is
+ * destructive there, where on Rollup it is free.
+ *
+ * That asymmetry is why this must be exact rather than generous. In particular
+ * `.html` is claimed only under multiplex, which is the sole mode where
+ * {@link loadHook} returns HTML; claiming it unconditionally would reintroduce
+ * the retyping bug for every non-multiplex app.
+ */
+export function loadIncludeHook(ctx: Context) {
+  return function (id: string): boolean {
+    const cleanId = id.split("?")[0];
+
+    if (cleanId.startsWith("\0virtual:zintl/") || cleanId.startsWith(RESOLVED_VIRTUAL_PREFIX)) {
+      return true;
+    }
+    if (cleanId.includes(".zintl-")) return true;
+    if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) return true;
+    if (cleanId.endsWith(".html")) return ctx.getMultiplex();
+
+    return false;
+  };
+}
+
 export function loadHook(ctx: Context) {
-  return async function (this: any, id: string, options?: { ssr?: boolean }) {
+  return async function (this: any, rawId: string, options?: { ssr?: boolean }) {
+    ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
+
+    /**
+     * Undo the rewrite `resolveIdHook` applied to raw text assets.
+     *
+     * The virtual id exists so the *host* cannot mistype the module (L-009);
+     * everything below still wants to reason about the real file and its query,
+     * so this restores exactly the `id` those branches were written against.
+     * Decoding here rather than teaching each branch about the virtual form
+     * keeps the rewrite a property of module identity and nothing else.
+     */
+    let id = rawId;
+    if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
+      id = Buffer.from(rawId.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1), "base64url").toString(
+        "utf8",
+      );
+    }
+
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {
       const rest = cleanId.slice("\0virtual:zintl/asset/".length);
@@ -494,8 +549,18 @@ const proxy = new Proxy({}, {
   }
 });
 export default proxy;
-if (import.meta.hot) {
-  import.meta.hot.accept();
+${
+  /**
+   * Dev-guarded, like the `?zintl-raw` branch above it — which this one was not.
+   *
+   * On Vite the omission was invisible: production folds `import.meta.hot` to
+   * `undefined` and the branch is eliminated, so nothing shipped. That is a Vite
+   * guarantee this code was silently relying on. Rspack performs no such
+   * substitution, so the accept call reached the production bundle intact
+   * (ledger L-014) — "nothing ships that isn't used", upheld by the host rather
+   * than by us.
+   */
+  ctx.compiler.isDev ? "if (import.meta.hot) {\n  import.meta.hot.accept();\n}" : ""
 }
 `;
         }

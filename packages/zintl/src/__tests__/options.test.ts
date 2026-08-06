@@ -18,7 +18,7 @@ describe("resolveOptions", () => {
     expect(resolved.prune).toBe(true);
     expect(resolved.debug).toBe(false);
     expect(resolved.virtualAssets).toBe(false);
-    expect(resolved.facets).toEqual(["auto"]);
+    expect(resolved.facets).toEqual(["builtins"]);
   });
 
   it("treats an absent options object the same as an empty one", () => {

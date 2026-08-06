@@ -6,9 +6,10 @@ import type { ResolvedOptions } from "./options.js";
 
 import { configHook, configResolvedHook } from "./hooks/config.js";
 import { configureServerHook } from "./hooks/server.js";
-import { resolveIdHook, loadHook } from "./hooks/resolve.js";
+import { resolveIdHook, loadHook, loadIncludeHook } from "./hooks/resolve.js";
 import {
   transformHook,
+  transformIncludeHook,
   transformIndexHtmlHook,
   preTransformIndexHtmlHook,
 } from "./hooks/transform.js";
@@ -51,8 +52,16 @@ const unplugin = createUnplugin<Options, true>((options) => {
         return resolveIdHook(ctx).call(this, id, importer, options as unknown as { ssr?: boolean });
       },
 
+      loadInclude(id) {
+        return loadIncludeHook(ctx)(id);
+      },
+
       load(id) {
         return loadHook(ctx).call(this, id);
+      },
+
+      transformInclude(id) {
+        return transformIncludeHook()(id);
       },
 
       transform(code, id) {

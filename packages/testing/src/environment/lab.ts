@@ -10,12 +10,13 @@ import { LabConsole } from "./console.js";
 import { LabClock } from "./clock.js";
 import { LabAssertions } from "../assertions/index.js";
 import { LabPipeline } from "./pipeline.js";
-import type { ZintlPluginOptions } from "./driver.js";
-import { ViteDriver } from "./vite-driver.js";
+import type { BuildToolDriver, DriverKind, ZintlPluginOptions } from "./driver.js";
 import type { MaterializedProject, ProjectSource } from "../contracts/source.js";
 
 export interface LabOptions {
   source: ProjectSource;
+  /** Which build tool serves this project. Defaults to Vite. */
+  driver?: DriverKind;
   mode?: "dev" | "preview";
   port?: number;
   env?: Record<string, string>;
@@ -34,6 +35,8 @@ export interface LabOptions {
 export interface ProjectLabOptions {
   source: ProjectSource;
   zintlOptions: ZintlPluginOptions;
+  /** Which build tool to drive. Defaults to Vite. */
+  driver?: DriverKind;
 }
 
 export interface Lab {
@@ -48,7 +51,7 @@ export interface Lab {
   readonly clock: LabClock;
   readonly assert: LabAssertions;
   readonly pipeline: LabPipeline;
-  readonly driver: ViteDriver;
+  readonly driver: BuildToolDriver;
   readonly url: string;
   readonly root: string;
   /**
@@ -76,7 +79,7 @@ class LabImpl implements Lab {
   readonly clock: LabClock;
   readonly assert: LabAssertions;
   readonly pipeline: LabPipeline;
-  readonly driver: ViteDriver;
+  readonly driver: BuildToolDriver;
   readonly url: string;
   readonly root: string;
   private readonly mode: "dev" | "preview" | "project";
@@ -94,6 +97,7 @@ class LabImpl implements Lab {
     fs: LabFilesystem,
     exampleName: string,
     zintlOptions: ZintlPluginOptions,
+    driver: DriverKind = "vite",
   ) {
     this.mode = mode;
     this.project = project;
@@ -113,14 +117,17 @@ class LabImpl implements Lab {
     this.url = url;
     this.root = root;
 
-    const devServer = mode === "dev" ? (server as LabDevServer).server : undefined;
-    this.ws = mode === "project" ? throwNoAccess("ws") : new LabWebSocket(devServer);
+    const devServer = mode === "dev" ? (server as LabDevServer) : undefined;
+    this.ws =
+      mode === "project"
+        ? throwNoAccess("ws")
+        : new LabWebSocket(devServer?.interceptHmr?.bind(devServer));
     this.network = mode === "project" ? throwNoAccess("network") : new LabNetwork(this.page);
     this.console = mode === "project" ? throwNoAccess("console") : new LabConsole(this.page);
     this.clock = mode === "project" ? throwNoAccess("clock") : new LabClock(this.page);
-    this.compiler = new LabCompiler(devServer);
+    this.compiler = new LabCompiler(root);
     this.assert = new LabAssertions(this);
-    this.pipeline = new LabPipeline(exampleName, root, zintlOptions);
+    this.pipeline = new LabPipeline(exampleName, root, zintlOptions, driver);
     this.driver = this.pipeline.driver;
 
     const beforeMutation = async () => {
@@ -316,7 +323,7 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
 
   let server: LabDevServer | LabPreviewServer;
   if (mode === "dev") {
-    server = await createLabDevServer(project.root, opts.source.id, port, env);
+    server = await createLabDevServer(project.root, opts.source.id, port, env, opts.driver);
   } else {
     server = await createLabPreviewServer(project.root, opts.source.id, port, env);
   }
@@ -361,6 +368,7 @@ export async function createProjectLab(opts: ProjectLabOptions): Promise<Lab> {
     fs,
     opts.source.id,
     opts.zintlOptions,
+    opts.driver,
   );
 
   return lab;

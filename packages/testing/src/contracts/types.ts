@@ -1,5 +1,5 @@
 import type { Lab } from "../environment/lab.js";
-import type { ZintlPluginOptions, BuildTarget } from "../environment/driver.js";
+import type { ZintlPluginOptions, BuildTarget, DriverKind } from "../environment/driver.js";
 import type { ProjectSource } from "./source.js";
 
 export type Capability =
@@ -72,6 +72,16 @@ export interface ProjectManifest {
    * ]
    */
   buildTargets?: BuildTarget[];
+
+  /**
+   * Which build tool this project is driven through. Defaults to Vite.
+   *
+   * A manifest choosing `"rsbuild"` is a proposal 026 falsification target, not
+   * a supported configuration — see `docs/spec/proposals/026-leak-ledger.md`.
+   * Such a manifest should claim only build-time capabilities, since the dev
+   * server and hot-update paths are Vite-only.
+   */
+  driver?: DriverKind;
 }
 
 export interface Contract<TAdapter = BaseAdapter> {
