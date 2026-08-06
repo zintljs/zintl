@@ -15,6 +15,7 @@ import {
   RESOLVED_MANAGER_PREFIX,
   RUNTIME_VIRTUAL_ID,
   RUNTIME_INTERNAL_VIRTUAL_ID,
+  RESOLVED_RAW_ASSET_PREFIX,
 } from "../constants.js";
 
 function injectMultiplexQuery(id: string, locale: string): string {
@@ -94,6 +95,62 @@ export function resolveIdHook(ctx: Context) {
         absolutePath = join(dirname(importer.split("?")[0]), cleanId);
       }
       await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
+    }
+
+    /**
+     * Give raw text assets an identity that does not claim to be a text file.
+     *
+     * `loadHook` turns a `.md`/`.txt` import carrying `?raw` or `?zintl-raw`
+     * into a JavaScript module. Keeping the source path as the module id leaves
+     * that module looking like text to the host, and a host that types modules
+     * by extension believes the extension: Rspack classified `about.txt?raw` as
+     * an asset and base64-encoded our JavaScript into a `data:` URI, so the
+     * catalog shipped a URI where the Arabic text belonged (ledger L-009).
+     *
+     * Vite never showed it because module type there follows from *who loaded
+     * the module*, not from its name — so the id could lie for free.
+     *
+     * Scoped to exactly the ids `loadHook` converts. A `.svg?raw` or any other
+     * `?raw` import Zintl does not handle must keep falling through to the host,
+     * which is what makes this safe to do unconditionally rather than behind the
+     * `virtualAssets` option.
+     *
+     * **Not applied under multiplex**, and that boundary was found by breaking
+     * it. Multiplexed builds resolve an asset to a *different file per locale*,
+     * in the branches below — so rewriting the id here short-circuits that and
+     * every locale gets the source text. Four asset scenarios caught it.
+     *
+     * The consequence is that multiplexed projects keep the path-based identity
+     * and so keep L-009 on a host that types by extension. That is the same
+     * scope §7 drew around the multiplex and HTML fan-out paths, and it is a
+     * known gap rather than an oversight: closing it means minting the virtual
+     * id after the per-locale file is chosen, in three more branches, with the
+     * HTML fan-out downstream of them.
+     */
+    if (!ctx.getMultiplex() && /\.(md|txt)$/.test(cleanId) && /[?&](raw|zintl-raw)(&|$)/.test(id)) {
+      const absolutePath =
+        cleanId.startsWith(".") && importer
+          ? join(dirname(importer.split("?")[0]), cleanId)
+          : cleanId;
+      if (isAbsolute(absolutePath) && existsSync(absolutePath)) {
+        const mode = id.includes("?zintl-raw") || id.includes("&zintl-raw") ? "zintl-raw" : "raw";
+        // The multiplex locale rides along: it is part of *which* content this
+        // module resolves to, and stripping the query would silently drop it.
+        const locale = ctx.getMultiplexLocale(id) ?? "none";
+        /**
+         * base64url, not `encodeURIComponent` — which was the first attempt and
+         * did not work, for a reason worth keeping.
+         *
+         * Percent-encoding preserves `.`, so the encoded id still ended in
+         * `.txt`. Unplugin materialises a virtual module as a real file whose
+         * *name* is the encoded id, so Rspack saw a `.txt` filename again and
+         * typed it as an asset again — the identical bug, one layer down.
+         * base64url has no dots, so nothing downstream can read an extension
+         * out of it.
+         */
+        const encoded = Buffer.from(absolutePath, "utf8").toString("base64url");
+        return `${RESOLVED_RAW_ASSET_PREFIX}/${mode}/${locale}/${encoded}`;
+      }
     }
 
     if (id.includes("zintl-multiplex=")) {
@@ -302,9 +359,31 @@ export function loadIncludeHook(ctx: Context) {
 }
 
 export function loadHook(ctx: Context) {
-  return async function (this: any, id: string, options?: { ssr?: boolean }) {
+  return async function (this: any, rawId: string, options?: { ssr?: boolean }) {
     ensureCompiler(ctx, () => nativeHostView(this));
     const isSsr = this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
+
+    /**
+     * Undo the rewrite `resolveIdHook` applied to raw text assets.
+     *
+     * The virtual id exists so the *host* cannot mistype the module (L-009);
+     * everything below still wants to reason about the real file and its query,
+     * so this restores exactly the `id` those branches were written against.
+     * Decoding here rather than teaching each branch about the virtual form
+     * keeps the rewrite a property of module identity and nothing else.
+     */
+    let id = rawId;
+    if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
+      const [mode, locale, encoded] = rawId
+        .slice(RESOLVED_RAW_ASSET_PREFIX.length + 1)
+        .split("/", 3);
+      if (encoded) {
+        const filePath = Buffer.from(encoded, "base64url").toString("utf8");
+        const multiplex = locale !== "none" ? `&zintl-multiplex=${locale}` : "";
+        id = `${filePath}?${mode}${multiplex}`;
+      }
+    }
+
     const cleanId = id.split("?")[0];
     if (cleanId.startsWith("\0virtual:zintl/asset/")) {
       const rest = cleanId.slice("\0virtual:zintl/asset/".length);

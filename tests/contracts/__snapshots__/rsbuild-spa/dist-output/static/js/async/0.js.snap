@@ -18,14 +18,15 @@ const catalog = {
   },
     },
     "b_assets": {
-    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0,
+    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0["default"],
   },
   };
 /* export default */ __webpack_exports__["default"] = (catalog);
 
 },
-13(module) {
-module.exports = "data:text/plain;base64,ZXhwb3J0IGRlZmF1bHQgItmK2KjZgtmKIFppbnRsINin2YTYqtix2KzZhdin2Kog2KjYrNin2YbYqCDYp9mE2LTZitmB2LHYqSDYp9mE2KrZiiDYqtit2KrYp9is2YfYpy5cbiI7";
+13(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ("يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.\n");
 
 },
 

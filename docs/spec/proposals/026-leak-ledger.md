@@ -272,68 +272,37 @@ Worth recording for two reasons. A mis-rooted compiler **writes**, so a wrong ro
 
 **The fix.** `nativeHostView(pluginContext)` reads unplugin's `getNativeBuildContext()` and takes `compiler.options.context` as the root on the Rspack/webpack shape, falling back only when the host genuinely offers nothing. This is the first concrete answer to §9 Q4 — _what does a facet get to ask about its host?_ — and the answer so far is "its root, and it must actually ask."
 
-### L-009 — Module _type_ is the host's decision, and Zintl assumes it owns it
+### L-009 — Module _type_ is the host's decision, and Zintl assumed it owned it
 
-|                             |                                                                                       |
-| :-------------------------- | :------------------------------------------------------------------------------------ |
-| **Status**                  | **Open — reproduced, deliberately not fixed.** The highest-value finding of the spike |
-| **Bucket**                  | **2 — relocate** (identity), not 1                                                    |
-| **Facet contract changed?** | **Yes** — and this is the one that should shape it                                    |
+|                             |                                                            |
+| :-------------------------- | :--------------------------------------------------------- |
+| **Status**                  | **Fixed** for non-multiplex; multiplex deferred            |
+| **Bucket**                  | **2 — relocate** (identity), not 1                         |
+| **Facet contract changed?** | No — the fix is id spelling, which is the plugin's own job |
 
-**Nothing failed.** The build succeeded, all four contracts passed, and the output is wrong. This is precisely the failure mode §5.3 warned breakage-driven discovery would miss, and it was caught by reading the snapshot rather than by a red test.
+**Nothing failed.** The build succeeded, all four contracts passed, and the output was wrong — the failure mode §5.3 warned breakage-driven discovery would miss, caught by reading a snapshot rather than by a red test.
 
-**What is wrong.** With a localizable `.txt` asset in the fixture, the `ar` catalog contains:
-
-```js
-"b_assets": {
-  "749ed136": _…_src_i18n_src_about_ar_txt_zintl_raw__rspack_import_0,
-},
-```
-
-and that module is:
+**What was wrong.** With a localizable `.txt` asset, the `ar` catalog held a reference to a module whose body was:
 
 ```js
 module.exports = "data:text/plain;base64,ZXhwb3J0IGRlZmF1bHQgItmK2KjZgtmK…";
 ```
 
-which decodes to:
+decoding to `export default "يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.\n";`. Zintl generated **correct JavaScript**; Rspack classified the `.txt` resource as an _asset_, base64-encoded that JavaScript into a `data:` URI, and stored the URI in the catalog. At runtime the page renders a data URI where Arabic belongs.
 
-```js
-export default "يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.\n";
-```
+**The assumption.** _"If my `load` hook returns JavaScript, the module is JavaScript."_ True on Rollup and Vite, where module type follows from **who loaded the module**. On Rspack it is a property of the **resource's extension**, decided by configured rules before any plugin speaks — so an id that still says `.txt` is text no matter what comes back.
 
-Zintl generated **correct JavaScript**. Rspack then classified the `.txt` resource as an _asset_, base64-encoded that JavaScript source into a `data:` URI, and stored the URI in the catalog. At runtime `_t("749ed136")` returns the string `"data:text/plain;base64,…"`, so the page renders a data URI where Arabic text belongs.
+**The fix — identity, not an escape hatch.** `resolveId` rewrites the ids `loadHook` converts into an extension-free virtual id, and `loadHook` decodes it at the top so every existing branch runs unchanged. The tempting alternative — the Rspack facet rewriting module rules — is §8's fork wearing a facet's clothes. The defect was never that Rspack types by extension; it was that Zintl handed it a name that lied.
 
-**The assumption.** _"If my `load` hook returns JavaScript, the module is JavaScript."_ True on Rollup and Vite, where loading a module is what makes it a module. On Rspack, **module type is a property of the resource's extension**, decided by configured rules — the host had already decided `.txt` is an asset, and no plugin returning JS changes that. Unplugin's load rule does carry `type: "javascript/auto"`, but it is one rule among several matching the same resource and it does not win.
+**Two things this cost, both worth keeping.**
 
-**Why this is bucket 2 and not bucket 1.** The tempting fix is a bundler escape hatch that rewrites Rspack's module rules — which is §8's fork, wearing a facet's clothes. The actual defect is one layer up: **Zintl identifies a generated module by the original file's path plus a query** (`…/about.ar.txt?zintl-raw`), so the generated module inherits an extension that means something to the host. A generated module's identity should not carry the source file's file type, because on a host that types by extension it is then typed as the wrong thing.
+_`encodeURIComponent` was the wrong encoder, and the failure was invisible._ Percent-encoding preserves `.`, so the encoded id still ended in `.txt` — and unplugin materialises a virtual module as a **real file whose name is the encoded id**. Rspack read `.txt` off that filename and typed it as an asset again: the identical bug, one layer down, with the fix in place and apparently doing nothing. Diagnosed only by instrumenting `resolveId` and finding it _was_ firing, which killed every hypothesis about the condition. base64url has no dots.
 
-Zintl already contains the portable shape — `virtualAssets: true` routes assets through `\0virtual:zintl/asset/<locale>/<id>`, an id with no extension, which every host types as JavaScript. `INFERRED`, and worth stating as such: that path could not be exercised here because both of its return sites are multiplex-gated (see L-005), so "the virtual path fixes this" is reasoned, not reproduced.
+_The rewrite must not apply under multiplex._ Multiplexed builds resolve an asset to a **different file per locale**, in branches further down `resolveId`; rewriting the id first short-circuits that and hands every locale the source text. Four scenarios in `asset_scenarios.test.ts` caught it — a real break, not a stale assertion.
 
-**Not fixed, on purpose.** The fix is either a rule-rewriting escape hatch (the fork) or a change to asset module identity that touches the multiplex, asset and HTML paths at once — outside §7's scope and too large to land inside the timebox without evidence from the paths it would disturb. It is specified here instead, which is what §7 asks of a deferral.
+**What remains open.** Multiplexed projects keep the path-based identity, and therefore keep L-009 on a host that types by extension. That is the boundary §7 already drew around the multiplex and HTML fan-out paths. Closing it means minting the virtual id _after_ the per-locale file is chosen, across three more branches with the fan-out downstream — a change that wants its own evidence.
 
-**The committed snapshot deliberately records the broken output.** `tests/contracts/__snapshots__/rsbuild-spa/dist-output/static/js/async/0.js.snap` contains the `data:` URI. That is not an oversight and should not be "corrected": it is the tripwire that turns fixing this leak into a visible diff. Anyone who makes that snapshot stop containing a data URI has fixed L-009.
-
-### L-010 — Rspack bakes the absolute source path into generated identifiers
-
-|                             |                                                              |
-| :-------------------------- | :----------------------------------------------------------- |
-| **Status**                  | Harness normalization added; the underlying cause is L-009's |
-| **Bucket**                  | **2 — relocate** (same identity problem)                     |
-| **Facet contract changed?** | No — more evidence for §2.1                                  |
-
-**What failed.** A snapshot mismatch that differed only by worker id:
-
-```diff
-- var _Users_khalid_Lingua_lingua_tmp_runs_w1_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0
-+ var _Users_khalid_Lingua_lingua_tmp_runs_w2_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0
-```
-
-Rspack names a module's binding after its **absolute resource path**, with every separator flattened to an underscore. `LabPipeline.sanitizeCode` already normalizes the checkout root and the worker directory, but its rules match slash-shaped paths and slide straight past the flattened form.
-
-**Two things worth separating.** The harness fix is routine and has been applied — the same two normalizations, extended to the underscore form. But the reason there is a long path in the identifier at all is L-009's cause again: Zintl identifies a generated asset module by the **source file's real path plus a query**, so the host has a full absolute path to flatten. An extension-free virtual id flattens to something short and stable, and would not be mistyped either.
-
-Recording it separately because it is independent evidence for the same contract change (§2.1), arriving from a completely different direction — snapshot instability rather than wrong output. Also worth noting on its own terms: a build output that embeds the absolute source path is not portable between machines, which is a property worth knowing about the host regardless of Zintl.
+**Verified.** No `data:` URI anywhere in the suite's snapshots. Each locale chunk carries its real text — `يبقي Zintl…`, `Zintl mantiene…`, `Zintl 将翻译…` — and the catalog entry is now a module namespace access (`…["default"]`) rather than a string. Vite snapshots byte-identical; only `rsbuild-spa`'s moved.
 
 ### L-005 — revised: unreachable within the agreed scope
 

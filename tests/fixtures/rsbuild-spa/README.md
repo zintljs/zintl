@@ -17,18 +17,14 @@ and `transform` and nothing else, so the 17 dev-server contracts never select it
 It mirrors `examples/vanilla-spa-basic` as closely as the host allows, minus the
 binary asset imports.
 
-## Its snapshots record a known bug on purpose
+## What the asset files are for
 
-`src/about.txt` and its localized copies under `src/i18n/src/` reproduce **ledger
-L-009**, and the committed build snapshot is the evidence.
+`src/about.txt` and its localized copies under `src/i18n/src/` exercise asset
+localisation, which is where **ledger L-009** was found: Rspack types modules by
+file extension, so it classified `.txt` as an asset and base64-encoded the
+JavaScript Zintl generated for it into a `data:` URI. The catalog shipped a URI
+where the translated text belonged, with a green build and green contracts.
 
-Rspack types modules by file extension, so it classifies `.txt` as an asset and
-base64-encodes the JavaScript Zintl generated for it into a `data:` URI. The
-catalog then holds that URI instead of the translated text, and the page renders
-`data:text/plain;base64,…` where Arabic should be. **The build succeeds and every
-contract passes** — it is a silent wrong answer, not a failure.
-
-So `__snapshots__/rsbuild-spa/dist-output/static/js/async/0.js.snap` contains a
-`data:` URI, deliberately. Do not "fix" the snapshot. It is the tripwire: whoever
-makes it stop containing a data URI has fixed L-009, and the diff is how they
-will know.
+That is fixed — raw text assets now resolve to an extension-free virtual id — and
+the snapshots are the regression guard. If a `data:text/plain` string ever
+reappears in `__snapshots__/rsbuild-spa/dist-output/`, L-009 is back.

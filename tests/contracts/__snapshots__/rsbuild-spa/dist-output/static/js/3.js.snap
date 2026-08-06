@@ -21,7 +21,7 @@ __webpack_require__.r(__webpack_exports__);
   },
     },
     "b_assets": {
-    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0,
+    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_about_txt_zintl_raw__rspack_import_0["default"],
   },
   };
                 case "ar":
@@ -33,6 +33,45 @@ __webpack_require__.r(__webpack_exports__);
         default: return {};
       }
     }, manifest: [] });
+
+},
+11(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+
+
+const sourceContent = "Zintl keeps translations next to the code that needs them.\n";
+const assetKey = "749ed136";
+const proxy = new Proxy({}, {
+  get(target, prop) {
+    const multiplexLocale = null;
+    const loc = (0,virtual_zintl_runtime_internal__rspack_import_0.getLocale)() || multiplexLocale || "en";
+    const val = loc === "en"
+      ? sourceContent
+      : ((0,virtual_zintl_runtime_internal__rspack_import_0._t)(assetKey, {}, { _bId: "b_assets" }) || sourceContent);
+    if (prop === Symbol.toPrimitive) {
+      return () => val;
+    }
+    if (prop === "toString" || prop === "valueOf") {
+      return () => val;
+    }
+    if (prop === "toJSON") {
+      return () => val;
+    }
+    if (typeof val[prop] === "function") {
+      return val[prop].bind(val);
+    }
+    return val[prop];
+  }
+});
+/* export default */ __webpack_exports__["default"] = (proxy);
+
+
+
+},
+8(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ("Zintl keeps translations next to the code that needs them.\n");
 
 },
 1(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
