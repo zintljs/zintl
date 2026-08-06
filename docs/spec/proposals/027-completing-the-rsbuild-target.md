@@ -1,7 +1,8 @@
 # Proposal 027: Completing the Rsbuild Target
 
-**Status**: OPEN — scope defined, no work started.
+**Status**: IN PROGRESS — §2.3(c) closed, see [027-leak-ledger.md](027-leak-ledger.md).
 **Date**: 2026-08-06
+**Ledger**: [027-leak-ledger.md](027-leak-ledger.md) — findings from this proposal's work, continuing 026's numbering from L-020.
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md) §11, and the findings in [026-leak-ledger.md](026-leak-ledger.md). Read 026 §11 first — this document assumes its outcome and does not restate it.
 
 ## 0. What this is, and how it differs from 026
@@ -63,9 +64,9 @@ Rspack's `emitFile` returns `undefined`, so `import.meta.ROLLUP_FILE_URL_<id>` h
 
 **(b) A home for per-locale direction.** Direction currently lives in HTML catalogs, read at build time by the projection. The runtime has no table and should not grow a hardcoded list of RTL languages. Options: hand the direction map to the runtime the way `sourceLocale` is handed over today (a build-time substitution in `getRuntimeCode`), or keep it in the projection and accept that `dir` requires HTML transformation on every host. **Prefer the first** — it makes `dir` work wherever `lang` already does, and direction is a property of the locale rather than of the document.
 
-**(c) Host-independent dev globals.** `__zintl_current_instance` and the settle beacon are published on a path that does not run on Rspack. Until that is fixed, every failure diagnosis on a non-Vite host is misleading in the same way, which will cost debugging time on every item in this proposal.
+**(c) Host-independent dev globals.** ~~`__zintl_current_instance` and the settle beacon are published on a path that does not run on Rspack.~~ **CLOSED — and the diagnosis above was wrong in both halves.** A probe run before any code was written found `__zintl_current_instance` **present** all along, and the beacon absent for an unrelated reason: Rsbuild leaves Rspack's `mode` at `"none"` in every action, so L-018's dev detection never fired and `__ZINTL_DEV__` folded to `false`. Fixed by asking the layer that owns the fact — `api.context.action`, through an `rsbuild` block on the plugin. See [L-020](027-leak-ledger.md).
 
-**Do (c) first.** It is the smallest, it is a prerequisite for trusting any diagnosis, and 026 lost time to its absence repeatedly.
+**Do (c) first.** It is the smallest, it is a prerequisite for trusting any diagnosis, and 026 lost time to its absence repeatedly. — _Held up: it was one probe, it closed the item, and it corrected a 026 ledger entry on the way. It also delivered §2.5's answer early: the first genuine Rsbuild-level concern turned out to be dev-detection rather than HTML, and it needed no facet change and no `hostChain`, because the concern lives in the plugin's escape hatch. The `rsbuild` block it created is the same one (a) will hang `modifyHTML` off._
 
 ### 2.4 The HMR ordering defect
 

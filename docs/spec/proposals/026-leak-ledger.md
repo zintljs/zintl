@@ -460,6 +460,10 @@ That upholds the invariant `localeCoherent` exists to protect: **the document ne
 - Adding the HTML catalog the projection needs for `dir` then destabilised it again: the page rendered and translated, but `lang` stopped updating. Adding a catalog changes which code path owns the document, and the projection took over from the runtime fallback without completing the job.
 - Throughout, `__zintl_current_instance` was **absent** on this host — the store never publishes itself globally — which is why every diagnosis read `settle beacon: ABSENT` even on a page that was translating correctly. That is a third, separate gap.
 
+> **Corrected by proposal 027, Phase 0 — this bullet is wrong in both halves.** `__zintl_current_instance` was **present** all along; module-scope publication predates this spike. The beacon was absent for an unrelated reason — `__ZINTL_DEV__` folded to `false`, because Rsbuild leaves Rspack's `mode` at `"none"` and L-018's dev detection therefore never fired ([027-leak-ledger.md](027-leak-ledger.md), L-020).
+>
+> The **observation** was accurate and the **explanation** was inferred from it rather than probed: one `page.evaluate` separates the two, and was not run. Left in place rather than edited away, because an honestly-written entry later proved wrong is evidence about the method — §6.6's point, arriving from the other direction.
+
 Each fix surfaced the next layer, which is the signature of a path that needs design rather than wiring. §7 excluded HTML fan-out for exactly this reason and the exclusion held up. The reverted work is not lost — this entry is what it bought — and the honest cost of closing L-019 fully is: an HTML transform seam that is not `transformIndexHtml`, a decision about where per-locale direction lives, and dev-only runtime globals that do not depend on a Vite dev server.
 
 ---

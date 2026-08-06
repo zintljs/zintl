@@ -3,11 +3,30 @@ import type { ViteDevServer } from "vite";
 import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
 import type { ResolvedOptions } from "./options.js";
+import type { BundlerHostView } from "./host.js";
 
 export default class Context {
   public compiler!: ZintlCompiler;
   public server: ViteDevServer | null = null;
   public multiplexEnabled: boolean | null = null;
+
+  /**
+   * Host facts supplied out-of-band, by a layer `getNativeBuildContext()`
+   * cannot see. Merged over the native view by {@link ensureCompiler}.
+   *
+   * This exists because a host can be a *stack*. Rsbuild is a configuration,
+   * dev-server and HTML layer on top of Rspack, and unplugin hands the plugin
+   * Rspack's compiler — so a question Rspack genuinely cannot answer has to be
+   * answered by whoever is standing above it. Concretely: Rsbuild leaves
+   * `compiler.options.mode` at `"none"` in every action, so the Rspack layer
+   * has no dev/production signal at all, while `api.context.action` at the
+   * Rsbuild layer says exactly which one it is (ledger L-020).
+   *
+   * Deliberately a partial view rather than a second full one — anything set
+   * here is a fact the inner layer could not supply, not an override of one it
+   * did.
+   */
+  public hostHints: Partial<BundlerHostView> = {};
 
   constructor(public options: ResolvedOptions) {}
 

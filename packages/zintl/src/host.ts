@@ -104,14 +104,22 @@ export function nativeHostView(pluginContext: unknown): BundlerHostView {
   const bundler = typeof native?.framework === "string" ? native.framework : base.bundler;
 
   /**
-   * `mode` is this family's `command === "serve"`.
+   * `mode` is this family's `command === "serve"` — on raw webpack and raw
+   * Rspack, where the user sets it.
    *
-   * Without it every Rspack build looked like production, including the dev
-   * server — so the runtime was generated with `__ZINTL_DEV__` folded to
-   * `false`, and a page served in development had no settle beacon, no dev
-   * logging and no hot-update wiring. The app rendered and translated
-   * correctly, which is exactly why it went unnoticed until a browser contract
-   * asked the page to account for itself.
+   * It is **not** sufficient under Rsbuild, and that was measured rather than
+   * assumed: Rsbuild leaves `mode` at `"none"` for `dev`, `build` and
+   * `preview` alike, because it drives optimisation from its own config rather
+   * than from webpack's mode presets. So this answers `false` on an Rsbuild dev
+   * server, the runtime is generated with `__ZINTL_DEV__` folded to `false`,
+   * and the page has no settle beacon and no dev logging — while rendering and
+   * translating perfectly, which is why it went unnoticed (ledger L-020).
+   *
+   * Dev-ness is a fact the *Rsbuild* layer owns and the Rspack layer cannot
+   * see. It arrives through {@link Context.hostHints}, set from
+   * `api.context.action` in the plugin's `rsbuild` block, and is merged over
+   * this view below. Kept here rather than deleted because it is still correct
+   * for a host that drives Rspack directly.
    */
   const isDev = native?.compiler?.options?.mode === "development";
 
@@ -149,7 +157,16 @@ export function ensureCompiler(
    * is discarded on all but the first call. Measured cost: enough to make the
    * HMR-hammer contract miss its final update on `react-basic`.
    */
-  const resolved = typeof host === "function" ? host() : host;
+  const native = typeof host === "function" ? host() : host;
+
+  /**
+   * Hints last, because they come from the layer that knows better. A stacked
+   * host answers through both: `getNativeBuildContext()` for what the inner
+   * bundler owns, {@link Context.hostHints} for what only the outer one can
+   * say. Nothing is written into `hostHints` that the inner layer supplied, so
+   * this is a completion rather than an override.
+   */
+  const resolved: BundlerHostView = { ...native, ...ctx.hostHints };
 
   // Orchestration, in three visible steps: detect → assemble → resolve.
   const frameworks = detectFrameworksOrFallback({
