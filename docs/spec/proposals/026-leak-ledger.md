@@ -387,6 +387,46 @@ The **no-op calibration** regressed on both runs, and `Catalog Serialization Log
 
 ---
 
+## Post-spike: the dev-server driver seam
+
+`BuildToolDriver` made the build side host-agnostic; the serving side stayed hardwired to Vite, which is why seventeen of twenty-one contracts could not see a second host. `DevServerDriver` is its counterpart: `LabDevServerHandle` describes a running server in the lab's terms, `ViteDevServerDriver` holds the existing logic, and `RsbuildDevServerDriver` starts one through `createRsbuild().startDevServer()`.
+
+Two collaborators stopped knowing what Vite is. `LabWebSocket` now takes an **intercept function** rather than a `ViteDevServer` — the `ws.send` monkey-patch moved into the Vite driver, where host knowledge belongs — and a host that cannot expose a hot-update channel simply omits it. `LabCompiler` identifies its compiler by **project root** rather than by a server object, which is what actually distinguishes one and what every host has.
+
+The payoff is narrow and real: `initial-render` now runs against Rspack. Whether an app Zintl built through Rspack _runs in a browser_ was, until now, entirely unverified — the four project contracts only ever asserted that plausible bytes came out.
+
+### L-018 — Every Rspack build looked like production, including the dev server
+
+|                             |                                              |
+| :-------------------------- | :------------------------------------------- |
+| **Status**                  | Fixed                                        |
+| **Bucket**                  | **2 — relocate** (ask the host)              |
+| **Facet contract changed?** | No — `BundlerHostView` already had the field |
+
+`nativeHostView` filled in `bundler` and `root` from the host's native context and left `isDev` at the fallback's `false`. So a page served by the Rspack dev server was compiled as a production build: `__ZINTL_DEV__` folded to `false`, no settle beacon, no dev logging, no hot-update wiring.
+
+It went unnoticed because **the app was correct**. It rendered, translated, and switched locale; nothing was visibly wrong until a browser contract asked the page to account for itself and the diagnosis read `settle beacon: ABSENT — no Zintl runtime on the page`.
+
+Fixed by reading `compiler.options.mode === "development"` — this family's equivalent of Vite's `command === "serve"`. The effect was immediate and measurable in the same failure output: the runtime store went from reporting `undefined` to reporting `ar`.
+
+Same shape as L-011 and L-008: a host-supplied value with a plausible-looking default, on the one path nobody exercised. That is now three, which is why §2.3 of the contract revision asks for absence to be loud rather than defaulted.
+
+### L-019 — `<html lang>`/`dir` never follow the locale on a non-Vite host
+
+|                             |                                                   |
+| :-------------------------- | :------------------------------------------------ |
+| **Status**                  | Open — scoped out, and the capability withheld    |
+| **Bucket**                  | **1 — facet it** (an HTML transform hook)         |
+| **Facet contract changed?** | Would need one — no host-neutral HTML seam exists |
+
+With L-018 fixed, `locale-switch` still failed — and instructively. The page rendered fully in Arabic and the runtime store reported `ar`; only the document disagreed, still announcing `lang="en"`. The contract's `localeCoherent` assertion exists precisely to catch a page that renders one language while announcing another, and it did its job.
+
+The cause is that `<html lang>`/`dir` come from the HTML projection Zintl injects through `transformIndexHtml` — a Vite-only hook, dropped by unplugin on every other target. §7 excluded the HTML path from this spike, and this is what that exclusion costs in practice.
+
+**So `rsbuild-spa` claims `spa` and not `locale-switch`/`rtl`.** Withholding the capability is the honest move: the contract would be asserting a coherence Zintl cannot currently deliver on this host, and a green suite that quietly skipped it would be worse than a red one. What that leaves recorded is precise — locale switching _works_ on Rspack; document coherence does not.
+
+---
+
 ## Deliverable 2 — the revised facet authoring contract
 
 §7 item 2, assembled from the entries above rather than reasoned from first principles. This is the input to the self-activation inversion (§10), which should not freeze the facet API before absorbing it.

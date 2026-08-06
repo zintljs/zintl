@@ -15,6 +15,8 @@ import type { MaterializedProject, ProjectSource } from "../contracts/source.js"
 
 export interface LabOptions {
   source: ProjectSource;
+  /** Which build tool serves this project. Defaults to Vite. */
+  driver?: DriverKind;
   mode?: "dev" | "preview";
   port?: number;
   env?: Record<string, string>;
@@ -115,12 +117,15 @@ class LabImpl implements Lab {
     this.url = url;
     this.root = root;
 
-    const devServer = mode === "dev" ? (server as LabDevServer).server : undefined;
-    this.ws = mode === "project" ? throwNoAccess("ws") : new LabWebSocket(devServer);
+    const devServer = mode === "dev" ? (server as LabDevServer) : undefined;
+    this.ws =
+      mode === "project"
+        ? throwNoAccess("ws")
+        : new LabWebSocket(devServer?.interceptHmr?.bind(devServer));
     this.network = mode === "project" ? throwNoAccess("network") : new LabNetwork(this.page);
     this.console = mode === "project" ? throwNoAccess("console") : new LabConsole(this.page);
     this.clock = mode === "project" ? throwNoAccess("clock") : new LabClock(this.page);
-    this.compiler = new LabCompiler(devServer);
+    this.compiler = new LabCompiler(root);
     this.assert = new LabAssertions(this);
     this.pipeline = new LabPipeline(exampleName, root, zintlOptions, driver);
     this.driver = this.pipeline.driver;
@@ -318,7 +323,7 @@ export async function createLab(opts: LabOptions): Promise<Lab> {
 
   let server: LabDevServer | LabPreviewServer;
   if (mode === "dev") {
-    server = await createLabDevServer(project.root, opts.source.id, port, env);
+    server = await createLabDevServer(project.root, opts.source.id, port, env, opts.driver);
   } else {
     server = await createLabPreviewServer(project.root, opts.source.id, port, env);
   }

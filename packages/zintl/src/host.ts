@@ -98,19 +98,31 @@ export function nativeHostView(pluginContext: unknown): BundlerHostView {
   if (typeof getNative !== "function") return base;
 
   const native = getNative.call(pluginContext) as
-    | { framework?: string; compiler?: { options?: { context?: string } } }
+    | { framework?: string; compiler?: { options?: { context?: string; mode?: string } } }
     | undefined;
 
   const bundler = typeof native?.framework === "string" ? native.framework : base.bundler;
+
+  /**
+   * `mode` is this family's `command === "serve"`.
+   *
+   * Without it every Rspack build looked like production, including the dev
+   * server — so the runtime was generated with `__ZINTL_DEV__` folded to
+   * `false`, and a page served in development had no settle beacon, no dev
+   * logging and no hot-update wiring. The app rendered and translated
+   * correctly, which is exactly why it went unnoticed until a browser contract
+   * asked the page to account for itself.
+   */
+  const isDev = native?.compiler?.options?.mode === "development";
 
   // Rspack (and webpack, which shares the shape): the project root is the
   // compiler's `context`.
   const context = native?.compiler?.options?.context;
   if (typeof context === "string" && context.length > 0) {
-    return { ...base, bundler, root: context };
+    return { ...base, bundler, isDev, root: context };
   }
 
-  return { ...base, bundler };
+  return { ...base, bundler, isDev };
 }
 
 /**

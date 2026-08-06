@@ -1,19 +1,24 @@
-import type { ViteDevServer } from "vite";
 import type { ZintlCompiler } from "@zintljs/compiler";
 
 export class LabCompiler {
-  private server?: ViteDevServer;
+  private root?: string;
 
-  constructor(server?: ViteDevServer) {
-    this.server = server;
+  /**
+   * Identified by project root rather than by a server object.
+   *
+   * Matching on the server meant knowing what kind of server it was; the root
+   * is what actually distinguishes one compiler from another, it is what the
+   * compiler itself records, and every host has one.
+   */
+  constructor(root?: string) {
+    this.root = root;
   }
 
   get instance(): ZintlCompiler | undefined {
     const contexts = (globalThis as any).__zintl_active_contexts || [];
-    if (this.server) {
-      const serverRoot = this.server.config.root;
+    if (this.root) {
       const match = contexts.find(
-        (ctx: any) => ctx.server === this.server || ctx.compiler?.root === serverRoot,
+        (ctx: any) => ctx.compiler?.rootDir === this.root || ctx.compiler?.root === this.root,
       );
       if (match) return match.compiler;
     }

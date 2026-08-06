@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-import type { ViteDevServer } from "vite";
-
 export interface HmrPacket {
   type: string;
   timestamp: number;
@@ -12,10 +9,12 @@ export interface WsCapture {
   readonly packets: ReadonlyArray<HmrPacket>;
 }
 
+export type HmrIntercept = (onPacket: (packet: HmrPacket) => void) => () => void;
+
 export class LabWebSocket {
-  private server?: ViteDevServer;
+  private intercept?: HmrIntercept;
   private activeCaptures: Set<{ packets: HmrPacket[] }> = new Set();
-  private originalSend?: Function;
+  private detach?: () => void;
   private listeners: Set<(packet: HmrPacket) => void> = new Set();
 
   private static readonly RECENT_LIMIT = 50;
@@ -33,49 +32,36 @@ export class LabWebSocket {
     return this.recent;
   }
 
-  constructor(server?: ViteDevServer) {
-    this.server = server;
-    if (server) {
+  /**
+   * Takes an intercept function rather than a server, so it no longer knows
+   * what a `ViteDevServer` is.
+   *
+   * Absent means the host does not expose a hot-update channel the lab can
+   * watch — not that nothing was sent. Contracts requiring `hmr` are kept away
+   * from such projects by the capability model, so the distinction never has to
+   * be guessed at from an empty packet list.
+   */
+  constructor(intercept?: HmrIntercept) {
+    this.intercept = intercept;
+    if (intercept) {
       this.setupIntercept();
     }
   }
 
   private setupIntercept() {
-    if (!this.server) return;
-    const ws = this.server.ws;
-    this.originalSend = ws.send;
-
-    // Monkey-patch ws.send to intercept outgoing HMR packets
-    ws.send = (payload: any, ...args: any[]) => {
-      let packet: HmrPacket | null = null;
-      try {
-        const data = typeof payload === "string" ? JSON.parse(payload) : payload;
-        if (data && typeof data.type === "string") {
-          packet = {
-            type: data.type,
-            timestamp: Date.now(),
-            data,
-          };
-        }
-      } catch {
-        // Ignore invalid payloads
+    if (!this.intercept) return;
+    this.detach = this.intercept((packet) => {
+      this.recent.push(packet);
+      if (this.recent.length > LabWebSocket.RECENT_LIMIT) {
+        this.recent.shift();
       }
-
-      if (packet) {
-        this.recent.push(packet);
-        if (this.recent.length > LabWebSocket.RECENT_LIMIT) {
-          this.recent.shift();
-        }
-        for (const capture of this.activeCaptures) {
-          capture.packets.push(packet);
-        }
-        for (const listener of this.listeners) {
-          listener(packet);
-        }
+      for (const capture of this.activeCaptures) {
+        capture.packets.push(packet);
       }
-
-      return this.originalSend!.call(ws, payload, ...args);
-    };
+      for (const listener of this.listeners) {
+        listener(packet);
+      }
+    });
   }
 
   capture(): WsCapture {
@@ -118,8 +104,7 @@ export class LabWebSocket {
   }
 
   teardown() {
-    if (this.server && this.originalSend) {
-      this.server.ws.send = this.originalSend as any;
-    }
+    this.detach?.();
+    this.detach = undefined;
   }
 }

@@ -34,16 +34,39 @@ export const rsbuildSpa: ProjectManifest = {
   source: dirSource("tests/fixtures/rsbuild-spa"),
   driver: "rsbuild",
   zintlOptions,
-  capabilities: ["build", "graph", "transform"],
+  /**
+   * Build-time capabilities, plus the browser ones that do not involve hot
+   * updates.
+   *
+   * `spa` became claimable once the dev-server driver seam existed, and it buys
+   * the thing nothing else covered: whether an app Zintl built through Rspack
+   * actually *runs* in a browser rather than merely producing plausible bytes.
+   *
+   * **Not `locale-switch`/`rtl`, and the reason is a finding.** Switching works
+   * — the page renders Arabic and the runtime store reports `ar`. What does not
+   * follow is `<html lang>`/`dir`, because those come from the HTML projection
+   * injected through `transformIndexHtml`, which is Vite-only and dropped on
+   * every other host. So the contract's `localeCoherent` check fails on a page
+   * that is, in every visible respect, correctly translated. Claiming the
+   * capability would assert a coherence Zintl cannot currently deliver here.
+   *
+   * **Not `hmr` or anything built on it.** Zintl emits no acceptance code on
+   * this host (`rspackFacet`), because ZDB §7a makes dev support conditional on
+   * two ordering guarantees not established here.
+   */
+  capabilities: ["build", "graph", "transform", "spa"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
     headingFile: "src/main.ts",
-    navigateHome: async () => {
-      throw new Error(
-        "rsbuild-spa is a build-only (Tier 1) target and claims no browser capabilities; " +
-          "a contract reaching navigateHome means capability scoping regressed.",
-      );
+    navigateHome: async (lab) => {
+      await lab.page.goto(`${lab.url}/`);
+    },
+    switchLocale: async (lab, locale) => {
+      if (locale === "ar") await lab.page.click("button:has-text('العربية')");
+      else if (locale === "en") await lab.page.click("button:has-text('English')");
+      else if (locale === "es") await lab.page.click("button:has-text('Español')");
+      else if (locale === "zh") await lab.page.click("button:has-text('中文')");
     },
   },
 };
