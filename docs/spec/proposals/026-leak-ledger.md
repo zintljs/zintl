@@ -423,7 +423,23 @@ With L-018 fixed, `locale-switch` still failed — and instructively. The page r
 
 The cause is that `<html lang>`/`dir` come from the HTML projection Zintl injects through `transformIndexHtml` — a Vite-only hook, dropped by unplugin on every other target. §7 excluded the HTML path from this spike, and this is what that exclusion costs in practice.
 
-**So `rsbuild-spa` claims `spa` and not `locale-switch`/`rtl`.** Withholding the capability is the honest move: the contract would be asserting a coherence Zintl cannot currently deliver on this host, and a green suite that quietly skipped it would be worse than a red one. What that leaves recorded is precise — locale switching _works_ on Rspack; document coherence does not.
+**So `rsbuild-spa` claims `spa` and not `locale-switch`/`rtl`.** Withholding the capability is the honest move: the contract would be asserting a coherence Zintl cannot currently deliver on this host, and a green suite that quietly skipped it would be worse than a red one.
+
+### L-019, partially closed — and what the rest costs
+
+**Fixed: `<html lang>` now follows the locale on any host.** The store calls `window.__zintlApplyHtml`, which the HTML projection installs; where no projection exists, `publishLocale` now sets `document.documentElement.lang` itself. The store always knows the locale it adopted, so it can say so unaided, and the branch runs only when nothing better is installed — the projection keeps full ownership wherever it exists.
+
+That upholds the invariant `localeCoherent` exists to protect: **the document never announces a language the store did not adopt.** Host-neutral, and it makes a page that renders Arabic stop calling itself English.
+
+**Not fixed: `dir`.** Direction is per-locale data the projection reads out of catalogs at build time. The runtime has no such table, and giving it one would put a list of RTL languages in the compiler core — precisely the knowledge facets exist to hold. `locale-switch` asserts `dir("rtl")`, so the capability stays unclaimed.
+
+**An attempt at the real fix is recorded because of what it found.** Rsbuild exposes `api.modifyHTML`, whose signature is the one `compiler.transformHtml` already has, and unplugin's `rsbuild` escape hatch can reach it — so wiring the projection to this host looked like a wiring difference rather than a second implementation. It was tried, and it was reverted:
+
+- Passing Rsbuild's `filename` (the _output_ name) where Vite passes an absolute _source_ path produced a **blank page** — 30 bytes of body, no app. Fixed by resolving against the root, after which the page rendered and `lang` was correct.
+- Adding the HTML catalog the projection needs for `dir` then destabilised it again: the page rendered and translated, but `lang` stopped updating. Adding a catalog changes which code path owns the document, and the projection took over from the runtime fallback without completing the job.
+- Throughout, `__zintl_current_instance` was **absent** on this host — the store never publishes itself globally — which is why every diagnosis read `settle beacon: ABSENT` even on a page that was translating correctly. That is a third, separate gap.
+
+Each fix surfaced the next layer, which is the signature of a path that needs design rather than wiring. §7 excluded HTML fan-out for exactly this reason and the exclusion held up. The reverted work is not lost — this entry is what it bought — and the honest cost of closing L-019 fully is: an HTML transform seam that is not `transformIndexHtml`, a decision about where per-locale direction lives, and dev-only runtime globals that do not depend on a Vite dev server.
 
 ---
 

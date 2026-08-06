@@ -644,6 +644,27 @@ var I18nStore = class {
 	publishLocale(locale) {
 		if (typeof window === "undefined") return;
 		if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
+		else if (typeof document !== "undefined" && document.documentElement)
+ /**
+		* No projection script on the page — keep the document honest anyway.
+		*
+		* `__zintlApplyHtml` is installed by the HTML projection, which Zintl
+		* injects through `transformIndexHtml`. That hook is Vite's; unplugin
+		* drops it on every other host, so an Rspack-built page switched locale,
+		* rendered the new language, and went on announcing the old one in
+		* `<html lang>` — a page telling assistive technology and search engines
+		* something its own content contradicts (ledger L-019).
+		*
+		* The store always knows the locale it adopted, so it can say so without
+		* help. This runs only when nothing better is installed, which means the
+		* projection keeps full ownership wherever it exists.
+		*
+		* `lang` only. `dir` needs the per-locale direction the projection reads
+		* out of catalogs at build time, and the runtime has no such table —
+		* inventing one here would put a list of RTL languages in the compiler
+		* core, which is precisely the knowledge facets exist to hold.
+		*/
+		document.documentElement.lang = locale;
 		try {
 			localStorage.setItem("zintl-locale", locale);
 		} catch {}

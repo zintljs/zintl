@@ -42,13 +42,11 @@ export const rsbuildSpa: ProjectManifest = {
    * the thing nothing else covered: whether an app Zintl built through Rspack
    * actually *runs* in a browser rather than merely producing plausible bytes.
    *
-   * **Not `locale-switch`/`rtl`, and the reason is a finding.** Switching works
-   * — the page renders Arabic and the runtime store reports `ar`. What does not
-   * follow is `<html lang>`/`dir`, because those come from the HTML projection
-   * injected through `transformIndexHtml`, which is Vite-only and dropped on
-   * every other host. So the contract's `localeCoherent` check fails on a page
-   * that is, in every visible respect, correctly translated. Claiming the
-   * capability would assert a coherence Zintl cannot currently deliver here.
+   * **Not `locale-switch`/`rtl`.** The store now keeps `<html lang>` honest on
+   * any host (L-019), but the `locale-switch` contract also asserts `dir`, and
+   * direction comes from the HTML projection — which reaches this host only
+   * through an HTML transform Zintl does not yet have here. See the ledger for
+   * what an attempt at that wiring turned up.
    *
    * **Not `hmr` or anything built on it.** Zintl emits no acceptance code on
    * this host (`rspackFacet`), because ZDB §7a makes dev support conditional on
