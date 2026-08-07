@@ -138,3 +138,141 @@ they never had a `hostHints` contribution and their output is unchanged.
 **What this closes.** 027 §2.3(c) — dev diagnosis on this host is now trustworthy, which was the
 stated prerequisite for everything after it. The remaining halves of L-019 are `dir` (§2.3(b)) and
 the HTML seam (§2.3(a)).
+
+---
+
+## Phase 1 — direction, and two defects on the supported path
+
+§2.3(b) asked for a home for per-locale direction, and warned that the runtime "should not grow a
+hardcoded list of RTL languages".
+
+**The warning was aimed at a problem that does not exist.** Direction is not knowledge Zintl has to
+invent — it is **authored data**, written into every HTML catalog unconditionally by
+`HtmlManager.syncHtmlProjections` and edited by whoever edits translations. The only hardcoded RTL
+list in the compiler sits on the baked-literal path, already inside a facet, and does not move. So
+the item was a **hoist**, not an invention: the projection already derived `rtlLocales[]` from those
+catalogs, and the work was to make that one derivation serve two consumers instead of one.
+
+`ContentFacet.rtlLocales` is that seam, unioned by `ZintlCompiler.getRtlLocales()` and substituted
+into the runtime as `__ZINTL_RTL_LOCALES__`. Core never learns what direction means; it merges string
+arrays.
+
+### The two defects the hoist exposed
+
+Both on the **Vite** path, both found by reading the generated bootstrap rather than by any failing
+test, and together a complete explanation for the unexplained third layer of 026's L-019 —
+_"adding the HTML catalog then destabilised it again"_:
+
+**D1 — the projection's `apply()` guarded `dir` behind a check on `lang`.**
+
+```js
+function apply(locale) {
+  if (document.documentElement.lang === locale) return; // ← removed
+  document.documentElement.dir = rtl.includes(locale) ? "rtl" : "ltr";
+  document.documentElement.lang = locale;
+```
+
+It reads as a cheap idempotence guard and is not one: `apply` owns **both** attributes, so anything
+that set `lang` first — the store's own fallback, an SSR response, an earlier partial apply —
+permanently locked `dir` out, with no path to correct it afterwards. Every statement in that function
+is an idempotent assignment, so the guard bought nothing and cost the attribute it was standing in
+front of.
+
+**D2 — the store's fallback was an `else`, and the projection took the `if` without finishing the
+job.** `publishLocale` called `__zintlApplyHtml` when installed and set `lang` itself otherwise. But
+the projection installs `__zintlApplyHtml` **unconditionally** while emitting the `dir` line only
+when the project has an RTL locale — so on every other project it claimed ownership of the document
+and then declined to discharge it, silently suppressing the fallback that would have.
+
+Fixed as an **ownership split** rather than two patches, because the `if`/`else` was the defect:
+
+|                                      | Owns                                                                    |
+| :----------------------------------- | :---------------------------------------------------------------------- |
+| Projection bootstrap (parse time)    | initial `lang`/`dir`, title, description, deltas, preloads              |
+| Store `publishLocale` (every switch) | `lang`, `dir` — then **delegates** to the projection, not instead of it |
+
+`dir` is written only when `__ZINTL_RTL_LOCALES__` is non-empty. Empty means "this project never
+spoke about direction", and asserting `"ltr"` there would start writing an attribute onto documents
+that never had one.
+
+### A bucket-3 delete, taken while in the neighbourhood
+
+`getRuntimeCode` substituted `sourceLocale` with a regex matching a **TypeScript class-field
+default** (`sourceLocale: string = "en"`). One `readonly`, one formatter rule or one compile-target
+change from silently matching nothing — and a substitution that fails by doing nothing is the worst
+shape available, since the runtime still loads and simply believes the wrong thing.
+
+It was also **dead**: `store-core.ts:214` was the only occurrence of `sourceLocale` in the entire
+runtime directory. Written, never read, and shipped in every production bundle. Deleted, along with
+its regex, rather than adding a second fragile one beside it — `__ZINTL_RTL_LOCALES__` uses the
+word-boundary sentinel mechanism `__ZINTL_DEV__` already proved.
+
+---
+
+### L-021 — Zintl links an HTML document to its boundary through a `<script src>` the Rsbuild template does not have
+
+|                             |                                                               |
+| :-------------------------- | :------------------------------------------------------------ |
+| **Status**                  | **Open** — diagnosed, reproduced, deferred to §2.3(a)         |
+| **Bucket**                  | **2 — relocate** (the link is host configuration, not markup) |
+| **Facet contract changed?** | Not yet — the fix needs the HTML seam                         |
+
+**What failed.** Nothing, loudly. With the direction mechanism landed and an HTML catalog authored
+for the fixture, `dir` still did not follow the locale on Rsbuild — the substituted map came out
+empty:
+
+```js
+if ([].length > 0) document.documentElement.dir = [].includes(locale) ? "rtl" : "ltr";
+```
+
+against `["ar"]` on every Vite example.
+
+**The cause, probed rather than reasoned about.** Compiling the fixture directly and dumping the
+graph:
+
+```
+htmlKeysInGraph:    ["index.html"]      ← observed
+htmlWithProjection: ["index.html"]      ← projection payload extracted
+scripts:            []                  ← nothing references an entry
+leadsToBoundary:    { leads: false }    ← therefore unreachable
+```
+
+The document **is** discovered and extracted on this host. What is missing is the edge from it to any
+trust anchor, because Zintl derives that edge from `<script src>` tags in the template — and an
+Rsbuild template does not have one. Rsbuild injects the entry from `source.entry` at build time, so
+its `index.html` is deliberately script-free, and that is the _conventional_ shape rather than a
+quirk of this fixture.
+
+**The assumption.** _"An HTML document names the scripts it loads."_ True of Vite, where the template
+is a module-graph entry and the `<script type="module" src="/src/main.ts">` is both the real loader
+and the link Zintl reads. On Rsbuild the same relationship exists but lives in `rsbuild.config.mjs`
+as `source.entry` + `html.template`.
+
+**Two things this corrects, and the second is a plan error worth naming.**
+
+The 027 planning pass argued that §2.3(a) and §2.3(b) were independent, because `locale-switch`
+asserts only `localeCoherent` and `dir` and never `<title>` — so direction alone should have
+unblocked `rtl`. That reasoning was right about the _contract_ and wrong about the _data_: on Rsbuild
+the direction map cannot be populated without knowing which entry a document belongs to, and that is
+exactly the host knowledge §2.3(a)'s seam exists to supply. **027's original coupling of (a) and (b)
+was correct**, for a reason neither document had written down.
+
+Second, `htmlProjectionFacet` implements no `ContentFacet.discover`, which looked like the cause and
+is not: `.html` is in the extraction facet's `extensions`, so `discover()` transforms it through the
+extension branch before the content-facet branch is reached. A `discover` hook was written, measured
+to be dead code, and removed. Recorded because "the obvious missing hook" was the first hypothesis
+and cost a build to falsify.
+
+**Deferred, not worked around.** The available shortcuts were to add a `<script>` tag the fixture
+should not have — making the example unrepresentative of real Rsbuild apps, which is worse in
+`examples/` than a stated gap — or to drop the reachability filter when reading direction, which
+would read catalogs that `flush` never writes and never scaffolds on this host. Neither is a story
+worth shipping.
+
+**Consequence for the capability list.** `rtl` and `locale-switch` stay unclaimed on `rsbuild-spa`
+until §2.3(a) lands. `<html lang>` remains correct there — the store has always been able to say what
+locale it adopted — so the page stays coherent; it simply does not announce direction.
+
+**Verified.** The mechanism itself works end to end on the supported path: every Vite example builds
+with `["ar"]` inlined into the store, `locale-switch` and `locale-storm` pass on all four SPAs, and
+`vpr verify` is green at 787 unit tests with the full contract suite at 118/118.

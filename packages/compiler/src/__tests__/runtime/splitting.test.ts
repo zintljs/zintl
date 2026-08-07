@@ -79,4 +79,32 @@ describe("Runtime Splitting - getRuntimeCode", () => {
   it("should throw error for non-existent runtime modules", () => {
     expect(() => getRuntimeCode("invalid-module-name" as any)).toThrow(/Runtime module not found/);
   });
+
+  /**
+   * The direction map reaches the browser as a substituted literal, and a
+   * substitution that silently matches nothing is the dangerous failure: the
+   * runtime still loads, and simply believes the project has no RTL locale.
+   * These assert the sentinel is gone afterwards, not merely that the value
+   * appeared somewhere.
+   */
+  describe("RTL locale substitution", () => {
+    it("folds the direction map into a literal array", () => {
+      const code = getRuntimeCode("store-core", baseCapabilities, false, false, ["ar", "he"]);
+      expect(code).toContain('["ar","he"]');
+      expect(code).not.toContain("__ZINTL_RTL_LOCALES__");
+    });
+
+    it("folds to an empty array when no locale is right-to-left", () => {
+      const code = getRuntimeCode("store-core", baseCapabilities, false, false, []);
+      expect(code).toContain("[]");
+      expect(code).not.toContain("__ZINTL_RTL_LOCALES__");
+    });
+
+    it("still substitutes when the caller omits the argument", () => {
+      // The default matters: an unsubstituted sentinel is a ReferenceError in
+      // the browser, so "the caller forgot" must not be a way to reach one.
+      const code = getRuntimeCode("store-core", baseCapabilities);
+      expect(code).not.toContain("__ZINTL_RTL_LOCALES__");
+    });
+  });
 });

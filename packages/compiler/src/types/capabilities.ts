@@ -434,6 +434,23 @@ export interface ContentFacet extends BaseFacet {
     context: CompilerContext,
     preloads?: Record<string, string[]>,
   ) => Promise<string> | string;
+  /**
+   * Which locales this facet knows to be written right-to-left.
+   *
+   * Answers about **locales**, not about documents. Direction is a property of
+   * a language, so a project with several HTML entries has one answer, not one
+   * per page — the union across facets is what the runtime is handed.
+   *
+   * Core never learns what "rtl" means or which languages have it: it unions
+   * string arrays. The knowledge lives here because the data does — direction
+   * is authored per locale in content catalogs, and a facet is what knows how
+   * to read its own.
+   *
+   * The alternative was a table in the runtime, which would have put a list of
+   * RTL languages in compiler core — precisely the knowledge facets exist to
+   * hold.
+   */
+  rtlLocales?: (context: CompilerContext) => Promise<string[]> | string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

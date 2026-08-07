@@ -1048,6 +1048,27 @@ export class ZintlCompiler {
     return result;
   }
 
+  /**
+   * The locales this project renders right-to-left, unioned across facets.
+   *
+   * Handed to the runtime so the store can set `<html dir>` on every host, not
+   * only where an HTML projection is installed. Core stays ignorant of what
+   * direction means: it unions the string arrays its content facets return.
+   *
+   * A `union` rather than a chain — unlike {@link transformHtml}, where each
+   * facet rewrites the previous one's output, here every facet contributes an
+   * independent fact and none of them can retract another's.
+   */
+  public async getRtlLocales(): Promise<string[]> {
+    const context = this.getCompilerContext();
+    const merged = new Set<string>();
+    for (const facet of this._resolved.system.contentFacets) {
+      if (!facet.rtlLocales) continue;
+      for (const locale of await facet.rtlLocales(context)) merged.add(locale);
+    }
+    return [...merged].sort();
+  }
+
   async transform(
     code: string,
     id: string,
@@ -2355,7 +2376,6 @@ export function getRuntimeCode(
     | "store-server",
   capabilities?: CapabilityFlags,
   isSsr?: boolean,
-  sourceLocale?: string,
   /**
    * Whether the runtime is being served for development.
    *
@@ -2364,6 +2384,15 @@ export function getRuntimeCode(
    * users".
    */
   isDev = false,
+  /**
+   * Locales this project renders right-to-left, from
+   * {@link ZintlCompiler.getRtlLocales}.
+   *
+   * Defaults to empty, and empty is meaningful rather than missing: the store
+   * then leaves `dir` alone entirely instead of asserting `"ltr"` on documents
+   * that never had the attribute.
+   */
+  rtlLocales: string[] = [],
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -2395,13 +2424,17 @@ export function getRuntimeCode(
    * were not while the check depended on `typeof process`.
    */
   code = code.replace(/\b__ZINTL_DEV__\b/g, isDev ? "true" : "false");
-  if (cleanName === "store-core" && sourceLocale) {
-    code = code
-      .replace(
-        /sourceLocale\s*:\s*string\s*=\s*["']en["']/g,
-        `sourceLocale: string = "${sourceLocale}"`,
-      )
-      .replace(/sourceLocale\s*=\s*["']en["']/g, `sourceLocale = "${sourceLocale}"`);
-  }
+  /**
+   * Same mechanism, for the same reason: a word-boundary sentinel folds to a
+   * literal the minifier can reason about, and it survives formatting.
+   *
+   * This deliberately replaced a regex that matched a TypeScript class-field
+   * default (`sourceLocale: string = "en"`) in the runtime source. That worked
+   * and was one `readonly` keyword, one formatter rule or one compile-target
+   * change away from silently matching nothing — a substitution that fails by
+   * doing nothing is the worst shape available, since the runtime still loads
+   * and simply believes the wrong thing.
+   */
+  code = code.replace(/\b__ZINTL_RTL_LOCALES__\b/g, JSON.stringify(rtlLocales));
   return code;
 }

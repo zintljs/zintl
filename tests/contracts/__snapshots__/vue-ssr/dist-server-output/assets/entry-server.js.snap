@@ -79,7 +79,6 @@ var Delivery = class {
 };
 var I18nStore = class {
 	locale = "";
-	sourceLocale = "en";
 	catalogs = {};
 	locales = [];
 	/**
@@ -186,28 +185,28 @@ var I18nStore = class {
 	*/
 	publishLocale(locale) {
 		if (typeof window === "undefined") return;
-		if (window.__zintlApplyHtml) window.__zintlApplyHtml(locale);
-		else if (typeof document !== "undefined" && document.documentElement)
- /**
-		* No projection script on the page — keep the document honest anyway.
+		/**
+		* The store owns the document's locale attributes; the projection owns
+		* everything document-specific. Both run, in that order.
 		*
-		* `__zintlApplyHtml` is installed by the HTML projection, which Zintl
-		* injects through `transformIndexHtml`. That hook is Vite's; unplugin
-		* drops it on every other host, so an Rspack-built page switched locale,
-		* rendered the new language, and went on announcing the old one in
-		* `<html lang>` — a page telling assistive technology and search engines
-		* something its own content contradicts (ledger L-019).
+		* This used to be an either/or — call `__zintlApplyHtml` if installed,
+		* otherwise set `lang` — and the branch was the bug. The projection installs
+		* itself unconditionally but only writes `dir` when the project has an RTL
+		* locale, so on every other project it took ownership of the document and
+		* then declined to finish the job, silently suppressing the fallback that
+		* would have (ledger L-019). Sequencing them removes the question: the store
+		* always says what locale it adopted, and the projection still applies the
+		* title, description and body deltas only it knows about.
 		*
-		* The store always knows the locale it adopted, so it can say so without
-		* help. This runs only when nothing better is installed, which means the
-		* projection keeps full ownership wherever it exists.
-		*
-		* `lang` only. `dir` needs the per-locale direction the projection reads
-		* out of catalogs at build time, and the runtime has no such table —
-		* inventing one here would put a list of RTL languages in the compiler
-		* core, which is precisely the knowledge facets exist to hold.
+		* `dir` is set only when the project actually has direction data. Empty
+		* means "this project never spoke about direction", and asserting `"ltr"`
+		* there would start writing an attribute onto documents that never had one.
 		*/
-		document.documentElement.lang = locale;
+		if (typeof document !== "undefined" && document.documentElement) {
+			document.documentElement.lang = locale;
+			document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
+		}
+		window.__zintlApplyHtml?.(locale);
 		try {
 			localStorage.setItem("zintl-locale", locale);
 		} catch {}

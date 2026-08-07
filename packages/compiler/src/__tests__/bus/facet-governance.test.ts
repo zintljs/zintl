@@ -98,6 +98,47 @@ describe("transformHtml — chain, every facet participates", () => {
   });
 });
 
+describe("rtlLocales — union, not a chain", () => {
+  /**
+   * Deliberately a different composition from `transformHtml` above, and the
+   * contrast is the point: a facet rewriting HTML consumes the previous one's
+   * output, but a facet reporting that Arabic is right-to-left states an
+   * independent fact that no later facet gets to retract.
+   */
+  it("merges every facet's answer", async () => {
+    const compiler = compilerWith([
+      { name: "a", rtlLocales: () => ["ar"] },
+      { name: "b", rtlLocales: () => ["he"] },
+    ]);
+
+    expect(await compiler.getRtlLocales()).toEqual(["ar", "he"]);
+  });
+
+  it("de-duplicates and sorts, so the substituted literal is stable", async () => {
+    // Unstable ordering here is snapshot churn in every built bundle, since
+    // this array is inlined into generated runtime source.
+    const compiler = compilerWith([
+      { name: "a", rtlLocales: () => ["he", "ar"] },
+      { name: "b", rtlLocales: () => ["ar"] },
+    ]);
+
+    expect(await compiler.getRtlLocales()).toEqual(["ar", "he"]);
+  });
+
+  it("returns empty when no facet implements it", async () => {
+    // Empty must stay distinguishable from "nobody asked": the store reads it
+    // as "this project never spoke about direction" and leaves `dir` alone.
+    const compiler = compilerWith([{ name: "a" }]);
+    expect(await compiler.getRtlLocales()).toEqual([]);
+  });
+
+  it("awaits a facet that answers asynchronously", async () => {
+    const compiler = compilerWith([{ name: "a", rtlLocales: async () => Promise.resolve(["fa"]) }]);
+
+    expect(await compiler.getRtlLocales()).toEqual(["fa"]);
+  });
+});
+
 describe("facet lifecycle — union, failures isolated and named", () => {
   it("runs every facet even when one throws, and names the one that did", async () => {
     /**
