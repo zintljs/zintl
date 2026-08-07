@@ -9,13 +9,6 @@ const config: KnipConfig = {
         // "vpr",
       ],
       ignoreFiles: ["scripts/budget-reporter.ts"],
-      /**
-       * A materialized project, not importable source. `dirSource()` copies the
-       * whole directory and a build tool runs it from there, so nothing in the
-       * repo imports these files and knip is right that they have no importer —
-       * it is the wrong question for this directory.
-       */
-      ignore: ["tests/fixtures/rsbuild-spa/**"],
     },
     "examples/svelte-*": {
       sveltekit: true,
@@ -55,10 +48,10 @@ const config: KnipConfig = {
   // `zintljs` / `zintljs/vite` specifiers by walking up to the root
   // node_modules — a runtime resolution need knip cannot observe statically.
   //
-  // `@rsbuild/core` is here for the same reason and no other: the proposal 026
-  // fixture's `rsbuild.config.mjs` imports it at materialization time. The
-  // driver that drives it declares its own copy in `packages/testing`.
-  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs", "@rsbuild/core"],
+  // `@rsbuild/core` used to be listed here for the proposal 026 fixture, which
+  // was not a workspace member and resolved by walking up. It is now
+  // `examples/rsbuild-spa` and declares its own copy, so the exception is gone.
+  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

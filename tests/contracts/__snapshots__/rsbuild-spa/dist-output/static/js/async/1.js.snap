@@ -1,5 +1,5 @@
 "use strict";
-(self["rspackChunkrsbuild_spa_fixture"] = self["rspackChunkrsbuild_spa_fixture"] || []).push([[1], {
+(self["rspackChunkrsbuild_spa"] = self["rspackChunkrsbuild_spa"] || []).push([[1], {
 14(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 /* import */ var <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_spa_src_i18n_src_about_es_txt_zintl_raw__rspack_import_0 = __webpack_require__(15);

@@ -276,3 +276,131 @@ locale it adopted — so the page stays coherent; it simply does not announce di
 **Verified.** The mechanism itself works end to end on the supported path: every Vite example builds
 with `["ar"]` inlined into the store, `locale-switch` and `locale-storm` pass on all four SPAs, and
 `vpr verify` is green at 787 unit tests with the full contract suite at 118/118.
+
+---
+
+## Phase 2 — the `assets` contract described a project, not a capability
+
+§3.4 listed `assets` as _"already satisfiable — free coverage"_. It was not satisfiable at all.
+
+`assets.contract.spec.ts` imported `assetsBasicText` **from the `assets-basic` fixture** and asserted
+those strings against `adapter.headingSelector`. So the contract named an app, which
+CLAUDE.md's testing architecture says a contract never does — and the cost was concrete rather than
+stylistic: any second project claiming `assets` would have been asserted against the first project's
+text, in whichever element happened to be its heading. On `rsbuild-spa` that is the `<h1>` reading
+"Get started", against an expectation of "Hello World!".
+
+It survived because it had exactly one claimant, so "the app's heading" and "the app's localized
+asset" being the same element was true by coincidence. The generalisation moves the selector and the
+expected text into an `AssetsAdapter`, where per-project answers belong, and keeps `assetSelector`
+deliberately separate from `headingSelector` — on `rsbuild-spa` they are different elements, which is
+the normal case and the one the old shape could not express.
+
+**What it bought.** `assets` and `boundary-graph` are now claimed on `rsbuild-spa` and pass. The first
+of those matters more than a count: L-009 — the defect where Rspack typed Zintl's generated
+JavaScript by its `.txt` extension and base64'd it into a `data:` URI — had a **green build and green
+contracts**, and was caught only by reading a snapshot. It is now asserted in a real browser against
+rendered Arabic text.
+
+### A measurement, recorded because §3.5 asks for it and it arrived early
+
+Adding two contract cases changed the 4-worker failure rate enough to be worth writing down:
+
+| Tree               | Runs | Failed | Which                                                 |
+| :----------------- | :--- | :----- | :---------------------------------------------------- |
+| baseline (stashed) | 4    | 0      | —                                                     |
+| Phase 2            | 6    | 2      | `memory-leak`, then `hmr-hammer` — both `react-basic` |
+
+**Stated with its confounds, because the honest reading is weaker than the table looks.** Both
+failures landed in the first two runs, immediately after repeated full builds, and the following four
+were green; the baseline runs happened after the machine had settled. Neither failure is in anything
+this phase touched — both are the `react-basic` HMR family, i.e. the §2.4 ordering defect, and 026
+recorded the same "a different contract fails on each high-load run" signature against an
+**unmodified** tree at 2-in-3 before the fixture-race fix and 1-in-8 after.
+
+So: elevated, plausibly by contention alone — two extra cases whose project is driven by a native
+Rspack toolchain — and **not conclusive at this sample size**. The reason to record it rather than
+move on is that §3.5 asks for exactly this measurement before promotion, and Phase 3 adds more load
+again. Re-measure there with more runs, against this baseline, so a real regression stays
+attributable instead of being absorbed into "that contract is flaky sometimes".
+
+**Not claimed on `rsbuild-spa`, with reasons:** `locale-switch`/`rtl` (L-021), `performance`
+(`performance-size` requires `locale-switch`, so it is blocked by L-021 rather than by anything about
+performance), and `hmr` and everything downstream. Worth repeating one correction to §3.4's table:
+`hmr-hammer` requires `["spa", "hmr-stress"]` and **not** `hmr`, so claiming `hmr-stress` alone would
+have made it run and fail rather than skip.
+
+---
+
+## Phase 3 — promotion, and what the directory actually charged
+
+`tests/fixtures/rsbuild-spa/` is now `examples/rsbuild-spa/`. `pnpm-workspace.yaml` globs
+`examples/*`, so promotion is automatic on placement — which is precisely why the obligations had to
+be met first rather than discovered by a red CI.
+
+Three of §3.3's predictions were wrong, all in the cheap direction:
+
+**A hand-written `env.d.ts` was not needed — and moving it broke a contract.** The fixture carried a
+`declare module "*?raw"` shim, with a comment explaining that the Vite examples get this from
+`types: ["vite/client"]` and that Rsbuild has no equivalent to inherit. It does:
+`@rsbuild/core/types.d.ts` declares `*?raw` itself, along with `import.meta.env` and the asset
+modules. So the shim is deleted and `tsconfig.json` says `types: ["@rsbuild/core/types"]`, exactly
+mirroring how the Vite examples reach for `vite/client`.
+
+Worth recording because of how it surfaced. The plan moved `env.d.ts` into `src/` to satisfy knip's
+`project: ["src/**"]` glob — and that made it a **source file**, so `transform-dev` and
+`transform-prod` immediately began snapshotting it. A deterministic three-for-three failure, caused
+by the promotion housekeeping rather than by anything about Zintl. The right fix removed the file
+instead of relocating it.
+
+**Knip needed no configuration at all.** §3.3 predicted an `examples/rsbuild-spa` entry would be
+required, since `@rsbuild/core` is imported only from a root-level `rsbuild.config.mjs` that falls
+outside the `examples/**` project glob. Knip discovers it unaided. What the promotion _did_ require
+was the opposite of a new exception: `ignore: ["tests/fixtures/rsbuild-spa/**"]` came out, and
+`@rsbuild/core` came out of both the root `ignoreDependencies` **and** the root `package.json` — it
+was a root devDependency only because the fixture was not a workspace member and resolved by walking
+up. The app declares its own now.
+
+**One snapshot moved, for a legible reason.** Renaming the package from `rsbuild-spa-fixture` to
+`rsbuild-spa` changes the Rspack chunk global, `rspackChunkrsbuild_spa_fixture` →
+`rspackChunkrsbuild_spa`. Six lines across five files, and nothing else in the build output changed.
+
+### The composition guardrail was about to vouch for a fiction
+
+`composition.test.ts` enumerates `examples/` from disk but passed `bundler: "vite"` in three places,
+including the invariant _"every example resolves exactly one bundler facet"_, which asserted the
+literal `["vite"]`.
+
+That was true while `examples/` was Vite-only. After promotion it would have kept passing — by
+describing an Rsbuild app as resolving `viteFacet`, and asserting that description was correct. A
+guardrail vouching for a composition no build ever produces is worse than no guardrail, and the thing
+it would have been vouching for is **exactly ledger L-012**: Vite syntax emitted into Rspack output.
+
+The bundler is now derived per example from the config file on disk, and the invariant asserts _the
+host's own facet_ rather than a constant. The golden file gained a `bundler:` line, and
+`rsbuild-spa`'s entry reads as it should — `rspack [bundler]`, all three bundler hooks provided by
+it, and the activation trace carrying `✗ vite  when.bundler=vite ✗ (host: rspack)`.
+
+Its composition is otherwise **byte-identical to `vanilla-spa-basic`'s**, which is the property the
+README claims and the reason the example is worth having: any difference in output is attributable to
+the host rather than to the app.
+
+### §3.5's measurement
+
+| Tree                 | Runs | Failed | Which                                     |
+| :------------------- | :--- | :----- | :---------------------------------------- |
+| pre-Phase-2 baseline | 4    | 0      | —                                         |
+| Phase 2              | 6    | 2      | `memory-leak`, `hmr-hammer` (react-basic) |
+| Phase 3 (promoted)   | 6    | 1      | `hmr-hammer` (react-basic)                |
+
+**The Phase 2 worry does not survive the extra data.** 1-in-6 sits inside the background rate 026
+measured on an **unmodified** tree — 1-in-8 after the fixture-race fix — and every failure across all
+three trees is the same `react-basic` HMR family, i.e. the §2.4 ordering defect, in nothing these
+phases touched. The elevated Phase 2 reading is best explained by machine state: both of its failures
+were the first two runs after repeated full builds, and the four after them were green.
+
+**Wall clock: 77–84s across six runs**, against 92–106s measured before promotion. Promotion did not
+lengthen the gate. Stated as "no material increase" rather than as a speed-up, because the comparison
+spans different machine states and the suite is not an instrument for that.
+
+Contract cases: **120**, up from 118 at the start of this proposal and 104 at the start of 026.
