@@ -138,6 +138,14 @@ export class ZintlCompiler {
   public isSsrEntryTarget(id: string): boolean {
     const targets = this._resolved.system.ssrEntryTargets;
     if (!targets || targets.length === 0) return false;
+    /**
+     * Deliberately still a byte test, and the odd one out among the `\0` sites.
+     *
+     * This is not asking "is this module Zintl's own" — that question now goes
+     * through `io.isVirtualId`. It is stripping a known prefix so a user's SSR
+     * entry pattern can match, and it already tries the unstripped id too, so a
+     * host spelling virtual ids differently loses nothing here.
+     */
     const cleanId = id.startsWith("\0") ? id.slice(1) : id;
     return targets.some((target) => {
       if (typeof target === "string") {
@@ -251,6 +259,7 @@ export class ZintlCompiler {
       options,
       this.extensions,
       this._resolved.facets,
+      this._resolved.system.isVirtualId,
     );
     this.io.bus = this.bus;
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
@@ -595,7 +604,7 @@ export class ZintlCompiler {
 
     // 2. Check if it's a catalog file (disk-to-boundary mapping)
     for (const bId of Object.keys(this.messages.internalManifest)) {
-      if (bId.includes("\0")) continue;
+      if (this.io.isVirtualId(bId)) continue;
       if (foundBoundaryIds.includes(bId)) continue;
       for (const locale of this.locales) {
         const catPath = this.catalog.getCatalogPath(bId, locale);
@@ -1120,7 +1129,7 @@ export class ZintlCompiler {
     const isTargetSsrEntry = this.isSsrEntryTarget(id);
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
-      (id.startsWith("\0") && !isTargetSsrEntry)
+      (this.io.isVirtualId(id) && !isTargetSsrEntry)
     )
       return;
     code = code.replace(/\r\n/g, "\n");

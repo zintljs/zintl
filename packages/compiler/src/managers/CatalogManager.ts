@@ -194,7 +194,7 @@ export class CatalogManager {
   }
 
   public getCatalogPath(boundaryId: string, locale: string): string | null {
-    if (boundaryId.includes("\0")) return null;
+    if (this.io.isVirtualId(boundaryId)) return null;
     const cacheKey = `${boundaryId}:${locale}`;
     if (this.pathCache.has(cacheKey)) return this.pathCache.get(cacheKey)!;
 
@@ -262,7 +262,7 @@ export class CatalogManager {
   }
 
   public getSchemaPath(boundaryId: string): string | null {
-    if (!boundaryId || boundaryId.includes("\0")) return null;
+    if (!boundaryId || this.io.isVirtualId(boundaryId)) return null;
     if (this.schemaPathCache.has(boundaryId)) return this.schemaPathCache.get(boundaryId)!;
 
     let path = boundaryId;

@@ -505,3 +505,175 @@ watcher rather than the assertion.
 **A related fix that did land:** `index.html.translations.json` and its schema were generated but
 **untracked**, so a fresh CI checkout would have built the example without them and regenerated them
 mid-run. They are committed now, as every Vite example's equivalents already were.
+
+---
+
+### L-004 — `\0` recognition survived on a coincidence; now it goes through the facet
+
+|                             |                                                          |
+| :-------------------------- | :------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                |
+| **Bucket**                  | **2 — relocate** (recognition belongs with construction) |
+| **Facet contract changed?** | Yes — `BundlerFacet.isVirtualId`                         |
+
+`BundlerFacet.resolveVirtualPath` existed to **construct** virtual ids. Nothing existed to
+**recognise** them: core tested `id.startsWith("\0")` — Rollup's convention, hardcoded into a
+bundler-agnostic layer — at seven sites deciding whether a module was Zintl's own.
+
+On Rspack that test is false for virtual modules past the `transform` boundary, because unplugin
+materialises them as real files under `<context>/node_modules/.virtual/` (verified against
+`unplugin@3.3.0`'s `VIRTUAL_MODULE_PREFIX`, which also appends a pid segment unless Rspack's
+`VirtualModulesPlugin` experiment is on). Nothing broke, because an adjacent
+`id.includes("node_modules")` test happened to be true — **correct behaviour resting on another
+project's choice of directory name.**
+
+`isVirtualId` is the counterpart, with substring rather than prefix semantics because boundary ids
+embed the module id they were minted from. `IOManager` is where it lands and is exposed from: every
+other manager already holds an `IOManager` and none hold the system view, so one seam serves core,
+`GraphManager` and `CatalogManager` alike. The no-facet default stays `id.includes("\0")`, so the
+compiler's own unit tests keep the behaviour they had.
+
+**Six of the seven sites converted; the seventh deliberately did not.** `isSsrEntryTarget` strips a
+`\0` prefix so a user's SSR entry pattern can match, and already tries the unstripped id as well — it
+is normalising, not asking about ownership, and routing it through the facet would have been
+conversion for its own sake. Recorded because "seven sites" was the plan's number and six is the
+honest one.
+
+**The golden files could not see this hook, and could not see one that already existed.**
+`composition.test.ts` lists the single-provider hooks it reports in two hand-maintained arrays, and
+`hmrSelfAcceptCode` had been missing from both since it was added — so the artifact 026 §8 asked for,
+whose whole purpose is making facet-surface changes visible, was blind to one. Both are listed now,
+with a note at the arrays saying to add hooks there.
+
+**Verified.** The composition diff is **160 insertions and zero deletions** — two new rows per entry,
+`rspack` declaring both on the two `rsbuild-spa` variants and `vite` on the other 38, no winner
+changed anywhere. **No contract snapshot moved at all**, on either host.
+
+#### A diagnosis that was almost recorded as a defect
+
+Mid-change, `[Serialized Graphs Snapshot] rsbuild-spa` began failing with a `b_assets` boundary
+appearing from nowhere — a plausible story, since `isVirtualId` changes which ids are skipped when
+building the boundary graph. Stashing the change and re-running showed **the baseline failing
+identically**, so it was not the change at all.
+
+The cause was `examples/rsbuild-spa/node_modules/.zintl`, which `copiedExampleSource` deliberately
+copies as a warm starting state, holding compiler metadata accumulated across a dozen manual builds
+run while debugging the HTML seam. Clearing it and rebuilding once — the order CI actually uses,
+`build:examples` then `test:examples` — passes.
+
+Worth recording twice over. It is 026's artifact-lifetime hazard arriving from a new direction: not a
+stale artifact in the tracked tree, but one in a **gitignored** directory that the harness copies, so
+a local run and a CI run can legitimately disagree. And it is the second time in this proposal that
+`git stash` separated "my change broke it" from "it was already broken" — the same discipline L-013
+was found by.
+
+---
+
+### L-022 — Under multiplex, claiming `.html` breaks the Rspack build outright
+
+|                             |                                                          |
+| :-------------------------- | :------------------------------------------------------- |
+| **Status**                  | **Open** — reproduced, diagnosed, out of §6 scope to fix |
+| **Bucket**                  | **1 — declare it**, more precisely than L-006 managed    |
+| **Facet contract changed?** | No                                                       |
+
+Found while building the L-005 reproduction, and it is **L-006 recurring in the exact branch L-006's
+own note flagged as the risky one.**
+
+L-006 fixed an unfiltered `load` hook that retyped every module on Rspack, by declaring
+`loadIncludeHook`. Its entry ends with a warning worth quoting, because it turned out to be half the
+story:
+
+> _The filter has to be **exact, not generous**. `.html` is claimed only under multiplex, the sole
+> mode where `loadHook` returns HTML. Claiming it unconditionally — the naturally cautious choice —
+> reintroduces the bug for every non-multiplex app._
+
+The narrowing is right, and the branch it narrows _to_ is itself destructive here:
+
+```ts
+if (cleanId.endsWith(".html")) return ctx.getMultiplex();
+```
+
+A multiplexed Rsbuild build therefore claims the HTML template, unplugin's `load` rule retypes it as
+`javascript/auto`, and the build dies in the JS parser on `<!doctype html>` — inside
+`html-rspack-plugin`'s child compilation, which is why the error names a loader chain rather than
+Zintl.
+
+**The assumption.** _"Under multiplex, Zintl serves the HTML, so claiming it is correct."_ True on
+Vite, where multiplex HTML fan-out is implemented. On Rspack that path does not exist, so the claim
+promises something the host cannot survive — and unlike a Rollup over-claim, which is free, here the
+claim alone is the damage.
+
+Not fixed. Multiplex/MPA fan-out is exactly what 026 §7 and 027 §6 exclude, and the fix wants that
+path designed rather than a host test bolted onto a filter — `if (bundler === …)` inside
+`loadIncludeHook` is 026 §8's fork wearing a filter's clothes.
+
+---
+
+### L-005 — still unreproduced, and now for a stated reason
+
+|            |                                                      |
+| :--------- | :--------------------------------------------------- |
+| **Status** | **Open** — blocked behind L-022                      |
+| **Bucket** | Undecided, and the deciding evidence is still absent |
+
+The reproduction was attempted properly and produced three things worth more than another deferral.
+
+**The control now exists.** `tests/fixtures/multiplex-assets.ts` is a multiplexed project with
+`virtualAssets` and a localized asset, registered and passing on Vite, and it genuinely reaches
+`emitFile` + `import.meta.ROLLUP_FILE_URL_*` — a path that had **no coverage at all** before. When
+L-022 is fixed, adding the Rsbuild manifest beside it is a few lines.
+
+**Two details decide whether that path is reached, and both were wrong on the first attempt.**
+
+- **`?raw` never calls `emitFile`.** It returns a JavaScript string literal, which is precisely why
+  every asset path exercised through 026 and this proposal survived on Rspack. Only a plain import
+  asks the host for a URL.
+- **The extension picks the strategy.** `.txt` and `.md` are content passthrough; _anything else_ is
+  `binary-passthrough`, and that is the branch that emits. The first fixture used `.txt` and could
+  not have reached `emitFile` on either host — it failed on Vite too, with the raw text arriving at
+  the JS parser, which is a third thing now known: **a non-`?raw` text-asset import is unsupported on
+  both hosts**, not an Rspack gap.
+
+**What remains unknown is unchanged:** whether Rspack's reference-id-less `emitFile` wants a
+`BundlerFacet.emitAsset` abstraction (bucket 1) or the compiler owning output naming so no handle is
+needed (bucket 2). That decision still wants evidence, and the evidence still needs a build that
+completes.
+
+---
+
+### The `locale-switch` observation, resolved — and it was the watcher
+
+The Phase 4a entry above recorded a `[Locale Switch] rsbuild-spa` failure —
+`Execution context was destroyed, most likely because of a navigation`, empty body — as an
+unreproduced observation with a standing suspicion about compiler writes and the Rsbuild watcher.
+**The suspicion was right about the mechanism and wrong about it being mysterious.**
+
+It recurred, and diffing the worker copies against the example found the cause immediately:
+
+```
+.tmp/runs/w1/rsbuild-spa   Only in examples/…: index.html.translations.json, index.html.schema.json
+.tmp/runs/w2/rsbuild-spa   (identical)
+.tmp/runs/w3/rsbuild-spa   Only in examples/…: index.html.translations.json, index.html.schema.json
+.tmp/runs/w4/rsbuild-spa   (identical)
+```
+
+`.tmp/runs` persists across runs and `prepareWorkerCopy` memoizes per worker, so w1 and w3 held
+copies made **before** those catalogs existed. In a worker whose copy lacks the catalog, `flush`
+writes it, the Rsbuild dev server sees a new file inside the watched tree, and the page reloads out
+from under the assertion. Whichever worker drew the contract decided the outcome — which is exactly
+the intermittency observed. Wiping `.tmp/runs`: **3 full-suite runs, 3 green.**
+
+So not a product defect, and the second time in this proposal that a stale artifact under a
+gitignored directory produced a convincing false finding — the first being `.zintl` in L-004. Both
+are 026's artifact-lifetime hazard, and the practical lesson is narrow and worth stating: **when a
+contract fails in a way that implicates the project's own files, diff the worker copy against the
+origin before theorising.**
+
+**One real behaviour it does expose.** On a project with no HTML catalog yet — a fresh checkout, or a
+user adopting Zintl — the first Rsbuild dev run _does_ write one into the watched source tree and the
+dev server _does_ reload once. Harmless and self-correcting, since `safeWriteFile` skips identical
+content thereafter, but it is a first-run reload a user will see and it is not something Vite does:
+`handleHotUpdate` there opens with `if (ctx.compiler.isWritingFile(file)) return;`, and nothing tells
+the Rsbuild watcher that a compiler-authored write is not a user edit. Worth a `hostHints`-shaped
+answer if Rsbuild ever becomes a supported target.

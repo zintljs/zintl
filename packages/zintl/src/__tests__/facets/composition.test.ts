@@ -123,12 +123,21 @@ function describeComposition(name: string, ssr: boolean): string {
    * `ssrWrapCode`. Reading the wrong side reports "nobody provides this" for a
    * hook that is in fact provided, so the two are listed separately below.
    */
+  /**
+   * These two lists are hand-maintained, which is the guard's one weak point:
+   * a hook missing from them is a facet-surface change the golden files cannot
+   * see, which defeats the reason the files exist. `hmrSelfAcceptCode` sat
+   * unlisted for exactly that long. **Add a hook here when you add one to a
+   * facet.**
+   */
   lines.push("", "single-provider hooks — declared by (winner first):");
   for (const hook of [
     "wrapCode",
     "resolveVirtualPath",
+    "isVirtualId",
     "dynamicImportTemplate",
     "hmrInjectionCode",
+    "hmrSelfAcceptCode",
     "detectLocale",
   ]) {
     lines.push(`  ${hook}: ${declarersOf(resolved.facets, hook).join(" > ") || "(none)"}`);
@@ -138,8 +147,10 @@ function describeComposition(name: string, ssr: boolean): string {
   for (const key of [
     "ssrWrapCode",
     "resolveVirtualPath",
+    "isVirtualId",
     "dynamicImportTemplate",
     "hmrInjectionCode",
+    "hmrSelfAcceptCode",
   ] as const) {
     lines.push(`  ${key}: ${typeof resolved.system[key] === "function" ? "present" : "absent"}`);
   }

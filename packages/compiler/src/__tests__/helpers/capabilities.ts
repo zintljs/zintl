@@ -46,6 +46,7 @@ function emptySystem(): CompilerSystemView {
     ssrWrapExports: [],
     ssrWrapDefault: undefined,
     resolveVirtualPath: (id: string) => id,
+    isVirtualId: (id: string) => id.includes("\0"),
     dynamicImportTemplate: (path: string) => `import(${JSON.stringify(path)})`,
     hmrInjectionCode: undefined,
     hmrSelfAcceptCode: undefined,

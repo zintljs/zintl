@@ -48,10 +48,12 @@ const config: KnipConfig = {
   // `zintljs` / `zintljs/vite` specifiers by walking up to the root
   // node_modules — a runtime resolution need knip cannot observe statically.
   //
-  // `@rsbuild/core` used to be listed here for the proposal 026 fixture, which
-  // was not a workspace member and resolved by walking up. It is now
-  // `examples/rsbuild-spa` and declares its own copy, so the exception is gone.
-  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs"],
+  // `@rsbuild/core` is here for the same reason, and only that reason: an inline
+  // fixture's `rsbuild.config.mjs` imports it at materialization time.
+  // `examples/rsbuild-spa` declares its own copy and does not rely on this — the
+  // entry was briefly removed when that example was promoted, and had to come
+  // back the moment a fixture needed the walk-up again.
+  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs", "@rsbuild/core"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

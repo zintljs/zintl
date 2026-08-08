@@ -150,7 +150,7 @@ export class GraphManager {
     }
 
     for (const bId of allKnownBoundaries) {
-      if (!bId || bId.includes("\0")) continue;
+      if (!bId || this.io.isVirtualId(bId)) continue;
       const normalizedBId = this.io.getNormalizedId(bId);
       const fileId = normalizedBId.split(":")[0];
       const meta = normalizedMetadata[fileId];

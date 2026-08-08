@@ -313,6 +313,27 @@ export interface BundlerFacet extends BaseFacet {
   concern: "bundler";
   /** Resolve virtual module paths (e.g. "virtual:zintl/..." → "\0virtual:zintl/...") */
   resolveVirtualPath?: (id: string) => string;
+  /**
+   * Is this id one of Zintl's own generated modules, rather than a real source
+   * file?
+   *
+   * The counterpart to {@link BundlerFacet.resolveVirtualPath}, and the half
+   * that was missing. Core *constructs* virtual ids through a facet but used to
+   * *recognise* them by testing for a `\0` byte directly, at seven sites — a
+   * Rollup convention hardcoded into a bundler-agnostic layer.
+   *
+   * On Rspack that test is simply false: unplugin materialises virtual modules
+   * as real files under `node_modules/.virtual/`. Nothing broke, because an
+   * adjacent `id.includes("node_modules")` test happened to be true — the code
+   * was right for the wrong reason, and would have started extracting strings
+   * from Zintl's own generated catalogs the day unplugin moved that directory
+   * (ledger L-004).
+   *
+   * Substring rather than prefix semantics, deliberately: boundary ids embed the
+   * module id they were minted from, and several call sites ask this question of
+   * a boundary id.
+   */
+  isVirtualId?: (id: string) => boolean;
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /**
@@ -568,6 +589,8 @@ export interface CompilerSystemView {
 
   /** Resolved virtual path resolver */
   resolveVirtualPath: (id: string) => string;
+  /** Resolved virtual-id recognizer — the counterpart of `resolveVirtualPath` */
+  isVirtualId: (id: string) => boolean;
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
   /**

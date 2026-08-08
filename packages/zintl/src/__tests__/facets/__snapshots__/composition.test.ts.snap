@@ -38,15 +38,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -115,15 +119,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -190,15 +198,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -267,15 +279,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -342,15 +358,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -419,15 +439,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -494,15 +518,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -571,15 +599,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -646,15 +678,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: rspack
+  isVirtualId: rspack
   dynamicImportTemplate: rspack
   hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -723,15 +759,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: rspack
+  isVirtualId: rspack
   dynamicImportTemplate: rspack
   hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -799,15 +839,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -877,15 +921,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -953,15 +1001,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1031,15 +1083,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1106,15 +1162,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1183,15 +1243,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1258,15 +1322,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1335,15 +1403,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1410,15 +1482,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1487,15 +1563,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1562,15 +1642,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1639,15 +1723,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1714,15 +1802,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1791,15 +1883,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1866,15 +1962,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1943,15 +2043,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2018,15 +2122,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2095,15 +2203,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2172,15 +2284,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: nextjs-ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 4
@@ -2249,15 +2365,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: nextjs-ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 4
@@ -2324,15 +2444,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2401,15 +2525,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2476,15 +2604,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2553,15 +2685,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2628,15 +2764,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2705,15 +2845,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2780,15 +2924,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2857,15 +3005,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2932,15 +3084,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -3009,15 +3165,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0

@@ -122,6 +122,9 @@ importers:
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.62.1
+      '@rsbuild/core':
+        specifier: 'catalog:'
+        version: 2.1.10
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
