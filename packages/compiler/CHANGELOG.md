@@ -1,5 +1,56 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.14
+
+### Minor Changes
+
+- 7779a8b: Gave the HTML projection a host-neutral path, so `<html lang>`/`dir`, `<title>` and `<meta description>` follow the locale on Rsbuild as they do on Vite.
+
+  `compiler.transformHtml()` was always host-neutral; what was not is the only thing that ever called it — Vite's `transformIndexHtml`, which lives in the plugin's `vite` block and which unplugin drops on every other target. Rsbuild's `api.modifyHTML` has the same shape, so this is wiring rather than a second implementation, routed from the plugin's `rsbuild` block. Deliberately **not** a `BundlerFacet` hook: `ContentFacet.transformHtml` already exists and _is_ the projection, so a bundler hook of the same name beside it would reproduce a naming collision this codebase has been bitten by before — and registering `modifyHTML` is plugin work that a facet, being data and string-returning functions, cannot do.
+
+  **Two things had to be solved that a straight wiring would not have caught.**
+
+  _Identity._ Rsbuild hands the hook an output filename (`index.html`, relative to `dist`) where Vite hands an absolute source path. The projection re-reads the source on a cache miss and computes sink offsets against it, so passing the output name through produces a blank page. It is now inverted through `htmlPaths` and `html.template` back to the source id — and when any step yields nothing, which happens for real when Rsbuild uses its built-in template, it warns and declines rather than silently doing nothing.
+
+  _The boundary link._ Zintl learns which scripts a document loads by reading `<script src>` from markup, and turns them into the document's dependencies — which is how a page reaches a trust anchor and becomes a boundary at all. An Rsbuild template names no scripts: the entry is injected at build time from `source.entry`, so the association lives in the build config. With nothing to read, no HTML document reached a boundary on this host, no catalog was ever scaffolded for one, and the direction map came out empty.
+
+  `CompilerOptions.htmlEntries` is the new declaration — keyed by html id, valued with source ids, unioned with whatever the markup says and empty on every host whose templates name their own scripts. It updates both `htmlProjection.scripts` and `dependencies`, because the extractor derives the second from the first _during_ extraction and afterwards they are two separate facts.
+
+  **Also generalised**: the `locale-switch` contract asserted a request URL containing `virtual:zintl/content/<locale>/`, which is Vite's virtual-module spelling — an Rspack build emits catalogs as ordinary hashed async chunks. The question the contract asks is host-neutral; only the spelling is not, so an optional `LocaleSwitchAdapter.isCatalogRequest` holds the per-project answer and defaults to the Vite form.
+
+- 654569d: Made `<html dir>` follow the active locale on any host, and fixed two defects that stopped it following reliably on Vite.
+
+  Direction used to reach the document only through the HTML projection, which Zintl injects via `transformIndexHtml` — a Vite hook that unplugin drops everywhere else. The runtime had no direction data of its own and deliberately set only `lang`.
+
+  It now has the data. `ContentFacet.rtlLocales` is a new hook, unioned by `ZintlCompiler.getRtlLocales()` and substituted into the generated runtime as a literal array, so the store can set `dir` wherever it already sets `lang`. Core learns nothing about direction or about RTL languages: it merges string arrays that facets return. The HTML facet answers by reading the `dir` field already written into every HTML catalog — so this is one derivation moved to where two consumers can share it, not a new source of truth, and there is no list of RTL languages anywhere in the runtime.
+
+  **Two defects fixed on the supported path**, which together explain why adding an HTML catalog to a page could stop `lang` updating:
+
+  - The projection's `apply()` returned early when `lang` already matched the target locale — but it owns `dir` as well, so anything that set `lang` first permanently locked `dir` out with no way to correct it. Every statement in that function is an idempotent assignment, so the guard bought nothing.
+  - The store's own attribute handling was an `else` branch behind `window.__zintlApplyHtml`. The projection installs that function unconditionally but writes `dir` only when the project has an RTL locale, so on every other project it took ownership of the document and then declined to finish the job, silently suppressing the fallback. The two now run in sequence: the store owns `lang` and `dir`, the projection owns the document-specific title, description and body deltas.
+
+  `dir` is written only when the project actually has direction data. Empty means "this project never spoke about direction", and asserting `"ltr"` there would start writing an attribute onto documents that never had one.
+
+  **Removed: the dead `sourceLocale` field on `I18nStore`.** It was written by a build-time substitution and never read — the only occurrence in the whole runtime was its own declaration — and it shipped in every production bundle. Its substitution was also the fragile kind: a regex matching a TypeScript class-field default, one `readonly` keyword or formatter change away from silently matching nothing. `getRuntimeCode` drops its `sourceLocale` parameter and gains `rtlLocales`, which uses the same word-boundary sentinel mechanism as `__ZINTL_DEV__`.
+
+- 0926c2e: Routed virtual-module **recognition** through the bundler facet, closing the half of that seam that never existed.
+
+  `BundlerFacet.resolveVirtualPath` existed to construct virtual ids. Nothing existed to recognise them: core tested `id.startsWith("\0")` — Rollup's convention, hardcoded into a bundler-agnostic layer — at seven sites deciding whether a module was Zintl's own, and therefore whether to normalize it, give it a catalog, or let it become a boundary.
+
+  On Rspack that test is false for virtual modules past the `transform` boundary, because unplugin materialises them as real files under `node_modules/.virtual/`. Nothing broke, because an adjacent `id.includes("node_modules")` test happened to be true — correct behaviour resting on another project's choice of directory name, which would have failed silently by extracting strings from Zintl's own generated catalogs the day that directory moved.
+
+  `BundlerFacet.isVirtualId` is the counterpart. It uses substring rather than prefix semantics, because boundary ids embed the module id they were minted from; Rspack's implementation recognises both spellings a virtual module has on that host. `IOManager` holds and exposes it, since every other manager already holds an `IOManager` and none hold the system view. With no bundler facet the default stays the `\0` test, so nothing changes for the compiler's own unit tests.
+
+  Six of the seven sites moved. The seventh strips a `\0` prefix so a user's SSR entry pattern can match and already tries the unstripped id too — it normalizes rather than asking about ownership, so it stays a byte test with a comment saying why.
+
+  **Also fixes a blind spot in the guardrail meant to catch exactly this.** The facet-composition golden files report single-provider hooks from two hand-maintained arrays, and `hmrSelfAcceptCode` had been missing from both since it was added — so a facet-surface change was invisible to the artifact whose purpose is making facet-surface changes visible. Both hooks are listed now, with a note at the arrays.
+
+  Adds `tests/fixtures/multiplex-assets.ts`, a multiplexed project with `virtualAssets` and a localized binary asset. It covers `emitFile` and `import.meta.ROLLUP_FILE_URL_*` under multiplex, which had no coverage at all.
+
+### Patch Changes
+
+- @zintljs/extractor@0.1.0-alpha.14
+
 ## 0.1.0-alpha.13
 
 ### Minor Changes
