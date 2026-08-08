@@ -212,6 +212,72 @@ export class HtmlManager {
     }
   }
 
+  /**
+   * The locales this project renders right-to-left, read from HTML catalogs.
+   *
+   * The single derivation of that fact. Two consumers need it and they must not
+   * compute it separately: the projection bootstrap, which sets `dir` at parse
+   * time before any module runs, and the runtime store, which sets it on every
+   * subsequent locale switch. Two plausible derivations of one fact that can
+   * silently disagree is ledger L-002a, and the source-locale case below is
+   * exactly the sort of edge where they would.
+   *
+   * Answers for the **project**, not for one document. `dir` belongs to the
+   * language rather than to the page, so a union across every HTML entry is the
+   * correct answer and the per-document narrowing this replaced was incidental.
+   *
+   * The source locale is a special case with a different source of truth: it has
+   * no catalog of its own — ghost mode never writes one — so its direction is
+   * whatever the author put on `<html dir>` in the template.
+   */
+  public async collectRtlLocales(
+    htmlMetadatas: Record<string, { htmlProjection: HtmlProjectionPayload }>,
+    locales: string[],
+  ): Promise<string[]> {
+    const rtl = new Set<string>();
+    const isMulti = this.catalog.isMultilingualFormat();
+
+    for (const [id, meta] of Object.entries(htmlMetadatas)) {
+      if (!meta.htmlProjection) continue;
+
+      if (meta.htmlProjection.dir === "rtl") rtl.add(this.sourceLocale);
+
+      let multiCatalog: Record<string, any> | undefined;
+      if (isMulti) {
+        const catalogPath = this.getCatalogPath(id, locales[0]);
+        if (catalogPath && (await this.io.exists(catalogPath))) {
+          try {
+            multiCatalog = JSON.parse(await this.io.readFile(catalogPath));
+          } catch {}
+        }
+        if (!multiCatalog) continue;
+      }
+
+      for (const locale of locales) {
+        if (locale === this.sourceLocale) continue;
+
+        let dir: unknown;
+        if (multiCatalog) {
+          dir = (multiCatalog.dir as Record<string, unknown> | undefined)?.[locale];
+        } else {
+          const catalogPath = this.getCatalogPath(id, locale);
+          if (!catalogPath || !(await this.io.exists(catalogPath))) continue;
+          try {
+            dir = JSON.parse(await this.io.readFile(catalogPath)).dir;
+          } catch {
+            continue;
+          }
+        }
+
+        if (dir === "rtl") rtl.add(locale);
+      }
+    }
+
+    // Sorted so the array is stable across runs — it is substituted into
+    // generated runtime source, and unstable output is snapshot churn.
+    return [...rtl].sort();
+  }
+
   public getCatalogPath(id: string, locale: string): string {
     return this.catalog.getCatalogPath(id, locale)!;
   }
@@ -413,6 +479,26 @@ export function htmlProjectionFacet(): ZintlFacet {
     return manager;
   };
 
+  /**
+   * The HTML documents this facet owns: those with a projection payload that
+   * actually reach a trust anchor.
+   *
+   * `leadsToBoundary` is the filter that matters — an HTML file importing no
+   * translated script has a projection payload and nothing to project, and
+   * writing catalogs for it would invent boundaries out of stray templates.
+   */
+  const reachableHtml = (context: CompilerContext): Record<string, any> => {
+    const out: Record<string, any> = {};
+    const metaGraph = context.getMetadataGraph();
+    for (const [id, meta] of Object.entries(metaGraph)) {
+      if (!meta.htmlProjection) continue;
+      if (context.leadsToBoundary(id, context.getDependencyGraph(), metaGraph).leads) {
+        out[id] = meta;
+      }
+    }
+    return out;
+  };
+
   return {
     name: "system-html-projection",
     concern: "content",
@@ -423,16 +509,27 @@ export function htmlProjectionFacet(): ZintlFacet {
     match(filePath: string, _context: CompilerContext) {
       return filePath.endsWith(".html");
     },
+    /**
+     * Observe an HTML file during discovery, so the graph knows about it on any
+     * host.
+     *
+     * `ContentFacet.discover` has always been the host-independent way in, and
+     * this facet simply never used it: HTML reached the metadata graph only
+     * because `transformHtml` re-extracts on a cache miss, and the only thing
+     * that called `transformHtml` was Vite's `transformIndexHtml`. So on
+     * Rspack — where unplugin drops that hook — no HTML file was ever observed,
+     * the graph held no HTML boundary, and every question asked about one
+     * answered emptily rather than loudly (ledger L-021).
+     *
+     * Extraction is idempotent and `transformHtml` still refreshes on a miss or
+     * in dev, so this adds an earlier observation rather than a second source of
+     * truth.
+     */
+    async rtlLocales(context: CompilerContext) {
+      return getManager(context).collectRtlLocales(reachableHtml(context), context.locales);
+    },
     async flush(context: CompilerContext) {
-      const htmlMetadatas: Record<string, any> = {};
-      const metaGraph = context.getMetadataGraph();
-      for (const [id, meta] of Object.entries(metaGraph)) {
-        if (!meta.htmlProjection) continue;
-        const check = context.leadsToBoundary(id, context.getDependencyGraph(), metaGraph);
-        if (check.leads) {
-          htmlMetadatas[id] = meta;
-        }
-      }
+      const htmlMetadatas = reachableHtml(context);
       await getManager(context).syncHtmlProjections(
         htmlMetadatas,
         context.locales,
@@ -831,7 +928,14 @@ export function htmlProjectionFacet(): ZintlFacet {
           /<!--zintl-bootstrap-->\s*<script id="zintl-projection">[\s\S]*?<\/script>/gi;
         mutated = mutated.replace(existingRe, "");
 
-        const rtlLocales: string[] = [];
+        /**
+         * One derivation, shared with the runtime — see
+         * {@link HtmlManager.collectRtlLocales}. The loop below keeps reading
+         * catalogs for title/description deltas, which are genuinely
+         * per-document, but direction is no longer computed here.
+         */
+        const rtlLocales = await mgr.collectRtlLocales(reachableHtml(context), context.locales);
+
         const isMultilingual = context.catalog.isMultilingualFormat();
         let multiCatalog: any;
         if (isMultilingual) {
@@ -848,14 +952,10 @@ export function htmlProjectionFacet(): ZintlFacet {
           if (multiCatalog || (catalogPath && (await context.io.exists(catalogPath)))) {
             try {
               const catalog = multiCatalog || JSON.parse(await context.io.readFile(catalogPath));
-              const catalogDir = isMultilingual ? catalog.dir?.[locale] : catalog.dir;
               const catalogTitle = isMultilingual ? catalog.title?.[locale] : catalog.title;
               const catalogDesc = isMultilingual
                 ? catalog.description?.[locale]
                 : catalog.description;
-
-              if (catalogDir === "rtl") rtlLocales.push(locale);
-              else if (locale === context.sourceLocale && dir === "rtl") rtlLocales.push(locale);
 
               if (locale !== context.sourceLocale) {
                 if (title && catalogTitle?.trim() && catalogTitle !== meta.htmlProjection.title) {
@@ -874,8 +974,6 @@ export function htmlProjectionFacet(): ZintlFacet {
                 }
               }
             } catch {}
-          } else if (locale === context.sourceLocale && dir === "rtl") {
-            rtlLocales.push(locale);
           }
         }
 
@@ -980,6 +1078,21 @@ export function htmlProjectionFacet(): ZintlFacet {
           ? `document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';`
           : "";
 
+        /**
+         * `apply` deliberately has no `lang === locale` early return.
+         *
+         * It used to bail when `lang` already matched, which reads as a cheap
+         * idempotence guard and is not one: `apply` owns `dir` as well as
+         * `lang`, so anything setting `lang` first — the store's own fallback,
+         * an SSR response, a previous partial apply — permanently locked `dir`
+         * out with no way to correct it afterwards. That is one half of why
+         * adding an HTML catalog to a page destabilised it in ledger L-019.
+         *
+         * Every statement here is an idempotent assignment, so re-running is
+         * free and the guard bought nothing. The store's `MutationObserver` on
+         * `lang` cannot loop through it either — `syncLocale` is itself guarded
+         * by `inst.locale !== docLang`.
+         */
         const bootstrap = `<!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
@@ -990,8 +1103,6 @@ export function htmlProjectionFacet(): ZintlFacet {
         ${preloadsChunk}
 
         function apply(locale) {
-          if (document.documentElement.lang === locale) return;
-
           ${dirChunk}
           document.documentElement.lang = locale;
 

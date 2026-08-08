@@ -56,6 +56,23 @@ function exampleNames(): string[] {
     .sort();
 }
 
+/**
+ * Which bundler hosts this example, derived from the config file it ships.
+ *
+ * Not a constant, since `examples/` stopped being Vite-only. A golden file that
+ * described `rsbuild-spa` as resolving `viteFacet` — and an invariant that
+ * asserted it — would be a guardrail vouching for a world the app does not live
+ * in, which is worse than no guardrail: the composition it captured would be one
+ * no build ever produces.
+ *
+ * `facet-composition.contract.spec.ts` makes the same distinction from the other
+ * side, off `manifest.driver`. This derives it from disk because these tests
+ * enumerate `examples/` directly and have no manifest to ask.
+ */
+function bundlerFor(name: string): string {
+  return existsSync(join(EXAMPLES_DIR, name, "rsbuild.config.mjs")) ? "rspack" : "vite";
+}
+
 /** Facets declaring a given single-provider hook, in resolution order. */
 function declarersOf(facets: ZintlFacet[], hook: string): string[] {
   return facets.filter((f) => typeof (f as never)[hook] === "function").map((f) => f.name);
@@ -64,9 +81,10 @@ function declarersOf(facets: ZintlFacet[], hook: string): string[] {
 function describeComposition(name: string, ssr: boolean): string {
   const root = join(EXAMPLES_DIR, name);
   const frameworks = detectFrameworksOrFallback({ root });
+  const bundler = bundlerFor(name);
   const { facets, trace } = assembleFacetsWithTrace({
     frameworks,
-    bundler: "vite",
+    bundler,
     root,
     ssr,
   });
@@ -74,6 +92,7 @@ function describeComposition(name: string, ssr: boolean): string {
 
   const lines: string[] = [];
   lines.push(`frameworks: ${frameworks.join(", ") || "(none)"}`);
+  lines.push(`bundler: ${bundler}`);
   lines.push(`ssr: ${ssr}`);
 
   lines.push("", "facets (resolution order):");
@@ -104,12 +123,21 @@ function describeComposition(name: string, ssr: boolean): string {
    * `ssrWrapCode`. Reading the wrong side reports "nobody provides this" for a
    * hook that is in fact provided, so the two are listed separately below.
    */
+  /**
+   * These two lists are hand-maintained, which is the guard's one weak point:
+   * a hook missing from them is a facet-surface change the golden files cannot
+   * see, which defeats the reason the files exist. `hmrSelfAcceptCode` sat
+   * unlisted for exactly that long. **Add a hook here when you add one to a
+   * facet.**
+   */
   lines.push("", "single-provider hooks — declared by (winner first):");
   for (const hook of [
     "wrapCode",
     "resolveVirtualPath",
+    "isVirtualId",
     "dynamicImportTemplate",
     "hmrInjectionCode",
+    "hmrSelfAcceptCode",
     "detectLocale",
   ]) {
     lines.push(`  ${hook}: ${declarersOf(resolved.facets, hook).join(" > ") || "(none)"}`);
@@ -119,8 +147,10 @@ function describeComposition(name: string, ssr: boolean): string {
   for (const key of [
     "ssrWrapCode",
     "resolveVirtualPath",
+    "isVirtualId",
     "dynamicImportTemplate",
     "hmrInjectionCode",
+    "hmrSelfAcceptCode",
   ] as const) {
     lines.push(`  ${key}: ${typeof resolved.system[key] === "function" ? "present" : "absent"}`);
   }
@@ -171,19 +201,25 @@ describe("composition invariants", () => {
   /**
    * Not a snapshot, because this one *is* an assertion.
    *
-   * `assembleFacets` appends `viteFacet()` unconditionally and documents that
-   * the plugin cannot function without it. Proposal 026 adds a second host, so
-   * the moment that stops being true — a project resolving to a different
-   * bundler facet, or none — it should fail here rather than surface as a
-   * missing dynamic-import template much further downstream.
+   * Exactly one bundler facet, and it must be the one belonging to the host that
+   * actually builds the example. Both halves matter: none means a missing
+   * dynamic-import template surfacing much further downstream, two means a
+   * first-contributor-wins race deciding which host's syntax gets emitted.
+   *
+   * It used to assert the literal `["vite"]`, which was true while `examples/`
+   * was Vite-only and became a lie the moment `rsbuild-spa` was promoted — the
+   * check would have kept passing by describing that app as resolving
+   * `viteFacet`, which is exactly the defect ledger L-012 was: Vite syntax
+   * emitted into Rspack output.
    */
-  it("every example resolves exactly one bundler facet", () => {
+  it("every example resolves exactly one bundler facet, matching its host", () => {
     for (const name of exampleNames()) {
       const root = join(EXAMPLES_DIR, name);
+      const bundler = bundlerFor(name);
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
-          bundler: "vite",
+          bundler,
           root,
           ssr: false,
         }),
@@ -192,7 +228,7 @@ describe("composition invariants", () => {
       expect(
         bundlerFacets.map((f) => f.name),
         name,
-      ).toEqual(["vite"]);
+      ).toEqual([bundler]);
     }
   });
 
@@ -209,7 +245,7 @@ describe("composition invariants", () => {
       const resolved = resolveFacets(
         assembleFacets({
           frameworks: detectFrameworksOrFallback({ root }),
-          bundler: "vite",
+          bundler: bundlerFor(name),
           root,
           ssr: false,
         }),

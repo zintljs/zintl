@@ -33,9 +33,52 @@ export interface BaseAdapter {
 export interface LocaleSwitchAdapter extends BaseAdapter {
   /** Programmatically switch to a target locale */
   switchLocale(lab: Lab, locale: string): Promise<void>;
+  /**
+   * Recognise a network request that fetched a locale catalog.
+   *
+   * Defaults to Vite's virtual-module URL, which carries the locale in the path.
+   * That default is a **host convention, not a Zintl one**: an Rspack build
+   * emits catalogs as ordinary hashed async chunks, so nothing in the URL names
+   * a locale and a project on that host has to say what one of its own catalog
+   * requests looks like.
+   *
+   * The contract's question — "did switching locale fetch a catalog rather than
+   * read one already inlined" — is host-neutral. Only the spelling of the answer
+   * is not, which is exactly the kind of per-project quirk an adapter exists to
+   * hold.
+   */
+  isCatalogRequest?(url: string, locale: string): boolean;
 }
 
 export interface HmrAdapter extends BaseAdapter {}
+
+/**
+ * A project that renders a localized static asset.
+ *
+ * The asset contract used to import its expected strings straight from the
+ * `assets-basic` fixture and assert them against `headingSelector` — so it
+ * described one project rather than a capability, and any second claimant would
+ * have failed on text belonging to the first. Contracts never name an app
+ * (CLAUDE.md, "Testing architecture"); the per-project answers live here.
+ *
+ * Separate from `headingSelector` on purpose: an app's heading and its asset are
+ * usually different elements, and conflating them is what made the contract
+ * unclaimable elsewhere.
+ */
+export interface AssetsAdapter extends BaseAdapter {
+  /** The CSS selector holding the localized asset's text */
+  assetSelector: string;
+  /** Expected asset text per locale, keyed by locale code */
+  assetText: Record<string, string>;
+  /**
+   * Show the app in `locale` from a cold load.
+   *
+   * A fresh navigation rather than a runtime switch, deliberately: this contract
+   * is about the build substituting the right asset for the active boundary, not
+   * about switching locale afterwards.
+   */
+  navigateLocale(lab: Lab, locale: string): Promise<void>;
+}
 
 export interface SsrAdapter extends BaseAdapter {
   /** The URL path that serves the SSR'd page in a given locale */
@@ -53,7 +96,7 @@ export interface ProjectManifest {
   /** Capabilities this project claims */
   capabilities: Capability[];
   /** The adapter for this project */
-  adapter: BaseAdapter & Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter>;
+  adapter: BaseAdapter & Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter & AssetsAdapter>;
 
   /**
    * Zintl compiler options — single source of truth for tests.

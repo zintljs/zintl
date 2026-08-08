@@ -17,6 +17,14 @@ export function viteFacet(): ZintlFacet {
     priority: 100,
     resolveVirtualPath: (id: string): string => id,
     /**
+     * Rollup's null-byte convention, which Vite inherits.
+     *
+     * A substring test rather than a prefix one because boundary ids embed the
+     * module id they were minted from. No real path contains a `\0`, so the
+     * looser form costs nothing.
+     */
+    isVirtualId: (id: string): boolean => id.includes("\0"),
+    /**
      * Self-acceptance for Zintl's own generated modules.
      *
      * Always safe here, unlike {@link ZintlFacet.hmrInjectionCode} on a source

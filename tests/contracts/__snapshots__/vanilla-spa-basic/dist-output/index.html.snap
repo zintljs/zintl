@@ -28,7 +28,6 @@
         }
       }
         function apply(locale) {
-          if (document.documentElement.lang === locale) return;
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
           const hasText = v => typeof v === "string" && v.trim();

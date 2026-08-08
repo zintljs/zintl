@@ -313,6 +313,27 @@ export interface BundlerFacet extends BaseFacet {
   concern: "bundler";
   /** Resolve virtual module paths (e.g. "virtual:zintl/..." → "\0virtual:zintl/...") */
   resolveVirtualPath?: (id: string) => string;
+  /**
+   * Is this id one of Zintl's own generated modules, rather than a real source
+   * file?
+   *
+   * The counterpart to {@link BundlerFacet.resolveVirtualPath}, and the half
+   * that was missing. Core *constructs* virtual ids through a facet but used to
+   * *recognise* them by testing for a `\0` byte directly, at seven sites — a
+   * Rollup convention hardcoded into a bundler-agnostic layer.
+   *
+   * On Rspack that test is simply false: unplugin materialises virtual modules
+   * as real files under `node_modules/.virtual/`. Nothing broke, because an
+   * adjacent `id.includes("node_modules")` test happened to be true — the code
+   * was right for the wrong reason, and would have started extracting strings
+   * from Zintl's own generated catalogs the day unplugin moved that directory
+   * (ledger L-004).
+   *
+   * Substring rather than prefix semantics, deliberately: boundary ids embed the
+   * module id they were minted from, and several call sites ask this question of
+   * a boundary id.
+   */
+  isVirtualId?: (id: string) => boolean;
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /**
@@ -434,6 +455,23 @@ export interface ContentFacet extends BaseFacet {
     context: CompilerContext,
     preloads?: Record<string, string[]>,
   ) => Promise<string> | string;
+  /**
+   * Which locales this facet knows to be written right-to-left.
+   *
+   * Answers about **locales**, not about documents. Direction is a property of
+   * a language, so a project with several HTML entries has one answer, not one
+   * per page — the union across facets is what the runtime is handed.
+   *
+   * Core never learns what "rtl" means or which languages have it: it unions
+   * string arrays. The knowledge lives here because the data does — direction
+   * is authored per locale in content catalogs, and a facet is what knows how
+   * to read its own.
+   *
+   * The alternative was a table in the runtime, which would have put a list of
+   * RTL languages in compiler core — precisely the knowledge facets exist to
+   * hold.
+   */
+  rtlLocales?: (context: CompilerContext) => Promise<string[]> | string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -551,6 +589,8 @@ export interface CompilerSystemView {
 
   /** Resolved virtual path resolver */
   resolveVirtualPath: (id: string) => string;
+  /** Resolved virtual-id recognizer — the counterpart of `resolveVirtualPath` */
+  isVirtualId: (id: string) => boolean;
   /** Resolved dynamic import template */
   dynamicImportTemplate: (path: string, isDev: boolean) => string;
   /**

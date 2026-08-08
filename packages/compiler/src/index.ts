@@ -138,6 +138,14 @@ export class ZintlCompiler {
   public isSsrEntryTarget(id: string): boolean {
     const targets = this._resolved.system.ssrEntryTargets;
     if (!targets || targets.length === 0) return false;
+    /**
+     * Deliberately still a byte test, and the odd one out among the `\0` sites.
+     *
+     * This is not asking "is this module Zintl's own" — that question now goes
+     * through `io.isVirtualId`. It is stripping a known prefix so a user's SSR
+     * entry pattern can match, and it already tries the unstripped id too, so a
+     * host spelling virtual ids differently loses nothing here.
+     */
     const cleanId = id.startsWith("\0") ? id.slice(1) : id;
     return targets.some((target) => {
       if (typeof target === "string") {
@@ -251,6 +259,7 @@ export class ZintlCompiler {
       options,
       this.extensions,
       this._resolved.facets,
+      this._resolved.system.isVirtualId,
     );
     this.io.bus = this.bus;
     this.graph = new GraphManager(this.io, isDev, this.logger.withPrefix("Graph"), this.locales);
@@ -595,7 +604,7 @@ export class ZintlCompiler {
 
     // 2. Check if it's a catalog file (disk-to-boundary mapping)
     for (const bId of Object.keys(this.messages.internalManifest)) {
-      if (bId.includes("\0")) continue;
+      if (this.io.isVirtualId(bId)) continue;
       if (foundBoundaryIds.includes(bId)) continue;
       for (const locale of this.locales) {
         const catPath = this.catalog.getCatalogPath(bId, locale);
@@ -1048,6 +1057,67 @@ export class ZintlCompiler {
     return result;
   }
 
+  /**
+   * The locales this project renders right-to-left, unioned across facets.
+   *
+   * Handed to the runtime so the store can set `<html dir>` on every host, not
+   * only where an HTML projection is installed. Core stays ignorant of what
+   * direction means: it unions the string arrays its content facets return.
+   *
+   * A `union` rather than a chain — unlike {@link transformHtml}, where each
+   * facet rewrites the previous one's output, here every facet contributes an
+   * independent fact and none of them can retract another's.
+   */
+  public async getRtlLocales(): Promise<string[]> {
+    const context = this.getCompilerContext();
+    const merged = new Set<string>();
+    for (const facet of this._resolved.system.contentFacets) {
+      if (!facet.rtlLocales) continue;
+      for (const locale of await facet.rtlLocales(context)) merged.add(locale);
+    }
+    return [...merged].sort();
+  }
+
+  /**
+   * Fold host-declared entry scripts into a freshly observed HTML document.
+   *
+   * Zintl learns which scripts a document loads by reading `<script src>` out of
+   * the markup, and turns them into the document's dependencies — which is how a
+   * page reaches a trust anchor and becomes a boundary at all.
+   *
+   * That is a **Vite/plain-HTML convention, not a universal one.** An Rsbuild
+   * template deliberately carries no script tag: the entry is injected at build
+   * time from `source.entry`, so the association lives in the build config. With
+   * nothing to read, the document reached no boundary, no HTML catalog was ever
+   * scaffolded for it, and every question asked about it answered emptily rather
+   * than loudly (ledger L-021).
+   *
+   * So a host that keeps the association elsewhere declares it, and this folds it
+   * in at the one point where an observation is produced — updating **both**
+   * `htmlProjection.scripts`, which the projection walks to find the winning
+   * anchor, and `dependencies`, which reachability is computed from. Updating
+   * only the first is the subtle version of this bug: the extractor derives the
+   * second from the first *during* extraction, so after the fact they are two
+   * separate facts and both have to be told.
+   *
+   * A union, never a replacement — a host declaring an entry does not mean the
+   * markup is wrong about the others.
+   */
+  private adoptHostHtmlEntries(fileId: string, observation: FileObservation): void {
+    const declared = this._options.htmlEntries?.[fileId];
+    if (!declared?.length || !observation.htmlProjection) return;
+
+    const scripts = observation.htmlProjection.scripts;
+    const deps = observation.dependencies;
+    for (const script of declared) {
+      if (!scripts.includes(script)) scripts.push(script);
+      if (!deps.some((d: { id: string }) => d.id === script)) {
+        // No named bindings: a document loads a script, it does not import from it.
+        deps.push({ id: script, dynamic: false, bindings: [] });
+      }
+    }
+  }
+
   async transform(
     code: string,
     id: string,
@@ -1059,7 +1129,7 @@ export class ZintlCompiler {
     const isTargetSsrEntry = this.isSsrEntryTarget(id);
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
-      (id.startsWith("\0") && !isTargetSsrEntry)
+      (this.io.isVirtualId(id) && !isTargetSsrEntry)
     )
       return;
     code = code.replace(/\r\n/g, "\n");
@@ -1170,6 +1240,7 @@ export class ZintlCompiler {
           this.logger.withPrefix("Extractor"),
           { compiledState: this._resolved.extraction },
         );
+        this.adoptHostHtmlEntries(fileId, observation);
         this.observationCache[effectiveCleanId] = observation;
 
         this.messages.dependencyGraph[fileId] = observation.dependencies;
@@ -2355,7 +2426,6 @@ export function getRuntimeCode(
     | "store-server",
   capabilities?: CapabilityFlags,
   isSsr?: boolean,
-  sourceLocale?: string,
   /**
    * Whether the runtime is being served for development.
    *
@@ -2364,6 +2434,15 @@ export function getRuntimeCode(
    * users".
    */
   isDev = false,
+  /**
+   * Locales this project renders right-to-left, from
+   * {@link ZintlCompiler.getRtlLocales}.
+   *
+   * Defaults to empty, and empty is meaningful rather than missing: the store
+   * then leaves `dir` alone entirely instead of asserting `"ltr"` on documents
+   * that never had the attribute.
+   */
+  rtlLocales: string[] = [],
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -2395,13 +2474,17 @@ export function getRuntimeCode(
    * were not while the check depended on `typeof process`.
    */
   code = code.replace(/\b__ZINTL_DEV__\b/g, isDev ? "true" : "false");
-  if (cleanName === "store-core" && sourceLocale) {
-    code = code
-      .replace(
-        /sourceLocale\s*:\s*string\s*=\s*["']en["']/g,
-        `sourceLocale: string = "${sourceLocale}"`,
-      )
-      .replace(/sourceLocale\s*=\s*["']en["']/g, `sourceLocale = "${sourceLocale}"`);
-  }
+  /**
+   * Same mechanism, for the same reason: a word-boundary sentinel folds to a
+   * literal the minifier can reason about, and it survives formatting.
+   *
+   * This deliberately replaced a regex that matched a TypeScript class-field
+   * default (`sourceLocale: string = "en"`) in the runtime source. That worked
+   * and was one `readonly` keyword, one formatter rule or one compile-target
+   * change away from silently matching nothing — a substitution that fails by
+   * doing nothing is the worst shape available, since the runtime still loads
+   * and simply believes the wrong thing.
+   */
+  code = code.replace(/\b__ZINTL_RTL_LOCALES__\b/g, JSON.stringify(rtlLocales));
   return code;
 }

@@ -71,7 +71,14 @@ export const assetsBasic: ProjectManifest = {
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/`);
     },
+    // This fixture's heading *is* its asset, which is why the contract could
+    // get away with conflating them. Stated separately anyway — the contract
+    // now asks for the asset, and an app where the two differ must be able to
+    // say so.
+    assetSelector: "#asset-text",
+    assetText: { en: SOURCE_TEXT, ar: ARABIC_TEXT },
+    navigateLocale: async (lab, locale) => {
+      await lab.page.goto(`${lab.url}/?lang=${locale}`);
+    },
   },
 };
-
-export const assetsBasicText = { source: SOURCE_TEXT, arabic: ARABIC_TEXT };

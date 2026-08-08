@@ -1,0 +1,7 @@
+import "../modulepreload-polyfill.js";
+//#region fixtures/multiplex-assets/src/main.ts?zintl-multiplex=en
+async function render() {
+	document.querySelector("#app").innerHTML = `<h1 id="asset-url">Get started</h1><a id="about" href="${aboutUrl}">about</a>`;
+}
+render();
+//#endregion

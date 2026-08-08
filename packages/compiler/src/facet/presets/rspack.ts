@@ -37,6 +37,23 @@ export function rspackFacet(): ZintlFacet {
     resolveVirtualPath: (id: string): string => id,
 
     /**
+     * Two spellings, because a virtual module has two identities on this host.
+     *
+     * `resolveId` and `load` see the `\0` form Zintl constructed. `transform`
+     * and the module graph see the materialised file, which unplugin writes
+     * under `<context>/node_modules/.virtual/` (optionally with a pid segment —
+     * `unplugin@3.3.0`, `VIRTUAL_MODULE_PREFIX`). Recognising only the first
+     * misses every module past the `transform` boundary.
+     *
+     * Before this hook existed, the second case survived on a coincidence: core
+     * skipped those modules because an adjacent `id.includes("node_modules")`
+     * test happened to be true. Correct behaviour resting on another project's
+     * choice of directory (ledger L-004).
+     */
+    isVirtualId: (id: string): boolean =>
+      id.includes("\0") || id.replace(/\\/g, "/").includes("node_modules/.virtual"),
+
+    /**
      * A plain dynamic import, deliberately unannotated.
      *
      * No `/* @vite-ignore *\/`, which is what the unconditionally-appended Vite

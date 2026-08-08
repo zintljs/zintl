@@ -457,12 +457,18 @@ export function loadHook(ctx: Context) {
       ctx.compiler._logger
         .withPrefix("Vite")
         .debug(`Loading virtual runtime module: ${moduleName}`);
+      /**
+       * `getRtlLocales()` reads content catalogs, so it is only answerable
+       * once the graph has been built — which it has, since `buildStart`
+       * precedes every `load`. A universal hook, so the direction map reaches
+       * every host without per-bundler wiring.
+       */
       let code = getRuntimeCode(
         moduleName as any,
         ctx.compiler._resolved.flags,
         isSsr,
-        ctx.compiler.sourceLocale,
         ctx.compiler.isDev,
+        await ctx.compiler.getRtlLocales(),
       );
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");

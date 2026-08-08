@@ -1,7 +1,8 @@
 # Proposal 027: Completing the Rsbuild Target
 
-**Status**: OPEN — scope defined, no work started.
+**Status**: IN PROGRESS — §2.3(c) closed, see [027-leak-ledger.md](027-leak-ledger.md).
 **Date**: 2026-08-06
+**Ledger**: [027-leak-ledger.md](027-leak-ledger.md) — findings from this proposal's work, continuing 026's numbering from L-020.
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md) §11, and the findings in [026-leak-ledger.md](026-leak-ledger.md). Read 026 §11 first — this document assumes its outcome and does not restate it.
 
 ## 0. What this is, and how it differs from 026
@@ -22,7 +23,7 @@ Four leaks remain open from 026, and one decision is outstanding. Done is:
 4. **The HMR ordering defect** — diagnosed to a cause, not just to a symptom.
 5. **Rsbuild apps live in `examples/`**, are registered as manifests, and are covered by every contract whose capabilities they honestly satisfy.
 
-Item 5 depends on 3 and 4. Items 1 and 2 do not block it and can be sequenced independently.
+Item 5 depends on 3 and 4. Items 1 and 2 do not block it and can be sequenced independently. §2.5 is not a sixth item — it is a design constraint that shapes item 3 and everything after it.
 
 ## 2. The four open leaks
 
@@ -59,13 +60,19 @@ Rspack's `emitFile` returns `undefined`, so `import.meta.ROLLUP_FILE_URL_<id>` h
 
 **Three distinct pieces of work, and they should not be attempted as one:**
 
-**(a) An HTML transform seam that is not `transformIndexHtml`.** The hook exists in the `vite: {}` block, which unplugin drops everywhere else. What is needed is a host-neutral contract — most likely a `BundlerFacet.transformHtml` the plugin routes to, with each host's entry point supplying the wiring. The signature is already agreed by both hosts; the disagreement is over _when_ it fires and _what identity_ the document has.
+**(a) An HTML transform seam that is not `transformIndexHtml`.** The hook exists in the `vite: {}` block, which unplugin drops everywhere else. What is needed is a host-neutral contract — most likely a `BundlerFacet.transformHtml` the plugin routes to, with each host's entry point supplying the wiring. The signature is already agreed by both hosts; the disagreement is over _when_ it fires and _what identity_ the document has. It is also where §2.5's layering question stops being theoretical, since the Rsbuild hook is Rsbuild's rather than Rspack's.
 
-**(b) A home for per-locale direction.** Direction currently lives in HTML catalogs, read at build time by the projection. The runtime has no table and should not grow a hardcoded list of RTL languages. Options: hand the direction map to the runtime the way `sourceLocale` is handed over today (a build-time substitution in `getRuntimeCode`), or keep it in the projection and accept that `dir` requires HTML transformation on every host. **Prefer the first** — it makes `dir` work wherever `lang` already does, and direction is a property of the locale rather than of the document.
+**(b) A home for per-locale direction.** ~~Direction currently lives in HTML catalogs, read at build time by the projection.~~ **LANDED — mechanism complete, and the framing here was off in two ways.** The runtime has no table and should not grow a hardcoded list of RTL languages. Options: hand the direction map to the runtime the way `sourceLocale` is handed over today (a build-time substitution in `getRuntimeCode`), or keep it in the projection and accept that `dir` requires HTML transformation on every host. **Prefer the first** — it makes `dir` work wherever `lang` already does, and direction is a property of the locale rather than of the document.
 
-**(c) Host-independent dev globals.** `__zintl_current_instance` and the settle beacon are published on a path that does not run on Rspack. Until that is fixed, every failure diagnosis on a non-Vite host is misleading in the same way, which will cost debugging time on every item in this proposal.
+> _First: there was no list to invent._ Direction is authored data, written into every HTML catalog unconditionally, so the item was a **hoist** — `ContentFacet.rtlLocales`, unioned by `getRtlLocales()`, substituted as `__ZINTL_RTL_LOCALES__`. Not the `sourceLocale` mechanism, which turned out to be a fragile regex over a class-field default **and** entirely dead; both are now deleted.
+>
+> _Second: it does not make `dir` work wherever `lang` does — not yet, and (a) is why._ On Rsbuild the direction map comes out **empty**, because the document→boundary link is a `<script src>` tag that an Rsbuild template deliberately does not have ([L-021](027-leak-ledger.md)). §4's coupling of (a) and (b) was therefore right, for a reason written down nowhere until now.
+>
+> Two defects on the **Vite** path were fixed on the way, and together they explain 026's unexplained third layer: the projection guarded `dir` behind a check on `lang`, and the store's attribute handling was an `else` the projection could claim without discharging.
 
-**Do (c) first.** It is the smallest, it is a prerequisite for trusting any diagnosis, and 026 lost time to its absence repeatedly.
+**(c) Host-independent dev globals.** ~~`__zintl_current_instance` and the settle beacon are published on a path that does not run on Rspack.~~ **CLOSED — and the diagnosis above was wrong in both halves.** A probe run before any code was written found `__zintl_current_instance` **present** all along, and the beacon absent for an unrelated reason: Rsbuild leaves Rspack's `mode` at `"none"` in every action, so L-018's dev detection never fired and `__ZINTL_DEV__` folded to `false`. Fixed by asking the layer that owns the fact — `api.context.action`, through an `rsbuild` block on the plugin. See [L-020](027-leak-ledger.md).
+
+**Do (c) first.** It is the smallest, it is a prerequisite for trusting any diagnosis, and 026 lost time to its absence repeatedly. — _Held up: it was one probe, it closed the item, and it corrected a 026 ledger entry on the way. It also delivered §2.5's answer early: the first genuine Rsbuild-level concern turned out to be dev-detection rather than HTML, and it needed no facet change and no `hostChain`, because the concern lives in the plugin's escape hatch. The `rsbuild` block it created is the same one (a) will hang `modifyHTML` off._
 
 ### 2.4 The HMR ordering defect
 
@@ -81,6 +88,32 @@ Rspack's `emitFile` returns `undefined`, so `import.meta.ROLLUP_FILE_URL_<id>` h
 This is ZDB / proposal 024 territory rather than 026's, and it is the one item here that could plausibly be a larger project than it looks.
 
 **Sequencing note**: this blocks item 5 only in the sense that an example with broken HMR is not an example. If the fix proves large, §5's fallback applies.
+
+### 2.5 A constraint the above runs into: what a bundler facet is _of_
+
+Not a fifth work item — a design question that shapes §2.3 and anything after it, recorded so it is not re-derived.
+
+**Why there is an `rspackFacet` and no `rsbuildFacet`.** Mechanically, one could not activate: unplugin's Rspack build context hardcodes `framework: "rspack"` (`context-D3KUBasH.mjs`), and the Rsbuild adapter delegates to `getRspackPluginFromRaw`, so `nativeHostView` reads `"rspack"` even under Rsbuild.
+
+But the principled reason is the one that matters. All three `BundlerFacet` hooks — virtual id spelling, dynamic-import syntax, HMR API — are **module-system** concerns, and **Rspack owns all three**. Rsbuild is a configuration, dev-server and HTML layer on top of it and changes none of them. One facet, named for the layer that owns the behaviour.
+
+**§2.3 is what changes that.** `api.modifyHTML` is _Rsbuild's_ API; raw Rspack uses `html-webpack-plugin`. So the moment an HTML transform hook exists there is a genuine Rsbuild-level concern, and the two facets would need to compose — which 026 §10 anticipated in those words: _"an Rsbuild facet subsuming a generic-Rspack facet."_ Whether that is supersession or plain composition is a §2.3 decision, not a settled one: Rsbuild _adds_ HTML behaviour rather than replacing Rspack's module behaviour, so plain composition looks more likely than the word "subsuming" implies.
+
+**The same seam exists on the Vite side, and it is latent rather than theoretical.** `viteFacet` already mixes two layers:
+
+| Hook                                                         | Whose convention  |
+| :----------------------------------------------------------- | :---------------- |
+| `resolveVirtualPath`                                         | **Rollup's** `\0` |
+| `dynamicImportTemplate` → `/* @vite-ignore */`               | **Vite's**        |
+| `hmrInjectionCode` / `hmrSelfAcceptCode` → `import.meta.hot` | **Vite's**        |
+
+unplugin ships a Rollup adapter, so `zintljs/rollup` is one file and one exports entry away. **The day it exists it reproduces L-012 exactly** — a plain Rollup build handed `@vite-ignore` comments and `import.meta.hot`, neither of which Rollup understands. The identical defect fixed for Rspack, sitting unfixed on the other side of the same facet. Rolldown is the same story, and Vite is migrating there regardless.
+
+**Do not split pre-emptively.** Separating `viteFacet` into a Rollup half and a Vite half with no host that needs one without the other is the abstraction inflation §8 of 026 names, and the N=1 error §2 of 026 exists to correct. `viteFacet` is currently the shape of its only implementation, and that is _fine when it is honest about it_ — this entry is the honesty.
+
+**The trigger is concrete**: the first host needing Rollup's conventions without Vite's, i.e. a `zintljs/rollup` or `zintljs/rolldown` entry point. The cost of splitting then is low, which is the dividend from the self-activation inversion — `provides`/`supersedes` can express the relationship and the composition golden files turn any change into a diff.
+
+**One thing that may need to move sooner.** `FacetActivationContext.bundler` is a single string, so a stacked host has two identities and a facet can only ask about one. Harmless today because nothing needs to distinguish them; it becomes real the moment §2.3 gives Rsbuild a concern of its own. A `hostChain`, or a stack rather than a scalar, is the likely shape — but it should be designed against §2.3's actual need rather than in advance of it.
 
 ## 3. Promoting Rsbuild to `examples/`
 

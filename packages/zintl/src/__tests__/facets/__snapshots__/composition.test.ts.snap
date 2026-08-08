@@ -2,6 +2,7 @@
 
 exports[`resolved facet composition per example > custom-facets (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -37,15 +38,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -76,6 +81,7 @@ activation trace:
 
 exports[`resolved facet composition per example > custom-facets (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -113,15 +119,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -152,6 +162,7 @@ activation trace:
 
 exports[`resolved facet composition per example > custom-facets-demo (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -187,15 +198,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -226,6 +241,7 @@ activation trace:
 
 exports[`resolved facet composition per example > custom-facets-demo (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -263,15 +279,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -302,6 +322,7 @@ activation trace:
 
 exports[`resolved facet composition per example > react-basic (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -337,15 +358,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -376,6 +401,7 @@ activation trace:
 
 exports[`resolved facet composition per example > react-basic (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -413,15 +439,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -452,6 +482,7 @@ activation trace:
 
 exports[`resolved facet composition per example > react-ssr (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -487,15 +518,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -526,6 +561,7 @@ activation trace:
 
 exports[`resolved facet composition per example > react-ssr (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -563,15 +599,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -600,8 +640,169 @@ activation trace:
   ✓ vite                         bundler=vite ✓"
 `;
 
+exports[`resolved facet composition per example > rsbuild-spa (client) 1`] = `
+"frameworks: react
+bundler: rspack
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
+exports[`resolved facet composition per example > rsbuild-spa (ssr) 1`] = `
+"frameworks: react
+bundler: rspack
+ssr: true
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  entryReexecutionSafe: true
+  hmr: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
 exports[`resolved facet composition per example > svelte-basic (client) 1`] = `
 "frameworks: svelte
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -638,15 +839,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -677,6 +882,7 @@ activation trace:
 
 exports[`resolved facet composition per example > svelte-basic (ssr) 1`] = `
 "frameworks: svelte
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -715,15 +921,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -754,6 +964,7 @@ activation trace:
 
 exports[`resolved facet composition per example > svelte-ssr (client) 1`] = `
 "frameworks: svelte
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -790,15 +1001,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -829,6 +1044,7 @@ activation trace:
 
 exports[`resolved facet composition per example > svelte-ssr (ssr) 1`] = `
 "frameworks: svelte
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -867,15 +1083,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -906,6 +1126,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -941,15 +1162,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -980,6 +1205,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1017,15 +1243,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1056,6 +1286,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1091,15 +1322,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1130,6 +1365,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1167,15 +1403,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1206,6 +1446,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1241,15 +1482,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1280,6 +1525,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1317,15 +1563,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1356,6 +1606,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1391,15 +1642,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1430,6 +1685,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1467,15 +1723,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1506,6 +1766,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa-basic (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1541,15 +1802,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1580,6 +1845,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa-basic (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1617,15 +1883,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1656,6 +1926,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1691,15 +1962,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1730,6 +2005,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1767,15 +2043,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1806,6 +2086,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-ssr (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1841,15 +2122,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1880,6 +2165,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vanilla-ssr (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -1917,15 +2203,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -1956,6 +2246,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vinext-basic (client) 1`] = `
 "frameworks: react, nextjs
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -1993,15 +2284,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: nextjs-ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 4
@@ -2032,6 +2327,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vinext-basic (ssr) 1`] = `
 "frameworks: react, nextjs
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2069,15 +2365,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: nextjs-ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 4
@@ -2108,6 +2408,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-basic (client) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -2143,15 +2444,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2182,6 +2487,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-basic (ssr) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2219,15 +2525,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2258,6 +2568,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-mpa (client) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -2293,15 +2604,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2332,6 +2647,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-mpa (ssr) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2369,15 +2685,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2408,6 +2728,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-spa (client) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -2443,15 +2764,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2482,6 +2807,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-spa (ssr) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2519,15 +2845,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2558,6 +2888,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-ssr (client) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -2593,15 +2924,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2632,6 +2967,7 @@ activation trace:
 
 exports[`resolved facet composition per example > vue-ssr (ssr) 1`] = `
 "frameworks: vue
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2669,15 +3005,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2708,6 +3048,7 @@ activation trace:
 
 exports[`resolved facet composition per example > website (client) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: false
 
 facets (resolution order):
@@ -2743,15 +3084,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: absent
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0
@@ -2782,6 +3127,7 @@ activation trace:
 
 exports[`resolved facet composition per example > website (ssr) 1`] = `
 "frameworks: react
+bundler: vite
 ssr: true
 
 facets (resolution order):
@@ -2819,15 +3165,19 @@ extraction:
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
   resolveVirtualPath: vite
+  isVirtualId: vite
   dynamicImportTemplate: vite
   hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
   detectLocale: (none)
 
 single-provider hooks — resolved on the system view:
   ssrWrapCode: present
   resolveVirtualPath: present
+  isVirtualId: present
   dynamicImportTemplate: present
   hmrInjectionCode: present
+  hmrSelfAcceptCode: present
 
 ssr:
   entryTargets: 0

@@ -67,6 +67,14 @@ export class LabPipeline {
          */
         .replace(/\.tmp[/\\]runs[/\\]w[^/\\]+[/\\]/g, "examples/")
         /**
+         * The same, for inline fixtures, which materialize to
+         * `.tmp/fixtures/w<N>/` instead. Nothing needed this until a fixture
+         * claimed `build`: the others claim only browser capabilities, so no
+         * fixture path had ever reached a dist snapshot and the omission was
+         * invisible.
+         */
+        .replace(/\.tmp[/\\]fixtures[/\\]w[^/\\]+[/\\]/g, "fixtures/")
+        /**
          * The same two normalizations again, for paths that are no longer
          * paths.
          *
@@ -86,6 +94,7 @@ export class LabPipeline {
         .split(escapedMonorepoRoot.replace(/[/\\.]/g, "_"))
         .join("<MONOREPO_ROOT>")
         .replace(/_tmp_runs_w[^_]+_/g, "_tmp_runs_wN_")
+        .replace(/_tmp_fixtures_w[^_]+_/g, "_tmp_fixtures_wN_")
     );
   }
 

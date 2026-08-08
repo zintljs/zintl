@@ -54,6 +54,15 @@ export class IOManager {
     _options: IOManagerOptions,
     resolvedExtensions: string[] = [],
     resolvedFacets: ZintlFacet[] = [],
+    /**
+     * Recognise one of Zintl's own generated modules.
+     *
+     * Supplied from the resolved system view rather than derived here, and
+     * exposed through {@link IOManager.isVirtualId} so the other managers — which
+     * all hold an `IOManager` and none of which hold the system view — can ask
+     * the same question the same way. See ledger L-004.
+     */
+    private readonly virtualIdTest: (id: string) => boolean = (id) => id.includes("\0"),
   ) {
     this.extensions = resolvedExtensions;
     this.facets = resolvedFacets;
@@ -112,9 +121,21 @@ export class IOManager {
     return id;
   }
 
+  /**
+   * Is this id one of Zintl's own generated modules rather than a real file?
+   *
+   * The single place that question is answered, for core and for every other
+   * manager. Routed to the active bundler facet, because how a generated module
+   * is spelled is the host's decision — Rollup's `\0`, or a materialised path
+   * under `node_modules/.virtual/` on Rspack.
+   */
+  public isVirtualId(id: string): boolean {
+    return this.virtualIdTest(id);
+  }
+
   public getNormalizedId(id: string) {
     if (this.normalizedIdCache.has(id)) return this.normalizedIdCache.get(id)!;
-    if (id.startsWith("\0")) return id;
+    if (this.isVirtualId(id)) return id;
 
     const exts = this.extensions
       .map((e) => (e.startsWith(".") ? e.slice(1) : e))

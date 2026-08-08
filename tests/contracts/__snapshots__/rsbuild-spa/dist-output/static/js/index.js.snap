@@ -224,7 +224,7 @@ __webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj
 (() => {
 var inProgress = {};
 
-var uniqueName = "rsbuild-spa-fixture:";
+var uniqueName = "rsbuild-spa:";
 // loadScript function to load a script via script tag
 __webpack_require__.l = function (url, done, key, chunkId) {
 	if (inProgress[url]) {
@@ -425,7 +425,7 @@ var __rspack_jsonp = (parentChunkLoadingFunction, data) => {
 	
 };
 
-var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_spa_fixture"] = self["rspackChunkrsbuild_spa_fixture"] || [];
+var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_spa"] = self["rspackChunkrsbuild_spa"] || [];
 jsonpChunkLoadingGlobal.forEach(__rspack_jsonp.bind(null, 0));
 jsonpChunkLoadingGlobal.push = __rspack_jsonp.bind(null, jsonpChunkLoadingGlobal.push.bind(jsonpChunkLoadingGlobal));
 

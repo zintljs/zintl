@@ -130,6 +130,9 @@ interface MergeState {
   resolveVirtualPath: ((id: string) => string) | undefined;
   resolveVirtualPathProvider: string;
   resolveVirtualPathPriority: number;
+  isVirtualId: ((id: string) => boolean) | undefined;
+  isVirtualIdProvider: string;
+  isVirtualIdPriority: number;
   dynamicImportTemplate: ((path: string, isDev: boolean) => string) | undefined;
   dynamicImportTemplateProvider: string;
   dynamicImportTemplatePriority: number;
@@ -179,6 +182,9 @@ function createEmptyState(): MergeState {
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
     resolveVirtualPathPriority: -1,
+    isVirtualId: undefined,
+    isVirtualIdProvider: "",
+    isVirtualIdPriority: -1,
     dynamicImportTemplate: undefined,
     dynamicImportTemplateProvider: "",
     dynamicImportTemplatePriority: -1,
@@ -325,6 +331,21 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
           state.resolveVirtualPathPriority = priority;
         }
       }
+      if (facet.isVirtualId !== undefined) {
+        state.isVirtualId = mergeHook(
+          state.isVirtualId,
+          state.isVirtualIdPriority,
+          facet.isVirtualId,
+          priority,
+          "bundler.isVirtualId",
+          state.isVirtualIdProvider,
+          name,
+        );
+        if (state.isVirtualId === facet.isVirtualId) {
+          state.isVirtualIdProvider = name;
+          state.isVirtualIdPriority = priority;
+        }
+      }
       if (facet.dynamicImportTemplate !== undefined) {
         state.dynamicImportTemplate = mergeHook(
           state.dynamicImportTemplate,
@@ -405,6 +426,13 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
 
 // Default fallbacks for bundler hooks (always required)
 const DEFAULT_RESOLVE_VIRTUAL_PATH = (id: string): string => id;
+/**
+ * Rollup's convention, which is what core constructed virtual ids with before
+ * any facet was asked. A host that spells them differently says so; one that
+ * contributes no bundler facet at all — the compiler's own unit tests — keeps
+ * the behaviour it always had.
+ */
+const DEFAULT_IS_VIRTUAL_ID = (id: string): boolean => id.includes("\0");
 const DEFAULT_DYNAMIC_IMPORT_TEMPLATE = (path: string, _isDev: boolean): string =>
   `import(${JSON.stringify(path)})`;
 
@@ -458,6 +486,7 @@ function stateToHooks(state: MergeState): CompilerSystemView {
     ssrWrapDefault: state.ssrWrapDefault,
 
     resolveVirtualPath: state.resolveVirtualPath ?? DEFAULT_RESOLVE_VIRTUAL_PATH,
+    isVirtualId: state.isVirtualId ?? DEFAULT_IS_VIRTUAL_ID,
     dynamicImportTemplate: state.dynamicImportTemplate ?? DEFAULT_DYNAMIC_IMPORT_TEMPLATE,
     hmrInjectionCode: state.hmrInjectionCode,
     hmrSelfAcceptCode: state.hmrSelfAcceptCode,
