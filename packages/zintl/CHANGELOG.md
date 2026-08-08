@@ -1,5 +1,57 @@
 # zintl
 
+## 0.1.0-alpha.14
+
+### Minor Changes
+
+- 7779a8b: Gave the HTML projection a host-neutral path, so `<html lang>`/`dir`, `<title>` and `<meta description>` follow the locale on Rsbuild as they do on Vite.
+
+  `compiler.transformHtml()` was always host-neutral; what was not is the only thing that ever called it — Vite's `transformIndexHtml`, which lives in the plugin's `vite` block and which unplugin drops on every other target. Rsbuild's `api.modifyHTML` has the same shape, so this is wiring rather than a second implementation, routed from the plugin's `rsbuild` block. Deliberately **not** a `BundlerFacet` hook: `ContentFacet.transformHtml` already exists and _is_ the projection, so a bundler hook of the same name beside it would reproduce a naming collision this codebase has been bitten by before — and registering `modifyHTML` is plugin work that a facet, being data and string-returning functions, cannot do.
+
+  **Two things had to be solved that a straight wiring would not have caught.**
+
+  _Identity._ Rsbuild hands the hook an output filename (`index.html`, relative to `dist`) where Vite hands an absolute source path. The projection re-reads the source on a cache miss and computes sink offsets against it, so passing the output name through produces a blank page. It is now inverted through `htmlPaths` and `html.template` back to the source id — and when any step yields nothing, which happens for real when Rsbuild uses its built-in template, it warns and declines rather than silently doing nothing.
+
+  _The boundary link._ Zintl learns which scripts a document loads by reading `<script src>` from markup, and turns them into the document's dependencies — which is how a page reaches a trust anchor and becomes a boundary at all. An Rsbuild template names no scripts: the entry is injected at build time from `source.entry`, so the association lives in the build config. With nothing to read, no HTML document reached a boundary on this host, no catalog was ever scaffolded for one, and the direction map came out empty.
+
+  `CompilerOptions.htmlEntries` is the new declaration — keyed by html id, valued with source ids, unioned with whatever the markup says and empty on every host whose templates name their own scripts. It updates both `htmlProjection.scripts` and `dependencies`, because the extractor derives the second from the first _during_ extraction and afterwards they are two separate facts.
+
+  **Also generalised**: the `locale-switch` contract asserted a request URL containing `virtual:zintl/content/<locale>/`, which is Vite's virtual-module spelling — an Rspack build emits catalogs as ordinary hashed async chunks. The question the contract asks is host-neutral; only the spelling is not, so an optional `LocaleSwitchAdapter.isCatalogRequest` holds the per-project answer and defaults to the Vite form.
+
+### Patch Changes
+
+- 654569d: Made `<html dir>` follow the active locale on any host, and fixed two defects that stopped it following reliably on Vite.
+
+  Direction used to reach the document only through the HTML projection, which Zintl injects via `transformIndexHtml` — a Vite hook that unplugin drops everywhere else. The runtime had no direction data of its own and deliberately set only `lang`.
+
+  It now has the data. `ContentFacet.rtlLocales` is a new hook, unioned by `ZintlCompiler.getRtlLocales()` and substituted into the generated runtime as a literal array, so the store can set `dir` wherever it already sets `lang`. Core learns nothing about direction or about RTL languages: it merges string arrays that facets return. The HTML facet answers by reading the `dir` field already written into every HTML catalog — so this is one derivation moved to where two consumers can share it, not a new source of truth, and there is no list of RTL languages anywhere in the runtime.
+
+  **Two defects fixed on the supported path**, which together explain why adding an HTML catalog to a page could stop `lang` updating:
+
+  - The projection's `apply()` returned early when `lang` already matched the target locale — but it owns `dir` as well, so anything that set `lang` first permanently locked `dir` out with no way to correct it. Every statement in that function is an idempotent assignment, so the guard bought nothing.
+  - The store's own attribute handling was an `else` branch behind `window.__zintlApplyHtml`. The projection installs that function unconditionally but writes `dir` only when the project has an RTL locale, so on every other project it took ownership of the document and then declined to finish the job, silently suppressing the fallback. The two now run in sequence: the store owns `lang` and `dir`, the projection owns the document-specific title, description and body deltas.
+
+  `dir` is written only when the project actually has direction data. Empty means "this project never spoke about direction", and asserting `"ltr"` there would start writing an attribute onto documents that never had one.
+
+  **Removed: the dead `sourceLocale` field on `I18nStore`.** It was written by a build-time substitution and never read — the only occurrence in the whole runtime was its own declaration — and it shipped in every production bundle. Its substitution was also the fragile kind: a regex matching a TypeScript class-field default, one `readonly` keyword or formatter change away from silently matching nothing. `getRuntimeCode` drops its `sourceLocale` parameter and gains `rtlLocales`, which uses the same word-boundary sentinel mechanism as `__ZINTL_DEV__`.
+
+- 4c65c66: Fixed development mode never being detected under Rsbuild, which stripped the dev-only runtime from every page the Rsbuild dev server served.
+
+  Dev detection on this family read `compiler.options.mode === "development"`. That is correct for webpack and for raw Rspack, where the user sets it — but **Rsbuild leaves `mode` at `"none"` for `dev`, `build` and `preview` alike**, because it drives optimisation from its own configuration rather than from webpack's mode presets. So `isDev` was `false` on the dev server, the runtime was generated with `__ZINTL_DEV__` folded to `false`, and the settle beacon and delivery ledger compiled away.
+
+  Nothing looked broken, which is why it survived: the page rendered, translated, and switched locale correctly. Only the diagnostics were gone — so every failure investigated on this host reported `settle beacon: ABSENT — no Zintl runtime on the page` about a page whose runtime was present and working, and the misdiagnosis was then recorded as a finding.
+
+  Dev-ness is a fact the **Rsbuild** layer owns and the Rspack layer cannot see, so it is now asked for where it lives: the plugin grows an `rsbuild` block — structurally the twin of its existing `vite` block — reading `api.context.action`, which Rsbuild documents as `"dev"` for both `rsbuild dev` and `rsbuild.startDevServer()`. `"preview"` is deliberately not dev, since it serves a production build. `Context.hostHints` carries the answer to compiler construction, which merges it over the view derived from the native build context.
+
+  That split is the general shape rather than a special case: a host can be a **stack**, and unplugin hands a plugin the _inner_ bundler's context under both. Hints complete a native view with facts the inner layer could not supply; they never override one it did.
+
+  No behaviour change on Vite, and none on Rsbuild production builds.
+
+- Updated dependencies [7779a8b]
+- Updated dependencies [654569d]
+- Updated dependencies [0926c2e]
+  - @zintljs/compiler@0.1.0-alpha.14
+
 ## 0.1.0-alpha.13
 
 ### Minor Changes

@@ -1,5 +1,64 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.14
+
+### Minor Changes
+
+- 45e3a9d: Made the localized-assets contract describe a capability rather than one project, so more than one app can claim `assets`.
+
+  The contract imported its expected strings from the `assets-basic` fixture and asserted them against `adapter.headingSelector`. That made it a test of one app wearing a capability's name: any second project claiming `assets` would have been asserted against the first project's text, in whichever element happened to be its heading. It survived only because it had exactly one claimant, for which "the heading" and "the localized asset" were the same element by coincidence.
+
+  The selector and the per-locale expected text now come from a new `AssetsAdapter`, alongside a `navigateLocale` that loads the app cold in a given locale — a fresh navigation rather than a runtime switch, because this contract is about the build substituting the right asset for the active boundary, not about switching afterwards. `assetSelector` is deliberately separate from `headingSelector`: in the normal case they are different elements, which is what the old shape could not express.
+
+  `rsbuild-spa` now claims `assets` and `boundary-graph`. The first is the one that matters — the defect where Rspack typed Zintl's generated JavaScript by its `.txt` extension and base64-encoded it into a `data:` URI had a green build and green contracts, and was caught only by reading a snapshot. It is now asserted in a real browser against rendered Arabic text.
+
+### Patch Changes
+
+- 7779a8b: Gave the HTML projection a host-neutral path, so `<html lang>`/`dir`, `<title>` and `<meta description>` follow the locale on Rsbuild as they do on Vite.
+
+  `compiler.transformHtml()` was always host-neutral; what was not is the only thing that ever called it — Vite's `transformIndexHtml`, which lives in the plugin's `vite` block and which unplugin drops on every other target. Rsbuild's `api.modifyHTML` has the same shape, so this is wiring rather than a second implementation, routed from the plugin's `rsbuild` block. Deliberately **not** a `BundlerFacet` hook: `ContentFacet.transformHtml` already exists and _is_ the projection, so a bundler hook of the same name beside it would reproduce a naming collision this codebase has been bitten by before — and registering `modifyHTML` is plugin work that a facet, being data and string-returning functions, cannot do.
+
+  **Two things had to be solved that a straight wiring would not have caught.**
+
+  _Identity._ Rsbuild hands the hook an output filename (`index.html`, relative to `dist`) where Vite hands an absolute source path. The projection re-reads the source on a cache miss and computes sink offsets against it, so passing the output name through produces a blank page. It is now inverted through `htmlPaths` and `html.template` back to the source id — and when any step yields nothing, which happens for real when Rsbuild uses its built-in template, it warns and declines rather than silently doing nothing.
+
+  _The boundary link._ Zintl learns which scripts a document loads by reading `<script src>` from markup, and turns them into the document's dependencies — which is how a page reaches a trust anchor and becomes a boundary at all. An Rsbuild template names no scripts: the entry is injected at build time from `source.entry`, so the association lives in the build config. With nothing to read, no HTML document reached a boundary on this host, no catalog was ever scaffolded for one, and the direction map came out empty.
+
+  `CompilerOptions.htmlEntries` is the new declaration — keyed by html id, valued with source ids, unioned with whatever the markup says and empty on every host whose templates name their own scripts. It updates both `htmlProjection.scripts` and `dependencies`, because the extractor derives the second from the first _during_ extraction and afterwards they are two separate facts.
+
+  **Also generalised**: the `locale-switch` contract asserted a request URL containing `virtual:zintl/content/<locale>/`, which is Vite's virtual-module spelling — an Rspack build emits catalogs as ordinary hashed async chunks. The question the contract asks is host-neutral; only the spelling is not, so an optional `LocaleSwitchAdapter.isCatalogRequest` holds the per-project answer and defaults to the Vite form.
+
+- 45e3a9d: Promoted the Rsbuild project from a test fixture to a real example at `examples/rsbuild-spa`.
+
+  It began as proposal 026's falsification harness, deliberately living outside `examples/` so it carried none of that directory's obligations. It now has them: it builds under `vpr build:examples`, satisfies lint and knip, and is something a user is invited to copy. Its manifest reads the app through `copiedExampleSource` like every other example, which leaves `dirSource` without a caller — kept, because it is the general "checked-in directory outside `examples/`" source and this removes its only user, not its reason to exist.
+
+  **The gaps are stated in the app itself**, in a rewritten README: no hot updates, no `<html dir>`, no `<title>`/`<meta>` translation, no SSR or MPA. A production-build-only example is still a real example; a `dev` script that starts a server and silently never updates would not be, which is the failure mode the honesty is aimed at.
+
+  **A guardrail was about to vouch for a fiction.** The facet-composition golden files enumerate `examples/` from disk but hardcoded `bundler: "vite"`, including in the invariant asserting that every example resolves exactly one bundler facet. After promotion that would have kept passing — by describing an Rsbuild app as resolving `viteFacet` and asserting the description was right. What it would have been vouching for is the defect where Vite-specific syntax is emitted into Rspack output. The bundler is now derived per example from the config on disk, and the invariant asserts the host's own facet rather than a constant.
+
+  Two smaller corrections came with it: the hand-written `*?raw` type shim is gone in favour of `types: ["@rsbuild/core/types"]`, which Rsbuild ships and which mirrors how the Vite examples use `vite/client`; and `@rsbuild/core` is no longer a root devDependency or a knip exception, since the app declares its own.
+
+- 0926c2e: Routed virtual-module **recognition** through the bundler facet, closing the half of that seam that never existed.
+
+  `BundlerFacet.resolveVirtualPath` existed to construct virtual ids. Nothing existed to recognise them: core tested `id.startsWith("\0")` — Rollup's convention, hardcoded into a bundler-agnostic layer — at seven sites deciding whether a module was Zintl's own, and therefore whether to normalize it, give it a catalog, or let it become a boundary.
+
+  On Rspack that test is false for virtual modules past the `transform` boundary, because unplugin materialises them as real files under `node_modules/.virtual/`. Nothing broke, because an adjacent `id.includes("node_modules")` test happened to be true — correct behaviour resting on another project's choice of directory name, which would have failed silently by extracting strings from Zintl's own generated catalogs the day that directory moved.
+
+  `BundlerFacet.isVirtualId` is the counterpart. It uses substring rather than prefix semantics, because boundary ids embed the module id they were minted from; Rspack's implementation recognises both spellings a virtual module has on that host. `IOManager` holds and exposes it, since every other manager already holds an `IOManager` and none hold the system view. With no bundler facet the default stays the `\0` test, so nothing changes for the compiler's own unit tests.
+
+  Six of the seven sites moved. The seventh strips a `\0` prefix so a user's SSR entry pattern can match and already tries the unstripped id too — it normalizes rather than asking about ownership, so it stays a byte test with a comment saying why.
+
+  **Also fixes a blind spot in the guardrail meant to catch exactly this.** The facet-composition golden files report single-provider hooks from two hand-maintained arrays, and `hmrSelfAcceptCode` had been missing from both since it was added — so a facet-surface change was invisible to the artifact whose purpose is making facet-surface changes visible. Both hooks are listed now, with a note at the arrays.
+
+  Adds `tests/fixtures/multiplex-assets.ts`, a multiplexed project with `virtualAssets` and a localized binary asset. It covers `emitFile` and `import.meta.ROLLUP_FILE_URL_*` under multiplex, which had no coverage at all.
+
+- Updated dependencies [7779a8b]
+- Updated dependencies [654569d]
+- Updated dependencies [4c65c66]
+- Updated dependencies [0926c2e]
+  - @zintljs/compiler@0.1.0-alpha.14
+  - zintljs@0.1.0-alpha.14
+
 ## 0.1.0-alpha.13
 
 ### Minor Changes
