@@ -53,23 +53,37 @@ export const rsbuildSpa: ProjectManifest = {
    * `boundary-graph` needs no host support at all: it introspects the compiler,
    * which is the half of the system that was already portable.
    *
-   * **Not `locale-switch`/`rtl`.** The store now sets `<html lang>` and `dir` on
-   * any host, but the direction map is derived from HTML catalogs, and on this
-   * host no HTML document reaches a boundary: an Rsbuild template carries no
-   * `<script src>`, because the entry is injected from `source.entry`. So the
-   * map is empty here and `dir` never changes. That link is Rsbuild
-   * configuration, which arrives with the HTML seam — ledger L-021.
+   * `locale-switch`/`rtl` became claimable once the HTML seam existed. Both
+   * halves were needed and neither alone was enough: `api.modifyHTML` to project
+   * the document, and `htmlEntries` to tell the compiler which script an Rsbuild
+   * template loads — without the second, no HTML document reached a boundary
+   * here, no catalog was scaffolded, and the direction map was empty (L-021).
    *
-   * **Not `performance`.** `performance-size` requires `locale-switch`, so it is
-   * blocked by the same thing rather than by anything about performance.
+   * **Not `performance`.** `performance-size` filters responses by Vite-shaped
+   * URLs (`virtual:zintl`, `/i18n/`, `.json`) and sees none of this host's
+   * hashed async chunks. Teaching it a second URL shape is not worth doing while
+   * its own header documents it as measuring dev-wrapped modules inside a timing
+   * window — that contract needs rewriting against built output before either
+   * host should claim it.
    *
    * **Not `hmr` or anything built on it.** Zintl emits no acceptance code on
    * this host (`rspackFacet`), because ZDB §7a makes dev support conditional on
    * two ordering guarantees not established here. Note `hmr-stress` does *not*
    * require `hmr` — claiming it alone would select `hmr-hammer` and fail rather
-   * than skip.
+   * than skip. `RsbuildDevServerDriver` also supplies no `interceptHmr`, so the
+   * delivery contracts could not see packets even once that is answered.
    */
-  capabilities: ["build", "graph", "transform", "spa", "assets", "boundary-graph"],
+  capabilities: [
+    "build",
+    "graph",
+    "transform",
+    "spa",
+    "assets",
+    "boundary-graph",
+    "locale-switch",
+    "rtl",
+    "locale-switch-stress",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
@@ -86,6 +100,14 @@ export const rsbuildSpa: ProjectManifest = {
     navigateLocale: async (lab, locale) => {
       await lab.page.goto(`${lab.url}/?lang=${locale}`);
     },
+    /**
+     * Rspack emits catalogs as ordinary hashed async chunks, so unlike Vite's
+     * virtual modules nothing in the URL names a locale. This app has exactly
+     * one async chunk per non-source locale, so an async-chunk fetch during a
+     * switch is a catalog fetch — but it cannot prove *which* locale, which the
+     * Vite spelling can. Recorded rather than papered over.
+     */
+    isCatalogRequest: (url) => url.includes("/static/js/async/"),
     switchLocale: async (lab, locale) => {
       if (locale === "ar") await lab.page.click("button:has-text('العربية')");
       else if (locale === "en") await lab.page.click("button:has-text('English')");

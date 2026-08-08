@@ -29,8 +29,14 @@ export const localeSwitchContract: Contract<LocaleSwitchAdapter> = {
     await lab.assert.localeCoherent("ar");
     await lab.assert.dir("rtl");
 
-    // 5. Verify that the Arabic translation catalog request was captured
-    const arCatalogRequest = requests.find((req) => req.url.includes("virtual:zintl/content/ar/"));
+    // 5. Verify that the Arabic translation catalog was fetched, not inlined.
+    // How a catalog request looks is the host's business — Vite's virtual module
+    // names the locale in its URL, an Rspack chunk does not — so the project
+    // says, and the default is the Vite spelling.
+    const isCatalogRequest =
+      adapter.isCatalogRequest ??
+      ((url: string, locale: string) => url.includes(`virtual:zintl/content/${locale}/`));
+    const arCatalogRequest = requests.find((req) => isCatalogRequest(req.url, "ar"));
     expect(arCatalogRequest).toBeDefined();
   },
 };

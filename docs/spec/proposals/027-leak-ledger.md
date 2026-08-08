@@ -404,3 +404,104 @@ lengthen the gate. Stated as "no material increase" rather than as a speed-up, b
 spans different machine states and the suite is not an instrument for that.
 
 Contract cases: **120**, up from 118 at the start of this proposal and 104 at the start of 026.
+
+---
+
+## Phase 4a — §2.3(a), the HTML seam, and L-021 closed
+
+**L-021 — Status: Fixed.** Bucket **2 — relocate** (the link is host configuration, not markup).
+Facet contract changed? **No** — and that is the finding.
+
+§2.3(a) proposed a `BundlerFacet.transformHtml`, and §2.5 asked whether
+`FacetActivationContext.bundler` must become a `hostChain` to support it. Neither was needed.
+`ContentFacet.transformHtml` already exists and _is_ the projection; a bundler hook of the same name
+beside it would have reproduced the `wrapCode`/`ssrWrapCode` two-vocabularies confusion the golden
+files exposed in 026, one layer worse. And facets are data and string-returning functions —
+`api.modifyHTML(fn)` must be _registered during plugin setup_, which only `packages/zintl` can do.
+
+So the seam is a `hooks/html.ts` routed from the plugin's existing `rsbuild` block. **Which escape
+hatch a hook sits in is the layering statement**: `rspackFacet` keeps the module-system concerns,
+the `rsbuild` block keeps the HTML and dev-server ones, and nothing ever asks
+`bundler === "rsbuild"`. §2.5's `hostChain` stays deferred, now with two Rsbuild-level concerns
+built and neither needing it.
+
+### The two things 026's attempt could not get past
+
+**Identity.** `ModifyHTMLContext.filename` is an **output** name (`index.html`, relative to `dist`)
+where Vite passes an absolute **source** path. 026 passed it straight through and got a blank page.
+The inversion runs `filename` → `environment.htmlPaths` → entry name → `html.template` → source id,
+and **bails loudly** when any step yields nothing, which is a real case: Rsbuild has a built-in
+template, and a document Zintl cannot place is one whose translations would silently never appear.
+
+**The boundary link — L-021 itself.** The same context carries `source.entry`, so the association
+Rsbuild keeps in config instead of markup is available from the host that owns it. `CompilerOptions.
+htmlEntries` is where it lands, unioned into a freshly observed document by `adoptHostHtmlEntries`.
+
+Two details that would each have produced a half-working fix:
+
+- It must update **both** `htmlProjection.scripts` _and_ `dependencies`. The extractor derives the
+  second from the first _during_ extraction (`extractor/src/html.ts:225`), so afterwards they are
+  two separate facts and both have to be told. Updating only the first gets the projection working
+  while reachability — and therefore catalog scaffolding — stays broken.
+- It must be registered on **`onBeforeEnvironmentCompile`, not `onBeforeBuild`**. Measured: the
+  latter never fires for `rsbuild dev`. Both fire before `buildStart`, and the association has to
+  exist before discovery or the document is analysed without it.
+
+### What it bought
+
+`index.html.translations.json` is now **scaffolded on this host**, `<html dir>` follows the locale,
+`<title>` translates, and the projection bootstrap ships in the built page with `const rtl = ["ar"]`.
+The runtime carries the same map, from the same derivation — Phase 1's mechanism was correct all
+along and simply had no data to work with here.
+
+`locale-switch`, `rtl` and `locale-switch-stress` are claimed and pass. Contract cases: **122**.
+
+### A second contract that named a host rather than a capability
+
+`locale-switch` asserted a request URL containing `virtual:zintl/content/ar/`. That is Vite's virtual
+module spelling; Rspack emits catalogs as ordinary hashed async chunks. Same shape as the `assets`
+contract in Phase 2 and generalised the same way — the question ("did switching fetch a catalog
+rather than read one already inlined") is host-neutral, only the spelling is not, so an optional
+`LocaleSwitchAdapter.isCatalogRequest` holds the answer and defaults to the Vite form.
+
+Recorded honestly: this host's predicate cannot prove _which_ locale was fetched, because nothing in
+the URL names one. It proves an async chunk was fetched during the switch, which for this app is a
+catalog. Weaker than Vite's, and stated rather than hidden.
+
+### `performance` deliberately not claimed
+
+`performance-size` filters responses by the same Vite-shaped URLs and sees none of this host's
+chunks. It was left unclaimed rather than taught a second spelling, because that contract's **own
+header** documents it as measuring dev-wrapped modules inside a timing window and concedes it does
+not measure what its name promises. Making a known-flawed contract portable is not the same as
+earning a capability; it wants rewriting against built output first, for both hosts.
+
+### One observation, recorded rather than diagnosed
+
+`[Locale Switch] rsbuild-spa` failed once, in a full-suite run, with a signature unlike anything else
+in this ledger:
+
+```
+Error: page.evaluate: Execution context was destroyed, most likely because of a navigation
+  body html length: 30        ← empty document
+  settle beacon: ABSENT
+```
+
+The page navigated out from under the assertion. **Not reproduced since**: 4/4 green running the
+locale contracts in isolation, and 4 further full-suite runs with no recurrence (the one failure in
+those was `hmr-hammer` on `react-basic`, the §2.4 defect).
+
+The standing suspicion, stated as a suspicion: the pooled Rsbuild dev server reloading the page while
+a contract holds it. This phase made Zintl start **writing** an HTML catalog and its schema into the
+watched source tree on this host, which it never did before — and unlike Vite, where
+`handleHotUpdate` opens with `if (ctx.compiler.isWritingFile(file)) return;`, nothing here tells the
+Rsbuild watcher that a compiler-authored write is not a user edit. That would make it load-sensitive
+and rare, which matches.
+
+Not chased further because the evidence is one occurrence, and `retry: 0` means the next one will be
+recorded rather than swallowed. Named here so that if it returns, the first place to look is the
+watcher rather than the assertion.
+
+**A related fix that did land:** `index.html.translations.json` and its schema were generated but
+**untracked**, so a fresh CI checkout would have built the example without them and regenerated them
+mid-run. They are committed now, as every Vite example's equivalents already were.

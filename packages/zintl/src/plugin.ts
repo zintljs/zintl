@@ -15,6 +15,7 @@ import {
 } from "./hooks/transform.js";
 import { handleHotUpdateHook } from "./hooks/hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
+import { declareHtmlEntriesHook, modifyHtmlHook, type RsbuildHtmlApi } from "./hooks/html.js";
 import { resolveOptions } from "./options.js";
 
 const contextMap = new WeakMap<ResolvedOptions, Context>();
@@ -32,7 +33,7 @@ const contextMap = new WeakMap<ResolvedOptions, Context>();
  * The real check on this shape is the contract suite, which drives a genuine
  * Rsbuild through `@zintljs/testing` — a package that *does* depend on it.
  */
-interface RsbuildSetupApi {
+interface RsbuildSetupApi extends RsbuildHtmlApi {
   context: { action?: "dev" | "build" | "preview" };
 }
 
@@ -126,6 +127,15 @@ const unplugin = createUnplugin<Options, true>((options) => {
            * dev: the page should have the production runtime it is previewing.
            */
           ctx.hostHints.isDev = api.context.action === "dev";
+
+          /**
+           * The HTML layer, which is Rsbuild's rather than Rspack's — raw
+           * Rspack projects HTML through `html-webpack-plugin` instead. That
+           * this sits in the `rsbuild` block and `rspackFacet` keeps the
+           * module-system concerns *is* the layering statement (027 §2.5).
+           */
+          declareHtmlEntriesHook(ctx, api);
+          api.modifyHTML?.(modifyHtmlHook(ctx));
         },
       },
     },

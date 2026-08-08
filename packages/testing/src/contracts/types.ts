@@ -33,6 +33,21 @@ export interface BaseAdapter {
 export interface LocaleSwitchAdapter extends BaseAdapter {
   /** Programmatically switch to a target locale */
   switchLocale(lab: Lab, locale: string): Promise<void>;
+  /**
+   * Recognise a network request that fetched a locale catalog.
+   *
+   * Defaults to Vite's virtual-module URL, which carries the locale in the path.
+   * That default is a **host convention, not a Zintl one**: an Rspack build
+   * emits catalogs as ordinary hashed async chunks, so nothing in the URL names
+   * a locale and a project on that host has to say what one of its own catalog
+   * requests looks like.
+   *
+   * The contract's question — "did switching locale fetch a catalog rather than
+   * read one already inlined" — is host-neutral. Only the spelling of the answer
+   * is not, which is exactly the kind of per-project quirk an adapter exists to
+   * hold.
+   */
+  isCatalogRequest?(url: string, locale: string): boolean;
 }
 
 export interface HmrAdapter extends BaseAdapter {}

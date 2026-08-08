@@ -9,7 +9,7 @@ so any difference in output is attributable to the **host** rather than to the
 app.
 
 ```bash
-pnpm dev      # rsbuild dev     — see the gap below
+pnpm dev      # rsbuild dev     — no hot updates yet, see below
 pnpm build    # tsc && rsbuild build
 pnpm preview  # rsbuild preview
 ```
@@ -29,17 +29,25 @@ module per chunk behind a dynamic import and lets the host's splitter place it.
 Ghost mode holds too: there is no `en` chunk, because the source locale is never
 written to disk.
 
+**The document follows the locale as well.** Switching to Arabic sets
+`<html lang="ar" dir="rtl">` and swaps `<title>` — through
+`src/i18n/index.html.translations.json`, the same HTML catalog every Vite
+example uses. Two things had to exist for that: Rsbuild's `api.modifyHTML`,
+which is the host-neutral counterpart of Vite's `transformIndexHtml`; and a way
+to tell Zintl which script this document loads, since an Rsbuild template names
+none — the entry is injected from `source.entry` at build time, so the
+association lives in `rsbuild.config.mjs` where only the host can see it.
+
 ## What is not supported yet
 
 Stated plainly, because an example that looks complete while quietly doing less
 is worse than one with a known gap.
 
-| Gap                                  | Why                                                                                                                                                                                                                                      |
-| :----------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hot updates**                      | `pnpm dev` serves and rebuilds, but Zintl emits no hot-update acceptance code on this host. Editing a string needs a manual reload. See below                                                                                            |
-| **`<html dir>`**                     | `lang` follows the locale; `dir` does not. Direction is read from HTML catalogs, and on this host no HTML document reaches a boundary — an Rsbuild template carries no `<script src>`, because the entry is injected from `source.entry` |
-| **`<title>` / `<meta description>`** | The HTML projection reaches a page through `transformIndexHtml`, which is Vite's hook and is dropped on every other host                                                                                                                 |
-| **SSR, MPA**                         | Untouched and unexamined here                                                                                                                                                                                                            |
+| Gap             | Why                                                                                                                                           |
+| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hot updates** | `pnpm dev` serves and rebuilds, but Zintl emits no hot-update acceptance code on this host. Editing a string needs a manual reload. See below |
+| **Preloading**  | The projection injects no `<link rel="modulepreload">` here. Catalogs still load, one network round-trip later than they would on Vite        |
+| **SSR, MPA**    | Untouched and unexamined here                                                                                                                 |
 
 **Why hot updates are withheld rather than approximated.** Rspack uses
 `module.hot` where Vite uses `import.meta.hot`, so the inherited snippet is

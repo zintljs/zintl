@@ -661,7 +661,7 @@ var I18nStore = class {
 		*/
 		if (typeof document !== "undefined" && document.documentElement) {
 			document.documentElement.lang = locale;
-			if ([].length > 0) document.documentElement.dir = [].includes(locale) ? "rtl" : "ltr";
+			if (["ar"].length > 0) document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
 		}
 		window.__zintlApplyHtml?.(locale);
 		try {

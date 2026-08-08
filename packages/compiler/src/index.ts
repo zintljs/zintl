@@ -1069,6 +1069,46 @@ export class ZintlCompiler {
     return [...merged].sort();
   }
 
+  /**
+   * Fold host-declared entry scripts into a freshly observed HTML document.
+   *
+   * Zintl learns which scripts a document loads by reading `<script src>` out of
+   * the markup, and turns them into the document's dependencies — which is how a
+   * page reaches a trust anchor and becomes a boundary at all.
+   *
+   * That is a **Vite/plain-HTML convention, not a universal one.** An Rsbuild
+   * template deliberately carries no script tag: the entry is injected at build
+   * time from `source.entry`, so the association lives in the build config. With
+   * nothing to read, the document reached no boundary, no HTML catalog was ever
+   * scaffolded for it, and every question asked about it answered emptily rather
+   * than loudly (ledger L-021).
+   *
+   * So a host that keeps the association elsewhere declares it, and this folds it
+   * in at the one point where an observation is produced — updating **both**
+   * `htmlProjection.scripts`, which the projection walks to find the winning
+   * anchor, and `dependencies`, which reachability is computed from. Updating
+   * only the first is the subtle version of this bug: the extractor derives the
+   * second from the first *during* extraction, so after the fact they are two
+   * separate facts and both have to be told.
+   *
+   * A union, never a replacement — a host declaring an entry does not mean the
+   * markup is wrong about the others.
+   */
+  private adoptHostHtmlEntries(fileId: string, observation: FileObservation): void {
+    const declared = this._options.htmlEntries?.[fileId];
+    if (!declared?.length || !observation.htmlProjection) return;
+
+    const scripts = observation.htmlProjection.scripts;
+    const deps = observation.dependencies;
+    for (const script of declared) {
+      if (!scripts.includes(script)) scripts.push(script);
+      if (!deps.some((d: { id: string }) => d.id === script)) {
+        // No named bindings: a document loads a script, it does not import from it.
+        deps.push({ id: script, dynamic: false, bindings: [] });
+      }
+    }
+  }
+
   async transform(
     code: string,
     id: string,
@@ -1191,6 +1231,7 @@ export class ZintlCompiler {
           this.logger.withPrefix("Extractor"),
           { compiledState: this._resolved.extraction },
         );
+        this.adoptHostHtmlEntries(fileId, observation);
         this.observationCache[effectiveCleanId] = observation;
 
         this.messages.dependencyGraph[fileId] = observation.dependencies;

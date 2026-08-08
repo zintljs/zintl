@@ -28,6 +28,16 @@ export default class Context {
    */
   public hostHints: Partial<BundlerHostView> = {};
 
+  /**
+   * HTML documents whose entry scripts the host had to declare, because its
+   * templates do not name them. Keyed by normalized html id, valued with source
+   * ids relative to the root.
+   *
+   * Populated before the compiler is constructed and handed over as its
+   * `htmlEntries` option — see `hooks/html.ts` and ledger L-021.
+   */
+  public htmlEntries: Record<string, string[]> = {};
+
   constructor(public options: ResolvedOptions) {}
 
   getMultiplex(config?: any): boolean {

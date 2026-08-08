@@ -197,6 +197,12 @@ export function ensureCompiler(
       // else was already resolved by resolveOptions() at plugin creation.
       logLevel: ctx.options.logLevel ?? resolved.logLevel ?? "info",
       verifyIntegrity: ctx.options.verifyIntegrity ?? !resolved.isDev,
+      /**
+       * Declared by the host before compilation starts, and empty on every host
+       * whose templates name their own scripts — which is all of them except
+       * Rsbuild. See `hooks/html.ts` and ledger L-021.
+       */
+      htmlEntries: ctx.htmlEntries,
     },
     resolved.root,
     resolved.isDev,

@@ -67,6 +67,24 @@ export interface CompilerOptions {
   verifyIntegrity?: boolean;
   multiplex?: boolean;
   /**
+   * Entry scripts an HTML document loads, where the markup does not say so.
+   *
+   * Keyed by normalized HTML file id (`"index.html"`), valued with source ids
+   * relative to the root (`["src/main.ts"]`).
+   *
+   * Zintl normally reads this out of `<script src>` tags, which is how a
+   * document reaches a trust anchor and becomes a boundary. That is a
+   * plain-HTML convention rather than a universal one: an Rsbuild template
+   * carries no script tag, because the entry is injected at build time from
+   * `source.entry`, so the association lives in the build config where only the
+   * host can see it (ledger L-021).
+   *
+   * Unioned with whatever the markup declares, never replacing it. Empty or
+   * absent means "the markup is the whole story", which is true of every
+   * Vite project.
+   */
+  htmlEntries?: Record<string, string[]>;
+  /**
    * The compiler's entire behavioral surface, pre-resolved by the host plugin.
    *
    * The compiler does not resolve facets and does not know which facets exist —
