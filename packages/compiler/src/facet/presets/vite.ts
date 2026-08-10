@@ -24,6 +24,8 @@ export function viteFacet(): ZintlFacet {
      * looser form costs nothing.
      */
     isVirtualId: (id: string): boolean => id.includes("\0"),
+    /** Multiplex's per-locale HTML fan-out is implemented end to end on this host. */
+    htmlFanOut: true,
     /**
      * Self-acceptance for Zintl's own generated modules.
      *

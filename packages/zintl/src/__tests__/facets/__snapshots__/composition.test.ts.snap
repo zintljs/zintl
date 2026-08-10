@@ -19,6 +19,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -100,6 +101,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -179,6 +181,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -260,6 +263,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -339,6 +343,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -420,6 +425,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -499,6 +505,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -580,6 +587,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -659,6 +667,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: false
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -740,6 +749,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: false
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -820,6 +830,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: false
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -902,6 +913,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: false
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -982,6 +994,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: false
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -1064,6 +1077,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: false
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -1143,6 +1157,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1224,6 +1239,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1303,6 +1319,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1384,6 +1401,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1463,6 +1481,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1544,6 +1563,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1623,6 +1643,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1704,6 +1725,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1783,6 +1805,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1864,6 +1887,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -1943,6 +1967,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2024,6 +2049,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2103,6 +2129,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2184,6 +2211,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2265,6 +2293,7 @@ flags:
   clientLocaleSync: false
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2346,6 +2375,7 @@ flags:
   clientLocaleSync: false
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2425,6 +2455,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2506,6 +2537,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2585,6 +2617,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2666,6 +2699,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2745,6 +2779,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2826,6 +2861,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2905,6 +2941,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2986,6 +3023,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -3065,6 +3103,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -3146,6 +3185,7 @@ flags:
   clientLocaleSync: true
   entryReexecutionSafe: true
   hmr: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true

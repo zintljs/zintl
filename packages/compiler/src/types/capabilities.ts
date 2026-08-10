@@ -337,6 +337,21 @@ export interface BundlerFacet extends BaseFacet {
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /**
+   * Can this host produce a per-locale HTML document — the "multiplex" fan-out
+   * that `loadHook`/`resolveIdHook` implement (`packages/zintl/src/hooks/resolve.ts`)?
+   *
+   * True on Vite, where that fan-out exists end to end. Left undeclared
+   * (falls back to `false`) everywhere else, deliberately: absence must not
+   * read as "assume yes". On Rspack, the module that gates access to the
+   * fan-out — `loadIncludeHook` claiming `.html` under multiplex — retypes the
+   * raw template as `javascript/auto`, and the build dies inside
+   * `html-rspack-plugin`'s child compilation on `<!doctype html>`. The claim
+   * is destructive there, not merely wasted (ledger L-022). This flag is how
+   * the host fences that claim from ever being made, instead of testing
+   * `bundler === "rspack"` inside a bundler-agnostic hook.
+   */
+  htmlFanOut?: boolean;
+  /**
    * How this host spells "accept my own updates", for **generated** modules.
    *
    * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
@@ -545,6 +560,8 @@ export interface CapabilityFlags {
   hmr: boolean;
   /** True when locale-based URL routing is expected */
   localeRouting: boolean;
+  /** True when the active bundler facet can produce per-locale HTML documents (multiplex fan-out) */
+  htmlFanOut: boolean;
 }
 
 /**

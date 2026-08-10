@@ -187,6 +187,8 @@ export function resolveIdHook(ctx: Context) {
       }
     }
 
+    // No local guard for a host with no HTML fan-out: `ensureCompiler`
+    // (host.ts) already throws before this hook can run on one — L-022.
     const multiplex = ctx.getMultiplex();
     if (multiplex && id.endsWith(".html")) {
       const locales = ctx.options.locales;
@@ -351,6 +353,8 @@ export function loadIncludeHook(ctx: Context) {
     }
     if (cleanId.includes(".zintl-")) return true;
     if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) return true;
+    // No local guard for a host with no HTML fan-out: `ensureCompiler`
+    // (host.ts) already throws before this hook can run on one — L-022.
     if (cleanId.endsWith(".html")) return ctx.getMultiplex();
 
     return false;

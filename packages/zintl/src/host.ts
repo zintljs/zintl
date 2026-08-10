@@ -189,6 +189,26 @@ export function ensureCompiler(
   // The compiler is handed the result and never learns which facets produced it.
   const capabilities = resolveFacets(facets);
 
+  /**
+   * Fence for ledger L-022. Multiplex's per-locale HTML fan-out exists only in
+   * loadHook/resolveIdHook's Vite-shaped branches (hooks/resolve.ts). A bundler
+   * facet that has not declared `htmlFanOut` cannot survive those branches
+   * firing — on Rspack, loadIncludeHook claiming ".html" retypes the raw
+   * template as `javascript/auto` and the build dies inside
+   * html-rspack-plugin's child compilation, with an error naming a loader
+   * chain rather than Zintl. Ask the facet, and fail loudly before any module
+   * resolution happens, rather than let the host's own crash stand in for ours.
+   */
+  if (ctx.getMultiplex({ root: resolved.root }) && !capabilities.flags.htmlFanOut) {
+    throw new Error(
+      `[Zintl] Multiplex is not supported on "${resolved.bundler}": its bundler facet declares no ` +
+        `HTML fan-out support, so Zintl cannot produce the per-locale HTML documents multiplex ` +
+        `requires (see docs/spec/proposals/027-leak-ledger.md, L-022). Set \`multiplex: false\` in ` +
+        `your Zintl options to opt out explicitly, or remove the sovereign anchor ` +
+        `(\`zintl("*")\` / \`zintl()\`) that auto-detection found, until multiplex ships for this bundler.`,
+    );
+  }
+
   ctx.compiler = new ZintlCompiler(
     {
       ...ctx.options,

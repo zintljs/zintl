@@ -54,6 +54,16 @@ export function rspackFacet(): ZintlFacet {
       id.includes("\0") || id.replace(/\\/g, "/").includes("node_modules/.virtual"),
 
     /**
+     * No `htmlFanOut`, and that omission is deliberate — the same shape of
+     * decision as {@link hmrSelfAcceptCode} below. Multiplex's per-locale HTML
+     * fan-out has no implementation on this host (026 §7, 027 §6 both exclude
+     * MPA/HTML fan-out from scope). Declaring `false` here would read the same
+     * as declaring nothing to the merge logic, so the honest move is to say
+     * nothing: the fence this capability backs (`host.ts::ensureCompiler`,
+     * ledger L-022) needs only "not true", not a value this facet has to own.
+     */
+
+    /**
      * A plain dynamic import, deliberately unannotated.
      *
      * No `/* @vite-ignore *\/`, which is what the unconditionally-appended Vite

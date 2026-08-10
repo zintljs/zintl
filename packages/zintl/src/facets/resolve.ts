@@ -13,7 +13,7 @@
  *
  * Merge semantics:
  * - Arrays (targets, extensions, rules, ssr entry targets/exports) union.
- * - Runtime booleans OR together.
+ * - Runtime and bundler booleans OR together.
  * - Function hooks resolve by highest priority, and a tie is a hard error.
  * - Codegen facets stay a list, matched per-file; two facets claiming the same
  *   extension at the same priority is a hard error.
@@ -149,6 +149,7 @@ interface MergeState {
   hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
   hmrSelfAcceptCodeProvider: string;
   hmrSelfAcceptCodePriority: number;
+  htmlFanOut: boolean;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -194,6 +195,7 @@ function createEmptyState(): MergeState {
     hmrSelfAcceptCode: undefined,
     hmrSelfAcceptCodeProvider: "",
     hmrSelfAcceptCodePriority: -1,
+    htmlFanOut: false,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -391,6 +393,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
           state.hmrSelfAcceptCodePriority = priority;
         }
       }
+      if (facet.htmlFanOut) state.htmlFanOut = true;
       break;
     }
   }
@@ -421,6 +424,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     // Bundler
     hmr: state.hmrInjectionCode !== undefined,
     localeRouting: state.clientLocaleSync || state.serverRequestScope,
+    htmlFanOut: state.htmlFanOut,
   };
 }
 

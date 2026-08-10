@@ -17,7 +17,8 @@ export type Capability =
   | "transform"
   | "build"
   | "graph"
-  | "assets";
+  | "assets"
+  | "multiplex-fenced";
 
 export interface BaseAdapter {
   /** Navigate to the app's initial state with source locale */

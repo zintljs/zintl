@@ -10,6 +10,7 @@ import { assetsBasic } from "../fixtures/assets-basic.js";
 import { ssrStreaming } from "../fixtures/ssr-streaming.js";
 import { rsbuildSpa } from "./rsbuild-spa.js";
 import { multiplexAssets } from "../fixtures/multiplex-assets.js";
+import { multiplexRsbuildFence } from "../fixtures/multiplex-rsbuild-fence.js";
 import type { ProjectManifest } from "@zintljs/testing";
 
 /**
@@ -37,4 +38,5 @@ export const allManifests: ProjectManifest[] = [
   ssrStreaming,
   rsbuildSpa,
   multiplexAssets,
+  multiplexRsbuildFence,
 ];

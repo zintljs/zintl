@@ -571,11 +571,11 @@ was found by.
 
 ### L-022 — Under multiplex, claiming `.html` breaks the Rspack build outright
 
-|                             |                                                          |
-| :-------------------------- | :------------------------------------------------------- |
-| **Status**                  | **Open** — reproduced, diagnosed, out of §6 scope to fix |
-| **Bucket**                  | **1 — declare it**, more precisely than L-006 managed    |
-| **Facet contract changed?** | No                                                       |
+|                             |                                                                                    |
+| :-------------------------- | :--------------------------------------------------------------------------------- |
+| **Status**                  | **Fixed (fenced)** — see below. The real fan-out is still not designed for Rspack. |
+| **Bucket**                  | **1 — declare it**, more precisely than L-006 managed                              |
+| **Facet contract changed?** | Yes — `BundlerFacet.htmlFanOut`                                                    |
 
 Found while building the L-005 reproduction, and it is **L-006 recurring in the exact branch L-006's
 own note flagged as the risky one.**
@@ -604,18 +604,60 @@ Vite, where multiplex HTML fan-out is implemented. On Rspack that path does not 
 promises something the host cannot survive — and unlike a Rollup over-claim, which is free, here the
 claim alone is the damage.
 
-Not fixed. Multiplex/MPA fan-out is exactly what 026 §7 and 027 §6 exclude, and the fix wants that
-path designed rather than a host test bolted onto a filter — `if (bundler === …)` inside
-`loadIncludeHook` is 026 §8's fork wearing a filter's clothes.
+**Not fixed — fenced.** Multiplex/MPA fan-out is exactly what 026 §7 and 027 §6 exclude, and the real
+fix still wants that path designed for Rspack rather than patched. But shipping a crash with someone
+else's error message in front of it was never the right interim state, and 028 §5 named this the
+first thing to do: turn the opaque `html-rspack-plugin` loader-chain crash into a clear, loud, early
+Zintl error.
+
+**The fence, not `if (bundler === …)`.** Following the pattern this ledger's own §4.2 exists to
+enforce — ask the facet, don't test the bundler string — `BundlerFacet` gains `htmlFanOut?: boolean`.
+`viteFacet` declares it `true`; `rspackFacet` declares nothing, deliberately, the same shape of
+decision as its `hmrSelfAcceptCode` omission. It threads through `facets/resolve.ts` as a plain
+OR-merged boolean (`MergeState`, `mergeFacet`'s `"bundler"` case, `stateToCapabilities`) — no
+conflict semantics needed, unlike the priority-hook fields beside it — and lands in
+`CapabilityFlags.htmlFanOut`.
+
+The check itself sits in `host.ts::ensureCompiler`, between resolving capabilities and constructing
+the compiler:
+
+```ts
+if (ctx.getMultiplex({ root: resolved.root }) && !capabilities.flags.htmlFanOut) {
+  throw new Error(`[Zintl] Multiplex is not supported on "${resolved.bundler}": ...`);
+}
+```
+
+That site was chosen, not assumed: `ensureCompiler` is idempotent and is the one chokepoint every
+hook path funnels through (`buildStartHook` universally, `configResolvedHook` on Vite, defensively at
+the top of `resolveIdHook`/`loadHook`), and `loadIncludeHook` — the hook that actually claims
+`.html` — never calls `ensureCompiler` itself, so it only ever runs after `buildStartHook` has
+already run and already thrown. Both `.html` branches in `hooks/resolve.ts` (`resolveIdHook` and
+`loadIncludeHook`) keep no local guard, just a comment pointing here — a second check would only ever
+run in the already-fenced case.
+
+**Verified against a real build, not just a synthetic host view.** `tests/fixtures/multiplex-rsbuild-fence.ts`
+is a real `zintljs/rsbuild` project with `multiplex: true`, driven through `RsbuildDriver` by
+`tests/contracts/multiplex-fence.contract.spec.ts` (capability `"multiplex-fenced"`). The build now
+rejects with the exact `[Zintl] Multiplex is not supported on "rspack": ...` message, thrown from
+`ensureCompiler` inside a genuine Rspack `buildStart` hook — confirmed by temporarily asserting the
+wrong message and watching the real one come back in the failure diff. `examples/rsbuild-spa` (no
+`multiplex`) and `multiplex-assets` (Vite, multiplex, unaffected) both stay green.
+
+What this does **not** do: L-005 is still blocked, because the _unfenced_ gap — no real HTML fan-out
+on Rspack — is what blocks its reproduction, not the crash the fence removed.
 
 ---
 
 ### L-005 — still unreproduced, and now for a stated reason
 
-|            |                                                      |
-| :--------- | :--------------------------------------------------- |
-| **Status** | **Open** — blocked behind L-022                      |
-| **Bucket** | Undecided, and the deciding evidence is still absent |
+|            |                                                                             |
+| :--------- | :-------------------------------------------------------------------------- |
+| **Status** | **Open** — blocked behind L-022's _unfenced_ gap, not the crash L-022 fixed |
+| **Bucket** | Undecided, and the deciding evidence is still absent                        |
+
+L-022 fencing the crash does not unblock this: the fence turns the build into a clean, early failure
+for exactly the combination this reproduction needs, so reaching `emitFile` still requires the real
+HTML fan-out to exist on Rspack, which remains undesigned.
 
 The reproduction was attempted properly and produced three things worth more than another deferral.
 

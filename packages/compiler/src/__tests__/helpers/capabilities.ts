@@ -28,6 +28,7 @@ const NO_FLAGS: CapabilityFlags = {
   ssr: false,
   hmr: false,
   localeRouting: false,
+  htmlFanOut: false,
 };
 
 function emptySystem(): CompilerSystemView {

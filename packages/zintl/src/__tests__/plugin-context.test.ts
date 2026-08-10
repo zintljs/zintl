@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vite-plus/test";
 import Context from "../context.js";
 import { resolveOptions } from "../options.js";
 import { configResolvedHook } from "../hooks/config.js";
+import { ensureCompiler } from "../host.js";
 
 let mockExistsSync: any = null;
 let mockReadFileSync: any = null;
@@ -253,6 +254,38 @@ describe("ZintlPluginContext", () => {
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "vanilla-extraction")).toBe(true);
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "html-extraction")).toBe(true);
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "vue-extraction")).toBe(false);
+    });
+  });
+
+  describe("ensureCompiler multiplex fence (L-022)", () => {
+    it("throws when multiplex is requested on a bundler with no HTML fan-out", () => {
+      mockExistsSync = () => false;
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"], multiplex: true }));
+
+      expect(() =>
+        ensureCompiler(ctx, {
+          root: "/mock-root",
+          bundler: "rspack",
+          isDev: false,
+          isSsr: false,
+          pluginNames: [],
+        }),
+      ).toThrow(/\[Zintl\] Multiplex is not supported/);
+    });
+
+    it("does not throw when multiplex is requested on Vite", () => {
+      mockExistsSync = () => false;
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"], multiplex: true }));
+
+      expect(() =>
+        ensureCompiler(ctx, {
+          root: "/mock-root",
+          bundler: "vite",
+          isDev: false,
+          isSsr: false,
+          pluginNames: [],
+        }),
+      ).not.toThrow();
     });
   });
 });
