@@ -168,6 +168,45 @@ export class LabAssertions {
       // Project mode without a live compiler, or a compiler with recording off.
     }
 
+    /**
+     * `handleHotUpdateHook`'s own trace — whether it ran at all, what Vite
+     * handed it, and every module it repointed (ledger L-022, §2.4). The one
+     * thing none of the ledgers above can show: a delivery-ledger entry only
+     * exists once `invalidateForUpdate` was *called*, so a write the hook
+     * silently skipped, or never saw, leaves no trace anywhere except here.
+     */
+    try {
+      const trace = this.lab.compiler.hmrTrace ?? [];
+      if (trace.length === 0) {
+        lines.push("hmr trace: EMPTY — handleHotUpdateHook never ran");
+      } else {
+        lines.push(
+          `hmr trace: ${trace.length} entries, last 10 (oldest first):\n` +
+            trace
+              .slice(-10)
+              .map((e: any) => {
+                switch (e.kind) {
+                  case "skip-writing":
+                    return `    skip-writing ${e.file}`;
+                  case "skip-ineligible":
+                    return `    skip-ineligible ${e.file}`;
+                  case "enter":
+                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength}`;
+                  case "repoint":
+                    return `    repoint "${e.moduleId}" ${e.oldFile ?? "(none)"} → ${e.newFile} (boundary=${e.boundaryId}, fileId=${e.fileId})`;
+                  case "return":
+                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength}${e.passthrough ? " (passthrough)" : ""}`;
+                  default:
+                    return `    ${e.kind} ${e.file}`;
+                }
+              })
+              .join("\n"),
+        );
+      }
+    } catch {
+      lines.push("hmr trace: unavailable");
+    }
+
     try {
       const errors = this.lab.console.errors ?? [];
       lines.push(

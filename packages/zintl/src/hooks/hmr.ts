@@ -7,13 +7,19 @@ import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 export function handleHotUpdateHook(ctx: Context) {
   return async function (this: any, { file, server, modules, timestamp, read }: any) {
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
-    if (ctx.compiler.isWritingFile(file)) return;
+    if (ctx.compiler.isWritingFile(file)) {
+      ctx.hmrTrace.push({ ts: Date.now(), kind: "skip-writing", file });
+      return;
+    }
 
     const isSource = /\.(ts|tsx|js|jsx|html|vue|svelte)$/.test(file);
     const isJson = file.endsWith(".json");
     const isAsset = file.endsWith(".md") || file.endsWith(".txt");
 
-    if (!isJson && !isSource && !isAsset) return;
+    if (!isJson && !isSource && !isAsset) {
+      ctx.hmrTrace.push({ ts: Date.now(), kind: "skip-ineligible", file });
+      return;
+    }
 
     /**
      * The sequence for this event, and the content it describes.
@@ -39,7 +45,13 @@ export function handleHotUpdateHook(ctx: Context) {
       }
     }
 
-    vLogger.debug(`HMR triggered for ${file}`);
+    ctx.hmrTrace.push({
+      ts: Date.now(),
+      kind: "enter",
+      file,
+      seq,
+      modulesLength: modules.length,
+    });
     const invalidatedModules = new Set<ModuleNode>();
     let invalidatedBoundaries: string[] = [];
 
@@ -185,6 +197,25 @@ export function handleHotUpdateHook(ctx: Context) {
           if (isMatch && !id.includes("virtual:zintl")) {
             const absFileId = isAbsolute(fileId) ? fileId : join(ctx.compiler.rootDir, fileId);
             if (mod.file !== absFileId) {
+              /**
+               * The load-bearing entry for §2.4 / ledger L-022's unexamined
+               * hypothesis: this repoints `mod.file` (and Vite's own
+               * `fileToModulesMap`) off a loose string match, not an exact
+               * one. If `absFileId` here is ever wrong for what `id` actually
+               * is, the module silently stops being reachable by its real
+               * path — the next genuine edit to that path hands this hook
+               * `modules: []` (see the `enter` trace entry above).
+               */
+              ctx.hmrTrace.push({
+                ts: Date.now(),
+                kind: "repoint",
+                file,
+                moduleId: id,
+                oldFile: mod.file ?? undefined,
+                newFile: absFileId,
+                boundaryId,
+                fileId,
+              });
               if (mg.fileToModulesMap) {
                 const map = mg.fileToModulesMap;
                 const hasGet = typeof map.get === "function";
@@ -244,9 +275,25 @@ export function handleHotUpdateHook(ctx: Context) {
     }
 
     if (invalidatedModules.size > 0) {
+      ctx.hmrTrace.push({
+        ts: Date.now(),
+        kind: "return",
+        file,
+        invalidatedCount: invalidatedModules.size,
+        modulesLength: modules.length,
+        passthrough: false,
+      });
       return Array.from(invalidatedModules);
     }
 
+    ctx.hmrTrace.push({
+      ts: Date.now(),
+      kind: "return",
+      file,
+      invalidatedCount: 0,
+      modulesLength: modules.length,
+      passthrough: true,
+    });
     return modules;
   };
 }

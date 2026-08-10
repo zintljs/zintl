@@ -14,15 +14,29 @@ export class LabCompiler {
     this.root = root;
   }
 
-  get instance(): ZintlCompiler | undefined {
+  /** The live plugin `Context` this lab's dev server is running, if any. */
+  private context(): any {
     const contexts = (globalThis as any).__zintl_active_contexts || [];
     if (this.root) {
       const match = contexts.find(
         (ctx: any) => ctx.compiler?.rootDir === this.root || ctx.compiler?.root === this.root,
       );
-      if (match) return match.compiler;
+      if (match) return match;
     }
-    return contexts[contexts.length - 1]?.compiler;
+    return contexts[contexts.length - 1];
+  }
+
+  get instance(): ZintlCompiler | undefined {
+    return this.context()?.compiler;
+  }
+
+  /**
+   * `handleHotUpdateHook`'s own trace of every hot-update invocation for this
+   * project — oldest first. See `HmrTraceEntry` (`packages/zintl/src/context.ts`).
+   * Empty outside dev mode, or before anything has triggered a hot update.
+   */
+  get hmrTrace(): any[] {
+    return this.context()?.hmrTrace?.toArray() ?? [];
   }
 
   getBoundaryGraph() {

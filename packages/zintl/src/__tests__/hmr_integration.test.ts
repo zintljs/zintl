@@ -44,6 +44,7 @@ describe("HMR Integration", () => {
       },
     },
     options: {},
+    hmrTrace: { push: vi.fn() },
   };
 
   const mockServer: any = {

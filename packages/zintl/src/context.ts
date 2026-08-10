@@ -5,6 +5,68 @@ import { join, isAbsolute } from "node:path";
 import type { ResolvedOptions } from "./options.js";
 import type { BundlerHostView } from "./host.js";
 
+/**
+ * A fixed-capacity ring: overwrites oldest, never grows.
+ *
+ * Mirrors `DeliveryBus`'s own `Ring` (`packages/compiler/src/bus/index.ts`) —
+ * not imported from there because it isn't exported past that package's
+ * public surface, and duplicating ~15 lines beats adding a new export just
+ * for this.
+ */
+class Ring<T> {
+  private readonly items: (T | undefined)[];
+  private next = 0;
+  private full = false;
+
+  constructor(private readonly capacity: number) {
+    this.items = Array.from({ length: capacity }, () => undefined as T | undefined);
+  }
+
+  push(item: T) {
+    this.items[this.next] = item;
+    this.next = (this.next + 1) % this.capacity;
+    if (this.next === 0) this.full = true;
+  }
+
+  /** Oldest first. */
+  toArray(): T[] {
+    if (!this.full) return this.items.slice(0, this.next) as T[];
+    return [...this.items.slice(this.next), ...this.items.slice(0, this.next)] as T[];
+  }
+}
+
+/**
+ * One event in `handleHotUpdateHook`'s own account of what it did — not what
+ * was delivered (the compiler's `DeliveryBus`, channel `build/hmr`, already
+ * records that half). Diagnosing ledger L-022's §2.4, this is the half that
+ * had no record at all: whether the hook ran, what Vite handed it, and every
+ * `mod.file` reassignment the fallback scan performs.
+ *
+ * Read back by the test harness, not printed — `hooks/hmr.ts` previously
+ * logged this same information through `DEBUG`-gated `vLogger.debug` calls,
+ * and enabling exactly that scope was found to suppress the hook's own
+ * invocation entirely (a real, separate, pre-existing effect — not caused by
+ * this trace, but reason enough not to trust console output as an
+ * observation channel here). A ring buffer that never calls `console.*`
+ * can't perturb the timing it's trying to observe.
+ */
+export interface HmrTraceEntry {
+  ts: number;
+  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return";
+  file: string;
+  seq?: number;
+  modulesLength?: number;
+  /** `repoint` only. */
+  moduleId?: string;
+  oldFile?: string;
+  newFile?: string;
+  boundaryId?: string;
+  fileId?: string;
+  /** `return` only. */
+  invalidatedCount?: number;
+  passthrough?: boolean;
+}
+
 export default class Context {
   public compiler!: ZintlCompiler;
   public server: ViteDevServer | null = null;
@@ -37,6 +99,9 @@ export default class Context {
    * `htmlEntries` option — see `hooks/html.ts` and ledger L-021.
    */
   public htmlEntries: Record<string, string[]> = {};
+
+  /** See {@link HmrTraceEntry}. */
+  public readonly hmrTrace = new Ring<HmrTraceEntry>(256);
 
   constructor(public options: ResolvedOptions) {}
 

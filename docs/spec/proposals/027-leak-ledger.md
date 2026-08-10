@@ -719,3 +719,97 @@ content thereafter, but it is a first-run reload a user will see and it is not s
 `handleHotUpdate` there opens with `if (ctx.compiler.isWritingFile(file)) return;`, and nothing tells
 the Rsbuild watcher that a compiler-authored write is not a user edit. Worth a `hostHints`-shaped
 answer if Rsbuild ever becomes a supported target.
+
+---
+
+### L-023 — 027 §2.4's HMR ordering defect: instrumented, not reproduced; a different defect found instead
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — original hypothesis neither confirmed nor denied |
+| **Bucket**                  | N/A — a diagnostic pass, not a fix                          |
+| **Facet contract changed?** | No                                                          |
+
+027 §2.4 named one unexamined candidate for `hmr-hammer`'s ~1-in-8 event loss on `react-basic`:
+`hooks/hmr.ts`'s fallback scan, which matches modules to boundaries with loose `endsWith` comparisons
+and, on a match, repoints `mod.file` and Vite's own `fileToModulesMap`. The hypothesis was that a
+wrong repoint could make a later genuine edit to the real file hand the hook `modules: []`. 027's own
+prescription: instrument first, reproduce, then decide — this entry is that pass.
+
+**First attempt had an observer effect.** The natural, cheap instrumentation was `vLogger.debug(...)`
+calls gated by the existing `DEBUG=zintl:<scope>` convention (`packages/extractor/src/logger.ts`).
+Adding them and testing confirmed something worth recording on its own: **enabling exactly the scope
+needed to see them — `DEBUG=zintl:vite` — suppresses `handleHotUpdateHook`'s invocation entirely**,
+deterministically. Measured directly with an unconditional `console.error` probe: 32–40 invocations
+per 4-project `hmr-hammer` run with `DEBUG` unset or set to an unrelated scope (`DEBUG=foo:bar`,
+`DEBUG=1`), **zero** invocations across two repeated runs with `DEBUG=zintl:vite` specifically — and
+the test still passed, meaning `hooks/transform.ts`'s independent invalidation path (its own comment:
+"a second, independent invalidation path") was sufficient on its own. This predates this pass — the
+one `vLogger.debug` call already in the function before any of this work would have had the same
+effect — and it is real, reproducible, and entirely unexamined. Not chased further here; named so it
+is not rediscovered from scratch, and because it makes `DEBUG`-gated console output categorically
+unsafe as an observation channel for this specific hook.
+
+**Routed around it with a silent, always-on ring buffer.** `Context.hmrTrace`
+(`packages/zintl/src/context.ts`) — a fixed-capacity `Ring<HmrTraceEntry>` mirroring `DeliveryBus`'s
+own `Ring` (`packages/compiler/src/bus/index.ts`, duplicated rather than imported since it isn't
+exported past that package's public surface). Pushed to, never printed: hook entry (file, `seq`,
+`modules.length`), both early-return guards, every `mod.file` reassignment (module id, old file, new
+file, the driving `boundaryId`/`fileId`), and the return (`invalidatedCount` vs. `modules.length`,
+passthrough or not). No `console.*` call exists in the new code, so it cannot reproduce the observer
+effect above. Exposed to the test harness via `LabCompiler.hmrTrace`
+(`packages/testing/src/environment/compiler.ts`), which reuses the exact `globalThis.
+__zintl_active_contexts` bridge `LabCompiler.instance` already relied on — no new IPC — and surfaced
+automatically in `describeStall()`'s failure diagnosis (`packages/testing/src/assertions/index.ts`),
+alongside the wire-, runtime-, and compiler-ledger sections already there. Verified end-to-end with a
+forced failure before trusting it on a real run: real trace data, no timing change, test still
+converged correctly once the artificial assertion was reverted.
+
+**Reproduction: ten full-suite runs at `maxWorkers: 4`** (`pnpm test:contracts`, the shape 026's own
+notes document as necessary — an isolated `hmr-hammer` run does not reproduce this under contention).
+`hmr-hammer` **did not fail once** in ten runs. Not conclusive at this sample size against a
+documented ~1-in-8 rate (roughly 27% chance of seeing zero in ten independent tries), but it means
+this pass produced no direct hit to interrogate.
+
+**The repointing hypothesis: zero supporting evidence.** `grep -c "repoint"` across all ten run logs
+is `0`, everywhere — the fallback scan's repointing block did not fire once, in any project, across
+the whole suite, including a run that captured a same-family failure (below). `mg.getModulesByFile()`
+— the exact-match lookup that runs before the fallback scan — was apparently always sufficient in
+these ten runs. **This is evidence against, not proof against**: the hypothesis was written for
+`hmr-hammer`'s specific symptom, and `hmr-hammer` itself never failed, so the hypothesis was never
+actually placed where it could be falsified by its own target.
+
+**What was found instead.** `[Memory Leak] react-basic` failed once (run 2 of 10), same HMR family
+(repeated writes, convergence polling), with a distinct, evidenced signature:
+
+- `hmr packets: {"update":20,"prune":3,"full-reload":3}` — three full-reloads inside an 18-iteration
+  test.
+- `settle beacon: 2` at iteration 17 of 18 — consistent with the beacon being reset by those reloads.
+- Three console warnings: `ReactDOMClient.createRoot() on a container that has already been passed to
+createRoot() before.`
+- The hmr trace showing the hook firing **twice per write** for the same file (`modules=2`, then
+  immediately `modules=0`).
+
+This does not match §2.4's hypothesis. It matches a different, already-named, already-open item:
+`docs/spec/proposals/024-delivery-bus-and-update-ordering.md`'s note that _"the React `createRoot`
+case remains latent: marking React unsafe reaches every framework-less project, because
+`FALLBACK_FRAMEWORK` is `"react"`, and it regressed `vanilla-spa-basic`. The fix is one facet field
+away once there is a reproduction to justify it."_ This may be that reproduction. Not chased further
+in this pass — flagged for whoever picks it up next.
+
+**The two `rsbuild-spa` failures** (runs 1 and 9, both `[Locale Switch]`/`[Locale Switch Storm]`,
+"Execution context was destroyed... navigation") are the pooled-dev-server watcher-reload race this
+same ledger already explains a few sections up ("The `locale-switch` observation, resolved — and it
+was the watcher"). Confirmed recurring, not new.
+
+**What remains open.**
+
+- §2.4's original hypothesis — neither confirmed nor denied. The instrumentation is safe to leave in
+  permanently (silent, negligible cost) and the next attempt should either budget a larger batch
+  (roughly 15–20 runs for even odds of one `hmr-hammer` hit) or find a way to target the write
+  pattern more precisely than full-suite contention.
+- The React `createRoot`/`entryReexecutionSafe` gap — a new, evidenced lead, not this pass's to
+  chase.
+- `DEBUG=zintl:vite` silently suppressing `handleHotUpdateHook` — real, reproducible, entirely
+  unexamined.
+  answer if Rsbuild ever becomes a supported target.
