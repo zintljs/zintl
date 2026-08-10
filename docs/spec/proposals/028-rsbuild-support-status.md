@@ -155,7 +155,9 @@ Distinct from the four capabilities blocked purely by the `hmr` dependency: `per
 
 ### 2.7 Not documented in user-facing docs
 
-`docs/configuration.md` and `docs/architecture.md` — the two documents a user would actually read — contain **zero** mentions of `rsbuild` or `rspack`. Everything about this target currently lives in: the `zintljs/rsbuild` module's own doc comment, the `examples/rsbuild-spa/README.md`, and the two spec proposals. A user has no way to discover this entry point exists except by reading source or `examples/`. Given the entry point _is_ published and importable, this is a real gap between what the package can do and what it says it can do.
+**Closed for `docs/configuration.md`.** It now has a `## Rsbuild` section: the config swap, an explicit "experimental, not yet a supported target" statement, and a gaps table (hot updates, `multiplex`, SSR) linking to `examples/rsbuild-spa` and this proposal series. The `Build shape` section's `multiplex` row also now cross-references it, since that's where L-022's fence is most likely to surprise someone.
+
+`docs/architecture.md` still has zero mentions of `rsbuild`/`rspack` — that document is about the compiler's pipeline shape generally rather than per-bundler specifics, so it's a smaller gap than `configuration.md` was, but still worth a line (e.g. in whatever section explains the plugin/compiler split) if this target is ever promoted further.
 
 ### 2.8 No declared peer dependency
 
@@ -190,5 +192,5 @@ Named, not committed to — this is a status report, and picking the next work i
 
 1. ~~**Fix or fence L-022.**~~ **Done.** `BundlerFacet.htmlFanOut` fences the claim; combining `multiplex: true` with a bundler that doesn't declare it now fails fast with a clear `[Zintl] Multiplex is not supported...` error instead of the opaque loader-chain crash. See §2.2 and `027-leak-ledger.md`'s L-022 entry. The real fan-out design for Rspack — and therefore L-005's reproduction, which sits behind it — remains open and separately scoped.
 2. ~~**Decide §2.4's fate before touching HMR again.**~~ **Partially done.** Instrumented (L-023: a silent `hmrTrace` ring buffer, safe to leave in permanently) and given one ten-run reproduction pass — `hmr-hammer` itself didn't fail, so the original repointing hypothesis is still neither confirmed nor denied, and a larger batch (~15-20 runs) or a more targeted reproduction is the next step if this is picked up again. What the pass did surface, unprompted, is a lead on a _different_ known-open item (024's React `entryReexecutionSafe` gap). Either way, extending Tier-2 HMR to Rspack still shouldn't start until this line is actually resolved, not just instrumented.
-3. **Write the user-facing doc gap closed**, independent of everything else — a short "Rsbuild (experimental)" section in `docs/configuration.md` costs little and directly fixes §2.7.
-4. **Re-ask 027 §11's promotion question once §2.4 and L-022 have answers** — i.e., the "is this a supported target" decision this document deliberately does not make.
+3. ~~**Write the user-facing doc gap closed.**~~ **Done for `docs/configuration.md`** — see §2.7. `docs/architecture.md` still has nothing, but that gap was always the smaller of the two.
+4. **Re-ask 027 §11's promotion question now that L-022 has an answer and §2.4 has a partial one** — i.e., the "is this a supported target" decision this document deliberately does not make. The remaining blockers are §2.4's HMR diagnosis (still open) and the MPA/HTML-fan-out design L-022 fenced but didn't solve.
