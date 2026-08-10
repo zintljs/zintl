@@ -174,15 +174,15 @@ The residual, real (not artifact-related) behavior this exposed: **on a fresh pr
 
 ## 4. Summary
 
-| Question                                                             | Answer                                                                                                                                                                                                                                                         |
-| :------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Does `zintljs/rsbuild` exist and build real apps?                    | Yes — production builds work, chunk-aligned catalogs survive the port with zero Rspack-specific chunking code, ghost mode holds.                                                                                                                               |
-| Does the dev server work?                                            | Serves and rebuilds; **no hot updates** — manual reload required, by design, pending ZDB §7a's ordering guarantees.                                                                                                                                            |
-| Does the document (`<html lang>`/`dir`/`<title>`) follow the locale? | Yes, as of PR #13 — full parity with Vite examples on this.                                                                                                                                                                                                    |
-| Do localized assets work?                                            | Yes, for `.txt`/`.md` passthrough and `?raw` imports. Non-`?raw` binary asset imports are unreproduced and likely broken on **both** hosts.                                                                                                                    |
-| Does MPA/multiplex work?                                             | **No, and it no longer crashes.** Fenced: a clear `[Zintl] Multiplex is not supported...` error, thrown before any module resolution. See §2.2.                                                                                                                |
-| Does SSR work?                                                       | Unbuilt, unexamined.                                                                                                                                                                                                                                           |
-| Is it a supported target?                                            | **No**, explicitly, in both code comments and this document's own reading of the evidence. 9 of 15 capabilities claimed; `hmr` and everything downstream of it absent; multiplex fenced but not implemented; no user-facing docs; no declared peer dependency. |
+| Question                                                             | Answer                                                                                                                                                                                           |
+| :------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does `zintljs/rsbuild` exist and build real apps?                    | Yes — production builds work, chunk-aligned catalogs survive the port with zero Rspack-specific chunking code, ghost mode holds.                                                                 |
+| Does the dev server work?                                            | Serves and rebuilds; **no hot updates** — manual reload required, by design, pending ZDB §7a's ordering guarantees.                                                                              |
+| Does the document (`<html lang>`/`dir`/`<title>`) follow the locale? | Yes, as of PR #13 — full parity with Vite examples on this.                                                                                                                                      |
+| Do localized assets work?                                            | Yes, for `.txt`/`.md` passthrough and `?raw` imports. Non-`?raw` binary asset imports are unreproduced and likely broken on **both** hosts.                                                      |
+| Does MPA/multiplex work?                                             | **No, and it no longer crashes.** Fenced: a clear `[Zintl] Multiplex is not supported...` error, thrown before any module resolution. See §2.2.                                                  |
+| Does SSR work?                                                       | Unbuilt, unexamined.                                                                                                                                                                             |
+| Is it a supported target?                                            | **No** — and not just on bug count. HMR has no facet seam at all (hardcoded to Vite's API inside a `vite: {}` block), which is a structural blocker independent of any single open item. See §6. |
 
 Nothing here contradicts 026 or 027's own conclusions — this document exists because those conclusions are scattered across two proposals, two ledgers, and a diff, and "what does a user get today" is a question worth being able to answer without reconstructing that trail each time.
 
@@ -193,4 +193,61 @@ Named, not committed to — this is a status report, and picking the next work i
 1. ~~**Fix or fence L-022.**~~ **Done.** `BundlerFacet.htmlFanOut` fences the claim; combining `multiplex: true` with a bundler that doesn't declare it now fails fast with a clear `[Zintl] Multiplex is not supported...` error instead of the opaque loader-chain crash. See §2.2 and `027-leak-ledger.md`'s L-022 entry. The real fan-out design for Rspack — and therefore L-005's reproduction, which sits behind it — remains open and separately scoped.
 2. ~~**Decide §2.4's fate before touching HMR again.**~~ **Partially done.** Instrumented (L-023: a silent `hmrTrace` ring buffer, safe to leave in permanently) and given one ten-run reproduction pass — `hmr-hammer` itself didn't fail, so the original repointing hypothesis is still neither confirmed nor denied, and a larger batch (~15-20 runs) or a more targeted reproduction is the next step if this is picked up again. What the pass did surface, unprompted, is a lead on a _different_ known-open item (024's React `entryReexecutionSafe` gap). Either way, extending Tier-2 HMR to Rspack still shouldn't start until this line is actually resolved, not just instrumented.
 3. ~~**Write the user-facing doc gap closed.**~~ **Done for `docs/configuration.md`** — see §2.7. `docs/architecture.md` still has nothing, but that gap was always the smaller of the two.
-4. **Re-ask 027 §11's promotion question now that L-022 has an answer and §2.4 has a partial one** — i.e., the "is this a supported target" decision this document deliberately does not make. The remaining blockers are §2.4's HMR diagnosis (still open) and the MPA/HTML-fan-out design L-022 fenced but didn't solve.
+4. ~~**Re-ask 027 §11's promotion question.**~~ **Answered — see §6.** Still no, and for a reason sharper than "some bugs remain open."
+
+## 6. Re-asking 027 §11's promotion question
+
+026 §11 answered this once: _"no — keep it as a harness."_ 027 promoted the example anyway, on the grounds that both of 026's stated objections (no browser coverage, L-009's silent asset corruption) had been removed. This document's own work has now closed L-022 and put real, if inconclusive, effort into §2.4. So the question is worth asking again, explicitly, rather than letting "promoted to `examples/`" quietly drift into "supported."
+
+**Still no.** Not because of an accumulating bug count — because working the HMR items this round surfaced a structural reason the answer can't yet be yes, independent of any individual open item.
+
+### 6.1 The reason: HMR has no facet seam at all
+
+Every other bundler-specific concern in this codebase is mediated by a facet — that's the entire premise CLAUDE.md states as a principle ("frameworks and build tools are facets... additive work, not a core rewrite") and that 026 was built to stress-test. HMR is the one place that promise is not kept:
+
+```ts
+// packages/zintl/src/plugin.ts
+vite: {
+  handleHotUpdate: handleHotUpdateHook(ctx),
+  hotUpdate: handleHotUpdateHook(ctx),
+}
+```
+
+`handleHotUpdateHook` (`packages/zintl/src/hooks/hmr.ts`) is registered inside the plugin's `vite: {}` escape hatch, not through `BundlerFacet`. That it never runs on Rsbuild today is not a facet decision — it's an accident of unplugin dropping `vite: {}` on every other host, the same structural fact ledger L-015/L-016 (026) found for the HMR _codegen_ hooks before `rspackFacet` existed to catch it. Nothing here caught the equivalent gap for HMR _orchestration_, because nothing has ever asked a second host to exercise it.
+
+Reading what the function actually does, it splits into two halves with very different portability:
+
+- **Deciding what changed** — `ctx.compiler.invalidateForUpdate(file, seq, ...)`, `ctx.compiler.getAffectedChunks(boundaryId)`. Already host-neutral; plain `@zintljs/compiler` calls with no Vite knowledge. This is the same shape 026 §4.1 already found once, in `resolveIdHook`: _"the compiler already owns a graph that knows the answer... the bundler facet only applies the id rewrites the plan dictates."_
+- **Telling the host's live module graph about it** — the fallback scan onward: `mg.idToModuleMap`, `mg.invalidateModule(mod)`, mutating `mg.fileToModulesMap`, reassigning `mod.file`. This is entirely Vite's `ModuleNode`/`ModuleGraph` vocabulary, and it is where L-023's whole diagnosis effort was spent, because there is nowhere else for that logic to live today.
+
+So the gap is narrower than "rebuild HMR" — it's a missing seam for the second half: _given the compiler's decision, apply it to this host's live graph._ Something shaped like `BundlerFacet.applyInvalidation(affectedIds, hostGraph)`, with Vite's current fallback scan becoming that facet's implementation rather than core's only option. Real design work, but scoped — not a rewrite of the delivery bus or the compiler.
+
+### 6.2 Factoring the seam still wouldn't be enough
+
+Even a well-designed `applyInvalidation` seam doesn't hand Rspack working hot updates by itself. `rspackFacet.hmrSelfAcceptCode` already returns `""` — a deliberate "no story yet," not an oversight — because ZDB §7a names two load-bearing properties any host must supply before hot updates can be trusted at all: a monotonic, non-repeating per-event sequence, and a `read()` scoped to that specific event's content. Those are facts about whether a given host's _own_ watch/rebuild pipeline holds a guarantee, not something a facet can supply on the host's behalf. §2.4's diagnosis pass (L-023) went looking for evidence either way on Rspack specifically and came back with neither — ten full-suite runs, zero confirmation, zero denial.
+
+That makes promotion a two-part problem, and neither part is done:
+
+| Question                                                           | Status                                                                                                   |
+| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| Does the _architecture_ have a seam for a second bundler's HMR?    | **No** — hardcoded to Vite's API inside a `vite: {}` block, confirmed by reading the code, not inferred. |
+| Does _Rspack specifically_ hold the ordering guarantees HMR needs? | **Unknown** — instrumented (L-023), not established either way.                                          |
+
+A yes on one without the other still isn't promotable: a seam with no host known to satisfy it ships nothing; a verified host with no seam to plug into still means forking `hooks/hmr.ts` wholesale — exactly the anti-pattern 026 §8 names ("Rspack-specific branches accumulate in shared code and we ship two integrations wearing one name").
+
+### 6.3 The rest of the ledger, restated as a checklist
+
+Everything else in §2 still applies and none of it is new as of this section — collected here because "is this promotable" is the question they all actually answer:
+
+- [ ] §2.4 resolved with real evidence for Rspack specifically, not just instrumented (L-023).
+- [ ] An HMR facet seam designed and built — likely its own proposal, the way 026 was a spike for the module-system facet questions.
+- [ ] MPA/multiplex fan-out designed for Rspack, or explicitly and permanently excluded from whatever "supported" ends up promising (today it's fenced, per L-022, not designed).
+- [ ] L-005 reproduced and triaged, which is itself blocked behind the multiplex design above.
+- [ ] `@rsbuild/core` declared as a peer dependency (§2.8), so a version mismatch is a signal rather than a runtime surprise.
+- [ ] `docs/architecture.md` mentions Rsbuild at all (§2.7) — the smaller doc gap, still open.
+
+### 6.4 The recommendation
+
+Leave Rsbuild exactly where it is: a real, working `examples/` member for **production builds only**, explicitly not promised beyond that — the posture `examples/rsbuild-spa/README.md` already states. Do not promote further until 6.1's seam exists and 6.2's host guarantees are established for at least one non-Vite bundler; promoting on bug-count alone, without that architectural question answered, would be promising something the codebase cannot yet keep additive.
+
+The HMR-facet design in §6.1 is worth its own proposal when someone picks it up — not sketched further here, both because it deserves the same falsification-first treatment 026 gave the module-system facets rather than a design done from a single architectural read, and because naming it as a candidate is as far as this document's own scope goes.
