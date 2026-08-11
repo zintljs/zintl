@@ -664,6 +664,172 @@ activation trace:
   ✓ vite                         bundler=vite ✓"
 `;
 
+exports[`resolved facet composition per example > rsbuild-react (client) 1`] = `
+"frameworks: react
+bundler: rspack
+ssr: false
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: false
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
+exports[`resolved facet composition per example > rsbuild-react (ssr) 1`] = `
+"frameworks: react
+bundler: rspack
+ssr: true
+
+facets (resolution order):
+  react-extraction  [extraction]  priority=100
+  react-codegen  [codegen]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: false
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: react-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
+  ✓ react-extraction             framework=react ✓
+  ✓ react-codegen                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
 exports[`resolved facet composition per example > rsbuild-spa (client) 1`] = `
 "frameworks: react
 bundler: rspack

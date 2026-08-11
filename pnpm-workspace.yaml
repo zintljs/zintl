@@ -13,6 +13,10 @@ catalog:
   # Proposal 026 falsification harness. Not a supported target: this is a
   # second, non-Rollup host used to test the bundler-agnostic claim.
   "@rsbuild/core": ^2.1.10
+  # React on Rspack. Exists so the contract suite has a *framework* app on a
+  # non-Rollup host — every other Rspack example is vanilla, which left every
+  # framework-shaped question on that host answerable only by inference.
+  "@rsbuild/plugin-react": ^2.1.0
   vite-plus: 0.2.7
   "@vitest/coverage-v8": 4.1.10
   "@vitest/ui": 4.1.10

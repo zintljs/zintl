@@ -1,0 +1,34 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_89ad0a7bfa7f from "virtual:zintl/manager/none/entry:b_89ad0a7bfa7f";
+import { StrictMode, useState } from "react";
+import { createRoot } from "react-dom/client";
+
+import App from "./App.tsx";
+
+function Main() {
+  const [lang, setLang] = useState(() => {
+    return new URLSearchParams(window.location.search).get("lang") || "en";
+  });
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_89ad0a7bfa7f"]: _zintl_mgr_b_89ad0a7bfa7f.loader } }));
+    setLang(newLang);
+  };
+
+  return <App lang={lang} onSwitch={handleSwitch} />;
+}
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_89ad0a7bfa7f"]: _zintl_mgr_b_89ad0a7bfa7f.loader } }));
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <Main />
+    </StrictMode>,
+  );
+}
+
+void bootstrap();

@@ -60,6 +60,21 @@ export class RsbuildDevServerDriver implements DevServerDriver {
       rsbuildConfig: {
         ...fileConfig,
         root,
+        /**
+         * Say that this is a dev server, rather than letting Rsbuild infer it.
+         *
+         * Rsbuild derives `mode` from `NODE_ENV`, and Vitest sets `NODE_ENV` to
+         * `"test"` — which is neither of the values it recognises, so it emitted
+         * no `process.env.NODE_ENV` define at all. Harmless for a vanilla app and
+         * fatal for React, whose development build reads that variable: the
+         * bundle threw `ReferenceError: process is not defined` before rendering
+         * anything, and every contract on `rsbuild-react` failed on an empty
+         * page rather than on what it was testing.
+         *
+         * Worth stating explicitly regardless of that bug: a driver whose job is
+         * to start a dev server should not be describing itself as a test run.
+         */
+        mode: "development",
         logLevel: "error",
         server: { ...(fileConfig as any)?.server, port: port || undefined, strictPort: !!port },
         dev: { ...(fileConfig as any)?.dev, progressBar: false },

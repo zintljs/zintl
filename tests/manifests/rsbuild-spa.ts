@@ -66,44 +66,27 @@ export const rsbuildSpa: ProjectManifest = {
    * window — that contract needs rewriting against built output before either
    * host should claim it.
    *
-   * `hmr` and everything built on it became claimable with proposal 029's
-   * facet seam. ZDB §7a's two load-bearing requirements are answered by Rspack
-   * itself rather than emulated: `Watching.startTime` is the monotonic
-   * per-event sequence, `compiler.inputFileSystem` is the read scoped to that
-   * event. What made the updates actually land is a third thing neither
-   * proposal predicted — Rspack rebuilds by its own dependency graph, so the
-   * generated modules had to *declare* their inputs
-   * (`ZintlCompiler.getBoundaryInputs`) rather than be invalidated by hand.
+   * **Not `hmr`, and this is a retraction.** Proposal 029 built the facet seam
+   * and hot updates were verified by hand against a real `rsbuild dev` — that
+   * still holds. What did not hold was the contract-level claim: the harness was
+   * reloading the page on every mutation rather than hot-updating (L-029), so
+   * these contracts passed by converging through a reload. Fixing the harness to
+   * run its dev server in development mode makes it exercise genuine hot
+   * updates, and the L-030 empty-render defect then fails `hmr` here honestly —
+   * `expected '' to contain 'HMR works!'`, with the catalog applied and no
+   * reload.
    *
-   * Note `hmr-stress` does *not* require `hmr`, so it has to be claimed
-   * explicitly — claiming it alone would select `hmr-hammer` and fail rather
-   * than skip.
+   * Claiming it again is gated on L-030, not on more harness work. Note
+   * `hmr-stress` does *not* require `hmr`, so it has to be dropped explicitly
+   * too — claiming it alone would select `hmr-hammer` and fail rather than skip.
    *
-   * **Not `memory`.** `memory-leak` drives twenty sequential edits and reaches
-   * only four inside its 45s budget, in isolation as well as under contention.
-   * **Not throughput** — that was the first guess and measurement killed it.
-   * Per iteration: `mutation=10220ms`, `assert=16ms`. The DOM is correct almost
-   * instantly; the harness spends a flat ten seconds per edit, which is
-   * `waitForSettled`'s timeout.
-   *
-   * The cause is that **in this harness every edit reloads the page**, measured
-   * with a `globalThis` sentinel that does not survive, a store whose `version`
-   * returns to `1`, and a ledger that returns to 4 entries. `waitForSettled`
-   * compares the settle beacon with `!==` precisely so a reload's reset still
-   * counts — but a reload that lands on the *same* value every time defeats
-   * that, so it waits out the full timeout on every mutation.
-   *
-   * The reload is specific to the harness, not to the host: driving the same
-   * programmatic `createRsbuild().startDevServer()` against the real
-   * `examples/rsbuild-spa` directory hot-updates cleanly (sentinel survives,
-   * beacon advances), while the copied project under `.tmp/runs/w<id>/` reloads.
-   * The copy and its `node_modules` symlink farm are the remaining difference.
-   *
-   * **This is why `hmr` and `hmr-stress` above deserve a caveat**: they pass
-   * here, but in this harness they are currently converging via reload rather
-   * than via a hot update, so they verify the user-visible outcome without yet
-   * proving the mechanism. Hot updates are verified against a real dev server
-   * (029 §4). Closing that gap is the next thing to pick up.
+   * **Not `memory`.** Downstream of `hmr`: the contract requires it, so this is
+   * moot until L-030 is fixed. The earlier measurement stands as history — four
+   * of twenty iterations inside the 45s budget, at a flat `mutation=10220ms`
+   * each — but its stated cause was the harness reloading rather than
+   * hot-updating (L-029), and that has since been fixed at the driver. Whether a
+   * throughput problem remains underneath is unmeasured, because the defect
+   * above now fails first.
    *
    * **Not `chaos`.** A limitation of `chaos-boundary`, not of this host: it
    * renames the file holding the heading, and here that file is the entry, which
@@ -122,8 +105,6 @@ export const rsbuildSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "locale-switch-stress",
-    "hmr",
-    "hmr-stress",
   ],
   adapter: {
     headingSelector: "h1",

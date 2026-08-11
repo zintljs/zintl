@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "ltr",
+    "zh": "ltr"
+  },
+  "title": {
+    "ar": "Rsbuild React - مثال زينتل",
+    "es": "Rsbuild React - ejemplo de Zintl",
+    "zh": "Rsbuild React - Zintl 示例"
+  }
+}

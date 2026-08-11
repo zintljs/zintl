@@ -1324,3 +1324,85 @@ does not". It is **what a re-render is**:
   on the measured store contents plus reading what a framework re-render does, not on running one. An
   Rsbuild + React example would close it, and would be the honest prerequisite before scoping any fix
   to "vanilla only".
+
+#### The vanilla-only hypothesis: **refuted** by direct test
+
+`examples/rsbuild-react` was built to close the "no framework app on this host" gap, and the first
+thing it measured overturned the entry above.
+
+**React on Rspack, four consecutive edits to a heading that lives in a component:**
+
+```
+BLANK #1 heading="" reloaded=false
+BLANK #2 heading="" reloaded=false
+BLANK #3 heading="" reloaded=false
+BLANK #4 heading="" reloaded=false
+=== 4/4 bad renders (react, locale=en) ===
+```
+
+**So the defect is not confined to non-reactive entries**, and the blast radius is the whole Rspack
+dev experience rather than an edge case. The reasoning that made "vanilla-only" plausible — a
+framework repaint is a pure re-read, and a pure re-read demonstrably returns the correct string — is
+still individually true at every step, and the conclusion is still false. Something prevents the
+repaint from happening at all under React Fast Refresh; _what_ is now the open question, and it is a
+better one than the previous entry's because it is about a measured failure rather than an inferred
+immunity.
+
+**The pattern across this defect is now unmistakable.** Four investigations, and each was undone by
+the same move: reasoning from a correct mechanism to an unmeasured conclusion.
+
+| #   | Claim                                   | Fate                                                                        |
+| :-- | :-------------------------------------- | :-------------------------------------------------------------------------- |
+| 1   | discarding the store causes it          | reverted — `registerLoader` skips a present catalog anyway                  |
+| 2   | the manager's self-acceptance causes it | reverted — fixed `en`, broke `ar`                                           |
+| 3   | a registry lookup fixes it              | ruled out before writing — the fresh loader does not exist for another 28ms |
+| 4   | only non-reactive entries are affected  | **refuted here** — React is affected too                                    |
+
+Every one of those was argued from real code and real mechanism. The only two that produced anything
+durable were the ones that started from a measurement: L-028's `inFlight` fix, and this example.
+
+**What this example changes going forward.** Framework behaviour on Rspack is now measurable rather
+than inferable, and it is claimed conservatively — `tests/manifests/rsbuild-react.ts` claims `build`,
+`graph`, `transform`, `spa`, `boundary-graph`, `locale-switch` and `rtl`, and pointedly **not** `hmr`,
+because `hmr` is exactly what it just demonstrated does not work here.
+
+### L-031 — the harness ran its Rsbuild dev server in neither mode, and React could not boot
+
+|                             |                                                        |
+| :-------------------------- | :----------------------------------------------------- |
+| **Status**                  | **Fixed** — and the fix invalidated a capability claim |
+| **Bucket**                  | N/A — a harness defect                                 |
+| **Facet contract changed?** | No                                                     |
+
+Found the moment `examples/rsbuild-react` ran through the contract suite: every contract on it failed
+on an empty page with `ReferenceError: process is not defined`, thrown out of React's own bundle
+before anything rendered.
+
+**The cause.** Rsbuild derives `mode` from `NODE_ENV`, and Vitest sets `NODE_ENV=test` — which is
+neither value it recognises, so it emitted no `process.env.NODE_ENV` define at all. Invisible for a
+vanilla app, fatal for React's development build, which reads that variable. `RsbuildDevServerDriver`
+now sets `mode: "development"` explicitly, which is worth stating regardless of the bug: a driver
+whose job is starting a dev server should not describe itself as a test run.
+
+**This fix closes L-029, and closing it retracted a claim.** With the mode set correctly, the harness
+stops reloading on every mutation and performs genuine hot updates — which is what L-029 asked for.
+The immediate consequence is that `hmr` on `rsbuild-spa` **now fails honestly**, on L-030:
+
+```
+expected '' to contain 'HMR works!'
+settle beacon: 12   delivery ledger: 12 entries   catalogs applied   no reload
+```
+
+`hmr` and `hmr-stress` have accordingly been **dropped from `rsbuild-spa`'s manifest**. They were
+passing because the page reloaded, and a reload converges on the right text without exercising a
+single thing those contracts exist to verify.
+
+**What remains true**, and worth separating from what does not: hot updates on Rsbuild _do_ work
+against a real `rsbuild dev`, verified by hand in proposal 029 §4 with a sentinel proving no reload.
+What was never true is that the contract suite demonstrated it. Two statements that a green suite made
+look like one.
+
+**The lesson this one carries.** L-029 was recorded as "the harness reloads where a real dev server
+hot-updates" and treated as a harness inconvenience keeping `memory` unclaimable. It was actually
+holding up two capability claims that were not earned. A harness bug that makes tests _pass_ is worth
+more attention than one that makes them fail, and it is much easier to leave alone.
