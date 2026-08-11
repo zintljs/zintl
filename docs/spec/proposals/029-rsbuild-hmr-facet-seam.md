@@ -110,7 +110,7 @@ Fixed by publishing `registerLoader`'s async load in `inFlight` and checking `in
 
 Two candidate fixes were written and both **reverted unvalidated** rather than shipped: making `_t`'s browser branch consult the loader the way its server branch already does, and widening `getBoundaryInputs` to union the boundary graph with `boundaryOwnership`. Each is defensible on its own terms and neither changed the outcome, which means the mechanism is not yet understood well enough to fix. The next step is to establish _why_ the entry holds a stale manager at render time, not to try a third guess.
 
-Until then the honest statement is that the empty-render class is **half closed**: the in-flight interleaving is fixed and permanently guarded; the synchronous one is reproducible and open.
+Until then the honest statement is that the empty-render class is **half closed**: the in-flight interleaving is fixed and permanently guarded; the synchronous one is reproducible, and now diagnosed rather than merely reproducible — see ledger **L-030**. The cause is not a stale catalog at all: `loadI18nInstance` builds a _new store_ on every entry re-execution, and on webpack the entry re-executes before the self-accepting manager it imports, so the new store is seeded from a stale loader while the fresh catalog lands on it moments later with nothing left to re-render.
 
 ### 4.1 What the contract suite then found
 

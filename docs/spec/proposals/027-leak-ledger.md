@@ -1038,9 +1038,8 @@ and synchronously, the entry re-executes and misses _before any load starts_. Th
 arrives correctly (`catalogHasNewKey=true`, beacon 4 → 14, no reload) and the heading stays `""`,
 because nothing re-renders. Two candidate fixes — mirroring `_t`'s server branch in its browser
 branch, and unioning the boundary graph into `getBoundaryInputs` — were written, measured, and
-**reverted unvalidated**: neither changed the outcome, which means the mechanism is not understood
-well enough to fix yet. Establishing why the entry holds a stale manager at render time is the next
-step; a third guess is not.
+**reverted unvalidated**: neither changed the outcome. Both were wrong for the same reason — they
+assumed the fresh catalog never arrived, and it does. **L-030 is what it actually is.**
 
 ### L-029 — the contract harness reloads where a real dev server hot-updates
 
@@ -1073,3 +1072,69 @@ cleanly — sentinel survives, beacon advances 4 → 12. The copy under `.tmp/ru
 converging via reload rather than via a hot update. They verify the user-visible outcome without
 proving the mechanism — so the capability claims are not _wrong_, they are weaker than they read.
 Recorded on the manifest beside the claims themselves rather than only here.
+
+### L-030 — `loadI18nInstance` builds a new store on every entry re-execution
+
+|                             |                                                                             |
+| :-------------------------- | :-------------------------------------------------------------------------- |
+| **Status**                  | **Open** — root cause established, fix not attempted                        |
+| **Bucket**                  | **1 — declare it** (a host-specific acceptance decision)                    |
+| **Facet contract changed?** | Not yet — but this is where it would change                                 |
+| **Affects**                 | Both hosts in principle; only Rspack in practice. See "why Vite is immune". |
+
+The answer to L-028's open half, and it is not where either guess looked. It was found by tagging the
+store object in the page and comparing identity across a hot update, rather than by reading more code.
+
+**Measured.** After one edit on the source locale, against a real dev server:
+
+```
+__zintl_active === tagged store : false   (the store object was replaced)
+keys on tagged store            : 4 keys, all stale
+keys on active store            : 5 keys, including the new one
+final heading                   : ""
+event order                     : one h1 render at 51.5ms, and nothing else
+```
+
+The fresh catalog **does** arrive. It arrives on a _different store_ than the one that rendered.
+
+**The mechanism, end to end.**
+
+1. `packages/compiler/src/runtime/internal.ts:44` — `loadI18nInstance` opens with
+   `const store = new I18nStore()`. It builds a **new store every call**, unconditionally, and
+   publishes it as `__zintl_active`.
+2. The entry calls `loadI18nInstance(...)` inside `render()`, and the entry self-accepts, so **every
+   hot update re-runs it** and discards everything the previous store had accumulated.
+3. The generated manager also self-accepts (`hmrSelfAcceptCode` is appended to it). On webpack a
+   self-accepting module **stops the update propagating to its importers**, so the manager's update
+   does not oblige the entry to re-require it.
+4. Webpack re-executes the entry before the manager. The entry's `import _zintl_mgr from …` resolves
+   through `__webpack_require__`, which returns the **module instance cached at that moment** — the
+   old manager, still holding the old inlined catalog.
+5. `loadI18nInstance` seeds its brand-new store from that stale loader (step 4 of its own body, the
+   "synchronous boost"), so the new store gets four old keys.
+6. `_t("<new text>")` misses. No source-locale fallback, by design, so it renders `""`.
+7. The fresh manager evaluates a moment later and calls `registerLoader` on the now-active store,
+   which is why the store ends with five keys. Nothing re-renders, so the blank persists.
+
+**Why Vite is immune.** Its entry re-imports the manager by URL with a fresh `?t=`, so step 4 cannot
+yield a stale instance — the loader handed to `loadI18nInstance` is always current, and rebuilding the
+store from scratch is therefore harmless rather than lossy. The store-discarding behaviour in step 1
+is equally present on Vite; it is simply never observable there. Another "does not bite" that was
+carrying an unstated "on Vite", exactly like L-028's.
+
+**Where the fix belongs, and why it is not attempted here.** Two candidates, and choosing between them
+needs evidence this entry does not have:
+
+- **Stop discarding the store.** `loadI18nInstance` could reuse the active instance when one exists
+  rather than constructing a new one. Attractive because it makes step 5 harmless on any host — but
+  it changes SSR request-scoping semantics, where a fresh store per call is the point.
+- **Stop the manager self-accepting on webpack.** If the manager did not accept, its update would
+  bubble to the entry, webpack would dispose it, and step 4 would yield a fresh instance — Vite's
+  semantics, reached by webpack's own rules. This is the more precise fix and it is genuinely
+  host-specific, which is what makes it a facet concern. The obstacle is that `hmrSelfAcceptCode`
+  does not know which _kind_ of generated module it is decorating, so expressing "accept content
+  modules, decline manager modules" needs the hook to take that argument.
+
+Recorded rather than fixed because two speculative fixes have already been reverted on this defect
+(L-028's correction), and the discipline that finally produced the diagnosis was measuring identity
+instead of guessing at mechanism.
