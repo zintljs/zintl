@@ -1,6 +1,6 @@
 # Proposal 029: The HMR Facet Seam, and Rsbuild as a Supported Target
 
-**Status**: COMPLETE — `vpr ci` green (794 unit tests, 135 contract cases across 24 files, up from 122). Two capabilities are deliberately unclaimed with stated reasons (§4.1), and the first of them, `memory`, is the named next item. The most consequential finding is §4.2, which is not about Rsbuild at all.
+**Status**: LANDED, WITH TWO OPEN ITEMS — `vpr ci` green (794 unit tests, 135 contract cases across 24 files, up from 122). The seam is built and Rsbuild builds and hot-updates against a real dev server. Two things are open and both are written down rather than smoothed over: the empty-render class is **half closed** (§4.2 — the in-flight interleaving is fixed and guarded, the synchronous one reproduces deterministically), and the contract harness currently converges this host via **page reload rather than hot update** (L-029), which is why `memory` is unclaimed and why `hmr`/`hmr-stress` prove less than they read.
 **Date**: 2026-08-11
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md), [027-completing-the-rsbuild-target.md](027-completing-the-rsbuild-target.md), [027-leak-ledger.md](027-leak-ledger.md), [028-rsbuild-support-status.md](028-rsbuild-support-status.md). This is the proposal 028 §6.4 said "is worth its own when someone picks it up."
 
@@ -105,6 +105,12 @@ The symptom is blankness rather than staleness because the entry re-executes wit
 True on Vite, which re-imports the whole chain with a fresh `?t=` so the content module applies before the entry re-renders. The clause "does not bite in development" was carrying an unstated "on Vite". Rspack re-executes the manager and the entry as independent modules, with the non-source-locale catalog behind a dynamic import, so the two genuinely interleave.
 
 Fixed by publishing `registerLoader`'s async load in `inFlight` and checking `inFlight` before the already-loaded test. Guarded by `tests/contracts/delivery-refresh.contract.spec.ts`, which drives the interleaving on purpose rather than waiting for it: **five projects fail without the fix, five pass with it, and four of the five are Vite.** This was never an Rsbuild defect — only an Rsbuild sighting, which is precisely what 026 built this harness to produce.
+
+**A second interleaving of the same class is still open.** The fix above closes the case where a load is _in flight_. It does not close the case where the entry re-executes and misses **before any load starts** — which is what happens on the source locale, whose manager carries its catalog inlined and synchronously. Reproduced deterministically (3/3) against a real dev server after clearing `node_modules/.zintl`: the catalog arrives (`catalogHasNewKey=true`, beacon 4 → 14, no reload) and the heading is still `""`, because `_t` had already missed and nothing re-renders afterwards.
+
+Two candidate fixes were written and both **reverted unvalidated** rather than shipped: making `_t`'s browser branch consult the loader the way its server branch already does, and widening `getBoundaryInputs` to union the boundary graph with `boundaryOwnership`. Each is defensible on its own terms and neither changed the outcome, which means the mechanism is not yet understood well enough to fix. The next step is to establish _why_ the entry holds a stale manager at render time, not to try a third guess.
+
+Until then the honest statement is that the empty-render class is **half closed**: the in-flight interleaving is fixed and permanently guarded; the synchronous one is reproducible and open.
 
 ### 4.1 What the contract suite then found
 

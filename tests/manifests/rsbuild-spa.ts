@@ -79,17 +79,31 @@ export const rsbuildSpa: ProjectManifest = {
    * explicitly — claiming it alone would select `hmr-hammer` and fail rather
    * than skip.
    *
-   * **Not `memory`.** `memory-leak` drives twenty sequential edits and does not
-   * finish inside its 45s budget here, in isolation as well as under contention.
-   * The likely cause is throughput rather than a stall, and it is a cost of the
-   * mechanism rather than a defect: every edit on this host costs *two*
-   * compilations, because Zintl's own `flush()` rewrites the catalog and the
-   * catalog is — necessarily — a declared dependency of the generated modules.
-   * Vite avoids the second pass because `handleHotUpdate` returns early on a
-   * Zintl-authored write, which stops the update propagating; there is no
-   * equivalent lever once a host is doing its own dependency bookkeeping.
-   * Establishing throughput-vs-stall, and whether the second compilation can be
-   * suppressed, is the next thing to pick up here.
+   * **Not `memory`.** `memory-leak` drives twenty sequential edits and reaches
+   * only four inside its 45s budget, in isolation as well as under contention.
+   * **Not throughput** — that was the first guess and measurement killed it.
+   * Per iteration: `mutation=10220ms`, `assert=16ms`. The DOM is correct almost
+   * instantly; the harness spends a flat ten seconds per edit, which is
+   * `waitForSettled`'s timeout.
+   *
+   * The cause is that **in this harness every edit reloads the page**, measured
+   * with a `globalThis` sentinel that does not survive, a store whose `version`
+   * returns to `1`, and a ledger that returns to 4 entries. `waitForSettled`
+   * compares the settle beacon with `!==` precisely so a reload's reset still
+   * counts — but a reload that lands on the *same* value every time defeats
+   * that, so it waits out the full timeout on every mutation.
+   *
+   * The reload is specific to the harness, not to the host: driving the same
+   * programmatic `createRsbuild().startDevServer()` against the real
+   * `examples/rsbuild-spa` directory hot-updates cleanly (sentinel survives,
+   * beacon advances), while the copied project under `.tmp/runs/w<id>/` reloads.
+   * The copy and its `node_modules` symlink farm are the remaining difference.
+   *
+   * **This is why `hmr` and `hmr-stress` above deserve a caveat**: they pass
+   * here, but in this harness they are currently converging via reload rather
+   * than via a hot update, so they verify the user-visible outcome without yet
+   * proving the mechanism. Hot updates are verified against a real dev server
+   * (029 §4). Closing that gap is the next thing to pick up.
    *
    * **Not `chaos`.** A limitation of `chaos-boundary`, not of this host: it
    * renames the file holding the heading, and here that file is the entry, which

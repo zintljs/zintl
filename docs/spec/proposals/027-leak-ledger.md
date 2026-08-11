@@ -1030,3 +1030,46 @@ defect, only an Rsbuild sighting.
 and it inherits every assumption the environment happens to satisfy. A second host is what turns such
 a comment back into a question — which is the whole thesis of 026, arriving here two proposals later
 by a route nobody planned.
+
+**Status correction — the class is half closed.** The fix above covers the interleaving where a load
+is _in flight_. A second one is open and reproduces deterministically (3/3, real dev server, after
+clearing `node_modules/.zintl`): on the **source locale**, whose manager carries its catalog inlined
+and synchronously, the entry re-executes and misses _before any load starts_. The catalog then
+arrives correctly (`catalogHasNewKey=true`, beacon 4 → 14, no reload) and the heading stays `""`,
+because nothing re-renders. Two candidate fixes — mirroring `_t`'s server branch in its browser
+branch, and unioning the boundary graph into `getBoundaryInputs` — were written, measured, and
+**reverted unvalidated**: neither changed the outcome, which means the mechanism is not understood
+well enough to fix yet. Establishing why the entry holds a stale manager at render time is the next
+step; a third guess is not.
+
+### L-029 — the contract harness reloads where a real dev server hot-updates
+
+|                             |                                 |
+| :-------------------------- | :------------------------------ |
+| **Status**                  | **Open** — diagnosed, not fixed |
+| **Bucket**                  | N/A — a harness defect          |
+| **Facet contract changed?** | No                              |
+
+Found while establishing whether `memory-leak`'s failure on `rsbuild-spa` was throughput or a stall.
+It was neither.
+
+**Measured, per iteration**: `mutation=10220ms`, `assert=16ms`. The DOM is correct almost instantly;
+the harness spends a flat ten seconds per edit, which is `waitForSettled`'s timeout. Four iterations
+fit in the 45s budget, so the contract can never reach twenty. Raising vitest's `testTimeout` changes
+nothing, because the 45s is `tests/vitest.config.ts`'s own.
+
+**Why the beacon never confirms**: every edit **reloads the page** in this harness. Measured with a
+`globalThis` sentinel that does not survive, a store whose `version` returns to `1`, and a ledger
+that returns to 4 entries. `waitForSettled` compares the beacon with `!==` precisely so a reload's
+reset still counts as progress — but a reload landing on the _same_ value every time defeats that
+test, so it waits out the full timeout and falls through to the idle heuristic.
+
+**The reload is the harness's, not the host's.** Driving the same programmatic
+`createRsbuild().startDevServer()` against the real `examples/rsbuild-spa` directory hot-updates
+cleanly — sentinel survives, beacon advances 4 → 12. The copy under `.tmp/runs/w<id>/`, with its
+`node_modules` symlink farm, is the remaining difference and the place to look.
+
+**What this costs today**: `hmr` and `hmr-stress` pass on `rsbuild-spa`, but in this harness they are
+converging via reload rather than via a hot update. They verify the user-visible outcome without
+proving the mechanism — so the capability claims are not _wrong_, they are weaker than they read.
+Recorded on the manifest beside the claims themselves rather than only here.
