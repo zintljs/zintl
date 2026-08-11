@@ -53,7 +53,13 @@ const config: KnipConfig = {
   // `examples/rsbuild-spa` declares its own copy and does not rely on this — the
   // entry was briefly removed when that example was promoted, and had to come
   // back the moment a fixture needed the walk-up again.
-  ignoreDependencies: ["vite", "@vitest/coverage-v8", "zintljs", "@rsbuild/core"],
+  /**
+   * `zintljs` and `@rsbuild/core` came off this list when `zintljs` declared
+   * `@rsbuild/core` as an optional peer dependency (proposal 029) — knip
+   * resolves both unaided now, and keeping them here would hide a real unused
+   * dependency later.
+   */
+  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

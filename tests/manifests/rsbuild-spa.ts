@@ -66,12 +66,37 @@ export const rsbuildSpa: ProjectManifest = {
    * window — that contract needs rewriting against built output before either
    * host should claim it.
    *
-   * **Not `hmr` or anything built on it.** Zintl emits no acceptance code on
-   * this host (`rspackFacet`), because ZDB §7a makes dev support conditional on
-   * two ordering guarantees not established here. Note `hmr-stress` does *not*
-   * require `hmr` — claiming it alone would select `hmr-hammer` and fail rather
-   * than skip. `RsbuildDevServerDriver` also supplies no `interceptHmr`, so the
-   * delivery contracts could not see packets even once that is answered.
+   * `hmr` and everything built on it became claimable with proposal 029's
+   * facet seam. ZDB §7a's two load-bearing requirements are answered by Rspack
+   * itself rather than emulated: `Watching.startTime` is the monotonic
+   * per-event sequence, `compiler.inputFileSystem` is the read scoped to that
+   * event. What made the updates actually land is a third thing neither
+   * proposal predicted — Rspack rebuilds by its own dependency graph, so the
+   * generated modules had to *declare* their inputs
+   * (`ZintlCompiler.getBoundaryInputs`) rather than be invalidated by hand.
+   *
+   * Note `hmr-stress` does *not* require `hmr`, so it has to be claimed
+   * explicitly — claiming it alone would select `hmr-hammer` and fail rather
+   * than skip.
+   *
+   * **Not `memory`.** `memory-leak` drives twenty sequential edits and does not
+   * finish inside its 45s budget here, in isolation as well as under contention.
+   * The likely cause is throughput rather than a stall, and it is a cost of the
+   * mechanism rather than a defect: every edit on this host costs *two*
+   * compilations, because Zintl's own `flush()` rewrites the catalog and the
+   * catalog is — necessarily — a declared dependency of the generated modules.
+   * Vite avoids the second pass because `handleHotUpdate` returns early on a
+   * Zintl-authored write, which stops the update propagating; there is no
+   * equivalent lever once a host is doing its own dependency bookkeeping.
+   * Establishing throughput-vs-stall, and whether the second compilation can be
+   * suppressed, is the next thing to pick up here.
+   *
+   * **Not `chaos`.** A limitation of `chaos-boundary`, not of this host: it
+   * renames the file holding the heading, and here that file is the entry, which
+   * Rsbuild names in `rsbuild.config.mjs` rather than in `index.html`. Renaming
+   * it is a config change that restarts the dev server. Content-based boundary
+   * identity is covered by `boundary-graph` regardless; see that contract's own
+   * `getRenameConfig` for what would need relaxing.
    */
   capabilities: [
     "build",
@@ -83,6 +108,8 @@ export const rsbuildSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "locale-switch-stress",
+    "hmr",
+    "hmr-stress",
   ],
   adapter: {
     headingSelector: "h1",

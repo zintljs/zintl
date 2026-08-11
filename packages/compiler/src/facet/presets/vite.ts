@@ -27,6 +27,21 @@ export function viteFacet(): ZintlFacet {
     /** Multiplex's per-locale HTML fan-out is implemented end to end on this host. */
     htmlFanOut: true,
     /**
+     * `ViteUpdateApplier` (`packages/zintl/src/hmr/vite.ts`) applies hot updates
+     * to this host's `ModuleGraph`, contributed from `configureServerHook`.
+     */
+    hotUpdate: true,
+
+    /**
+     * No `dependencyInvalidation`, and the omission is load-bearing rather than
+     * an oversight. This host's hot-update hook is a *request*: it hands Zintl
+     * an event and takes back the modules to invalidate, so `ViteUpdateApplier`
+     * already names every one of them. Declaring the same catalog files as
+     * watched dependencies on top of that is not belt-and-braces — Vite honours
+     * them, so Zintl's own `flush()` writes come straight back in as source
+     * changes, and every catalog-writing contract times out. Proposal 029 §3.
+     */
+    /**
      * Self-acceptance for Zintl's own generated modules.
      *
      * Always safe here, unlike {@link ZintlFacet.hmrInjectionCode} on a source

@@ -51,6 +51,25 @@ function rawTextAssetId(fullId: string): string | undefined {
   return `${RESOLVED_RAW_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
 }
 
+/**
+ * The host's self-acceptance snippet for a Zintl-generated module, or nothing.
+ *
+ * The four asset branches below used to write `import.meta.hot` out as a string
+ * literal — Vite's API, hardcoded past the facet that exists to own exactly this
+ * decision. It is the same class of leak ledger L-014/L-015/L-016 found in the
+ * *codegen* hooks and `rspackFacet` was built to stop, still open here because
+ * nothing had asked a second host to load a localized asset in dev. Ledger
+ * L-025.
+ *
+ * Empty when no bundler facet contributes one, which is the documented default
+ * ("emit nothing") rather than a fallback to somebody's API — the same posture
+ * `stateToHooks()` takes when it leaves the hook `undefined`.
+ */
+function selfAcceptCode(ctx: Context): string {
+  if (!ctx.compiler.isDev) return "";
+  return ctx.compiler._resolved.system.hmrSelfAcceptCode?.() ?? "";
+}
+
 function injectMultiplexQuery(id: string, locale: string): string {
   const parts = id.split("?");
   const cleanId = parts[0];
@@ -423,11 +442,7 @@ export function loadHook(ctx: Context) {
               translations[`@zintl/asset:${assetId}`] ?? readFileSync(originalPath, "utf-8");
 
             if (id.includes("?raw") || id.includes("?zintl-raw")) {
-              let code = `export default ${JSON.stringify(content)};`;
-              if (ctx.compiler.isDev) {
-                code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
-              }
-              return code;
+              return `export default ${JSON.stringify(content)};` + selfAcceptCode(ctx);
             }
 
             const referenceId = this.emitFile({
@@ -491,11 +506,7 @@ export function loadHook(ctx: Context) {
         this.addWatchFile(cleanId);
 
         if (id.includes("?zintl-raw")) {
-          let code = `export default ${JSON.stringify(translationOnly)};`;
-          if (ctx.compiler.isDev) {
-            code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
-          }
-          return code;
+          return `export default ${JSON.stringify(translationOnly)};` + selfAcceptCode(ctx);
         }
 
         const assetId = ctx.compiler.getNormalizedId(cleanId);
@@ -514,11 +525,7 @@ export function loadHook(ctx: Context) {
             const content = existsSync(localizedPath)
               ? readFileSync(localizedPath, "utf-8")
               : translationOnly;
-            let code = `export default ${JSON.stringify(content)};`;
-            if (ctx.compiler.isDev) {
-              code += "\nif (import.meta.hot) { import.meta.hot.accept(); }";
-            }
-            return code;
+            return `export default ${JSON.stringify(content)};` + selfAcceptCode(ctx);
           }
 
           const locales = ctx.options.locales;
@@ -558,20 +565,26 @@ const proxy = new Proxy({}, {
     return val[prop];
   }
 });
-export default proxy;
-${
-  /**
-   * Dev-guarded, like the `?zintl-raw` branch above it — which this one was not.
-   *
-   * On Vite the omission was invisible: production folds `import.meta.hot` to
-   * `undefined` and the branch is eliminated, so nothing shipped. That is a Vite
-   * guarantee this code was silently relying on. Rspack performs no such
-   * substitution, so the accept call reached the production bundle intact
-   * (ledger L-014) — "nothing ships that isn't used", upheld by the host rather
-   * than by us.
-   */
-  ctx.compiler.isDev ? "if (import.meta.hot) {\n  import.meta.hot.accept();\n}" : ""
-}
+export default proxy;${
+            /**
+             * Dev-guarded, like the `?zintl-raw` branch above it — which this
+             * one was not.
+             *
+             * On Vite the omission was invisible: production folds
+             * `import.meta.hot` to `undefined` and the branch is eliminated, so
+             * nothing shipped. That is a Vite guarantee this code was silently
+             * relying on. Rspack performs no such substitution, so the accept
+             * call reached the production bundle intact (ledger L-014) —
+             * "nothing ships that isn't used", upheld by the host rather than by
+             * us.
+             *
+             * The snippet itself now comes from the bundler facet rather than
+             * being written out here, which is the other half of the same
+             * lesson: dev-guarding Vite's API still emits Vite's API. Ledger
+             * L-025.
+             */
+            selfAcceptCode(ctx)
+          }
 `;
         }
         return translationOnly;

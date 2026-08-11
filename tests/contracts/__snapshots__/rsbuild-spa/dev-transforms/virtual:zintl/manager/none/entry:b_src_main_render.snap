@@ -34,3 +34,4 @@ export default (() => {
   }
   return manager;
 })();
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

@@ -44,6 +44,23 @@ function getRenameConfig(exampleName: string): RenameConfig {
         importSearch: "/src/main.ts",
         importReplace: "/src/mainNew.ts",
       };
+    /**
+     * No `rsbuild-spa` case, and the reason is about this contract rather than
+     * about that host.
+     *
+     * Every case above renames the file that *holds the heading*, because the
+     * final step edits `toPath` looking for `initialHeadingText`. On
+     * `rsbuild-spa` the heading lives in the entry, and Rsbuild names its entry
+     * in `rsbuild.config.mjs` rather than in `index.html` — so renaming it is a
+     * config change, which restarts the dev server and would test the harness
+     * instead of the boundary graph. Renaming a *different* file (`counter.ts`)
+     * was tried and fails for the stated reason: no heading in it.
+     *
+     * Content-based boundary identity is not going untested on that host —
+     * `boundary-graph` covers it directly. What is missing is a rename-under-HMR
+     * variant that does not assume the heading and the renamed file are the same
+     * file, and that is this contract's assumption to relax.
+     */
     default:
       throw new Error(`Unsupported example for boundary rename: ${exampleName}`);
   }

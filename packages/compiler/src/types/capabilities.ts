@@ -352,6 +352,49 @@ export interface BundlerFacet extends BaseFacet {
    */
   htmlFanOut?: boolean;
   /**
+   * Whether this host has a live-module-graph applier for hot updates.
+   *
+   * The facet's half of the seam proposal 029 built. The applier itself cannot
+   * live here — it speaks Vite's `ModuleGraph` or Rspack's virtual file store,
+   * and nothing bundler-specific belongs in the compiler — so it lives in
+   * `packages/zintl/src/hmr/` and is contributed from that host's own escape
+   * hatch. This flag is the part core, the composition guardrail and a fence can
+   * see: *this bundler claims a hot-update story*.
+   *
+   * Distinct from {@link hmrInjectionCode} / {@link hmrSelfAcceptCode}, which say
+   * how to spell acceptance in generated code. A host can emit perfectly correct
+   * acceptance code and still have no way to tell its module graph that anything
+   * changed; declaring both is what makes hot updates actually work, and the two
+   * were separated exactly so a half-built host reads as half-built.
+   *
+   * Undeclared rather than `false` for a host with no story, per the convention
+   * `rspackFacet`'s own `htmlFanOut` comment sets out: the merge treats the two
+   * identically, so saying nothing is the honest form of saying no.
+   */
+  hotUpdate?: boolean;
+  /**
+   * Whether this host finds stale generated modules from their **declared file
+   * dependencies** rather than by being handed a module list.
+   *
+   * The deepest difference between the two hosts, and the reason proposal 028
+   * §6.1's sketched `applyInvalidation(affectedIds, hostGraph)` was the wrong
+   * shape. Vite's hot-update hook is a *request*: it hands Zintl an event and
+   * takes back the modules to update, so Zintl walks the graph and decides.
+   * Rspack asks nothing — it rebuilds whatever its own dependency graph says is
+   * stale, and a generated module that declares no dependencies is never stale
+   * however loudly a hook shouts.
+   *
+   * A host that declares this gets `getBoundaryInputs()` reported as
+   * `watchedFiles` from `generateVirtualModule`, and rebuilds the generated
+   * catalog in the *same* compilation as the source edit that dirtied it.
+   *
+   * Undeclared on Vite deliberately, and not merely as redundancy: Vite is
+   * already told exactly what to invalidate, and declaring the same catalog
+   * files a second time makes Zintl's own `flush()` writes re-enter as source
+   * changes — measured, as timeouts across every catalog-writing contract.
+   */
+  dependencyInvalidation?: boolean;
+  /**
    * How this host spells "accept my own updates", for **generated** modules.
    *
    * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
@@ -562,6 +605,10 @@ export interface CapabilityFlags {
   localeRouting: boolean;
   /** True when the active bundler facet can produce per-locale HTML documents (multiplex fan-out) */
   htmlFanOut: boolean;
+  /** True when the active bundler facet declares a hot-update applier (proposal 029) */
+  hotUpdate: boolean;
+  /** True when the active bundler facet invalidates generated modules via declared file dependencies */
+  dependencyInvalidation: boolean;
 }
 
 /**

@@ -150,6 +150,8 @@ interface MergeState {
   hmrSelfAcceptCodeProvider: string;
   hmrSelfAcceptCodePriority: number;
   htmlFanOut: boolean;
+  hotUpdate: boolean;
+  dependencyInvalidation: boolean;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -196,6 +198,8 @@ function createEmptyState(): MergeState {
     hmrSelfAcceptCodeProvider: "",
     hmrSelfAcceptCodePriority: -1,
     htmlFanOut: false,
+    hotUpdate: false,
+    dependencyInvalidation: false,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -394,6 +398,8 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
         }
       }
       if (facet.htmlFanOut) state.htmlFanOut = true;
+      if (facet.hotUpdate) state.hotUpdate = true;
+      if (facet.dependencyInvalidation) state.dependencyInvalidation = true;
       break;
     }
   }
@@ -425,6 +431,8 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     hmr: state.hmrInjectionCode !== undefined,
     localeRouting: state.clientLocaleSync || state.serverRequestScope,
     htmlFanOut: state.htmlFanOut,
+    hotUpdate: state.hotUpdate,
+    dependencyInvalidation: state.dependencyInvalidation,
   };
 }
 

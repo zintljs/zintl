@@ -1,6 +1,7 @@
 # Proposal 028: Rsbuild Support — Current State and Remaining Gaps
 
 **Status**: STATUS REPORT — not a design proposal. It audits work already landed (PR #11, PR #13) against a live repository checkout and names what is left, so the next person does not have to reconstruct it from two ledgers and a diff.
+**Superseded on its central question** by [029](029-rsbuild-hmr-facet-seam.md). §6 below answered "should Rsbuild be promoted?" with "still no", for a structural reason: HMR had no facet seam, and Rspack's ordering guarantees were unestablished. 029 built the seam and established the guarantees, and Rsbuild is now a supported target for SPA builds and dev. Everything else here — the inventory of what worked and what did not as of 2026-08-09 — stands as written, and §6.3's checklist is worth reading against 029 §5, which converts most of it from "open" to "decided".
 **Date**: 2026-08-09
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md), [027-completing-the-rsbuild-target.md](027-completing-the-rsbuild-target.md), [027-leak-ledger.md](027-leak-ledger.md). This document does not restate their evidence — it restates their **conclusions**, checked against the code as it stands today, and adds nothing that was not already true in the ledgers.
 
@@ -200,6 +201,8 @@ Named, not committed to — this is a status report, and picking the next work i
 026 §11 answered this once: _"no — keep it as a harness."_ 027 promoted the example anyway, on the grounds that both of 026's stated objections (no browser coverage, L-009's silent asset corruption) had been removed. This document's own work has now closed L-022 and put real, if inconclusive, effort into §2.4. So the question is worth asking again, explicitly, rather than letting "promoted to `examples/`" quietly drift into "supported."
 
 **Still no.** Not because of an accumulating bug count — because working the HMR items this round surfaced a structural reason the answer can't yet be yes, independent of any individual open item.
+
+> **Answered since, by [029](029-rsbuild-hmr-facet-seam.md): yes.** Both conditions this section sets out were met — the seam exists (`HostUpdateApplier`, `BundlerFacet.hotUpdate`), and Rspack was shown to hold ZDB §7a's two load-bearing guarantees from its own machinery. The reasoning below is left intact because it is what made the conditions checkable, and because 6.1's _sketch_ turned out to be the wrong shape: Rspack never needed an `applyInvalidation`, it needed to be told what each generated module is derived from. See 029 §3.
 
 ### 6.1 The reason: HMR has no facet seam at all
 

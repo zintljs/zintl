@@ -812,4 +812,152 @@ was the watcher"). Confirmed recurring, not new.
   chase.
 - `DEBUG=zintl:vite` silently suppressing `handleHotUpdateHook` — real, reproducible, entirely
   unexamined.
-  answer if Rsbuild ever becomes a supported target.
+
+---
+
+## Phase 5 — formal support: the two defects that had to go first
+
+Proposal 029 takes up 028 §6.1's HMR facet seam. Two defects surfaced while scoping it, both on the
+supported path, both older than this phase, and neither reachable from the seam work itself — so they
+are recorded here rather than folded into it.
+
+### L-024 — the dev/build discovery gate was a Vite artifact, so every Rsbuild rebuild re-discovered
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                 |
+| **Bucket**                  | **2 — ask the layer that knows**, the same shape as L-020 |
+| **Facet contract changed?** | No                                                        |
+
+`hooks/build.ts` decided whether to run the full `discover()` pass with:
+
+```ts
+if (!ctx.server) {
+  await ctx.compiler.discover();
+}
+```
+
+`ctx.server` is assigned in exactly one place — `configureServerHook`, a Vite hook. So the test reads
+"am I in a Vite dev server", and it was standing in for "am I building". **On Vite the two agree
+exactly**, in dev, in `build`, and in `preview`, which is why this survived unexamined: there was no
+input that could tell them apart.
+
+On Rsbuild they come apart completely. Nothing assigns `ctx.server`, so `!ctx.server` is true in dev
+too — and `buildStart` is not a once-per-process hook there. Unplugin taps it to
+`compiler.hooks.make`, which fires **once per compilation**, so a watch-mode rebuild ran a full
+project discovery pass before building a single module. Exactly inverted from what an incremental
+hot-update path is for, and it would have made any measurement of Rspack hot updates meaningless —
+the discovery would have masked whether incremental invalidation worked at all.
+
+The fix is L-020's answer applied to a second question: ask the layer that actually knows. `isDev` is
+truthful on Rsbuild as of L-020's `hostHints` merge, so `if (!ctx.compiler.isDev)` is a
+behaviour-preserving swap on Vite and a correction everywhere else. Confirmed by the full unit suite
+passing with no snapshot churn.
+
+**The generalisation worth keeping**: a Vite-shaped field used as a proxy for a host-neutral question
+is the same defect as a hardcoded `import.meta.hot`, just harder to grep for — there is no wrong
+_string_ in the output to find, only a right answer reached for the wrong reason. L-004 removed one
+of these (`\0` recognition resting on a `node_modules` coincidence). This is the second.
+
+### L-025 — four hardcoded `import.meta.hot` literals in the asset branches, past the facet
+
+|                             |                                            |
+| :-------------------------- | :----------------------------------------- |
+| **Status**                  | **Fixed**                                  |
+| **Bucket**                  | **1 — declare it**                         |
+| **Facet contract changed?** | No — uses `hmrSelfAcceptCode` as it stands |
+
+`hooks/resolve.ts` wrote Vite's HMR API out as a string literal at four sites — the `?raw` /
+`?zintl-raw` localized-asset branches, and the `?raw` Proxy module. This is the same class of leak
+L-014/L-015/L-016 found in the _codegen_ hooks and that `rspackFacet` was created to stop; it stayed
+open here only because nothing had asked a second host to load a localized asset in dev, and
+`rsbuild-spa` claims `assets` but not `hmr`.
+
+L-014's own entry is the tell. It recorded the dev-guard being _missing_ at the fourth site, so the
+literal reached an Rspack production bundle — and fixed that by adding `ctx.compiler.isDev ? … : ""`.
+Correct as far as it went, and it left the deeper problem in place: dev-guarding Vite's API still
+emits Vite's API, now merely at a moment nobody was checking. The guard made the symptom invisible
+rather than the cause absent.
+
+All four now route through a single `selfAcceptCode(ctx)` helper reading
+`_resolved.system.hmrSelfAcceptCode`. `viteFacet`'s no-argument return is **byte-identical** to the
+three one-line literals it replaces, so the change is provably inert on the supported host — 791 unit
+tests, zero snapshot churn. On Rspack it was previously emitting a reference the host never defines;
+it now emits whatever that facet declares, which as of proposal 029 is `import.meta.webpackHot`.
+
+Where no bundler facet contributes, the helper emits nothing, matching `stateToHooks()`'s documented
+"emit nothing" default rather than falling back to somebody's API. Note this leaves core's own
+no-facet path at `compiler/src/index.ts` still hardcoding `selfAcceptHmrSnippet` — inconsistent, but
+pre-existing and out of this phase's scope.
+
+### L-026 — a normalized id handed to a filesystem, and it did visible damage
+
+|                             |                                                         |
+| :-------------------------- | :------------------------------------------------------ |
+| **Status**                  | **Fixed**                                               |
+| **Bucket**                  | **1 — declare it** (an id's _kind_, not just its value) |
+| **Facet contract changed?** | No                                                      |
+
+Found while building proposal 029's declared-dependency mechanism, and it is the most instructive
+failure of that work because nothing about it looked like a failure.
+
+`messages.boundaryOwnership` is keyed by `io.getNormalizedId`, which **strips the source extension**:
+`src/main.ts` is stored as `src/main`. That is right, and deliberately so — boundary identity is
+content-based and must not move when a file is renamed `.ts` → `.tsx`. It is wrong for anything that
+hands the string onward to a filesystem, and `getBoundaryInputs` did exactly that.
+
+**What made it worth an entry is the failure mode.** Rspack accepted the dependency without
+complaint, found no such file, and logged `building removed src/main` on every cycle — a watch on a
+path that can never exist. Nothing crashed. The generated catalog simply never went stale, so in the
+browser the entry re-executed with the _new_ message key while the catalog it read still held the
+old one. The lookup missed, and because Zintl has no source-locale fallback — by design, SPEC's first
+principle — the heading rendered **empty**. A correct architectural decision (no fallback) turned a
+silent staleness bug into a visibly blank page, which is the outcome that principle exists to
+produce; the diagnosis still took a probe, because the log line naming the cause was Rspack's and
+said `removed`.
+
+`ZintlCompiler.resolveSourcePath` probes `io.resolvedExtensions` — public with the doc comment "for callers
+that probe extensionless dep ids", so the need was anticipated, just not wired here — and returns
+`undefined` rather than guessing, so a caller declares no dependency instead of a false one.
+
+**The generalisation**: this codebase has two kinds of string that both look like paths. A normalized
+id is an _identity_; a source path is a _location_. They are the same type and differ by an
+extension, so nothing catches the substitution — the third instance of this shape in this ledger
+after L-004 and L-024.
+
+### L-027 — discovery raced itself once the flag moved ahead of the await
+
+|                             |                                  |
+| :-------------------------- | :------------------------------- |
+| **Status**                  | **Fixed**                        |
+| **Bucket**                  | **2 — ask the layer that knows** |
+| **Facet contract changed?** | No                               |
+
+A defect introduced _by_ L-024's fix and caught by the contract suite, recorded because the wrong
+shape is the intuitive one.
+
+L-024 replaced `if (!ctx.server)` with a `discovered` flag. Written the obvious way, that sets the
+flag and then awaits:
+
+```ts
+if (!ctx.discovered) {
+  ctx.discovered = true;
+  await ctx.compiler.discover();
+}
+```
+
+Correct on Vite, where `buildStart` runs once and nothing else is in flight. Wrong on Rspack, where
+`buildStart` is tapped to `compiler.hooks.make` — **a parallel hook**. Module building starts while
+this is still awaiting, `transformHook` finds the flag already `true`, skips, and transforms against
+a null `boundaryGraph`. It surfaced as `TypeError: Cannot read properties of null (reading 'nodes')`
+inside a loader chain, in _production_ builds as well as dev.
+
+The fix is the shape the compiler already uses one layer down: share the in-flight **promise**, not a
+flag. `invalidateForUpdate`'s custody logic makes the same move for the same reason (ZDB Axiom D3),
+and its comment says it outright — _"The promise is what is shared, not a cached result, because the
+first pass is usually still running when the second arrives."_ `ensureDiscovered(ctx)` in
+`hooks/build.ts` is now the single entry point, awaited by both `buildStart` and `transformHook`.
+
+**Worth carrying forward**: "run once" and "run once, and make everyone else wait for it" are
+different requirements, and a boolean can only express the first. Any host with a parallel lifecycle
+hook turns the difference into a crash.

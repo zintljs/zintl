@@ -61,6 +61,33 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
 
   const rawPlugin = zintl(testPluginOptions(options));
 
+  /**
+   * The plugin-context methods a real host always supplies on `this`.
+   *
+   * Rollup, Vite and unplugin's Rspack loader all hand `load`/`transform` a
+   * context object; calling the hook straight off the plugin gives it `this ===
+   * the plugin`, which has none of them. That went unnoticed while
+   * `generateVirtualModule` returned an empty `watchedFiles` for content and
+   * manager modules — the `addWatchFile` loop simply never ran. It runs now
+   * (proposal 029 uses those declared dependencies as Rspack's whole
+   * invalidation mechanism), so the harness has to model the context rather than
+   * rely on it being unreachable.
+   *
+   * Tests that pass their own context via `.call(ctx, …)` keep it: the override
+   * below only fills in for a `this` that is plainly not a plugin context.
+   */
+  const defaultPluginContext = {
+    addWatchFile: () => {},
+    emitFile: () => "test-ref-id",
+    resolve: async () => null,
+  };
+
+  const withPluginContext = (hook: any) =>
+    function (this: any, ...args: any[]) {
+      const self = this && typeof this.addWatchFile === "function" ? this : defaultPluginContext;
+      return hook.apply(self, args);
+    };
+
   const getPluginHooks = (p: any) => {
     const list = Array.isArray(p) ? p : [p];
     const main = list.find((x) => x.name === "zintl") || list[0];
@@ -74,9 +101,9 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
       hotUpdate: main.vite?.hotUpdate,
       buildStart: main.buildStart,
       buildEnd: main.buildEnd,
-      resolveId: main.resolveId,
-      load: main.load,
-      transform: main.transform,
+      resolveId: withPluginContext(main.resolveId),
+      load: withPluginContext(main.load),
+      transform: withPluginContext(main.transform),
       get __compiler() {
         return (globalThis as any).__zintl_active_contexts?.slice(-1)[0]?.compiler;
       },

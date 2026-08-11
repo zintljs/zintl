@@ -1,6 +1,6 @@
 import { createUnplugin } from "unplugin";
 import { PLUGIN_NAME } from "./constants.js";
-import Context from "./context.js";
+import Context, { type RsbuildDevServerLike } from "./context.js";
 import type { Options } from "./types.ts";
 import type { ResolvedOptions } from "./options.js";
 
@@ -14,6 +14,7 @@ import {
   preTransformIndexHtmlHook,
 } from "./hooks/transform.js";
 import { handleHotUpdateHook } from "./hooks/hmr.js";
+import { registerRspackHotUpdate } from "./hooks/rspack-hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
 import { declareHtmlEntriesHook, modifyHtmlHook, type RsbuildHtmlApi } from "./hooks/html.js";
 import { resolveOptions } from "./options.js";
@@ -35,6 +36,7 @@ const contextMap = new WeakMap<ResolvedOptions, Context>();
  */
 interface RsbuildSetupApi extends RsbuildHtmlApi {
   context: { action?: "dev" | "build" | "preview" };
+  onBeforeStartDevServer?: (fn: (params: { server: RsbuildDevServerLike }) => void) => void;
 }
 
 const unplugin = createUnplugin<Options, true>((options) => {
@@ -136,7 +138,31 @@ const unplugin = createUnplugin<Options, true>((options) => {
            */
           declareHtmlEntriesHook(ctx, api);
           api.modifyHTML?.(modifyHtmlHook(ctx));
+
+          /**
+           * The server→client channel for the updates Rspack cannot patch — an
+           * HTML boundary, or a boundary that exists only on the server. Rspack
+           * itself has no such channel: this is Rsbuild's dev server, which is
+           * why it is asked for here rather than in the `rspack` block below.
+           */
+          api.onBeforeStartDevServer?.(({ server }) => {
+            ctx.rsbuildServer = server;
+          });
         },
+      },
+
+      /**
+       * The Rspack layer, which unplugin calls under raw Rspack *and* under
+       * Rsbuild — `toRsbuildPlugin` pushes this same raw plugin into
+       * `modifyRspackConfig`, so one registration covers both, exactly as
+       * `rspackFacet` does for the module-system concerns.
+       *
+       * The counterpart of `vite.configureServer` above: the moment a live
+       * compiler exists to attach a hot-update applier to. See proposal 029 and
+       * `hooks/rspack-hmr.ts`.
+       */
+      rspack(compiler: unknown) {
+        registerRspackHotUpdate(ctx, compiler as never);
       },
     },
   ];

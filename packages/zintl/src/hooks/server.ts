@@ -3,10 +3,22 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type Context from "../context.js";
 import type { HtmlManager } from "@zintljs/compiler/facets";
+import { registerUpdateApplier } from "../hmr/index.js";
+import { ViteUpdateApplier } from "../hmr/vite.js";
 
 export function configureServerHook(ctx: Context) {
   return function (server: ViteDevServer) {
     ctx.server = server;
+
+    /**
+     * Vite's contribution to the hot-update seam (proposal 029).
+     *
+     * Registered here rather than anywhere shared, because this is the first
+     * moment a live `ModuleGraph` exists to apply anything to — and because
+     * *which escape hatch a hook sits in is the statement of which layer owns
+     * it*, the rule `plugin.ts` already states for `vite: {}` and `rsbuild: {}`.
+     */
+    registerUpdateApplier(ctx, new ViteUpdateApplier(ctx, server));
 
     /**
      * Deletions, which reach the plugin through no other route.

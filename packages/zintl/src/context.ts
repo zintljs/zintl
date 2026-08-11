@@ -4,6 +4,20 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
 import type { ResolvedOptions } from "./options.js";
 import type { BundlerHostView } from "./host.js";
+import type { HostUpdateApplier } from "./hmr/applier.js";
+
+/**
+ * The one method of `RsbuildDevServer` Zintl calls.
+ *
+ * Declared structurally rather than imported, like `RsbuildSetupApi` in
+ * `plugin.ts` and for the same reason: `zintljs` takes no hard dependency on
+ * `@rsbuild/core`. `sockWrite` is documented on that type as how middleware asks
+ * the HMR client to act, and `'full-reload'` is one of the message types it
+ * names — the Rsbuild counterpart of Vite's `server.ws.send`.
+ */
+export interface RsbuildDevServerLike {
+  sockWrite: (type: "full-reload", data?: { path?: string }) => void;
+}
 
 /**
  * A fixed-capacity ring: overwrites oldest, never grows.
@@ -99,6 +113,31 @@ export default class Context {
    * `htmlEntries` option — see `hooks/html.ts` and ledger L-021.
    */
   public htmlEntries: Record<string, string[]> = {};
+
+  /**
+   * How hot updates reach this host's live module graph, or `null` if they do
+   * not reach it at all.
+   *
+   * Never assigned by shared code. Each host's escape hatch contributes its own
+   * — Vite's from `configureServerHook`, Rspack's from the plugin's
+   * `rspack(compiler)` block — which is what keeps `switch (bundler)` out of the
+   * hot-update path entirely. See `hmr/applier.ts` and proposal 029.
+   *
+   * `null` is a supported state and means exactly what it says: this host has no
+   * hot-update story, so `handleHotUpdateHook` declines rather than guessing one.
+   */
+  public updateApplier: HostUpdateApplier | null = null;
+
+  /**
+   * Rsbuild's dev server, once it exists — the channel for updates that cannot
+   * be patched and need the page back.
+   *
+   * The counterpart of {@link server} for the other host, and separate from it
+   * for the same reason `rspackFacet` and the `rsbuild: {}` block are separate:
+   * Rspack has no dev server, Rsbuild's is a layer above it. Null under raw
+   * Rspack, and null until `onBeforeStartDevServer` fires.
+   */
+  public rsbuildServer: RsbuildDevServerLike | null = null;
 
   /** See {@link HmrTraceEntry}. */
   public readonly hmrTrace = new Ring<HmrTraceEntry>(256);

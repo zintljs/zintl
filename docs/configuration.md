@@ -59,7 +59,7 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 `facets` is the extension point. Framework support, SSR handling, asset handling and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
 
-`multiplex` needs a bundler that supports per-locale HTML fan-out — Vite does, [Rsbuild](#rsbuild) does not yet. Combining `multiplex: true` (explicit or auto-detected) with an unsupported bundler fails your build with a clear error rather than an opaque one.
+`multiplex` needs a bundler that supports per-locale HTML fan-out — Vite does, [Rsbuild](#rsbuild) does not. Combining `multiplex: true` (explicit or auto-detected) with an unsupported bundler fails your build with a clear error rather than an opaque one.
 
 ### Facets decide for themselves
 
@@ -143,15 +143,16 @@ export default defineConfig({
 
 Every option above applies the same way — `zintljs/rsbuild` is the same plugin behind a different entry point, not a second implementation.
 
-**Experimental, not yet a supported target.** Production builds work: chunk-aligned catalogs, ghost mode, localized assets, and per-locale `<html lang>`/`dir` all carry over from the Vite integration with no Rspack-specific code. Known gaps:
+Production builds and `rsbuild dev` — including hot updates — both work: chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir`, and dev-time string edits without a page reload all carry over from the Vite integration with no Rspack-specific code in the compiler. Two things do not:
 
-| Gap         | What happens                                                                                                                                             |
-| :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hot updates | `rsbuild dev` serves and rebuilds, but an edit needs a manual reload — no dev-time delivery mechanism is emitted on this host yet.                       |
-| `multiplex` | Fails the build with a clear error rather than silently doing nothing — the per-locale HTML fan-out `multiplex` builds has no Rspack implementation yet. |
-| SSR         | Untouched, unexamined.                                                                                                                                   |
+| Not supported | What happens                                                                                                                                                                      |
+| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `multiplex`   | Fails the build immediately with a clear error rather than silently doing nothing. The per-locale HTML fan-out `multiplex` builds is Vite-only and is **not** planned for Rspack. |
+| SSR           | Unbuilt and unexamined. There is no Rsbuild SSR path to route to yet.                                                                                                             |
 
-See [`examples/rsbuild-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-spa) for a working app, and `docs/spec/proposals/026`–`028` for the history and open items behind each gap above.
+Install `@rsbuild/core` yourself — it is an optional peer dependency, tested against `^2.1.0`.
+
+See [`examples/rsbuild-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-spa) for a working app, and `docs/spec/proposals/026`–`029` for how each of these was established.
 
 ## Output
 

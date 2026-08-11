@@ -178,7 +178,7 @@ export class LabAssertions {
     try {
       const trace = this.lab.compiler.hmrTrace ?? [];
       if (trace.length === 0) {
-        lines.push("hmr trace: EMPTY — handleHotUpdateHook never ran");
+        lines.push("hmr trace: EMPTY — no hot-update hook ran on this host");
       } else {
         lines.push(
           `hmr trace: ${trace.length} entries, last 10 (oldest first):\n` +
@@ -191,11 +191,18 @@ export class LabAssertions {
                   case "skip-ineligible":
                     return `    skip-ineligible ${e.file}`;
                   case "enter":
-                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength}`;
+                    /**
+                     * `modules` is Vite-shaped — its hook hands over a module
+                     * array, Rspack's `watchRun` hands a changed-file set and
+                     * works out module scope itself. "n/a" says the host does
+                     * not report one; "0" would say it reported none, which is
+                     * a defect rather than a difference.
+                     */
+                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}`;
                   case "repoint":
                     return `    repoint "${e.moduleId}" ${e.oldFile ?? "(none)"} → ${e.newFile} (boundary=${e.boundaryId}, fileId=${e.fileId})`;
                   case "return":
-                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength}${e.passthrough ? " (passthrough)" : ""}`;
+                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}${e.passthrough ? " (passthrough)" : ""}`;
                   default:
                     return `    ${e.kind} ${e.file}`;
                 }

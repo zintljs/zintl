@@ -17,8 +17,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -99,8 +101,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -179,8 +183,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -261,8 +267,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -341,8 +349,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -423,8 +433,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -503,8 +515,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -585,8 +599,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -665,8 +681,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: true
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: false
   jsx: true
   jsxRichText: true
@@ -747,8 +765,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: true
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: false
   jsx: true
   jsxRichText: true
@@ -828,8 +848,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -911,8 +933,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -992,8 +1016,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -1075,8 +1101,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -1155,8 +1183,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1237,8 +1267,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1317,8 +1349,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1399,8 +1433,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1479,8 +1515,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1561,8 +1599,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1641,8 +1681,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1723,8 +1765,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1803,8 +1847,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1885,8 +1931,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -1965,8 +2013,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2047,8 +2097,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2127,8 +2179,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2209,8 +2263,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2291,8 +2347,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: false
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2373,8 +2431,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: false
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -2453,8 +2513,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2535,8 +2597,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2615,8 +2679,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2697,8 +2763,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2777,8 +2845,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2859,8 +2929,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -2939,8 +3011,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -3021,8 +3095,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: false
   jsxRichText: false
@@ -3101,8 +3177,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true
@@ -3183,8 +3261,10 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
   htmlFanOut: true
   jsx: true
   jsxRichText: true

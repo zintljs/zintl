@@ -41,3 +41,8 @@ async function render() {
 }
 
 void render();
+
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept();
+}

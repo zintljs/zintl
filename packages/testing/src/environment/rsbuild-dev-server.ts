@@ -1,18 +1,46 @@
 import type { DevServerDriver, LabDevServerHandle } from "./dev-server-driver.js";
+import type { HmrPacket } from "./websocket.js";
 
 /**
- * An Rsbuild dev server, for proposal 026.
+ * Rsbuild's hot-update packets, in the lab's vocabulary.
  *
- * Deliberately offers no `interceptHmr`. Rsbuild pushes hot updates over its own
- * channel, and — more to the point — Zintl does not *support* hot updates on
- * this host: `rspackFacet` emits no acceptance code, because ZDB §7a makes dev
- * support conditional on two ordering guarantees that have not been established
- * here. Supplying a packet channel would suggest a story that does not exist.
+ * `hash` then `ok` is what Rsbuild sends after a successful compilation, and the
+ * `ok` is the moment the client has applied it — so `ok` is what Vite calls
+ * `update`. `hash` carries no information a contract asks for and is dropped;
+ * so are `errors`/`warnings`, which `LabConsole` already covers.
  *
- * What this does buy is the thing nothing else covered: whether a Zintl app
- * built by Rspack actually *runs* — renders its source locale, switches locale,
- * resolves its catalogs — in a real browser. Every one of those contracts is
- * non-HMR, and none of them could reach this host before.
+ * `static-changed` is Rsbuild's own documented alias for `full-reload`, kept for
+ * backward compatibility on its side; both mean the same thing here.
+ */
+function translateRsbuildPacket(raw: string): HmrPacket | null {
+  const msg = JSON.parse(raw) as { type?: string; data?: unknown };
+  const timestamp = Date.now();
+  switch (msg.type) {
+    case "ok":
+      return { type: "update", timestamp, data: msg.data };
+    case "full-reload":
+    case "static-changed":
+      return { type: "full-reload", timestamp, data: msg.data };
+    default:
+      return null;
+  }
+}
+
+/**
+ * An Rsbuild dev server, for proposals 026 and 029.
+ *
+ * Watches hot updates from the **client** rather than the server, via
+ * `clientHmr`. Rsbuild's `socketServer` lives on an internal context that
+ * `initPluginAPI` narrows away before any plugin sees it, so there is no public
+ * server object to patch the way `interceptViteHmr` patches `ws.send` — and
+ * reaching past the public API for one would make the harness depend on an
+ * internal shape. Reading the page's own socket needs nothing but Playwright,
+ * and records what the browser actually received, which is what the contracts
+ * asking for packets are really asking about.
+ *
+ * This replaced a deliberate refusal: before proposal 029 there were no hot
+ * updates to watch on this host, and offering a packet channel would have
+ * suggested a story that did not exist.
  */
 export class RsbuildDevServerDriver implements DevServerDriver {
   readonly name = "rsbuild";
@@ -44,6 +72,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
       url: server.urls[0] ?? `http://localhost:${server.port}`,
       native: server,
       root,
+      clientHmr: { pathMatch: "/rsbuild-hmr", translate: translateRsbuildPacket },
       async close() {
         await server.server.close();
       },

@@ -1,6 +1,7 @@
 import { join, dirname } from "node:path";
 import type Context from "../context.js";
 import { ensureCompiler, nativeHostView } from "../host.js";
+import { ensureDiscovered } from "./build.js";
 import { VIRTUAL_PREFIX } from "../constants.js";
 
 /**
@@ -32,14 +33,13 @@ export function transformHook(ctx: Context) {
     const isSsr =
       this && this.environment ? this.environment.config.consumer === "server" : !!options?.ssr;
     const vLogger = ctx.compiler._logger.withPrefix("Vite");
-    if (ctx.server && !(ctx as any).discovered) {
-      (ctx as any).discovered = true;
-      try {
-        await ctx.compiler.discover();
-      } catch (err: any) {
-        if (err.code !== "ENOENT") throw err;
-      }
-    }
+    /**
+     * The same once-per-process pass `buildStart` runs, awaited rather than
+     * re-run — `hooks.make` is parallel on some hosts, so a module can reach
+     * `transform` while discovery is still in flight, and proceeding then means
+     * transforming against a null boundary graph. See {@link ensureDiscovered}.
+     */
+    await ensureDiscovered(ctx);
     const isTargetSsrEntry = ctx.compiler?.isSsrEntryTarget?.(id);
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
@@ -64,33 +64,27 @@ export function transformHook(ctx: Context) {
       isSsr,
     );
 
-    const mg = this && this.environment ? this.environment.moduleGraph : ctx.server?.moduleGraph;
-    if (mg && !id.startsWith("\0")) {
+    /**
+     * The second, independent invalidation path — driven from `transform`
+     * rather than from a hot-update event, because here there is a module the
+     * host has just asked to build but no changed file to describe it.
+     *
+     * It used to reach into Vite's `ModuleGraph` here, duplicating the
+     * hot-update hook's walk. Routing it through the same applier is what makes
+     * it reachable from a host with no `ModuleGraph` to reach into — and what
+     * keeps its one genuinely awkward property, the `Date.now()` stamp, inside
+     * the host that needs it rather than in shared code. That stamp is still a
+     * clock of Zintl's own, which ZDB §7a is explicit about disliking; it is
+     * unchanged here because there is no host event at this point to take a
+     * sequence from, and inventing a better-looking one would not make it the
+     * bundler's.
+     */
+    if (ctx.updateApplier && !id.startsWith("\0")) {
       const boundaryId = ctx.compiler.getNormalizedId(id);
-      const affectedChunkIds = ctx.compiler.getAffectedChunks(boundaryId);
-
-      if (affectedChunkIds.length > 0) {
-        vLogger.debug(`Invalidating ${affectedChunkIds.length} affected chunks for ${boundaryId}`);
-        /**
-         * Stamp the invalidation, the same way the hot-update hook does.
-         *
-         * This is a second, independent invalidation path, and it set no
-         * timestamp at all — so modules invalidated from here carried no
-         * ordering token, and the bundler had nothing to rewrite their import
-         * query with. Two of these racing produced fetches the browser could
-         * apply in either order.
-         */
-        const stamp = Date.now();
-        for (const chunkModuleId of affectedChunkIds) {
-          for (const [modId, mod] of mg.idToModuleMap) {
-            if (modId.includes(chunkModuleId) && modId.includes("virtual:zintl")) {
-              vLogger.debug(`[HMR] Invalidating virtual module: ${modId}`);
-              mg.invalidateModule(mod);
-              mod.lastHMRTimestamp = stamp;
-            }
-          }
-        }
-      }
+      vLogger.debug(`Invalidating affected chunks for ${boundaryId}`);
+      ctx.updateApplier.applyChunkInvalidation(boundaryId, {
+        moduleGraph: this && this.environment ? this.environment.moduleGraph : undefined,
+      });
     }
 
     return result;

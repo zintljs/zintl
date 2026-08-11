@@ -444,6 +444,100 @@ export class ZintlCompiler {
   }
 
   /**
+   * {@link getBoundaryInputs}, but only where the host actually consumes it.
+   *
+   * Gated on `dependencyInvalidation` rather than reported to everyone, because
+   * on a host that is already *told* what to invalidate the same declaration is
+   * not redundant — it is harmful. Vite treats a declared dependency as a real
+   * one, so naming the catalog files here makes Zintl's own `flush()` writes
+   * re-enter as source changes and every catalog-writing contract times out.
+   * Measured, not reasoned about.
+   *
+   * Also dev-only: outside a watch build nothing consumes these at all.
+   */
+  private declaredInputsFor(boundaryId: string): string[] {
+    if (!this.isDev || !this._resolved.flags.dependencyInvalidation) return [];
+    return this.getBoundaryInputs(boundaryId);
+  }
+
+  /**
+   * Every file a boundary's generated catalog is derived from, as absolute paths.
+   *
+   * The inputs are the boundary's own source files — inverted out of
+   * `boundaryOwnership`, which maps the other way — plus the on-disk catalog for
+   * each locale. Together they are the complete answer to "what would change this
+   * generated module's output".
+   *
+   * This exists so a host can be *told* the dependency instead of being asked to
+   * infer it. Vite's hot-update hook works the other way round: it hands Zintl an
+   * event and Zintl walks the module graph deciding what to invalidate. Rspack
+   * has no such hook to hand back a module list from — it rebuilds whatever its
+   * own dependency graph says is stale, and a virtual module that declares no
+   * dependencies is never stale. Reported through `generateVirtualModule`'s
+   * existing `watchedFiles`, which every host already forwards to `addWatchFile`;
+   * it was returning an empty array for exactly the two module kinds that needed
+   * it. Proposal 029.
+   *
+   * Cheap enough to call per `load`: one pass over `boundaryOwnership` plus one
+   * `getCatalogPath` per locale, both in-memory.
+   */
+  public getBoundaryInputs(boundaryId: string): string[] {
+    const inputs = new Set<string>();
+
+    for (const [fileId, owners] of this.messages.boundaryOwnership.entries()) {
+      let owned = owners.has(boundaryId);
+      if (!owned) {
+        for (const owner of owners) {
+          if (this.io.getSafeBoundaryId(owner) === boundaryId) {
+            owned = true;
+            break;
+          }
+        }
+      }
+      if (owned) {
+        const real = this.resolveSourcePath(fileId);
+        if (real) inputs.add(real);
+      }
+    }
+
+    for (const locale of this.locales) {
+      const catPath = this.getCatalogPath(boundaryId, locale);
+      if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+    }
+
+    return Array.from(inputs);
+  }
+
+  /**
+   * Turn a normalized id back into a path that exists on disk.
+   *
+   * `boundaryOwnership` is keyed by `io.getNormalizedId`, which **strips the
+   * source extension** — `src/main.ts` is stored as `src/main`. That is right for
+   * identity, which is content-based and must not move when a file is renamed
+   * from `.ts` to `.tsx`; it is wrong for anything that hands the string to a
+   * filesystem.
+   *
+   * Handing the extensionless form to a host as a watched dependency was
+   * measured doing real damage rather than merely failing: Rspack accepted the
+   * dependency, found no such file, and reported `building removed src/main` on
+   * every cycle — a watch on a path that can never exist, and a generated module
+   * that therefore never went stale.
+   *
+   * `io.resolvedExtensions` is public for exactly this ("callers that probe
+   * extensionless dep ids"). Returns `undefined` rather than guessing when nothing matches, so
+   * a caller declares no dependency instead of a false one.
+   */
+  private resolveSourcePath(fileId: string): string | undefined {
+    const abs = isAbsolute(fileId) ? fileId : join(this.rootDir, fileId);
+    if (existsSync(abs)) return abs;
+    for (const ext of this.io.resolvedExtensions) {
+      const candidate = abs + (ext.startsWith(".") ? ext : `.${ext}`);
+      if (existsSync(candidate)) return candidate;
+    }
+    return undefined;
+  }
+
+  /**
    * Invalidate a file for one hot-update event, once, however many callers ask.
    *
    * The hot-update hook is invoked once *per environment* — a client pass, then
@@ -2329,7 +2423,7 @@ export class ZintlCompiler {
       }
       return {
         code,
-        watchedFiles: [],
+        watchedFiles: this.declaredInputsFor(bId),
       };
     }
 
@@ -2407,7 +2501,7 @@ export class ZintlCompiler {
     }
     return {
       code,
-      watchedFiles: [],
+      watchedFiles: this.declaredInputsFor(bId),
     };
   }
 }

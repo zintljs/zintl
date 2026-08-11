@@ -75,34 +75,81 @@ export function rspackFacet(): ZintlFacet {
     dynamicImportTemplate: (path: string): string => `import(${JSON.stringify(path)})`,
 
     /**
-     * The HMR token, and **no acceptance call**.
-     *
-     * This is a declaration of a known gap rather than an omission. Rspack uses
-     * `module.hot`, not `import.meta.hot`, so the inherited Vite snippet is
-     * simply wrong here — but emitting the `module.hot` equivalent would be
-     * worse: ZDB §7a makes dev support conditional on two load-bearing
-     * properties, a monotonic non-repeating per-event sequence and a `read()`
-     * scoped to that event, and neither has been shown to exist on this host.
-     * Shipping hot updates without them would ship back the ordering defect the
-     * delivery-bus specification exists to remove.
-     *
-     * Returning a function at all still matters: it takes core off its
-     * `import.meta.hot` fallback path. Wrong code is worse than no code.
+     * `ViteUpdateApplier`'s counterpart on this host is
+     * `RspackUpdateApplier` (`packages/zintl/src/hmr/rspack.ts`), contributed
+     * from the plugin's `rspack(compiler)` block. ZDB §7a's two load-bearing
+     * requirements are met here by facts about Rspack rather than by anything
+     * Zintl supplies: `Watching.startTime` is the monotonic per-event sequence,
+     * and `compiler.inputFileSystem` is the read scoped to that event. Proposal
+     * 029 §2.
      */
-    hmrInjectionCode: (_fileId: string, hmrToken: number): string => {
-      return hmrToken > 0 ? `\n\n// Zintl HMR Token: ${hmrToken}` : "";
+    hotUpdate: true,
+
+    /**
+     * Rspack rebuilds what its own dependency graph says is stale, and asks
+     * Zintl nothing — so a generated catalog that declares no inputs is never
+     * stale, whatever the hot-update hook does. Declaring this is what gets
+     * `getBoundaryInputs()` reported as `watchedFiles`, and it is why the
+     * generated content and manager modules rebuild in the *same* compilation
+     * as the source edit that dirtied them. Proposal 029 §3.
+     */
+    dependencyInvalidation: true,
+
+    /**
+     * The HMR token, plus acceptance where the framework allows it.
+     *
+     * The token is what makes the transformed source text actually differ, so
+     * the host emits an update at all. The acceptance branch mirrors
+     * `viteFacet`'s and rests on the same `RuntimeFacet.entryReexecutionSafe`
+     * decision — an entry mounts, and re-running a mount is safe or not
+     * depending on the framework, never on the bundler.
+     *
+     * Where it is *not* safe this emits nothing, rather than Vite's
+     * accept-then-invalidate. Same outcome by a different route: with no
+     * accepting module in the chain Webpack's update bubbles to the root and
+     * becomes a full reload, which is precisely what `import.meta.hot.invalidate()`
+     * arranges on Vite. There is no `invalidate()` to call here — the API has no
+     * such method — so declining to accept *is* the spelling.
+     */
+    hmrInjectionCode: (
+      _fileId: string,
+      hmrToken: number,
+      hasAnchors?: boolean,
+      entryReexecutionSafe = true,
+    ): string => {
+      let code = "";
+      if (hasAnchors && entryReexecutionSafe) {
+        code += `\n\nif (import.meta.webpackHot) {\n  import.meta.webpackHot.accept();\n}`;
+      }
+      if (hmrToken > 0) {
+        code += `\n\n// Zintl HMR Token: ${hmrToken}`;
+      }
+      return code;
     },
 
     /**
-     * Nothing, for the same reason {@link hmrInjectionCode} emits no acceptance
-     * call: Tier 2 is not implemented on this host.
+     * Self-acceptance for Zintl's own generated modules — and it **ignores its
+     * callback body**, which is the load-bearing difference between the two
+     * hosts' HMR APIs rather than an oversight.
      *
-     * Supplying the hook at all is still what matters. Before it existed the
-     * compiler hardcoded `import.meta.hot` for generated catalogs and managers
-     * and consulted no facet, so this host received Vite's API regardless.
-     * Declaring "no hot-update story yet" is the honest answer, and it is the
-     * one that stops the wrong one being emitted.
+     * Vite's `import.meta.hot.accept(cb)` calls `cb(newModule)` *after* swapping
+     * the module in, so a caller passes work to run against the new exports.
+     * Webpack's — and therefore Rspack's — `accept(cb)` treats `cb` as an **error
+     * handler** for failures while applying the update. It is never called on
+     * success. Emitting Vite's shape here would compile, run, and silently
+     * register the catalog re-registration as an error handler that never fires.
+     *
+     * Nothing is lost by dropping it, because Webpack achieves the same end
+     * differently: a self-accepted module has its **whole body re-executed**. The
+     * two callers that pass a body — the content module's `addCatalogs` and the
+     * manager's `registerLoader` — both do that work in their module body
+     * already, so re-execution runs it. The body is redundant here, not missing.
+     *
+     * `import.meta.webpackHot` rather than `module.hot`: the generated modules
+     * are ESM, and Webpack forbids `module.hot` in a strict ESM module. It is the
+     * spelling Rsbuild's own HMR client uses.
      */
-    hmrSelfAcceptCode: (): string => "",
+    hmrSelfAcceptCode: (): string =>
+      `\nif (import.meta.webpackHot) { import.meta.webpackHot.accept(); }`,
   };
 }
