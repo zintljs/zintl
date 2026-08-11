@@ -1138,3 +1138,189 @@ needs evidence this entry does not have:
 Recorded rather than fixed because two speculative fixes have already been reverted on this defect
 (L-028's correction), and the discipline that finally produced the diagnosis was measuring identity
 instead of guessing at mechanism.
+
+#### Attempted and rejected: reusing the store
+
+The first of L-030's two candidates was implemented, measured and reverted. Recording it because a
+negative result here is worth more than the guess it replaces — this is the third fix attempt on this
+defect, and the first one that failed for a _stated, verified_ reason rather than an unexamined one.
+
+**The change.** `loadI18nInstance` reused the live store instead of constructing a new one, gated on
+three conditions so the reuse could not do damage elsewhere: client only (SSR keeps a fresh store per
+call, because request scoping is the whole point of `AsyncLocalStorage` there); an existing store must
+be present; and **its locale must match the requested one**, since a store holds a single `locale` and
+two anchors on different languages — `zintl("fr")` nested inside `zintl(locale)` — would otherwise
+overwrite each other's.
+
+**Measured result: the reuse lands and the render is still blank.**
+
+```
+store reused across update : true
+page reloaded              : false
+catalog has new key        : true (5 keys)
+heading                    : ""
+```
+
+**Why it cannot work**, which the measurement then confirmed: discarding the store was never the
+operative cause. The blank comes from the _loader_ being stale, and reuse makes that strictly no
+better — worse, it takes the loader out of play entirely, because the module-level `registerLoader`
+(`store-core.ts`, the one `loadI18nInstance` calls) opens with
+
+```ts
+if (instance.catalogs[target]?.[boundaryId]) return;
+```
+
+so a reused store already carrying that boundary means the loader is never even invoked. A fourth
+"already present, skip the refresh" gate, joining the three L-028 catalogued.
+
+**Costs, for completeness.** It also churns nine production-output snapshots — the runtime ships — and
+the run showed `memory-leak` on `react-basic` failing on convergence (`full-reload: 1`, beacon stuck
+at 2). That is the same signature L-023 already records as open and flaky, and it was observed in this
+same session _before_ this change existed, so it is **not attributable** either way. Noted rather than
+claimed, and it did not affect the decision: a change that does not fix the defect does not earn a
+runtime behaviour change regardless.
+
+**What remains.** L-030's second candidate — stopping the generated manager from self-accepting on
+webpack, so its update bubbles to the entry and webpack hands the entry a fresh instance — is now the
+only live one, and it is the one the evidence points at: it addresses the stale loader directly.
+
+#### Attempted and rejected: declining self-acceptance on the manager
+
+L-030's second candidate, implemented and reverted. It **fixed the case it targeted and broke the
+other one**, which is the finding — the two are in direct tension, and neither this entry nor L-030
+had seen that.
+
+**The change.** `BundlerFacet.hmrSelfAcceptCode` gained a `kind` argument (`"content" | "manager"`),
+so a facet could decide per module kind. `viteFacet` ignored it, with a comment saying why. `rspackFacet`
+returned `""` for `"manager"`: declining to accept hands the update to the importer, so Webpack
+disposes the manager, re-executes the entry, and the entry's `__webpack_require__` re-instantiates a
+fresh manager — Vite's behaviour reached by Webpack's own rules.
+
+**Measured, five consecutive edits per locale, `node_modules/.zintl` cleared each run:**
+
+| Locale                       | Manager accepts (control) | Manager declines (the change) |
+| :--------------------------- | :------------------------ | :---------------------------- |
+| `en` — source, inlined, sync | **3/3 blank** (L-030)     | **0/5 blank** ✅              |
+| `ar` — lazy, dynamic import  | **0/5 blank**             | **3/5 blank** ❌              |
+
+**Why it cannot be a per-host boolean.** The manager's self-acceptance is _load-bearing for lazily
+loaded locales_: re-executing the manager module is what re-runs its IIFE, which calls `registerLoader`,
+which invokes the loader, which dynamically imports the fresh content chunk. Remove the acceptance and
+that refresh never happens — the `ar` runs show `catalogHasNewKey=false`, the catalog genuinely never
+arrives, which is a strictly worse failure than L-030's (where it arrived too late).
+
+So the _same_ acceptance simultaneously:
+
+- **refreshes** the lazily-loaded locales, by re-running the manager, and
+- **strands** the source locale, by stopping the update before it reaches the entry that captured the
+  manager by value.
+
+**What this rules out, and what it points at.** The fix is not "who accepts" — both answers are wrong
+for one locale each. It is that **the entry captures the loader by value**: the transform emits
+`loaders: { [bId]: _zintl_mgr_<b>.loader }`, freezing whatever module instance the importer resolved.
+`registerLoader` already maintains `globalRegistry`, a module-scope map that survives hot updates and
+always holds the most recently registered loader. An entry that resolved its loader _through that
+registry at call time_ would be immune to holding a stale module object, and neither locale's path
+would need to change. That is the next thing to try, and unlike the previous two candidates it
+addresses the capture rather than the propagation.
+
+**Both rejected candidates share one lesson**, worth more than either: L-030's diagnosis correctly
+identified _what_ the entry ends up holding, and both fixes then guessed at _which mechanism to
+suppress_ rather than at _why the value was captured at all_. The A/B above is what surfaced it, and
+it cost one run per candidate.
+
+#### Ruled out without implementing: resolving the loader through `globalRegistry`
+
+The third candidate, and the first one disproved by measurement _before_ being written — which is the
+only reason it cost one run instead of a build, a suite and a revert.
+
+**The idea.** The entry captures its loader by value
+(`loaders: { [bId]: _zintl_mgr_<b>.loader }`), freezing whichever module instance the importer
+resolved. `globalRegistry` (module scope in `store-core.ts`) survives hot updates and always holds the
+most recently registered loader, so resolving through it _at call time_ should hand the entry
+something current no matter which module object it happens to hold.
+
+**Why it cannot work.** It only helps if something fresher has been registered by the time the lookup
+happens. Instrumenting `I18nStore.prototype` — rather than the instance, which
+`loadI18nInstance` replaces on every entry re-execution — gives the ordering directly:
+
+```
+56.5ms  addCatalogs             carriesNewKey=false    ← entry seeds from the stale loader
+57.6ms  RENDER                  text=""                ← entry renders and misses
+85.6ms  manager.registerLoader  loaderIsFresh=true     ← fresh manager, 28ms later
+85.7ms  addCatalogs             carriesNewKey=true     ← fresh catalog, too late
+```
+
+At 57.6ms the registry contains only the stale loader; the fresh one does not exist until 85.6ms. A
+lookup at render time returns precisely what the entry already had.
+
+**What the number actually establishes**, and it is worth more than the rejected candidate: **no
+ordering-based fix can work.** The three candidates so far each tried to get a fresher value into the
+entry _before_ it renders — by not discarding the store, by changing who accepts, by resolving late —
+and the render happens 28ms before the fresh value exists on any of those paths. The entry cannot be
+made to render correctly by giving it a better source to read from, because at the moment it reads,
+nothing better exists anywhere on the page.
+
+**Which leaves exactly one shape.** The late arrival has to cause a **re-render**, rather than the
+render being made to wait for it. The store already publishes the signal — `addCatalogs` calls
+`notify()`, and `loadI18nInstance` returns a `subscribe`. Framework runtimes are wired to it through
+`clientReactivityImports`, which yields a **hypothesis worth testing before designing anything**: this
+defect may be confined to _non-reactive_ entries, i.e. vanilla apps re-assigning `innerHTML`, which
+subscribe to nothing and therefore cannot repaint when the catalog lands. `rsbuild-spa` is vanilla and
+is the only Rspack example, so the framework half of that hypothesis is currently **untested on this
+host** — stated as a hypothesis, not a finding.
+
+If it holds, the fix is a codegen concern rather than a runtime one: an entry that Zintl knows is
+re-executable (`entryReexecutionSafe`) and has no framework reactivity behind it should subscribe and
+re-run its own render. That is proposal-sized, and it should be designed rather than patched — three
+patches to this defect have now been reverted, and each was aimed at a mechanism rather than at the
+missing repaint.
+
+#### The vanilla-only hypothesis: supported, but not for the stated reason
+
+Tested, and the testing corrected the hypothesis twice before it produced an answer. Both corrections
+are recorded because each was a probe defect that would have been reported as a product finding.
+
+**Attempt 1 — invalid probe.** Added a store subscription to `rsbuild-spa`'s entry and A/B'd it
+against the unmodified app: 4/4 blank both ways, "hypothesis refuted". The probe guarded its
+`subscribe` call with a `globalThis` flag, which **survives module re-execution** — so the re-executed
+entry never re-subscribed and the listener stayed attached to the store `loadI18nInstance` had already
+replaced. A framework re-subscribes on every mount; the probe subscribed once, ever.
+
+**Attempt 2 — corrected flag, still invalid, and the correction is the finding.** Module-scope flag,
+so the entry re-subscribes to the store that is active now: still 4/4 blank. Not a probe bug this
+time — a category error in the analogy. In a vanilla app the subscriber's "re-render" calls
+`render()`, which calls `zintl()`, which expands to `loadI18nInstance` — **so it builds yet another
+new store, re-seeded from the same stale module binding, and renders blank again.** A framework
+re-render does nothing of the sort: it re-runs components, which re-call `_t`, which re-reads the
+store. Those are not the same operation, and treating them as one is what made both probes wrong.
+
+**The measurement that settles it.** After the update has landed, with the DOM still blank:
+
+```
+DOM heading now         : ""
+value a re-read returns : "Reread probe"
+```
+
+The store holds the correct string. Anything that merely _re-reads_ renders correctly; only something
+that re-hydrates does not.
+
+**So the hypothesis stands, with its reasoning replaced.** The dividing line is not "subscribes vs
+does not". It is **what a re-render is**:
+
+| Entry kind            | Re-render means                                                      | Outcome after the late catalog |
+| :-------------------- | :------------------------------------------------------------------- | :----------------------------- |
+| Framework             | re-run components → re-call `_t` → re-read                           | correct                        |
+| Vanilla (`innerHTML`) | re-run `render()` → `zintl()` → **new store from the stale binding** | still blank                    |
+
+**Consequences worth carrying forward.**
+
+- **"Give vanilla a subscription" is not the fix**, and the A/B proves it: 4/4 blank with a correct,
+  module-scoped subscription in place. Any fix must stop the re-render from re-hydrating, not merely
+  cause one.
+- The blast radius is smaller than L-030 assumed, but the _reason_ is not the one L-030 gave — so the
+  hypothesis was right by accident, which is worth as little as being wrong on purpose.
+- **Still not a direct test.** No framework app exists on this host, so the framework row above rests
+  on the measured store contents plus reading what a framework re-render does, not on running one. An
+  Rsbuild + React example would close it, and would be the honest prerequisite before scoping any fix
+  to "vanilla only".
