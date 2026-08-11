@@ -1,6 +1,6 @@
 # Proposal 029: The HMR Facet Seam, and Rsbuild as a Supported Target
 
-**Status**: COMPLETE — `vpr ci` green (794 unit tests, 130 contract cases across 23 files, up from 122). Two capabilities are deliberately unclaimed with stated reasons (§4.1), and the first of them, `memory`, is the named next item.
+**Status**: COMPLETE — `vpr ci` green (794 unit tests, 135 contract cases across 24 files, up from 122). Two capabilities are deliberately unclaimed with stated reasons (§4.1), and the first of them, `memory`, is the named next item. The most consequential finding is §4.2, which is not about Rsbuild at all.
 **Date**: 2026-08-11
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md), [027-completing-the-rsbuild-target.md](027-completing-the-rsbuild-target.md), [027-leak-ledger.md](027-leak-ledger.md), [028-rsbuild-support-status.md](028-rsbuild-support-status.md). This is the proposal 028 §6.4 said "is worth its own when someone picks it up."
 
@@ -81,11 +81,34 @@ Hot updates on `examples/rsbuild-spa`, driven manually before trusting any suite
 - Non-source-locale edit (`ar`, RTL, async catalog chunk): heading updated, sentinel survived, `dir="rtl"` preserved.
 - The delivery bus behaved correctly throughout, including a `superseded` with reason `already loaded` — Axiom D1 doing its job on a second host.
 
-One transient was observed and is **not yet explained**: on one of four edits, the catalog arrived and applied (ledger confirms `applied`) but the DOM stayed empty, and no later re-render corrected it. The three surrounding edits — including a first-edit-after-fresh-page-load on the same locale, tested specifically to rule that hypothesis out — were correct. It did not recur across the contract suite.
+One transient was observed during that pass and is now **explained and fixed** — see §4.2. It was the most valuable thing this proposal found, and it was not an Rsbuild defect.
+
+### 4.2 The empty-render transient: a latent Vite defect, surfaced by a second host (L-028)
+
+On one edit in four at `?lang=ar`, the heading rendered **empty** and stayed empty, while the ledger confirmed the fresh catalog `applied`.
+
+Repeating the symptom did not reproduce it — twenty-two automated edits across two timing profiles, zero empties. Chasing a race by waiting for it again is how a defect gets filed as "flaky" and left, so the reproduction was built from the mechanism instead, and the mechanism is this:
+
+| Path               | Started by                           | Records itself in                |
+| :----------------- | :----------------------------------- | :------------------------------- |
+| `registerLoader`   | a generated manager, as it evaluates | `pendingBoundaries` **only**     |
+| `loadLazyBoundary` | `zintl()`                            | `pendingBoundaries` + `inFlight` |
+
+`loadLazyBoundary` joins a concurrent load through `inFlight`, which `registerLoader` never wrote to — and it tested "already loaded" _before_ "already loading". A probe driving the real runtime (register a 250 ms loader, then immediately pull the same boundary) reported `inFlight: []` and a pull that returned in **0 ms** without the catalog already on its way.
+
+The symptom is blankness rather than staleness because the entry re-executes with the _new_ key and looks it up in the _old_ catalog; with no source-locale fallback the miss renders `""`. The architecture turned a silent staleness bug into a visible one — and a permanent one, since nothing re-renders after the late `addCatalogs`.
+
+**Vite never showed it, and the code said why.** The branch carried this comment, written long before:
+
+> _"Known limitation: this also skips a refresh… It does not bite in development, where hot updates push catalogs straight into `addCatalogs` rather than coming back through here."_
+
+True on Vite, which re-imports the whole chain with a fresh `?t=` so the content module applies before the entry re-renders. The clause "does not bite in development" was carrying an unstated "on Vite". Rspack re-executes the manager and the entry as independent modules, with the non-source-locale catalog behind a dynamic import, so the two genuinely interleave.
+
+Fixed by publishing `registerLoader`'s async load in `inFlight` and checking `inFlight` before the already-loaded test. Guarded by `tests/contracts/delivery-refresh.contract.spec.ts`, which drives the interleaving on purpose rather than waiting for it: **five projects fail without the fix, five pass with it, and four of the five are Vite.** This was never an Rsbuild defect — only an Rsbuild sighting, which is precisely what 026 built this harness to produce.
 
 ### 4.1 What the contract suite then found
 
-`rsbuild-spa` claims eleven capabilities and the suite runs 131 cases, at `retry: 0`. Three things surfaced that hand-testing had not, which is the argument for the contract layer in one paragraph:
+`rsbuild-spa` claims eleven capabilities and the suite runs 135 cases, at `retry: 0`. Three things surfaced that hand-testing had not, which is the argument for the contract layer in one paragraph:
 
 - **An unparseable file wedged the whole pipeline.** `watchRun` is a `tapPromise`, so a rejection propagates into Rspack's own compilation — and the most ordinary input in dev is a file saved mid-keystroke, which the extractor cannot parse. `syntax-recovery` timed out at 45s because the watcher had stopped, so the _recovery_ edit was never compiled either. Zintl declining to update an unparseable file is correct; taking the host's build pipeline down with it is not.
 - **The declared-dependency mechanism is wrong on Vite** — not redundant, actively harmful. Vite honours a declared dependency, so naming the catalog files there makes Zintl's own `flush()` writes re-enter as source changes; every catalog-writing contract on every Vite example timed out. Hence `BundlerFacet.dependencyInvalidation`, declared by `rspackFacet` and deliberately not by `viteFacet` (§3, and ZDB §7a's amended fourth row).

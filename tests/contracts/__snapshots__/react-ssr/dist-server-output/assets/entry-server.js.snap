@@ -298,9 +298,29 @@ var I18nStore = class {
 			const result = loader(target);
 			if (isThenable(result)) {
 				this.pendingBoundaries.add(boundaryId);
-				return result.then(processResult).catch((err) => {}).finally(() => {
+				/**
+				* Publish this load so {@link loadLazyBoundary} can join it.
+				*
+				* This path used to record itself only in `pendingBoundaries`, which
+				* nothing consults before serving a catalog — so an in-flight load
+				* started *here* was invisible to a caller asking for the same boundary
+				* *there*, and that caller was handed whatever was already present.
+				*
+				* Harmless when the catalogs are empty, which is the only case that
+				* existed before hot updates reached a host that re-executes the
+				* manager and the entry independently. On such a host it is the
+				* empty-render defect: the manager re-registers, this load goes out for
+				* the new catalog, the entry re-executes and reads the old one, and
+				* every key that exists only in the new one resolves to "" — because
+				* Zintl has no source-locale fallback, by design.
+				*/
+				const subject = target + "/" + boundaryId;
+				const inFlight = result.then(processResult).catch((err) => {}).finally(() => {
 					this.pendingBoundaries.delete(boundaryId);
+					if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
 				});
+				this.inFlight.set(subject, inFlight);
+				return inFlight;
 			}
 			processResult(result);
 		} catch (err) {}
@@ -308,14 +328,24 @@ var I18nStore = class {
 	loadLazyBoundary(boundaryId, loader) {
 		const target = this.locale;
 		const subject = target + "/" + boundaryId;
-		if (this.catalogs[target]?.[boundaryId]) return;
 		/**
 		* A concurrent request for a boundary already loading used to be dropped
 		* and handed back `undefined` — no promise to await, nothing to supersede,
 		* and a caller that believed it had triggered a load when it had not.
+		*
+		* Checked **before** the already-loaded test below, and the order is the
+		* fix rather than a tidy-up. A load is in flight precisely because
+		* something decided the present catalog needs replacing; serving the
+		* present one instead is choosing the older of two known states, which is
+		* the inverse of Axiom D1. The two tests only disagree while a refresh is
+		* outstanding, and that is exactly the window the empty-render defect lived
+		* in: the entry re-executed, found a stale-but-present catalog, returned in
+		* zero milliseconds, and rendered "" for every key the incoming catalog was
+		* about to supply.
 		*/
 		const joined = this.inFlight.get(subject);
 		if (joined) return joined;
+		if (this.catalogs[target]?.[boundaryId]) return;
 		this.pendingBoundaries.add(boundaryId);
 		const release = () => {
 			this.pendingBoundaries.delete(boundaryId);

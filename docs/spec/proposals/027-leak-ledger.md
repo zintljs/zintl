@@ -961,3 +961,72 @@ first pass is usually still running when the second arrives."_ `ensureDiscovered
 **Worth carrying forward**: "run once" and "run once, and make everyone else wait for it" are
 different requirements, and a boolean can only express the first. Any host with a parallel lifecycle
 hook turns the difference into a crash.
+
+### L-028 — a pull served stale while a push for the same boundary was in flight
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                 |
+| **Bucket**                  | N/A — a runtime defect, not a host leak                   |
+| **Facet contract changed?** | No                                                        |
+| **Affects**                 | **Both hosts.** Latent on Vite; Rspack made it reachable. |
+
+The one entry here that is not about a bundler at all, and the most valuable one for that reason.
+
+**What was seen.** During the proposal 029 dev-server verification, one edit in four on
+`examples/rsbuild-spa` at `?lang=ar` left the `<h1>` **empty** — and left it empty. The delivery
+ledger showed the fresh catalog `applied`. The store held the new key. The DOM did not, and nothing
+ever repaired it.
+
+**Not reproducible by repeating the symptom.** Twenty-two automated edits across two timing profiles
+— generous settle, and reload-then-edit-immediately — produced zero empties. Chasing a race by
+waiting for it to land again is how a defect gets recorded as "flaky" and left; the reproduction had
+to be built out of the _mechanism_ instead.
+
+**The mechanism, then confirmed deterministically.** The receiver has two ways in, and only one of
+them publishes what it is doing:
+
+| Path               | Started by                           | Records itself in                |
+| :----------------- | :----------------------------------- | :------------------------------- |
+| `registerLoader`   | a generated manager, as it evaluates | `pendingBoundaries` **only**     |
+| `loadLazyBoundary` | `zintl()`                            | `pendingBoundaries` + `inFlight` |
+
+`loadLazyBoundary` joins a concurrent load through `inFlight` — which `registerLoader` never wrote
+to — and it tested "already loaded" **before** "already loading". So a pull arriving during a push
+was handed whatever was already present. A probe driving the real runtime in a real browser
+(`registerLoader` with a 250 ms loader, then an immediate `loadLazyBoundary`) reported
+`inFlight: []`, `pending: [b_src_main_render]`, and a pull that returned in **0 ms** without the
+catalog that was already on its way.
+
+**Why the symptom was blankness rather than staleness.** The entry re-executes with the _new_ message
+key and looks it up in the _old_ catalog. There is no source-locale fallback — SPEC's first
+principle — so the miss renders `""`. The architecture converted a silent staleness bug into a
+visibly blank page, which is the outcome that principle exists to produce; it also means the failure
+mode is unmistakable once seen, and permanent, since nothing re-renders after the late `addCatalogs`.
+
+**Why Vite never showed it.** Vite re-imports the whole dependency chain with a fresh `?t=`, so the
+content module has applied before the entry re-renders — the ordering that makes the race harmless
+is Vite's, not Zintl's. Rspack re-executes the manager and the entry as independent modules and the
+content module for a non-source locale sits behind a dynamic import, so the two genuinely interleave.
+The pre-existing comment on this branch said as much and drew the wrong conclusion from it:
+
+> _"Known limitation: this also skips a refresh… It does not bite in development, where hot updates
+> push catalogs straight into `addCatalogs` rather than coming back through here."_
+
+True of one host. The clause "does not bite in development" was carrying an unstated "on Vite".
+
+**The fix.** `registerLoader`'s async path publishes itself in `inFlight`, and `loadLazyBoundary`
+checks `inFlight` **before** the already-loaded test. The ordering is the fix, not a tidy-up: a load
+is outstanding precisely because something decided the present catalog needs replacing, so answering
+from the present one chooses the older of two known states — the inverse of Axiom D1, reached by a
+different route than `delivery-ordering` covers.
+
+**Guarded by `tests/contracts/delivery-refresh.contract.spec.ts`**, which drives the interleaving
+through the store on purpose rather than waiting for it. Verified in both directions: five projects
+fail without the fix, five pass with it. **Four of those five are Vite** — this was never an Rsbuild
+defect, only an Rsbuild sighting.
+
+**The transferable lesson.** A comment asserting "this cannot bite" is a claim about the environment,
+and it inherits every assumption the environment happens to satisfy. A second host is what turns such
+a comment back into a question — which is the whole thesis of 026, arriving here two proposals later
+by a route nobody planned.
