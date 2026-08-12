@@ -1670,3 +1670,50 @@ project" declares React — which is what a real one does, and what the guess ha
 **Verified.** 798 unit tests, 142 contract cases, all green. Detection now reports `react` for
 `react-basic`/`react-ssr`/`rsbuild-react`, `svelte` for the Svelte examples, and `(none)` for the
 eleven genuinely framework-less projects that had been mislabelled.
+
+### L-035 — a non-reactive entry must decline the update, not accept and render empty
+
+|                             |                                                      |
+| :-------------------------- | :--------------------------------------------------- |
+| **Status**                  | **Fixed** — closes L-030 for vanilla apps            |
+| **Bucket**                  | **1 — declare it**                                   |
+| **Facet contract changed?** | Yes — `hmrInjectionCode` gains `hasClientReactivity` |
+| **Unblocked by**            | L-034                                                |
+
+The last of L-030. L-032 fixed framework apps by making them subscribe again; `rsbuild-spa` is vanilla
+and has nothing to subscribe.
+
+**The distinction the code was missing.** `entryReexecutionSafe` asks whether re-running an entry is
+_harmless_. Nothing asked whether it is _sufficient_, and on Webpack those come apart: a re-executed
+entry reads its imports from the module cache, so it can seed a fresh store from a manager that has
+not been replaced yet. A framework app survives this — something is subscribed, so the catalog
+arriving a moment later repaints it. A vanilla app's only repaint is re-running the entry, which
+repeats the same stale re-seed. Result: `""` for every key the incoming catalog was about to supply,
+permanently.
+
+`hmrInjectionCode` now receives `hasClientReactivity`, and `rspackFacet` requires it alongside
+`entryReexecutionSafe`. A non-reactive entry declines, the update bubbles, and the page reloads —
+slower than a hot update and correct, which is exactly the trade `viteFacet` already makes for
+frameworks whose mount is not replayable. Vite ignores the argument: re-importing an entry there
+re-fetches the whole chain, so re-execution is always sufficient.
+
+**This is the same change that was written and reverted one iteration earlier**, when it was inert:
+`react.ts` is the only preset declaring `clientReactivityImports`, and detection guessed React for
+everything, so "has reactivity" was true for every project including ones with no components. L-034
+removed the guess and the signal became real. Recorded because the ordering was not obvious in
+advance — the fix looked wrong until an unrelated-seeming defect was cleared out from under it.
+
+**A measurement lesson, again.** An ad-hoc probe reported this still failing: `reloaded=true` but the
+heading blank across three successive edits, with `hasKey=true` on the store. A single edit driven
+with an explicit `page.reload({ waitUntil: "load" })` rendered correctly. The probe was evaluating
+into a document that was mid-reload — reload-based flows cannot be measured with a fixed `sleep`, and
+the contract harness's `textEventually` polling is the instrument that can. Both `hmr` and
+`hmr-stress` pass on `rsbuild-spa` and are claimed again.
+
+**Still not `memory`.** Twenty sequential edits are now twenty reloads, and a reload resets the settle
+beacon to the value it already had — the exact shape `waitForSettled` cannot confirm (L-029). It would
+also measure nothing, since a reload resets the heap. Inferred from L-029's measured mechanism rather
+than re-measured.
+
+**L-030 is now closed**: framework apps hot-update (L-032), vanilla apps reload correctly (this
+entry).

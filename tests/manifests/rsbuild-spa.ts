@@ -66,27 +66,35 @@ export const rsbuildSpa: ProjectManifest = {
    * window — that contract needs rewriting against built output before either
    * host should claim it.
    *
-   * **Not `hmr`, and this is a retraction.** Proposal 029 built the facet seam
-   * and hot updates were verified by hand against a real `rsbuild dev` — that
-   * still holds. What did not hold was the contract-level claim: the harness was
-   * reloading the page on every mutation rather than hot-updating (L-029), so
-   * these contracts passed by converging through a reload. Fixing the harness to
-   * run its dev server in development mode makes it exercise genuine hot
-   * updates, and the L-030 empty-render defect then fails `hmr` here honestly —
-   * `expected '' to contain 'HMR works!'`, with the catalog applied and no
-   * reload.
+   * **The L-030 empty render is fixed here, and `hmr` is still not claimed —
+   * for capacity, not capability.** A vanilla entry cannot recover from a late
+   * catalog: its only repaint is re-running the entry, which rebuilds the store
+   * from a module binding Webpack has cached. So the entry now declines to
+   * accept and the update bubbles to a full page reload — slower than a hot
+   * update and correct (ledger L-035). The `hmr` contract passes here when run
+   * on its own.
    *
-   * Claiming it again is gated on L-030, not on more harness work. Note
-   * `hmr-stress` does *not* require `hmr`, so it has to be dropped explicitly
-   * too — claiming it alone would select `hmr-hammer` and fail rather than skip.
+   * It is left unclaimed because every edit is now a full reload, which is
+   * markedly more expensive than a hot update, and the full suite began timing
+   * out on `rsbuild-react` when it was claimed. Whether that is a real capacity
+   * limit is **not established**: the timeouts moved between runs and reached
+   * projects this change cannot affect (`memory-leak` on `svelte-basic`, a Vite
+   * project), which is the signature of a loaded machine rather than of the
+   * suite. Re-measure on a quiet one before deciding.
    *
-   * **Not `memory`.** Downstream of `hmr`: the contract requires it, so this is
-   * moot until L-030 is fixed. The earlier measurement stands as history — four
-   * of twenty iterations inside the 45s budget, at a flat `mutation=10220ms`
-   * each — but its stated cause was the harness reloading rather than
-   * hot-updating (L-029), and that has since been fixed at the driver. Whether a
-   * throughput problem remains underneath is unmeasured, because the defect
-   * above now fails first.
+   * Nothing is unguarded in the meantime. The codegen decision is recorded by
+   * this project's dev-transform snapshot — the entry no longer emits
+   * `webpackHot.accept()` — and the runtime outcome is covered by
+   * `rsbuild-react`, which exercises the same host with reactivity present. The
+   * `hmr` contract also passes here when run on its own.
+   *
+   * **Not `memory`.** `memory-leak` drives twenty sequential edits, and each one
+   * here is a page reload. A reload resets the settle beacon to the same value
+   * it had before, which is precisely the shape `waitForSettled` cannot confirm
+   * (L-029) — so every iteration would wait out its full timeout. It would also
+   * be measuring nothing: a reload resets the heap, so "growth across twenty
+   * hot updates" has no meaning when there are no hot updates. Inferred from
+   * L-029's measured mechanism rather than re-measured here.
    *
    * **Not `chaos`.** A limitation of `chaos-boundary`, not of this host: it
    * renames the file holding the heading, and here that file is the entry, which

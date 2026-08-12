@@ -91,6 +91,13 @@ export function viteFacet(): ZintlFacet {
          * Accepting-then-invalidating rather than staying silent keeps the
          * decision explicit and greppable: "Zintl knows this file cannot
          * hot-replace itself", not "nobody thought about this file".
+         *
+         * `hasClientReactivity` is deliberately ignored here. It exists for
+         * hosts where re-executing an entry is harmless but not *sufficient* —
+         * Webpack re-runs against a module cache, so a non-reactive app can
+         * re-seed itself from a stale manager with nothing to repaint the
+         * result. Vite re-imports the whole chain, so re-execution always yields
+         * the current catalog and no repaint is needed.
          */
         code += entryReexecutionSafe
           ? selfAcceptHmrSnippet(fileId)

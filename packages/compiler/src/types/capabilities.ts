@@ -435,6 +435,23 @@ export interface BundlerFacet extends BaseFacet {
     hmrToken: number,
     hasAnchors?: boolean,
     entryReexecutionSafe?: boolean,
+    /**
+     * Whether anything on the page will repaint when a catalog arrives late —
+     * i.e. whether a framework runtime subscribes to the store.
+     *
+     * Distinct from {@link entryReexecutionSafe}, which asks whether re-running
+     * the entry is *harmless*. This asks whether it is *sufficient*, and the two
+     * come apart per host. On Vite re-execution re-imports the whole chain, so
+     * it always yields the current catalog. On Webpack a re-executed entry reads
+     * its imports from the module cache, so it can seed itself from a manager
+     * that has not been replaced yet — and with nothing subscribed to repair the
+     * result, a non-reactive app renders empty and stays that way (L-030).
+     *
+     * Only answerable since L-034 stopped detection guessing React: before that
+     * every project reported having reactivity, including ones with no
+     * components at all.
+     */
+    hasClientReactivity?: boolean,
   ) => string;
 }
 
@@ -687,6 +704,7 @@ export interface CompilerSystemView {
         hmrToken: number,
         hasAnchors?: boolean,
         entryReexecutionSafe?: boolean,
+        hasClientReactivity?: boolean,
       ) => string)
     | undefined;
 

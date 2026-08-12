@@ -143,6 +143,7 @@ interface MergeState {
         hmrToken: number,
         hasAnchors?: boolean,
         entryReexecutionSafe?: boolean,
+        hasClientReactivity?: boolean,
       ) => string)
     | undefined;
   hmrInjectionCodeProvider: string;

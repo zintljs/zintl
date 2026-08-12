@@ -1814,11 +1814,19 @@ export class ZintlCompiler {
       if (hmrFn) {
         const fileMeta = this.messages.metadataGraph?.[fileId];
         const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
+        /**
+         * A framework runtime declares the hook it needs through
+         * `clientReactivityImports`; a project with none has only its entry, and
+         * on some hosts re-running that is not enough (see the hook's docs).
+         */
+        const hasClientReactivity =
+          Object.keys(this._resolved.system.clientReactivityImports ?? {}).length > 0;
         const hmrCode = hmrFn(
           fileId,
           hmrToken,
           hasAnchors,
           this._resolved.flags.entryReexecutionSafe,
+          hasClientReactivity,
         );
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");

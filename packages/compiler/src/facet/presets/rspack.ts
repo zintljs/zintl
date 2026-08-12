@@ -116,9 +116,26 @@ export function rspackFacet(): ZintlFacet {
       hmrToken: number,
       hasAnchors?: boolean,
       entryReexecutionSafe = true,
+      hasClientReactivity = true,
     ): string => {
       let code = "";
-      if (hasAnchors && entryReexecutionSafe) {
+      /**
+       * Accepting requires re-execution to be both *harmless* and *sufficient*,
+       * and on this host those come apart.
+       *
+       * Webpack re-executes an accepting module against the module cache, so a
+       * re-run entry can read a manager that has not been replaced yet and seed
+       * itself from a catalog predating the edit. A framework app survives that:
+       * something is subscribed, so the catalog landing a moment later repaints
+       * it. An app with no reactivity has only this re-execution, and renders
+       * `""` for every key the incoming catalog was about to supply —
+       * permanently, because nothing repaints (ledger L-030).
+       *
+       * So a non-reactive entry declines, and the update bubbles to a full
+       * reload: slower than a hot update and *correct*, which is the trade Vite
+       * already makes for frameworks whose mount is not replayable.
+       */
+      if (hasAnchors && entryReexecutionSafe && hasClientReactivity) {
         code += `\n\nif (import.meta.webpackHot) {\n  import.meta.webpackHot.accept();\n}`;
       }
       if (hmrToken > 0) {
