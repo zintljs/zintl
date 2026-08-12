@@ -9,7 +9,7 @@ so any difference in output is attributable to the **host** rather than to the
 app.
 
 ```bash
-pnpm dev      # rsbuild dev     — with hot updates
+pnpm dev      # rsbuild dev     — string edits apply, via a page reload (see below)
 pnpm build    # tsc && rsbuild build
 pnpm preview  # rsbuild preview
 ```
@@ -49,10 +49,25 @@ is worse than one with a known gap.
 | **Preloading**  | The projection injects no `<link rel="modulepreload">` here. Catalogs still load, one network round-trip later than they would on Vite                  |
 | **SSR**         | Unbuilt and unexamined                                                                                                                                  |
 
-**Hot updates work as of [proposal 029](../../../docs/spec/proposals/029-rsbuild-hmr-facet-seam.md).**
-`pnpm dev` applies a string edit without reloading the page, on the source locale
-and on lazily-loaded ones alike. Two things made that possible, and the second is
-the interesting one:
+**Dev-time string edits work as of [proposal 029](../../../docs/spec/proposals/029-rsbuild-hmr-facet-seam.md)
+— and in this app they arrive through a full page reload, which is deliberate.**
+`pnpm dev` picks up an edit on the source locale and on lazily-loaded ones alike;
+measured here, the text is correct either way and `<html dir>` survives.
+
+The reload is the honest half of the story and this app is the reason. Zintl's
+hot-update path replaces a catalog and expects _something_ to repaint. A
+framework app has that — a component re-reads the catalog and renders again, and
+[`examples/rsbuild-react`](../rsbuild-react) does apply edits in place with no
+reload. A vanilla app's only repaint is re-running the entry, and on Rspack a
+re-executed entry reads its imports from the module cache: it can re-seed itself
+from a manager that has not been replaced yet and render `""` for every key the
+incoming catalog was about to supply. So the entry **declines** the update, it
+bubbles, and the page reloads — slower than a hot update and correct, which is the
+trade Vite already makes for frameworks whose mount is not replayable
+([L-035](../../../docs/spec/proposals/027-leak-ledger.md)).
+
+Two things made the underlying machinery possible, and the second is the
+interesting one:
 
 - Rspack supplies both guarantees Zintl's delivery bus requires, from its own
   machinery rather than anything Zintl invents — `Watching.startTime` is the

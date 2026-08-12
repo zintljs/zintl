@@ -143,7 +143,11 @@ export default defineConfig({
 
 Every option above applies the same way — `zintljs/rsbuild` is the same plugin behind a different entry point, not a second implementation.
 
-Production builds and `rsbuild dev` — including hot updates — both work: chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir`, and dev-time string edits without a page reload all carry over from the Vite integration with no Rspack-specific code in the compiler. Two things do not:
+Production builds and `rsbuild dev` both work: chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir` and dev-time string edits all carry over from the Vite integration, with no Rspack-specific code in the compiler.
+
+**How a dev edit arrives differs by app, and it is worth knowing which you have.** In a framework app the edit applies in place, with no page reload — a component re-reads the catalog and renders again. In an app with no such components the page reloads instead. That is deliberate rather than a limitation: on Rspack a re-executed entry reads its imports from the module cache, so an app whose only repaint is re-running its entry could otherwise re-seed itself from a stale catalog and render empty strings. Declining the update and reloading is slower and correct. Today React is the framework that supplies the in-place path; a plain-JavaScript app gets the reload.
+
+Two things are not supported:
 
 | Not supported | What happens                                                                                                                                                                      |
 | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -152,7 +156,7 @@ Production builds and `rsbuild dev` — including hot updates — both work: chu
 
 Install `@rsbuild/core` yourself — it is an optional peer dependency, tested against `^2.1.0`.
 
-See [`examples/rsbuild-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-spa) for a working app, and `docs/spec/proposals/026`–`029` for how each of these was established.
+See [`examples/rsbuild-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-spa) for a working plain-JavaScript app and [`examples/rsbuild-react`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-react) for a framework one — between them they cover both dev behaviours above — and `docs/spec/proposals/026`–`030` for how each of these was established.
 
 ## Output
 

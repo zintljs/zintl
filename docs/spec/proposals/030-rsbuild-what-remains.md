@@ -153,6 +153,33 @@ the entry from being the thing that re-executes."
 
 ## 4. The over-claim: hot updates on Rspack are React-only
 
+> **DONE.** The claim held, it is now measured rather than read, and the corrections are in. Two
+> things are worth carrying forward.
+>
+> **The inventory below was incomplete.** It named three locations; there were **five**. The two it
+> missed were `docs/architecture.md` ("feature parity for SPA builds _and_ dev-time hot updates") and
+> `examples/rsbuild-react/README.md`, which opened by crediting `rsbuild-spa` with hot updates —
+> the app that reloads. An audit assembled by grepping the phrase it expected found the phrasings it
+> expected; the two misses used different words for the same claim.
+>
+> **Measured against real dev servers on 2026-08-12**, which is what §9 said had to happen before the
+> wording could be chosen:
+>
+> | App                           | Edits | Text correct | Page reloaded |
+> | :---------------------------- | :---- | :----------- | :------------ |
+> | `rsbuild-react` (component)   | 4     | 4 / 4        | never         |
+> | `rsbuild-spa` (vanilla entry) | 2     | 2 / 2        | **both**      |
+>
+> The `rsbuild-spa` pass covered the source locale and `?lang=ar`, since the README claimed both;
+> `<html dir="rtl">` survived the reload and the Arabic text correctly did **not** change, because the
+> edit was to the source string and reconciliation remapped the key.
+>
+> The corrected docs describe the **rule** — an app whose components re-read the catalog repaints in
+> place, one without them reloads — and then name React as today's instance, rather than stating the
+> instance as if it were the rule. `architecture.md` gained a sentence putting that where it belongs:
+> it is a framework question, not a bundler one, which is why the bundler-agnostic claim above it is
+> unaffected.
+
 **Established by reading the code, corroborated by L-035's own measurements, not independently
 re-measured in a browser here.**
 
@@ -168,13 +195,16 @@ So on Rspack, **every non-React app declines the update and full-reloads per edi
 it is deliberate, and it is correct — a vanilla entry re-seeds its store from a module binding Webpack
 has cached, so accepting would render `""` permanently. Reloading is the honest trade.
 
-What is not correct is how it is described. Three places currently tell a user the opposite:
+What is not correct is how it is described. Five places told a user the opposite — the first three
+were found by this audit, the last two only once the corrections were being written:
 
-| Location                         | Says                                                              |
-| :------------------------------- | :---------------------------------------------------------------- |
-| `examples/rsbuild-spa/README.md` | "`pnpm dev` applies a string edit **without reloading the page**" |
-| `examples/rsbuild-spa/README.md` | "`pnpm dev  # rsbuild dev — with hot updates`"                    |
-| `docs/configuration.md:146`      | "dev-time string edits **without a page reload**"                 |
+| Location                           | Said                                                              |
+| :--------------------------------- | :---------------------------------------------------------------- |
+| `examples/rsbuild-spa/README.md`   | "`pnpm dev` applies a string edit **without reloading the page**" |
+| `examples/rsbuild-spa/README.md`   | "`pnpm dev  # rsbuild dev — with hot updates`"                    |
+| `docs/configuration.md`            | "dev-time string edits **without a page reload**"                 |
+| `docs/architecture.md`             | "feature parity for SPA builds _and_ dev-time **hot updates**"    |
+| `examples/rsbuild-react/README.md` | "`rsbuild-spa` established that Zintl builds and **hot-updates**" |
 
 The first two are on the one app where it reloads. **Nothing catches this**, and the reason is worth
 recording: the `hmr` contract asserts the heading reaches the new text, and a reload reaches it. The
@@ -275,17 +305,17 @@ something checkable rather than something assumed.
 Every one of these was true at the moment it was written and is false now. Collected because a
 "supported" claim is only as good as the least accurate thing next to it.
 
-| Location                                                 | Says                                                                                                                                                        |
-| :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/zintl/src/rsbuild.ts`                          | Not a supported target; hot updates not attempted (§5.1)                                                                                                    |
-| `README.md`, `packages/zintl/README.md`                  | Vite-only (§5.2)                                                                                                                                            |
-| `examples/rsbuild-spa/README.md`, `configuration.md:146` | Edits apply without a reload (§4)                                                                                                                           |
-| `tests/manifests/rsbuild-react.ts`                       | "**Not `hmr`** … 4/4 blank headings" — while the list below it claims `hmr`                                                                                 |
-| `examples/rsbuild-react/README.md`                       | Same, as its current measured state                                                                                                                         |
-| `packages/testing/src/contracts/types.ts:123`            | An `"rsbuild"` driver is "a 026 falsification target, not a supported configuration … should claim only build-time capabilities"                            |
-| `pnpm-workspace.yaml:13`                                 | "Not a supported target"                                                                                                                                    |
-| `docs/spec/proposals/027-…md`                            | Status still **IN PROGRESS**                                                                                                                                |
-| `docs/spec/proposals/029-…md`                            | Header still says `hmr`/`hmr-stress` were dropped from `rsbuild-spa` — L-035 re-claimed both, and L-036 explained the timeouts that motivated dropping them |
+| Location                                                           | Says                                                                                                                                                        |
+| :----------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/zintl/src/rsbuild.ts`                                    | Not a supported target; hot updates not attempted (§5.1)                                                                                                    |
+| `README.md`, `packages/zintl/README.md`                            | Vite-only (§5.2)                                                                                                                                            |
+| ~~`rsbuild-spa/README.md`, `configuration.md`, `architecture.md`~~ | ~~Edits apply without a reload (§4)~~ — **corrected**                                                                                                       |
+| `tests/manifests/rsbuild-react.ts`                                 | "**Not `hmr`** … 4/4 blank headings" — while the list below it claims `hmr`                                                                                 |
+| `examples/rsbuild-react/README.md`                                 | Same, as its current measured state. Its opening hot-update claim was corrected by §4; the "4/4 blank" body and Status section remain                       |
+| `packages/testing/src/contracts/types.ts:123`                      | An `"rsbuild"` driver is "a 026 falsification target, not a supported configuration … should claim only build-time capabilities"                            |
+| `pnpm-workspace.yaml:13`                                           | "Not a supported target"                                                                                                                                    |
+| `docs/spec/proposals/027-…md`                                      | Status still **IN PROGRESS**                                                                                                                                |
+| `docs/spec/proposals/029-…md`                                      | Header still says `hmr`/`hmr-stress` were dropped from `rsbuild-spa` — L-035 re-claimed both, and L-036 explained the timeouts that motivated dropping them |
 
 The `rsbuild-react` pair is the instructive one: the manifest's prose argues _against_ a claim its own
 capability list makes, four lines below. That is what happens when a capability is earned in one

@@ -16,10 +16,13 @@ host — the same discipline `rsbuild-spa` applies against
 
 ## Why it exists
 
-`rsbuild-spa` established that Zintl builds and hot-updates through Rspack, but
-it is vanilla. That left every framework-shaped question on this host answerable
-only by inference from the Vite examples — and one such inference turned out to
-be wrong the moment it was tested here.
+`rsbuild-spa` established that Zintl builds and picks up dev edits through
+Rspack, but it is vanilla — and vanilla turned out to be the case that _cannot_
+apply an edit in place, so it reloads instead ([L-035](../../docs/spec/proposals/027-leak-ledger.md)).
+This app is the one that hot-updates: measured, four consecutive edits apply with
+no page reload. That left every framework-shaped question on this host answerable
+only by inference from the Vite examples until it existed — and one such inference
+turned out to be wrong the moment it was tested here.
 
 The specific question was the **vanilla-only hypothesis**
 ([`027-leak-ledger.md`](../../docs/spec/proposals/027-leak-ledger.md), L-030): the
