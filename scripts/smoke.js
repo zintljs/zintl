@@ -21,19 +21,32 @@ import { fileURLToPath } from "node:url";
  *  - the fixture lives in the OS temp dir: inside the workspace, pnpm would
  *    link the real packages and mask exactly the bugs we are hunting.
  *
+ * Every published entry point needs a run here, not just the popular one. A
+ * consumer's `npm install` resolves `unplugin`, `@rsbuild/core` and the `./rsbuild`
+ * export through none of the machinery a pnpm workspace provides, and ledger L-004's
+ * own subject — unplugin materialising virtual modules under `node_modules/.virtual/`
+ * — is exactly the kind of behaviour that can differ between the two.
+ *
  * Usage:
- *   node scripts/smoke.js                 # default Vite matrix
- *   node scripts/smoke.js --vite=8        # single version
+ *   node scripts/smoke.js                 # Vite matrix, then Rsbuild
+ *   node scripts/smoke.js --vite=8        # single Vite version, then Rsbuild
+ *   node scripts/smoke.js --vite=none     # Rsbuild only
+ *   node scripts/smoke.js --no-rsbuild    # Vite only
  *   node scripts/smoke.js --keep          # leave the fixture for inspection
  */
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_MATRIX = ["6", "7", "8"];
 
+/** Matches the `@rsbuild/core` range `zintljs` declares as an optional peer. */
+const RSBUILD_RANGE = "^2.1.0";
+
 const args = process.argv.slice(2);
 const keep = args.includes("--keep");
+const withRsbuild = !args.includes("--no-rsbuild");
 const viteArg = args.find((a) => a.startsWith("--vite="));
-const matrix = viteArg ? viteArg.slice("--vite=".length).split(",") : DEFAULT_MATRIX;
+const requestedMatrix = viteArg ? viteArg.slice("--vite=".length).split(",") : DEFAULT_MATRIX;
+const matrix = requestedMatrix.filter((v) => v && v !== "none");
 
 let failures = 0;
 
@@ -92,16 +105,57 @@ function packAll(destination) {
   return tarballs;
 }
 
-function writeFixture(dir, tarballs, viteMajor) {
-  fs.mkdirSync(path.join(dir, "src"), { recursive: true });
-
-  // Every @zintljs/* dep is redirected to its local tarball via `overrides`,
-  // because those exact versions are not on the registry yet.
+/**
+ * Redirect every `@zintljs/*` dep to its local tarball.
+ *
+ * Those exact versions are not on the registry yet, and `overrides` is the only
+ * mechanism npm honours for a transitive dependency of a `file:` tarball.
+ */
+function tarballOverrides(tarballs) {
   const overrides = {};
   for (const [name, tarball] of Object.entries(tarballs)) {
     if (name !== "zintljs") overrides[name] = `file:${tarball}`;
   }
+  return overrides;
+}
 
+/**
+ * The application itself — identical for every host.
+ *
+ * Deliberately so, and for the same reason `examples/rsbuild-spa` mirrors
+ * `examples/vanilla-spa-basic`: if the app is the same, any difference in the
+ * result is attributable to the host rather than to what it was asked to build.
+ *
+ * The anchor is dynamic (not `zintl("en")`) so BOTH locales are emitted as
+ * chunks. With a literal the compiler correctly drops the unreachable `ar`
+ * catalog, which would make the translation assertion a false negative on an
+ * otherwise perfect build.
+ */
+function writeApp(dir, { scriptTag }) {
+  fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+
+  fs.writeFileSync(
+    path.join(dir, "index.html"),
+    `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n` +
+      `    <title>Zintl smoke test</title>\n  </head>\n  <body>\n` +
+      `    <div id="app"></div>\n${scriptTag}` +
+      `  </body>\n</html>\n`,
+  );
+
+  fs.writeFileSync(
+    path.join(dir, "src/main.js"),
+    `import { zintl } from "zintljs/macro";\n\n` +
+      `async function render() {\n` +
+      `  const lang = new URLSearchParams(window.location.search).get("lang") || "en";\n` +
+      `  await zintl(lang);\n` +
+      `  document.querySelector("#app").innerHTML = \`<h1>Hello world</h1><p>Welcome to the application.</p>\`;\n` +
+      `}\n\n` +
+      `render();\n`,
+  );
+}
+
+function writeFixture(dir, tarballs, viteMajor) {
+  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(
     path.join(dir, "package.json"),
     `${JSON.stringify(
@@ -114,7 +168,7 @@ function writeFixture(dir, tarballs, viteMajor) {
           zintljs: `file:${tarballs.zintljs}`,
           vite: `^${viteMajor}.0.0`,
         },
-        overrides,
+        overrides: tarballOverrides(tarballs),
       },
       null,
       2,
@@ -131,28 +185,53 @@ function writeFixture(dir, tarballs, viteMajor) {
       `});\n`,
   );
 
+  writeApp(dir, {
+    scriptTag: `    <script type="module" src="/src/main.js"></script>\n`,
+  });
+}
+
+/**
+ * The same app, built by Rsbuild through the `zintljs/rsbuild` entry point.
+ *
+ * Two differences from the Vite fixture, both of them the host's rather than
+ * ours: the entry is named in the config (`source.entry`) instead of by a
+ * `<script src>` in the template — which is the whole of ledger L-021 — and the
+ * config is `.mjs`, matching what `examples/rsbuild-spa` ships and what the
+ * documentation tells a user to write.
+ */
+function writeRsbuildFixture(dir, tarballs) {
+  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(
-    path.join(dir, "index.html"),
-    `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n` +
-      `    <title>Zintl smoke test</title>\n  </head>\n  <body>\n` +
-      `    <div id="app"></div>\n    <script type="module" src="/src/main.js"></script>\n` +
-      `  </body>\n</html>\n`,
+    path.join(dir, "package.json"),
+    `${JSON.stringify(
+      {
+        name: "zintl-smoke-rsbuild",
+        private: true,
+        type: "module",
+        version: "0.0.0",
+        dependencies: {
+          zintljs: `file:${tarballs.zintljs}`,
+          "@rsbuild/core": RSBUILD_RANGE,
+        },
+        overrides: tarballOverrides(tarballs),
+      },
+      null,
+      2,
+    )}\n`,
   );
 
-  // A dynamic anchor (not a static literal) so BOTH locales are emitted as
-  // chunks. With `zintl("en")` the compiler correctly drops the unreachable
-  // `ar` catalog, which would make the translation assertion below a false
-  // negative on an otherwise perfect build.
   fs.writeFileSync(
-    path.join(dir, "src/main.js"),
-    `import { zintl } from "zintljs/macro";\n\n` +
-      `async function render() {\n` +
-      `  const lang = new URLSearchParams(window.location.search).get("lang") || "en";\n` +
-      `  await zintl(lang);\n` +
-      `  document.querySelector("#app").innerHTML = \`<h1>Hello world</h1><p>Welcome to the application.</p>\`;\n` +
-      `}\n\n` +
-      `render();\n`,
+    path.join(dir, "rsbuild.config.mjs"),
+    `import { defineConfig } from "@rsbuild/core";\n` +
+      `import zintl from "zintljs/rsbuild";\n\n` +
+      `export default defineConfig({\n` +
+      `  plugins: [...zintl({ sourceLocale: "en", locales: ["en", "ar"] })],\n` +
+      `  source: { entry: { index: "./src/main.js" } },\n` +
+      `  html: { template: "./index.html" },\n` +
+      `});\n`,
   );
+
+  writeApp(dir, { scriptTag: "" });
 }
 
 const TRANSLATIONS = {
@@ -268,6 +347,73 @@ function smokeOne(viteMajor, tarballs, workspace) {
   pass("translated content is present in the output");
 }
 
+/**
+ * The same four phases as {@link smokeOne}, against `zintljs/rsbuild`.
+ *
+ * Kept as its own function rather than parameterising the Vite one: the two
+ * share their assertions, not their mechanics — a different config file, a
+ * different CLI, and an entry declared in config rather than in the template.
+ * Folding them together would mean a host-shaped conditional in the middle of
+ * every phase, which is the shape this project spends its proposals removing.
+ */
+function smokeRsbuild(tarballs, workspace) {
+  log(`\n[1m── Rsbuild ──────────────────────────────[22m`);
+  const dir = path.join(workspace, "rsbuild");
+  writeRsbuildFixture(dir, tarballs);
+
+  const install = run("npm", ["install", "--silent", "--no-audit", "--no-fund"], dir);
+  if (install.status !== 0) {
+    fail("npm install failed", install.stderr || install.stdout);
+    return;
+  }
+  pass("installs cleanly with npm (optional peer resolves, no protocol leak)");
+
+  const resolvedRsbuild = JSON.parse(
+    fs.readFileSync(path.join(dir, "node_modules/@rsbuild/core/package.json"), "utf8"),
+  ).version;
+  pass(`resolved stock @rsbuild/core@${resolvedRsbuild}`);
+
+  // The integrity failure is the proof that `zintljs/rsbuild` resolved, loaded
+  // through unplugin's Rspack target, and extracted the strings.
+  const first = run("npx", ["rsbuild", "build"], dir);
+  const firstOutput = `${first.stdout}${first.stderr}`;
+  if (first.status === 0) {
+    fail("expected the integrity check to reject empty translations, but the build passed");
+  } else if (firstOutput.includes("Integrity Error")) {
+    pass("plugin extracted strings and blocked the build on empty translations");
+  } else {
+    fail("build failed for an unexpected reason", firstOutput);
+    return;
+  }
+
+  const filled = fillCatalogs(dir);
+  if (filled.length === 0) {
+    fail("no target catalogs were scaffolded");
+    return;
+  }
+  pass(`scaffolded and filled ${filled.length} catalog file(s): ${filled.join(", ")}`);
+
+  const second = run("npx", ["rsbuild", "build"], dir);
+  if (second.status !== 0) {
+    fail("build failed after translations were supplied", `${second.stdout}${second.stderr}`);
+    return;
+  }
+  pass("builds successfully");
+
+  const dist = readDistText(dir);
+  if (!dist.includes("Hello world")) {
+    fail("source-locale content is missing from the build output");
+    return;
+  }
+  pass("source-locale content is baked into the output");
+
+  if (!dist.includes(TRANSLATIONS["Hello world"])) {
+    fail("translated content never reached the build output");
+    return;
+  }
+  pass("translated content is present in the output");
+}
+
 function main() {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "zintl-smoke-"));
   log(`[1mZintl publish smoke test[22m`);
@@ -283,6 +429,10 @@ function main() {
     for (const viteMajor of matrix) {
       smokeOne(viteMajor, tarballs, workspace);
     }
+
+    if (withRsbuild) {
+      smokeRsbuild(tarballs, workspace);
+    }
   } finally {
     if (keep) {
       log(`\nfixture kept at ${workspace}`);
@@ -296,8 +446,12 @@ function main() {
     log(`[41m[37m SMOKE FAILED [39m[49m ${failures} check(s) failed`);
     process.exit(1);
   }
+  const hosts = [
+    matrix.length > 0 ? `Vite ${matrix.join(", ")}` : null,
+    withRsbuild ? "Rsbuild" : null,
+  ].filter(Boolean);
   log(
-    `[42m[37m SMOKE OK [39m[49m the published artifacts install and build on Vite ${matrix.join(", ")}`,
+    `[42m[37m SMOKE OK [39m[49m the published artifacts install and build on ${hosts.join(" and ")}`,
   );
 }
 

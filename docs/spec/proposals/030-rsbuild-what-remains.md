@@ -216,6 +216,29 @@ the same app shape. That difference is defensible; describing it as absent is no
 
 ## 5. The promise layer
 
+> **DONE.** All three parts, and §5.3 is the one that turned out to matter most in practice.
+>
+> **§5.1** — `rsbuild.ts`'s module doc now describes what the entry point is rather than what the
+> spike that created it was for: supported for SPAs in build and dev, the peer range, the two
+> deliberate exclusions, and the `modulepreload` difference. It also carries §4's rule, because a
+> user hovering the import is exactly who needs to know why their vanilla app reloads.
+>
+> **§5.2** — both READMEs gained Rsbuild: a collapsed config block next to the Vite one (spread, since
+> the entry point returns an array), and a "Where it runs" that names both bundlers as optional peers
+> and says plainly that `multiplex` and SSR are Vite-only.
+>
+> **§5.3** — `scripts/smoke.js` now runs the same four phases against `zintljs/rsbuild`: install with
+> npm, first build must fail on the integrity check, fill the scaffolded catalogs, second build must
+> bake the translation in. The app is byte-identical across hosts on purpose, the same discipline
+> `examples/rsbuild-spa` applies against `vanilla-spa-basic` — the only differences are the config
+> file and that Rsbuild names its entry in config rather than in the template, which is L-021.
+>
+> **It passes, and the run is the point.** Verified against a real `npm install` outside the
+> workspace, which resolved **`@rsbuild/core@2.1.11`** — a newer patch than the workspace's `2.1.10`,
+> which is precisely the drift a workspace cannot show you. `--vite=none` and `--no-rsbuild` select
+> a single host; the default now covers both. The Vite path was re-run after the refactor and is
+> unchanged.
+
 Nothing here is a defect in the integration. All of it is what a user encounters _before_ the
 integration runs, and it currently contradicts the repository's own conclusion.
 

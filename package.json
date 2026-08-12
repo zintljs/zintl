@@ -19,7 +19,7 @@
     "build:examples": "vpr build && vpr --filter='./examples/*' build",
     "test:examples": "vpr test:contracts",
     "ready:examples": "vpr build:examples && vpr test:examples",
-    "//smoke": "Outside-in publish gate: packs the real tarballs, installs them with npm into a throwaway app outside this workspace, and builds against stock Vite. Needs network. Run before releasing.",
+    "//smoke": "Outside-in publish gate: packs the real tarballs, installs them with npm into a throwaway app outside this workspace, and builds against stock Vite and stock Rsbuild. Every published entry point gets a run. Needs network. Run before releasing.",
     "smoke": "node scripts/smoke.js",
     "ci": "vpr ready && vpr ready:examples",
     "bench": "NODE_OPTIONS=\"--expose-gc\" vp test bench --run",
