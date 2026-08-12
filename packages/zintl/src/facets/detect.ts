@@ -10,9 +10,6 @@ import { join } from "node:path";
 
 export type Framework = "react" | "vue" | "svelte" | "nextjs";
 
-/** The framework assumed when detection finds nothing. */
-export const FALLBACK_FRAMEWORK: Framework = "react";
-
 export interface DetectionInput {
   /** Plugin names from the resolved bundler config. */
   pluginNames?: string[];
@@ -23,8 +20,22 @@ export interface DetectionInput {
 /**
  * Detect frameworks from bundler plugin names and the project's package.json.
  *
- * Returns an empty array when nothing matched — callers decide whether to apply
- * {@link FALLBACK_FRAMEWORK}, so the guess stays visible rather than buried.
+ * Returns an empty array when nothing matched, and that is a real answer: a
+ * project with no framework gets the framework-agnostic facets and nothing else.
+ *
+ * This used to fall back to React, which was not a neutral guess. It gave every
+ * framework-less project React extraction and codegen; it made
+ * `clientReactivityImports` non-empty for *every* project in existence, so
+ * "does this app have reactivity" could not be asked (ledger L-033); and
+ * proposal 024 records it blocking a separate fix, because marking React's entry
+ * re-execution unsafe would have reached every project that never mentioned
+ * React.
+ *
+ * What the guess was actually carrying was two extraction targets —
+ * `obj:field:title` and `obj:field:text` — which are plain object-field
+ * extraction with nothing React-specific about them. They now live on the
+ * vanilla facet, which applies everywhere, so the guess has nothing left to
+ * carry.
  */
 export function detectFrameworks({ pluginNames = [], root }: DetectionInput): Framework[] {
   const frameworks = new Set<Framework>();
@@ -57,10 +68,4 @@ export function detectFrameworks({ pluginNames = [], root }: DetectionInput): Fr
   }
 
   return Array.from(frameworks);
-}
-
-/** Detect, falling back to {@link FALLBACK_FRAMEWORK} when nothing matched. */
-export function detectFrameworksOrFallback(input: DetectionInput): Framework[] {
-  const detected = detectFrameworks(input);
-  return detected.length > 0 ? detected : [FALLBACK_FRAMEWORK];
 }

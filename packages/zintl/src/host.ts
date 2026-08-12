@@ -16,7 +16,7 @@
  */
 import { ZintlCompiler, type LogLevel } from "@zintljs/compiler";
 import { resolveFacets } from "./facets/resolve.js";
-import { detectFrameworksOrFallback } from "./facets/detect.js";
+import { detectFrameworks } from "./facets/detect.js";
 import { assembleFacets } from "./facets/assemble.js";
 import type Context from "./context.js";
 
@@ -169,7 +169,7 @@ export function ensureCompiler(
   const resolved: BundlerHostView = { ...native, ...ctx.hostHints };
 
   // Orchestration, in three visible steps: detect → assemble → resolve.
-  const frameworks = detectFrameworksOrFallback({
+  const frameworks = detectFrameworks({
     pluginNames: resolved.pluginNames,
     root: resolved.root,
   });

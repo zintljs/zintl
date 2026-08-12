@@ -1575,3 +1575,98 @@ path shared with Vite, and Vite's ordering meant the missing subscription never 
 consequence there. A second host did not introduce the bug; it removed the ordering that was
 concealing it — which is the thesis proposal 026 was written to test, now demonstrated three times
 over (L-028, L-030, L-032).
+
+### L-033 — the vanilla case is blocked by framework mis-detection, not by hot updates
+
+|                             |                                                                |
+| :-------------------------- | :------------------------------------------------------------- |
+| **Status**                  | **Open** — blocked on a prerequisite, mechanism validated      |
+| **Bucket**                  | **2 — ask the layer that knows** (detection, not the hot path) |
+| **Facet contract changed?** | No — the change that would need one is not landed              |
+
+L-032 fixed the empty render for framework apps. `rsbuild-spa` stayed blank, and this entry is what
+that turned out to be.
+
+**Why a vanilla entry cannot recover.** A framework app repaints because a component re-reads the
+catalog. A vanilla app's only repaint is re-running the entry — which re-runs `zintl()` →
+`loadI18nInstance` → a new store seeded from the module binding Webpack has cached, i.e. the stale
+manager. So re-execution is _harmless_ but not _sufficient_, and those are different questions.
+`entryReexecutionSafe` only asks the first.
+
+**The fix that follows, and it was validated.** Where re-execution is insufficient, the entry should
+decline to accept, so the update bubbles to a full page reload — slower than a hot update, and
+correct, which is the trade Vite already makes for frameworks whose mount is not replayable. Wiring a
+`hasClientReactivity` argument into `hmrInjectionCode` and requiring it on Rspack does exactly that,
+measured: `reloaded=true` on every edit instead of a silent blank.
+
+**And it can never fire, because every project is React.** `FALLBACK_FRAMEWORK` is `"react"`, applied
+whenever detection finds nothing — and `examples/rsbuild-spa` has **no React dependency at all**
+(`@rsbuild/core`, `typescript`, `zintljs`). Its composition snapshot nonetheless reads
+`frameworks: react`, with `react-extraction` and `react-codegen` resolved. Since `react.ts` is the
+**only** preset declaring `clientReactivityImports`, "does this app have reactivity" is true for every
+project in the repository, including ones with no components whatsoever.
+
+So the signal is unusable until detection stops guessing React for a project that never mentions it.
+The change was therefore **reverted rather than shipped inert** — correct, unreachable code with a new
+facet parameter is worse than no code, and this ledger already records four reverts caused by
+shipping ahead of the evidence.
+
+**The prerequisite is known and separately risky.** Proposal 024 and L-023 both note the fallback:
+_"marking React unsafe reaches every framework-less project, because `FALLBACK_FRAMEWORK` is
+`"react"`, and it regressed `vanilla-spa-basic`."_ A probe here confirms the hazard from the other
+direction — disabling the fallback made `rsbuild-spa` render blank even after a full reload, so the
+React facets are currently doing work that a framework-less project depends on. Detection cannot
+simply be tightened; what the vanilla path actually needs from `react-codegen` has to be identified
+first.
+
+**Where that leaves L-030.** Fixed for framework apps (L-032, `hmr` claimed on `examples/rsbuild-react`).
+Open for vanilla apps on Rspack, behind a detection prerequisite rather than behind the hot-update
+machinery — which is a different and much smaller problem than the one this ledger started with.
+
+### L-034 — framework detection guessed React, and two extraction targets were why it had to
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                   |
+| **Bucket**                  | **3 — delete the guess**                                    |
+| **Facet contract changed?** | No — but `zintljs/facets` loses two exports                 |
+| **Unblocks**                | L-033, and proposal 024's React `entryReexecutionSafe` item |
+
+`detectFrameworksOrFallback` returned `[FALLBACK_FRAMEWORK]` — `"react"` — whenever detection found
+nothing. So a project that never mentions React was assembled with React extraction and codegen, and
+three separate items were stuck behind that:
+
+- **L-033.** `react.ts` is the only preset declaring `clientReactivityImports`, so "does this app have
+  client reactivity" was true for _every_ project, including ones with no components at all. The
+  question could not be asked, so the vanilla hot-update fix could not be gated on it.
+- **Proposal 024 / L-023.** Marking React's entry re-execution unsafe was tried and reverted, because
+  the claim reached every framework-less project and made `vanilla-spa-basic` full-reload on every
+  edit.
+- **Plain wrongness.** `examples/rsbuild-spa` has no React dependency — `@rsbuild/core`, `typescript`,
+  `zintljs` — and its composition snapshot read `frameworks: react`.
+
+**What the guess was actually load-bearing for**, which is the part worth recording. Removing it alone
+broke `vanilla-ssr` and `ssr-streaming`: they rendered untranslated. Not JSX, not codegen — **two
+extraction targets**. `react-extraction` lists `obj:field:title` and `obj:field:text`;
+`vanilla-extraction` lists `label`, `description`, `tooltip`, `placeholder` and neither of those two.
+`examples/vanilla-ssr/src/entry-server.ts` uses a `text:` field, so it had been relying on React
+extraction it never asked for.
+
+Object-field extraction has nothing React-specific about it. The two targets moved to the vanilla
+facet — which applies to every project — and the guess had nothing left to carry.
+
+**A near-miss worth recording.** An earlier probe disabled the fallback and reported `rsbuild-spa`
+rendering blank _even after a full reload_, which was written up as "the React facets are doing work a
+framework-less project depends on". That was an artifact: the probe had left the example's catalog
+reconciled to earlier probe keys. A clean run renders `"Get started"` correctly. The conclusion was
+right by luck and for the wrong reason — the dependency was real, but it was two extraction targets in
+a different example, not anything structural.
+
+**Removed rather than deprecated.** `FALLBACK_FRAMEWORK` and `detectFrameworksOrFallback` are gone
+from `zintljs/facets`; `detectFrameworks` is the single entry point and returns `[]` honestly. The
+test harness now writes a `package.json` into synthesized projects, so a fixture that means "a React
+project" declares React — which is what a real one does, and what the guess had been papering over.
+
+**Verified.** 798 unit tests, 142 contract cases, all green. Detection now reports `react` for
+`react-basic`/`react-ssr`/`rsbuild-react`, `svelte` for the Svelte examples, and `(none)` for the
+eleven genuinely framework-less projects that had been mislabelled.

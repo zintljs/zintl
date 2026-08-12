@@ -96,9 +96,5 @@ export {
 } from "./facets/assemble.js";
 export { activateFacets, formatFacetTrace } from "./facets/activate.js";
 export type { ActivationResult, FacetTraceEntry } from "./facets/activate.js";
-export {
-  detectFrameworks,
-  detectFrameworksOrFallback,
-  FALLBACK_FRAMEWORK,
-} from "./facets/detect.js";
+export { detectFrameworks } from "./facets/detect.js";
 export type { Framework } from "./facets/detect.js";

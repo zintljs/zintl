@@ -1,7 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { ZintlCompiler } from "@zintljs/compiler";
-import { assembleFacets, detectFrameworksOrFallback, resolveFacets } from "zintljs/facets";
+import { assembleFacets, detectFrameworks, resolveFacets } from "zintljs/facets";
 import type { CompilationResult, ZintlPluginOptions } from "./driver.js";
 
 const SOURCE_EXTENSIONS = /\.(ts|js|tsx|jsx|vue|svelte)$/;
@@ -28,7 +28,7 @@ export async function compileWithZintl(
   bundler = "vite",
 ): Promise<CompilationResult> {
   const isDev = mode === "development";
-  const frameworks = detectFrameworksOrFallback({ root });
+  const frameworks = detectFrameworks({ root });
   const facets = assembleFacets({
     frameworks,
     bundler,

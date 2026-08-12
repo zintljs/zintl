@@ -81,13 +81,16 @@ function getRenameConfig(exampleName: string): RenameConfig {
  * `App.tsx` and `main.tsx` never re-executes.
  *
  * Why this needs a reproduction before a fix, rather than after: marking React
- * unsafe was tried and reverted, because `FALLBACK_FRAMEWORK` is `"react"` — a
- * project with no detected framework is assembled with the React facets, so
- * `vanilla-spa-basic` inherited the claim and began full-reloading on every
- * entry edit. Any runtime constraint attached to the React facet reaches every
- * framework-less project by default. The fix is one facet field
- * (`reactRuntimeFacet` with `entryReexecutionSafe: false`); what is missing is a
- * failing test that justifies its blast radius.
+ * unsafe was tried and reverted once, because detection used to guess `"react"`
+ * for any project where it found nothing — so `vanilla-spa-basic` inherited the
+ * claim and began full-reloading on every entry edit.
+ *
+ * **That blast radius is gone.** Ledger L-034 removed the guess: a project with
+ * no framework now resolves no framework facets, so a constraint on the React
+ * facet reaches React projects only. The fix is still one field
+ * (`reactRuntimeFacet` with `entryReexecutionSafe: false`) and what is still
+ * missing is a failing test that justifies it — but the reason to hesitate is
+ * now the evidence, not the collateral damage.
  *
  * A reproduction probably needs an entry whose *own* source changes in a way
  * Fast Refresh will not absorb — editing a non-component export in `main.tsx`,

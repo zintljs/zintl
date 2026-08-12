@@ -59,7 +59,24 @@ export async function createZintlContext(options: any = {}): Promise<TestContext
    */
   const root = await createTestDir("zintl-test-");
 
-  const rawPlugin = zintl(testPluginOptions(options));
+  /**
+   * Give the synthesized project a `package.json`, so framework detection has
+   * something to read.
+   *
+   * Detection looks at plugin names and declared dependencies, and a test
+   * project has neither unless it says so. That used to be invisible because
+   * detection guessed React whenever it found nothing — so a `.tsx` fixture got
+   * React facets it never asked for. With the guess removed (ledger L-034), a
+   * test that means "a React project" has to declare React, exactly as a real
+   * one would.
+   */
+  const { dependencies, ...pluginOptions } = options;
+  await writeFile(
+    join(root, "package.json"),
+    JSON.stringify({ name: "zintl-test-project", private: true, dependencies: dependencies ?? {} }),
+  );
+
+  const rawPlugin = zintl(testPluginOptions(pluginOptions));
 
   /**
    * The plugin-context methods a real host always supplies on `this`.

@@ -1,6 +1,6 @@
 import { expect } from "vite-plus/test";
 import { executeProjectContract, type Contract } from "@zintljs/testing";
-import { assembleFacets, detectFrameworksOrFallback, resolveFacets } from "zintljs/facets";
+import { assembleFacets, detectFrameworks, resolveFacets } from "zintljs/facets";
 import { allManifests } from "../manifests/index.js";
 
 /**
@@ -29,7 +29,7 @@ import { allManifests } from "../manifests/index.js";
 function staticFacetNames(root: string, facets: unknown, ssr: boolean, bundler: string): string {
   const resolved = resolveFacets(
     assembleFacets({
-      frameworks: detectFrameworksOrFallback({ root }),
+      frameworks: detectFrameworks({ root }),
       bundler,
       root,
       ssr,
