@@ -61,6 +61,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -143,6 +144,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -223,6 +225,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -305,6 +308,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -332,6 +336,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -342,7 +347,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -398,6 +403,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -414,6 +420,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -426,7 +433,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -480,6 +487,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -498,6 +506,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -508,7 +517,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -564,6 +573,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -580,6 +590,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -592,7 +603,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -646,6 +657,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -664,6 +676,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -674,7 +687,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: true
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: false
@@ -730,6 +743,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -746,6 +760,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -758,7 +773,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: true
   dependencyInvalidation: true
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: false
@@ -812,6 +827,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -883,6 +899,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -965,6 +982,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1048,6 +1066,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1133,6 +1152,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1216,6 +1236,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1301,6 +1322,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1381,6 +1403,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1463,6 +1486,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1543,6 +1567,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1625,6 +1650,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1705,6 +1731,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1787,6 +1814,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1867,6 +1895,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -1949,6 +1978,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2029,6 +2059,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2111,6 +2142,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2191,6 +2223,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2273,6 +2306,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2353,6 +2387,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2435,6 +2470,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -2462,6 +2498,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   nextjs-extraction  [extraction]  priority=100
   nextjs-ssr-wrapping  [ssr]  priority=100
   nextjs-runtime  [runtime]  priority=100
@@ -2474,7 +2511,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: false
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -2527,6 +2564,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
   ✓ nextjs-ssr-wrapping          framework=nextjs ✓
   ✓ nextjs-runtime               framework=nextjs ✓
@@ -2546,6 +2584,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   nextjs-extraction  [extraction]  priority=100
   nextjs-ssr-wrapping  [ssr]  priority=100
   nextjs-runtime  [runtime]  priority=100
@@ -2558,7 +2597,7 @@ facets (resolution order):
 flags:
   clientLocaleSync: false
   dependencyInvalidation: false
-  entryReexecutionSafe: true
+  entryReexecutionSafe: false
   hmr: true
   hotUpdate: true
   htmlFanOut: true
@@ -2609,6 +2648,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
   ✓ nextjs-ssr-wrapping          framework=nextjs ✓
   ✓ nextjs-runtime               framework=nextjs ✓
@@ -2685,6 +2725,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2769,6 +2810,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2851,6 +2893,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2935,6 +2978,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3017,6 +3061,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3101,6 +3146,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3183,6 +3229,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3267,6 +3314,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3347,6 +3395,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
@@ -3429,6 +3478,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)

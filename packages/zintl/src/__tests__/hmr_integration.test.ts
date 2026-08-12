@@ -134,6 +134,47 @@ describe("HMR Integration", () => {
     expect(resultIds).toContain(mainPath);
   });
 
+  /**
+   * Ledger L-023, and the reason proposal 024 §1.3's React case looked latent.
+   *
+   * The fallback scan compares boundary ids with extensions stripped, because a
+   * normalized boundary id arrives without one. `src/App.css` and `src/App.tsx`
+   * both strip to `src/App`, so the stylesheet matched the component's boundary,
+   * had `mod.file` rewritten onto the component, and went out as part of the
+   * update — which on `react-basic` re-executed the self-accepting entry and
+   * double-mounted `createRoot`.
+   */
+  it("should not repoint a sibling stylesheet onto the boundary's source file", async () => {
+    const appPath = "/root/src/App.tsx";
+    const cssPath = "/root/src/App.css";
+
+    const cssMod = { id: cssPath, file: cssPath, importers: new Set() };
+    const appMod = { id: appPath, file: appPath, importers: new Set() };
+    mockServer.moduleGraph.idToModuleMap.set(cssPath, cssMod);
+    mockServer.moduleGraph.idToModuleMap.set(appPath, appMod);
+    mockCtx.compiler.graph.boundaryGraph.nodes.set("b_app", {
+      id: "b_app",
+      mode: "boundary",
+      filePath: "src/App.tsx",
+    });
+    mockCtx.compiler.invalidateFile.mockReturnValue(["b_app"]);
+
+    const hook = handleHotUpdateHook(mockCtx);
+    const result = await hook({
+      file: appPath,
+      timestamp: Date.now(),
+      modules: [appMod] as any,
+      read: async () => "",
+      server: mockServer,
+    });
+
+    expect(cssMod.file).toBe(cssPath);
+    expect((result as any[]).map((m) => m.id)).not.toContain(cssPath);
+    expect((result as any[]).map((m) => m.id)).toContain(appPath);
+
+    mockCtx.compiler.graph.boundaryGraph.nodes.delete("b_app");
+  });
+
   it("should handle localized asset changes by invalidating entries", async () => {
     const localizedAssetPath = "/root/src/locales/src/about.ar.txt";
     const mainPath = "/root/src/main.ts";

@@ -4,6 +4,7 @@ import {
   vanillaFacet,
   reactExtractionFacet,
   reactCodegenFacet,
+  reactRuntimeFacet,
   reactFacet,
   vueExtractionFacet,
   vueCodegenFacet,
@@ -544,11 +545,17 @@ describe("Facet Resolution Engine", () => {
   });
 
   describe("compound facets", () => {
-    it("reactFacet compiles to reactExtractionFacet and reactCodegenFacet", () => {
+    it("reactFacet compiles to extraction, codegen and runtime facets", () => {
       const facets = reactFacet();
-      expect(facets.length).toBe(2);
+      expect(facets.length).toBe(3);
       expect(facets[0].name).toBe("react-extraction");
       expect(facets[1].name).toBe("react-codegen");
+      expect(facets[2].name).toBe("react-runtime");
+    });
+
+    it("resolves a React entry as unsafe to re-execute", () => {
+      expect(resolveFacets(reactFacet()).flags.entryReexecutionSafe).toBe(false);
+      expect(resolveFacets([reactRuntimeFacet()]).flags.entryReexecutionSafe).toBe(false);
     });
 
     it("vueFacet compiles to vueExtractionFacet and vueCodegenFacet", () => {

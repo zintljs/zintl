@@ -1765,3 +1765,136 @@ between close and listen.
 other than where it prints the failure — read the whole output, not the failure list. And a
 capability was un-claimed on the strength of a misdiagnosis: the "cost" being measured was a bug, not
 a cost.
+
+## Phase 6 — proposal 030: the red gate, and a hypothesis that had been open since 027
+
+Both entries below came out of one question — why `[Memory Leak] react-basic` fails on a full-suite
+run — and they are separate defects that had been producing one symptom between them. The method is
+the only reason they came apart: a probe that counted entry re-executions per edit, run before
+anything was changed, and again after each change.
+
+### L-037 — a sibling stylesheet matched a component's boundary, and was repointed onto it
+
+|                             |                                                                    |
+| :-------------------------- | :----------------------------------------------------------------- |
+| **Status**                  | **Fixed** — and it confirms 027 §2.4's hypothesis, open since then |
+| **Bucket**                  | **3 — delete the guess**                                           |
+| **Facet contract changed?** | No                                                                 |
+| **Affects**                 | Vite only. `hmr/vite.ts` is that host's module-graph repair        |
+
+027 §2.4 named a hypothesis and refused to fix it as though it were a finding: `hooks/hmr.ts` matched
+modules to boundaries with loose `endsWith` comparisons, and _"if that ever repoints a module away
+from the file it belongs to, the next edit to that file yields `modules: []`, the hook returns it
+unchanged, and Vite sends nothing."_ L-023 instrumented it, ran ten full-suite reproductions, and came
+back with **zero** evidence either way. 028 §6.3 carried it forward as still unresolved.
+
+It reproduces on `react-basic` in about one edit in ten, and the trace names it outright:
+
+```
+repoint "…/src/App.css"  …/src/App.css → …/src/App.tsx  (boundary=src/App.tsx:App, fileId=src/App.tsx)
+```
+
+**The mechanism.** The fallback scan compares with extensions stripped, because a normalized boundary
+id arrives without one (L-026). `src/App.css` and `src/App.tsx` both strip to `src/App`, so the
+stylesheet matched the component's boundary, had `mod.file` rewritten onto `App.tsx`, was moved
+between entries in Vite's `fileToModulesMap`, and went into the returned update list as if it were the
+component. The `enter … modules=0` that follows in the trace is exactly the shape 027 predicted.
+
+**Why L-023's ten runs found nothing.** It looked for the symptom 027 named — a later edit yielding
+`modules: []` and no update at all — and the observable consequence is different and much quieter:
+`main.tsx` self-accepts, so the entry re-executes, `bootstrap()` runs again, and `createRoot()` mounts
+a second root over the first. The text still arrives. Nothing fails until two roots and twenty rapid
+edits are in the same run. **A hypothesis stated in terms of its expected symptom cost three
+proposals; the trace that names the cause cost one probe.**
+
+**The fix.** An extension-blind comparison now requires the _candidate_ to be a file Zintl would
+extract from at all, asked through `classifyFile` rather than a second list so the two cannot drift.
+Ids with no extension stay eligible — they are what those comparisons were written for. A stylesheet
+is not a boundary's source under any reading, so nothing legitimate is lost.
+
+**Measured**, sixty edits per configuration on `react-basic`, three runs of twenty:
+
+| Configuration     | Entry re-executions | Double mounts |
+| :---------------- | :------------------ | :------------ |
+| Before            | 6 / 60              | 6 / 60        |
+| After             | 3 / 60              | 3 / 60        |
+| After, with L-038 | —                   | 1 / 60        |
+
+Halved, not closed, and the residue is L-038's. Re-execution and double-mount were **perfectly
+correlated** in every run, which is what made the two entries separable at all.
+
+Guarded by a unit test in `hmr_integration.test.ts` that fails without the change: it asserts a
+sibling `App.css` keeps its own `mod.file` and stays out of the update list.
+
+### L-038 — React's entry is not safe to re-execute, and now nothing stops it saying so
+
+|                             |                                                        |
+| :-------------------------- | :----------------------------------------------------- |
+| **Status**                  | **Fixed** — closes proposal 024 §1.3's last open case  |
+| **Bucket**                  | **1 — declare it**                                     |
+| **Facet contract changed?** | No — a new `reactRuntimeFacet` uses the existing field |
+| **Unblocked by**            | L-034                                                  |
+
+024 §1.3 left this in terms that turned out to be exactly right, and unactionable for two reasons at
+once:
+
+> **The React `createRoot` case remains latent**: marking React unsafe reaches every framework-less
+> project, because `FALLBACK_FRAMEWORK` is `"react"`, and it regressed `vanilla-spa-basic`. The fix is
+> one facet field away once there is a reproduction to justify it.
+
+**Both blockers cleared independently, and nobody had connected them.** L-034 deleted the fallback, so
+the claim now reaches React and nothing else. And the probe above is the reproduction — one edit in
+ten, every one of them a double mount.
+
+`reactRuntimeFacet` declares `entryReexecutionSafe: false`, mirroring `svelteRuntimeFacet` exactly.
+Only Svelte had claimed it before, which is why the field looked like a Svelte quirk rather than the
+general question it is.
+
+**One thing worth stating precisely, because the field's name suggests otherwise.** On Vite this does
+not prevent re-execution. `import.meta.hot.accept(cb)` executes the new module _first_ and calls `cb`
+after, so the entry still re-runs and `createRoot` is still called twice — `invalidate()` then reloads
+the page and clears the second root. The declaration converts a permanent two-root page into a reload.
+That is the same trade Svelte has been making since 024, and the naming is inherited rather than new.
+
+**The cost on Rspack was measured rather than assumed, and it is zero.** The concern was real: the
+Rspack facet gates acceptance on this flag, so declaring React unsafe removes `webpackHot.accept()`
+from `rsbuild-react`'s entry entirely (visible in its dev-transform snapshot). Since `rsbuild-react`'s
+hot updates are 029's headline result, that looked like trading a Vite defect for an Rspack
+regression. Driven by hand against a real `rsbuild dev`, four consecutive edits, the way 029 §4
+established:
+
+| Configuration               | Heading updated | Page reloaded | Double mounts |
+| :-------------------------- | :-------------- | :------------ | :------------ |
+| Baseline                    | 4 / 4           | none          | 0             |
+| With `entryReexecutionSafe` | 4 / 4           | none          | 0             |
+
+Identical. The entry's acceptance was never what carried component updates on that host — React Refresh
+and the self-accepting content modules are — so removing it costs nothing for the case that matters.
+`__zintl_version` advanced 2 → 6 in both runs with the sentinel intact.
+
+**A misattribution, recorded because it nearly changed the decision.** `rsbuild-react` timing out at
+45s was blamed on this change across two runs, and the change was very nearly reverted for it. Running
+the suite three times with _only_ L-037 applied showed the same timeouts. **The stash-and-rerun
+discipline that L-013 records saved this one in both directions: it cleared the change, and it also
+cleared the machine.**
+
+### What these two entries did and did not settle
+
+**Did.** `[Memory Leak] react-basic` — the failure that started this, and the one thing in proposal
+030 §1 that made `vpr ci` red — **has not recurred in any of the thirteen full contract runs since
+L-037 landed.** At the outset it failed one run in two. The mechanism it depended on is measured down
+from six occurrences in sixty edits to one.
+
+**Did not.** `vpr ci` green is still not demonstrated on this machine, and it was not before either.
+`vpr verify` passes (800 unit tests, lint, knip, format, examples built). The full contract suite
+reached 148/148 three times across eight runs with both entries applied, and otherwise failed a
+recurring set that **neither entry touches**: `Performance HMR` latency budgets — failing on
+`svelte-basic` and `vue-basic`, which resolve no React facet at all — `rsbuild-react` 45s timeouts,
+and occasionally `Chaos Catalog`. Wiping `.tmp/runs` and `node_modules/.zintl` per 028 §3 did not
+help; the run immediately after a wipe was the worst of the set, and the next was clean.
+
+That is a pre-existing suite-reliability problem, surfaced rather than caused here, and it is
+**027 §3.5's unfinished item** — _"re-measure the 4-worker failure rate so any regression is
+attributable"_ — now overdue with two Rsbuild projects in the manifest rather than one. It wants its
+own investigation, on a machine that has not just spent two hours running browser suites, and it
+should not be folded into either entry above.

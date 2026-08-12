@@ -34,8 +34,3 @@ async function bootstrap() {
 }
 
 void bootstrap();
-
-
-if (import.meta.webpackHot) {
-  import.meta.webpackHot.accept();
-}

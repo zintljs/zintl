@@ -2,6 +2,7 @@ import type { ModuleNode, ViteDevServer } from "vite";
 import type Context from "../context.js";
 import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 import type { HostUpdateApplier, HostUpdateResult } from "./applier.js";
+import { classifyFile } from "./plan.js";
 import type { HotUpdatePlan } from "./types.js";
 
 /**
@@ -168,6 +169,37 @@ export class ViteUpdateApplier implements HostUpdateApplier {
         const normalizedId = cleanModuleId.split("?")[0];
         const normalizedIdNoExt = normalizedId.replace(/\.[a-z0-9]+$/i, "");
 
+        /**
+         * The extension-blind comparisons below exist for one reason: a boundary
+         * id can arrive here *without* an extension, because `getNormalizedId`
+         * strips it (ledger L-026). They must not be allowed to match a file
+         * that merely shares a basename with the boundary's source.
+         *
+         * `src/App.css` sitting beside `src/App.tsx` is the case that bit, and
+         * it bit exactly as 027 §2.4 predicted it would: both strip to
+         * `src/App`, so the stylesheet matched the component, was repointed onto
+         * `App.tsx`, and went into the update list as if it were the component.
+         * The measured consequence on `react-basic` was the entry re-executing
+         * on roughly one edit in ten — `main.tsx` self-accepts, so re-execution
+         * re-runs `bootstrap()` and `createRoot()` mounts a second root over the
+         * first, which is proposal 024 §1.3's "latent React case".
+         *
+         * Measured rather than argued, and the measurement is why this comment
+         * does not claim more than it should: fixing this halved the rate (six
+         * occurrences in sixty edits, to three). The remainder comes from the
+         * entry boundary's own source module being invalidated, which is
+         * deliberate — `reactRuntimeFacet.entryReexecutionSafe` is what makes
+         * *that* half safe. This match was never a cause worth keeping either
+         * way: a stylesheet is not a boundary's source under any reading.
+         *
+         * So an extension-blind match now requires the *candidate* to be a file
+         * Zintl would extract from at all. Asked through `classifyFile` rather
+         * than a second list, so the two cannot drift. Ids with no extension
+         * stay eligible — they are what these comparisons were written for.
+         */
+        const hasExtension = /\.[a-z0-9]+$/i.test(normalizedId);
+        const extensionBlindEligible = !hasExtension || classifyFile(normalizedId) === "source";
+
         const isMatch =
           cleanModuleId === relPath ||
           cleanModuleId === fileId ||
@@ -175,9 +207,10 @@ export class ViteUpdateApplier implements HostUpdateApplier {
           normalizedId.endsWith(fileId) ||
           normalizedId === relPath ||
           normalizedId === fileId ||
-          normalizedIdNoExt === fileIdNoExt ||
-          normalizedIdNoExt === relPathNoExt ||
-          normalizedIdNoExt.endsWith(fileIdNoExt);
+          (extensionBlindEligible &&
+            (normalizedIdNoExt === fileIdNoExt ||
+              normalizedIdNoExt === relPathNoExt ||
+              normalizedIdNoExt.endsWith(fileIdNoExt)));
 
         if (isMatch && !id.includes("virtual:zintl")) {
           if (mod.file !== absFileId) {
