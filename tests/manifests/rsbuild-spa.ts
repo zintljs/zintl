@@ -66,27 +66,19 @@ export const rsbuildSpa: ProjectManifest = {
    * window — that contract needs rewriting against built output before either
    * host should claim it.
    *
-   * **The L-030 empty render is fixed here, and `hmr` is still not claimed —
-   * for capacity, not capability.** A vanilla entry cannot recover from a late
-   * catalog: its only repaint is re-running the entry, which rebuilds the store
-   * from a module binding Webpack has cached. So the entry now declines to
-   * accept and the update bubbles to a full page reload — slower than a hot
-   * update and correct (ledger L-035). The `hmr` contract passes here when run
-   * on its own.
+   * `hmr` and `hmr-stress` are claimed again, and the route back is worth
+   * recording. A vanilla entry cannot recover from a late catalog: its only
+   * repaint is re-running the entry, which rebuilds the store from a module
+   * binding Webpack has cached. So re-execution is harmless but not
+   * *sufficient*, and the entry now declines to accept — the update bubbles to
+   * a full page reload, which is slower than a hot update and correct. Ledger
+   * L-035.
    *
-   * It is left unclaimed because every edit is now a full reload, which is
-   * markedly more expensive than a hot update, and the full suite began timing
-   * out on `rsbuild-react` when it was claimed. Whether that is a real capacity
-   * limit is **not established**: the timeouts moved between runs and reached
-   * projects this change cannot affect (`memory-leak` on `svelte-basic`, a Vite
-   * project), which is the signature of a loaded machine rather than of the
-   * suite. Re-measure on a quiet one before deciding.
-   *
-   * Nothing is unguarded in the meantime. The codegen decision is recorded by
-   * this project's dev-transform snapshot — the entry no longer emits
-   * `webpackHot.accept()` — and the runtime outcome is covered by
-   * `rsbuild-react`, which exercises the same host with reactivity present. The
-   * `hmr` contract also passes here when run on its own.
+   * These were briefly left unclaimed on the theory that reload-per-edit was too
+   * expensive for the suite to sustain. That was wrong, and worth recording as a
+   * wrong turn: the timeouts were a **port race** between the two Rsbuild
+   * projects, both starting from Rsbuild's default 3000 (L-036). The cost of a
+   * reload is real but nowhere near the budget.
    *
    * **Not `memory`.** `memory-leak` drives twenty sequential edits, and each one
    * here is a page reload. A reload resets the settle beacon to the same value
@@ -113,6 +105,8 @@ export const rsbuildSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "locale-switch-stress",
+    "hmr",
+    "hmr-stress",
   ],
   adapter: {
     headingSelector: "h1",

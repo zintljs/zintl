@@ -1715,5 +1715,53 @@ beacon to the value it already had — the exact shape `waitForSettled` cannot c
 also measure nothing, since a reload resets the heap. Inferred from L-029's measured mechanism rather
 than re-measured.
 
+**A wrong turn, recorded.** `hmr` and `hmr-stress` were briefly left unclaimed here on the theory that
+reload-per-edit was too expensive for the suite to sustain — the full run kept timing out on
+`rsbuild-react`. That reasoning was wrong twice over: the timeouts were a port race (L-036), not cost,
+and they were blamed first on machine load and then on capacity before either was checked. Both
+capabilities are claimed.
+
 **L-030 is now closed**: framework apps hot-update (L-032), vanilla apps reload correctly (this
 entry).
+
+### L-036 — two Rsbuild projects raced for one port, and every symptom looked like something else
+
+|                             |                        |
+| :-------------------------- | :--------------------- |
+| **Status**                  | **Fixed**              |
+| **Bucket**                  | N/A — a harness defect |
+| **Facet contract changed?** | No                     |
+
+Introduced by adding `examples/rsbuild-react`, and it made the contract suite unreliable for several
+iterations while being misdiagnosed twice.
+
+**The defect.** `createLabDevServer` defaults to `port: 0`, and `RsbuildDevServerDriver` turned that
+into `undefined`. Vite reads `0` as "give me an ephemeral port", which can never collide. Rsbuild does
+not — it would serve on literal port `0` — so passing `undefined` let _every_ Rsbuild project start
+from Rsbuild's default of 3000 and auto-increment from there. With one Rsbuild example that was
+invisible. With two on different workers it is a race, and the loser dies with:
+
+```
+Error: listen EADDRINUSE: address already in use ::1:3001
+```
+
+while its contract waits out the full 45s timeout.
+
+**Why it took three attempts to see.** The symptom is a timeout on an _unrelated-looking_ contract,
+and it moves between runs. It was blamed on:
+
+1. **Machine load** — plausible, and partly true: `ps` showed VLC and Transmission running. Closing
+   them did not fix it.
+2. **Suite capacity** — "two Rspack dev servers doing reload-per-edit starve each other", which even
+   led to `hmr`/`hmr-stress` being unclaimed on `rsbuild-spa` as a supposed cost of L-035.
+3. **The actual cause**, visible only in the `Unhandled Errors` section printed _after_ the failure
+   list — where an `EADDRINUSE` from a different worker had been sitting the whole time.
+
+**The fix.** The driver asks the OS for a free port (bind `:0`, read it, close) and passes that
+explicitly, with `strictPort` left off so Rsbuild can increment if the port is taken in the window
+between close and listen.
+
+**Two lessons.** A timeout is a symptom with many causes, and the harness prints the cause somewhere
+other than where it prints the failure — read the whole output, not the failure list. And a
+capability was un-claimed on the strength of a misdiagnosis: the "cost" being measured was a bug, not
+a cost.

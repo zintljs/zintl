@@ -1,5 +1,34 @@
 import type { DevServerDriver, LabDevServerHandle } from "./dev-server-driver.js";
 import type { HmrPacket } from "./websocket.js";
+import { createServer } from "node:net";
+
+/**
+ * Ask the OS for a free port.
+ *
+ * Vite treats `port: 0` as "pick an ephemeral port", which can never collide.
+ * Rsbuild does not — it serves on literal port 0 — so the driver used to pass
+ * `undefined` and let every project start from Rsbuild's default of 3000. With
+ * one Rsbuild example that was invisible. With two running on different workers
+ * it is a race, and the loser dies with
+ * `EADDRINUSE: address already in use ::1:3001` while its contract sits there
+ * until the 45s timeout. That is what every wandering "timeout" on an Rsbuild
+ * project turned out to be.
+ *
+ * Binding to 0 and closing leaves a small window before Rsbuild listens, which
+ * is why `strictPort` stays off: if something takes the port in between,
+ * Rsbuild increments instead of failing.
+ */
+function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", reject);
+    probe.listen(0, () => {
+      const address = probe.address();
+      const chosen = typeof address === "object" && address ? address.port : 0;
+      probe.close(() => resolve(chosen));
+    });
+  });
+}
 
 /**
  * Rsbuild's hot-update packets, in the lab's vocabulary.
@@ -55,6 +84,9 @@ export class RsbuildDevServerDriver implements DevServerDriver {
 
     const { content: fileConfig } = await loadConfig({ cwd: root });
 
+    /** An explicit port is honoured; otherwise take one the OS says is free. */
+    const resolvedPort = port || (await freePort());
+
     const rsbuild = await createRsbuild({
       cwd: root,
       rsbuildConfig: {
@@ -76,7 +108,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          */
         mode: "development",
         logLevel: "error",
-        server: { ...(fileConfig as any)?.server, port: port || undefined, strictPort: !!port },
+        server: { ...(fileConfig as any)?.server, port: resolvedPort, strictPort: !!port },
         dev: { ...(fileConfig as any)?.dev, progressBar: false },
       },
     });
