@@ -42,6 +42,7 @@ function emptySystem(): CompilerSystemView {
     suppressionRules: [],
     mustacheRules: [],
     clientReactivityImports: {},
+    serverComponents: false,
     contentFacets: [],
     virtualBoundaries: [],
     ssrEntryTargets: [],

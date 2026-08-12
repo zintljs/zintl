@@ -1,6 +1,6 @@
-import { _t } from "virtual:zintl/runtime/internal";
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_89ad0a7bfa7f from "virtual:zintl/manager/none/entry:b_89ad0a7bfa7f";
-import { useState } from "react";
+import { useSyncExternalStore } from "react";import { useState } from "react";
 
 const locales = [
   { id: "en", name: "English" },
@@ -24,6 +24,8 @@ interface AppProps {
  * turns on (`027-leak-ledger.md`).
  */
 export default function App({ lang, onSwitch }: AppProps) {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
   const [count, setCount] = useState(0);
 
   return (

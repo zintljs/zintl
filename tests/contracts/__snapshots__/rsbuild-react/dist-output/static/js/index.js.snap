@@ -15,6 +15,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 
+
 const locales = [
     {
         id: "en",
@@ -43,6 +44,7 @@ const locales = [
  * turns on (`027-leak-ledger.md`).
  */ function App(param) {
     let { lang, onSwitch } = param;
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
     const [count, setCount] = (0,react__rspack_import_3.useState)(0);
     return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("div", {
         children: [
@@ -129,7 +131,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 function Main() {
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
     const [lang, setLang] = (0,react__rspack_import_3.useState)(()=>{
         return new URLSearchParams(window.location.search).get("lang") || "en";
     });

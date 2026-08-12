@@ -277,6 +277,22 @@ export interface RuntimeFacet extends BaseFacet {
   /** Client-side locale sync (popstate, pushState monkey-patch, MutationObserver) */
   clientLocaleSync?: boolean;
   /** Server-side AsyncLocalStorage request scoping */
+  /**
+   * Whether this framework distinguishes *server* components from client ones.
+   *
+   * Only React Server Components does, and there the `"use client"` directive is
+   * what marks a module as allowed to use hooks — so reactivity may only be
+   * injected into modules carrying it. Everywhere else, including plain React
+   * SPAs and classic (non-RSC) SSR, **every component is a client component**
+   * and the directive is not something anyone writes.
+   *
+   * Reading the directive unconditionally was the defect: `isClientComponent` is
+   * literally `code.includes('"use client"')`, and gating reactivity on it meant
+   * a plain React app never subscribed to the store at all. Measured across this
+   * repository, exactly one file carried the directive — a Next.js example — so
+   * the feature was reaching one module in the entire suite (ledger L-032).
+   */
+  serverComponents?: boolean;
   serverRequestScope?: boolean;
   /** Stream injection for SSR HTML responses (Response, ReadableStream) */
   streamInjection?: boolean;
@@ -637,6 +653,8 @@ export interface CompilerSystemView {
   mustacheRules: MustacheRule[];
   /** Framework imports required by injected client reactivity, keyed by specifier */
   clientReactivityImports: Record<string, string[]>;
+  /** True when the framework separates server and client components (RSC). */
+  serverComponents: boolean;
 
   // ── SSR hooks (merged, highest priority wins or conflict detection) ──
 

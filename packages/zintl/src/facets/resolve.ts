@@ -121,6 +121,7 @@ interface MergeState {
 
   // Runtime (OR-merged booleans, chained detectLocale)
   clientLocaleSync: boolean;
+  serverComponents: boolean;
   serverRequestScope: boolean;
   streamInjection: boolean;
   entryReexecutionSafe: boolean;
@@ -178,6 +179,7 @@ function createEmptyState(): MergeState {
     ssrWrapDefaultProvider: "",
     ssrWrapDefaultPriority: -1,
     clientLocaleSync: false,
+    serverComponents: false,
     serverRequestScope: false,
     streamInjection: false,
     entryReexecutionSafe: true,
@@ -309,6 +311,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
     }
     case "runtime": {
       if (facet.clientLocaleSync) state.clientLocaleSync = true;
+      if (facet.serverComponents) state.serverComponents = true;
       if (facet.serverRequestScope) state.serverRequestScope = true;
       if (facet.streamInjection) state.streamInjection = true;
       /**
@@ -489,6 +492,7 @@ function stateToHooks(state: MergeState): CompilerSystemView {
     suppressionRules: state.suppressionRules,
     mustacheRules: state.mustacheRules,
     clientReactivityImports: state.clientReactivityImports,
+    serverComponents: state.serverComponents,
     contentFacets: state.contentFacets,
     virtualBoundaries,
 

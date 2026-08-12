@@ -1,11 +1,13 @@
-import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import { loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_89ad0a7bfa7f from "virtual:zintl/manager/none/entry:b_89ad0a7bfa7f";
-import { StrictMode, useState } from "react";
+import { useSyncExternalStore } from "react";import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import App from "./App.tsx";
 
 function Main() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
   const [lang, setLang] = useState(() => {
     return new URLSearchParams(window.location.search).get("lang") || "en";
   });

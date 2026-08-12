@@ -10,6 +10,8 @@ const zintlOptions: ZintlPluginOptions = {
   outputDir: "./src/i18n",
   catalogFormat: "translations.json",
   similarityThreshold: 0.01,
+  /** No localizable assets — see the example's config for why this is explicit. */
+  assetsTarget: [],
 };
 
 /**
@@ -42,7 +44,16 @@ export const rsbuildReact: ProjectManifest = {
    * **Not `assets`.** This app localizes no asset; `rsbuild-spa` covers that
    * path on this host.
    */
-  capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],
+  capabilities: [
+    "build",
+    "graph",
+    "transform",
+    "spa",
+    "boundary-graph",
+    "locale-switch",
+    "rtl",
+    "hmr",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",

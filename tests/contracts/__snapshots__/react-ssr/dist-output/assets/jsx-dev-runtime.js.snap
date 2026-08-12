@@ -10546,6 +10546,12 @@ function getActiveInstance() {
 function getLocale() {
 	return getActiveInstance().locale;
 }
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
 function isThenable(obj) {
 	return obj && typeof obj.then === "function";
 }
@@ -10621,4 +10627,4 @@ var require_jsx_dev_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) =
 	module.exports = require_react_jsx_dev_runtime_production();
 }));
 //#endregion
-export { getLocale as a, react_default as i, hero_default as n, require_client as o, vite_default as r, require_react as s, require_jsx_dev_runtime as t };
+export { getLocale as a, require_client as c, react_default as i, require_react as l, hero_default as n, getStoreVersion as o, vite_default as r, subscribe as s, require_jsx_dev_runtime as t };

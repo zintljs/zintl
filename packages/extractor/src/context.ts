@@ -283,13 +283,45 @@ export class ExtractionContext {
   public zintlImportGroup?: { start: number; end: number; source: string };
   public componentFunctions = new Set<number>();
 
+  /**
+   * Mark the enclosing function as a component, if it plausibly is one.
+   *
+   * "Contains JSX" is not the same as "is a component", and treating them as one
+   * is how a hook ends up in a function that must not have one. The clearest
+   * case is a bootstrap:
+   *
+   * ```tsx
+   * async function bootstrap() {
+   *   createRoot(el).render(<StrictMode><Main /></StrictMode>);
+   * }
+   * ```
+   *
+   * `bootstrap` is the outermost function containing JSX, so it was marked — and
+   * injecting `useSyncExternalStore` there throws `Invalid hook call` and takes
+   * the whole page down. That went unnoticed because the only consumer was gated
+   * behind React Server Components' `"use client"` directive, which exactly one
+   * file in this repository carries (ledger L-032).
+   *
+   * So require what React itself requires: a component's name is capitalised.
+   * The name comes from the declaration, or from the binding an expression is
+   * assigned to (`const App = () => …`). A function with no name at all is not
+   * marked — an anonymous `export default () => …` is missed, which is the
+   * conservative direction: failing to subscribe degrades a repaint, while
+   * injecting a hook into a non-component breaks the application.
+   */
   public registerComponentFunction(parents: Node[]) {
-    const funcNode = parents.find((p) =>
+    const idx = parents.findIndex((p) =>
       ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(p.type),
     );
-    if (funcNode && (funcNode as any).body && (funcNode as any).body.type === "BlockStatement") {
-      this.componentFunctions.add((funcNode as any).body.start + 1);
-    }
+    if (idx === -1) return;
+
+    const funcNode = parents[idx] as any;
+    if (!funcNode.body || funcNode.body.type !== "BlockStatement") return;
+
+    const name = funcNode.id?.name ?? (parents[idx - 1] as any)?.id?.name;
+    if (typeof name !== "string" || !/^[A-Z]/.test(name)) return;
+
+    this.componentFunctions.add(funcNode.body.start + 1);
   }
 
   private _rawSinks?: RawSink[];

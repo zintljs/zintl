@@ -1406,3 +1406,172 @@ look like one.
 hot-updates" and treated as a harness inconvenience keeping `memory` unclaimable. It was actually
 holding up two capability claims that were not earned. A harness bug that makes tests _pass_ is worth
 more attention than one that makes them fail, and it is much easier to leave alone.
+
+#### Attempt 4: entry-only acceptance — and the acceptance matrix is now complete
+
+The most principled candidate yet, and it half-works like the others. Reverted, but it completes a
+table that rules out the entire approach rather than one more point in it.
+
+**The idea.** On Webpack an update stops at the module that accepts it, and that module becomes its
+own update root, applied _beside_ the entry rather than beneath it. So let **nothing Zintl generates
+accept** — every update bubbles until it reaches the entry, which is the only acceptance point, and
+Webpack disposes the whole chain beneath it first. The entry then re-executes with fresh managers and
+fresh content modules underneath, which is exactly the state Vite reaches by re-fetching each module's
+URL with a new `?t=`.
+
+**Measured, four consecutive edits per cell, `.zintl` cleared per run:**
+
+| manager | content | `en` (inlined, sync) | `ar` (lazy, async chunk) |
+| :------ | :------ | :------------------- | :----------------------- |
+| accept  | accept  | ✗ 3/3 blank          | ✓ 0/5                    |
+| decline | accept  | ✓ 0/5                | ✗ 3/5 blank              |
+| decline | decline | ✓ 0/4                | ✗ 4/4 blank              |
+
+**`en` requires the manager to decline; `ar` requires it to accept.** That is a direct contradiction,
+so **no acceptance policy fixes both** — the fourth approach is not one more failed guess but the
+exhaustion of a category.
+
+**Why `ar` still fails under decline/decline**, which is the new information. The entry _does_ wait:
+`registerLoader` returns its promise, `loadI18nInstance` pushes it into `promises` and awaits
+`Promise.all`. And the catalog _is_ correct afterwards — the probe reports `hasKey=true` on the store
+with the DOM still blank. So the awaited `import()` resolved the **stale cached async chunk**: Webpack
+had not disposed it, because an async chunk's update is applied on its own schedule regardless of what
+the importer does.
+
+**Which names the next candidate precisely.** The content module's specifier is constant across
+generations (`virtual:zintl/content/<locale>/<boundary>`), so a dynamic import after an update can
+legitimately return the cached module. Vite never has this problem because its specifier carries
+`?t=<timestamp>` — a _different module_ every update. The equivalent here is to stamp the generated
+dynamic-import specifier with `catalogGeneration` in dev, so `import()` cannot resolve a stale chunk
+by construction.
+
+Two risks to settle before writing it, neither cosmetic: `resolveId`/`load` parse that path with a
+fixed regex, and unplugin materialises virtual ids as **real filenames** under `node_modules/.virtual`
+— so whatever the stamp looks like, it has to survive both parsing and the filesystem. That is why
+this is written down rather than attempted at the end of a long session.
+
+**Score so far on this defect: four approaches, four reverts, and a much smaller remaining search
+space.** The one thing that has never failed is measuring before concluding.
+
+#### Attempt 5: generation-stamped content specifier — and the invariant that ends the search
+
+Implemented, measured in three configurations, reverted. Both named risks turned out to be
+non-issues, and the change still does not fix the defect — but the five attempts together now
+establish something none of them established alone.
+
+**The risks were real and both cleared.** `encodeVirtualModuleId` uses `encodeURIComponent`, so a `?`
+becomes `%3F` and survives as a filename; and `resolveIdHook` passes the id through whole while
+`loadIncludeHook` and `loadHook` both split on `?` before matching. The stamp needed **no parser
+changes**, which is the one prediction in this whole sequence that held.
+
+**Measured, four edits per cell:**
+
+| acceptance        | stamp | `en` (inlined) | `ar` (lazy) |
+| :---------------- | :---- | :------------- | :---------- |
+| accept / accept   | no    | ✗ 3/3          | ✓ 0/5       |
+| accept / accept   | yes   | ✗ 4/4          | ✓ 0/4       |
+| decline / decline | no    | ✓ 0/4          | ✗ 4/4       |
+| decline / decline | yes   | ✓ 0/4          | ✗ 4/4       |
+
+The stamp is **inert**: `ar` already worked wherever the manager accepted, and the stamp does not
+rescue it where the manager declines. `en` continues to depend only on the manager declining, which
+`ar` cannot tolerate.
+
+**The invariant, which is the actual result of five attempts.** Every failing cell reports the same
+thing, and it is worth stating exactly because it is what rules out the entire family of fixes tried
+so far:
+
+```
+hasKey=true    catalog fresh in the store
+errs=[]        no console errors
+h=""           DOM blank
+reloaded=false no page reload
+```
+
+**In every configuration, the correct catalog reaches the store and the render has already happened.**
+Module identity, acceptance policy, store lifetime, loader resolution — five approaches moved _which_
+module or _which_ store carried the value, and not one moved the render later or the value earlier.
+On this host the entry's render precedes the freshest catalog, and nothing that only changes
+_where the value comes from_ can change that.
+
+**So the fix is a repaint, and the repaint has to be built.** The `notify()`/`subscribe` signal exists
+and fires; what does not exist is anything on the page listening to it — `useSyncExternalStore` is
+absent from the generated React output on **both** hosts (checked in the committed dev-transform
+snapshots for `react-basic` and `rsbuild-react` alike), so `clientReactivity` is not reaching these
+projects at all. Vite hides this completely, because its ordering makes the first render correct and
+no repaint is ever needed.
+
+That is a codegen question — why `clientReactivityImports` produces no subscription in practice — and
+it is the first candidate in this sequence that is not about hot-update plumbing. It should be
+investigated before anything else is attempted here, and it wants a proposal rather than a patch.
+
+**Five attempts, five reverts, one invariant, and a much better question.** Recording the cost
+honestly: three of the five were argued from correct mechanisms to unmeasured conclusions, and the
+two that produced durable value (L-028's `inFlight` fix, `examples/rsbuild-react`) both began with a
+measurement.
+
+### L-032 — reactivity was gated on an RSC directive, so no plain React app ever subscribed
+
+|                             |                                                                        |
+| :-------------------------- | :--------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — and it fixes L-030 for framework apps                      |
+| **Bucket**                  | **1 — declare it** (a framework fact, asked of the facet)              |
+| **Facet contract changed?** | Yes — `RuntimeFacet.serverComponents`                                  |
+| **Affects**                 | **Both hosts.** Latent on Vite for the same reason as L-028 and L-030. |
+
+The answer to L-030, found by asking a question none of the five previous attempts asked: not "why is
+the catalog late" but "why does nothing repaint when it arrives".
+
+**Two defects, stacked, each hiding the other.**
+
+**(a) The gate was the wrong question.** `pipeline/resolve.ts` injected
+`useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion)` only when
+`observation.isClientComponent` — which is literally:
+
+```ts
+isClientComponent: code.includes('"use client"') || code.includes("'use client'"),
+```
+
+That is a **React Server Components** directive. A plain React SPA never writes it. Measured across
+this repository, exactly **one** file carries it — `examples/vinext-basic/src/components/locales.tsx` —
+so the entire client-reactivity feature was reaching one module, and `react-basic`, `react-ssr` and
+`rsbuild-react` subscribed to nothing at all.
+
+Fixed by asking the framework instead of the file: `RuntimeFacet.serverComponents`, declared `true`
+only by `nextjsRuntimeFacet`. Where a framework separates server components from client ones the
+directive still gates injection; everywhere else every component is a client component, which is what
+non-RSC React has always meant. Both gates move together — `resolve.ts` and `resolve-imports.ts` — or
+a file imports a hook it never calls, or calls one it never imported.
+
+**(b) The detection was too loose, and (a) was hiding it.** Turning the gate on immediately broke
+every React example with `Invalid hook call`, thrown from `bootstrap`:
+
+```
+PAGEERROR: TypeError: Cannot read properties of null (reading 'useSyncExternalStore')
+    at bootstrap (index.js:223)
+```
+
+`registerComponentFunction` marked the **outermost function containing any JSX**, with no name check —
+so a bootstrap that merely calls `createRoot(el).render(<App />)` was marked a component. It now
+requires a capitalised name, from the declaration or from the binding an expression is assigned to,
+which is React's own rule. A function with no name is not marked: failing to subscribe degrades a
+repaint, while injecting a hook into a non-component takes the page down, so the conservative
+direction is the safe one.
+
+**Result.** `hmr` now passes on `examples/rsbuild-react` and is claimed. Fourteen injections across the
+regenerated React snapshots, **none** in a lowercase function.
+
+**What this says about L-030, and about the vanilla-only hypothesis.** The hypothesis was refuted
+earlier — React was affected too — and that refutation was _correct at the time_ for a reason nobody
+had looked at: reactivity was globally broken, so React had no advantage over vanilla. With (a) fixed,
+the original reasoning holds after all — a framework repaint re-reads the catalog and recovers, and
+`rsbuild-spa` stays blank because a vanilla repaint re-runs `zintl()` and rebuilds the store from a
+stale binding. So `hmr` remains unclaimed on `rsbuild-spa`, and the remaining defect there is narrower
+and better understood than L-030 was.
+
+**Why five attempts missed it.** Every one of them treated this as hot-update plumbing — store
+lifetime, acceptance policy, module identity, loader resolution. The defect was in **codegen**, on a
+path shared with Vite, and Vite's ordering meant the missing subscription never had a visible
+consequence there. A second host did not introduce the bug; it removed the ordering that was
+concealing it — which is the thesis proposal 026 was written to test, now demonstrated three times
+over (L-028, L-030, L-032).
