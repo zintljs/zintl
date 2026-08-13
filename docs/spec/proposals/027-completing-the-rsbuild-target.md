@@ -1,6 +1,9 @@
 # Proposal 027: Completing the Rsbuild Target
 
-**Status**: IN PROGRESS — §2.3(c) closed, see [027-leak-ledger.md](027-leak-ledger.md).
+**Status**: COMPLETE — every item here landed, though not all of them in the way this document
+predicted. §2.4's HMR ordering defect turned out to be three separate defects and one dead hook; see
+[027-leak-ledger.md](027-leak-ledger.md) L-039 through L-050, and
+[030](030-rsbuild-what-remains.md) for the closure that followed.
 **Date**: 2026-08-06
 **Ledger**: [027-leak-ledger.md](027-leak-ledger.md) — findings from this proposal's work, continuing 026's numbering from L-020.
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md) §11, and the findings in [026-leak-ledger.md](026-leak-ledger.md). Read 026 §11 first — this document assumes its outcome and does not restate it.

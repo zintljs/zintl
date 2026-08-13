@@ -55,10 +55,12 @@ function readThroughCompilation(
 /**
  * Rspack's contribution to the hot-update seam (proposal 029).
  *
- * Registered from the plugin's `rspack(compiler)` escape hatch, which unplugin
- * calls under raw Rspack *and* under Rsbuild — `toRsbuildPlugin` pushes the raw
- * plugin into `modifyRspackConfig`, so `applyRspackPlugins` runs it either way.
- * One registration covers both hosts, exactly as `rspackFacet` does.
+ * Registered from the plugin's `rsbuild` block via `api.modifyRspackConfig`.
+ * **Not** from unplugin's `rspack(compiler)` escape hatch, which never fires
+ * under Rsbuild: unplugin gates it on `meta.framework === "rspack"` and its
+ * Rsbuild target sets `"rsbuild"`, then hands that same meta to the Rspack
+ * plugin it injects. That hook is kept for a future raw-Rspack entry point, and
+ * registration is idempotent per compiler so both routes are safe (L-041).
  *
  * **`watchRun`, not unplugin's `watchChange`.** unplugin exposes `watchChange`
  * on this host by tapping `compiler.hooks.make`, which would work, but `watchRun`
@@ -68,7 +70,20 @@ function readThroughCompilation(
  * compilation this event triggered builds against stale strings; and the batch is
  * what makes the sequence below meaningful.
  */
+/**
+ * Compilers already tapped, so the two routes here cannot double-tap one.
+ *
+ * There are two by design: raw Rspack through unplugin's `rspack` escape hatch,
+ * Rsbuild through `api.modifyRspackConfig`. Only one fires for any given host
+ * today — but "only one fires" is exactly the class of claim ledger L-041 was
+ * made of, so this does not rely on it.
+ */
+const tapped = new WeakSet<object>();
+
 export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLike): void {
+  if (tapped.has(compiler)) return;
+  tapped.add(compiler);
+
   /**
    * Recorded at registration, not just per event.
    *
@@ -175,5 +190,38 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
           .error(`Update failed for ${file}, leaving it to the next edit: ${String(err)}`);
       }
     }
+
+    /**
+     * Wait for the catalogs to be on disk before letting this compilation run.
+     *
+     * `computeHotUpdatePlan` starts the flush and deliberately does not await it,
+     * and its reasoning is exactly right *for Vite*: there the browser's update
+     * is the re-evaluated content module, served from the compiler's memory, so a
+     * disk write is not on the hot path.
+     *
+     * On Rspack it is the hot path. The generated content and manager modules
+     * declare the catalog files as dependencies (proposal 029 §3) and Rspack
+     * builds them by **reading those files**. Leaving the flush in flight means
+     * the compilation this hook precedes can read the previous catalog — and the
+     * whole reason `watchRun` was chosen over `watchChange` is that it fires
+     * before module building, so this is the one place the ordering can be
+     * guaranteed rather than hoped for.
+     *
+     * Measured: without this, `syntax-recovery` on `rsbuild-spa` failed 9 runs in
+     * 10, and the diagnosis showed the server sending `hash`+`ok` correctly while
+     * the reloaded page came back missing the recovered key — a bundle built from
+     * a catalog the flush had not yet written.
+     *
+     * Awaiting is affordable precisely because it is not per-update: one flush
+     * per watch cycle, coalesced across the batch, before a compilation that is
+     * about to do considerably more work.
+     */
+    await ctx.compiler
+      .flush()
+      .catch((err: unknown) =>
+        ctx.compiler._logger
+          .withPrefix("HMR")
+          .error(`Flush before compilation failed: ${String(err)}`),
+      );
   });
 }

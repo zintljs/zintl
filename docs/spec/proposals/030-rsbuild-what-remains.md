@@ -1,11 +1,12 @@
 # Proposal 030: Rsbuild — What Remains Before "Fully Supported"
 
-**Status**: AUDIT — opened against a live checkout at `bb5eb9a`, with both gates actually run rather
-than quoted. The architectural question is closed and stays closed: 029 built the seam, and nothing
-found here reopens it. What remains is **one correctness defect on the Vite path**, **one over-claim
-about what "hot updates" covers**, and a **promise layer** — shipped JSDoc, two READMEs, the publish
-gate — that still tells a user this target is experimental. None of it is architecture. All of it is
-between here and a promise the repository can keep.
+**Status**: CLOSED — Rsbuild is a supported target for single-page apps in React and vanilla
+JavaScript, in production builds and in `rsbuild dev`. The work this document scoped is done, and the
+part worth carrying forward is _how_: a flake instrument (`scripts/flake.js`) came first, and every
+claim below was then measured at N ≥ 10 against a baseline taken in the same sitting. That alone
+turned a fortnight of circling into one pass — three real defects fixed (L-047 the decisive one), two
+attempted fixes measured and rejected, and every capability claim now backed by a number. See
+[027-leak-ledger.md](027-leak-ledger.md) L-039 through L-050.
 **Date**: 2026-08-12
 **Depends on**: [026](026-rsbuild-as-falsification-harness.md), [027](027-completing-the-rsbuild-target.md),
 [028](028-rsbuild-support-status.md), [029](029-rsbuild-hmr-facet-seam.md), and both ledgers

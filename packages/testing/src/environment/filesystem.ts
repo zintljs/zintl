@@ -1,5 +1,5 @@
 import { readFile, writeFile, unlink, rename, readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { existsSync } from "node:fs";
 
 export type FsMutation =
@@ -91,6 +91,33 @@ export class LabFilesystem {
     return join(this.exampleRoot, relativePath);
   }
 
+  /**
+   * Replace a file the way an editor does: write a temp file, then `rename`.
+   *
+   * `writeFile` truncates and then writes, so a watcher can observe the file
+   * **empty** before it observes the new content — one logical edit arriving as
+   * two events. Every editor a real user runs avoids this with an atomic rename;
+   * the harness was the only thing producing the intermediate state.
+   *
+   * It matters more than it sounds. Rspack's dev watcher runs with
+   * `aggregateTimeout: 0`, and an empty entry module compiles *successfully* —
+   * so the truncation window can produce a real, successful build of an empty
+   * app between the two halves of a single edit. That both doubles the chance of
+   * an update landing while the HMR runtime is not idle (where Rsbuild's client
+   * drops it silently and never retries) and can change the entrypoint chunk
+   * set, which makes the dev server emit a bare `full-reload` instead of the
+   * `hash`/`ok` pair the client needs.
+   *
+   * The temp file is a dotfile with no source extension, deliberately: it lands
+   * in the watched tree for an instant, and it must not look like a module to
+   * anything that might try to compile it.
+   */
+  private async atomicWrite(fullPath: string, content: string): Promise<void> {
+    const tmp = join(dirname(fullPath), `.${basename(fullPath)}.zintl-tmp`);
+    await writeFile(tmp, content, "utf-8");
+    await rename(tmp, fullPath);
+  }
+
   async edit(relativePath: string, transform: (content: string) => string): Promise<void> {
     const fullPath = this.resolvePath(relativePath);
     if (!existsSync(fullPath)) {
@@ -107,7 +134,7 @@ export class LabFilesystem {
     }
 
     await this.runBeforeMutation();
-    await writeFile(fullPath, updated, "utf-8");
+    await this.atomicWrite(fullPath, updated);
 
     if (this.onMutationCallback) {
       await this.onMutationCallback();
@@ -131,7 +158,7 @@ export class LabFilesystem {
     }
 
     await this.runBeforeMutation();
-    await writeFile(fullPath, content, "utf-8");
+    await this.atomicWrite(fullPath, content);
 
     if (this.onMutationCallback) {
       await this.onMutationCallback();
@@ -185,11 +212,11 @@ export class LabFilesystem {
       try {
         if (m.type === "edit") {
           const fullPath = this.resolvePath(m.path);
-          await writeFile(fullPath, m.original, "utf-8");
+          await this.atomicWrite(fullPath, m.original);
         } else if (m.type === "write") {
           const fullPath = this.resolvePath(m.path);
           if (m.existed && m.original !== undefined) {
-            await writeFile(fullPath, m.original, "utf-8");
+            await this.atomicWrite(fullPath, m.original);
           } else {
             if (existsSync(fullPath)) {
               await unlink(fullPath);
@@ -197,7 +224,7 @@ export class LabFilesystem {
           }
         } else if (m.type === "delete") {
           const fullPath = this.resolvePath(m.path);
-          await writeFile(fullPath, m.original, "utf-8");
+          await this.atomicWrite(fullPath, m.original);
         } else if (m.type === "rename") {
           const fromFullPath = this.resolvePath(m.from);
           const toFullPath = this.resolvePath(m.to);
@@ -210,7 +237,26 @@ export class LabFilesystem {
       }
     }
 
+    const restored = this._mutations.length > 0;
     this._mutations = [];
+
+    /**
+     * Let the rebuild these restores caused actually finish.
+     *
+     * The dev server is pooled per project per worker, so it outlives the lab
+     * that made these edits: whatever this restore just triggered is still
+     * compiling when the *next* contract navigates and takes its settle
+     * baseline. That contract then measures a page mid-rebuild and attributes
+     * the result to its own edit.
+     *
+     * The hook was already wired and commented out at the bottom of this method.
+     * It is called here instead — right after the source files are back and
+     * before the catalog work below — because the source restore is the part
+     * that triggers a compilation.
+     */
+    if (restored && this.onMutationCallback) {
+      await this.onMutationCallback();
+    }
 
     // 2. Restore JSON translation catalogs to their original/pristine states
     // const currentJsonFiles = await this.findJsonFiles(this.exampleRoot);

@@ -122,7 +122,7 @@ const msg = `You have ${count} items in your cart`;
 
 Works with **React, Vue, Svelte, and vanilla** apps, on **Vite 6, 7 or 8** or on **[Rsbuild](https://rsbuild.dev) 2** — install whichever you build with; both are optional peer dependencies. Node `^22.18.0 || >=24.11.0`.
 
-On Vite that covers client-rendered, server-rendered and multi-page apps. On Rsbuild it covers single-page apps, in production builds and in dev; per-locale HTML fan-out (`multiplex`) and SSR are Vite-only, and combining them with Rsbuild fails your build with a clear error rather than doing nothing quietly. [The full comparison.](https://github.com/zintljs/zintl/blob/main/docs/configuration.md#rsbuild)
+On Vite that covers client-rendered, server-rendered and multi-page apps, with all four frameworks. On Rsbuild it covers single-page apps in **React and vanilla JavaScript**, in production builds and in dev — Vue and Svelte are untested there rather than unsupported; per-locale HTML fan-out (`multiplex`) and SSR are Vite-only, and combining them with Rsbuild fails your build with a clear error rather than doing nothing quietly. [The full comparison.](https://github.com/zintljs/zintl/blob/main/docs/configuration.md#rsbuild)
 
 That list is a starting point, not the design. The extractor carries no framework knowledge and the compiler is bundler-agnostic, so another framework or another build tool is something you add rather than something the core is rewritten around. More of both are coming.
 

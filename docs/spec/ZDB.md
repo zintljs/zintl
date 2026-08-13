@@ -316,7 +316,14 @@ Take a bundler unplugin already supports, implement Tier 1 as a `BundlerFacet`, 
 
 ### The worked second example: Rspack
 
-Rsbuild/Rspack has been through both tiers (proposals 026–029), and how it answers the Tier-2 table is worth recording, because it is not the shape this section originally imagined:
+Rsbuild/Rspack has been through both tiers (proposals 026–030), and how it answers the Tier-2 table is
+worth recording, because it is not the shape this section originally imagined.
+
+One caveat belongs with the table rather than after it: the `watchRun` row was **specified for two
+years before it was reached**. unplugin never called the escape hatch the tap was registered from, so
+Rspack's guarantees were available and unused, and the host worked through its ordinary
+transform-and-flush path. The tap is registered as of proposal 030 (ledger L-041), and the guarantees
+below are now in play rather than merely present.
 
 | Requirement                        | Rspack's answer                                                |
 | :--------------------------------- | :------------------------------------------------------------- |

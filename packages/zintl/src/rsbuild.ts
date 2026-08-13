@@ -5,10 +5,15 @@
  * different entry point, not a second implementation.
  *
  * Supported for single-page applications, in production builds and in
- * `rsbuild dev`. Chunk-aligned catalogs, ghost mode, localized assets and
- * per-locale `<html lang>`/`dir` all carry over, with no Rspack-specific code
- * in the compiler. Requires `@rsbuild/core` — an optional peer dependency,
- * tested against `^2.1.0`.
+ * `rsbuild dev`, with **React and vanilla JavaScript** — the two configurations
+ * the contract suite drives on this host. Chunk-aligned catalogs, ghost mode,
+ * localized assets, per-locale `<html lang>`/`dir` and hot updates all carry
+ * over, with no Rspack-specific code in the compiler. Requires `@rsbuild/core` —
+ * an optional peer dependency, tested against `^2.1.0`.
+ *
+ * Vue and Svelte are **untested here rather than unsupported**: nothing about
+ * them is known to break on Rspack, and nothing has measured them either, so the
+ * promise stops where the evidence does.
  *
  * **How a dev edit reaches the screen depends on the app, not on this host.**
  * Where components re-read the catalog, the edit applies in place. Where

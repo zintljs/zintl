@@ -80,8 +80,10 @@ export const rsbuildSpa: ProjectManifest = {
    * projects, both starting from Rsbuild's default 3000 (L-036). The cost of a
    * reload is real but nowhere near the budget.
    *
-   * **Not `memory`.** `memory-leak` drives twenty sequential edits, and each one
-   * here is a page reload. A reload resets the settle beacon to the same value
+   * **Not `memory`, and now measured rather than inferred: 10 failures in 10,
+   * against `rsbuild-react` passing 10 in 10 in the same batch.**
+   * `memory-leak` drives twenty sequential edits, and each one here is a page
+   * reload. A reload resets the settle beacon to the same value
    * it had before, which is precisely the shape `waitForSettled` cannot confirm
    * (L-029) — so every iteration would wait out its full timeout. It would also
    * be measuring nothing: a reload resets the heap, so "growth across twenty

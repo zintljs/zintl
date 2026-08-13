@@ -37,6 +37,12 @@ const contextMap = new WeakMap<ResolvedOptions, Context>();
 interface RsbuildSetupApi extends RsbuildHtmlApi {
   context: { action?: "dev" | "build" | "preview" };
   onBeforeStartDevServer?: (fn: (params: { server: RsbuildDevServerLike }) => void) => void;
+  /**
+   * Rsbuild's seam onto the Rspack config it is about to build with, typed
+   * structurally like the rest of this interface so `zintljs` takes no hard
+   * dependency on `@rsbuild/core`.
+   */
+  modifyRspackConfig?: (fn: (config: { plugins?: unknown[] }) => void | Promise<void>) => void;
 }
 
 const unplugin = createUnplugin<Options, true>((options) => {
@@ -147,6 +153,32 @@ const unplugin = createUnplugin<Options, true>((options) => {
            */
           api.onBeforeStartDevServer?.(({ server }) => {
             ctx.rsbuildServer = server;
+          });
+
+          /**
+           * The hot-update tap — registered here because the `rspack` block
+           * below **never runs under Rsbuild** (ledger L-041).
+           *
+           * unplugin gates that escape hatch on `meta.framework === "rspack"`,
+           * and its Rsbuild target builds `meta` with `framework: "rsbuild"`,
+           * then hands that same object to the Rspack plugin it pushes into
+           * `modifyRspackConfig`. The plugin is applied; the hook on it is not
+           * called. So proposal 029's `watchRun` tap — the whole Tier-2
+           * mechanism, `Watching.startTime` as the per-event sequence and
+           * `inputFileSystem` as the read scoped to it — was dead code on the
+           * only host that ships it, and Rsbuild worked anyway through the
+           * ordinary transform-and-flush path.
+           *
+           * Pushing a bare `{ apply }` is the documented way to add an Rspack
+           * plugin, and it is what unplugin's own adapter does one line away.
+           */
+          api.modifyRspackConfig?.((config) => {
+            config.plugins ??= [];
+            config.plugins.push({
+              apply(compiler: unknown) {
+                registerRspackHotUpdate(ctx, compiler as never);
+              },
+            });
           });
         },
       },

@@ -35,8 +35,17 @@ function freePort(): Promise<number> {
  *
  * `hash` then `ok` is what Rsbuild sends after a successful compilation, and the
  * `ok` is the moment the client has applied it — so `ok` is what Vite calls
- * `update`. `hash` carries no information a contract asks for and is dropped;
- * so are `errors`/`warnings`, which `LabConsole` already covers.
+ * `update`.
+ *
+ * **`hash`, `errors` and `warnings` are recorded rather than dropped**, under
+ * their own names. They used to be discarded as carrying nothing a contract asks
+ * for, and that reasoning missed what the *diagnosis* asks for: with only `ok`
+ * and `full-reload` retained, "the server never sent an update" and "the server
+ * sent one and the client never applied it" produce an identical empty packet
+ * log — which is exactly the distinction `describeStall` claims to draw. A
+ * failing build sends `hash` then `errors`; a recovery sends `hash` then `ok`.
+ * Seeing the first pair without the second is the whole answer, and it was being
+ * thrown away on the way in.
  *
  * `static-changed` is Rsbuild's own documented alias for `full-reload`, kept for
  * backward compatibility on its side; both mean the same thing here.
@@ -50,6 +59,10 @@ function translateRsbuildPacket(raw: string): HmrPacket | null {
     case "full-reload":
     case "static-changed":
       return { type: "full-reload", timestamp, data: msg.data };
+    case "hash":
+    case "errors":
+    case "warnings":
+      return { type: msg.type, timestamp, data: msg.data };
     default:
       return null;
   }
@@ -82,7 +95,31 @@ export class RsbuildDevServerDriver implements DevServerDriver {
      */
     const { createRsbuild, loadConfig } = await import("@rsbuild/core");
 
-    const { content: fileConfig } = await loadConfig({ cwd: root });
+    /**
+     * Say "development" the way the CLI does, before anything reads it.
+     *
+     * `rsbuild dev` sets `NODE_ENV=development` **before** `createRsbuild`, and
+     * `startDevServer`'s own fallback is `process.env.NODE_ENV || setNodeEnv(…)`
+     * — a no-op here, because Vitest has already set `"test"` and that is truthy.
+     * Passing `mode: "development"` below fixes the build output but leaves every
+     * other consumer of `NODE_ENV` reading `"test"`.
+     *
+     * The point of this driver is to reproduce what a user runs. Each divergence
+     * from the CLI is a place where a harness result stops describing reality,
+     * and this file has already paid for two of those (ledger L-020, L-031).
+     */
+    process.env.NODE_ENV = "development";
+
+    const { content: fileConfig } = await loadConfig({
+      cwd: root,
+      /**
+       * What the CLI passes. Without them `loadConfig` derives `command` from
+       * `process.argv[2]` — Vitest's — and `envMode` from `NODE_ENV`, so a config
+       * that branches on either saw a shape no real invocation produces.
+       */
+      command: "dev",
+      envMode: "development",
+    });
 
     /** An explicit port is honoured; otherwise take one the OS says is free. */
     const resolvedPort = port || (await freePort());
@@ -107,7 +144,21 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          * to start a dev server should not be describing itself as a test run.
          */
         mode: "development",
-        logLevel: "error",
+        /**
+         * `info`, matching the CLI — not `"error"`, which this used to force.
+         *
+         * Rsbuild propagates `logLevel` into the browser as `dev.client.logLevel`,
+         * so silencing the server also silenced the **HMR client**: "WebSocket
+         * connection lost. Reconnecting…", the max-retry warning, and the
+         * connect/apply messages all stopped reaching `LabConsole`. A whole class
+         * of failure therefore arrived looking like nothing had happened at all,
+         * which is precisely what made the `rsbuild-react` intermittency take five
+         * investigations to characterise.
+         *
+         * The extra server-side noise is worth it: contract output is only read
+         * when something failed.
+         */
+        logLevel: "info",
         server: { ...(fileConfig as any)?.server, port: resolvedPort, strictPort: !!port },
         dev: { ...(fileConfig as any)?.dev, progressBar: false },
       },

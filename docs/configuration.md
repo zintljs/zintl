@@ -143,7 +143,7 @@ export default defineConfig({
 
 Every option above applies the same way — `zintljs/rsbuild` is the same plugin behind a different entry point, not a second implementation.
 
-Production builds and `rsbuild dev` both work: chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir` and dev-time string edits all carry over from the Vite integration, with no Rspack-specific code in the compiler.
+Rsbuild is a supported target for **single-page applications**, in production builds and in `rsbuild dev`, with **React and vanilla JavaScript** — the two configurations the test suite drives on this host. Chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir` and dev-time string edits all carry over from the Vite integration, with no Rspack-specific code in the compiler. Vue and Svelte are untested here rather than unsupported.
 
 **How a dev edit arrives differs by app, and it is worth knowing which you have.** In a framework app the edit applies in place, with no page reload — a component re-reads the catalog and renders again. In an app with no such components the page reloads instead. That is deliberate rather than a limitation: on Rspack a re-executed entry reads its imports from the module cache, so an app whose only repaint is re-running its entry could otherwise re-seed itself from a stale catalog and render empty strings. Declining the update and reloading is slower and correct. Today React is the framework that supplies the in-place path; a plain-JavaScript app gets the reload.
 

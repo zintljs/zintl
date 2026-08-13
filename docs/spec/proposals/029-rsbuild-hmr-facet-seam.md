@@ -1,6 +1,12 @@
 # Proposal 029: The HMR Facet Seam, and Rsbuild as a Supported Target
 
-**Status**: LANDED, WITH THE HMR CLAIM RETRACTED — `vpr ci` green (796 unit tests, 137 contract cases across 24 files). The facet seam is built and is the durable result. Hot updates on Rsbuild **do** work against a real `rsbuild dev`, verified by hand in §4 with a sentinel proving no reload — but the contract suite does **not** demonstrate it, and `hmr`/`hmr-stress` have been dropped from `rsbuild-spa`'s manifest. They had been passing because the harness reloaded the page on every mutation (L-029/L-031); once that was fixed, the L-030 empty-render defect fails them honestly. A green suite had been making two different statements look like one.
+**Status**: LANDED — and the retraction this header used to open with is resolved. `hmr` and
+`hmr-stress` are claimed on `rsbuild-spa` again (L-035), and the seam built here is the durable result.
+One correction belongs at the top rather than buried: **the `watchRun` tap this proposal designed was
+never actually registered.** unplugin gates its `rspack` escape hatch on `meta.framework === "rspack"`,
+which its Rsbuild target never sets, so §2's mechanism was dead code and Rsbuild hot-updated through
+the ordinary transform-and-flush path instead. It is wired from the `rsbuild` block as of proposal
+[030](030-rsbuild-what-remains.md); see ledger L-041 and L-047.
 **Date**: 2026-08-11
 **Depends on**: [026-rsbuild-as-falsification-harness.md](026-rsbuild-as-falsification-harness.md), [027-completing-the-rsbuild-target.md](027-completing-the-rsbuild-target.md), [027-leak-ledger.md](027-leak-ledger.md), [028-rsbuild-support-status.md](028-rsbuild-support-status.md). This is the proposal 028 §6.4 said "is worth its own when someone picks it up."
 

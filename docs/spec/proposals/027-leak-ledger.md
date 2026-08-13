@@ -2646,3 +2646,180 @@ the numbers justified nothing and that the unit tests were the whole argument. T
 was still not enough: **a change with a proof of correctness and no evidence of benefit is a change
 with no evidence for shipping it**, and this suite makes that visible within about ten minutes of
 looking.
+
+## Phase 7 — closing Rsbuild: measurement first
+
+Everything below was measured with `scripts/flake.js`, at N = 10, with the baseline taken in the
+**same sitting** as the change. That instrument is the substantive change of this phase: four reverts
+in the previous one were argued from three-run batches against baselines that had drifted, and two
+"green" results turned out to have been measured against a `dist` whose build had failed.
+
+### L-047 — the flush was fire-and-forget, and on Rspack it is the hot path
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — and it is what unblocked the tap                |
+| **Bucket**                  | **2 — relocate it** (await it on the host where it matters) |
+| **Facet contract changed?** | No                                                          |
+| **Unblocks**                | [L-041](#l-041), [L-042](#l-042), [L-045](#l-045)           |
+
+Wiring the `watchRun` tap (L-041's fix) made `syntax-recovery` on `rsbuild-spa` fail **9 runs in 10**,
+against a pre-tap baseline of **0 in 10**. The five harness fixes that preceded it changed nothing:
+`hmr.contract` measured **3/10 before and 3/10 after**, the same two cases each time. They were worth
+making for other reasons, but they were not the blocker.
+
+**The diagnosis, which the harness could finally give**, because those fixes had just taught it to
+record `hash`/`errors` packets and to stop silencing the browser's own HMR client:
+
+```
+hmr packets: {"hash":4,"update":3,"full-reload":2,"errors":1}
+last console lines:
+    [info] [rsbuild] WebSocket connecting...
+    [warning] [Zintl] Missing key "Recovered!" in boundary "b_src_main_render"
+    [info] [rsbuild] WebSocket connected.
+```
+
+The server sent everything it should: `hash`+`errors` for the broken build, `hash`+`ok` for the
+recovery. The page reloaded — and came back **missing the recovered key**. So this was never a lost
+update. It was a bundle built from a catalog that had not been written yet.
+
+**The cause.** `computeHotUpdatePlan` starts `flush()` and deliberately does not await it, with a
+comment that is exactly right _for Vite_: there the browser's update is the re-evaluated content
+module, served from the compiler's memory, so a disk write is not on the critical path. On Rspack it
+**is** the critical path — the generated content and manager modules declare the catalog files as
+dependencies (029 §3) and Rspack builds them by reading those files. With the flush still in flight,
+the compilation the tap precedes reads the previous catalog.
+
+The irony is precise: `watchRun` was chosen over `watchChange` _because_ it fires before module
+building, and that earliness was then spent starting a write nobody waited for.
+
+**Fixed** by awaiting the flush at the end of the Rspack tap, once per watch cycle rather than per
+update — the one place the ordering can be guaranteed rather than hoped for. Vite's hook is untouched
+and still does not block.
+
+**Measured, same sitting:**
+
+| Configuration                    | `syntax-recovery` / `rsbuild-spa` | per-run wall clock |
+| :------------------------------- | :-------------------------------- | :----------------- |
+| Pre-tap baseline                 | 0 / 10                            | 27 s               |
+| Tap wired, flush fire-and-forget | **9 / 10**                        | 45 s               |
+| Tap wired, flush awaited         | **0 / 10**                        | 32 s               |
+
+The wall clock is the tell that this is the right layer: awaiting the flush made the suite _faster_,
+because the late catalog write had been forcing a second compilation per edit — the cost 029 §4.1
+recorded as inherent and used to justify leaving `memory` unclaimed.
+
+### L-048 — L-044 was fixing a function the managers do not call
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Closed — no fix needed**; the premise was wrong         |
+| **Bucket**                  | N/A — a correction to [L-044](#l-044) and [L-046](#l-046) |
+| **Facet contract changed?** | No                                                        |
+
+L-044 reported that `registerLoader` discards a rebuilt manager's fresh catalog, and demonstrated it
+with two unit tests. L-046 then reverted the fix for regressing `hmr-hammer` 3/8 → 0/8 while producing
+no end-to-end benefit. Neither entry asked the obvious question: **which `registerLoader` does a
+generated manager actually call?**
+
+There are two. The generated manager emits
+
+```js
+globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+```
+
+— the **instance method**, which has no "already loaded" early return at all: it calls the loader and
+applies the catalog every time, which is exactly the behaviour L-044 was trying to add. The early
+return lives on the **module-level export**, reached through `registerZintlLoader` and injected into
+transformed source.
+
+So the defect L-044 described is real as a property of the exported function and **not reachable from
+the path it was blamed for**. That is why the fix measured as pure cost: it made every re-registration
+call a loader on a path that was already refreshing, and bought nothing.
+
+**Not "fixed" here either.** Making the two implementations agree would change behaviour on a path
+with no reachable failing case and no measurement — which is precisely the move that produced L-044,
+L-046 and two of the reverts before them. It is recorded as a divergence worth knowing about: two
+functions with the same name, one refreshing and one not, and only the non-refreshing one documented
+as the interesting one.
+
+**The lesson, and it is the same one three entries running.** L-044 shipped on a unit test that proved
+the function did what the test said. It did not prove anyone called it. A proof of correctness is not
+evidence of relevance, and "which caller reaches this?" is a cheaper question than any of the four
+measurements that followed.
+
+### L-049 — `chaos-boundary` named apps, and unnaming it did not make the capability claimable
+
+|                             |                                                                                   |
+| :-------------------------- | :-------------------------------------------------------------------------------- |
+| **Status**                  | **Contract fixed; `chaos` still unclaimed on Rsbuild, now for a measured reason** |
+| **Bucket**                  | **2 — relocate it** (per-project facts belong in the adapter)                     |
+| **Facet contract changed?** | No — `ChaosAdapter.renameBoundary` is a testing-layer type                        |
+
+`chaos-boundary` carried a `switch (exampleName)` returning hard-coded paths and throwing
+`Unsupported example for boundary rename` for anything else. A contract naming apps is what the
+contract layer forbids (CLAUDE.md, "Testing architecture"), and it had a concrete cost: claiming
+`chaos` meant editing the contract, so a **contract** limitation was recorded in two manifests as a
+**host** limitation.
+
+The rename now lives in `ChaosAdapter.renameBoundary` — which file moves, where, whose import is
+rewritten — and the contract fails loudly if a project claims `chaos` without it. The four projects
+that already claimed it carry their previous values unchanged.
+
+**And `rsbuild-react` still cannot claim it: 10 failures in 10.** The diagnosis is specific and is not
+about renaming:
+
+```
+hmr trace:  watch (batch) → 1 modified
+            enter …/src/main.tsx
+[warning] [Zintl] Missing key "Count is {count}" in boundary "b_src_AppNew_tsx_default"
+```
+
+The contract writes the new boundary file and then edits its importer. Only `main.tsx` reaches the
+watch hook — the newly created `AppNew.tsx` never appears in `modifiedFiles` at all, because it was
+not in the dependency graph when the cycle began. Its boundary therefore has no catalog by the time
+the page asks for one.
+
+**A fix was attempted and reverted**, and it is worth recording because the hypothesis was reasonable
+and wrong. The compiler ledger showed `flush #3 → superseded (joined the in-flight flush; dirt
+retained for the next)`, so the tap was made to _drain_ — flush until nothing is dirty, bounded to
+three passes to keep the known livelock impossible. Measured: **10/10 unchanged**, and the ledger line
+identical. The retained dirt was a real observation and not the cause; a file the hook never hears
+about cannot be flushed into a catalog by flushing harder.
+
+So `chaos` stays unclaimed on both Rsbuild projects, and the reason has moved from "the contract will
+not run here" to "a file created outside the dependency graph and imported in the same cycle is not
+reported to the watch hook" — which is a smaller, sharper question, and the first honest statement of
+it.
+
+### L-050 — `memory` on Rsbuild: earned on one project, refused on the other, both measured
+
+|                             |                                                                  |
+| :-------------------------- | :--------------------------------------------------------------- |
+| **Status**                  | **Resolved** — `rsbuild-react` claims it; `rsbuild-spa` does not |
+| **Bucket**                  | N/A — a capability decision made on evidence                     |
+| **Facet contract changed?** | No                                                               |
+
+Both Rsbuild projects had `memory` excluded, and only one of those exclusions had ever been measured.
+`rsbuild-spa`'s was reasoned from its own behaviour — every edit there is a full page reload, so twenty
+sequential edits are twenty reloads, a reload resets the heap, and the settle beacon returns to the
+value it already had, which is the one shape `waitForSettled` cannot confirm. `rsbuild-react`
+inherited that verdict, and nothing about it applies: a React app updates in place.
+
+Claimed on both, then measured in one batch of ten:
+
+| Project         | `memory-leak`       |
+| :-------------- | :------------------ |
+| `rsbuild-react` | **0 / 10** — clean  |
+| `rsbuild-spa`   | **10 / 10** — fails |
+
+So `rsbuild-react` claims `memory` and `rsbuild-spa` does not, and both manifests now say which of
+those is a measurement rather than an inference. This is the second inherited exclusion this phase to
+turn out wrong on the project that inherited it (see [L-049](#l-049) for the first), and both were
+inherited from the same source app.
+
+**`performance` stays unclaimed on both, unchanged.** `performance-size`'s own header still opens with
+`TODO: measure the payload this contract's name promises` and concedes that it runs against the dev
+server and counts any `.json` as a catalog. That is a contract-quality problem on the Vite side that
+happens to block a second host, and teaching it one more URL shape would entrench the thing it already
+says is wrong.

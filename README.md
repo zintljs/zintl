@@ -110,7 +110,7 @@ A literal is a promise the compiler can keep: it bakes that locale straight into
 
 ## Where it runs
 
-Zintl ships a **Vite plugin** and an **[Rsbuild](https://rsbuild.dev) plugin**, and works with **React, Vue, Svelte, and vanilla** apps. On Vite that means client-rendered, server-rendered, and multi-page alike; on Rsbuild it means single-page apps, in production builds and in dev — see [the Rsbuild section](docs/configuration.md#rsbuild) for what is and is not covered there. Every example in [`examples/`](examples) is a real app the test suite drives end to end, on both bundlers.
+Zintl ships a **Vite plugin** and an **[Rsbuild](https://rsbuild.dev) plugin**, and works with **React, Vue, Svelte, and vanilla** apps. On Vite that means client-rendered, server-rendered, and multi-page alike; on Rsbuild it means single-page apps in React or vanilla JavaScript, in production builds and in dev — see [the Rsbuild section](docs/configuration.md#rsbuild) for what is and is not covered there. Every example in [`examples/`](examples) is a real app the test suite drives end to end, on both bundlers.
 
 That list is a starting point, not the design. The extractor carries no framework knowledge, the compiler is bundler-agnostic, and both frameworks and toolchains are composed from **facets** — so support for another framework or another build tool is something you add, not something the core has to be rewritten around. Rsbuild was the proof: it runs on Rspack, whose plugin model is about as unlike Vite's as a bundler's gets, and it arrived without a single Rspack branch in the compiler. More of both are coming.
 
