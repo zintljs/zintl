@@ -1,5 +1,142 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.15
+
+### Minor Changes
+
+- 8d8f942: Fixed client reactivity never being injected into plain React apps (ledger L-032), which also fixes the empty-render defect on Rspack (L-030) for framework apps.
+
+  **The gate asked the wrong question.** `useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion)` was injected only into files where `observation.isClientComponent` held — and that is literally `code.includes('"use client"')`, a React Server Components directive. A plain React SPA never writes it, so no component in `react-basic`, `react-ssr` or a React app on any host subscribed to the store at all. Exactly one file in this repository carried the directive.
+
+  `RuntimeFacet.serverComponents` now decides it, declared `true` only by the Next.js runtime facet. Where a framework separates server components from client ones, the directive still gates injection; everywhere else every component is a client component. Both the import gate and the injection gate move together, so a file cannot import a hook it never calls.
+
+  **A second defect was hidden behind the first.** `registerComponentFunction` marked the outermost function containing _any_ JSX, with no name check — so a `bootstrap()` that merely calls `createRoot(el).render(<App />)` was treated as a component. Enabling the gate turned that into `Invalid hook call` and a blank page. It now requires a capitalised name, from the declaration or the binding an expression is assigned to, which is React's own rule; an unnamed function is not marked, because failing to subscribe degrades a repaint while a hook in a non-component breaks the app.
+
+  **Why this mattered beyond React.** On Vite the missing subscription had no visible consequence — its module ordering makes the first render correct, so nothing ever needed repainting. On Rspack a catalog can arrive after the render, and with no subscriber the page stayed permanently blank. `examples/rsbuild-react` now claims `hmr`.
+
+  Generated React output changes: components gain a `useSyncExternalStore` call and the corresponding imports.
+
+- 9604cbd: Fenced ledger L-022: combining `multiplex: true` with a bundler that has no HTML fan-out support now fails fast with a clear `[Zintl] Multiplex is not supported...` error, instead of an opaque `html-rspack-plugin` loader-chain crash on Rspack/Rsbuild.
+
+  Under multiplex (per-locale HTML fan-out), `loadIncludeHook` claims `.html` on the assumption that `loadHook` will serve it — true on Vite, where the fan-out is implemented, and fatal on Rspack: unplugin retypes the claimed template as `javascript/auto`, and the build dies inside `html-rspack-plugin`'s child compilation parsing `<!doctype html>` as JS.
+
+  `BundlerFacet` gains `htmlFanOut?: boolean` — declared `true` on `viteFacet`, deliberately left undeclared on `rspackFacet` — following the same "ask the facet, don't test the bundler string" pattern ledger L-004 established for `isVirtualId`. `host.ts::ensureCompiler` checks the resolved capability against `ctx.getMultiplex()` before constructing the compiler, so the fence fires once, before any module resolution, on every host.
+
+  The real HTML fan-out for Rspack remains undesigned and out of scope (026 §7, 027 §6) — this only replaces a crash with a loud, actionable error. Verified against a real `zintljs/rsbuild` build via a new fixture and contract (`tests/fixtures/multiplex-rsbuild-fence.ts`, `tests/contracts/multiplex-fence.contract.spec.ts`, capability `"multiplex-fenced"`).
+
+- 3bdcea8: Framework detection no longer guesses React when it finds nothing (ledger L-034).
+
+  `detectFrameworksOrFallback` returned `FALLBACK_FRAMEWORK` — `"react"` — for any project where neither the bundler plugin names nor `package.json` named a framework. That was not a neutral default: a project with no React dependency was assembled with React extraction and codegen, and because `reactCodegenFacet` is the only preset declaring `clientReactivityImports`, every project in existence reported having client reactivity. It also meant any runtime constraint attached to the React facet reached every framework-less project, which is why one previous attempt to mark React's entry re-execution unsafe had to be reverted.
+
+  **What the guess was carrying was two extraction targets.** `obj:field:title` and `obj:field:text` were listed by `reactExtractionFacet` and not by `vanillaFacet`, so framework-less projects using those object fields had been depending on React extraction they never asked for. Both are plain object-field extraction with nothing React-specific about them, and they now live on the vanilla facet, which applies to every project.
+
+  **Breaking:** `zintljs/facets` no longer exports `FALLBACK_FRAMEWORK` or `detectFrameworksOrFallback`. Use `detectFrameworks`, which returns an empty array when nothing matched — a real answer rather than a prompt for a guess. A project that uses a framework should declare it in `dependencies`/`devDependencies` or through its bundler plugin, both of which detection already reads.
+
+- b5b5a3d: A non-reactive entry no longer claims it can hot-replace itself on Rspack (ledger L-035), which closes the empty-render defect for vanilla apps.
+
+  `RuntimeFacet.entryReexecutionSafe` asks whether re-running an entry is _harmless_. Nothing asked whether it is _sufficient_, and on Webpack those differ: a re-executed entry reads its imports from the module cache, so it can seed a fresh store from a manager that has not been replaced yet. A framework app survives that — a subscribed component repaints when the catalog lands a moment later. An app with no client reactivity has only the re-execution, so it rendered empty and stayed that way.
+
+  `BundlerFacet.hmrInjectionCode` now receives a `hasClientReactivity` argument, and `rspackFacet` requires it alongside `entryReexecutionSafe`. A non-reactive entry declines to accept, the update bubbles, and the page reloads — slower than a hot update and correct, which is the trade `viteFacet` already makes for frameworks whose mount is not replayable. Vite ignores the argument, because re-importing an entry there re-fetches the whole dependency chain and re-execution is always sufficient.
+
+  `examples/rsbuild-spa` claims `hmr` and `hmr-stress` again.
+
+- 778e1d5: Rsbuild is now a supported target for SPA builds **and dev-time hot updates**. Editing a string under `rsbuild dev` updates the page without a reload, on the source locale and on lazily-loaded ones alike.
+
+  Proposal 028 §6 had refused promotion for a structural reason rather than a bug count: HMR was the one bundler concern not mediated by a facet — its orchestration lived inside the plugin's `vite: {}` escape hatch, and that it never ran anywhere else was an accident of unplugin dropping that block. Proposal 029 builds the seam:
+
+  - **`HostUpdateApplier`** (`packages/zintl/src/hmr/`) splits the hot-update path along the line 028 §6.1 drew: `hmr/plan.ts` decides what changed using only host-neutral compiler calls, and each host's applier applies that decision in its own vocabulary. Vite's `ModuleGraph` surgery moves there unchanged. Appliers are _contributed_ by each host's escape hatch, never selected — there is no `switch (bundler)` in the hot-update path.
+  - **`BundlerFacet.hotUpdate`** is the facet's half: the declaration that a bundler has an applier, visible to the composition guardrail and to a registration fence. Distinct from the existing `hmr` flag, which only says acceptance code is emitted.
+  - **`BundlerFacet.dependencyInvalidation`** captures the deeper difference the work uncovered. Vite's hot-update hook _asks_ what to invalidate; Rspack asks nothing and rebuilds whatever its own dependency graph says is stale. So on Rspack the generated catalogs declare what they are derived from (`ZintlCompiler.getBoundaryInputs`) and are rebuilt in the same compilation as the edit. Declaring the same dependencies on Vite is not redundant but harmful — it makes Zintl's own catalog writes re-enter as source changes — so `viteFacet` deliberately does not.
+  - `rspackFacet` now emits real acceptance code via `import.meta.webpackHot`. It ignores `hmrSelfAcceptCode`'s callback argument on purpose: Webpack treats that callback as an **error handler** and re-executes the module body instead, so Vite's shape would have silently registered catalog re-registration as a handler that never fires.
+
+  **A latent runtime defect on Vite, surfaced by the second host (ledger L-028).** The receiver had two ways to load a boundary and only one of them published what it was doing: `registerLoader` (which a generated manager runs as it evaluates) tracked its async load in `pendingBoundaries` only, while `loadLazyBoundary` joins concurrent loads through `inFlight` — and tested "already loaded" _before_ "already loading". A pull arriving during a push was therefore handed the stale catalog and returned in zero milliseconds. Because Zintl has no source-locale fallback, every key that existed only in the incoming catalog rendered as blank text that nothing later repaired.
+
+  Vite never showed it: it re-imports the whole dependency chain with a fresh `?t=`, so the content module applies before the entry re-renders. Rspack re-executes the manager and the entry as independent modules, so the two genuinely interleave. `registerLoader` now publishes its load in `inFlight`, and `loadLazyBoundary` checks for an outstanding load before answering from what it holds — a load is outstanding precisely because something decided the present catalog needs replacing. Guarded by a new `delivery-refresh` contract that drives the interleaving deliberately rather than waiting for the race: five projects fail without the fix and pass with it, four of them Vite.
+
+  Also fixed, all found on the supported path (ledger L-024 – L-027): the dev/build discovery gate was keyed on a Vite-only field, so every Rsbuild rebuild re-discovered the whole project; four hardcoded `import.meta.hot` literals in the asset branches bypassed the bundler facet; boundary inputs were reported as normalized ids rather than real paths; and discovery needed to share its in-flight promise rather than a flag, since `buildStart` is a parallel hook on Rspack.
+
+  `@rsbuild/core` is now declared as an optional peer dependency (tested against `^2.1.0`); `vite` becomes optional too, since neither is required. `multiplex` (per-locale HTML fan-out) and SSR remain Vite-only, and `multiplex` is now documented as a permanent exclusion rather than a pending one.
+
+### Patch Changes
+
+- 97b4a72: Stop a hot update from wedging the browser tab.
+
+  `_t` resolves a missing key by triggering the boundary's load and re-reading it in the same
+  expression, because after a hot update the new catalog is available on that very tick — the manager
+  inlines the anchor's locale, so the load completes synchronously. That is wanted. What was not wanted
+  is the announcement travelling with it: `_t` runs during render, so notifying subscribers there is a
+  `setState` during render. Every re-render ran `_t` again and announced again, and the page ended up in
+  an unbounded update loop — measured at roughly seven hundred React errors in twelve seconds, with the
+  tab unresponsive.
+
+  Applying and announcing are now separate. `addCatalogs` stays synchronous, so the re-read still works;
+  `notify()` defers to a microtask and coalesces, so a burst announces once, after the caller's turn.
+  The store's `version` moves inside that microtask too — it is React's snapshot, and a snapshot that
+  changes mid-render makes React re-render to reconcile it, which would re-arm the same loop more
+  quietly.
+
+  Subscribers are therefore notified a microtask later than before. Nothing waits on that synchronously
+  except tests, which now await a tick.
+
+- 8d4c472: Stop invalidating a boundary whose source could not be parsed.
+
+  When a hot update re-extracts a changed file and the parse fails — a file saved mid-keystroke, which
+  is the most ordinary input a dev watcher sees — the failure was logged and then ignored: the file's
+  boundaries were marked dirty, their catalog caches dropped, their revisions bumped, and
+  `catalogGeneration` advanced. All of those assert that new content was read, on the strength of
+  content that could not be read at all, and `catalogGeneration` is what the runtime uses to decide that
+  an arriving catalog is newer than the one it holds.
+
+  A parse failure now leaves the boundary exactly as it was and records the outcome on the delivery bus,
+  so "left alone because its source could not be read" stays distinguishable from "invalidated". The
+  next parseable edit re-extracts normally.
+
+  Invisible on Vite, where the next edit re-extracts and the whole module chain is pushed fresh; it
+  surfaced when Rspack's watch hook began handing unparseable files straight to invalidation.
+
+- 8d7ff57: Stop a hot update from double-mounting a React entry.
+
+  Two defects produced one symptom, and both are fixed.
+
+  A sibling stylesheet was being repointed onto its component in Vite's module graph: the fallback scan
+  that matches modules to boundaries compares with file extensions stripped, so `src/App.css` matched
+  `src/App.tsx` and went out as part of that boundary's update. An extension-blind match now requires
+  the candidate to be a file Zintl extracts from at all. This confirms and closes a hypothesis open
+  since proposal 027 §2.4.
+
+  And React now declares, through the new `reactRuntimeFacet`, that re-running its entry is not safe —
+  `createRoot()` on a container it already owns mounts a second root over the first rather than
+  replacing it. Svelte has declared the same thing since the field existed; React could not until
+  framework detection stopped guessing React for projects that never mention it.
+
+  Measured on `react-basic` across sixty edits: six double mounts before, one after. No cost on Rspack,
+  verified against a real `rsbuild dev` — hot updates there are unchanged.
+
+- 391f5ef: Rsbuild is a supported target.
+
+  `zintljs/rsbuild` now carries a promise rather than a disclaimer: single-page applications, in
+  production builds and in `rsbuild dev`, with React and vanilla JavaScript — chunk-aligned catalogs,
+  ghost mode, localized assets, per-locale `<html lang>`/`dir`, and hot updates. Vue and Svelte are
+  untested on this host rather than unsupported. SSR and per-locale HTML fan-out (`multiplex`) are
+  Vite-only, and combining `multiplex` with Rsbuild fails your build with a clear error rather than
+  doing nothing quietly.
+
+  Two fixes made the difference, and both were latent rather than new.
+
+  The hot-update hook Zintl registers on Rspack **was never actually being called**. unplugin gates its
+  `rspack` escape hatch on `meta.framework === "rspack"`, and its Rsbuild target sets `"rsbuild"`, so the
+  tap was dead code and Rsbuild had been hot-updating through the ordinary transform path all along. It
+  is now registered from the plugin's own Rsbuild block.
+
+  And the catalog flush was fire-and-forget — correct on Vite, where the browser's update comes from the
+  compiler's memory, and wrong on Rspack, where the generated modules declare the catalog files as
+  dependencies and Rspack builds them by reading those files. A compilation could therefore be built from
+  a catalog that had not been written yet. The flush is now awaited once per watch cycle, which made the
+  dev loop measurably _faster_: the late write had been forcing a second compilation per edit.
+
+- Updated dependencies [8d8f942]
+  - @zintljs/extractor@0.1.0-alpha.15
+
 ## 0.1.0-alpha.14
 
 ### Minor Changes
