@@ -1,70 +1,6 @@
-import { executeContract, type Contract } from "@zintljs/testing";
+import { executeContract, type ChaosAdapter, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 import { basename } from "node:path";
-
-interface RenameConfig {
-  fromPath: string;
-  toPath: string;
-  parentPath: string;
-  importSearch: string;
-  importReplace: string;
-}
-
-function getRenameConfig(exampleName: string): RenameConfig {
-  switch (exampleName) {
-    case "vue-basic":
-      return {
-        fromPath: "src/components/HelloWorld.vue",
-        toPath: "src/components/Hello.vue",
-        parentPath: "src/App.vue",
-        importSearch: "./components/HelloWorld.vue",
-        importReplace: "./components/Hello.vue",
-      };
-    case "react-basic":
-      return {
-        fromPath: "src/App.tsx",
-        toPath: "src/AppNew.tsx",
-        parentPath: "src/main.tsx",
-        importSearch: "./App",
-        importReplace: "./AppNew",
-      };
-    case "svelte-basic":
-      return {
-        fromPath: "src/App.svelte",
-        toPath: "src/AppNew.svelte",
-        parentPath: "src/main.ts",
-        importSearch: "./App.svelte",
-        importReplace: "./AppNew.svelte",
-      };
-    case "vanilla-spa-basic":
-      return {
-        fromPath: "src/main.ts",
-        toPath: "src/mainNew.ts",
-        parentPath: "index.html",
-        importSearch: "/src/main.ts",
-        importReplace: "/src/mainNew.ts",
-      };
-    /**
-     * No `rsbuild-spa` case, and the reason is about this contract rather than
-     * about that host.
-     *
-     * Every case above renames the file that *holds the heading*, because the
-     * final step edits `toPath` looking for `initialHeadingText`. On
-     * `rsbuild-spa` the heading lives in the entry, and Rsbuild names its entry
-     * in `rsbuild.config.mjs` rather than in `index.html` — so renaming it is a
-     * config change, which restarts the dev server and would test the harness
-     * instead of the boundary graph. Renaming a *different* file (`counter.ts`)
-     * was tried and fails for the stated reason: no heading in it.
-     *
-     * Content-based boundary identity is not going untested on that host —
-     * `boundary-graph` covers it directly. What is missing is a rename-under-HMR
-     * variant that does not assume the heading and the renamed file are the same
-     * file, and that is this contract's assumption to relax.
-     */
-    default:
-      throw new Error(`Unsupported example for boundary rename: ${exampleName}`);
-  }
-}
 
 /**
  * TODO: reproduce the React half of proposal 024 §1.3.
@@ -96,7 +32,7 @@ function getRenameConfig(exampleName: string): RenameConfig {
  * Fast Refresh will not absorb — editing a non-component export in `main.tsx`,
  * or a project without the React plugin's refresh boundary.
  */
-export const chaosBoundaryContract: Contract = {
+export const chaosBoundaryContract: Contract<ChaosAdapter> = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
@@ -125,8 +61,13 @@ export const chaosBoundaryContract: Contract = {
    * framework knowledge and belongs in a framework facet.
    */
   async execute(lab, adapter) {
-    const exampleName = basename(lab.root);
-    const cfg = getRenameConfig(exampleName);
+    const cfg = adapter.renameBoundary;
+    if (!cfg) {
+      throw new Error(
+        `[Chaos Boundary] ${basename(lab.root)} claims "chaos" but its adapter has no ` +
+          `renameBoundary. Which file to rename is a per-project fact and belongs in the manifest.`,
+      );
+    }
 
     await adapter.navigateHome(lab);
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);

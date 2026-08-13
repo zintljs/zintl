@@ -41,8 +41,20 @@ export const rsbuildReact: ProjectManifest = {
    * `locale-switch-stress` was added after `locale-storm` passed three
    * consecutive isolated runs here.
    *
-   * **Not `hmr-stress`, `chaos` or `memory`** — all three were tried together
-   * and all three failed, for two different reasons worth separating.
+   * **Not `memory`, and the measurement that settled it is worth keeping.** The
+   * exclusion had been inherited from `rsbuild-spa` — where every edit is a page
+   * reload — and none of that reasoning applies here, since this app updates in
+   * place. Measured in isolation it passes **10 runs in 10**.
+   *
+   * It still cannot be claimed: in the **full suite** it fails **3 in 3**, and
+   * takes `hmr` and `syntax-recovery` on this project down with it once each.
+   * `memory-leak` drives twenty sequential edits, and twenty edits on an Rspack
+   * dev server competing with three other workers is simply more than the budget
+   * allows.
+   *
+   * A capability is a claim about the suite, not about a contract run alone, so
+   * isolation is the wrong instrument for the last word — `node scripts/flake.js
+   * all` is.
    *
    * `hmr-hammer`, `chaos-catalog` and `memory-leak` each exhausted the 45s
    * budget. That is **not** the per-edit throughput it looks like: a probe
@@ -77,6 +89,29 @@ export const rsbuildReact: ProjectManifest = {
     "locale-switch-stress",
   ],
   adapter: {
+    /**
+     * Which file `chaos-boundary` renames, and who imports it.
+     *
+     * Present but **not claimed**: with this config in place the contract runs
+     * and fails 10 times in 10. The trace says why, and it is not the rename —
+     * `watch (batch) → 1 modified` lists only `main.tsx`, so the newly created
+     * `AppNew.tsx` never reaches the watch hook at all, and its boundary
+     * (`b_src_AppNew_tsx_default`) has no catalog by the time the page asks. A
+     * file created outside the dependency graph and imported in the same cycle
+     * is a gap in how this host reports changes, not in the rename itself.
+     *
+     * The contract used to carry a `switch (exampleName)` and throw for any
+     * project it did not recognise — so claiming `chaos` meant editing the
+     * contract, and a capability that was really contract-limited got
+     * recorded as host-limited.
+     */
+    renameBoundary: {
+      fromPath: "src/App.tsx",
+      toPath: "src/AppNew.tsx",
+      parentPath: "src/main.tsx",
+      importSearch: "./App",
+      importReplace: "./AppNew",
+    },
     headingSelector: "h1",
     initialHeadingText: "Get started",
     /** The heading lives in the component, not the entry — see the example's README. */

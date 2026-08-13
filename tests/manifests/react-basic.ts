@@ -29,6 +29,21 @@ export const reactBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * Which file `chaos-boundary` renames, and who imports it.
+     *
+     * The contract used to carry a `switch (exampleName)` and throw for any
+     * project it did not recognise — so claiming `chaos` meant editing the
+     * contract, and a capability that was really contract-limited got
+     * recorded as host-limited.
+     */
+    renameBoundary: {
+      fromPath: "src/App.tsx",
+      toPath: "src/AppNew.tsx",
+      parentPath: "src/main.tsx",
+      importSearch: "./App",
+      importReplace: "./AppNew",
+    },
     headingSelector: "h1",
     initialHeadingText: "Get started",
     headingFile: "src/App.tsx",

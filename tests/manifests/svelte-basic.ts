@@ -29,6 +29,21 @@ export const svelteBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * Which file `chaos-boundary` renames, and who imports it.
+     *
+     * The contract used to carry a `switch (exampleName)` and throw for any
+     * project it did not recognise — so claiming `chaos` meant editing the
+     * contract, and a capability that was really contract-limited got
+     * recorded as host-limited.
+     */
+    renameBoundary: {
+      fromPath: "src/App.svelte",
+      toPath: "src/AppNew.svelte",
+      parentPath: "src/main.ts",
+      importSearch: "./App.svelte",
+      importReplace: "./AppNew.svelte",
+    },
     headingSelector: "h1",
     initialHeadingText: "Get started",
     headingFile: "src/App.svelte",

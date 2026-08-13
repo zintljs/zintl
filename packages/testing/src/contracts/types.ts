@@ -54,6 +54,39 @@ export interface LocaleSwitchAdapter extends BaseAdapter {
 export interface HmrAdapter extends BaseAdapter {}
 
 /**
+ * How to rename one of this project's boundary files.
+ *
+ * `chaos-boundary` renames the file holding the heading and rewrites the import
+ * that names it, then checks that hot updates still work against the new path —
+ * which is a question about content-based boundary identity, and host-neutral.
+ * *Which* file, and what the importer calls it, are not.
+ *
+ * This used to be a `switch (exampleName)` inside the contract, throwing
+ * `Unsupported example for boundary rename` for anything not listed. A contract
+ * that names apps is exactly what the contract layer forbids (CLAUDE.md,
+ * "Testing architecture"), and the cost was concrete: a project could not claim
+ * `chaos` without editing the contract, so the capability was recorded as
+ * host-limited when it was really contract-limited.
+ */
+export interface ChaosAdapter extends BaseAdapter {
+  /**
+   * Omit it and the project cannot claim `chaos` — which is the honest
+   * relationship, rather than a contract that throws when it meets a stranger.
+   */
+  renameBoundary?: {
+    /** The file holding the heading, relative to the project root. */
+    fromPath: string;
+    /** Where it moves to. */
+    toPath: string;
+    /** The file importing it, whose source the rename rewrites. */
+    parentPath: string;
+    /** The specifier in `parentPath`, before and after. */
+    importSearch: string;
+    importReplace: string;
+  };
+}
+
+/**
  * A project that renders a localized static asset.
  *
  * The asset contract used to import its expected strings straight from the
@@ -97,7 +130,8 @@ export interface ProjectManifest {
   /** Capabilities this project claims */
   capabilities: Capability[];
   /** The adapter for this project */
-  adapter: BaseAdapter & Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter & AssetsAdapter>;
+  adapter: BaseAdapter &
+    Partial<LocaleSwitchAdapter & HmrAdapter & SsrAdapter & AssetsAdapter & ChaosAdapter>;
 
   /**
    * Zintl compiler options — single source of truth for tests.
@@ -120,10 +154,16 @@ export interface ProjectManifest {
   /**
    * Which build tool this project is driven through. Defaults to Vite.
    *
-   * A manifest choosing `"rsbuild"` is a proposal 026 falsification target, not
-   * a supported configuration — see `docs/spec/proposals/026-leak-ledger.md`.
-   * Such a manifest should claim only build-time capabilities, since the dev
-   * server and hot-update paths are Vite-only.
+   * `"rsbuild"` is a supported configuration, not the falsification target it
+   * began as — it drives build, dev server and hot updates, and the projects on
+   * it claim browser capabilities like any other. What it does not claim is
+   * `ssr` or `multiplex-fenced`'s opposite: per-locale HTML fan-out and SSR are
+   * Vite-only and deliberately so.
+   *
+   * A capability here is a claim about the **full suite**, not about a contract
+   * run alone. `memory` on `rsbuild-react` passes ten isolated runs in ten and
+   * fails three in three under four-worker contention; `node scripts/flake.js
+   * all` is what settles it (ledger L-050).
    */
   driver?: DriverKind;
 }
