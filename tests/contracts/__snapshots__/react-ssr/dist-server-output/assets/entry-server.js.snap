@@ -459,7 +459,34 @@ function setActiveInstance(instance) {
 	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
 }
 function registerLoader(boundaryId, loader) {
+	/**
+	* A *different* loader for a boundary that already had one means the manager
+	* module was rebuilt — which is the only reason its body runs twice.
+	*
+	* This is the pull path's half of the empty-render family. The guard below
+	* exists for the initial load, where a catalog may already have been supplied
+	* inline and re-loading it would be redundant. It was also skipping the one
+	* case that carries genuinely new content: after a hot update the manager
+	* re-executes and calls this with a fresh loader closing over a fresh catalog,
+	* and "a catalog is already present" threw it away. The store then kept the
+	* pre-edit catalog, `_t` missed every new key against it, and — because Zintl
+	* has no source-locale fallback, by design — the heading rendered `""`
+	* permanently, since nothing re-runs.
+	*
+	* `loadLazyBoundary` cannot rescue that: asked for the same boundary it
+	* answers "already loaded", which its own comment records as a known gap —
+	* _"a catalog that is present and stale, with no load outstanding, cannot be
+	* re-fetched through this path."_ Nothing ever starts the load, so nothing
+	* joins it. Comparing loader identity is what tells a re-registration from a
+	* repeat, and only a rebuild can produce a new function.
+	*
+	* Vite never needed this: it re-imports the whole chain with a fresh `?t=`,
+	* so the content module applies its own catalog through `addCatalogs` before
+	* anything asks the manager. Ledger L-044.
+	*/
+	const previous = globalRegistry.get(boundaryId);
 	globalRegistry.set(boundaryId, loader);
+	const isReregistration = previous !== void 0 && previous !== loader;
 	const instance = getActiveInstance();
 	/**
 	* Capture once, and file the result under the captured value — reading
@@ -467,7 +494,7 @@ function registerLoader(boundaryId, loader) {
 	* locale happened to be active when the promise resolved.
 	*/
 	const target = instance.locale;
-	if (instance.catalogs[target]?.[boundaryId]) return;
+	if (!isReregistration && instance.catalogs[target]?.[boundaryId]) return;
 	try {
 		const result = loader(target);
 		const processResult = (res) => {

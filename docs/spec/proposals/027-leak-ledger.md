@@ -2488,3 +2488,61 @@ comment records (_"a catalog that is present and stale, with no load outstanding
 through this path"_). The runtime is holding a manager whose catalog was inlined at build time and
 refusing the one edit that would replace it. So L-042's remaining half lives in the runtime's **pull**
 path, not in invalidation, and the wiring stays reverted until that is fixed.
+
+### L-044 — a rebuilt manager's catalog was discarded because one was already present
+
+|                             |                                                                  |
+| :-------------------------- | :--------------------------------------------------------------- |
+| **Status**                  | **Fixed** — proven by unit test, **not** by an end-to-end metric |
+| **Bucket**                  | **3 — delete the guess**                                         |
+| **Facet contract changed?** | No                                                               |
+| **Affects**                 | **Both hosts.** Latent on Vite, reachable on Rspack              |
+
+The exported `registerLoader` — the function every generated manager calls — refused to load when the
+store already held a catalog for that boundary:
+
+```ts
+const target = instance.locale;
+if (instance.catalogs[target]?.[boundaryId]) {
+  return;
+}
+```
+
+The guard is right for the initial load, where a catalog may already have arrived inline and
+re-loading it is redundant. It was also swallowing **the one call that carries new content**: a manager
+module's body only runs a second time because it was _rebuilt_, and it then calls this with a fresh
+loader closing over a fresh catalog. The store kept the pre-edit catalog, `_t` missed every new key
+against it, and — no source-locale fallback, by design — the heading rendered `""` permanently,
+because nothing re-runs.
+
+`loadLazyBoundary` cannot rescue it, and says so itself: _"a catalog that is present and stale, with no
+load outstanding, cannot be re-fetched through this path."_ Nothing ever starts the load, so nothing
+joins it.
+
+**The fix is loader identity.** Only a rebuild can produce a different function for the same boundary,
+so `previous !== loader` distinguishes a re-registration from a repeat. A repeat still short-circuits.
+
+**Vite never needed it**, which is why it sat here: Vite re-imports the whole chain with a fresh `?t=`,
+so the content module applies its own catalog through `addCatalogs` before anything asks the manager.
+
+**Proven the only way it honestly could be.** Two unit tests: a re-registration with a new loader
+replaces the catalog, and re-registering the _identical_ loader does not reload. Both fail against the
+previous behaviour (`expected 'before' to be 'after'`) and pass after. 802 unit tests green.
+
+**And it did not fix what it was reached for, which is the point worth recording.** It was written to
+close L-042's residual — `syntax-recovery` on `rsbuild-spa` with the tap wired — and that contract
+failed 3 runs in 4 both before and after. The diagnosis says why, and it is a third mechanism rather
+than this one: `hmr packets: {"update":3,"full-reload":2}`. **The page reloads.** On a reloaded page
+there is no previous loader, so this fix cannot apply; the browser is served whatever bundle existed
+when the reload landed, and if the rebuild had not finished, that bundle predates the recovery. The
+residual is a reload/rebuild race, not a pull-path refusal.
+
+Three defects have now been separated out of one symptom: the render loop ([L-039](#l-039)), the
+invalidation of an unparseable file ([L-043](#l-043)), and this. Each is fixed and each was real; none
+of them is the reload race, which is what still holds the tap out of the tree.
+
+**A note on the numbers, because they invite over-reading.** Full contract runs after this landed:
+1, 2 and 3 failures, all of them the known intermittents (`rsbuild-react`'s HMR pair, `memory-leak` on
+`react-basic`, `Performance HMR` on `vue-basic`). The comparable pre-fix band measured 0–2. That is
+inside the drift this ledger has recorded twice, so it supports neither "improved" nor "regressed",
+and the unit tests are the reason this change is defensible rather than the contract counts.
