@@ -296,7 +296,7 @@ harness. Not a supported target"_ above the Rsbuild catalog entries.
 > where `rsbuild-react` updates in place. Neither stated objection transferred. They had to be tried
 > to find that out, and trying them found something else.
 >
-> **[L-039](027-leak-ledger.md): `hmr` on `rsbuild-react` is claimed and intermittent.**
+> **[L-039](027-leak-ledger.md): `hmr` on `rsbuild-react` is claimed and intermittent — now diagnosed.**
 > `[HMR Propagation] rsbuild-react` fails roughly one isolated run in three, with four workers idle.
 > Probes rule out the obvious causes: `react-basic` averages 173 ms per edit, `rsbuild-react` cannot
 > finish **one** edit inside 45 s, and a zero-edit probe puts server startup at about a second. That
@@ -307,6 +307,13 @@ harness. Not a supported target"_ above the Rsbuild catalog entries.
 > gave one failure, green, one failure, and **every failure was an `rsbuild-react` HMR contract, with
 > nothing else failing at all.** That supersedes L-038's aside blaming the machine — the
 > `Performance HMR` failures seen earlier really were load and have stopped; these have not.
+>
+> **Diagnosed since:** it is not a stall at all but an **unbounded React update loop** — 696 errors in
+> 12 s, no navigation, renderer pinned, which is why every read timed out and the harness could attach
+> no diagnosis. `getActiveInstance()` mutates (it fires `setLocale` to reconcile `<html lang>`), and
+> React's snapshot reaches it during render. Pre-existing, confirmed by flipping §3's flag back. A
+> scoped partial fix was validated and reverted for regressing three other contracts; the complete fix
+> is specified in the ledger.
 >
 > So the honest state of this project is not "seven contracts short". It is **one claimed capability
 > that needs diagnosing**, with the rest queued behind it — which is a better-shaped problem and a

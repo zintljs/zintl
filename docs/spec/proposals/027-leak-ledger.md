@@ -1625,12 +1625,12 @@ machinery — which is a different and much smaller problem than the one this le
 
 ### L-034 — framework detection guessed React, and two extraction targets were why it had to
 
-|                             |                                                             |
-| :-------------------------- | :---------------------------------------------------------- |
-| **Status**                  | **Fixed**                                                   |
-| **Bucket**                  | **3 — delete the guess**                                    |
-| **Facet contract changed?** | No — but `zintljs/facets` loses two exports                 |
-| **Unblocks**                | L-033, and proposal 024's React `entryReexecutionSafe` item |
+|                             |                                                                                         |
+| :-------------------------- | :-------------------------------------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                                               |
+| **Bucket**                  | **2 — relocate it**: applying stays synchronous, announcing moves off the caller's turn |
+| **Facet contract changed?** | No — but `zintljs/facets` loses two exports                                             |
+| **Unblocks**                | L-033, and proposal 024's React `entryReexecutionSafe` item                             |
 
 `detectFrameworksOrFallback` returned `[FALLBACK_FRAMEWORK]` — `"react"` — whenever detection found
 nothing. So a project that never mentions React was assembled with React extraction and codegen, and
@@ -1775,12 +1775,12 @@ anything was changed, and again after each change.
 
 ### L-037 — a sibling stylesheet matched a component's boundary, and was repointed onto it
 
-|                             |                                                                    |
-| :-------------------------- | :----------------------------------------------------------------- |
-| **Status**                  | **Fixed** — and it confirms 027 §2.4's hypothesis, open since then |
-| **Bucket**                  | **3 — delete the guess**                                           |
-| **Facet contract changed?** | No                                                                 |
-| **Affects**                 | Vite only. `hmr/vite.ts` is that host's module-graph repair        |
+|                             |                                                                                         |
+| :-------------------------- | :-------------------------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — and it confirms 027 §2.4's hypothesis, open since then                      |
+| **Bucket**                  | **2 — relocate it**: applying stays synchronous, announcing moves off the caller's turn |
+| **Facet contract changed?** | No                                                                                      |
+| **Affects**                 | Vite only. `hmr/vite.ts` is that host's module-graph repair                             |
 
 027 §2.4 named a hypothesis and refused to fix it as though it were a finding: `hooks/hmr.ts` matched
 modules to boundaries with loose `endsWith` comparisons, and _"if that ever repoints a module away
@@ -1899,12 +1899,12 @@ attributable"_ — now overdue with two Rsbuild projects in the manifest rather 
 own investigation, on a machine that has not just spent two hours running browser suites, and it
 should not be folded into either entry above.
 
-### L-039 — `hmr` on `rsbuild-react` is claimed and intermittent, and the cause is a stall rather than a cost
+### L-039 — `hmr` on `rsbuild-react` is claimed and intermittent: an update loop, not a stall
 
 |                             |                                                                                                     |
 | :-------------------------- | :-------------------------------------------------------------------------------------------------- |
-| **Status**                  | **Open** — reproduced and narrowed, not diagnosed                                                   |
-| **Bucket**                  | Not yet assignable; the layer is not established                                                    |
+| **Status**                  | **Partly fixed** — the render loop is closed; the contract's intermittency is a second defect, open |
+| **Bucket**                  | **2 — relocate it**: applying stays synchronous, announcing moves off the caller's turn             |
 | **Facet contract changed?** | No                                                                                                  |
 | **Blocks**                  | `hmr-stress`, `chaos` and `memory` on `rsbuild-react`, and any further capability that drives edits |
 
@@ -1958,17 +1958,205 @@ mistake L-036 records, where a port race sat behind "machine load" and then "sui
 attempts. L-038's conclusion stands; its aside about the machine does not, and this entry supersedes
 it.
 
-**What has been ruled out:** server startup (measured), per-edit throughput (measured), contention
-(reproduced in isolation), and the change from L-037/L-038 (reproduced before it, across the session).
+**Diagnosed.** It is not a stall, and the shape of the evidence is why it looked like one.
 
-**What has not been established:** whether the stall is in `lab.fs.edit`'s `waitForSettled`, in the
-`watchRun` tap, or in the browser never receiving the update — and whether it is a harness defect or
-a product one. The next step is to instrument the three boundaries separately, because a timeout that
-reports nothing is the one failure shape this suite's diagnostics were built to eliminate and here
-they came back empty (`hmr trace: EMPTY`, `hmr packets: NONE` on the fast-failing sibling).
+**It is an unbounded React update loop.** A probe that reports instead of dying at the cap caught it
+on the first run: the edit is written at +700 ms, and the page then emits **696 errors in 12 seconds**
+— about one every 17 ms — with **no navigation at all**. The renderer is pinned, so every Playwright
+read blocks: an unbounded `textContent()` waits its full 30 s default, `page.evaluate` hangs outright
+rather than rejecting, and `describeStall()` — the diagnostic built for exactly this — cannot run
+because it needs the page. **A wedged renderer looks identical to a silent stall from outside.**
+
+The stack names the mechanism:
+
+```
+Error: Maximum update depth exceeded
+    at forceStoreRerender          (react)
+    at I18nStore.notify            (…/manager/none/entry:b_src_main_tsx_bootstrap)
+    at I18nStore.addCatalogs       (…)
+```
+
+preceded once by React's own diagnosis: `Cannot update a component (App) while rendering a different
+component (App)`.
+
+**The defect is an impure read.** `getActiveInstance()` is not a getter — in a browser it compares
+`document.documentElement.lang` against the store's locale and fires `setLocale()` when they disagree.
+Its own comment acknowledges this (_"`getActiveInstance` fires `setLocale` from a getter"_). The
+loaders `setLocale` iterates can resolve **synchronously**, because the manager inlines the anchor's
+own locale — the synchronous boost. So the chain `setLocale → addCatalogs → notify →
+forceStoreRerender` completes _inside_ whatever called it.
+
+And React calls into it during render. `pipeline/resolve.ts` injects
+`useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion)`, and `getStoreVersion()` reaches
+`getActiveInstance()` — so React's snapshot, which must be pure, mutates the store. Every translated
+string in the component body reaches it the same way.
+
+**Pre-existing, and not caused by L-038.** Confirmed by flipping `entryReexecutionSafe` back to `true`
+and rebuilding: 661 throws, the same stall, the same read timeout. That was the first thing checked,
+because L-038 had changed acceptance on this host one section earlier.
+
+**The cause was one level deeper than the first diagnosis said, and the first diagnosis was wrong
+about which impurity mattered.** An earlier pass blamed `getActiveInstance()`, which is genuinely
+impure — it fires `setLocale` to reconcile `<html lang>` — and deferring that changed nothing, because
+in a browser the branch is unreachable: `__zintl_current_instance` is set at module init and returns
+two checks earlier. A second capture, with the stack no longer truncated below `addCatalogs`, named
+the real path:
+
+```
+at App                          ← React render
+at _t                           ← a translation lookup, during render
+at I18nStore.loadLazyBoundary
+at processResult                ← the loader resolved synchronously
+at I18nStore.addCatalogs
+at I18nStore.notify
+at forceStoreRerender           ← React
+```
+
+`_t` resolves a missing key by triggering the boundary's load and re-reading it in the same
+expression — deliberately, and the comment there says why: after a hot update the new loader's catalog
+is available on that very tick, because the manager inlines the anchor's locale. So the load completes
+synchronously, `addCatalogs` announces, and the announcement lands **inside the render that asked**.
+Each re-render runs `_t` again and announces again.
+
+**Fixed by splitting applying from announcing.** `addCatalogs` stays synchronous — `_t`'s re-read
+depends on it. `notify()` now defers to a microtask and coalesces, so a burst announces once, after
+the caller's turn. `version` moves inside that microtask rather than beside the data, which is the
+subtle half: `version` is React's snapshot, and a snapshot that moves _during_ render makes React
+re-render to reconcile it — bumping it synchronously would re-arm the same loop without the warning
+that names it. Deferring both together preserves what `useSyncExternalStore` requires, that the
+snapshot has already moved when the subscriber fires.
+
+**Measured:** ~700 console errors per run on `rsbuild-react` → **0**, across every run since. Three
+unit tests asserted synchronous notification and now await a microtask first; that is the contract
+changing, not a test convenience, and their comments say so. `vpr verify` green at 800 tests, twelve
+runtime-embedded snapshots regenerated, full contract suite 149/149 on a clean run.
+
+**What the fix did not do, stated plainly: it did not make `[HMR Propagation] rsbuild-react` reliable.**
+The failure rate is unchanged. So the loop and the timeout co-occurred rather than one causing the
+other, and the timeout is a second defect wearing the first one's symptoms.
+
+**What is now known about that second defect**, which is more than before and still not a diagnosis:
+
+- It is **not** per-edit throughput, startup, contention with the machine, or L-038's declaration —
+  each ruled out by measurement, the last by flipping the flag and re-running (3/3 unchanged).
+- The server **does** push updates: `packets=["update","update"]` on a failing run, with the edit
+  confirmed on disk.
+- It is **specific to React on Rspack**. The same probe applies in 222 ms on `react-basic` (Vite +
+  React) and 238 ms on `rsbuild-spa` (Rspack + vanilla).
+- And it is **not deterministic in the product but in the arrangement**: `rsbuild-spa` applied in
+  238 ms when probed alone and failed — with an empty `h1`, the L-030 signature — when probed in the
+  same process as `rsbuild-react`. Two Rsbuild dev servers in one worker interfere with each other in
+  a way one does not.
+
+**The two-servers hypothesis was tested and is refuted.** It was the obvious reading of that last
+point, and it is the one thing this entry predicted: cap the pool at **one Rspack dev server per
+worker**, retiring any other before starting one, so no worker ever has two Rspack compilers watching
+two trees. Implemented in `dev-server.ts` — the plumbing verified rather than assumed (`opts.driver`
+reaches the pool, the pool keys on the manifest name) and the retirement visibly happening, since wall
+clock rose from ~100 s to ~130–150 s on the restarts it forces.
+
+**It changed nothing.** Two full runs, two failures, the same two contracts as before
+(`[Syntax Error Recovery]` then `[HMR Propagation]`, both `rsbuild-react`), against a baseline of
+three failures in the four preceding runs. Reverted: a 25–50% wall-clock cost for no measured benefit
+is not a trade, and pooling's own comment is right that a shared server per project is load-bearing.
+
+So the paired-probe observation stands as an observation and falls as an explanation. Two Rspack dev
+servers in one worker are **not** why `rsbuild-react` fails intermittently, and the probe result that
+suggested they were is more likely to have been the probe measuring itself — raw writes into a
+memoized worker copy it never restored, which is a defect this entry already had to correct for once.
+
+**What that leaves.** The failure is specific to React on Rspack; the server pushes its updates; the
+edit reaches disk; the page shows no error and never converges. Every environmental explanation
+offered so far — throughput, startup, machine load, the entry declaration, and now server isolation —
+has been measured and rejected. The next honest step is not another hypothesis but an instrument that
+survives the thing it measures: the harness cannot attach a diagnosis to a 45 s vitest kill, so the
+first work here is making the contract fail _before_ the cap with the page state captured, rather than
+being killed with it unread. Everything since has been guesswork wearing measurement's clothes, and
+this entry has now recorded four rejected guesses to one real fix.
+
+**A separate cleanup this surfaced and did not do:** `getActiveInstance()` still mutates, firing
+`setLocale` from what reads as a getter. It is unreachable in a browser today — `__zintl_current_instance`
+returns first — so it is latent rather than live, and `store-client.ts`'s `clientLocaleSync` already
+owns that reconciliation properly for every project except `vinext-basic`, whose `nextjs-runtime`
+supersedes `client-spa`. Worth removing with a Next-side replacement, not inside a defect fix.
+
+**What is still not established:** why the reconciliation branch fires at all here, given the probe
+navigates to `/` with no locale in the path. It requires `targetLocale !== inst.locale`, so a hot
+update on this host is leaving a store instance whose locale disagrees with the document — which is
+L-030's "a new store per entry re-execution" from the other side. Worth confirming before the fix
+above is written, because it decides whether the reconciliation is load-bearing here or merely
+reachable.
 
 **Why this was not caught earlier.** `hmr` was claimed on the strength of contracts that passed, and
 they do pass — most of the time. Nothing in the suite distinguishes "passes" from "passes two runs in
 three", and a capability list records only the former. That is a gap in how capabilities are earned,
 not just in this host: **the discipline is "claim it once its contract passes", and it has no notion
 of passing _reliably_.**
+
+**And a diagnostic gap worth fixing on its own — now fixed, see [L-040](#l-040).** Every failure shape
+this suite was built to explain attaches page state; this one could not, because the page is the thing
+that is broken and the harness was killed before it could say so. Contracts now fail on their own
+budget with the diagnosis captured, and the first `rsbuild-react` timeout to land under the new
+instrument already said something five investigations had not: the server pushed its updates, the page
+answers nothing, and there are **no console errors** — so whatever wedges it now is not the render
+loop this entry fixed.
+
+### L-040 — the harness could not explain its own worst failures
+
+|                             |                                                               |
+| :-------------------------- | :------------------------------------------------------------ |
+| **Status**                  | **Fixed**                                                     |
+| **Bucket**                  | N/A — a harness defect, and the one that hid several others   |
+| **Facet contract changed?** | No                                                            |
+| **Unblocks**                | every future occurrence of [L-039](#l-039) and its neighbours |
+
+Not a product defect. It is the reason four of this ledger's investigations cost what they did, and it
+was in plain sight the whole time.
+
+**The shape.** `executeContract` collects every diagnostic this harness has — packet counts, the
+settle beacon, the delivery ledger, the compiler ledger, the HMR trace, the body outline — in the
+`catch` around the contract body. When vitest hits `testTimeout` it kills the test where it stands, so
+that `catch` never runs. What reached the report was `Error: Test timed out in 45000ms` and nothing
+else. **Precisely the failures that most needed explaining were the ones that arrived unexplained**,
+and every one of them was a timeout.
+
+Two mechanisms had to be fixed, because either alone leaves the other in place.
+
+**1. The contract now fails before the cap does.** `withContractBudget` races the body against a
+deadline of `testTimeout - 15s`, so a contract that runs long fails _here_, with diagnosis, instead of
+being killed. A **deadline** rather than a duration, and that distinction was measured rather than
+reasoned: a first attempt counted from the moment the body started, and under a loaded four-worker run
+`createLab` — which starts a dev server and launches a browser — had already spent long enough that
+the budget expired _after_ the cap it was meant to precede. Two contracts still died at 45 000 ms with
+no diagnosis. Anchoring to the test's own start keeps the reserve intact however slow the setup was,
+and the message reports what setup consumed.
+
+**2. The diagnosis no longer hangs.** Every page read in `describeStall` was already wrapped in a
+`try/catch` with a message naming what could not be read, and **none of them ever fired**, because an
+unresponsive renderer does not reject — it never answers, and Playwright waits out a default longer
+than the whole test. Each read is now raced against 1.5s, which is what lets those `catch` blocks do
+the job they were written for. Teardown is bounded too, at 4s: a diagnosis printed and then swallowed
+by a hang in cleanup is no better than never printing it.
+
+**The reserve was sized against the measured worst case, and the first size was wrong.** At 12s the
+budget fired correctly and vitest then killed the test _during teardown_, discarding the diagnosis it
+had just produced — the same silent failure one step further along. The tail is now bounded at 10s
+(four reads at 1.5s, plus 4s of teardown) inside a 15s reserve.
+
+**No contract was squeezed.** The heaviest ones measured 3.2–5.6s healthy (`memory-leak` 3.3–5.6s,
+`locale-storm` 1.2–1.9s); the 25s figure this ledger quotes elsewhere for `memory-leak` was a _failing_
+run waiting out its own timeouts. A 30s budget leaves roughly a five-fold margin.
+
+**Verified on the failures it was built for.** Across three full runs: two green, and one with three
+failures at 39.3s, 40.0s and 32.0s — all inside the cap, **all three carrying a page diagnosis**. The
+`rsbuild-react` timeouts that five investigations could not see now report `hmr packets: {"update":2}`
+with the page unreadable and no console errors, which is a materially better starting point than
+`Test timed out`. `[Syntax Error Recovery]` turned out to be sitting on an swc `Module build failed`
+the report had never shown. And `[Memory Leak] react-basic` — the failure that opened proposal 030 §1
+and had to be hunted by rerunning the suite — now describes itself on first occurrence.
+
+**The lesson, and it generalises past this suite.** A diagnostic that runs only on the failure path is
+untested by definition; this one had a path it could never reach, and no amount of care in _writing_
+diagnostics substitutes for checking that the worst failure can actually print them. The tell was
+available from the first occurrence: every unexplained failure was a timeout, and every explained one
+was an assertion.

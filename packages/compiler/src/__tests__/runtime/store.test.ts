@@ -100,17 +100,27 @@ describe("I18nStore & Registry", () => {
     debugSpy.mockRestore();
   });
 
-  it("should notify subscribers when catalogs change", () => {
+  /**
+   * Announcements are deferred to a microtask, so every assertion here awaits
+   * one first. That is the contract, not a test convenience: `_t` applies a
+   * catalog *during* a React render, and announcing in that turn is a `setState`
+   * during render — ledger L-039. Applying stays synchronous; only the
+   * announcement moves.
+   */
+  it("should notify subscribers when catalogs change", async () => {
     const store = getActiveInstance();
     const listener = vi.fn();
 
     const unsubscribe = store.subscribe(listener);
     store.addCatalogs({ en: { b1: { k1: "v1" } } });
 
+    expect(listener).not.toHaveBeenCalled();
+    await Promise.resolve();
     expect(listener).toHaveBeenCalled();
 
     listener.mockClear();
     store.addCatalogs({ en: { b1: { k1: "v1" } } });
+    await Promise.resolve();
     expect(listener).not.toHaveBeenCalled();
 
     unsubscribe();
@@ -201,12 +211,13 @@ describe("I18nStore & Registry", () => {
     expect(store.locale).toBe("en");
   });
 
-  it("should provide exported global functions", () => {
+  it("should provide exported global functions", async () => {
     expect(getLocale()).toBe("");
     const listener = vi.fn();
     subscribe(listener);
 
     addCatalogs({ zh: { b1: { a: "b" } } });
+    await Promise.resolve();
     expect(listener).toHaveBeenCalled();
   });
 

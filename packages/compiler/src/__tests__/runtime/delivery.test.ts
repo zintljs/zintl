@@ -315,7 +315,7 @@ describe("runtime delivery", () => {
   });
 
   describe("subscriber isolation", () => {
-    it("runs every subscriber even when one throws", () => {
+    it("runs every subscriber even when one throws", async () => {
       // `forEach` over a raw set meant one throwing subscriber silently
       // cancelled every subscriber registered after it.
       const store = new I18nStore();
@@ -327,6 +327,7 @@ describe("runtime delivery", () => {
       store.subscribe(() => ran.push("second"));
 
       store.addCatalogs({ ar: { b1: { hi: "مرحبا" } } });
+      await Promise.resolve();
 
       expect(ran).toEqual(["first", "second"]);
     });

@@ -240,6 +240,8 @@ export class I18nStore {
   pendingPromises: Promise<any>[] = [];
   version: number = 0;
   private listeners = new Set<() => void>();
+  /** Whether an announcement is already queued for this turn — see {@link notify}. */
+  private notifyScheduled = false;
   private readonly delivery = new Delivery();
   /**
    * In-flight lazy loads, by `<locale>/<boundaryId>`.
@@ -302,17 +304,51 @@ export class I18nStore {
    * Listeners are isolated from one another: `forEach` over a raw set meant one
    * throwing subscriber silently cancelled every subscriber after it.
    */
+  /**
+   * Announce that the catalogs changed — on a microtask, never in the caller's
+   * turn, and coalesced so a burst announces once.
+   *
+   * **Applying is synchronous; announcing is not, and the split is the fix for
+   * ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+   * load and re-reading it in the same expression, because a hot update
+   * registers a new loader whose catalog is available on that very tick — the
+   * manager inlines the anchor's locale, so `loadLazyBoundary` completes
+   * synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+   * it to work.
+   *
+   * What must not happen is the announcement travelling with it. `_t` runs
+   * *during render*, so a synchronous `notify()` reached
+   * `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+   * React reported the first as "Cannot update a component while rendering a
+   * different component" and then, because each re-render ran `_t` again and
+   * each `_t` announced again, "Maximum update depth exceeded" out of every
+   * subscriber after it. Measured on `rsbuild-react`: ~700 in twelve seconds,
+   * with the renderer pinned hard enough that the page could not be evaluated
+   * at all, which is why this read as a stall rather than a loop.
+   *
+   * `version` is bumped inside the microtask rather than beside the data on
+   * purpose. It is React's snapshot, and a snapshot that moves *during* render
+   * makes React re-render to reconcile it — so bumping it synchronously would
+   * re-arm the same loop without the warning that names it. Deferring both
+   * together keeps the pair that `useSyncExternalStore` requires: when the
+   * subscriber fires, the snapshot has already moved.
+   */
   notify() {
-    this.version++;
-    for (const listener of this.listeners) {
-      try {
-        listener();
-      } catch (err) {
-        if (__ZINTL_DEV__) {
-          console.error("[Zintl] A store subscriber threw; the rest still ran.", err);
+    if (this.notifyScheduled) return;
+    this.notifyScheduled = true;
+    queueMicrotask(() => {
+      this.notifyScheduled = false;
+      this.version++;
+      for (const listener of this.listeners) {
+        try {
+          listener();
+        } catch (err) {
+          if (__ZINTL_DEV__) {
+            console.error("[Zintl] A store subscriber threw; the rest still ran.", err);
+          }
         }
       }
-    }
+    });
   }
 
   /**
