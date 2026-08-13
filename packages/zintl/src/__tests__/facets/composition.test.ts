@@ -32,7 +32,7 @@ import { describe, it, expect } from "vite-plus/test";
 import type { ZintlFacet } from "@zintljs/compiler";
 import { assembleFacets, assembleFacetsWithTrace } from "../../facets/assemble.js";
 import { formatFacetTrace } from "../../facets/activate.js";
-import { detectFrameworksOrFallback } from "../../facets/detect.js";
+import { detectFrameworks } from "../../facets/detect.js";
 import { resolveFacets } from "../../facets/resolve.js";
 
 function monorepoRoot(): string {
@@ -80,7 +80,7 @@ function declarersOf(facets: ZintlFacet[], hook: string): string[] {
 
 function describeComposition(name: string, ssr: boolean): string {
   const root = join(EXAMPLES_DIR, name);
-  const frameworks = detectFrameworksOrFallback({ root });
+  const frameworks = detectFrameworks({ root });
   const bundler = bundlerFor(name);
   const { facets, trace } = assembleFacetsWithTrace({
     frameworks,
@@ -218,7 +218,7 @@ describe("composition invariants", () => {
       const bundler = bundlerFor(name);
       const resolved = resolveFacets(
         assembleFacets({
-          frameworks: detectFrameworksOrFallback({ root }),
+          frameworks: detectFrameworks({ root }),
           bundler,
           root,
           ssr: false,
@@ -244,7 +244,7 @@ describe("composition invariants", () => {
       const root = join(EXAMPLES_DIR, name);
       const resolved = resolveFacets(
         assembleFacets({
-          frameworks: detectFrameworksOrFallback({ root }),
+          frameworks: detectFrameworks({ root }),
           bundler: bundlerFor(name),
           root,
           ssr: false,

@@ -1,4 +1,4 @@
-import { a as getLocale, i as react_default, n as hero_default, o as require_client, r as vite_default, s as require_react, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
+import { a as getLocale, c as require_client, i as react_default, l as require_react, n as hero_default, o as getStoreVersion, r as vite_default, s as subscribe, t as require_jsx_dev_runtime } from "../jsx-dev-runtime.js";
 //#region examples/react-ssr/src/App.tsx?zintl-multiplex=en
 var import_client = require_client();
 var import_react = require_react();
@@ -23,6 +23,7 @@ var locales = [
 	}
 ];
 function LocaleSwitcher() {
+	(0, import_react.useSyncExternalStore)(subscribe, getStoreVersion, getStoreVersion);
 	const locale = getLocale() || "en";
 	const handleSwitch = (lang) => {
 		const url = new URL(window.location.href);
@@ -43,17 +44,17 @@ function LocaleSwitcher() {
 					children: l.name
 				}, l.id, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 32,
+					lineNumber: 34,
 					columnNumber: 13
 				}, this))
 			}, void 0, false, {
 				fileName: _jsxFileName$1,
-				lineNumber: 30,
+				lineNumber: 32,
 				columnNumber: 9
 			}, this),
 			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
 				fileName: _jsxFileName$1,
-				lineNumber: 41,
+				lineNumber: 43,
 				columnNumber: 9
 			}, this),
 			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
@@ -64,40 +65,41 @@ function LocaleSwitcher() {
 					"aria-hidden": "true",
 					children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#translate-icon" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 44,
+						lineNumber: 46,
 						columnNumber: 13
 					}, this)
 				}, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 43,
+					lineNumber: 45,
 					columnNumber: 11
 				}, this)
 			}, void 0, false, {
 				fileName: _jsxFileName$1,
-				lineNumber: 42,
+				lineNumber: 44,
 				columnNumber: 9
 			}, this)
 		]
 	}, void 0, true, {
 		fileName: _jsxFileName$1,
-		lineNumber: 29,
+		lineNumber: 31,
 		columnNumber: 7
 	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
 		fileName: _jsxFileName$1,
-		lineNumber: 48,
+		lineNumber: 50,
 		columnNumber: 7
 	}, this)] }, void 0, true, {
 		fileName: _jsxFileName$1,
-		lineNumber: 28,
+		lineNumber: 30,
 		columnNumber: 5
 	}, this);
 }
 function App() {
+	(0, import_react.useSyncExternalStore)(subscribe, getStoreVersion, getStoreVersion);
 	const [count, setCount] = (0, import_react.useState)(0);
 	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LocaleSwitcher, {}, void 0, false, {
 			fileName: _jsxFileName$1,
-			lineNumber: 58,
+			lineNumber: 62,
 			columnNumber: 7
 		}, this),
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
@@ -114,7 +116,7 @@ function App() {
 							alt: ""
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 61,
+							lineNumber: 65,
 							columnNumber: 11
 						}, this),
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
@@ -123,7 +125,7 @@ function App() {
 							alt: "React logo"
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 62,
+							lineNumber: 66,
 							columnNumber: 11
 						}, this),
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("img", {
@@ -132,33 +134,33 @@ function App() {
 							alt: "Vite logo"
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 63,
+							lineNumber: 67,
 							columnNumber: 11
 						}, this)
 					]
 				}, void 0, true, {
 					fileName: _jsxFileName$1,
-					lineNumber: 60,
+					lineNumber: 64,
 					columnNumber: 9
 				}, this),
 				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { children: "Get started" }, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 66,
+					lineNumber: 70,
 					columnNumber: 11
 				}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", {
 					style: { display: "contents" },
 					dangerouslySetInnerHTML: { __html: `Edit <code>src/App.tsx</code> and save to test <code>HMR</code>` }
 				}, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 67,
+					lineNumber: 71,
 					columnNumber: 15
 				}, this) }, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 67,
+					lineNumber: 71,
 					columnNumber: 11
 				}, this)] }, void 0, true, {
 					fileName: _jsxFileName$1,
-					lineNumber: 65,
+					lineNumber: 69,
 					columnNumber: 9
 				}, this),
 				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
@@ -167,18 +169,18 @@ function App() {
 					children: `Count is ${count}`
 				}, void 0, false, {
 					fileName: _jsxFileName$1,
-					lineNumber: 69,
+					lineNumber: 73,
 					columnNumber: 9
 				}, this)
 			]
 		}, void 0, true, {
 			fileName: _jsxFileName$1,
-			lineNumber: 59,
+			lineNumber: 63,
 			columnNumber: 7
 		}, this),
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
 			fileName: _jsxFileName$1,
-			lineNumber: 72,
+			lineNumber: 76,
 			columnNumber: 7
 		}, this),
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
@@ -192,22 +194,22 @@ function App() {
 						"aria-hidden": "true",
 						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#documentation-icon" }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 77,
+							lineNumber: 81,
 							columnNumber: 13
 						}, this)
 					}, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 76,
+						lineNumber: 80,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Documentation" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 79,
+						lineNumber: 83,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Your questions, answered" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 80,
+						lineNumber: 84,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
@@ -218,16 +220,16 @@ function App() {
 							dangerouslySetInnerHTML: { __html: `<img class="logo" src="${vite_default}" alt="" /> Explore Vite` }
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 83,
+							lineNumber: 87,
 							columnNumber: 60
 						}, this)
 					}, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 83,
+						lineNumber: 87,
 						columnNumber: 15
 					}, this) }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 82,
+						lineNumber: 86,
 						columnNumber: 13
 					}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
 						href: "https://react.dev/",
@@ -237,26 +239,26 @@ function App() {
 							dangerouslySetInnerHTML: { __html: `<img class="button-icon" src="${react_default}" alt="" /> Learn more` }
 						}, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 86,
+							lineNumber: 90,
 							columnNumber: 61
 						}, this)
 					}, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 86,
+						lineNumber: 90,
 						columnNumber: 15
 					}, this) }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 85,
+						lineNumber: 89,
 						columnNumber: 13
 					}, this)] }, void 0, true, {
 						fileName: _jsxFileName$1,
-						lineNumber: 81,
+						lineNumber: 85,
 						columnNumber: 11
 					}, this)
 				]
 			}, void 0, true, {
 				fileName: _jsxFileName$1,
-				lineNumber: 75,
+				lineNumber: 79,
 				columnNumber: 9
 			}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
 				id: "social",
@@ -267,22 +269,22 @@ function App() {
 						"aria-hidden": "true",
 						children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#social-icon" }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 92,
+							lineNumber: 96,
 							columnNumber: 13
 						}, this)
 					}, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 91,
+						lineNumber: 95,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { children: "Connect with us" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 94,
+						lineNumber: 98,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { children: "Join the Vite community" }, void 0, false, {
 						fileName: _jsxFileName$1,
-						lineNumber: 95,
+						lineNumber: 99,
 						columnNumber: 11
 					}, this),
 					/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { children: [
@@ -295,21 +297,21 @@ function App() {
 								"aria-hidden": "true",
 								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#github-icon" }, void 0, false, {
 									fileName: _jsxFileName$1,
-									lineNumber: 101,
+									lineNumber: 105,
 									columnNumber: 19
 								}, this)
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
-								lineNumber: 100,
+								lineNumber: 104,
 								columnNumber: 17
 							}, this), "GitHub"]
 						}, void 0, true, {
 							fileName: _jsxFileName$1,
-							lineNumber: 99,
+							lineNumber: 103,
 							columnNumber: 15
 						}, this) }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 98,
+							lineNumber: 102,
 							columnNumber: 13
 						}, this),
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
@@ -321,21 +323,21 @@ function App() {
 								"aria-hidden": "true",
 								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#discord-icon" }, void 0, false, {
 									fileName: _jsxFileName$1,
-									lineNumber: 109,
+									lineNumber: 113,
 									columnNumber: 19
 								}, this)
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
-								lineNumber: 108,
+								lineNumber: 112,
 								columnNumber: 17
 							}, this), "Discord"]
 						}, void 0, true, {
 							fileName: _jsxFileName$1,
-							lineNumber: 107,
+							lineNumber: 111,
 							columnNumber: 15
 						}, this) }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 106,
+							lineNumber: 110,
 							columnNumber: 13
 						}, this),
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
@@ -347,21 +349,21 @@ function App() {
 								"aria-hidden": "true",
 								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#x-icon" }, void 0, false, {
 									fileName: _jsxFileName$1,
-									lineNumber: 117,
+									lineNumber: 121,
 									columnNumber: 19
 								}, this)
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
-								lineNumber: 116,
+								lineNumber: 120,
 								columnNumber: 17
 							}, this), "X.com"]
 						}, void 0, true, {
 							fileName: _jsxFileName$1,
-							lineNumber: 115,
+							lineNumber: 119,
 							columnNumber: 15
 						}, this) }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 114,
+							lineNumber: 118,
 							columnNumber: 13
 						}, this),
 						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("a", {
@@ -373,52 +375,52 @@ function App() {
 								"aria-hidden": "true",
 								children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("use", { href: "/icons.svg#bluesky-icon" }, void 0, false, {
 									fileName: _jsxFileName$1,
-									lineNumber: 125,
+									lineNumber: 129,
 									columnNumber: 19
 								}, this)
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
-								lineNumber: 124,
+								lineNumber: 128,
 								columnNumber: 17
 							}, this), "Bluesky"]
 						}, void 0, true, {
 							fileName: _jsxFileName$1,
-							lineNumber: 123,
+							lineNumber: 127,
 							columnNumber: 15
 						}, this) }, void 0, false, {
 							fileName: _jsxFileName$1,
-							lineNumber: 122,
+							lineNumber: 126,
 							columnNumber: 13
 						}, this)
 					] }, void 0, true, {
 						fileName: _jsxFileName$1,
-						lineNumber: 97,
+						lineNumber: 101,
 						columnNumber: 11
 					}, this)
 				]
 			}, void 0, true, {
 				fileName: _jsxFileName$1,
-				lineNumber: 90,
+				lineNumber: 94,
 				columnNumber: 9
 			}, this)]
 		}, void 0, true, {
 			fileName: _jsxFileName$1,
-			lineNumber: 74,
+			lineNumber: 78,
 			columnNumber: 7
 		}, this),
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
 			fileName: _jsxFileName$1,
-			lineNumber: 134,
+			lineNumber: 138,
 			columnNumber: 7
 		}, this),
 		/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", { id: "spacer" }, void 0, false, {
 			fileName: _jsxFileName$1,
-			lineNumber: 135,
+			lineNumber: 139,
 			columnNumber: 7
 		}, this)
 	] }, void 0, true, {
 		fileName: _jsxFileName$1,
-		lineNumber: 57,
+		lineNumber: 61,
 		columnNumber: 5
 	}, this);
 }

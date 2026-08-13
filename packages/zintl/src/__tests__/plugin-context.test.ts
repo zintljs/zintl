@@ -2,6 +2,8 @@ import { describe, it, expect, vi, afterEach } from "vite-plus/test";
 import Context from "../context.js";
 import { resolveOptions } from "../options.js";
 import { configResolvedHook } from "../hooks/config.js";
+import { ensureCompiler } from "../host.js";
+import { registerUpdateApplier } from "../hmr/index.js";
 
 let mockExistsSync: any = null;
 let mockReadFileSync: any = null;
@@ -253,6 +255,84 @@ describe("ZintlPluginContext", () => {
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "vanilla-extraction")).toBe(true);
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "html-extraction")).toBe(true);
       expect(ctx.compiler._resolved.facets.some((f) => f.name === "vue-extraction")).toBe(false);
+    });
+  });
+
+  describe("ensureCompiler multiplex fence (L-022)", () => {
+    it("throws when multiplex is requested on a bundler with no HTML fan-out", () => {
+      mockExistsSync = () => false;
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"], multiplex: true }));
+
+      expect(() =>
+        ensureCompiler(ctx, {
+          root: "/mock-root",
+          bundler: "rspack",
+          isDev: false,
+          isSsr: false,
+          pluginNames: [],
+        }),
+      ).toThrow(/\[Zintl\] Multiplex is not supported/);
+    });
+
+    it("does not throw when multiplex is requested on Vite", () => {
+      mockExistsSync = () => false;
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"], multiplex: true }));
+
+      expect(() =>
+        ensureCompiler(ctx, {
+          root: "/mock-root",
+          bundler: "vite",
+          isDev: false,
+          isSsr: false,
+          pluginNames: [],
+        }),
+      ).not.toThrow();
+    });
+  });
+
+  /**
+   * Proposal 029's two directions, and they are guarded differently on purpose.
+   *
+   * Registering an applier against a facet that declares no `hotUpdate` is a
+   * mistake inside Zintl with a well-defined correct behaviour — no applier —
+   * so it declines rather than throwing into someone's dev server. The other
+   * direction, a facet claiming `hotUpdate` that no host honours, is the exact
+   * state Rsbuild sat in before 029; nothing at runtime can tell "not registered
+   * yet" from "never will be", so it is asserted here instead.
+   */
+  describe("hot-update applier fence (029)", () => {
+    const applierStub = () => ({
+      name: "stub",
+      apply: () => ({ count: 0 }),
+      applyChunkInvalidation: () => {},
+      sendFullReload: () => {},
+    });
+
+    const ctxFor = (bundler: string) => {
+      mockExistsSync = () => false;
+      const ctx = new Context(resolveOptions({ locales: ["en", "ar"] }));
+      ensureCompiler(ctx, {
+        root: "/mock-root",
+        bundler,
+        isDev: true,
+        isSsr: false,
+        pluginNames: [],
+      });
+      return ctx;
+    };
+
+    it("declines an applier when the bundler facet declares no hotUpdate", () => {
+      const ctx = ctxFor("unknown-bundler");
+      expect(ctx.compiler._resolved.flags.hotUpdate).toBe(false);
+      expect(registerUpdateApplier(ctx, applierStub())).toBe(false);
+      expect(ctx.updateApplier).toBeNull();
+    });
+
+    it.each(["vite", "rspack"])("accepts an applier on %s, which declares one", (bundler) => {
+      const ctx = ctxFor(bundler);
+      expect(ctx.compiler._resolved.flags.hotUpdate).toBe(true);
+      expect(registerUpdateApplier(ctx, applierStub())).toBe(true);
+      expect(ctx.updateApplier).not.toBeNull();
     });
   });
 });

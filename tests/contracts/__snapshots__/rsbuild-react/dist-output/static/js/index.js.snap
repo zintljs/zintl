@@ -1,0 +1,489 @@
+(() => {
+"use strict";
+var __webpack_modules__ = ({
+23(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (App)
+});
+/* import */ var react_jsx_runtime__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2 = __webpack_require__(13);
+/* import */ var react__rspack_import_3 = __webpack_require__(4);
+/* import */ var react__rspack_import_3_default = /*#__PURE__*/__webpack_require__.n(react__rspack_import_3);
+
+
+
+
+
+const locales = [
+    {
+        id: "en",
+        name: "English"
+    },
+    {
+        id: "ar",
+        name: "العربية"
+    },
+    {
+        id: "es",
+        name: "Español"
+    },
+    {
+        id: "zh",
+        name: "中文"
+    }
+];
+/**
+ * The heading lives here, in a component, and that is the point of this example.
+ *
+ * On `examples/rsbuild-spa` the heading is written by the entry itself, so the
+ * only way to repaint it is to re-run the entry — which re-runs `zintl()` and
+ * rebuilds the store. Here a repaint is an ordinary React render that merely
+ * re-reads the catalog, which is the distinction the vanilla-only hypothesis
+ * turns on (`027-leak-ledger.md`).
+ */ function App(param) {
+    let { lang, onSwitch } = param;
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
+    const [count, setCount] = (0,react__rspack_import_3.useState)(0);
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("div", {
+        children: [
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
+                id: "switcher",
+                children: locales.map((l)=>/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
+                        className: lang === l.id ? "active" : "",
+                        onClick: ()=>onSwitch(l.id),
+                        children: l.name
+                    }, l.id))
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("h1", {
+                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("90e40d50", {
+                    _mgr: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"],
+                    _bId: "b_147a3a1c1a40"
+                })
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
+                children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("span", {
+                    style: {
+                        display: "contents"
+                    },
+                    dangerouslySetInnerHTML: {
+                        __html: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9fd2f187", {
+                            _mgr: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"],
+                            _bId: "b_147a3a1c1a40",
+                            _tags: [
+                                {
+                                    alias: "code",
+                                    originalOpen: `<code>`,
+                                    tagName: "code"
+                                },
+                                {
+                                    alias: "code",
+                                    originalOpen: `<code>`,
+                                    tagName: "code"
+                                }
+                            ]
+                        })
+                    }
+                })
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
+                id: "counter",
+                type: "button",
+                onClick: ()=>setCount((c)=>c + 1),
+                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("aa624128", {
+                    count: count
+                }, {
+                    _mgr: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"],
+                    _bId: "b_147a3a1c1a40"
+                })
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("h2", {
+                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9e9cf322", {
+                    _mgr: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"],
+                    _bId: "b_147a3a1c1a40"
+                })
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
+                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("d0f7666b", {
+                    _mgr: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"],
+                    _bId: "b_147a3a1c1a40"
+                })
+            })
+        ]
+    }, lang);
+}
+
+
+},
+0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var react_jsx_runtime__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2 = __webpack_require__(13);
+/* import */ var react__rspack_import_3 = __webpack_require__(4);
+/* import */ var react__rspack_import_3_default = /*#__PURE__*/__webpack_require__.n(react__rspack_import_3);
+/* import */ var react_dom_client__rspack_import_4 = __webpack_require__(14);
+/* import */ var _App_tsx__rspack_import_5 = __webpack_require__(23);
+
+
+
+
+
+
+
+function Main() {
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
+    const [lang, setLang] = (0,react__rspack_import_3.useState)(()=>{
+        return new URLSearchParams(window.location.search).get("lang") || "en";
+    });
+    const handleSwitch = async (newLang)=>{
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", newLang);
+        window.history.pushState({}, "", url);
+        await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
+            locale: newLang,
+            loaders: {
+                ["b_89ad0a7bfa7f"]: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"].loader
+            }
+        }));
+        setLang(newLang);
+    };
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(_App_tsx__rspack_import_5["default"], {
+        lang: lang,
+        onSwitch: handleSwitch
+    });
+}
+async function bootstrap() {
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_89ad0a7bfa7f"]: virtual_zintl_manager_none_entry_b_89ad0a7bfa7f__rspack_import_2["default"].loader
+        }
+    }));
+    (0,react_dom_client__rspack_import_4.createRoot)(document.getElementById("root")).render(/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(react__rspack_import_3.StrictMode, {
+        children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(Main, {})
+    }));
+}
+void bootstrap();
+
+
+},
+
+});
+// The module cache
+var __webpack_module_cache__ = {};
+
+// The require function
+function __webpack_require__(moduleId) {
+
+// Check if module is in cache
+var cachedModule = __webpack_module_cache__[moduleId];
+if (cachedModule !== undefined) {
+return cachedModule.exports;
+}
+// Create a new module (and put it into the cache)
+var module = (__webpack_module_cache__[moduleId] = {
+exports: {}
+});
+// Execute the module function
+__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+
+// Return the exports of the module
+return module.exports;
+
+}
+
+// expose the modules object (__webpack_modules__)
+__webpack_require__.m = __webpack_modules__;
+
+// webpack/runtime/compat_get_default_export
+(() => {
+// getDefaultExport function for compatibility with non-ESM modules
+__webpack_require__.n = (module) => {
+	var getter = module && module.__esModule ?
+		() => (module['default']) :
+		() => (module);
+	__webpack_require__.d(getter, { a: getter });
+	return getter;
+};
+
+})();
+// webpack/runtime/define_property_getters
+(() => {
+__webpack_require__.d = (exports, getters, values) => {
+	var define = (defs, kind) => {
+		for(var key in defs) {
+			if(__webpack_require__.o(defs, key) && !__webpack_require__.o(exports, key)) {
+				Object.defineProperty(exports, key, { enumerable: true, [kind]: defs[key] });
+			}
+		}
+	};
+	define(getters, "get");
+	define(values, "value");
+};
+})();
+// webpack/runtime/ensure_chunk
+(() => {
+__webpack_require__.f = {};
+// This file contains only the entry chunk.
+// The chunk loading function for additional chunks
+__webpack_require__.e = (chunkId) => {
+	return Promise.all(
+		Object.keys(__webpack_require__.f).reduce((promises, key) => {
+			__webpack_require__.f[key](chunkId, promises);
+			return promises;
+		}, [])
+	);
+};
+})();
+// webpack/runtime/get javascript chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.u = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "static/js/async/" + chunkId + ".js"
+}
+})();
+// webpack/runtime/get mini-css chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.miniCssF = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "" + chunkId + ".css"
+}
+})();
+// webpack/runtime/has_own_property
+(() => {
+__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+})();
+// webpack/runtime/load_script
+(() => {
+var inProgress = {};
+
+var uniqueName = "rsbuild-react:";
+// loadScript function to load a script via script tag
+__webpack_require__.l = function (url, done, key, chunkId) {
+	if (inProgress[url]) {
+		inProgress[url].push(done);
+		return;
+	}
+	var script, needAttach;
+	if (key !== undefined) {
+		var scripts = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts.length; i++) {
+			var s = scripts[i];
+			if (s.getAttribute("src") == url || s.getAttribute("data-rspack") == uniqueName + key) {
+				script = s;
+				break;
+			}
+		}
+	}
+	if (!script) {
+		needAttach = true;
+		script = document.createElement('script');
+
+script.timeout = 120;
+if (__webpack_require__.nc) {
+  script.setAttribute("nonce", __webpack_require__.nc);
+}
+
+script.setAttribute("data-rspack", uniqueName + key);
+
+
+
+script.src = url;
+
+
+
+	}
+	inProgress[url] = [done];
+	var onScriptComplete = function (prev, event) {
+		script.onerror = script.onload = null;
+		clearTimeout(timeout);
+		var doneFns = inProgress[url];
+		delete inProgress[url];
+		script.parentNode && script.parentNode.removeChild(script);
+		doneFns &&
+			doneFns.forEach(function (fn) {
+				return fn(event);
+			});
+		if (prev) return prev(event);
+	};
+	var timeout = setTimeout(
+		onScriptComplete.bind(null, undefined, {
+			type: 'timeout',
+			target: script
+		}),
+		120000
+	);
+	script.onerror = onScriptComplete.bind(null, script.onerror);
+	script.onload = onScriptComplete.bind(null, script.onload);
+	needAttach && document.head.appendChild(script);
+};
+
+})();
+// webpack/runtime/make_namespace_object
+(() => {
+// define __esModule on exports
+__webpack_require__.r = (exports) => {
+	if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+		Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+	}
+	Object.defineProperty(exports, '__esModule', { value: true });
+};
+})();
+// webpack/runtime/node_module_decorator
+(() => {
+__webpack_require__.nmd = (module) => {
+  module.paths = [];
+  if (!module.children) module.children = [];
+  return module;
+};
+})();
+// webpack/runtime/on_chunk_loaded
+(() => {
+var deferred = [];
+__webpack_require__.O = (result, chunkIds, fn, priority) => {
+	if (chunkIds) {
+		priority = priority || 0;
+		for (var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--)
+			deferred[i] = deferred[i - 1];
+		deferred[i] = [chunkIds, fn, priority];
+		return;
+	}
+	var notFulfilled = Infinity;
+	for (var i = 0; i < deferred.length; i++) {
+		var [chunkIds, fn, priority] = deferred[i];
+		var fulfilled = true;
+		for (var j = 0; j < chunkIds.length; j++) {
+			if (
+				(priority & (1 === 0) || notFulfilled >= priority) &&
+				Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))
+			) {
+				chunkIds.splice(j--, 1);
+			} else {
+				fulfilled = false;
+				if (priority < notFulfilled) notFulfilled = priority;
+			}
+		}
+		if (fulfilled) {
+			deferred.splice(i--, 1);
+			var r = fn();
+			if (r !== undefined) result = r;
+		}
+	}
+	return result;
+};
+
+})();
+// webpack/runtime/public_path
+(() => {
+__webpack_require__.p = "/";
+})();
+// webpack/runtime/jsonp_chunk_loading
+(() => {
+
+      // object to store loaded and loading chunks
+      // undefined = chunk not loaded, null = chunk preloaded/prefetched
+      // [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+      var jsonpInstalledChunks = {4: 0,};
+      
+        __webpack_require__.f.j = function (chunkId, promises) {
+          // JSONP chunk loading for javascript
+var installedChunkData = __webpack_require__.o(jsonpInstalledChunks, chunkId)
+	? jsonpInstalledChunks[chunkId]
+	: undefined;
+if (installedChunkData !== 0) {
+	// 0 means "already installed".
+
+	// a Promise means "currently loading".
+	if (installedChunkData) {
+		promises.push(installedChunkData[2]);
+	} else {
+		if (true) {
+			// setup Promise in chunk cache
+			var promise = new Promise((resolve, reject) => (installedChunkData = jsonpInstalledChunks[chunkId] = [resolve, reject]));
+			promises.push((installedChunkData[2] = promise));
+
+			// start chunk loading
+			var url = __webpack_require__.p + __webpack_require__.u(chunkId);
+			// create error before stack unwound to get useful stacktrace later
+			var error = new Error();
+			var loadingEnded = function (event) {
+				if (__webpack_require__.o(jsonpInstalledChunks, chunkId)) {
+					installedChunkData = jsonpInstalledChunks[chunkId];
+					if (installedChunkData !== 0) jsonpInstalledChunks[chunkId] = undefined;
+					if (installedChunkData) {
+						var errorType =
+							event && (event.type === 'load' ? 'missing' : event.type);
+						var realSrc = event && event.target && event.target.src;
+						error.message =
+							'Loading chunk ' +
+							chunkId +
+							' failed.\n(' +
+							errorType +
+							': ' +
+							realSrc +
+							')';
+						error.name = 'ChunkLoadError';
+						error.type = errorType;
+						error.request = realSrc;
+						installedChunkData[1](error);
+					}
+				}
+			};
+			__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
+		} 
+	}
+}
+
+        }
+        __webpack_require__.O.j = (chunkId) => (jsonpInstalledChunks[chunkId] === 0);
+// install a JSONP callback for chunk loading
+var __rspack_jsonp = (parentChunkLoadingFunction, data) => {
+	var [chunkIds, moreModules, runtime] = data;
+	// add "moreModules" to the modules object,
+	// then flag all "chunkIds" as loaded and fire callback
+	var moduleId, chunkId, i = 0;
+	if (chunkIds.some((id) => (jsonpInstalledChunks[id] !== 0))) {
+		for (moduleId in moreModules) {
+			if (__webpack_require__.o(moreModules, moduleId)) {
+				__webpack_require__.m[moduleId] = moreModules[moduleId];
+			}
+		}
+		if (runtime) var result = runtime(__webpack_require__);
+	}
+	if (parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+	for (; i < chunkIds.length; i++) {
+		chunkId = chunkIds[i];
+		if (
+			__webpack_require__.o(jsonpInstalledChunks, chunkId) &&
+			jsonpInstalledChunks[chunkId]
+		) {
+			jsonpInstalledChunks[chunkId][0]();
+		}
+		jsonpInstalledChunks[chunkId] = 0;
+	}
+	
+	return __webpack_require__.O(result);
+	
+};
+
+var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_react"] = self["rspackChunkrsbuild_react"] || [];
+jsonpChunkLoadingGlobal.forEach(__rspack_jsonp.bind(null, 0));
+jsonpChunkLoadingGlobal.push = __rspack_jsonp.bind(null, jsonpChunkLoadingGlobal.push.bind(jsonpChunkLoadingGlobal));
+
+})();
+// module factories are used so entry inlining is disabled
+// startup
+// Load entry module and return exports
+var __webpack_exports__ = __webpack_require__.O(undefined, ["5", "0"], () => __webpack_require__(0));
+__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+})()
+;

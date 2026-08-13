@@ -9,7 +9,7 @@ so any difference in output is attributable to the **host** rather than to the
 app.
 
 ```bash
-pnpm dev      # rsbuild dev     — no hot updates yet, see below
+pnpm dev      # rsbuild dev     — string edits apply, via a page reload (see below)
 pnpm build    # tsc && rsbuild build
 pnpm preview  # rsbuild preview
 ```
@@ -38,25 +38,47 @@ to tell Zintl which script this document loads, since an Rsbuild template names
 none — the entry is injected from `source.entry` at build time, so the
 association lives in `rsbuild.config.mjs` where only the host can see it.
 
-## What is not supported yet
+## What is not supported
 
 Stated plainly, because an example that looks complete while quietly doing less
 is worse than one with a known gap.
 
-| Gap             | Why                                                                                                                                           |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hot updates** | `pnpm dev` serves and rebuilds, but Zintl emits no hot-update acceptance code on this host. Editing a string needs a manual reload. See below |
-| **Preloading**  | The projection injects no `<link rel="modulepreload">` here. Catalogs still load, one network round-trip later than they would on Vite        |
-| **SSR, MPA**    | Untouched and unexamined here                                                                                                                 |
+| Gap             | Why                                                                                                                                                     |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`multiplex`** | Per-locale HTML fan-out is Vite-only and **not planned** here. Combining it with this host fails the build immediately with a clear Zintl error (L-022) |
+| **Preloading**  | The projection injects no `<link rel="modulepreload">` here. Catalogs still load, one network round-trip later than they would on Vite                  |
+| **SSR**         | Unbuilt and unexamined                                                                                                                                  |
 
-**Why hot updates are withheld rather than approximated.** Rspack uses
-`module.hot` where Vite uses `import.meta.hot`, so the inherited snippet is
-simply wrong — but emitting the `module.hot` equivalent would be worse. Zintl's
-delivery bus requires a monotonic non-repeating per-event sequence and a `read()`
-scoped to that event, and neither has been established on this host. Shipping
-without them would ship back the ordering defect the delivery bus exists to
-remove. A `dev` script that starts a server and silently never updates is the
-failure mode worth avoiding; a stated gap is not.
+**Dev-time string edits work as of [proposal 029](../../../docs/spec/proposals/029-rsbuild-hmr-facet-seam.md)
+— and in this app they arrive through a full page reload, which is deliberate.**
+`pnpm dev` picks up an edit on the source locale and on lazily-loaded ones alike;
+measured here, the text is correct either way and `<html dir>` survives.
+
+The reload is the honest half of the story and this app is the reason. Zintl's
+hot-update path replaces a catalog and expects _something_ to repaint. A
+framework app has that — a component re-reads the catalog and renders again, and
+[`examples/rsbuild-react`](../rsbuild-react) does apply edits in place with no
+reload. A vanilla app's only repaint is re-running the entry, and on Rspack a
+re-executed entry reads its imports from the module cache: it can re-seed itself
+from a manager that has not been replaced yet and render `""` for every key the
+incoming catalog was about to supply. So the entry **declines** the update, it
+bubbles, and the page reloads — slower than a hot update and correct, which is the
+trade Vite already makes for frameworks whose mount is not replayable
+([L-035](../../../docs/spec/proposals/027-leak-ledger.md)).
+
+Two things made the underlying machinery possible, and the second is the
+interesting one:
+
+- Rspack supplies both guarantees Zintl's delivery bus requires, from its own
+  machinery rather than anything Zintl invents — `Watching.startTime` is the
+  monotonic per-event sequence, `compiler.inputFileSystem` is the read scoped to
+  that event.
+- Rspack rebuilds whatever **its own dependency graph** says is stale, and asks
+  Zintl nothing. So the generated catalogs are not invalidated by hand here; they
+  _declare what they are derived from_, and Rspack rebuilds them in the same
+  compilation as the edit. Vite works the opposite way round — it asks for a
+  module list — which is why the two hosts share every decision and none of the
+  application of it.
 
 ## The localized asset
 
@@ -74,6 +96,21 @@ contract suite now asserts the rendered Arabic in a real browser. Recorded as
 ## Status
 
 Promoted from a test fixture to an example by
-[proposal 027](../../../docs/spec/proposals/027-completing-the-rsbuild-target.md).
-Being an example is **not** a promise of support — that is a separate decision,
-and the remaining work is named above rather than guessed at.
+[proposal 027](../../../docs/spec/proposals/027-completing-the-rsbuild-target.md),
+and from an example to a supported target by
+[proposal 029](../../../docs/spec/proposals/029-rsbuild-hmr-facet-seam.md), which
+built the HMR facet seam that [028
+§6](../../../docs/spec/proposals/028-rsbuild-support-status.md) named as the
+structural blocker.
+
+This app claims eleven of the contract layer's capabilities, including `hmr` and
+`hmr-stress` — every one added only after its contract passed against this host,
+which is why the suite carries no skipped tests.
+
+Two are still unclaimed and neither is a gap in the gaps table above, because
+neither is a defect in this integration. `memory` needs `memory-leak`'s twenty
+sequential edits to fit inside 45s, and every edit here costs two compilations —
+Zintl's own catalog write is, necessarily, a declared dependency of the generated
+modules. `chaos` needs `chaos-boundary` to stop assuming the renamed file and the
+heading file are the same one, which they cannot be when the entry is named in
+`rsbuild.config.mjs`. Both are written up in `tests/manifests/rsbuild-spa.ts`.

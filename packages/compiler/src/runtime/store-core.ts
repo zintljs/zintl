@@ -240,6 +240,8 @@ export class I18nStore {
   pendingPromises: Promise<any>[] = [];
   version: number = 0;
   private listeners = new Set<() => void>();
+  /** Whether an announcement is already queued for this turn — see {@link notify}. */
+  private notifyScheduled = false;
   private readonly delivery = new Delivery();
   /**
    * In-flight lazy loads, by `<locale>/<boundaryId>`.
@@ -302,17 +304,51 @@ export class I18nStore {
    * Listeners are isolated from one another: `forEach` over a raw set meant one
    * throwing subscriber silently cancelled every subscriber after it.
    */
+  /**
+   * Announce that the catalogs changed — on a microtask, never in the caller's
+   * turn, and coalesced so a burst announces once.
+   *
+   * **Applying is synchronous; announcing is not, and the split is the fix for
+   * ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+   * load and re-reading it in the same expression, because a hot update
+   * registers a new loader whose catalog is available on that very tick — the
+   * manager inlines the anchor's locale, so `loadLazyBoundary` completes
+   * synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+   * it to work.
+   *
+   * What must not happen is the announcement travelling with it. `_t` runs
+   * *during render*, so a synchronous `notify()` reached
+   * `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+   * React reported the first as "Cannot update a component while rendering a
+   * different component" and then, because each re-render ran `_t` again and
+   * each `_t` announced again, "Maximum update depth exceeded" out of every
+   * subscriber after it. Measured on `rsbuild-react`: ~700 in twelve seconds,
+   * with the renderer pinned hard enough that the page could not be evaluated
+   * at all, which is why this read as a stall rather than a loop.
+   *
+   * `version` is bumped inside the microtask rather than beside the data on
+   * purpose. It is React's snapshot, and a snapshot that moves *during* render
+   * makes React re-render to reconcile it — so bumping it synchronously would
+   * re-arm the same loop without the warning that names it. Deferring both
+   * together keeps the pair that `useSyncExternalStore` requires: when the
+   * subscriber fires, the snapshot has already moved.
+   */
   notify() {
-    this.version++;
-    for (const listener of this.listeners) {
-      try {
-        listener();
-      } catch (err) {
-        if (__ZINTL_DEV__) {
-          console.error("[Zintl] A store subscriber threw; the rest still ran.", err);
+    if (this.notifyScheduled) return;
+    this.notifyScheduled = true;
+    queueMicrotask(() => {
+      this.notifyScheduled = false;
+      this.version++;
+      for (const listener of this.listeners) {
+        try {
+          listener();
+        } catch (err) {
+          if (__ZINTL_DEV__) {
+            console.error("[Zintl] A store subscriber threw; the rest still ran.", err);
+          }
         }
       }
-    }
+    });
   }
 
   /**
@@ -573,7 +609,24 @@ export class I18nStore {
       const result = loader(target);
       if (isThenable(result)) {
         this.pendingBoundaries.add(boundaryId);
-        return (result as Promise<Catalog | BoundaryCatalogs>)
+        /**
+         * Publish this load so {@link loadLazyBoundary} can join it.
+         *
+         * This path used to record itself only in `pendingBoundaries`, which
+         * nothing consults before serving a catalog — so an in-flight load
+         * started *here* was invisible to a caller asking for the same boundary
+         * *there*, and that caller was handed whatever was already present.
+         *
+         * Harmless when the catalogs are empty, which is the only case that
+         * existed before hot updates reached a host that re-executes the
+         * manager and the entry independently. On such a host it is the
+         * empty-render defect: the manager re-registers, this load goes out for
+         * the new catalog, the entry re-executes and reads the old one, and
+         * every key that exists only in the new one resolves to "" — because
+         * Zintl has no source-locale fallback, by design.
+         */
+        const subject = target + "/" + boundaryId;
+        const inFlight = (result as Promise<Catalog | BoundaryCatalogs>)
           .then(processResult)
           .catch((err) => {
             if (__ZINTL_DEV__) {
@@ -582,7 +635,10 @@ export class I18nStore {
           })
           .finally(() => {
             this.pendingBoundaries.delete(boundaryId);
+            if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
           });
+        this.inFlight.set(subject, inFlight);
+        return inFlight;
       }
       processResult(result);
     } catch (err) {
@@ -600,16 +656,35 @@ export class I18nStore {
     const target = this.locale;
     const subject = target + "/" + boundaryId;
 
+    /**
+     * A concurrent request for a boundary already loading used to be dropped
+     * and handed back `undefined` — no promise to await, nothing to supersede,
+     * and a caller that believed it had triggered a load when it had not.
+     *
+     * Checked **before** the already-loaded test below, and the order is the
+     * fix rather than a tidy-up. A load is in flight precisely because
+     * something decided the present catalog needs replacing; serving the
+     * present one instead is choosing the older of two known states, which is
+     * the inverse of Axiom D1. The two tests only disagree while a refresh is
+     * outstanding, and that is exactly the window the empty-render defect lived
+     * in: the entry re-executed, found a stale-but-present catalog, returned in
+     * zero milliseconds, and rendered "" for every key the incoming catalog was
+     * about to supply.
+     */
+    const joined = this.inFlight.get(subject);
+    if (joined) return joined;
+
     if (this.catalogs[target]?.[boundaryId]) {
       /**
-       * Already loaded. Named rather than returned silently (Axiom D2), so a
-       * skipped load appears in the ledger instead of looking like nothing
-       * happened.
+       * Already loaded, and nothing better on the way. Named rather than
+       * returned silently (Axiom D2), so a skipped load appears in the ledger
+       * instead of looking like nothing happened.
        *
-       * Known limitation: this also skips a *refresh*, so a catalog that is
-       * present but stale cannot be re-fetched through this path. It does not
-       * bite in development, where hot updates push catalogs straight into
-       * `addCatalogs` rather than coming back through here.
+       * Still skips a *refresh* nobody has started — a catalog that is present
+       * and stale, with no load outstanding, cannot be re-fetched through this
+       * path. That remains true and is not a live problem: every refresh in
+       * development arrives as a load somebody did start, which the check above
+       * now joins.
        */
       if (__ZINTL_DEV__) {
         this.delivery.settle(
@@ -620,14 +695,6 @@ export class I18nStore {
       }
       return;
     }
-
-    /**
-     * A concurrent request for a boundary already loading used to be dropped
-     * and handed back `undefined` — no promise to await, nothing to supersede,
-     * and a caller that believed it had triggered a load when it had not.
-     */
-    const joined = this.inFlight.get(subject);
-    if (joined) return joined;
 
     this.pendingBoundaries.add(boundaryId);
     const release = () => {

@@ -11,6 +11,8 @@ describe("Catalog HMR Integration", () => {
       locales: ["en", "ar"],
       outputDir: "locales",
       logLevel: "debug",
+      /** One test here synthesizes a React app, so the project declares React. */
+      dependencies: { react: "^19.0.0" },
     });
   });
 

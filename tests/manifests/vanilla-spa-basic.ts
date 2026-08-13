@@ -31,6 +31,21 @@ export const vanillaSpaBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * Which file `chaos-boundary` renames, and who imports it.
+     *
+     * The contract used to carry a `switch (exampleName)` and throw for any
+     * project it did not recognise — so claiming `chaos` meant editing the
+     * contract, and a capability that was really contract-limited got
+     * recorded as host-limited.
+     */
+    renameBoundary: {
+      fromPath: "src/main.ts",
+      toPath: "src/mainNew.ts",
+      parentPath: "index.html",
+      importSearch: "/src/main.ts",
+      importReplace: "/src/mainNew.ts",
+    },
     headingSelector: "h1",
     initialHeadingText: "Get started",
     headingFile: "src/main.ts",

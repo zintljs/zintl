@@ -444,6 +444,100 @@ export class ZintlCompiler {
   }
 
   /**
+   * {@link getBoundaryInputs}, but only where the host actually consumes it.
+   *
+   * Gated on `dependencyInvalidation` rather than reported to everyone, because
+   * on a host that is already *told* what to invalidate the same declaration is
+   * not redundant — it is harmful. Vite treats a declared dependency as a real
+   * one, so naming the catalog files here makes Zintl's own `flush()` writes
+   * re-enter as source changes and every catalog-writing contract times out.
+   * Measured, not reasoned about.
+   *
+   * Also dev-only: outside a watch build nothing consumes these at all.
+   */
+  private declaredInputsFor(boundaryId: string): string[] {
+    if (!this.isDev || !this._resolved.flags.dependencyInvalidation) return [];
+    return this.getBoundaryInputs(boundaryId);
+  }
+
+  /**
+   * Every file a boundary's generated catalog is derived from, as absolute paths.
+   *
+   * The inputs are the boundary's own source files — inverted out of
+   * `boundaryOwnership`, which maps the other way — plus the on-disk catalog for
+   * each locale. Together they are the complete answer to "what would change this
+   * generated module's output".
+   *
+   * This exists so a host can be *told* the dependency instead of being asked to
+   * infer it. Vite's hot-update hook works the other way round: it hands Zintl an
+   * event and Zintl walks the module graph deciding what to invalidate. Rspack
+   * has no such hook to hand back a module list from — it rebuilds whatever its
+   * own dependency graph says is stale, and a virtual module that declares no
+   * dependencies is never stale. Reported through `generateVirtualModule`'s
+   * existing `watchedFiles`, which every host already forwards to `addWatchFile`;
+   * it was returning an empty array for exactly the two module kinds that needed
+   * it. Proposal 029.
+   *
+   * Cheap enough to call per `load`: one pass over `boundaryOwnership` plus one
+   * `getCatalogPath` per locale, both in-memory.
+   */
+  public getBoundaryInputs(boundaryId: string): string[] {
+    const inputs = new Set<string>();
+
+    for (const [fileId, owners] of this.messages.boundaryOwnership.entries()) {
+      let owned = owners.has(boundaryId);
+      if (!owned) {
+        for (const owner of owners) {
+          if (this.io.getSafeBoundaryId(owner) === boundaryId) {
+            owned = true;
+            break;
+          }
+        }
+      }
+      if (owned) {
+        const real = this.resolveSourcePath(fileId);
+        if (real) inputs.add(real);
+      }
+    }
+
+    for (const locale of this.locales) {
+      const catPath = this.getCatalogPath(boundaryId, locale);
+      if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+    }
+
+    return Array.from(inputs);
+  }
+
+  /**
+   * Turn a normalized id back into a path that exists on disk.
+   *
+   * `boundaryOwnership` is keyed by `io.getNormalizedId`, which **strips the
+   * source extension** — `src/main.ts` is stored as `src/main`. That is right for
+   * identity, which is content-based and must not move when a file is renamed
+   * from `.ts` to `.tsx`; it is wrong for anything that hands the string to a
+   * filesystem.
+   *
+   * Handing the extensionless form to a host as a watched dependency was
+   * measured doing real damage rather than merely failing: Rspack accepted the
+   * dependency, found no such file, and reported `building removed src/main` on
+   * every cycle — a watch on a path that can never exist, and a generated module
+   * that therefore never went stale.
+   *
+   * `io.resolvedExtensions` is public for exactly this ("callers that probe
+   * extensionless dep ids"). Returns `undefined` rather than guessing when nothing matches, so
+   * a caller declares no dependency instead of a false one.
+   */
+  private resolveSourcePath(fileId: string): string | undefined {
+    const abs = isAbsolute(fileId) ? fileId : join(this.rootDir, fileId);
+    if (existsSync(abs)) return abs;
+    for (const ext of this.io.resolvedExtensions) {
+      const candidate = abs + (ext.startsWith(".") ? ext : `.${ext}`);
+      if (existsSync(candidate)) return candidate;
+    }
+    return undefined;
+  }
+
+  /**
    * Invalidate a file for one hot-update event, once, however many callers ask.
    *
    * The hot-update hook is invoked once *per environment* — a client pass, then
@@ -585,6 +679,15 @@ export class ZintlCompiler {
     const fileId = this.io.getNormalizedId(filePath);
     const boundaries = this.messages.boundaryOwnership.get(fileId);
     if (boundaries) {
+      /**
+       * Whether this file's messages are actually known.
+       *
+       * A parse failure is the ordinary case, not an exotic one: in dev the
+       * watcher fires on a file saved mid-keystroke more often than on a
+       * finished edit.
+       */
+      let reextracted = true;
+
       if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
           // Prefer the content the caller was handed. Falling back to disk is
@@ -592,13 +695,45 @@ export class ZintlCompiler {
           const code = content ?? (await this.io.readFile(filePath));
           await this.transform(code, filePath, undefined, true);
         } catch (e) {
+          reextracted = false;
           this.logger.error(`Failed to re-extract messages during invalidation: ${String(e)}`);
+          /**
+           * Named, not dropped (Axiom D2). A boundary left alone because its
+           * source could not be read is a different outcome from one that was
+           * invalidated, and a caller reading the ledger has to be able to tell
+           * them apart.
+           */
+          this.bus.settle(
+            this.bus.mint("build/hmr", normalizedPath),
+            "failed",
+            "re-extraction failed; boundary state left as it was",
+          );
         }
       }
 
-      for (const bId of boundaries) {
-        foundBoundaryIds.push(bId);
-        this.messages.markDirty(bId);
+      /**
+       * Invalidate only what was actually re-read.
+       *
+       * The `catch` above used to log and fall through, so a file that could not
+       * be parsed still marked its boundaries dirty, dropped their catalog
+       * cache, bumped their revisions and advanced `catalogGeneration` — every
+       * one of those an assertion that new content had been read, made on the
+       * strength of content that could not be read at all. The compiler then
+       * regenerated catalogs for those boundaries from whatever the failed
+       * extraction had left in `internalManifest`, and stamped them with a
+       * generation newer than the world they described.
+       *
+       * Doing nothing is the honest response: the file's messages are unchanged
+       * as far as anything here can tell, so the previous state is the best
+       * available and the next parseable edit re-extracts it properly. This is
+       * the same principle as the no-fallback rule — do not guess at content,
+       * and make the gap visible instead.
+       */
+      if (reextracted) {
+        for (const bId of boundaries) {
+          foundBoundaryIds.push(bId);
+          this.messages.markDirty(bId);
+        }
       }
     }
 
@@ -1720,11 +1855,19 @@ export class ZintlCompiler {
       if (hmrFn) {
         const fileMeta = this.messages.metadataGraph?.[fileId];
         const hasAnchors = (fileMeta?.anchorSites?.length || 0) > 0;
+        /**
+         * A framework runtime declares the hook it needs through
+         * `clientReactivityImports`; a project with none has only its entry, and
+         * on some hosts re-running that is not enough (see the hook's docs).
+         */
+        const hasClientReactivity =
+          Object.keys(this._resolved.system.clientReactivityImports ?? {}).length > 0;
         const hmrCode = hmrFn(
           fileId,
           hmrToken,
           hasAnchors,
           this._resolved.flags.entryReexecutionSafe,
+          hasClientReactivity,
         );
         if (hmrCode) {
           const scriptCloseIdx = finalCode.lastIndexOf("</script>");
@@ -2329,7 +2472,7 @@ export class ZintlCompiler {
       }
       return {
         code,
-        watchedFiles: [],
+        watchedFiles: this.declaredInputsFor(bId),
       };
     }
 
@@ -2407,7 +2550,7 @@ export class ZintlCompiler {
     }
     return {
       code,
-      watchedFiles: [],
+      watchedFiles: this.declaredInputsFor(bId),
     };
   }
 }

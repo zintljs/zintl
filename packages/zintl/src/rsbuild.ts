@@ -1,28 +1,40 @@
 /**
  * @module zintl/rsbuild
  *
- * The Zintl Rsbuild plugin.
+ * The Zintl Rsbuild plugin — the same plugin as `zintljs/vite` behind a
+ * different entry point, not a second implementation.
  *
- * **Experimental, and deliberately narrow.** This entry point exists to give
- * proposal 026 a real second host to test against — a build tool whose plugin
- * model is not Rollup's, so that the claim "the compiler is bundler-agnostic"
- * has something that can disprove it. It is not a supported target, and the
- * `zintljs` package does not yet promise it will behave.
+ * Supported for single-page applications, in production builds and in
+ * `rsbuild dev`, with **React and vanilla JavaScript** — the two configurations
+ * the contract suite drives on this host. Chunk-aligned catalogs, ghost mode,
+ * localized assets, per-locale `<html lang>`/`dir` and hot updates all carry
+ * over, with no Rspack-specific code in the compiler. Requires `@rsbuild/core` —
+ * an optional peer dependency, tested against `^2.1.0`.
  *
- * What is known to work is ZDB §7a **Tier 1**: virtual modules, `transform`
- * with stable ids, `buildStart`/`buildEnd`, and `enforce: "pre"` ordering.
- * Tier 2 — hot updates — is not attempted here, and should not be until the
- * two load-bearing requirements in §7a (a monotonic per-event sequence, and a
- * `read()` scoped to that event) are shown to exist on this host.
+ * Vue and Svelte are **untested here rather than unsupported**: nothing about
+ * them is known to break on Rspack, and nothing has measured them either, so the
+ * promise stops where the evidence does.
  *
- * Notable gaps against the Vite entry point, all reproduced rather than
- * assumed — see `docs/spec/proposals/026-leak-ledger.md`:
+ * **How a dev edit reaches the screen depends on the app, not on this host.**
+ * Where components re-read the catalog, the edit applies in place. Where
+ * nothing does, the entry declines the update and the page reloads: on Rspack a
+ * re-executed entry reads its imports from the module cache, so an app whose
+ * only repaint is re-running its entry would otherwise re-seed from a stale
+ * catalog and render empty strings. Reloading is slower and correct.
  *
- * - `this.resolve` does not exist in unplugin's Rspack build context, so
- *   anything that walked the graph through the host resolver cannot run here.
- * - `emitFile` returns nothing, so asset localisation has no reference id to
- *   interpolate.
- * - The HTML fan-out, SSR and multiplex paths are untested on this host.
+ * Not supported, deliberately rather than pending:
+ *
+ * - **`multiplex`** — per-locale HTML fan-out is Vite-only and not planned
+ *   here. Combining it with this host fails the build immediately with a clear
+ *   error rather than doing nothing quietly.
+ * - **SSR** — unbuilt and unexamined. There is no Rsbuild SSR path to route to.
+ *
+ * One difference worth knowing about rather than discovering: the HTML
+ * projection injects no `<link rel="modulepreload">` here, so catalogs begin
+ * loading one network round-trip later than they would on Vite.
+ *
+ * How each of these was established is written up in
+ * `docs/spec/proposals/026`–`030` and their leak ledgers.
  */
 import unplugin from "./plugin.js";
 

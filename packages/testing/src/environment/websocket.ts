@@ -11,6 +11,40 @@ export interface WsCapture {
 
 export type HmrIntercept = (onPacket: (packet: HmrPacket) => void) => () => void;
 
+/**
+ * Build an {@link HmrIntercept} that watches the page's own websocket.
+ *
+ * Playwright reports every socket the page opens and every frame it receives,
+ * which is all this needs — no host internals, and no server object to patch.
+ * `page.on("websocket")` only sees sockets opened *after* it is attached, which
+ * is why the lab wires this in its constructor, before navigation.
+ */
+export function clientHmrIntercept(
+  page: {
+    on(e: "websocket", h: (ws: any) => void): void;
+    off(e: "websocket", h: (ws: any) => void): void;
+  },
+  channel: { pathMatch: string; translate(frame: string): HmrPacket | null },
+): HmrIntercept {
+  return (onPacket) => {
+    const onSocket = (ws: any) => {
+      if (!String(ws.url?.() ?? "").includes(channel.pathMatch)) return;
+      ws.on("framereceived", (frame: { payload: string | Buffer }) => {
+        const raw =
+          typeof frame.payload === "string" ? frame.payload : frame.payload.toString("utf-8");
+        try {
+          const packet = channel.translate(raw);
+          if (packet) onPacket(packet);
+        } catch {
+          // A frame this host does not describe is not a test failure.
+        }
+      });
+    };
+    page.on("websocket", onSocket);
+    return () => page.off("websocket", onSocket);
+  };
+}
+
 export class LabWebSocket {
   private intercept?: HmrIntercept;
   private activeCaptures: Set<{ packets: HmrPacket[] }> = new Set();

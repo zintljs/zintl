@@ -26,7 +26,12 @@
 
 // Built-in preset facets
 export { vanillaFacet } from "./presets/vanilla.js";
-export { reactExtractionFacet, reactCodegenFacet, reactFacet } from "./presets/react.js";
+export {
+  reactExtractionFacet,
+  reactCodegenFacet,
+  reactRuntimeFacet,
+  reactFacet,
+} from "./presets/react.js";
 export { vueExtractionFacet, vueCodegenFacet, vueFacet } from "./presets/vue.js";
 export {
   svelteExtractionFacet,

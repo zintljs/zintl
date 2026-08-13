@@ -4,7 +4,7 @@ import { createLabDevServer, type LabDevServer } from "./dev-server.js";
 import { createLabPreviewServer, type LabPreviewServer } from "./preview-server.js";
 import { LabFilesystem } from "./filesystem.js";
 import { LabCompiler } from "./compiler.js";
-import { LabWebSocket } from "./websocket.js";
+import { LabWebSocket, clientHmrIntercept } from "./websocket.js";
 import { LabNetwork } from "./network.js";
 import { LabConsole } from "./console.js";
 import { LabClock } from "./clock.js";
@@ -118,10 +118,15 @@ class LabImpl implements Lab {
     this.root = root;
 
     const devServer = mode === "dev" ? (server as LabDevServer) : undefined;
-    this.ws =
-      mode === "project"
-        ? throwNoAccess("ws")
-        : new LabWebSocket(devServer?.interceptHmr?.bind(devServer));
+    /**
+     * Server-side interception where the host offers it, the page's own socket
+     * otherwise. A host that offers neither still gets `undefined`, which
+     * `LabWebSocket` reads as "cannot see packets" rather than "none were sent".
+     */
+    const hmrIntercept =
+      devServer?.interceptHmr?.bind(devServer) ??
+      (devServer?.clientHmr && page ? clientHmrIntercept(page, devServer.clientHmr) : undefined);
+    this.ws = mode === "project" ? throwNoAccess("ws") : new LabWebSocket(hmrIntercept);
     this.network = mode === "project" ? throwNoAccess("network") : new LabNetwork(this.page);
     this.console = mode === "project" ? throwNoAccess("console") : new LabConsole(this.page);
     this.clock = mode === "project" ? throwNoAccess("clock") : new LabClock(this.page);

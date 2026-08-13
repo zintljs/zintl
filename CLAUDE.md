@@ -45,7 +45,7 @@ vp test --config=tests/vitest.config.ts   # contract suite only (also: vp run te
 
 ```bash
 vpr bench     # extraction/HMR performance budgets (NODE_OPTIONS=--expose-gc)
-vpr smoke     # packs real tarballs, npm-installs outside the repo, builds against stock Vite — run before releasing
+vpr smoke     # packs real tarballs, npm-installs outside the repo, builds against stock Vite and Rsbuild — run before releasing
 vpr change    # add a changeset (say what changed and why — becomes the changelog)
 ```
 

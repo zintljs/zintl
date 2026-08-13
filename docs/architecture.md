@@ -90,3 +90,12 @@ Framework support, SSR, asset handling, and bundler integration are separate com
 Practically: adding a framework or a build tool means contributing a facet, not editing the core. Each facet declares when it applies, so nothing in the core maps frameworks to facets — and every activation decision is traced, so "why is that facet on?" has an answer. Conflicting facets — two claiming the same file extension, say — are a hard error rather than a silent last-one-wins.
 
 That's the design that makes "more frameworks and build tools are coming" a matter of work rather than of rewriting.
+
+Rsbuild is the test of that claim. It runs on Rspack, whose plugin model is about as unlike Rollup's as a bundler's gets, and it reached feature parity for SPA builds _and_ dev-time string edits without a single Rspack branch in the compiler. Two things made that possible, and they divide the work the same way everything above does:
+
+- **What the compiler decides is host-neutral.** Which strings changed, which boundaries that dirties, which catalogs must be rebuilt — none of it mentions a bundler, so both hosts run the identical code.
+- **How a host is _told_ differs, and that difference is a seam.** Vite is asked for a module list and handed one back, so Zintl walks its module graph. Rspack rebuilds whatever its own dependency graph says is stale, so Zintl instead declares what each generated catalog is derived from and lets Rspack work it out. Same decision, two applications of it, neither one leaking into the other.
+
+How the edit then reaches the screen is a third question, and it is the framework's rather than the bundler's: an app with components that re-read the catalog repaints in place, and one without them declines the update and reloads the page. A framework declares which it is, and both hosts consume that declaration without learning what the framework is.
+
+The parts that remain Vite-only — per-locale HTML fan-out (`multiplex`) and SSR — are unbuilt rather than blocked, and a bundler that has not built them says so through its facet, so combining them fails loudly instead of silently.

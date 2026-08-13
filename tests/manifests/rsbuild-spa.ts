@@ -66,12 +66,36 @@ export const rsbuildSpa: ProjectManifest = {
    * window — that contract needs rewriting against built output before either
    * host should claim it.
    *
-   * **Not `hmr` or anything built on it.** Zintl emits no acceptance code on
-   * this host (`rspackFacet`), because ZDB §7a makes dev support conditional on
-   * two ordering guarantees not established here. Note `hmr-stress` does *not*
-   * require `hmr` — claiming it alone would select `hmr-hammer` and fail rather
-   * than skip. `RsbuildDevServerDriver` also supplies no `interceptHmr`, so the
-   * delivery contracts could not see packets even once that is answered.
+   * `hmr` and `hmr-stress` are claimed again, and the route back is worth
+   * recording. A vanilla entry cannot recover from a late catalog: its only
+   * repaint is re-running the entry, which rebuilds the store from a module
+   * binding Webpack has cached. So re-execution is harmless but not
+   * *sufficient*, and the entry now declines to accept — the update bubbles to
+   * a full page reload, which is slower than a hot update and correct. Ledger
+   * L-035.
+   *
+   * These were briefly left unclaimed on the theory that reload-per-edit was too
+   * expensive for the suite to sustain. That was wrong, and worth recording as a
+   * wrong turn: the timeouts were a **port race** between the two Rsbuild
+   * projects, both starting from Rsbuild's default 3000 (L-036). The cost of a
+   * reload is real but nowhere near the budget.
+   *
+   * **Not `memory`, and now measured rather than inferred: 10 failures in 10,
+   * against `rsbuild-react` passing 10 in 10 in the same batch.**
+   * `memory-leak` drives twenty sequential edits, and each one here is a page
+   * reload. A reload resets the settle beacon to the same value
+   * it had before, which is precisely the shape `waitForSettled` cannot confirm
+   * (L-029) — so every iteration would wait out its full timeout. It would also
+   * be measuring nothing: a reload resets the heap, so "growth across twenty
+   * hot updates" has no meaning when there are no hot updates. Inferred from
+   * L-029's measured mechanism rather than re-measured here.
+   *
+   * **Not `chaos`.** A limitation of `chaos-boundary`, not of this host: it
+   * renames the file holding the heading, and here that file is the entry, which
+   * Rsbuild names in `rsbuild.config.mjs` rather than in `index.html`. Renaming
+   * it is a config change that restarts the dev server. Content-based boundary
+   * identity is covered by `boundary-graph` regardless; see that contract's own
+   * `getRenameConfig` for what would need relaxing.
    */
   capabilities: [
     "build",
@@ -83,6 +107,8 @@ export const rsbuildSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "locale-switch-stress",
+    "hmr",
+    "hmr-stress",
   ],
   adapter: {
     headingSelector: "h1",

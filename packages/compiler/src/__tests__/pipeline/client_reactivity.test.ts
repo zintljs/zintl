@@ -13,12 +13,36 @@ const { system } = emptyCapabilities({
   clientReactivityImports: reactCodegenFacet().clientReactivityImports,
 });
 
+/**
+ * A plain React project: every component is a client component, and nobody
+ * writes `"use client"`.
+ */
 const mockConfig = {
   isDev: true,
   sourceLocale: "en",
   locales: ["en"],
   root: "/root",
   system,
+} as any;
+
+/**
+ * A React Server Components project, where the directive genuinely decides which
+ * modules may use hooks.
+ *
+ * The distinction has to be *declared*, and that is the point of ledger L-032:
+ * the tests below that assert "no injection without the directive" were written
+ * against this world but never said so, so they read as claims about React in
+ * general. They are not — in a plain React app that behaviour means no component
+ * ever subscribes to the store.
+ */
+const rscConfig = {
+  ...({
+    isDev: true,
+    sourceLocale: "en",
+    locales: ["en"],
+    root: "/root",
+  } as any),
+  system: { ...system, serverComponents: true },
 } as any;
 
 const mockLogger = {
@@ -68,10 +92,67 @@ export function ServerComponent() {
     const observation = observe(code, "server.tsx", "server", mockLogger, { compiledState });
     expect(observation.isClientComponent).toBe(false);
 
-    const plan = resolve([], observation, mockConfig, mockLogger, "server.tsx");
+    const plan = resolve([], observation, rscConfig, mockLogger, "server.tsx");
     const result = apply(code, plan, mockLogger);
 
     expect(result.code).not.toContain("useSyncExternalStore");
+  });
+
+  /**
+   * The regression guard for ledger L-032.
+   *
+   * Without a framework declaring server components, a capitalised component
+   * subscribes whether or not it carries `"use client"` — which no plain React
+   * app ever writes. Gating on the directive alone meant reactivity reached one
+   * file in the whole repository, and a catalog arriving after a render had
+   * nothing to repaint the page with.
+   */
+  it("injects without a directive when the framework has no server components", () => {
+    const code = `
+import React from "react";
+
+export function Widget() {
+  return <div>{"hello"}</div>;
+}
+    `;
+
+    const observation = observe(code, "widget.tsx", "widget", mockLogger, { compiledState });
+    expect(observation.isClientComponent).toBe(false);
+
+    const plan = resolve([], observation, mockConfig, mockLogger, "widget.tsx");
+    const result = apply(code, plan, mockLogger);
+
+    expect(result.code).toContain(
+      "useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion)",
+    );
+  });
+
+  /**
+   * The other half, and the reason the loose detection went unnoticed: a
+   * bootstrap contains JSX but is not a component, and a hook there is an
+   * `Invalid hook call` that takes the page down.
+   */
+  it("does not treat a lowercase function containing JSX as a component", () => {
+    const code = `
+import React from "react";
+import { createRoot } from "react-dom/client";
+
+function App() {
+  return <div>{"hi"}</div>;
+}
+
+async function bootstrap() {
+  createRoot(document.getElementById("root")).render(<App />);
+}
+    `;
+
+    const observation = observe(code, "boot.tsx", "boot", mockLogger, { compiledState });
+    const plan = resolve([], observation, mockConfig, mockLogger, "boot.tsx");
+    const result = apply(code, plan, mockLogger);
+
+    const injections = result.code.match(/useSyncExternalStore\(subscribe/g) ?? [];
+    expect(injections).toHaveLength(1);
+    expect(result.code).toMatch(/function App\(\)\s*\{\s*\n?\s*useSyncExternalStore/);
   });
 
   describe("Edge Case: Component used inside client component", () => {
@@ -119,7 +200,7 @@ export function HelperComponent() {
       });
       expect(observation.isClientComponent).toBe(false);
 
-      const plan = resolve([], observation, mockConfig, mockLogger, "helper.tsx");
+      const plan = resolve([], observation, rscConfig, mockLogger, "helper.tsx");
       const result = apply(helperCode, plan, mockLogger);
 
       expect(result.code).not.toContain("useSyncExternalStore");

@@ -13,7 +13,7 @@
  *
  * Merge semantics:
  * - Arrays (targets, extensions, rules, ssr entry targets/exports) union.
- * - Runtime booleans OR together.
+ * - Runtime and bundler booleans OR together.
  * - Function hooks resolve by highest priority, and a tie is a hard error.
  * - Codegen facets stay a list, matched per-file; two facets claiming the same
  *   extension at the same priority is a hard error.
@@ -121,6 +121,7 @@ interface MergeState {
 
   // Runtime (OR-merged booleans, chained detectLocale)
   clientLocaleSync: boolean;
+  serverComponents: boolean;
   serverRequestScope: boolean;
   streamInjection: boolean;
   entryReexecutionSafe: boolean;
@@ -142,6 +143,7 @@ interface MergeState {
         hmrToken: number,
         hasAnchors?: boolean,
         entryReexecutionSafe?: boolean,
+        hasClientReactivity?: boolean,
       ) => string)
     | undefined;
   hmrInjectionCodeProvider: string;
@@ -149,6 +151,9 @@ interface MergeState {
   hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
   hmrSelfAcceptCodeProvider: string;
   hmrSelfAcceptCodePriority: number;
+  htmlFanOut: boolean;
+  hotUpdate: boolean;
+  dependencyInvalidation: boolean;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -175,6 +180,7 @@ function createEmptyState(): MergeState {
     ssrWrapDefaultProvider: "",
     ssrWrapDefaultPriority: -1,
     clientLocaleSync: false,
+    serverComponents: false,
     serverRequestScope: false,
     streamInjection: false,
     entryReexecutionSafe: true,
@@ -194,6 +200,9 @@ function createEmptyState(): MergeState {
     hmrSelfAcceptCode: undefined,
     hmrSelfAcceptCodeProvider: "",
     hmrSelfAcceptCodePriority: -1,
+    htmlFanOut: false,
+    hotUpdate: false,
+    dependencyInvalidation: false,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -303,6 +312,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
     }
     case "runtime": {
       if (facet.clientLocaleSync) state.clientLocaleSync = true;
+      if (facet.serverComponents) state.serverComponents = true;
       if (facet.serverRequestScope) state.serverRequestScope = true;
       if (facet.streamInjection) state.streamInjection = true;
       /**
@@ -391,6 +401,9 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
           state.hmrSelfAcceptCodePriority = priority;
         }
       }
+      if (facet.htmlFanOut) state.htmlFanOut = true;
+      if (facet.hotUpdate) state.hotUpdate = true;
+      if (facet.dependencyInvalidation) state.dependencyInvalidation = true;
       break;
     }
   }
@@ -421,6 +434,9 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     // Bundler
     hmr: state.hmrInjectionCode !== undefined,
     localeRouting: state.clientLocaleSync || state.serverRequestScope,
+    htmlFanOut: state.htmlFanOut,
+    hotUpdate: state.hotUpdate,
+    dependencyInvalidation: state.dependencyInvalidation,
   };
 }
 
@@ -477,6 +493,7 @@ function stateToHooks(state: MergeState): CompilerSystemView {
     suppressionRules: state.suppressionRules,
     mustacheRules: state.mustacheRules,
     clientReactivityImports: state.clientReactivityImports,
+    serverComponents: state.serverComponents,
     contentFacets: state.contentFacets,
     virtualBoundaries,
 

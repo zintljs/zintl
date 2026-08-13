@@ -102,15 +102,53 @@ export function reactCodegenFacet(options: ReactFacetOptions = {}): CodegenFacet
 }
 
 /**
- * Full React support: {@link reactExtractionFacet} plus {@link reactCodegenFacet}.
+ * Whether re-running a React entry is harmless. It is not.
+ *
+ * `createRoot(container)` on a container it already owns does not replace the
+ * previous root — it warns and mounts a second one over the first, and the two
+ * then render the same DOM independently. Proposal 024 §1.3 identified this and
+ * could not act on it: marking React unsafe reached every framework-less project
+ * while `FALLBACK_FRAMEWORK` was `"react"`, and it regressed `vanilla-spa-basic`.
+ * Ledger L-034 removed that fallback, so the claim now reaches React and nothing
+ * else.
+ *
+ * What made it actionable was a reproduction rather than the argument. Measured
+ * on `react-basic` across sixty edits, the entry re-executed on roughly one edit
+ * in ten and **every** re-execution produced the double mount — the two are
+ * perfectly correlated. Half of those came from a defect in Vite's module-graph
+ * repair and are fixed separately (L-023, `hmr/vite.ts`); this declaration is
+ * what makes the remainder safe rather than rare.
+ *
+ * The cost is a full page reload on exactly those updates, which is the trade
+ * `svelteRuntimeFacet` already makes for the same reason. It is not a reload per
+ * edit: a React app's strings usually live in components, and a component update
+ * never reaches this path.
+ *
+ * Declared here rather than in a bundler facet on purpose — whether a mount can
+ * be replayed is framework knowledge, and both hosts' injection hooks consume it
+ * without learning what React is.
+ */
+export function reactRuntimeFacet(): ZintlFacet {
+  return {
+    name: "react-runtime",
+    when: { framework: "react" },
+    concern: "runtime",
+    priority: 100,
+    entryReexecutionSafe: false,
+  };
+}
+
+/**
+ * Full React support: {@link reactExtractionFacet}, {@link reactCodegenFacet}
+ * and {@link reactRuntimeFacet}.
  *
  * Components re-render on a locale change with no hook of yours, and JSX is
  * extracted as whole stitched units rather than fragments, so a sentence broken
  * across `<strong>` reaches translators as one sentence.
  *
- * Included in the built-in set when React is detected — and when nothing is detected at
- * all, since React is the fallback.
+ * Included in the built-in set when React is detected. Only then — detection
+ * returns `[]` rather than guessing since ledger L-034.
  */
 export function reactFacet(options: ReactFacetOptions = {}): ZintlFacet[] {
-  return [reactExtractionFacet(options), reactCodegenFacet(options)];
+  return [reactExtractionFacet(options), reactCodegenFacet(options), reactRuntimeFacet()];
 }

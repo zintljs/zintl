@@ -1,6 +1,6 @@
 import { createUnplugin } from "unplugin";
 import { PLUGIN_NAME } from "./constants.js";
-import Context from "./context.js";
+import Context, { type RsbuildDevServerLike } from "./context.js";
 import type { Options } from "./types.ts";
 import type { ResolvedOptions } from "./options.js";
 
@@ -14,6 +14,7 @@ import {
   preTransformIndexHtmlHook,
 } from "./hooks/transform.js";
 import { handleHotUpdateHook } from "./hooks/hmr.js";
+import { registerRspackHotUpdate } from "./hooks/rspack-hmr.js";
 import { buildStartHook, buildEndHook } from "./hooks/build.js";
 import { declareHtmlEntriesHook, modifyHtmlHook, type RsbuildHtmlApi } from "./hooks/html.js";
 import { resolveOptions } from "./options.js";
@@ -35,6 +36,13 @@ const contextMap = new WeakMap<ResolvedOptions, Context>();
  */
 interface RsbuildSetupApi extends RsbuildHtmlApi {
   context: { action?: "dev" | "build" | "preview" };
+  onBeforeStartDevServer?: (fn: (params: { server: RsbuildDevServerLike }) => void) => void;
+  /**
+   * Rsbuild's seam onto the Rspack config it is about to build with, typed
+   * structurally like the rest of this interface so `zintljs` takes no hard
+   * dependency on `@rsbuild/core`.
+   */
+  modifyRspackConfig?: (fn: (config: { plugins?: unknown[] }) => void | Promise<void>) => void;
 }
 
 const unplugin = createUnplugin<Options, true>((options) => {
@@ -136,7 +144,76 @@ const unplugin = createUnplugin<Options, true>((options) => {
            */
           declareHtmlEntriesHook(ctx, api);
           api.modifyHTML?.(modifyHtmlHook(ctx));
+
+          /**
+           * The server→client channel for the updates Rspack cannot patch — an
+           * HTML boundary, or a boundary that exists only on the server. Rspack
+           * itself has no such channel: this is Rsbuild's dev server, which is
+           * why it is asked for here rather than in the `rspack` block below.
+           */
+          api.onBeforeStartDevServer?.(({ server }) => {
+            ctx.rsbuildServer = server;
+          });
+
+          /**
+           * The hot-update tap — registered here because the `rspack` block
+           * below **never runs under Rsbuild** (ledger L-041).
+           *
+           * unplugin gates that escape hatch on `meta.framework === "rspack"`,
+           * and its Rsbuild target builds `meta` with `framework: "rsbuild"`,
+           * then hands that same object to the Rspack plugin it pushes into
+           * `modifyRspackConfig`. The plugin is applied; the hook on it is not
+           * called. So proposal 029's `watchRun` tap — the whole Tier-2
+           * mechanism, `Watching.startTime` as the per-event sequence and
+           * `inputFileSystem` as the read scoped to it — was dead code on the
+           * only host that ships it, and Rsbuild worked anyway through the
+           * ordinary transform-and-flush path.
+           *
+           * Pushing a bare `{ apply }` is the documented way to add an Rspack
+           * plugin, and it is what unplugin's own adapter does one line away.
+           */
+          api.modifyRspackConfig?.((config) => {
+            config.plugins ??= [];
+            config.plugins.push({
+              apply(compiler: unknown) {
+                registerRspackHotUpdate(ctx, compiler as never);
+              },
+            });
+          });
         },
+      },
+
+      /**
+       * The Rspack layer — **raw Rspack only**, despite appearances.
+       *
+       * unplugin calls this hook when `meta.framework === "rspack"`, which its
+       * Rsbuild target never sets: it builds `meta` with `framework: "rsbuild"`
+       * and hands that same object to the Rspack plugin it pushes into
+       * `modifyRspackConfig`. The plugin is applied; this hook is not called.
+       * That went unnoticed because the comment here used to reason from the
+       * push to the call, and because everything else unplugin wires — the
+       * loaders, `buildStart`, `buildEnd` — is ungated (ledger L-041).
+       *
+       * **So this hook does not run for any entry point `zintljs` ships today**
+       * — `.`, `./vite`, `./rsbuild`, `./macro`, `./facets` — and proposal 029's
+       * Tier-2 mechanism is dead code on the host it was written for. Rsbuild
+       * hot-updates through the ordinary transform-and-flush path instead.
+       *
+       * Kept rather than deleted because it is the correct seam the day a
+       * `zintljs/rspack` entry point exists. Registering it from the `rsbuild`
+       * block via `api.modifyRspackConfig` was built and measured, and reverted:
+       * it works — the `watchRun` batch and `Watching.startTime` arrive exactly
+       * as 029 designed — and it deterministically breaks `syntax-recovery` on
+       * `rsbuild-spa`, because a boundary whose parse failed keeps a catalog the
+       * recovery edit can no longer replace. That defect has to be fixed before
+       * the wiring can land. Ledger L-042.
+       *
+       * The counterpart of `vite.configureServer` above: the moment a live
+       * compiler exists to attach a hot-update applier to. See proposal 029 and
+       * `hooks/rspack-hmr.ts`.
+       */
+      rspack(compiler: unknown) {
+        registerRspackHotUpdate(ctx, compiler as never);
       },
     },
   ];

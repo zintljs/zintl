@@ -1,5 +1,5 @@
-import { getLocale } from "virtual:zintl/runtime/internal";
-import { useState } from "react";
+import { subscribe, getStoreVersion, getLocale } from "virtual:zintl/runtime/internal";
+import { useSyncExternalStore } from "react";import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
@@ -14,6 +14,8 @@ const locales = [
 ];
 
 function LocaleSwitcher() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
   const locale = getLocale() || "en";
 
   const handleSwitch = (lang: string) => {
@@ -51,6 +53,8 @@ function LocaleSwitcher() {
 }
 
 function App() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
   const [count, setCount] = useState(0);
 
   return (

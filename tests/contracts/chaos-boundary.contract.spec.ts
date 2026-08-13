@@ -1,53 +1,6 @@
-import { executeContract, type Contract } from "@zintljs/testing";
+import { executeContract, type ChaosAdapter, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 import { basename } from "node:path";
-
-interface RenameConfig {
-  fromPath: string;
-  toPath: string;
-  parentPath: string;
-  importSearch: string;
-  importReplace: string;
-}
-
-function getRenameConfig(exampleName: string): RenameConfig {
-  switch (exampleName) {
-    case "vue-basic":
-      return {
-        fromPath: "src/components/HelloWorld.vue",
-        toPath: "src/components/Hello.vue",
-        parentPath: "src/App.vue",
-        importSearch: "./components/HelloWorld.vue",
-        importReplace: "./components/Hello.vue",
-      };
-    case "react-basic":
-      return {
-        fromPath: "src/App.tsx",
-        toPath: "src/AppNew.tsx",
-        parentPath: "src/main.tsx",
-        importSearch: "./App",
-        importReplace: "./AppNew",
-      };
-    case "svelte-basic":
-      return {
-        fromPath: "src/App.svelte",
-        toPath: "src/AppNew.svelte",
-        parentPath: "src/main.ts",
-        importSearch: "./App.svelte",
-        importReplace: "./AppNew.svelte",
-      };
-    case "vanilla-spa-basic":
-      return {
-        fromPath: "src/main.ts",
-        toPath: "src/mainNew.ts",
-        parentPath: "index.html",
-        importSearch: "/src/main.ts",
-        importReplace: "/src/mainNew.ts",
-      };
-    default:
-      throw new Error(`Unsupported example for boundary rename: ${exampleName}`);
-  }
-}
 
 /**
  * TODO: reproduce the React half of proposal 024 §1.3.
@@ -64,19 +17,22 @@ function getRenameConfig(exampleName: string): RenameConfig {
  * `App.tsx` and `main.tsx` never re-executes.
  *
  * Why this needs a reproduction before a fix, rather than after: marking React
- * unsafe was tried and reverted, because `FALLBACK_FRAMEWORK` is `"react"` — a
- * project with no detected framework is assembled with the React facets, so
- * `vanilla-spa-basic` inherited the claim and began full-reloading on every
- * entry edit. Any runtime constraint attached to the React facet reaches every
- * framework-less project by default. The fix is one facet field
- * (`reactRuntimeFacet` with `entryReexecutionSafe: false`); what is missing is a
- * failing test that justifies its blast radius.
+ * unsafe was tried and reverted once, because detection used to guess `"react"`
+ * for any project where it found nothing — so `vanilla-spa-basic` inherited the
+ * claim and began full-reloading on every entry edit.
+ *
+ * **That blast radius is gone.** Ledger L-034 removed the guess: a project with
+ * no framework now resolves no framework facets, so a constraint on the React
+ * facet reaches React projects only. The fix is still one field
+ * (`reactRuntimeFacet` with `entryReexecutionSafe: false`) and what is still
+ * missing is a failing test that justifies it — but the reason to hesitate is
+ * now the evidence, not the collateral damage.
  *
  * A reproduction probably needs an entry whose *own* source changes in a way
  * Fast Refresh will not absorb — editing a non-component export in `main.tsx`,
  * or a project without the React plugin's refresh boundary.
  */
-export const chaosBoundaryContract: Contract = {
+export const chaosBoundaryContract: Contract<ChaosAdapter> = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
@@ -105,8 +61,13 @@ export const chaosBoundaryContract: Contract = {
    * framework knowledge and belongs in a framework facet.
    */
   async execute(lab, adapter) {
-    const exampleName = basename(lab.root);
-    const cfg = getRenameConfig(exampleName);
+    const cfg = adapter.renameBoundary;
+    if (!cfg) {
+      throw new Error(
+        `[Chaos Boundary] ${basename(lab.root)} claims "chaos" but its adapter has no ` +
+          `renameBoundary. Which file to rename is a per-project fact and belongs in the manifest.`,
+      );
+    }
 
     await adapter.navigateHome(lab);
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);

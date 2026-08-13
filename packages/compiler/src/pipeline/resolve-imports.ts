@@ -17,13 +17,20 @@ export function resolveImports(
   intents: TransformIntent[],
   observation: FileObservation,
   clientReactivityImports: Record<string, string[]> = {},
+  serverComponents = false,
 ): ResolvedImport[] {
   const specifiersBySource: Record<string, Set<string>> = {};
 
   const needsT = intents.some((i) => i.type === "sink_wrap" || i.type === "manual_t_rewrite");
   const needsLoader = intents.some((i) => i.type === "anchor_rewrite");
+  /**
+   * Must agree exactly with the injection gate in `resolve.ts`: if these two
+   * disagree, a file either imports `useSyncExternalStore` without calling it or
+   * calls it without importing it. See that gate for why the `"use client"`
+   * directive is no longer the condition.
+   */
   const autoClientReactivity =
-    observation.isClientComponent &&
+    (observation.isClientComponent || !serverComponents) &&
     observation.componentFunctions &&
     observation.componentFunctions.length > 0;
 

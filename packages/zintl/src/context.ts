@@ -4,6 +4,91 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, isAbsolute } from "node:path";
 import type { ResolvedOptions } from "./options.js";
 import type { BundlerHostView } from "./host.js";
+import type { HostUpdateApplier } from "./hmr/applier.js";
+
+/**
+ * The one method of `RsbuildDevServer` Zintl calls.
+ *
+ * Declared structurally rather than imported, like `RsbuildSetupApi` in
+ * `plugin.ts` and for the same reason: `zintljs` takes no hard dependency on
+ * `@rsbuild/core`. `sockWrite` is documented on that type as how middleware asks
+ * the HMR client to act, and `'full-reload'` is one of the message types it
+ * names — the Rsbuild counterpart of Vite's `server.ws.send`.
+ */
+export interface RsbuildDevServerLike {
+  sockWrite: (type: "full-reload", data?: { path?: string }) => void;
+}
+
+/**
+ * A fixed-capacity ring: overwrites oldest, never grows.
+ *
+ * Mirrors `DeliveryBus`'s own `Ring` (`packages/compiler/src/bus/index.ts`) —
+ * not imported from there because it isn't exported past that package's
+ * public surface, and duplicating ~15 lines beats adding a new export just
+ * for this.
+ */
+class Ring<T> {
+  private readonly items: (T | undefined)[];
+  private next = 0;
+  private full = false;
+
+  constructor(private readonly capacity: number) {
+    this.items = Array.from({ length: capacity }, () => undefined as T | undefined);
+  }
+
+  push(item: T) {
+    this.items[this.next] = item;
+    this.next = (this.next + 1) % this.capacity;
+    if (this.next === 0) this.full = true;
+  }
+
+  /** Oldest first. */
+  toArray(): T[] {
+    if (!this.full) return this.items.slice(0, this.next) as T[];
+    return [...this.items.slice(this.next), ...this.items.slice(0, this.next)] as T[];
+  }
+}
+
+/**
+ * One event in `handleHotUpdateHook`'s own account of what it did — not what
+ * was delivered (the compiler's `DeliveryBus`, channel `build/hmr`, already
+ * records that half). Diagnosing ledger L-022's §2.4, this is the half that
+ * had no record at all: whether the hook ran, what Vite handed it, and every
+ * `mod.file` reassignment the fallback scan performs.
+ *
+ * Read back by the test harness, not printed — `hooks/hmr.ts` previously
+ * logged this same information through `DEBUG`-gated `vLogger.debug` calls,
+ * and enabling exactly that scope was found to suppress the hook's own
+ * invocation entirely (a real, separate, pre-existing effect — not caused by
+ * this trace, but reason enough not to trust console output as an
+ * observation channel here). A ring buffer that never calls `console.*`
+ * can't perturb the timing it's trying to observe.
+ */
+export interface HmrTraceEntry {
+  ts: number;
+  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return" | "watch";
+  file: string;
+  seq?: number;
+  modulesLength?: number;
+  /** `repoint` only. */
+  moduleId?: string;
+  oldFile?: string;
+  newFile?: string;
+  boundaryId?: string;
+  fileId?: string;
+  /** `return` only. */
+  invalidatedCount?: number;
+  passthrough?: boolean;
+  /**
+   * `watch` only — why a host watch cycle did or did not reach the plan.
+   *
+   * A cycle that declines leaves no other trace, so "the hook never ran" and
+   * "the hook ran and found nothing to do" were indistinguishable in the
+   * diagnosis. They have different causes and the difference cost a full
+   * investigation (ledger L-041).
+   */
+  reason?: string;
+}
 
 export default class Context {
   public compiler!: ZintlCompiler;
@@ -37,6 +122,34 @@ export default class Context {
    * `htmlEntries` option — see `hooks/html.ts` and ledger L-021.
    */
   public htmlEntries: Record<string, string[]> = {};
+
+  /**
+   * How hot updates reach this host's live module graph, or `null` if they do
+   * not reach it at all.
+   *
+   * Never assigned by shared code. Each host's escape hatch contributes its own
+   * — Vite's from `configureServerHook`, Rspack's from the plugin's
+   * `rspack(compiler)` block — which is what keeps `switch (bundler)` out of the
+   * hot-update path entirely. See `hmr/applier.ts` and proposal 029.
+   *
+   * `null` is a supported state and means exactly what it says: this host has no
+   * hot-update story, so `handleHotUpdateHook` declines rather than guessing one.
+   */
+  public updateApplier: HostUpdateApplier | null = null;
+
+  /**
+   * Rsbuild's dev server, once it exists — the channel for updates that cannot
+   * be patched and need the page back.
+   *
+   * The counterpart of {@link server} for the other host, and separate from it
+   * for the same reason `rspackFacet` and the `rsbuild: {}` block are separate:
+   * Rspack has no dev server, Rsbuild's is a layer above it. Null under raw
+   * Rspack, and null until `onBeforeStartDevServer` fires.
+   */
+  public rsbuildServer: RsbuildDevServerLike | null = null;
+
+  /** See {@link HmrTraceEntry}. */
+  public readonly hmrTrace = new Ring<HmrTraceEntry>(256);
 
   constructor(public options: ResolvedOptions) {}
 

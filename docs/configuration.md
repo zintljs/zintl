@@ -59,6 +59,8 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 `facets` is the extension point. Framework support, SSR handling, asset handling and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
 
+`multiplex` needs a bundler that supports per-locale HTML fan-out — Vite does, [Rsbuild](#rsbuild) does not. Combining `multiplex: true` (explicit or auto-detected) with an unsupported bundler fails your build with a clear error rather than an opaque one.
+
 ### Facets decide for themselves
 
 `"builtins"` does not mean "guess what I need". It means _offer the built-in facets as candidates_ — each one then answers whether it applies, from its own declaration. The React facets ask for React, the SSR facets ask for an SSR build, the Vite facet asks whether Vite is the host.
@@ -120,6 +122,41 @@ Every activation decision is recorded, including the negative ones — which are
 ```
 
 This is why `when` is data rather than a function: a predicate can only report _that_ it said no, where a descriptor can say which condition failed and what was found instead.
+
+## Rsbuild
+
+Zintl also ships `zintljs/rsbuild`, for projects built with [Rsbuild](https://rsbuild.dev) instead of Vite:
+
+```ts
+// rsbuild.config.mjs
+import { defineConfig } from "@rsbuild/core";
+import zintl from "zintljs/rsbuild";
+
+export default defineConfig({
+  plugins: [
+    ...zintl({
+      locales: ["en", "ar", "fr"],
+    }),
+  ],
+});
+```
+
+Every option above applies the same way — `zintljs/rsbuild` is the same plugin behind a different entry point, not a second implementation.
+
+Rsbuild is a supported target for **single-page applications**, in production builds and in `rsbuild dev`, with **React and vanilla JavaScript** — the two configurations the test suite drives on this host. Chunk-aligned catalogs, ghost mode, localized assets, per-locale `<html lang>`/`dir` and dev-time string edits all carry over from the Vite integration, with no Rspack-specific code in the compiler. Vue and Svelte are untested here rather than unsupported.
+
+**How a dev edit arrives differs by app, and it is worth knowing which you have.** In a framework app the edit applies in place, with no page reload — a component re-reads the catalog and renders again. In an app with no such components the page reloads instead. That is deliberate rather than a limitation: on Rspack a re-executed entry reads its imports from the module cache, so an app whose only repaint is re-running its entry could otherwise re-seed itself from a stale catalog and render empty strings. Declining the update and reloading is slower and correct. Today React is the framework that supplies the in-place path; a plain-JavaScript app gets the reload.
+
+Two things are not supported:
+
+| Not supported | What happens                                                                                                                                                                      |
+| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `multiplex`   | Fails the build immediately with a clear error rather than silently doing nothing. The per-locale HTML fan-out `multiplex` builds is Vite-only and is **not** planned for Rspack. |
+| SSR           | Unbuilt and unexamined. There is no Rsbuild SSR path to route to yet.                                                                                                             |
+
+Install `@rsbuild/core` yourself — it is an optional peer dependency, tested against `^2.1.0`.
+
+See [`examples/rsbuild-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-spa) for a working plain-JavaScript app and [`examples/rsbuild-react`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-react) for a framework one — between them they cover both dev behaviours above — and `docs/spec/proposals/026`–`030` for how each of these was established.
 
 ## Output
 

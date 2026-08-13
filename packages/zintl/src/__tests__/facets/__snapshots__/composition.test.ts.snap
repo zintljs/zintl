@@ -1,13 +1,11 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`resolved facet composition per example > custom-facets (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -17,10 +15,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -28,12 +29,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -58,19 +59,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -80,13 +82,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > custom-facets (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -98,10 +98,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -109,12 +112,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -139,17 +142,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -161,13 +165,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > custom-facets-demo (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -177,10 +179,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -188,12 +193,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -218,19 +223,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -240,13 +246,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > custom-facets-demo (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -258,10 +262,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -269,12 +276,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -299,17 +306,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -328,6 +336,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -337,8 +346,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -391,6 +403,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -407,6 +420,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -418,8 +432,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -470,6 +487,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -488,6 +506,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -497,8 +516,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -551,6 +573,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -567,6 +590,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -578,8 +602,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -630,6 +657,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -640,7 +668,7 @@ activation trace:
   ✓ vite                         bundler=vite ✓"
 `;
 
-exports[`resolved facet composition per example > rsbuild-spa (client) 1`] = `
+exports[`resolved facet composition per example > rsbuild-react (client) 1`] = `
 "frameworks: react
 bundler: rspack
 ssr: false
@@ -648,6 +676,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -657,8 +686,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: false
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -711,6 +743,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -719,7 +752,7 @@ activation trace:
   ✓ rspack                       bundler=rspack ✓"
 `;
 
-exports[`resolved facet composition per example > rsbuild-spa (ssr) 1`] = `
+exports[`resolved facet composition per example > rsbuild-react (ssr) 1`] = `
 "frameworks: react
 bundler: rspack
 ssr: true
@@ -727,6 +760,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -738,8 +772,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
-  entryReexecutionSafe: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: false
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -790,6 +827,171 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
+exports[`resolved facet composition per example > rsbuild-spa (client) 1`] = `
+"frameworks: (none)
+bundler: rspack
+ssr: false
+
+facets (resolution order):
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: false
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: false
+  sfc: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: (none)
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ rspack                       bundler=rspack ✓"
+`;
+
+exports[`resolved facet composition per example > rsbuild-spa (ssr) 1`] = `
+"frameworks: (none)
+bundler: rspack
+ssr: true
+
+facets (resolution order):
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  rspack  [bundler]  priority=100
+
+flags:
+  clientLocaleSync: true
+  dependencyInvalidation: true
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: false
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  serverRequestScope: true
+  sfc: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: (none)
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: rspack
+  isVirtualId: rspack
+  dynamicImportTemplate: rspack
+  hmrInjectionCode: rspack
+  hmrSelfAcceptCode: rspack
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
+  ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -818,8 +1020,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -830,7 +1035,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .svelte, .ts
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -861,6 +1066,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -900,8 +1106,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -912,7 +1121,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .svelte, .ts
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -943,6 +1152,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -980,8 +1190,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -992,7 +1205,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .svelte, .ts
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -1023,6 +1236,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1062,8 +1276,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -1074,7 +1291,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .svelte, .ts
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -1105,6 +1322,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
+  ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
@@ -1125,13 +1343,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1141,10 +1357,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1152,12 +1371,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1182,19 +1401,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1204,13 +1424,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-baked-i18n (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1222,10 +1440,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -1233,12 +1454,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -1263,17 +1484,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1285,13 +1507,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1301,10 +1521,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1312,12 +1535,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1342,19 +1565,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1364,13 +1588,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-basic (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1382,10 +1604,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -1393,12 +1618,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -1423,17 +1648,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1445,13 +1671,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1461,10 +1685,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1472,12 +1699,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1502,19 +1729,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1524,13 +1752,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-mpa-shared (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1542,10 +1768,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -1553,12 +1782,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -1583,17 +1812,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1605,13 +1835,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1621,10 +1849,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1632,12 +1863,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1662,19 +1893,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1684,13 +1916,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1702,10 +1932,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -1713,12 +1946,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -1743,17 +1976,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1765,13 +1999,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-basic (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1781,10 +2013,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1792,12 +2027,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1822,19 +2057,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1844,13 +2080,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-basic (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1862,10 +2096,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -1873,12 +2110,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -1903,17 +2140,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1925,13 +2163,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1941,10 +2177,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -1952,12 +2191,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -1982,19 +2221,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -2004,13 +2244,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-spa-i18n-baked (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -2022,10 +2260,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -2033,12 +2274,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -2063,17 +2304,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -2085,13 +2327,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-ssr (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -2101,10 +2341,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -2112,12 +2355,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -2142,19 +2385,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -2164,13 +2408,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > vanilla-ssr (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -2182,10 +2424,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -2193,12 +2438,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -2223,17 +2468,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -2252,6 +2498,7 @@ ssr: false
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   nextjs-extraction  [extraction]  priority=100
   nextjs-ssr-wrapping  [ssr]  priority=100
   nextjs-runtime  [runtime]  priority=100
@@ -2263,8 +2510,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: false
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2314,6 +2564,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
   ✓ nextjs-ssr-wrapping          framework=nextjs ✓
   ✓ nextjs-runtime               framework=nextjs ✓
@@ -2333,6 +2584,7 @@ ssr: true
 facets (resolution order):
   react-extraction  [extraction]  priority=100
   react-codegen  [codegen]  priority=100
+  react-runtime  [runtime]  priority=100
   nextjs-extraction  [extraction]  priority=100
   nextjs-ssr-wrapping  [ssr]  priority=100
   nextjs-runtime  [runtime]  priority=100
@@ -2344,8 +2596,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: false
-  entryReexecutionSafe: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: true
   jsxRichText: true
   localeRouting: true
@@ -2393,6 +2648,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
+  ✓ react-runtime                framework=react ✓
   ✓ nextjs-extraction            framework=nextjs ✓
   ✓ nextjs-ssr-wrapping          framework=nextjs ✓
   ✓ nextjs-runtime               framework=nextjs ✓
@@ -2423,8 +2679,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2435,7 +2694,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2466,6 +2725,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2504,8 +2764,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2516,7 +2779,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2547,6 +2810,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2583,8 +2847,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2595,7 +2862,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2626,6 +2893,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2664,8 +2932,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2676,7 +2947,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2707,6 +2978,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2743,8 +3015,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2755,7 +3030,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2786,6 +3061,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2824,8 +3100,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2836,7 +3115,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2867,6 +3146,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2903,8 +3183,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2915,7 +3198,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -2946,6 +3229,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -2984,8 +3268,11 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
+  hotUpdate: true
+  htmlFanOut: true
   jsx: false
   jsxRichText: false
   localeRouting: true
@@ -2996,7 +3283,7 @@ flags:
 
 extraction:
   extensions: .html, .js, .mjs, .mts, .ts, .vue
-  targets: 27
+  targets: 29
   sfcRules: 1
   suppressionRules: 0
   mustacheRules: 1
@@ -3027,6 +3314,7 @@ ssr:
 activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
+  ✗ react-runtime                when.framework=react ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
@@ -3047,13 +3335,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > website (client) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: false
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -3063,10 +3349,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: false
   sfc: false
@@ -3074,12 +3363,12 @@ flags:
   streaming: false
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: (none)
@@ -3104,19 +3393,20 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -3126,13 +3416,11 @@ activation trace:
 `;
 
 exports[`resolved facet composition per example > website (ssr) 1`] = `
-"frameworks: react
+"frameworks: (none)
 bundler: vite
 ssr: true
 
 facets (resolution order):
-  react-extraction  [extraction]  priority=100
-  react-codegen  [codegen]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -3144,10 +3432,13 @@ facets (resolution order):
 
 flags:
   clientLocaleSync: true
+  dependencyInvalidation: false
   entryReexecutionSafe: true
   hmr: true
-  jsx: true
-  jsxRichText: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
   localeRouting: true
   serverRequestScope: true
   sfc: false
@@ -3155,12 +3446,12 @@ flags:
   streaming: true
 
 extraction:
-  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
-  targets: 33
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 24
   sfcRules: 0
   suppressionRules: 0
   mustacheRules: 0
-  codegenFacets: react-codegen
+  codegenFacets: (none)
 
 single-provider hooks — declared by (winner first):
   wrapCode: ssr-wrapping
@@ -3185,17 +3476,18 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
-  ✗ vue-extraction               when.framework=vue ✗ (detected: react)
-  ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
-  ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
-  ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
-  ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
-  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
-  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
+  ✗ react-extraction             when.framework=react ✗ (detected: none)
+  ✗ react-codegen                when.framework=react ✗ (detected: none)
+  ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: none)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
-  ✓ react-extraction             framework=react ✓
-  ✓ react-codegen                framework=react ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional

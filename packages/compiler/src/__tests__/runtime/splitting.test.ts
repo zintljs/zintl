@@ -14,6 +14,9 @@ describe("Runtime Splitting - getRuntimeCode", () => {
     ssr: false,
     hmr: false,
     localeRouting: false,
+    htmlFanOut: false,
+    hotUpdate: false,
+    dependencyInvalidation: false,
   };
 
   it("should return base store code with only store-core exports when capabilities are disabled", () => {

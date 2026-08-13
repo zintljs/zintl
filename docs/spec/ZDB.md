@@ -314,6 +314,30 @@ The second and third rows are the load-bearing ones, and they are why this tier 
 
 Take a bundler unplugin already supports, implement Tier 1 as a `BundlerFacet`, and confirm the build contracts pass. Only then look at Tier 2, and only for tools that genuinely provide the two load-bearing rows — do not emulate them with a counter of your own, because a second clock that can disagree with the bundler's is worse than no clock at all.
 
+### The worked second example: Rspack
+
+Rsbuild/Rspack has been through both tiers (proposals 026–030), and how it answers the Tier-2 table is
+worth recording, because it is not the shape this section originally imagined.
+
+One caveat belongs with the table rather than after it: the `watchRun` row was **specified for two
+years before it was reached**. unplugin never called the escape hatch the tap was registered from, so
+Rspack's guarantees were available and unused, and the host worked through its ordinary
+transform-and-flush path. The tap is registered as of proposal 030 (ledger L-041), and the guarantees
+below are now in play rather than merely present.
+
+| Requirement                        | Rspack's answer                                                |
+| :--------------------------------- | :------------------------------------------------------------- |
+| Hot-update hook with changed file  | `compiler.hooks.watchRun` + `compiler.modifiedFiles`           |
+| **Monotonic per-event sequence**   | `Watching.startTime` — the host's clock, per the warning above |
+| **`read()` for that event**        | `compiler.inputFileSystem`, purged per watch run               |
+| Module-graph access + invalidation | **Not needed in this shape** — see below                       |
+| Per-module token reaching client   | `<chunk>.<hash>.hot-update.js`, entirely the host's            |
+| Server→client channel              | `RsbuildDevServer.sockWrite("full-reload")`                    |
+
+The fourth row is the correction. It assumes a host that _asks_ what to invalidate, because Vite does: its hot-update hook hands over an event and takes back a module list. Rspack asks nothing — it rebuilds whatever its own dependency graph says is stale, so a generated catalog that declares no dependencies is never stale however loudly a hook shouts. The equivalent capability there is not "invalidate these modules" but **"declare what this generated module is derived from"**, which Zintl does through `getBoundaryInputs()` → `watchedFiles` → `addWatchFile`.
+
+So read that row as _either_ per-module invalidation _or_ declared file dependencies, whichever the host actually acts on. `BundlerFacet.dependencyInvalidation` is how a facet says which. Declaring both is not belt-and-braces: on a host that already honours an explicit invalidation list, declaring the catalogs as dependencies too makes Zintl's own `flush()` writes re-enter as source changes.
+
 ---
 
 ## §8 — Production Cost

@@ -277,6 +277,22 @@ export interface RuntimeFacet extends BaseFacet {
   /** Client-side locale sync (popstate, pushState monkey-patch, MutationObserver) */
   clientLocaleSync?: boolean;
   /** Server-side AsyncLocalStorage request scoping */
+  /**
+   * Whether this framework distinguishes *server* components from client ones.
+   *
+   * Only React Server Components does, and there the `"use client"` directive is
+   * what marks a module as allowed to use hooks — so reactivity may only be
+   * injected into modules carrying it. Everywhere else, including plain React
+   * SPAs and classic (non-RSC) SSR, **every component is a client component**
+   * and the directive is not something anyone writes.
+   *
+   * Reading the directive unconditionally was the defect: `isClientComponent` is
+   * literally `code.includes('"use client"')`, and gating reactivity on it meant
+   * a plain React app never subscribed to the store at all. Measured across this
+   * repository, exactly one file carried the directive — a Next.js example — so
+   * the feature was reaching one module in the entire suite (ledger L-032).
+   */
+  serverComponents?: boolean;
   serverRequestScope?: boolean;
   /** Stream injection for SSR HTML responses (Response, ReadableStream) */
   streamInjection?: boolean;
@@ -337,6 +353,64 @@ export interface BundlerFacet extends BaseFacet {
   /** Custom dynamic import template (e.g. adds /* @vite-ignore *\/ comment) */
   dynamicImportTemplate?: (path: string, isDev: boolean) => string;
   /**
+   * Can this host produce a per-locale HTML document — the "multiplex" fan-out
+   * that `loadHook`/`resolveIdHook` implement (`packages/zintl/src/hooks/resolve.ts`)?
+   *
+   * True on Vite, where that fan-out exists end to end. Left undeclared
+   * (falls back to `false`) everywhere else, deliberately: absence must not
+   * read as "assume yes". On Rspack, the module that gates access to the
+   * fan-out — `loadIncludeHook` claiming `.html` under multiplex — retypes the
+   * raw template as `javascript/auto`, and the build dies inside
+   * `html-rspack-plugin`'s child compilation on `<!doctype html>`. The claim
+   * is destructive there, not merely wasted (ledger L-022). This flag is how
+   * the host fences that claim from ever being made, instead of testing
+   * `bundler === "rspack"` inside a bundler-agnostic hook.
+   */
+  htmlFanOut?: boolean;
+  /**
+   * Whether this host has a live-module-graph applier for hot updates.
+   *
+   * The facet's half of the seam proposal 029 built. The applier itself cannot
+   * live here — it speaks Vite's `ModuleGraph` or Rspack's virtual file store,
+   * and nothing bundler-specific belongs in the compiler — so it lives in
+   * `packages/zintl/src/hmr/` and is contributed from that host's own escape
+   * hatch. This flag is the part core, the composition guardrail and a fence can
+   * see: *this bundler claims a hot-update story*.
+   *
+   * Distinct from {@link hmrInjectionCode} / {@link hmrSelfAcceptCode}, which say
+   * how to spell acceptance in generated code. A host can emit perfectly correct
+   * acceptance code and still have no way to tell its module graph that anything
+   * changed; declaring both is what makes hot updates actually work, and the two
+   * were separated exactly so a half-built host reads as half-built.
+   *
+   * Undeclared rather than `false` for a host with no story, per the convention
+   * `rspackFacet`'s own `htmlFanOut` comment sets out: the merge treats the two
+   * identically, so saying nothing is the honest form of saying no.
+   */
+  hotUpdate?: boolean;
+  /**
+   * Whether this host finds stale generated modules from their **declared file
+   * dependencies** rather than by being handed a module list.
+   *
+   * The deepest difference between the two hosts, and the reason proposal 028
+   * §6.1's sketched `applyInvalidation(affectedIds, hostGraph)` was the wrong
+   * shape. Vite's hot-update hook is a *request*: it hands Zintl an event and
+   * takes back the modules to update, so Zintl walks the graph and decides.
+   * Rspack asks nothing — it rebuilds whatever its own dependency graph says is
+   * stale, and a generated module that declares no dependencies is never stale
+   * however loudly a hook shouts.
+   *
+   * A host that declares this gets `getBoundaryInputs()` reported as
+   * `watchedFiles` from `generateVirtualModule`, and rebuilds the generated
+   * catalog in the *same* compilation as the source edit that dirtied it.
+   *
+   * Undeclared on Vite deliberately, and not merely as redundancy: Vite is
+   * already told exactly what to invalidate, and declaring the same catalog
+   * files a second time makes Zintl's own `flush()` writes re-enter as source
+   * changes — measured, as timeouts across every catalog-writing contract.
+   */
+  dependencyInvalidation?: boolean;
+  /**
    * How this host spells "accept my own updates", for **generated** modules.
    *
    * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
@@ -361,6 +435,23 @@ export interface BundlerFacet extends BaseFacet {
     hmrToken: number,
     hasAnchors?: boolean,
     entryReexecutionSafe?: boolean,
+    /**
+     * Whether anything on the page will repaint when a catalog arrives late —
+     * i.e. whether a framework runtime subscribes to the store.
+     *
+     * Distinct from {@link entryReexecutionSafe}, which asks whether re-running
+     * the entry is *harmless*. This asks whether it is *sufficient*, and the two
+     * come apart per host. On Vite re-execution re-imports the whole chain, so
+     * it always yields the current catalog. On Webpack a re-executed entry reads
+     * its imports from the module cache, so it can seed itself from a manager
+     * that has not been replaced yet — and with nothing subscribed to repair the
+     * result, a non-reactive app renders empty and stays that way (L-030).
+     *
+     * Only answerable since L-034 stopped detection guessing React: before that
+     * every project reported having reactivity, including ones with no
+     * components at all.
+     */
+    hasClientReactivity?: boolean,
   ) => string;
 }
 
@@ -545,6 +636,12 @@ export interface CapabilityFlags {
   hmr: boolean;
   /** True when locale-based URL routing is expected */
   localeRouting: boolean;
+  /** True when the active bundler facet can produce per-locale HTML documents (multiplex fan-out) */
+  htmlFanOut: boolean;
+  /** True when the active bundler facet declares a hot-update applier (proposal 029) */
+  hotUpdate: boolean;
+  /** True when the active bundler facet invalidates generated modules via declared file dependencies */
+  dependencyInvalidation: boolean;
 }
 
 /**
@@ -573,6 +670,8 @@ export interface CompilerSystemView {
   mustacheRules: MustacheRule[];
   /** Framework imports required by injected client reactivity, keyed by specifier */
   clientReactivityImports: Record<string, string[]>;
+  /** True when the framework separates server and client components (RSC). */
+  serverComponents: boolean;
 
   // ── SSR hooks (merged, highest priority wins or conflict detection) ──
 
@@ -605,6 +704,7 @@ export interface CompilerSystemView {
         hmrToken: number,
         hasAnchors?: boolean,
         entryReexecutionSafe?: boolean,
+        hasClientReactivity?: boolean,
       ) => string)
     | undefined;
 

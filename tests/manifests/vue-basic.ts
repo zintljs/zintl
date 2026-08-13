@@ -29,6 +29,21 @@ export const vueBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * Which file `chaos-boundary` renames, and who imports it.
+     *
+     * The contract used to carry a `switch (exampleName)` and throw for any
+     * project it did not recognise — so claiming `chaos` meant editing the
+     * contract, and a capability that was really contract-limited got
+     * recorded as host-limited.
+     */
+    renameBoundary: {
+      fromPath: "src/components/HelloWorld.vue",
+      toPath: "src/components/Hello.vue",
+      parentPath: "src/App.vue",
+      importSearch: "./components/HelloWorld.vue",
+      importReplace: "./components/Hello.vue",
+    },
     headingSelector: "h1",
     initialHeadingText: "Get started",
     headingFile: "src/components/HelloWorld.vue",

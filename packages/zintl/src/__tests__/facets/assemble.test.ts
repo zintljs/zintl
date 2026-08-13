@@ -15,7 +15,7 @@ import {
   flattenFacets,
   BUILTINS,
 } from "../../facets/assemble.js";
-import { FALLBACK_FRAMEWORK, detectFrameworks } from "../../facets/detect.js";
+import { detectFrameworks } from "../../facets/detect.js";
 import type { ZintlFacet } from "@zintljs/compiler";
 import type { FacetsInput } from "../../types.js";
 
@@ -192,8 +192,15 @@ describe("detectFrameworks", () => {
     expect(detectFrameworks({ pluginNames: ["vite-plugin-svelte"] })).toEqual(["svelte"]);
   });
 
-  it("returns empty when nothing matches, leaving the guess to the caller", () => {
+  /**
+   * Empty is the answer, not a prompt for a guess.
+   *
+   * This used to also assert `FALLBACK_FRAMEWORK === "react"`, which is the
+   * behaviour ledger L-034 removed: guessing React for a project that never
+   * mentions it gave every framework-less app React extraction and codegen, and
+   * made "does this app have client reactivity" unanswerable.
+   */
+  it("returns empty when nothing matches", () => {
     expect(detectFrameworks({ pluginNames: ["some-unrelated-plugin"] })).toEqual([]);
-    expect(FALLBACK_FRAMEWORK).toBe("react");
   });
 });

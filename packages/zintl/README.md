@@ -50,6 +50,23 @@ export default defineConfig({
 });
 ```
 
+<details>
+<summary>Using Rsbuild instead?</summary>
+
+```ts
+// rsbuild.config.ts
+import { defineConfig } from "@rsbuild/core";
+import zintl from "zintljs/rsbuild";
+
+export default defineConfig({
+  plugins: [...zintl({ locales: ["en", "ar", "fr"] })],
+});
+```
+
+Same plugin, same options — note the spread, since the Rsbuild entry point returns an array. Everything below applies unchanged. [What's covered there.](https://github.com/zintljs/zintl/blob/main/docs/configuration.md#rsbuild)
+
+</details>
+
 **2. Set a locale.**
 
 ```ts
@@ -66,7 +83,7 @@ That's the whole API. No keys, no wrappers, no dictionary to maintain.
 
 > **What you pass matters.** A variable ships every locale and lets users switch at runtime. A literal — `zintl("fr")` — tells the compiler this page _is_ French: it bakes that locale in, emits no catalog chunk, and leaves every other locale out of the bundle, source language included. Use a literal for per-locale static builds, a variable whenever language is a choice.
 
-> `zintljs/vite` is the plugin; `zintljs/macro` is what you call in app code. Importing the wrong one into `vite.config.ts` gives you an async no-op rather than a plugin.
+> `zintljs/vite` (or `zintljs/rsbuild`) is the plugin; `zintljs/macro` is what you call in app code. Importing the wrong one into your config gives you an async no-op rather than a plugin.
 
 **3. Run your dev server.** Zintl extracts your strings and writes one file per locale, ready to fill in:
 
@@ -103,7 +120,9 @@ const msg = `You have ${count} items in your cart`;
 
 ## Where it runs
 
-Works with **React, Vue, Svelte, and vanilla** apps — client-rendered, server-rendered, and multi-page. Requires **Vite 6, 7, or 8** and Node `^22.18.0 || >=24.11.0`.
+Works with **React, Vue, Svelte, and vanilla** apps, on **Vite 6, 7 or 8** or on **[Rsbuild](https://rsbuild.dev) 2** — install whichever you build with; both are optional peer dependencies. Node `^22.18.0 || >=24.11.0`.
+
+On Vite that covers client-rendered, server-rendered and multi-page apps, with all four frameworks. On Rsbuild it covers single-page apps in **React and vanilla JavaScript**, in production builds and in dev — Vue and Svelte are untested there rather than unsupported; per-locale HTML fan-out (`multiplex`) and SSR are Vite-only, and combining them with Rsbuild fails your build with a clear error rather than doing nothing quietly. [The full comparison.](https://github.com/zintljs/zintl/blob/main/docs/configuration.md#rsbuild)
 
 That list is a starting point, not the design. The extractor carries no framework knowledge and the compiler is bundler-agnostic, so another framework or another build tool is something you add rather than something the core is rewritten around. More of both are coming.
 

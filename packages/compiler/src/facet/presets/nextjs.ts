@@ -213,6 +213,13 @@ export function nextjsRuntimeFacet(options: NextjsRuntimeOptions = {}): ZintlFac
     supersedes: ["ssr-runtime", "client-spa"],
     concern: "runtime",
     priority: 100,
+    /**
+     * The one framework here that separates server components from client ones,
+     * so the `"use client"` directive genuinely gates where hooks may be
+     * injected. Every other framework leaves this undeclared and gets reactivity
+     * in every component, which is what a non-RSC app has always needed.
+     */
+    serverComponents: true,
     serverRequestScope:
       options.serverRequestScope !== undefined ? options.serverRequestScope : true,
     streamInjection: options.streamInjection !== undefined ? options.streamInjection : true,

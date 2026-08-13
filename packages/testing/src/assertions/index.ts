@@ -4,6 +4,44 @@ import { existsSync } from "node:fs";
 import { readFile, readdir, unlink } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 
+/**
+ * How long any single page read inside {@link LabAssertions.describeStall} may
+ * take before it is abandoned.
+ *
+ * Short on purpose. This budget is only ever spent on a page that is already
+ * failing, and there are several reads — the diagnosis has to finish inside the
+ * reserve the contract runner keeps back for it.
+ */
+const PAGE_READ_BUDGET_MS = 1500;
+
+/**
+ * Reject rather than hang.
+ *
+ * Every page read in `describeStall` is already wrapped in a `try/catch` with a
+ * message describing what could not be read — and none of them ever fired for
+ * the failure that needed them most, because **an unresponsive renderer does not
+ * reject; it simply never answers.** Playwright waits out its own default, which
+ * is longer than the test's entire budget, so the test was killed with its
+ * diagnosis still unwritten.
+ *
+ * Ledger L-039 cost five investigations to that: a page pinned by an update loop
+ * produced timeouts carrying no page state at all, and the loop was found only
+ * by a throwaway probe that streamed console output to a file. Turning a hang
+ * into a rejection is what lets the existing `catch` blocks do the job they were
+ * written for.
+ */
+function withTimeout<T>(work: Promise<T>, label: string): Promise<T> {
+  return Promise.race([
+    work,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} did not answer within ${PAGE_READ_BUDGET_MS}ms`)),
+        PAGE_READ_BUDGET_MS,
+      ),
+    ),
+  ]);
+}
+
 export class LabAssertions {
   private lab: Lab;
 
@@ -73,8 +111,9 @@ export class LabAssertions {
     }
 
     try {
-      const beacon = await this.lab.page.evaluate(
-        () => (globalThis as { __zintl_version?: number }).__zintl_version,
+      const beacon = await withTimeout(
+        this.lab.page.evaluate(() => (globalThis as { __zintl_version?: number }).__zintl_version),
+        "settle beacon",
       );
       lines.push(
         beacon === undefined
@@ -82,7 +121,7 @@ export class LabAssertions {
           : `settle beacon: ${beacon} (runtime applied ${beacon} update(s))`,
       );
     } catch {
-      lines.push("settle beacon: unreadable (page navigating or closed)");
+      lines.push("settle beacon: unreadable (page navigating, closed, or unresponsive)");
     }
 
     /**
@@ -95,19 +134,22 @@ export class LabAssertions {
      * completely different fixes and used to cost a fresh investigation each.
      */
     try {
-      const ledger = await this.lab.page.evaluate(
-        () =>
-          (
-            globalThis as {
-              __zintl_ledger?: {
-                channel: string;
-                subject: string;
-                seq: number;
-                outcome: string;
-                reason?: string;
-              }[];
-            }
-          ).__zintl_ledger,
+      const ledger = await withTimeout(
+        this.lab.page.evaluate(
+          () =>
+            (
+              globalThis as {
+                __zintl_ledger?: {
+                  channel: string;
+                  subject: string;
+                  seq: number;
+                  outcome: string;
+                  reason?: string;
+                }[];
+              }
+            ).__zintl_ledger,
+        ),
+        "delivery ledger",
       );
       if (ledger === undefined) {
         lines.push("delivery ledger: ABSENT — no Zintl runtime, or a production build");
@@ -130,7 +172,7 @@ export class LabAssertions {
         );
       }
     } catch {
-      lines.push("delivery ledger: unreadable (page navigating or closed)");
+      lines.push("delivery ledger: unreadable (page navigating, closed, or unresponsive)");
     }
 
     /**
@@ -168,6 +210,84 @@ export class LabAssertions {
       // Project mode without a live compiler, or a compiler with recording off.
     }
 
+    /**
+     * `handleHotUpdateHook`'s own trace — whether it ran at all, what Vite
+     * handed it, and every module it repointed (ledger L-022, §2.4). The one
+     * thing none of the ledgers above can show: a delivery-ledger entry only
+     * exists once `invalidateForUpdate` was *called*, so a write the hook
+     * silently skipped, or never saw, leaves no trace anywhere except here.
+     */
+    try {
+      const trace = this.lab.compiler.hmrTrace ?? [];
+      if (trace.length === 0) {
+        lines.push("hmr trace: EMPTY — no hot-update hook ran on this host");
+      } else {
+        lines.push(
+          `hmr trace: ${trace.length} entries, last 10 (oldest first):\n` +
+            trace
+              .slice(-10)
+              .map((e: any) => {
+                switch (e.kind) {
+                  case "skip-writing":
+                    return `    skip-writing ${e.file}`;
+                  case "skip-ineligible":
+                    return `    skip-ineligible ${e.file}`;
+                  case "watch":
+                    return `    watch ${e.file} → ${e.reason ?? "(no reason recorded)"}`;
+                  case "enter":
+                    /**
+                     * `modules` is Vite-shaped — its hook hands over a module
+                     * array, Rspack's `watchRun` hands a changed-file set and
+                     * works out module scope itself. "n/a" says the host does
+                     * not report one; "0" would say it reported none, which is
+                     * a defect rather than a difference.
+                     */
+                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}`;
+                  case "repoint":
+                    return `    repoint "${e.moduleId}" ${e.oldFile ?? "(none)"} → ${e.newFile} (boundary=${e.boundaryId}, fileId=${e.fileId})`;
+                  case "return":
+                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}${e.passthrough ? " (passthrough)" : ""}`;
+                  default:
+                    return `    ${e.kind} ${e.file}`;
+                }
+              })
+              .join("\n"),
+        );
+      }
+    } catch {
+      lines.push("hmr trace: unavailable");
+    }
+
+    /**
+     * Whether the page is closed, navigating, or simply not answering — asked
+     * without a round-trip, because a page that will not answer is exactly the
+     * case this has to describe. `isClosed()` and `url()` are Playwright's local
+     * state, and the console buffer is filled by events as they arrive, so all
+     * three survive a renderer that has stopped servicing evaluations.
+     *
+     * The distinction is load-bearing for ledger L-039: "unreadable" alone
+     * cannot tell a closed context from a wedged one, and those have nothing in
+     * common but the symptom.
+     */
+    try {
+      const closed = this.lab.page.isClosed();
+      const all = this.lab.console.messages ?? [];
+      lines.push(
+        `page liveness: ${closed ? "CLOSED" : "open"} at ${this.lab.page.url()} ` +
+          `· ${all.length} console message(s) captured`,
+      );
+      if (!closed && all.length > 0) {
+        lines.push(
+          `last console lines:\n${all
+            .slice(-4)
+            .map((m: { type: string; text: string }) => `    [${m.type}] ${m.text.slice(0, 120)}`)
+            .join("\n")}`,
+        );
+      }
+    } catch {
+      lines.push("page liveness: unavailable");
+    }
+
     try {
       const errors = this.lab.console.errors ?? [];
       lines.push(
@@ -188,30 +308,38 @@ export class LabAssertions {
      * target for 30s usually means the second, and only the page state says so.
      */
     try {
-      const body = await this.lab.page.evaluate(() => {
-        const b = document.body;
-        return {
-          length: b?.innerHTML?.length ?? 0,
-          buttons: Array.from(document.querySelectorAll("button"))
-            .map((el) => (el.textContent ?? "").trim())
-            .slice(0, 8),
-          text: (b?.innerText ?? "").trim().slice(0, 160),
-        };
-      });
+      const body = await withTimeout(
+        this.lab.page.evaluate(() => {
+          const b = document.body;
+          return {
+            length: b?.innerHTML?.length ?? 0,
+            buttons: Array.from(document.querySelectorAll("button"))
+              .map((el) => (el.textContent ?? "").trim())
+              .slice(0, 8),
+            text: (b?.innerText ?? "").trim().slice(0, 160),
+          };
+        }),
+        "body outline",
+      );
       lines.push(`body html length: ${body.length}${body.length === 0 ? "  ← PAGE IS EMPTY" : ""}`);
       lines.push(`buttons present: ${body.buttons.length ? JSON.stringify(body.buttons) : "NONE"}`);
       lines.push(`body text: ${body.text || "(empty)"}`);
     } catch {
-      lines.push("page state: unreadable (navigating or closed)");
+      lines.push(
+        "page state: unreadable (navigating, closed, or unresponsive)  ← the page itself is the failure",
+      );
     }
 
     if (selector) {
       try {
-        const html = await this.lab.page
-          .locator(selector)
-          .first()
-          .innerHTML()
-          .catch(() => "<not found>");
+        const html = await withTimeout(
+          this.lab.page
+            .locator(selector)
+            .first()
+            .innerHTML()
+            .catch(() => "<not found>"),
+          "selector html",
+        );
         lines.push(`selector ${selector} html: ${html.slice(0, 200)}`);
         if (expected !== undefined) lines.push(`expected to contain: ${expected}`);
       } catch {

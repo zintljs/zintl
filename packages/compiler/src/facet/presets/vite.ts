@@ -24,6 +24,23 @@ export function viteFacet(): ZintlFacet {
      * looser form costs nothing.
      */
     isVirtualId: (id: string): boolean => id.includes("\0"),
+    /** Multiplex's per-locale HTML fan-out is implemented end to end on this host. */
+    htmlFanOut: true,
+    /**
+     * `ViteUpdateApplier` (`packages/zintl/src/hmr/vite.ts`) applies hot updates
+     * to this host's `ModuleGraph`, contributed from `configureServerHook`.
+     */
+    hotUpdate: true,
+
+    /**
+     * No `dependencyInvalidation`, and the omission is load-bearing rather than
+     * an oversight. This host's hot-update hook is a *request*: it hands Zintl
+     * an event and takes back the modules to invalidate, so `ViteUpdateApplier`
+     * already names every one of them. Declaring the same catalog files as
+     * watched dependencies on top of that is not belt-and-braces — Vite honours
+     * them, so Zintl's own `flush()` writes come straight back in as source
+     * changes, and every catalog-writing contract times out. Proposal 029 §3.
+     */
     /**
      * Self-acceptance for Zintl's own generated modules.
      *
@@ -74,6 +91,13 @@ export function viteFacet(): ZintlFacet {
          * Accepting-then-invalidating rather than staying silent keeps the
          * decision explicit and greppable: "Zintl knows this file cannot
          * hot-replace itself", not "nobody thought about this file".
+         *
+         * `hasClientReactivity` is deliberately ignored here. It exists for
+         * hosts where re-executing an entry is harmless but not *sufficient* —
+         * Webpack re-runs against a module cache, so a non-reactive app can
+         * re-seed itself from a stale manager with nothing to repaint the
+         * result. Vite re-imports the whole chain, so re-execution always yields
+         * the current catalog and no repaint is needed.
          */
         code += entryReexecutionSafe
           ? selfAcceptHmrSnippet(fileId)

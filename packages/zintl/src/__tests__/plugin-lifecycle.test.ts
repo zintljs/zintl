@@ -61,7 +61,7 @@ describe("Zintl Vite Plugin Lifecycle", () => {
     expect(configResultTrace.define["process.env.ZINTL_DEBUG"]).toBe('"trace"');
   });
 
-  it("should execute buildStart logic (discovery) when no server", async () => {
+  it("should execute buildStart logic (discovery)", async () => {
     const plugin = zintl();
     (plugin as any).configResolved({ root: "/mock", command: "build" });
 
@@ -74,18 +74,32 @@ describe("Zintl Vite Plugin Lifecycle", () => {
     expect(discoverSpy).toHaveBeenCalled();
   });
 
-  it("should not execute discover in buildStart when server is present", async () => {
+  /**
+   * The invariant ledger L-024 turned this into.
+   *
+   * This test used to assert "no discovery in `buildStart` when a server is
+   * present", which encoded the defect rather than the rule: `ctx.server` is a
+   * Vite-only field, and on a host that taps `buildStart` to
+   * `compiler.hooks.make` — once per **compilation** — reading it meant every
+   * incremental rebuild re-discovered the entire project. What was actually
+   * meant all along is *discover once per process*, which is what is asserted
+   * now and which holds on every host.
+   */
+  it("should execute discover only once across repeated buildStart calls", async () => {
     const plugin = zintl();
     (plugin as any).configResolved({ root: "/mock", command: "serve" });
-    (plugin as any).configureServer({ middlewares: { use: vi.fn() } }); // Sets server
+    (plugin as any).configureServer({ middlewares: { use: vi.fn() } });
 
     const compiler = (plugin as any).__compiler;
     const discoverSpy = vi.spyOn(compiler, "discover").mockResolvedValue(undefined);
     const setupSpy = vi.spyOn(compiler, "setup").mockResolvedValue(undefined);
 
     await (plugin as any).buildStart();
+    await (plugin as any).buildStart();
+    await (plugin as any).buildStart();
+
     expect(setupSpy).toHaveBeenCalled();
-    expect(discoverSpy).not.toHaveBeenCalled();
+    expect(discoverSpy).toHaveBeenCalledTimes(1);
   });
 
   it("should handle load for legacy RESOLVED_VIRTUAL_PREFIX", async () => {

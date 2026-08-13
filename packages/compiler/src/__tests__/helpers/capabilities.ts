@@ -28,6 +28,9 @@ const NO_FLAGS: CapabilityFlags = {
   ssr: false,
   hmr: false,
   localeRouting: false,
+  htmlFanOut: false,
+  hotUpdate: false,
+  dependencyInvalidation: false,
 };
 
 function emptySystem(): CompilerSystemView {
@@ -39,6 +42,7 @@ function emptySystem(): CompilerSystemView {
     suppressionRules: [],
     mustacheRules: [],
     clientReactivityImports: {},
+    serverComponents: false,
     contentFacets: [],
     virtualBoundaries: [],
     ssrEntryTargets: [],
