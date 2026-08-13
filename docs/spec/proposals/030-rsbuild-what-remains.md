@@ -283,6 +283,45 @@ harness. Not a supported target"_ above the Rsbuild catalog entries.
 
 ## 6. Capability parity
 
+> **DONE, and it inverted the question.** One capability was earned; the section's premise was wrong
+> about the rest.
+>
+> **Earned:** `locale-switch-stress` on `rsbuild-react` — `locale-storm` passed three consecutive
+> isolated runs. That was one of the two rows this section called "free coverage", and it was.
+>
+> **Not earned, and the reason is a defect rather than a cost:** `hmr-stress`, `chaos` and `memory`
+> all failed. But the table below reasoned about `chaos` and `memory` from `rsbuild-spa` and let
+> `rsbuild-react` inherit the verdict, which was wrong on both counts — `rsbuild-spa`'s heading _is_
+> its config-named entry and `rsbuild-react`'s is a component, and `rsbuild-spa` reloads per edit
+> where `rsbuild-react` updates in place. Neither stated objection transferred. They had to be tried
+> to find that out, and trying them found something else.
+>
+> **[L-039](027-leak-ledger.md): `hmr` on `rsbuild-react` is claimed and intermittent.**
+> `[HMR Propagation] rsbuild-react` fails roughly one isolated run in three, with four workers idle.
+> Probes rule out the obvious causes: `react-basic` averages 173 ms per edit, `rsbuild-react` cannot
+> finish **one** edit inside 45 s, and a zero-edit probe puts server startup at about a second. That
+> is a stall, not the two-compilations-per-edit throughput 029 §4.1 predicted.
+>
+> Confirmed at full-suite scale after clearing the stale `node_modules/.zintl` that 028 §3 warns
+> about — and that a manual `pnpm dev` during §4 had written: three consecutive runs of all 149 cases
+> gave one failure, green, one failure, and **every failure was an `rsbuild-react` HMR contract, with
+> nothing else failing at all.** That supersedes L-038's aside blaming the machine — the
+> `Performance HMR` failures seen earlier really were load and have stopped; these have not.
+>
+> So the honest state of this project is not "seven contracts short". It is **one claimed capability
+> that needs diagnosing**, with the rest queued behind it — which is a better-shaped problem and a
+> worse-sounding one.
+>
+> **A second finding, separable:** `chaos-boundary` fails instantly with
+> `Unsupported example for boundary rename`, because it carries a per-example `switch`. A contract
+> naming apps is precisely what the contract layer forbids, and the contract's own comment already
+> says the rename belongs in an adapter. Not fixed here — even relaxed, `chaos` needs `chaos-catalog`,
+> which is behind L-039.
+>
+> **And a gap in the method itself, worth more than any of the above:** capabilities are earned by
+> "the contract passed", which has no notion of passing _reliably_. `hmr` on this project satisfies
+> the rule and is intermittent. Nothing in the suite distinguishes the two.
+
 Computed by matching each manifest's capability list against every contract's `requires` — a
 positive-only subset test, per `runner.ts`. **Derived, not read off a reporter listing.**
 

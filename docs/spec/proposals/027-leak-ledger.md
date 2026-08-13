@@ -1898,3 +1898,77 @@ That is a pre-existing suite-reliability problem, surfaced rather than caused he
 attributable"_ — now overdue with two Rsbuild projects in the manifest rather than one. It wants its
 own investigation, on a machine that has not just spent two hours running browser suites, and it
 should not be folded into either entry above.
+
+### L-039 — `hmr` on `rsbuild-react` is claimed and intermittent, and the cause is a stall rather than a cost
+
+|                             |                                                                                                     |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------- |
+| **Status**                  | **Open** — reproduced and narrowed, not diagnosed                                                   |
+| **Bucket**                  | Not yet assignable; the layer is not established                                                    |
+| **Facet contract changed?** | No                                                                                                  |
+| **Blocks**                  | `hmr-stress`, `chaos` and `memory` on `rsbuild-react`, and any further capability that drives edits |
+
+Found while doing proposal 030 §6 — attempting to claim the capabilities that looked earnable — and it
+inverts that section's question. The gap on this project is not that more capabilities are wanted; it
+is that **the one already claimed does not hold reliably**.
+
+**Measured, in isolation, with no contention and only sixteen tests in the run:**
+
+| Contract                          | Result                                        |
+| :-------------------------------- | :-------------------------------------------- |
+| `[Locale Storm] rsbuild-react`    | 3 / 3 passed → `locale-switch-stress` claimed |
+| `[HMR Propagation] rsbuild-react` | **1 of 3 runs failed**, 45s timeout           |
+
+`hmr-hammer`, `chaos-catalog` and `memory-leak` all exhausted the same 45s budget when tried.
+
+**And confirmed at full-suite scale, which is the sharper evidence.** After clearing the stale
+`node_modules/.zintl` that 028 §3 warns about, three consecutive full runs of all 149 cases gave:
+
+| Run | Result                                        |
+| :-- | :-------------------------------------------- |
+| 1   | `[Syntax Error Recovery] rsbuild-react` — 45s |
+| 2   | 149 / 149 green                               |
+| 3   | `[HMR Propagation] rsbuild-react` — 45s       |
+
+**Every failure in the suite is now one `rsbuild-react` HMR contract, and nothing else fails at all.**
+Both failing contracts require `hmr`, and both belong to the capability already claimed.
+
+**The obvious explanation is wrong, which is the finding.** 029 §4.1 attributed `memory` being
+unclaimable to throughput — every edit on this host costs two compilations, because Zintl's own
+catalog write is necessarily a declared dependency of the generated modules. That reasoning is sound
+and it is not what is happening here:
+
+- A latency probe measured `react-basic` at **173 ms mean per edit** (147, 279, 148, 149, 140).
+- The same probe on `rsbuild-react` could not complete **one** edit inside 45s — nor two, nor five.
+- A **zero-edit** probe (navigate and settle only, three projects) finished in **3 s total**, so
+  server startup is about a second and is not the consumer.
+
+One edit that cannot finish in forty-five seconds is not a slow edit. Something in the path either
+stalls or never signals, and the intermittency of `[HMR Propagation]` is the same shape at a lower
+rate.
+
+**It also revises what L-038 recorded, and the revision is worth reading as a method note.** That
+entry saw `rsbuild-react` timeouts recurring across full-suite runs, cleared them as not caused by the
+change under test — which was correct, and was the question it needed to answer — and then reached for
+machine load to explain what remained. Two things were wrong with that. The `Performance HMR` and
+`Chaos Catalog` failures that accompanied them **were** load, and stopped once the machine had settled
+and stale state was cleared; the `rsbuild-react` ones did not, and reproduce with four workers idle.
+Attributing a mixed set of symptoms to a single cause is how the real one stays hidden — the same
+mistake L-036 records, where a port race sat behind "machine load" and then "suite capacity" for three
+attempts. L-038's conclusion stands; its aside about the machine does not, and this entry supersedes
+it.
+
+**What has been ruled out:** server startup (measured), per-edit throughput (measured), contention
+(reproduced in isolation), and the change from L-037/L-038 (reproduced before it, across the session).
+
+**What has not been established:** whether the stall is in `lab.fs.edit`'s `waitForSettled`, in the
+`watchRun` tap, or in the browser never receiving the update — and whether it is a harness defect or
+a product one. The next step is to instrument the three boundaries separately, because a timeout that
+reports nothing is the one failure shape this suite's diagnostics were built to eliminate and here
+they came back empty (`hmr trace: EMPTY`, `hmr packets: NONE` on the fast-failing sibling).
+
+**Why this was not caught earlier.** `hmr` was claimed on the strength of contracts that passed, and
+they do pass — most of the time. Nothing in the suite distinguishes "passes" from "passes two runs in
+three", and a capability list records only the former. That is a gap in how capabilities are earned,
+not just in this host: **the discipline is "claim it once its contract passes", and it has no notion
+of passing _reliably_.**

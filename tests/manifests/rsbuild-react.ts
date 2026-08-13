@@ -22,9 +22,8 @@ const zintlOptions: ZintlPluginOptions = {
  * such inference — the vanilla-only hypothesis, L-030 — was refuted the first
  * time it was measured against this app, so the inferences were not reliable.
  *
- * Claims are deliberately narrow to start with, and grow the way `rsbuild-spa`'s
- * did: one at a time, each after its contract passes here. That is what keeps
- * the suite free of skipped tests.
+ * Claims grow the way `rsbuild-spa`'s did: one at a time, each after its
+ * contract passes here. That is what keeps the suite free of skipped tests.
  */
 export const rsbuildReact: ProjectManifest = {
   name: "rsbuild-react",
@@ -32,14 +31,36 @@ export const rsbuildReact: ProjectManifest = {
   driver: "rsbuild",
   zintlOptions,
   /**
-   * Build-time capabilities plus the non-HMR browser ones, matching what
-   * `rsbuild-spa` could claim before its HMR work.
+   * Build-time capabilities, the browser ones, and hot updates.
    *
-   * **Not `hmr`.** Measured here, four consecutive edits: 4/4 blank headings, no
-   * page reload — the L-030 empty-render defect, which this example is what
-   * proved is *not* confined to vanilla entries. Claiming `hmr` would be
-   * claiming something demonstrably false on this project, so it waits for that
-   * defect rather than the other way round.
+   * `hmr` was claimed once L-032 fixed client reactivity — this app is the one
+   * that genuinely hot-updates on Rspack, applying an edit in place where
+   * `rsbuild-spa` reloads. **But see the caveat under `hmr-stress` below: the
+   * claim is real and is not yet reliable.**
+   *
+   * `locale-switch-stress` was added after `locale-storm` passed three
+   * consecutive isolated runs here.
+   *
+   * **Not `hmr-stress`, `chaos` or `memory`** — all three were tried together
+   * and all three failed, for two different reasons worth separating.
+   *
+   * `hmr-hammer`, `chaos-catalog` and `memory-leak` each exhausted the 45s
+   * budget. That is **not** the per-edit throughput it looks like: a probe
+   * measured `react-basic` at a 173 ms mean per edit and could not complete a
+   * *single* edit here inside the same budget, while a zero-edit probe showed
+   * server startup costs about a second. Something in the edit path stalls
+   * rather than runs slowly, and the same shape is visible in `hmr` itself —
+   * `[HMR Propagation] rsbuild-react` fails roughly one isolated run in three.
+   * A claimed capability that is intermittent is a defect report rather than a
+   * flake (CLAUDE.md, `retry: 0`), so the gap here is not "more capabilities
+   * wanted" but "the one already claimed needs diagnosing". Ledger L-039.
+   *
+   * `chaos-boundary` is different and fails immediately: it carries a
+   * per-example `switch` and throws `Unsupported example for boundary rename`.
+   * That contract names apps, which the contract layer is not supposed to do —
+   * the rename belongs in an adapter. Its own comment already says so. Even
+   * once relaxed, `chaos` needs `chaos-catalog` too, so it is behind L-039
+   * regardless.
    *
    * **Not `assets`.** This app localizes no asset; `rsbuild-spa` covers that
    * path on this host.
@@ -53,6 +74,7 @@ export const rsbuildReact: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "locale-switch-stress",
   ],
   adapter: {
     headingSelector: "h1",
