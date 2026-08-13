@@ -679,6 +679,15 @@ export class ZintlCompiler {
     const fileId = this.io.getNormalizedId(filePath);
     const boundaries = this.messages.boundaryOwnership.get(fileId);
     if (boundaries) {
+      /**
+       * Whether this file's messages are actually known.
+       *
+       * A parse failure is the ordinary case, not an exotic one: in dev the
+       * watcher fires on a file saved mid-keystroke more often than on a
+       * finished edit.
+       */
+      let reextracted = true;
+
       if (this.isDev && this.extensions.some((ext) => filePath.endsWith(ext))) {
         try {
           // Prefer the content the caller was handed. Falling back to disk is
@@ -686,13 +695,45 @@ export class ZintlCompiler {
           const code = content ?? (await this.io.readFile(filePath));
           await this.transform(code, filePath, undefined, true);
         } catch (e) {
+          reextracted = false;
           this.logger.error(`Failed to re-extract messages during invalidation: ${String(e)}`);
+          /**
+           * Named, not dropped (Axiom D2). A boundary left alone because its
+           * source could not be read is a different outcome from one that was
+           * invalidated, and a caller reading the ledger has to be able to tell
+           * them apart.
+           */
+          this.bus.settle(
+            this.bus.mint("build/hmr", normalizedPath),
+            "failed",
+            "re-extraction failed; boundary state left as it was",
+          );
         }
       }
 
-      for (const bId of boundaries) {
-        foundBoundaryIds.push(bId);
-        this.messages.markDirty(bId);
+      /**
+       * Invalidate only what was actually re-read.
+       *
+       * The `catch` above used to log and fall through, so a file that could not
+       * be parsed still marked its boundaries dirty, dropped their catalog
+       * cache, bumped their revisions and advanced `catalogGeneration` — every
+       * one of those an assertion that new content had been read, made on the
+       * strength of content that could not be read at all. The compiler then
+       * regenerated catalogs for those boundaries from whatever the failed
+       * extraction had left in `internalManifest`, and stamped them with a
+       * generation newer than the world they described.
+       *
+       * Doing nothing is the honest response: the file's messages are unchanged
+       * as far as anything here can tell, so the previous state is the best
+       * available and the next parseable edit re-extracts it properly. This is
+       * the same principle as the no-fallback rule — do not guess at content,
+       * and make the gap visible instead.
+       */
+      if (reextracted) {
+        for (const bId of boundaries) {
+          foundBoundaryIds.push(bId);
+          this.messages.markDirty(bId);
+        }
       }
     }
 

@@ -2421,3 +2421,70 @@ something other than the change under test.
 the wiring applied, reproducible in isolation in about eighteen seconds, and the evidence points at
 `invalidateForUpdate` leaving a boundary holding a catalog the recovery edit cannot replace — not at
 flush scheduling, where both attempts above were aimed.
+
+### L-043 — a file that could not be parsed was invalidated as though it had been read
+
+|                             |                                                                               |
+| :-------------------------- | :---------------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — and it does not close [L-042](#l-042), which is a separate defect |
+| **Bucket**                  | **3 — delete the guess**                                                      |
+| **Facet contract changed?** | No                                                                            |
+| **Affects**                 | **Both hosts.** Latent on Vite, load-bearing on Rspack                        |
+
+`invalidateFile` re-extracts a changed source file and, on failure, logged and **fell through**:
+
+```ts
+try {
+  await this.transform(code, filePath, undefined, true);
+} catch (e) {
+  this.logger.error(`Failed to re-extract messages during invalidation: …`);
+}
+
+for (const bId of boundaries) {          // ← ran either way
+  foundBoundaryIds.push(bId);
+  this.messages.markDirty(bId);
+}
+…
+delete this.catalog.getCache()[bId];      // ← cache dropped either way
+this.boundaryRevisions.set(bId, +1);      // ← revision bumped either way
+this.catalogGeneration++;                 // ← generation advanced either way
+```
+
+Every one of those is an assertion that new content had been read, made on the strength of content
+that **could not be read at all**. The compiler then regenerated catalogs for those boundaries from
+whatever the failed extraction left behind, and stamped them with a generation newer than the world
+they described — and `catalogGeneration` is exactly what the runtime uses to discard a catalog that
+arrives after a newer one. A parse failure could therefore mint an authoritative-looking catalog out
+of state nobody had verified.
+
+**The fix is to do nothing**, which is the whole of it: the file's messages are unchanged as far as
+anything here can tell, so the previous state is the best available and the next parseable edit
+re-extracts it properly. The failure is named on the bus rather than dropped (Axiom D2), so "left
+alone because its source could not be read" is distinguishable from "invalidated". This is the
+no-fallback rule applied one layer down — do not guess at content, make the gap visible.
+
+**Why it went unnoticed.** A syntax error mid-keystroke is the most ordinary input a dev watcher sees,
+and on Vite the damage is invisible: the next parseable edit re-extracts, and Vite pushes a fresh
+content module for the whole chain rather than waiting for the runtime to pull. Nothing in the suite
+could see the difference until the Rspack `watchRun` tap started feeding this function unparseable
+files directly (L-041, L-042).
+
+**Measured.** `vpr verify` green at 800 unit tests; contracts 149/149 on one full run, with the
+pre-existing `memory-leak`/`rsbuild-react` pair on another. Against L-042's deterministic
+reproduction — the tap temporarily re-applied purely to reproduce — `syntax-recovery` on
+`rsbuild-spa` went from **6 failures in 6** to **3 in 4**, with the first pass that configuration had
+produced at all.
+
+**It is an improvement and not the cure, and the distinction matters.** The remaining failure carries
+the same signature it always had:
+
+```
+runtime/catalog en/b_src_main_render #2 → superseded (already loaded)
+heading: ""
+```
+
+That is `loadLazyBoundary` declining to refresh a boundary it already holds — the limitation its own
+comment records (_"a catalog that is present and stale, with no load outstanding, cannot be re-fetched
+through this path"_). The runtime is holding a manager whose catalog was inlined at build time and
+refusing the one edit that would replace it. So L-042's remaining half lives in the runtime's **pull**
+path, not in invalidation, and the wiring stays reverted until that is fixed.
