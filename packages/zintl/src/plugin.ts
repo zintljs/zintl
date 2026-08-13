@@ -152,10 +152,29 @@ const unplugin = createUnplugin<Options, true>((options) => {
       },
 
       /**
-       * The Rspack layer, which unplugin calls under raw Rspack *and* under
-       * Rsbuild — `toRsbuildPlugin` pushes this same raw plugin into
-       * `modifyRspackConfig`, so one registration covers both, exactly as
-       * `rspackFacet` does for the module-system concerns.
+       * The Rspack layer — **raw Rspack only**, despite appearances.
+       *
+       * unplugin calls this hook when `meta.framework === "rspack"`, which its
+       * Rsbuild target never sets: it builds `meta` with `framework: "rsbuild"`
+       * and hands that same object to the Rspack plugin it pushes into
+       * `modifyRspackConfig`. The plugin is applied; this hook is not called.
+       * That went unnoticed because the comment here used to reason from the
+       * push to the call, and because everything else unplugin wires — the
+       * loaders, `buildStart`, `buildEnd` — is ungated (ledger L-041).
+       *
+       * **So this hook does not run for any entry point `zintljs` ships today**
+       * — `.`, `./vite`, `./rsbuild`, `./macro`, `./facets` — and proposal 029's
+       * Tier-2 mechanism is dead code on the host it was written for. Rsbuild
+       * hot-updates through the ordinary transform-and-flush path instead.
+       *
+       * Kept rather than deleted because it is the correct seam the day a
+       * `zintljs/rspack` entry point exists. Registering it from the `rsbuild`
+       * block via `api.modifyRspackConfig` was built and measured, and reverted:
+       * it works — the `watchRun` batch and `Watching.startTime` arrive exactly
+       * as 029 designed — and it deterministically breaks `syntax-recovery` on
+       * `rsbuild-spa`, because a boundary whose parse failed keeps a catalog the
+       * recovery edit can no longer replace. That defect has to be fixed before
+       * the wiring can land. Ledger L-042.
        *
        * The counterpart of `vite.configureServer` above: the moment a live
        * compiler exists to attach a hot-update applier to. See proposal 029 and

@@ -66,7 +66,7 @@ class Ring<T> {
  */
 export interface HmrTraceEntry {
   ts: number;
-  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return";
+  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return" | "watch";
   file: string;
   seq?: number;
   modulesLength?: number;
@@ -79,6 +79,15 @@ export interface HmrTraceEntry {
   /** `return` only. */
   invalidatedCount?: number;
   passthrough?: boolean;
+  /**
+   * `watch` only — why a host watch cycle did or did not reach the plan.
+   *
+   * A cycle that declines leaves no other trace, so "the hook never ran" and
+   * "the hook ran and found nothing to do" were indistinguishable in the
+   * diagnosis. They have different causes and the difference cost a full
+   * investigation (ledger L-041).
+   */
+  reason?: string;
 }
 
 export default class Context {

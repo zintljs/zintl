@@ -232,6 +232,8 @@ export class LabAssertions {
                     return `    skip-writing ${e.file}`;
                   case "skip-ineligible":
                     return `    skip-ineligible ${e.file}`;
+                  case "watch":
+                    return `    watch ${e.file} → ${e.reason ?? "(no reason recorded)"}`;
                   case "enter":
                     /**
                      * `modules` is Vite-shaped — its hook hands over a module
@@ -254,6 +256,36 @@ export class LabAssertions {
       }
     } catch {
       lines.push("hmr trace: unavailable");
+    }
+
+    /**
+     * Whether the page is closed, navigating, or simply not answering — asked
+     * without a round-trip, because a page that will not answer is exactly the
+     * case this has to describe. `isClosed()` and `url()` are Playwright's local
+     * state, and the console buffer is filled by events as they arrive, so all
+     * three survive a renderer that has stopped servicing evaluations.
+     *
+     * The distinction is load-bearing for ledger L-039: "unreadable" alone
+     * cannot tell a closed context from a wedged one, and those have nothing in
+     * common but the symptom.
+     */
+    try {
+      const closed = this.lab.page.isClosed();
+      const all = this.lab.console.messages ?? [];
+      lines.push(
+        `page liveness: ${closed ? "CLOSED" : "open"} at ${this.lab.page.url()} ` +
+          `· ${all.length} console message(s) captured`,
+      );
+      if (!closed && all.length > 0) {
+        lines.push(
+          `last console lines:\n${all
+            .slice(-4)
+            .map((m: { type: string; text: string }) => `    [${m.type}] ${m.text.slice(0, 120)}`)
+            .join("\n")}`,
+        );
+      }
+    } catch {
+      lines.push("page liveness: unavailable");
     }
 
     try {

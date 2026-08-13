@@ -1903,7 +1903,7 @@ should not be folded into either entry above.
 
 |                             |                                                                                                     |
 | :-------------------------- | :-------------------------------------------------------------------------------------------------- |
-| **Status**                  | **Partly fixed** — the render loop is closed; the contract's intermittency is a second defect, open |
+| **Status**                  | **Partly fixed** — the render loop is closed; the residual is diagnosed in [L-041](#l-041)          |
 | **Bucket**                  | **2 — relocate it**: applying stays synchronous, announcing moves off the caller's turn             |
 | **Facet contract changed?** | No                                                                                                  |
 | **Blocks**                  | `hmr-stress`, `chaos` and `memory` on `rsbuild-react`, and any further capability that drives edits |
@@ -2160,3 +2160,264 @@ untested by definition; this one had a path it could never reach, and no amount 
 diagnostics substitutes for checking that the worst failure can actually print them. The tell was
 available from the first occurrence: every unexplained failure was a timeout, and every explained one
 was an assertion.
+
+### L-041 — proposal 029's hot-update tap never registers, and the residual is what fills the gap
+
+|                             |                                                                            |
+| :-------------------------- | :------------------------------------------------------------------------- |
+| **Status**                  | **Diagnosed, unfixed** — cause established by measurement, fix not written |
+| **Bucket**                  | **2 — relocate it**: the seam exists and nothing reaches it                |
+| **Facet contract changed?** | No                                                                         |
+| **Closes**                  | [L-039](#l-039)'s residual — the intermittency that survived the loop fix  |
+
+The [L-040](#l-040) instrument found this on its first reproduction, which is the strongest argument
+for having built it.
+
+**What the failure says now**, where before it said `Error: Test timed out in 45000ms`:
+
+```
+hmr packets: {"update":2}
+page liveness: open at http://localhost:53129/ · 28245 console message(s) captured
+last console lines:
+    [warning] [Zintl] Missing key "HMR works!" in boundary "b_src_App_tsx_default". …
+console errors: none
+page state: unreadable  ← the page itself is the failure
+```
+
+**A warning-level loop**, which is exactly why every previous look reported "no console errors" and
+learned nothing: 28 245 messages here, 226 257 in another reproduction. The renderer is pinned
+emitting them, so every page read times out — the page is _open_, not navigating, not closed, and
+simply never answers.
+
+**One inference corrected on the way.** `b_src_App_tsx_default` looked like a boundary-identity
+mismatch against the `b_src_App_tsx_App` seen in other ledgers. It is not: `rsbuild-react` writes
+`export default function App`, so `_default` is its canonical id — the `_App` sighting was
+`react-basic`, a different app with a different export shape. The lookup asks the right boundary. The
+key simply is not in it.
+
+**Which is the whole defect, established on disk rather than inferred.** After a failing edit the
+worker copy's `src/i18n/translations.json` **does not contain the new string**; after a passing edit it
+does. Measured three times, one failure and two passes. So this was never a delivery problem —
+**Zintl did not produce the catalog at all**, and the runtime is looping on a key that does not exist
+anywhere.
+
+**Then the reason, and it is larger than this contract.** `registerRspackHotUpdate` — the `watchRun`
+tap that proposal 029 built, carrying `Watching.startTime` as the per-event sequence and
+`compiler.inputFileSystem` as the scoped read — **is never called.** A trace entry pushed
+unconditionally at registration produced **zero** entries: in the harness, across both Rsbuild
+projects, and under a real `pnpm dev` on `examples/rsbuild-react`. It is not a harness artifact.
+
+The context wiring was verified before concluding that, because it would have been the easy way to be
+wrong: the harness resolves exactly one context per project, `rootDir` matching the lab root,
+`isDev=true`. It reads the right object. The object has nothing in it.
+
+**So how does Rsbuild hot-update at all?** Through the ordinary path: Rspack rebuilds the changed
+module, unplugin calls Zintl's `transform`, extraction runs there, `flush()` writes the catalog, and
+`dependencyInvalidation` rebuilds the generated modules that declare it. That path has no ordering
+contract — none of `invalidateForUpdate`'s custody, the delivery bus's sequencing, or ZDB §7a's two
+guarantees is in play, because the hook that supplies them never runs.
+
+**The remaining step is a hypothesis, marked as one:** without that ordering, whether the regenerated
+catalog reaches the browser together with the component's new code is a race, and losing it leaves a
+key missing _permanently_, because nothing re-runs. That fits every observation — intermittent, React-
+specific (a component re-renders and re-asks; `rsbuild-spa` reloads instead and re-reads from scratch),
+and silent apart from the warning. It is not yet proven, and proving it means instrumenting the
+transform-and-flush ordering rather than reasoning about it.
+
+**What this means for proposal 029.** Its facet seam, its applier split and its declared-dependency
+mechanism all stand — `dependencyInvalidation` is doing real work and is why anything updates. What
+does not stand is the claim that Rspack's Tier-2 guarantees are being used: they were established as
+_available_ (§1) and wired (§2), and the wiring does not fire. Whether `rspack(compiler)` is the wrong
+escape hatch under Rsbuild's programmatic and CLI dev paths, or unplugin's Rsbuild adapter forwards it
+only for builds, is the first thing to establish next — and it is a question about one hook, which is
+a much smaller problem than the one this entry started with.
+
+#### Why `rspack(compiler)` never fires — answered, from unplugin's source
+
+[L-041](#l-041) named this as the next thing to establish. It is not a subtlety; it is a one-line
+guard, and reading the shipped source rather than the documentation (026 §6.2) answers it outright.
+
+`unplugin@3.3.0`, `dist/index.mjs`, inside `applyRspackPlugins`:
+
+```js
+if (meta.framework === "rspack") meta.rspack.compiler = compiler;
+…
+if (meta.framework === "rspack" && plugin.rspack) plugin.rspack(compiler);
+```
+
+and the Rsbuild target, thirty lines further down:
+
+```js
+function getRsbuildPlugin(factory) {
+  const meta = { framework: "rsbuild", … };            // ← not "rspack"
+  …toRsbuildPlugin(rawPlugin, meta)
+}
+function toRsbuildPlugin(rawPlugin, meta) {
+  api.modifyRspackConfig((config) => {
+    config.plugins.push(getRspackPluginFromRaw([rawPlugin], meta));   // ← same meta, unchanged
+  });
+}
+```
+
+**The Rsbuild adapter really does push the raw plugin into `modifyRspackConfig` — and it carries its
+own `meta` along with it.** So by the time `applyRspackPlugins` runs against a real Rspack compiler,
+`meta.framework` still reads `"rsbuild"`, both guards are false, and the escape hatch is skipped.
+`plugin.rspack` is reachable **only** through `unplugin.rspack`, the raw-Rspack target — and `zintljs`
+ships no such entry point (`.`, `./vite`, `./rsbuild`, `./macro`, `./facets`). The hook is therefore
+dead code for every published entry, which is why zero registrations appear in the harness _and_ under
+a real `pnpm dev`.
+
+**The comment in `plugin.ts` states the premise correctly and draws the wrong conclusion from it:**
+
+> _"The Rspack layer, which unplugin calls under raw Rspack **and** under Rsbuild — `toRsbuildPlugin`
+> pushes this same raw plugin into `modifyRspackConfig`, so one registration covers both."_
+
+The plugin is pushed. The `rspack` hook on it is not called. 028 §1.2 records the adjacent fact that
+unplugin reports `framework: "rspack"` for both hosts — true of the **build context** inside the
+loaders, which is what `nativeHostView` reads, and not of the **plugin meta** this guard tests. Two
+different `framework` fields, one name, and the whole of proposal 029's Tier-2 wiring resting on the
+distinction.
+
+**What is wired under Rsbuild regardless of framework**, from the same function, and it is why
+everything else works: the transform and load loaders, `buildStart`/`buildEnd` (via `hooks.make` and
+`hooks.emit`) — and, notably, **`watchChange`**, which unplugin calls per changed file from
+`hooks.make`.
+
+**Which names the fix, and there are two shapes.** `watchChange` is the hook 029 §2 explicitly
+rejected — it fires after module building has started, and hands one file at a time rather than the
+batch that makes a single sequence per cycle correct. Both objections still hold, so the better fix is
+to register the tap from the layer that does run: the plugin already has an `rsbuild: {}` block, used
+for dev detection (L-020) and `api.modifyHTML` (L-019), and `api.modifyRspackConfig` there can push a
+plugin whose `apply(compiler)` calls `registerRspackHotUpdate` — the real `watchRun`, with
+`Watching.startTime` and the changed batch intact, exactly as 029 designed. A `zintljs/rspack` entry
+point for raw Rspack is a separate, additive question.
+
+**Not written here.** This entry answers the question it was asked; the fix is a runtime-affecting
+change to the host with a defect ([L-041](#l-041)) still open behind it, and it deserves its own
+measurement rather than being appended to a diagnosis.
+
+### L-042 — the tap is wired, and turning it on stranded a flush
+
+|                             |                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Status**                  | **Wiring fixed; a defect behind it is open**                          |
+| **Bucket**                  | **2 — relocate it** (the wiring); the flush defect is not yet triaged |
+| **Facet contract changed?** | No                                                                    |
+| **Follows**                 | [L-041](#l-041)                                                       |
+
+**The wiring.** `registerRspackHotUpdate` is now registered from the plugin's `rsbuild` block, through
+`api.modifyRspackConfig` — pushing a bare `{ apply(compiler) }`, which is what unplugin's own adapter
+does one line away. Registration is idempotent per compiler (a `WeakSet`), so the `rspack` escape hatch
+stays correct for a future `zintljs/rspack` without risking a double tap, and the comment there now
+says what it is: raw Rspack only.
+
+**It works, and the trace shows proposal 029's mechanism running for the first time:**
+
+```
+watch (registration) → watchRun tap registered
+watch (none)         → no compiler yet          ← the first cycle, exactly as documented
+watch (batch)        → 1 modified
+enter  src/App.tsx   seq=…
+return src/App.tsx
+watch (batch)        → 1 modified
+skip-writing …/translations.json                ← isWritingFile holding on this host too
+```
+
+`invalidated=0` on `return` is correct rather than alarming: `RspackUpdateApplier` reaches zero modules
+directly by design (029 §3).
+
+**And turning it on made the suite redder, which has to be said plainly.** `[Syntax Error Recovery]`
+on **`rsbuild-spa`** now fails in roughly two runs of three; it passed reliably before, for the worst
+possible reason — the mechanism under test was never running. Three full runs after the change: two
+with `rsbuild-spa` syntax-recovery failing, one with the older `rsbuild-react` pair. Both Rsbuild
+projects can now fail where previously only one did.
+
+**What the new failure is**, read from the diagnosis [L-040](#l-040) makes available:
+
+```
+compiler ledger: flush #2 → superseded (joined the in-flight flush; dirt retained for the next)
+                 flush #9 → superseded (joined the in-flight flush; dirt retained for the next)
+[warning] [Zintl] Missing key "Recovered!" in boundary "b_src_main_render"
+```
+
+The retained dirt is never written, so the recovery edit's key never reaches a catalog. `runFlush`
+states its own guarantee precisely, and states the assumption it rests on:
+
+> _"the next trigger flushes it — the debounce timer is already scheduled by the `transform` that
+> dirtied it."_
+
+**On Vite that holds, because `transform` is what dirties.** With this tap live on Rspack, `watchRun`
+dirties _before_ module building starts — that earliness is the whole reason 029 chose it over
+`watchChange` — so the dirt exists before any `transform` has run. When the build then fails, which is
+exactly what `syntax-recovery` arranges, `transform` never completes and **no debounce is ever
+scheduled**. The dirt waits for a trigger that cannot come.
+
+That last step is inference from the code and the ledger rather than a separate measurement, and it is
+marked as such. What is measured: the flush is superseded, the dirt is retained, the key never appears,
+and the failure arrived the moment the tap started firing.
+
+**Fix-forward was attempted twice, and neither attempt is defensible.**
+
+The defect looked like a missing trigger: `flush()` clears `autoFlushTimeout` on the way in, so a
+mid-flight caller's retained dirt can be left with nothing scheduled to take it. Two shapes were
+built and measured.
+
+| Attempt                                                     | `syntax-recovery` on `rsbuild-spa` |
+| :---------------------------------------------------------- | :--------------------------------- |
+| Re-arm the debounce on the superseded path                  | 3 / 3 fail                         |
+| Re-arm only after a _completed_ flush that left dirt behind | 4 / 4 fail                         |
+| Neither (tap wired, compiler untouched)                     | first 1 / 3 fail, later **6 / 6**  |
+
+Both were reverted. The reason they cannot be called "worse", though, is the third row: **the baseline
+moved from 1-in-3 to deterministic with no code change between the batches.** Every comparison in that
+table is therefore against a baseline that was drifting, which makes the two rejections unproven
+rather than measured — the same trap L-036 and L-038 record, arrived at a third time.
+
+**What is solid is the attribution.** With the wiring stashed and the compiler untouched,
+`syntax-recovery` passes 3 / 3; with the wiring restored it fails 6 / 6, warm copies and cold alike.
+Registering the tap deterministically breaks a contract that was reliably green.
+
+**And that is the one genuinely good thing here: the defect is now deterministic.** Every previous
+attempt in this area failed for want of a reproduction that fires every time; this one does, in
+isolation, in about eighteen seconds. Whatever is wrong is now cheap to observe, which is precisely
+the position L-039 spent five investigations trying to reach.
+
+**Where the evidence points**, unproven and written down so the next attempt starts here rather than
+at the beginning: the contract breaks the file, waits, then repairs _and_ renames in a single edit.
+With the tap live, Zintl now processes the broken cycle, and the delivery ledger from a failing run
+ends `runtime/catalog en/b_src_main_render #2 → superseded (already loaded)` — the runtime declining to
+re-fetch a catalog it already holds, which `loadLazyBoundary` documents as a known gap: _"a catalog
+that is present and stale, with no load outstanding, cannot be re-fetched through this path."_ On Vite
+that never bites, because Vite pushes a fresh content module rather than waiting for the runtime to
+pull. So the likely shape is a broken parse leaving the boundary holding a catalog the recovery edit
+can no longer replace — which is a question about what `invalidateForUpdate` leaves behind when
+extraction throws, not about flush scheduling, and the two attempts above were aimed at the wrong
+layer.
+
+**Decided: the wiring is reverted.** It works and it deterministically breaks a contract that was
+reliably green, and a known-red suite is worse than documented dead code. Restored to green — 3/3 on
+`syntax-recovery` in isolation, 149/149 on one full run and the older `rsbuild-react` failure on the
+other.
+
+Two things were deliberately **kept** out of the revert, because neither is wiring:
+
+- **The comment on the `rspack` hook**, which now says what is true — the hook does not run for any
+  entry point `zintljs` ships, 029's Tier-2 mechanism is dead code on the host it was written for, and
+  Rsbuild hot-updates through the ordinary transform-and-flush path. The comment it replaces asserted
+  the opposite, and reasoned from "the plugin is pushed" to "the hook is called". Reverting the code
+  and restoring that sentence would put the misleading claim back after proving it false.
+- **The registration trace entry**, which is what makes an empty trace mean something. Before it, "the
+  tap never ran" and "the tap ran and declined" were indistinguishable, and the first was true for a
+  long time without anyone noticing.
+
+**A mistake worth recording, because it nearly shipped.** The first revert attempt left `plugin.ts`
+syntactically broken; `vpr build` failed, and the three `syntax-recovery` runs that followed reported
+**PASS against a stale `dist`**. They were meaningless, and they looked exactly like success. The tell
+was there and missed — a chained `&& echo built` that never printed. A test run is only evidence about
+the code that was actually built, and this ledger now has two entries where a green result came from
+something other than the change under test.
+
+**What the next attempt should start from**, unchanged by the revert: the defect is deterministic with
+the wiring applied, reproducible in isolation in about eighteen seconds, and the evidence points at
+`invalidateForUpdate` leaving a boundary holding a catalog the recovery edit cannot replace — not at
+flush scheduling, where both attempts above were aimed.

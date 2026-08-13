@@ -69,6 +69,20 @@ function readThroughCompilation(
  * what makes the sequence below meaningful.
  */
 export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLike): void {
+  /**
+   * Recorded at registration, not just per event.
+   *
+   * An empty trace used to be unreadable: "the tap never ran" and "the tap ran
+   * and declined" looked identical, and the first of those was true for a year
+   * without anyone noticing (ledger L-041). With this entry, an empty trace on
+   * an Rspack host means exactly one thing — this function was never called.
+   */
+  ctx.hmrTrace.push({
+    ts: Date.now(),
+    kind: "watch",
+    file: "(registration)",
+    reason: "watchRun tap registered",
+  });
   compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async (c: RspackCompilerLike) => {
     /**
      * The compiler is built in `buildStart`, which unplugin taps to
@@ -76,7 +90,15 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
      * there is nothing here yet, which is correct: the first run is the initial
      * build and reports no modified files anyway.
      */
-    if (!ctx.compiler || !ctx.compiler.isDev) return;
+    if (!ctx.compiler || !ctx.compiler.isDev) {
+      ctx.hmrTrace?.push({
+        ts: Date.now(),
+        kind: "watch",
+        file: "(none)",
+        reason: !ctx.compiler ? "no compiler yet" : "compiler is not in dev mode",
+      });
+      return;
+    }
 
     if (!ctx.updateApplier) {
       registerUpdateApplier(ctx, new RspackUpdateApplier(ctx));
@@ -92,6 +114,13 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
     }
 
     const modified = c.modifiedFiles;
+    ctx.hmrTrace.push({
+      ts: Date.now(),
+      kind: "watch",
+      file: "(batch)",
+      modulesLength: modified?.size ?? 0,
+      reason: modified === undefined ? "modifiedFiles undefined" : `${modified.size} modified`,
+    });
     if (!modified || modified.size === 0) return;
 
     /**

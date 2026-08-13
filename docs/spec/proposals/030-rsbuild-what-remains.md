@@ -315,6 +315,14 @@ harness. Not a supported target"_ above the Rsbuild catalog entries.
 > scoped partial fix was validated and reverted for regressing three other contracts; the complete fix
 > is specified in the ledger.
 >
+> **Diagnosed to a cause since, in [L-041](027-leak-ledger.md):** `registerRspackHotUpdate` — the
+> `watchRun` tap proposal 029 built — **is never called**, in the harness or under a real
+> `rsbuild dev`. Rsbuild hot-updates through the ordinary transform-and-flush path instead, which
+> carries none of the ordering guarantees 029 established, and the intermittent failure is a catalog
+> that never gets written at all: measured on disk, absent after a failing edit and present after a
+> passing one. The page then loops on the missing key at _warning_ level — 226 000 messages in one
+> reproduction — which is why every earlier look reported "no console errors".
+>
 > So the honest state of this project is not "seven contracts short". It is **one claimed capability
 > that needs diagnosing**, with the rest queued behind it — which is a better-shaped problem and a
 > worse-sounding one.
