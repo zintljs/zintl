@@ -2489,14 +2489,14 @@ through this path"_). The runtime is holding a manager whose catalog was inlined
 refusing the one edit that would replace it. So L-042's remaining half lives in the runtime's **pull**
 path, not in invalidation, and the wiring stays reverted until that is fixed.
 
-### L-044 — a rebuilt manager's catalog was discarded because one was already present
+### L-044 — a rebuilt manager's catalog was discarded; the fix was reverted for destabilising HMR
 
-|                             |                                                                  |
-| :-------------------------- | :--------------------------------------------------------------- |
-| **Status**                  | **Fixed** — proven by unit test, **not** by an end-to-end metric |
-| **Bucket**                  | **3 — delete the guess**                                         |
-| **Facet contract changed?** | No                                                               |
-| **Affects**                 | **Both hosts.** Latent on Vite, reachable on Rspack              |
+|                             |                                                                                 |
+| :-------------------------- | :------------------------------------------------------------------------------ |
+| **Status**                  | **Reverted** — the defect is real and confirmed; the fix regressed `hmr-hammer` |
+| **Bucket**                  | **3 — delete the guess**                                                        |
+| **Facet contract changed?** | No                                                                              |
+| **Affects**                 | **Both hosts.** Latent on Vite, reachable on Rspack                             |
 
 The exported `registerLoader` — the function every generated manager calls — refused to load when the
 store already held a catalog for that boundary:
@@ -2546,3 +2546,103 @@ of them is the reload race, which is what still holds the tap out of the tree.
 `react-basic`, `Performance HMR` on `vue-basic`). The comparable pre-fix band measured 0–2. That is
 inside the drift this ledger has recorded twice, so it supports neither "improved" nor "regressed",
 and the unit tests are the reason this change is defensible rather than the contract counts.
+
+### L-045 — the reload race is not a product defect
+
+|                             |                                                                                |
+| :-------------------------- | :----------------------------------------------------------------------------- |
+| **Status**                  | **Refuted** — no product-level race demonstrated; the failure is the harness's |
+| **Bucket**                  | N/A — a hypothesis retired                                                     |
+| **Facet contract changed?** | No                                                                             |
+| **Changes**                 | [L-042](#l-042)'s remaining half, and where to look for it                     |
+
+[L-044](#l-044) ended by naming a reload/rebuild race as what still held the tap out of the tree: the
+failing contract reports `hmr packets: {"update":3,"full-reload":2}`, so the page reloads, and a reload
+landing before the rebuild finished would serve a bundle predating the recovery.
+
+**It does not reproduce.** Driven by hand against a real `rsbuild dev` on `examples/rsbuild-spa`, with
+the tap wired and `node_modules/.zintl` cleared, running the contract's exact sequence — append
+`const syntaxErrorToken = ;`, wait 800 ms, remove it and rename the heading in one write — **three
+consecutive cycles all recovered correctly**: `Recovered!`, `Recovered2!`, `Recovered3!`.
+
+The server log shows the whole story working as designed:
+
+```
+[Zintl/Compiler/Extractor/WARN] OXC Parse Errors in …/src/main.ts
+start   building src/main.ts
+error   Build error:  × Module build failed … Syntax Error: Expression expected
+error   build failed in 0.02s
+start   building src/main.ts
+ready   built in 0.04s
+```
+
+The extractor declines the unparseable file (L-043 leaving its boundary alone), Rspack reports the
+build error, and the recovery compiles and reaches the page. A reload does occur — the settle beacon
+reads the same value before and after — and the page still ends up correct, which is the specific
+thing the race hypothesis said could not happen.
+
+**So the hypothesis is retired, and the remaining failure is relocated rather than explained.**
+`syntax-recovery` on `rsbuild-spa` fails ~3 runs in 4 _in the contract harness_ with the tap wired, and
+passes by hand. That puts it in the same family as [L-031](#l-031) (the harness ran its dev server in
+neither mode) and [L-036](#l-036) (two projects raced for one port): a defect in how the harness drives
+this host, not in what Zintl does. Both of those were also mistaken for product defects first, and both
+cost more than they should have because the environment was assumed innocent.
+
+**What is not yet established** is which harness difference matters. The candidates are visible and
+untested: the driver's programmatic `createRsbuild()` + `startDevServer()` against the CLI's path; a
+dev server shared across every contract in a worker, on a project earlier contracts have already
+mutated; and four workers competing where the manual run had one page and an idle machine.
+
+**The tap stays out of the tree** — a contract that fails three runs in four is a red suite whatever
+the cause. But the reason it stays out has changed, and that is the useful part: it is no longer
+blocked on an unfixed runtime or compiler defect. Three were found and fixed getting here
+([L-039](#l-039), [L-043](#l-043), [L-044](#l-044)); what remains is a harness question, and it should
+be picked up as one.
+
+### L-046 — L-044's fix was reverted: a correct change that made the suite worse
+
+|                             |                                                                           |
+| :-------------------------- | :------------------------------------------------------------------------ |
+| **Status**                  | **Reverted** — the defect [L-044](#l-044) names is real and stays unfixed |
+| **Bucket**                  | N/A — a correction to this ledger                                         |
+| **Facet contract changed?** | No                                                                        |
+
+[L-044](#l-044) closed on unit tests and explicitly on **no** end-to-end benefit, with a note that the
+contract counts supported neither "improved" nor "regressed". Pushed on, they support "regressed".
+
+**Matched protocol, eight runs of `hmr-hammer` each, same machine, back to back:**
+
+| Configuration | Failures / 8 runs              |
+| :------------ | :----------------------------- |
+| With L-044    | **3**, every one `rsbuild-spa` |
+| Without L-044 | **0**                          |
+
+The mechanism is the change's own behaviour rather than a mystery: every rebuild re-registers the
+manager, and L-044 made every re-registration re-load and re-apply a catalog. `hmr-hammer` edits as
+fast as it can, so it turns that extra delivery per rebuild into extra traffic interleaving with the
+content module's own push — and the stress contract is precisely the one built to notice a lost
+update.
+
+**Reverted**, along with its two unit tests and its changeset. The suite returned to its usual band
+immediately: 149/149, 149/149, and one run with the standing `rsbuild-react` intermittent.
+
+**What is _not_ withdrawn is the defect.** `registerLoader` really does discard a rebuilt manager's
+fresh catalog, the two tests really did fail against the old behaviour, and the reasoning in L-044
+stands. What is withdrawn is that particular fix: refreshing on every re-registration is too blunt,
+because most re-registrations carry a catalog the store already has. A narrower version would refresh
+only when the incoming catalog actually differs — which means comparing content rather than function
+identity, and which nothing in this session measured.
+
+**Two process notes, both mine.**
+
+The revert deleted `globalRegistry.set(boundaryId, loader)` along with the block, because L-044 had
+moved that pre-existing line inside it. Five unit tests failed instantly and said so; it was a
+thirty-second fix. But it is the third time in this session that surgical text-slicing of a source file
+produced a broken intermediate — twice leaving a file that would not parse — and each time the build
+was the thing that caught it. Slicing by index is not editing.
+
+And the ledger entry it corrects was written the same session it was refuted. L-044 said plainly that
+the numbers justified nothing and that the unit tests were the whole argument. That was honest and it
+was still not enough: **a change with a proof of correctness and no evidence of benefit is a change
+with no evidence for shipping it**, and this suite makes that visible within about ten minutes of
+looking.

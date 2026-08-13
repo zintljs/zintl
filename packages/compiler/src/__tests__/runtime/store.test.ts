@@ -32,32 +32,6 @@ describe("I18nStore & Registry", () => {
     registeredLoaders.clear();
   });
 
-  /**
-   * Ledger L-044 — a rebuilt manager must be allowed to replace its catalog.
-   *
-   * The guard this exercises exists for the initial load, where a catalog may
-   * already be present and re-loading it is redundant. A hot update re-executes
-   * the manager module and calls `registerLoader` again with a *new* loader
-   * closing over the new catalog, and skipping that one is what left the store
-   * holding pre-edit strings — permanently, since nothing re-runs and there is
-   * no source-locale fallback.
-   */
-  it("re-registering a boundary with a new loader replaces its catalog", async () => {
-    await safeRegisterLoader("b_reload", () => ({ b_reload: { msg: "before" } }));
-    expect(getActiveInstance().catalogs[""]?.["b_reload"]?.["msg"]).toBe("before");
-
-    // A rebuilt manager: same boundary, a different loader function.
-    await safeRegisterLoader("b_reload", () => ({ b_reload: { msg: "after" } }));
-    expect(getActiveInstance().catalogs[""]?.["b_reload"]?.["msg"]).toBe("after");
-  });
-
-  it("re-registering the identical loader does not reload", async () => {
-    const loader = vi.fn(() => ({ b_same: { msg: "once" } }));
-    await safeRegisterLoader("b_same", loader);
-    await safeRegisterLoader("b_same", loader);
-    expect(loader).toHaveBeenCalledTimes(1);
-  });
-
   it("should handle async loaders correctly", async () => {
     const store = new I18nStore();
     const loader = vi.fn(async (_locale: string) => {
