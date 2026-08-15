@@ -16,5 +16,11 @@ const catalog = {
       "7d8158dc": "Logotipo de Vue",
       "3473a536": "Logotipo de Vite",
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `Esta nota viene de la ${params['api']}.`;
+  },
+    },
   };
 export default catalog;

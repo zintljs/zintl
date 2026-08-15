@@ -75,6 +75,13 @@
         },
         {
           "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/OptionsNote.vue"
+        },
+        {
+          "bindings": [
             "ref"
           ],
           "dynamic": false,
@@ -120,6 +127,19 @@
       "filePath": "src/components/LocaleSwitcher.vue",
       "id": "src/components/LocaleSwitcher.vue:f_459",
       "mode": "entry",
+      "usageCount": 0
+    },
+    "src/components/OptionsNote.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/components/OptionsNote.vue"
+        }
+      ],
+      "filePath": "src/components/OptionsNote.vue",
+      "id": "src/components/OptionsNote.vue",
+      "mode": "boundary",
       "usageCount": 0
     },
     "src/env.d": {

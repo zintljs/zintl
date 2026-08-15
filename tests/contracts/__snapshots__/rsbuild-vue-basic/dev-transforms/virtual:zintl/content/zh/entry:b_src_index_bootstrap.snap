@@ -8,6 +8,12 @@ const catalog = {
     return `计数为 ${params['count']}`;
   },
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `这条说明来自 ${params['api']}。`;
+  },
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);

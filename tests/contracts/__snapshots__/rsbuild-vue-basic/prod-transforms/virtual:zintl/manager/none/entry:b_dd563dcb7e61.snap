@@ -11,6 +11,12 @@ export default { id: "b_dd563dcb7e61", loader: (locale) => {
     return `Count is ${params['count']}`;
   },
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
   };
                 case "ar":
           return import("virtual:zintl/content/ar/entry:b_dd563dcb7e61").then(m => m.default);

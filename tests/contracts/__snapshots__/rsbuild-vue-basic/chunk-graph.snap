@@ -3,6 +3,7 @@
     "src/App.vue": "src/index:bootstrap",
     "src/components/LocaleSwitcher.vue": "src/index:bootstrap",
     "src/components/LocaleSwitcher.vue:f_700": "src/components/LocaleSwitcher.vue:f_700",
+    "src/components/OptionsNote.vue": "src/index:bootstrap",
     "src/index:bootstrap": "src/index:bootstrap"
   },
   "chunks": {
@@ -21,6 +22,7 @@
       "boundaries": [
         "src/App.vue",
         "src/components/LocaleSwitcher.vue",
+        "src/components/OptionsNote.vue",
         "src/index.css",
         "src/index:bootstrap",
         "vue"

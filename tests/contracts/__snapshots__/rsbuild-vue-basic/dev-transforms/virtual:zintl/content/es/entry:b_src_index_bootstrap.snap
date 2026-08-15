@@ -8,6 +8,12 @@ const catalog = {
     return `La cuenta es ${params['count']}`;
   },
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `Esta nota viene de la ${params['api']}.`;
+  },
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);

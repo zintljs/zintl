@@ -4,6 +4,7 @@ import { _t } from "virtual:zintl/runtime/internal";
 
 import { ref } from "vue";
 import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+import OptionsNote from "./components/OptionsNote.vue";
 
 const activeLang = ref(new URLSearchParams(window.location.search).get("lang") || "en");
 
@@ -23,6 +24,7 @@ const handleSwitch = (lang: string) => {
       <h1>{{ _t('459e4199', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_5441d5289c77' }) }}</h1>
       <p>{{ _t('9724cf0a', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_5441d5289c77' }) }}</p>
       <p><span v-html="_t('6c65d65b', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_5441d5289c77', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+      <OptionsNote />
       <button id="counter" type="button" class="counter" @click="count++">
         {{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_5441d5289c77' }) }}
       </button>

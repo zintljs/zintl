@@ -727,26 +727,32 @@ var entry_b_aafcf9c6fe16_default = {
 	id: "b_aafcf9c6fe16",
 	loader: (locale) => {
 		switch (locale) {
-			case "en": return { "b_07f886859652": {
-				"90e40d50": "Get started",
-				"6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
-				"aa624128": (params) => {
-					const { count } = params;
-					return `Count is ${params["count"]}`;
+			case "en": return {
+				"b_07f886859652": {
+					"90e40d50": "Get started",
+					"6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+					"aa624128": (params) => {
+						const { count } = params;
+						return `Count is ${params["count"]}`;
+					},
+					"9e9cf322": "Documentation",
+					"d0f7666b": "Your questions, answered",
+					"e49cb0ee": "Explore Vite",
+					"824d76b1": "Learn more",
+					"65ac13a7": "Connect with us",
+					"15545bc4": "Join the Vite community",
+					"5442e2b6": "GitHub",
+					"bccc14ee": "Discord",
+					"b3c83ea6": "X.com",
+					"daf16c03": "Bluesky",
+					"7d8158dc": "Vue logo",
+					"3473a536": "Vite logo"
 				},
-				"9e9cf322": "Documentation",
-				"d0f7666b": "Your questions, answered",
-				"e49cb0ee": "Explore Vite",
-				"824d76b1": "Learn more",
-				"65ac13a7": "Connect with us",
-				"15545bc4": "Join the Vite community",
-				"5442e2b6": "GitHub",
-				"bccc14ee": "Discord",
-				"b3c83ea6": "X.com",
-				"daf16c03": "Bluesky",
-				"7d8158dc": "Vue logo",
-				"3473a536": "Vite logo"
-			} };
+				"b_4e9f6e20b5a7": { "223fb461": (params) => {
+					const { api } = params;
+					return `This note comes from the ${params["api"]}.`;
+				} }
+			};
 			case "ar": return __vitePreload(() => import("./entry_b_aafcf9c6fe16.js").then((m) => m.default), []);
 			case "es": return __vitePreload(() => import("./entry_b_aafcf9c6fe162.js").then((m) => m.default), []);
 			case "zh": return __vitePreload(() => import("./entry_b_aafcf9c6fe163.js").then((m) => m.default), []);
@@ -4993,6 +4999,45 @@ var hero_default = "/assets/hero-CLDdwZDr.png";
 //#endregion
 //#region examples/vue-basic/src/assets/vue.svg
 var vue_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20aria-hidden='true'%20role='img'%20class='iconify%20iconify--logos'%20width='37.07'%20height='36'%20preserveAspectRatio='xMidYMid%20meet'%20viewBox='0%200%20256%20198'%3e%3cpath%20fill='%2341B883'%20d='M204.8%200H256L128%20220.8L0%200h97.92L128%2051.2L157.44%200h47.36Z'%3e%3c/path%3e%3cpath%20fill='%2341B883'%20d='m0%200l128%20220.8L256%200h-51.2L128%20132.48L50.56%200H0Z'%3e%3c/path%3e%3cpath%20fill='%2335495E'%20d='M50.56%200L128%20133.12L204.8%200h-47.36L128%2051.2L97.92%200H50.56Z'%3e%3c/path%3e%3c/svg%3e";
+var OptionsNote_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	name: "OptionsNote",
+	data() {
+		return { api: "Options API" };
+	},
+	setup(__props, { expose: __expose }) {
+		__expose();
+		const __returned__ = {
+			get _zintl_mgr_b_aafcf9c6fe16() {
+				return entry_b_aafcf9c6fe16_default;
+			},
+			get _t() {
+				return _t;
+			}
+		};
+		Object.defineProperty(__returned__, "__isScriptSetup", {
+			enumerable: false,
+			value: true
+		});
+		return __returned__;
+	}
+});
+//#endregion
+//#region \0plugin-vue:export-helper
+var _plugin_vue_export_helper_default = (sfc, props) => {
+	const target = sfc.__vccOpts || sfc;
+	for (const [key, val] of props) target[key] = val;
+	return target;
+};
+//#endregion
+//#region examples/vue-basic/src/components/OptionsNote.vue
+var _hoisted_1$2 = { class: "options-note" };
+function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+	return openBlock(), createElementBlock("p", _hoisted_1$2, toDisplayString($setup._t("223fb461", { api: $data.api }, {
+		_mgr: $setup._zintl_mgr_b_aafcf9c6fe16,
+		_bId: "b_4e9f6e20b5a7"
+	})), 1);
+}
+var OptionsNote_default = /*#__PURE__*/ _plugin_vue_export_helper_default(OptionsNote_vue_vue_type_script_setup_true_lang_default, [["render", _sfc_render$3], ["__file", "<MONOREPO_ROOT>/examples/vue-basic/src/components/OptionsNote.vue"]]);
 //#endregion
 //#region examples/vue-basic/src/components/HelloWorld.vue?vue&type=script&setup=true&lang.ts
 var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -5015,7 +5060,8 @@ var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defin
 			},
 			get vueLogo() {
 				return vue_default;
-			}
+			},
+			OptionsNote: OptionsNote_default
 		};
 		Object.defineProperty(__returned__, "__isScriptSetup", {
 			enumerable: false,
@@ -5027,13 +5073,6 @@ var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defin
 //#endregion
 //#region <OUTSIDE_ROOT>/icons.svg
 var icons_default = "/icons.svg";
-//#endregion
-//#region \0plugin-vue:export-helper
-var _plugin_vue_export_helper_default = (sfc, props) => {
-	const target = sfc.__vccOpts || sfc;
-	for (const [key, val] of props) target[key] = val;
-	return target;
-};
 //#endregion
 //#region examples/vue-basic/src/components/HelloWorld.vue
 var _hoisted_1$1 = icons_default + "#documentation-icon";
@@ -5105,14 +5144,18 @@ function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
 					})
 				}, null, 8, _hoisted_11)
 			]),
-			createBaseVNode("div", null, [createBaseVNode("h1", null, toDisplayString($setup._t("90e40d50", {
-				_mgr: $setup._zintl_mgr_b_aafcf9c6fe16,
-				_bId: "b_07f886859652"
-			})), 1), createBaseVNode("p", null, [createBaseVNode("span", { innerHTML: $setup._t("6c65d65b", {
-				_mgr: $setup._zintl_mgr_b_aafcf9c6fe16,
-				_bId: "b_07f886859652",
-				_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]")
-			}) }, null, 8, _hoisted_12)])]),
+			createBaseVNode("div", null, [
+				createBaseVNode("h1", null, toDisplayString($setup._t("90e40d50", {
+					_mgr: $setup._zintl_mgr_b_aafcf9c6fe16,
+					_bId: "b_07f886859652"
+				})), 1),
+				createBaseVNode("p", null, [createBaseVNode("span", { innerHTML: $setup._t("6c65d65b", {
+					_mgr: $setup._zintl_mgr_b_aafcf9c6fe16,
+					_bId: "b_07f886859652",
+					_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]")
+				}) }, null, 8, _hoisted_12)]),
+				createVNode($setup["OptionsNote"])
+			]),
 			createBaseVNode("button", {
 				type: "button",
 				class: "counter",

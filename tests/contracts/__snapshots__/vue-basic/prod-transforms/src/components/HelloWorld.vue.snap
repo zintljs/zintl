@@ -6,6 +6,7 @@ import { ref } from "vue";
 import viteLogo from "../assets/vite.svg";
 import heroImg from "../assets/hero.png";
 import vueLogo from "../assets/vue.svg";
+import OptionsNote from "./OptionsNote.vue";
 
 const count = ref(0);
 </script>
@@ -20,6 +21,7 @@ const count = ref(0);
     <div>
       <h1>{{ _t('90e40d50', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</h1>
       <p><span v-html="_t('6c65d65b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+      <OptionsNote />
     </div>
     <button type="button" class="counter" @click="count++">{{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</button>
   </section>

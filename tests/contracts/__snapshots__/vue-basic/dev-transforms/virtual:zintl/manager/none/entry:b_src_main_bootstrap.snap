@@ -23,6 +23,12 @@ export default (() => {
       "Vue logo": "Vue logo",
       "Vite logo": "Vite logo",
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
   };
                 case "ar":
           return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_bootstrap").then(m => m.default);

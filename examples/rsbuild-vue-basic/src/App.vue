@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+import OptionsNote from "./components/OptionsNote.vue";
 
 const activeLang = ref(new URLSearchParams(window.location.search).get("lang") || "en");
 
@@ -20,6 +21,7 @@ const handleSwitch = (lang: string) => {
       <h1>Rsbuild with Vue</h1>
       <p>Start building amazing things with Rsbuild.</p>
       <p>Edit <code>src/App.vue</code> and save to test <code>HMR</code></p>
+      <OptionsNote />
       <button id="counter" type="button" class="counter" @click="count++">
         Count is {{ count }}
       </button>

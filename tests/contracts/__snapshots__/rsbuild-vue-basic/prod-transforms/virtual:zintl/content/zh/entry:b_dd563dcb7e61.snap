@@ -8,5 +8,11 @@ const catalog = {
     return `计数为 ${params['count']}`;
   },
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `这条说明来自 ${params['api']}。`;
+  },
+    },
   };
 export default catalog;

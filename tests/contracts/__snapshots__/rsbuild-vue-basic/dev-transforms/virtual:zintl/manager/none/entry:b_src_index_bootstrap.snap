@@ -12,6 +12,12 @@ export default (() => {
     return `Count is ${params['count']}`;
   },
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
   };
                 case "ar":
           return import("virtual:zintl/content/ar/entry:b_src_index_bootstrap").then(m => m.default);

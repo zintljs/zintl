@@ -447,6 +447,24 @@ describe("Facet Resolution Engine", () => {
         `<script>\nimport { t } from "zintljs"</script>\n`,
       );
     });
+
+    /**
+     * The composition golden files list codegen facets by name only, so a
+     * `CodegenFacet` field is invisible there by construction — unlike a bundler
+     * flag, which `flags:` records. This is the guard for L-053's field.
+     */
+    it("vue declares requiresScriptSetup and svelte does not", () => {
+      const { system } = resolveFacets([
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        svelteExtractionFacet(),
+        svelteCodegenFacet(),
+      ]);
+      const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
+      const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
+      expect(vueCodegen.requiresScriptSetup).toBe(true);
+      expect(svelteCodegen.requiresScriptSetup).toBeUndefined();
+    });
   });
 
   // ── User-Authored Partial Adapters ──────────────────────────────────────────

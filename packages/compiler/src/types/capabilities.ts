@@ -219,8 +219,29 @@ export interface CodegenFacet extends BaseFacet {
   /**
    * Wrap injected code inside an SFC script block.
    * Vue: <script setup lang="ts">, Svelte: <script>
+   *
+   * `options.lang` is passed when the block is being authored *beside* one the
+   * component already has, and must be mirrored exactly — Vue hard-errors with
+   * "<script> and <script setup> must have the same language type". Called with
+   * no options, the facet picks its own default, which is the case where the
+   * component had no script block at all.
    */
-  wrapSfcScript?: (code: string) => string;
+  wrapSfcScript?: (code: string, options?: { lang?: string }) => string;
+  /**
+   * Do this dialect's template expressions resolve against the component
+   * *instance* rather than the script block's lexical scope?
+   *
+   * Vue declares it: a plain `<script>` component compiles its template into a
+   * separate render function, so `_t` and `_zintl_mgr_*` injected into that
+   * block are invisible to the template and the page renders empty with
+   * `_ctx._t is not a function` (ledger L-053). `<script setup>` compiles the
+   * template against setup bindings, which is why it is the supported shape.
+   *
+   * Svelte leaves it undeclared: its `<script>` *is* the component scope.
+   * Undeclared rather than `false`, per the convention {@link BundlerFacet.hotUpdate}
+   * sets out — saying nothing is the honest form of saying no.
+   */
+  requiresScriptSetup?: boolean;
   /**
    * Wrap JSX children that contain rich HTML tags.
    * React: dangerouslySetInnerHTML={{ __html: ... }}

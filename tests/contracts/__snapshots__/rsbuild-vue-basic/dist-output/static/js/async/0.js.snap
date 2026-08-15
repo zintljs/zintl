@@ -1,6 +1,6 @@
 "use strict";
 (self["rspackChunkrsbuild_vue_basic"] = self["rspackChunkrsbuild_vue_basic"] || []).push([[0], {
-29(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+34(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 const catalog = {
     "b_5441d5289c77": {
@@ -10,6 +10,12 @@ const catalog = {
       "aa624128": (params) => {
     const { count } = params;
     return `العدد هو ${params['count']}`;
+  },
+    },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `هذه الملاحظة تأتي من ${params['api']}.`;
   },
     },
   };

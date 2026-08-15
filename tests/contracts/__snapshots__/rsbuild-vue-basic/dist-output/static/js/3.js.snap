@@ -15,13 +15,19 @@ __webpack_require__.r(__webpack_exports__);
     return `Count is ${params['count']}`;
   },
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
   };
                 case "ar":
-          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 29)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 34)).then(m => m.default);
         case "es":
-          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 30)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 35)).then(m => m.default);
         case "zh":
-          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 31)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 36)).then(m => m.default);
         default: return {};
       }
     }, manifest: [] });

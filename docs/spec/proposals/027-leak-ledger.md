@@ -2974,13 +2974,13 @@ render is worth the repeat.
 dev and in a production preview, RTL included, with a lazy route and a shared async boundary among
 them. 25 contract cases across the three.
 
-### L-053 — Vue's Options API was never supported, on either host
+### L-053 — Vue's Options API was never supported, on either host — now it is
 
-|                             |                                                                     |
-| :-------------------------- | :------------------------------------------------------------------ |
-| **Status**                  | **Open** — documented, not fixed; fails loudly rather than silently |
-| **Bucket**                  | Framework support gap, mistaken for a host gap while chasing L-051  |
-| **Facet contract changed?** | No                                                                  |
+|                             |                                                                                    |
+| :-------------------------- | :--------------------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — supported by authoring the missing block; three shapes stay fenced     |
+| **Bucket**                  | **1 — declare it** (the dialect declares where its template resolves)              |
+| **Facet contract changed?** | **Yes** — `CodegenFacet.requiresScriptSetup`, and `wrapSfcScript` gains `{ lang }` |
 
 Found while testing whether L-051's fix covered `?vue&type=template`, which only appears when an SFC
 is _not_ written with `<script setup>`. Converting `rsbuild-vue-basic`'s `App.vue` to
@@ -3001,11 +3001,81 @@ against the component instance — where `_t` is not, and cannot be, a property.
 L-051's fix neither caused nor could fix it. Every Vue example in this repository uses
 `<script setup>`, which is why it had never surfaced.
 
-Two things a fix would have to choose between, neither attempted here: inject through the component
-instance (a `setup()`/`beforeCreate` mixin the codegen adds, so `_ctx._t` resolves), or refuse the
-shape at extraction time with an error naming `<script setup>`. The second is cheap and is the
-project's usual answer to "this would otherwise fail confusingly" — the current failure is at least
-loud, which is why this is documented rather than urgent.
+### L-053, the fix — neither of the two options this entry proposed
+
+The entry offered a mixin through the component instance, or a fence refusing the shape. **A third
+option existed and is better than both**, and it was found by asking `@vue/compiler-sfc` instead of
+reasoning about Vue: an SFC may carry a plain `<script>` **and** a `<script setup>` together. Vue
+compiles them into one module — `<script setup>`'s imports are hoisted to module scope
+(`compileScript`'s `hoistNode` → `move(start, end, 0)`), the normal block's default export becomes the
+options object, and the template resolves against setup bindings. So the missing block is something
+Zintl can simply **author**, leaving the user's component untouched.
+
+`CodegenFacet.requiresScriptSetup` is the declaration — Vue sets it, Svelte does not, because Svelte's
+`<script>` _is_ the component scope. Core never learns what Vue is; `pipeline/apply.ts` asks the facet.
+
+**Measured before building, against `@vue/compiler-sfc@3.5.40`.** Four probes, and three of the four
+answers changed the design:
+
+| Probe                                     | Result                                                                   |
+| :---------------------------------------- | :----------------------------------------------------------------------- |
+| dual block, dev (`inlineTemplate: false`) | works — `$setup._t`, both bindings in the returned setup object          |
+| dual block, prod (`inlineTemplate: true`) | works — `_unref(_t)(…)`, resolved lexically                              |
+| `lang` mismatch between the blocks        | **throws** — so the authored block must mirror the existing one's `lang` |
+| `<script src>` + `<script setup>`         | **parse error** — cannot be combined                                     |
+| user's options already declare `setup()`  | compiles, and the generated `setup` **silently replaces** theirs         |
+
+The last two, plus a non-JS/TS `lang`, are the residue the fence still refuses — loudly, naming the
+blocker. The refusal is _exact, not generous_, which is L-006's lesson quoted by L-022: it fires only
+when a **template** rewrite needs an injected binding, so two shapes that were always correct keep
+working — strings that live only in the script block, and any baked build, where the rewrite is
+`kind: "bake"` and references nothing.
+
+**A near-miss worth recording, because it would have killed the fix.** The first probe ran prod and dev
+against the same descriptor in one process, and dev came back with an **empty** setup return —
+apparently proving the fix broken in dev. It was `compiler-sfc`'s own `templateAnalysisCache`:
+`isUsedInTemplate` is computed as `false` under `inlineTemplate` and cached by template content, so the
+later dev compile inherited it. Running dev alone gives the right answer, and a real toolchain compiles
+one mode per process. **Two measurements in one process were not two independent measurements.**
+
+**And one defect the unit tests could not see, found by opening the page.** The shape scan was a
+free-floating `/<script[^>]*setup[^>]*>/` over the whole file — so a doc comment _describing_
+`<script setup>` was read as a block, and the imports were spliced into the middle of the sentence. The
+same scan would have read `<script src="setup.js">` as a setup block. Detection is structural now
+(`scriptBlocks()` matches whole `<script>…</script>` spans, and strips attribute _values_ before
+testing for `setup`), so a block's body is never mistaken for the start of another. Every unit test
+passed both before and after; the browser found it in one load. It is regression-tested now.
+
+**Verified in a browser on both hosts**, which is the only place this class of defect is visible:
+`examples/vue-basic` and `examples/rsbuild-vue-basic` each gained an `OptionsNote.vue` written with a
+plain `<script>`, rendered in all four locales in dev and in a production preview, RTL included, with a
+runtime locale switch and a clean console. Its sentence deliberately interpolates Options-API `data`
+(`{{ api }}`) inside translated text, so the golden files record instance scope and setup scope
+resolving in the same expression. `vpr verify` green at 820 unit tests; contracts 197/199, both
+failures pre-existing and on projects this change cannot reach (see below).
+
+**Not covered by the composition golden, deliberately.** `composition.test.ts` records bundler flags
+and lists codegen facets by _name_, so a `CodegenFacet` field is invisible to it — unlike `htmlFanOut`.
+`facets/resolution.test.ts` guards this one instead. Worth stating so the next person does not
+re-derive it, given L-004's finding that those hand-maintained arrays had been blind to a hook.
+
+**Two failures in the final gate, both proven not to be this change:**
+
+- `[Serialized Graphs Snapshot] rsbuild-vanilla-basic` — the committed golden expects a `b_assets`
+  node that a clean build does not produce, and a second `build:examples` does not restore it.
+  **Stash-tested at baseline: it fails identically without this change.** This is L-004's
+  artifact-lifetime hazard again — a golden recorded against warm `.zintl` metadata, which
+  `copiedExampleSource` deliberately copies. Third occurrence in this proposal, and the first where
+  the stale artifact is baked into a _committed_ file rather than a local directory.
+- `[HMR Propagation] rsbuild-react-basic` — the intermittent its own manifest already records
+  (L-039, ~1 isolated run in 3).
+
+**A separate pre-existing defect noticed in passing**, not fixed here: `examples/vue-basic`'s Spanish
+catalog spells an interpolation `{{ count }}` where the key is `{count}`, so the counter renders
+`El recuento es {{ count }}` literally. The `ar`/`zh` entries use `{ count }` and work;
+`rsbuild-vue-basic` uses the canonical `{count}` throughout. A translation whose placeholder syntax is
+wrong is not a missing translation, so `verifyIntegrity` has nothing to say about it — which is the
+interesting part.
 
 ### L-054 — `VueLoaderPlugin`'s rule-set counter is module-scoped, and it reached a snapshot
 

@@ -13,11 +13,12 @@
  * an optional peer dependency, tested against `^2.1.0`. Every configuration
  * named here is driven by the contract suite; see `examples/rsbuild-*`.
  *
- * **Vue components must use `<script setup>`**, here and on Vite alike. A plain
- * `<script>` compiles its template into a separate render function whose
- * expressions resolve against the component instance, where the helpers Zintl
- * injects into the script block are not in scope — the render throws
- * `_ctx._t is not a function`. See L-053.
+ * **Vue's Options API works**, here and on Vite alike. A plain `<script>`
+ * compiles its template into a separate render function that cannot see the
+ * script block's scope, so Zintl authors a `<script setup>` block beside yours
+ * to carry its imports and Vue compiles the two together. Refused with a build
+ * error, rather than an empty page: `<script src>`, a non-JS/TS `lang`, and a
+ * component that already declares `setup`. See L-053.
  *
  * **How a dev edit reaches the screen depends on the app, not on this host.**
  * Where components re-read the catalog, the edit applies in place — today that

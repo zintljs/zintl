@@ -1,0 +1,29 @@
+<script setup lang="ts">
+import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
+import { _t } from "virtual:zintl/runtime/internal";
+</script>
+<script lang="ts">
+/**
+ * Deliberately written with Vue's **Options API** — a plain `<script>` rather
+ * than `<script setup>`. Every other SFC in this repository uses the latter,
+ * which is why ledger L-053 went unnoticed: Vue compiles a plain `<script>`
+ * component's template into a separate render function, so the `_t` and
+ * manager bindings Zintl injects into a script block are not in scope there and
+ * the paragraph below rendered empty.
+ *
+ * Zintl now authors a `<script setup>` block beside this one to carry those
+ * bindings. `api` proves the two coexist: it is Options-API `data`, resolved
+ * through the component instance, inside a sentence whose surrounding text is
+ * resolved through setup.
+ */
+export default {
+  name: "OptionsNote",
+  data() {
+    return { api: "Options API" };
+  },
+};
+</script>
+
+<template>
+  <p class="options-note">{{ _t('223fb461', { api: api }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_4e9f6e20b5a7' }) }}</p>
+</template>

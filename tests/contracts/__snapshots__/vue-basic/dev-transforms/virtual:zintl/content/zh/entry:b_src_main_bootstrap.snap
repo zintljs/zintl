@@ -19,6 +19,12 @@ const catalog = {
       "Vue logo": "Vue 图标",
       "Vite logo": "Vite 图标",
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `这条说明来自 ${params['api']}。`;
+  },
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);

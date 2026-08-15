@@ -22,6 +22,12 @@ export default { id: "b_aafcf9c6fe16", loader: (locale) => {
       "7d8158dc": "Vue logo",
       "3473a536": "Vite logo",
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
   };
                 case "ar":
           return import("virtual:zintl/content/ar/entry:b_aafcf9c6fe16").then(m => m.default);

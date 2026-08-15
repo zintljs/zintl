@@ -92,7 +92,15 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
     priority: 100,
     extensions: options.extensions || [".vue"],
     match: (filePath: string) => filePath.endsWith(".vue"),
-    wrapSfcScript: (code: string): string => `<script setup lang="ts">\n${code}</script>\n`,
+    wrapSfcScript: (code: string, options?: { lang?: string }): string => {
+      // No options means Zintl is authoring the component's only script block,
+      // where TypeScript has always been the default. With options, the block
+      // sits beside one that already exists and the language must match it
+      // exactly — including matching "no lang" for a plain JavaScript SFC.
+      const lang = options ? options.lang : "ts";
+      return `<script setup${lang ? ` lang="${lang}"` : ""}>\n${code}</script>\n`;
+    },
+    requiresScriptSetup: true,
     wrapHtmlText: (replacement: string, hasTags: boolean, _hasVars: boolean): string => {
       if (hasTags) {
         return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;

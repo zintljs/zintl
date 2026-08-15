@@ -31,9 +31,11 @@ describe("SFC Integration Tests", () => {
       const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
       await compiler.setup();
 
-      // Vue SFC code containing script anchor and translatable template elements
+      // Vue SFC code containing script anchor and translatable template elements.
+      // `<script setup>` is the supported shape — see the L-053 fence below for
+      // what a plain `<script>` does with the same template.
       const sfcCode = `
-<script lang="ts">
+<script setup lang="ts">
 import { zintl } from "zintljs";
 zintl({ locale: "en" });
 </script>
@@ -119,6 +121,207 @@ zintl("ar");
       expect(transformedCode).toContain("`مرحباً ${name}`");
       // Assert baked attribute alt/placeholder
       expect(transformedCode).toContain('placeholder="مربع بحث ثابت"');
+    });
+  });
+
+  /**
+   * Ledger L-053. Vue compiles a plain `<script>` component's template into a
+   * separate render function, so bindings injected into the script block are
+   * invisible to it. The fence exists because that failure is otherwise silent
+   * at build time — green build, correct catalogs, empty page.
+   *
+   * The exactness is the point: the two cases below that keep working are the
+   * reason the fence tests the *rewrites* rather than the script tag alone.
+   * The baked test above is the third — same plain `<script lang="ts">`, same
+   * template, and correct, because a baked rewrite references nothing.
+   */
+  describe("Options API (L-053)", () => {
+    it("authors a <script setup> block for a plain <script> whose template needs bindings", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script lang="ts">
+import { zintl } from "zintljs";
+zintl({ locale: "en" });
+export default { name: "App" };
+</script>
+<template>
+  <h1>Welcome home</h1>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      const result = await compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
+      expect(result).toBeDefined();
+
+      const code = result!.code;
+      // The block is authored beside the user's, not instead of it, and its
+      // language mirrors — Vue hard-errors when the two disagree.
+      expect(code).toContain(`<script setup lang="ts">`);
+      expect(code).toContain(`export default { name: "App" };`);
+      expect(code).toContain("_t(");
+      // The imports go into the authored block, which is what puts them in
+      // template scope; the user's block keeps its own contents.
+      expect(code.indexOf("virtual:zintl/runtime/internal")).toBeLessThan(
+        code.indexOf(`export default { name: "App" };`),
+      );
+    });
+
+    it("mirrors a plain JavaScript block by authoring one with no lang", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script>
+import { zintl } from "zintljs";
+zintl({ locale: "en" });
+export default { name: "App" };
+</script>
+<template>
+  <h1>Welcome home</h1>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      const result = await compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
+      expect(result!.code).toContain("<script setup>");
+      expect(result!.code).not.toContain(`<script setup lang=`);
+    });
+
+    /**
+     * Found in a browser, not by a unit test: the shape scan used to be a
+     * free-floating `/<script[^>]*setup/` over the whole file, so a doc comment
+     * *describing* `<script setup>` was read as one — and the imports were
+     * injected into the middle of the comment.
+     */
+    it("reads blocks, not prose — a comment mentioning script setup is not one", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script lang="ts">
+/**
+ * Written with the Options API rather than \`<script setup>\`, deliberately.
+ */
+import { zintl } from "zintljs";
+zintl({ locale: "en" });
+export default { name: "App" };
+</script>
+<template>
+  <h1>Welcome home</h1>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      const result = await compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
+      const code = result!.code;
+      // The comment survives intact, and the block was authored rather than
+      // the imports being spliced into the middle of the sentence.
+      expect(code).toContain("Options API rather than `<script setup>`, deliberately.");
+      expect(code.indexOf(`<script setup lang="ts">`)).toBe(0);
+    });
+
+    it("refuses a component that already declares a setup option", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script lang="ts">
+import { zintl } from "zintljs";
+zintl({ locale: "en" });
+export default {
+  setup() {
+    return { answer: 42 };
+  },
+};
+</script>
+<template>
+  <h1>Welcome home</h1>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      await expect(compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog")).rejects.toThrow(
+        /already declares a `setup` option/,
+      );
+    });
+
+    it("refuses a <script src> component, which cannot take a second block", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script lang="ts" src="./app.ts"></script>
+<template>
+  <h1>Welcome home</h1>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      await expect(compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog")).rejects.toThrow(
+        /uses `src`/,
+      );
+    });
+
+    it("allows a plain <script> whose strings live in the script block", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      // `obj:field:label` is a Vue extraction target, so this string is a sink —
+      // and the import Zintl injects lands in the same scope as the rewrite.
+      const sfcCode = `
+<script lang="ts">
+import { zintl } from "zintljs";
+zintl({ locale: "en" });
+export default {
+  data() {
+    return { field: { label: "Script only string" } };
+  },
+};
+</script>
+<template>
+  <span>{{ field.label }}</span>
+</template>
+      `.trim();
+
+      const vuePath = join(root, "src/App.vue");
+      await writeFile(vuePath, sfcCode);
+
+      const result = await compiler.transform(sfcCode, vuePath, "virtual:zintl-catalog");
+      expect(result).toBeDefined();
+      expect(result!.code).toContain("_t(");
+    });
+
+    it("leaves Svelte alone — its <script> is the component scope", async (context: LocalContext) => {
+      const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
+      await compiler.setup();
+
+      const sfcCode = `
+<script>
+import { zintl } from "zintljs";
+zintl("en");
+</script>
+
+<h1>Welcome home</h1>
+      `.trim();
+
+      const sveltePath = join(root, "src/App.svelte");
+      await writeFile(sveltePath, sfcCode);
+
+      const result = await compiler.transform(sfcCode, sveltePath, "virtual:zintl-catalog");
+      expect(result).toBeDefined();
+      expect(result!.code).toContain("{ _t(");
     });
   });
 
