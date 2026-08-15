@@ -37,7 +37,19 @@ export const rsbuildVueMpa: ProjectManifest = {
    * running is that the ordinary contracts now run against an app with two
    * documents *and* a framework.
    *
-   * `hmr` is not claimed, for the reason measured on `rsbuild-svelte-basic`.
+   * **Not `hmr`, and the measurement is the one to read twice: 8 failures in
+   * 10** (`node scripts/flake.js hmr.contract --runs=10`, 2026-08-15). Not 10 in
+   * 10 like the two routed apps, and not 0 in 10 like `rsbuild-vanilla-mpa` —
+   * intermittent, which by this repo's rules is a defect report rather than a
+   * flake and is the reason this is unclaimed rather than merely unearned.
+   *
+   * The shape is the empty render, `expected '' to contain 'HMR works!'`. The
+   * heading is in `App.vue`, a boundary the manager fetches, and a Vue edit on
+   * Rspack full-reloads because only React declares client reactivity — so the
+   * reload races the catalog write and usually wins. The two runs that passed
+   * are what make it worth a look: whatever ordering lets them through is the
+   * thing that would make the other eight deterministic.
+   *
    * `performance` is unclaimed on every Rspack project.
    */
   capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],

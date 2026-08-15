@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "rsbuild dev",
-    "build": "rsbuild build",
+    "build": "npm run check && rsbuild build",
     "preview": "rsbuild preview",
     "check": "vue-tsc --noEmit"
   },

@@ -1,9 +1,9 @@
 {
   "$schema": ".schemas/translations.shared.schema.json",
   "Count is {counter}": {
-    "ar": "العدد هو {counter}",
-    "es": "La cuenta es {counter}",
-    "zh": "计数为 {counter}"
+    "ar": "{counter, plural, zero {لم يبدأ العد بعد} one {العدد واحد} two {العدد اثنان} few {العدد {counter}} many {العدد {counter}} other {العدد {counter}}}",
+    "es": "{counter, plural, =0 {Aún no has contado} one {La cuenta es uno} other {La cuenta es #}}",
+    "zh": "{counter, plural, =0 {还没有开始计数} other {计数为 {counter}}}"
   },
   "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": {
     "ar": "عدّل <code>src/index.ts</code> واحفظ لاختبار <code>HMR</code>",

@@ -8,7 +8,10 @@ const catalog = {
     "b_f05b8e5701f3": {
       "3aaf6932": (params) => {
     const { counter } = params;
-    return `计数为 ${params['counter']}`;
+    return `${(() => {
+      if (params['counter'] == 0) return `还没有开始计数`;
+      return `计数为 ${params['counter']}`;
+    })()}`;
   },
     },
     "b_assets": {

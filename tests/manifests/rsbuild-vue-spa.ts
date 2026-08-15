@@ -31,11 +31,17 @@ export const rsbuildVueSpa: ProjectManifest = {
   /**
    * Claims grow one at a time, each after its contract passes here.
    *
-   * `hmr` is not claimed: only React declares client reactivity, so a Vue edit
-   * on Rspack full-reloads, and the reload races the catalog write when the
-   * edited string is in a fetched boundary rather than the entry's inlined one
-   * — measured on `rsbuild-svelte-basic`. `performance` is unclaimed on every
-   * Rspack project.
+   * **Not `hmr`, and now measured: 10 failures in 10**
+   * (`node scripts/flake.js hmr.contract --runs=10`, 2026-08-15), against
+   * `rsbuild-vanilla-mpa` failing 0 in 10 in the same batch. Deterministic.
+   *
+   * Two things stack here. Only React declares client reactivity, so a Vue edit
+   * on Rspack declines the update and full-reloads; and the heading lives on a
+   * lazily-imported route, so the reloaded page has to *fetch* that boundary and
+   * loses the race with the catalog write. The failure is the empty render,
+   * `expected '' to contain 'HMR works!'`.
+   *
+   * `performance` is unclaimed on every Rspack project.
    */
   capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],
   adapter: {

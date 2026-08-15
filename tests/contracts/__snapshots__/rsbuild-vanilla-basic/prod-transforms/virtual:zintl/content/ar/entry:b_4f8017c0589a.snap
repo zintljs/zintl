@@ -8,7 +8,15 @@ const catalog = {
     "b_f05b8e5701f3": {
       "3aaf6932": (params) => {
     const { counter } = params;
-    return `العدد هو ${params['counter']}`;
+    return `${(() => {
+      const rule = new Intl.PluralRules('ar').select(params['counter']);
+      if (rule === 'zero') return `لم يبدأ العد بعد`;
+      if (rule === 'one') return `العدد واحد`;
+      if (rule === 'two') return `العدد اثنان`;
+      if (rule === 'few') return `العدد ${params['counter']}`;
+      if (rule === 'many') return `العدد ${params['counter']}`;
+      return `العدد ${params['counter']}`;
+    })()}`;
   },
     },
     "b_assets": {

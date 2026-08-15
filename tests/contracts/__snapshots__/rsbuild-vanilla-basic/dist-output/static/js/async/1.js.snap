@@ -13,7 +13,12 @@ const catalog = {
     "b_f05b8e5701f3": {
       "3aaf6932": (params) => {
     const { counter } = params;
-    return `La cuenta es ${params['counter']}`;
+    return `${(() => {
+      if (params['counter'] == 0) return `Aún no has contado`;
+      const rule = new Intl.PluralRules('es').select(params['counter']);
+      if (rule === 'one') return `La cuenta es uno`;
+      return `La cuenta es ${params['counter']}`;
+    })()}`;
   },
     },
     "b_assets": {

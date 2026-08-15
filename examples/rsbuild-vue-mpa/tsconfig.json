@@ -3,6 +3,14 @@
     "lib": ["DOM", "ES2020"],
     "jsx": "preserve",
     "target": "ES2020",
+    /**
+     * `create-rsbuild`'s vue template leaves `module` unset, which lands on a
+     * value that forbids top-level `await`. `src/components/SiteHeader.vue`
+     * needs it: the shared header awaits `zintl(locale)` at the top level of
+     * `<script setup>`, which is what makes it an async component and why both
+     * pages wrap it in `<Suspense>`.
+     */
+    "module": "ESNext",
     "noEmit": true,
     "skipLibCheck": true,
     "types": ["@rsbuild/core/types", "node"],

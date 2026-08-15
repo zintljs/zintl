@@ -101,6 +101,53 @@ interesting one:
   module list — which is why the two hosts share every decision and none of the
   application of it.
 
+## Plurals live in the catalog, not in the source
+
+`src/counter.ts` writes the plain thing:
+
+```ts
+element.innerHTML = `Count is ${counter}`;
+```
+
+English needs one form there. Arabic needs several, and it gets them in
+`src/i18n/translations.json` — where the person who knows the language is
+working, rather than threaded through the component:
+
+```json
+"Count is {counter}": {
+  "ar": "{counter, plural, zero {لم يبدأ العد بعد} one {العدد واحد} two {العدد اثنان} few {العدد {counter}} many {العدد {counter}} other {العدد {counter}}}",
+  "es": "{counter, plural, =0 {Aún no has contado} one {La cuenta es uno} other {La cuenta es #}}",
+  "zh": "{counter, plural, =0 {还没有开始计数} other {计数为 {counter}}}"
+}
+```
+
+Between them those cover named CLDR categories, `=0` exact matches, `#`
+substitution, and interpolation inside a branch. Clicking the counter in Arabic
+walks `zero → one → two → few`, which are distinctions the English source never
+had to anticipate.
+
+**None of that syntax reaches the browser.** The compiler bakes it to JavaScript
+at build time — measured here, the emitted Arabic chunk is:
+
+```js
+"3aaf6932": (e) => {
+  let s, { counter: l } = e;
+  return `${
+    "zero" === (s = new Intl.PluralRules("ar").select(e.counter))
+      ? "لم يبدأ العد بعد"
+      : "one" === s ? "العدد واحد"
+      : "two" === s ? "العدد اثنان"
+      : `العدد ${e.counter}`
+  }`;
+};
+```
+
+A native `Intl.PluralRules` call and a conditional chain — with the identical
+`few`/`many`/`other` branches folded together, and no ICU parser anywhere in the
+bundle. This is the only Rspack example that exercises grammar compilation;
+until it did, ICU on this host was an inference from the fact that baking happens
+in the compiler.
+
 ## The localized asset
 
 `src/about.txt` and its copies under `src/i18n/src/` are not decoration. Rspack

@@ -36,12 +36,21 @@ export const rsbuildVanillaSpa: ProjectManifest = {
   /**
    * Claims grow one at a time, each after its contract passes here.
    *
-   * `hmr` is **not** claimed, and the reason is the same one measured on
-   * `rsbuild-svelte-basic`: the heading lives in a boundary the manager fetches
-   * rather than in the entry's own inlined catalog, so the full reload an edit
-   * triggers on a vanilla app wins the race against the catalog write.
-   * `rsbuild-vanilla-basic` is the project that covers `hmr` for vanilla on this
-   * host, and there the heading *is* the entry boundary.
+   * **Not `hmr`, and now measured: 10 failures in 10**
+   * (`node scripts/flake.js hmr.contract --runs=10`, 2026-08-15), in the same
+   * batch where `rsbuild-vanilla-mpa`, `rsbuild-vanilla-basic` and
+   * `rsbuild-react-basic` each failed 0 in 10. Deterministic, not intermittent.
+   *
+   * The failure is `expected '' to contain 'HMR works!'` — the empty render, the
+   * same shape measured on `rsbuild-svelte-basic`. A vanilla app full-reloads on
+   * an edit, and the reload beats the catalog write when the edited string lives
+   * in a boundary the manager has to **fetch**. Here it does: the heading is on
+   * the lazily-imported home route. `rsbuild-vanilla-basic` and
+   * `rsbuild-vanilla-mpa` both reload too and both pass, because on those the
+   * heading is in the entry's own boundary, which the manager inlines.
+   *
+   * So the dividing line on this host is not the framework and not the reload —
+   * it is whether the edited string is inlined or fetched.
    *
    * `performance` is unclaimed on every Rspack project — `performance-size`
    * filters responses by Vite-shaped URLs. `chaos` and `memory` follow `hmr`.
