@@ -161,7 +161,7 @@ export interface ProjectManifest {
    * Vite-only and deliberately so.
    *
    * A capability here is a claim about the **full suite**, not about a contract
-   * run alone. `memory` on `rsbuild-react` passes ten isolated runs in ten and
+   * run alone. `memory` on `rsbuild-react-basic` passes ten isolated runs in ten and
    * fails three in three under four-worker contention; `node scripts/flake.js
    * all` is what settles it (ledger L-050).
    */

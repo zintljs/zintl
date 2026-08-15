@@ -1,0 +1,56 @@
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_index_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_tsx_bootstrap";
+import { useSyncExternalStore } from "react";import { useState } from "react";
+import "./App.css";
+
+const locales = [
+  { id: "en", name: "English" },
+  { id: "ar", name: "العربية" },
+  { id: "es", name: "Español" },
+  { id: "zh", name: "中文" },
+];
+
+interface AppProps {
+  lang: string;
+  onSwitch: (newLang: string) => void;
+}
+
+/**
+ * `create-rsbuild`'s React starter, with a locale switcher bolted on.
+ *
+ * The heading lives here, in a component, and that is the point of this example.
+ * On `examples/rsbuild-vanilla-basic` the heading is written by the entry
+ * itself, so the only way to repaint it is to re-run the entry — which re-runs
+ * `zintl()` and rebuilds the store. Here a repaint is an ordinary React render
+ * that merely re-reads the catalog, which is why this app hot-updates on Rspack
+ * where the vanilla one reloads (ledger L-032, L-035).
+ */
+export default function App({ lang, onSwitch }: AppProps) {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
+  const [count, setCount] = useState(0);
+
+  return (
+    <div key={lang} className="content">
+      {/* @zintl-ignore */}
+      <div id="switcher" className="switcher">
+        {locales.map((l) => (
+          <button
+            key={l.id}
+            type="button"
+            className={lang === l.id ? "active" : ""}
+            onClick={() => onSwitch(l.id)}
+          >
+            {l.name}
+          </button>
+        ))}
+      </div>
+
+      <h1>{_t("Rsbuild with React", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default" })}</h1>
+      <p>{_t("Start building amazing things with Rsbuild.", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default" })}</p>
+      <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
+
+      <button id="counter" type="button" className="counter" onClick={() => setCount((c) => c + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default" })}</button>
+    </div>
+  );
+}

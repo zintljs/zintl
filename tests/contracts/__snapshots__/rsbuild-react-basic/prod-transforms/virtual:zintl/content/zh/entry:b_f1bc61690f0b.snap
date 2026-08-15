@@ -1,0 +1,12 @@
+const catalog = {
+    "b_147a3a1c1a40": {
+      "e33ef204": "Rsbuild 搭配 React",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "9fd2f187": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+    },
+  };
+export default catalog;

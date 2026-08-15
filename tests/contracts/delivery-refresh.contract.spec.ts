@@ -18,7 +18,7 @@ import { allManifests } from "../manifests/index.js";
  * D1, arrived at by a different route than `delivery-ordering` covers.
  *
  * **Why this contract exists.** It was a real defect, found by hand on
- * `rsbuild-spa` and then pinned down deterministically: `loadLazyBoundary`
+ * `rsbuild-vanilla-basic` and then pinned down deterministically: `loadLazyBoundary`
  * checked "already loaded" *before* "already loading", so it returned in zero
  * milliseconds with the stale catalog while the fresh one was still in the air.
  * The visible symptom was the worst kind — a permanently blank heading, because

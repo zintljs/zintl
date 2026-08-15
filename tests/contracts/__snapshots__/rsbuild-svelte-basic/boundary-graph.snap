@@ -1,0 +1,172 @@
+{
+  "entries": [
+    "src/index:bootstrap",
+    "src/lib/LocaleSwitcher.svelte:f_525"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "bindings": [
+            "pluginSvelte"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/plugin-svelte"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.svelte": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/lib/LocaleSwitcher.svelte"
+        }
+      ],
+      "filePath": "src/App.svelte",
+      "id": "src/App.svelte",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.svelte"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "bindings": [
+            "mount"
+          ],
+          "dynamic": false,
+          "id": "svelte"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.svelte"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "mount"
+          ],
+          "dynamic": false,
+          "id": "svelte"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/lib/LocaleSwitcher.svelte": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/lib/LocaleSwitcher.svelte:f_525"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/lib/LocaleSwitcher.svelte",
+      "id": "src/lib/LocaleSwitcher.svelte",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/lib/LocaleSwitcher.svelte:f_525": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/lib/LocaleSwitcher.svelte",
+      "id": "src/lib/LocaleSwitcher.svelte:f_525",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

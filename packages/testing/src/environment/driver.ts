@@ -20,10 +20,11 @@ export type BuildOutput = Record<string, string>;
 /**
  * Which build tool a project is driven through.
  *
- * `"vite"` is the default and the supported path. `"rsbuild"` exists for
- * proposal 026 — a second, non-Rollup host used to falsify the claim that the
- * compiler is bundler-agnostic. A manifest opting into it is opting into
- * ZDB §7a Tier 1 only: build, no dev server, no hot updates.
+ * `"vite"` is the default. `"rsbuild"` began as proposal 026's falsification
+ * target — a second, non-Rollup host used to disagree with "the compiler is
+ * bundler-agnostic" — and is a supported configuration since proposal 030:
+ * builds, a real dev server, and hot updates where the framework declares
+ * client reactivity. Five projects use it.
  */
 export type DriverKind = "vite" | "rsbuild";
 

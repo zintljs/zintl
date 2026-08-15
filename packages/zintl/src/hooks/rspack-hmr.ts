@@ -207,7 +207,7 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
      * before module building, so this is the one place the ordering can be
      * guaranteed rather than hoped for.
      *
-     * Measured: without this, `syntax-recovery` on `rsbuild-spa` failed 9 runs in
+     * Measured: without this, `syntax-recovery` on `rsbuild-vanilla-basic` failed 9 runs in
      * 10, and the diagnosis showed the server sending `hash`+`ok` correctly while
      * the reloaded page came back missing the recovered key — a bundle built from
      * a catalog the flush had not yet written.

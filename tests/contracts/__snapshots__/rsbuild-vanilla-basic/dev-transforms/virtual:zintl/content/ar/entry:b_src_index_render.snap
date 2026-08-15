@@ -1,0 +1,22 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/i18n/src/about.ar.txt?zintl-raw";
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Rsbuild الأساسي",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/index.ts</code> واحفظ لاختبار <code>HMR</code>",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `العدد هو ${params['counter']}`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": _zintl_asset_0,
+  },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

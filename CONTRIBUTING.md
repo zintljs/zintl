@@ -20,7 +20,7 @@ Everything is a script, so anything CI runs, you can run identically.
 
 ```bash
 vpr verify         # build → lint → knip → unit tests → format check  (~1 min)
-vpr ready:examples # build 18 example apps → 72 contract tests        (~2 min)
+vpr ready:examples # build 24 example packages → 174 contract tests  (~2 min)
 ```
 
 `vpr verify` is the fast loop. `vpr ready:examples` drives real browsers against real apps and is what catches integration regressions.

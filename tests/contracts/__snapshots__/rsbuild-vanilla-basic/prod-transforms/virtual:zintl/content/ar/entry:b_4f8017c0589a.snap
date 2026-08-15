@@ -1,0 +1,18 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/i18n/src/about.ar.txt?zintl-raw";
+const catalog = {
+    "b_4f8017c0589a": {
+      "3de7e774": "Rsbuild الأساسي",
+      "9724cf0a": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "822f0fb2": "عدّل <code>src/index.ts</code> واحفظ لاختبار <code>HMR</code>",
+    },
+    "b_f05b8e5701f3": {
+      "3aaf6932": (params) => {
+    const { counter } = params;
+    return `العدد هو ${params['counter']}`;
+  },
+    },
+    "b_assets": {
+    "749ed136": _zintl_asset_0,
+  },
+  };
+export default catalog;

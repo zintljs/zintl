@@ -1,0 +1,12 @@
+const catalog = {
+    "b_src_about_render": {
+      "Everything is a plain string": "كل شيء نص عادي",
+      "This document has its own entry, and its own catalog chunk.": "لهذه الصفحة نقطة دخول خاصة بها، وحزمة كتالوج خاصة بها.",
+      "The header above is shared, and anchors itself.": "الترويسة أعلاه مشتركة، وتُرسي مرساتها بنفسها.",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

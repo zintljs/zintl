@@ -1,0 +1,23 @@
+export default { id: "b_f1bc61690f0b", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_147a3a1c1a40": {
+      "e33ef204": "Rsbuild with React",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "9fd2f187": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_f1bc61690f0b").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_f1bc61690f0b").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_f1bc61690f0b").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

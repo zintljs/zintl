@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Back to the start": {
+      "type": "string"
+    },
+    "Everything is a plain string": {
+      "type": "string"
+    },
+    "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": {
+      "type": "string"
+    },
+    "This page arrived in its own chunk, and so did its translations.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Back to the start",
+    "Everything is a plain string",
+    "No <code>t()</code> wrapper, no key dictionary, no manual catalog.",
+    "This page arrived in its own chunk, and so did its translations."
+  ],
+  "additionalProperties": false
+}

@@ -32,7 +32,7 @@ const SHARED_FILES: Record<string, string> = {
    * Authored by hand, not generated. `fixtureSource` only ever synthesizes a
    * `vite.config.ts` — this fixture needs the Rsbuild config the harness's
    * `RsbuildDriver` actually reads (`loadConfig({ cwd })`), matching
-   * `examples/rsbuild-spa/rsbuild.config.mjs`'s shape.
+   * `examples/rsbuild-vanilla-basic/rsbuild.config.mjs`'s shape.
    */
   "rsbuild.config.mjs": [
     `import { defineConfig } from "@rsbuild/core";`,

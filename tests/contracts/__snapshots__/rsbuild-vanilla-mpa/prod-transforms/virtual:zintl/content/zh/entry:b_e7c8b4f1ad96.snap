@@ -1,0 +1,7 @@
+const catalog = {
+    "b_e7c8b4f1ad96": {
+      "70f8bb9a": "首页",
+      "bf073fae": "指南",
+    },
+  };
+export default catalog;

@@ -1,0 +1,19 @@
+const catalog = {
+    "b_src_pages_Home_Home": {
+      "Vanilla Rsbuild": "Rsbuild con Vanilla",
+      "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild.",
+      "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>": "Edita <code>src/pages/Home.ts</code> y guarda para probar <code>HMR</code>",
+      "Read the guide": "Leer la guía",
+    },
+    "b_src_pages_About_About": {
+      "Everything is a plain string": "Todo es una cadena de texto normal",
+      "This page arrived in its own chunk, and so did its translations.": "Esta página llegó en su propio fragmento, y sus traducciones también.",
+      "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "Sin envoltorio <code>t()</code>, sin diccionario de claves, sin catálogo manual.",
+      "Back to the start": "Volver al inicio",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

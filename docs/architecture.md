@@ -91,7 +91,7 @@ Practically: adding a framework or a build tool means contributing a facet, not 
 
 That's the design that makes "more frameworks and build tools are coming" a matter of work rather than of rewriting.
 
-Rsbuild is the test of that claim. It runs on Rspack, whose plugin model is about as unlike Rollup's as a bundler's gets, and it reached feature parity for SPA builds _and_ dev-time string edits without a single Rspack branch in the compiler. Two things made that possible, and they divide the work the same way everything above does:
+Rsbuild is the test of that claim. It runs on Rspack, whose plugin model is about as unlike Rollup's as a bundler's gets, and it reached parity for builds — single-page, multi-page, lazy routes — and for dev-time string edits without a single Rspack branch in the compiler. Two things made that possible, and they divide the work the same way everything above does:
 
 - **What the compiler decides is host-neutral.** Which strings changed, which boundaries that dirties, which catalogs must be rebuilt — none of it mentions a bundler, so both hosts run the identical code.
 - **How a host is _told_ differs, and that difference is a seam.** Vite is asked for a module list and handed one back, so Zintl walks its module graph. Rspack rebuilds whatever its own dependency graph says is stale, so Zintl instead declares what each generated catalog is derived from and lets Rspack work it out. Same decision, two applications of it, neither one leaking into the other.
@@ -99,3 +99,5 @@ Rsbuild is the test of that claim. It runs on Rspack, whose plugin model is abou
 How the edit then reaches the screen is a third question, and it is the framework's rather than the bundler's: an app with components that re-read the catalog repaints in place, and one without them declines the update and reloads the page. A framework declares which it is, and both hosts consume that declaration without learning what the framework is.
 
 The parts that remain Vite-only — per-locale HTML fan-out (`multiplex`) and SSR — are unbuilt rather than blocked, and a bundler that has not built them says so through its facet, so combining them fails loudly instead of silently.
+
+**One place the separation does not hold, and it is worth naming rather than hiding.** A host's loaders sit between Zintl's transform and the module the bundler compiles, and on Rspack `vue-loader` splits an SFC into per-block child requests that do not carry a pre-loader's output. Extraction still works — the compiler reads files itself — so a Vue app on Rspack produces correct catalogs and then ships the source locale, because only the code generation is lost. The compiler is bundler-agnostic and this does not contradict that: nothing about the decision changed, the application of it never arrived. It is the one integration in the project that currently fails quietly, which by this repo's own rules makes fencing it the first fix rather than the last. Ledger L-051.

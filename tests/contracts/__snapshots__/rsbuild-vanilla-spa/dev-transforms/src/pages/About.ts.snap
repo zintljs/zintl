@@ -1,0 +1,22 @@
+import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_index_render from "virtual:zintl/manager/none/entry:b_src_index_render";
+/**
+ * Reached only through `await import()`, which is the point.
+ *
+ * These strings belong to a boundary the entry never imports statically, so
+ * Zintl emits their catalog behind the same dynamic import Rspack uses for the
+ * page itself. Nothing here is written differently because of that.
+ */
+export function About(): HTMLElement {
+  const container = document.createElement("div");
+  container.className = "content";
+
+  container.innerHTML = `
+    <h1>${_t("Everything is a plain string", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_pages_About_About" })}</h1>
+    <p>${_t("This page arrived in its own chunk, and so did its translations.", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_pages_About_About" })}</p>
+    <p>${_t("No <code>t()</code> wrapper, no key dictionary, no manual catalog.", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_pages_About_About", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+    <nav class="nav"><a id="to-home" href="/" data-link>${_t("Back to the start", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_pages_About_About" })}</a></nav>
+  `;
+
+  return container;
+}

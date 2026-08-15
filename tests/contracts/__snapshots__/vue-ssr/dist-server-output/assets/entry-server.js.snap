@@ -152,7 +152,7 @@ var I18nStore = class {
 	* React reported the first as "Cannot update a component while rendering a
 	* different component" and then, because each re-render ran `_t` again and
 	* each `_t` announced again, "Maximum update depth exceeded" out of every
-	* subscriber after it. Measured on `rsbuild-react`: ~700 in twelve seconds,
+	* subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
 	* with the renderer pinned hard enough that the page could not be evaluated
 	* at all, which is why this read as a stall rather than a loop.
 	*

@@ -1,0 +1,19 @@
+export default { id: "b_c087d0722440", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_c087d0722440": {
+      "abdb1589": "Everything is a plain string",
+      "45d702f4": "This document has its own entry, and its own catalog chunk.",
+      "22857f41": "The header above is shared, and anchors itself.",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_c087d0722440").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_c087d0722440").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_c087d0722440").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

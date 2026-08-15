@@ -2823,3 +2823,112 @@ inherited from the same source app.
 server and counts any `.json` as a catalog. That is a contract-quality problem on the Vite side that
 happens to block a second host, and teaching it one more URL shape would entrench the thing it already
 says is wrong.
+
+## Phase 8 — the other two frameworks
+
+Proposals 026–030 closed with Rsbuild supported "for React and vanilla", and with Vue and Svelte
+described as _untested here rather than unsupported_ — nothing was known to break, and nothing had
+watched them either. This phase built one example each and watched. Svelte needed nothing. Vue is
+broken in the worst available shape.
+
+### L-051 — Vue on Rspack builds green and ships the source locale
+
+|                             |                                                                                      |
+| :-------------------------- | :----------------------------------------------------------------------------------- |
+| **Status**                  | **Open** — no Vue example ships; `@rsbuild/plugin-vue` is deliberately uncatalogued  |
+| **Bucket**                  | Silent wrong output — the one failure mode this project treats as worse than a crash |
+| **Facet contract changed?** | Not yet. The fix is a facet-level question, see below                                |
+
+Reproduced on 2026-08-14 against `@rsbuild/core@2.1.10`, `@rspack/core@2.1.8`,
+`@rsbuild/plugin-vue@2.0.1`, `vue@3.5.40`, on a `create-rsbuild` vue-ts starter with four locales.
+
+**What happens.** Everything except code generation works, which is exactly why it is dangerous:
+
+| Stage                              | Result                                                               |
+| :--------------------------------- | :------------------------------------------------------------------- |
+| Extraction from `.vue`             | ✅ correct — `src/App.vue` is read, stitched, and its boundary built |
+| Catalog scaffolding                | ✅ correct — `zintl/src/App.vue.{ar,es,zh}.json`, right keys         |
+| `verifyIntegrity`                  | ✅ fires on missing translations, so the build gates as designed     |
+| Chunking / ghost mode              | ✅ one async chunk per non-source locale, none for `en`              |
+| Catalog chunk contents             | ✅ correct — Spanish present under `b_src_App_vue`, ICU compiled     |
+| HTML projection (`<title>`, `dir`) | ✅ correct — the document localizes                                  |
+| **Codegen into the `.vue` module** | ❌ **absent** — zero `_t()` calls; the source literal ships verbatim |
+
+So the page renders `<title>Rsbuild con Vue …</title>` above a body that says "Rsbuild with Vue". The
+build is green, the contracts that snapshot compiler output would be green, and the app is wrong.
+
+**Measured, not inferred:** the literal `Rsbuild with Vue` is present in both `dist/static/js/index.*.js`
+and the dev server's `/static/js/index.js`, while the loaded content chunk
+`virtual:zintl/content/es/entry:b_src_index_bootstrap` carries the correct Spanish. The anchor's own
+file (`src/index.ts`) transforms fine and pulls in the manager — it is `.vue` specifically.
+
+**Inferred, not yet reproduced at the loader level:** `vue-loader` compiles an SFC by emitting child
+requests per block (`App.vue?vue&type=template`, `…&type=script`) through its pitcher, and those
+requests are constructed so that pre- and normal loaders do not re-run. Zintl registers with
+`enforce: "pre"` (`plugin.ts:65`), so it transforms the parent `.vue` request — whose output is used
+for descriptor parsing — and never the block requests that actually become code. Plugin ordering was
+ruled out by experiment: `...zintl()` before and after `pluginVue()` produce byte-identical output,
+as expected, since Rspack orders loaders by `enforce` rather than by plugin registration.
+
+`svelte-loader` has no equivalent split. It receives Zintl's transformed source directly, and
+`examples/rsbuild-svelte-basic` renders fully translated in all four locales — first try, with no
+Zintl change. The one Svelte-specific wrinkle is cosmetic and is documented in that example: a
+sentence with an inline tag becomes `{@html}`, so Svelte's scoped-CSS pass prunes a selector like
+`.content code` as unused, and the example uses `:global(code)`.
+
+**Two things this changes about the support statement.** Svelte moves from "untested" to supported for
+SPAs. Vue must move from "untested" to **explicitly not supported on this host**, because "untested"
+invites someone to try it, and trying it succeeds quietly.
+
+**What the fix has to decide**, and why it is not a patch: the block requests carry only one block's
+text, and Zintl's Vue extraction is whole-SFC — it stitches `<template>` against what `<script>`
+declares. Transforming `?vue&type=template` in isolation is a different extraction mode, not the same
+one pointed at a smaller string. The alternatives worth costing are (a) teach the rspack facet to
+transform block requests, with the extractor gaining a block mode; (b) contribute a Vue-on-Rspack
+loader ahead of `vue-loader`'s pitcher; or (c) fence it — refuse the combination at config time with a
+clear error, the way multiplex is fenced (L-022), and ship that first regardless of which of (a)/(b)
+follows. **(c) should land before either**, on this project's own rule: a missing translation is a
+build error, not a silent fallback to the source locale, and this is that rule being violated by the
+integration rather than by the catalog.
+
+### L-052 — Svelte's default `cssHash` hashes the filename, so a build snapshot cannot settle
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Resolved** — the example pins `cssHash`; 6 clean runs in 6 |
+| **Bucket**                  | Snapshot instability that reads as flake and is not          |
+| **Facet contract changed?** | No — an application-level compiler option                    |
+
+`examples/rsbuild-svelte-basic`'s `build` contract failed roughly one run in two, and the diff was
+always the same shape and never the same value: `class="content svelte-8jxiy8"` against
+`class="content svelte-1koy1i1"`, with byte-identical CSS on both sides.
+
+The cause is one line of Svelte, and it is the default:
+
+```js
+// svelte/src/compiler/validate-options.js
+cssHash: fun(({ css, filename, hash }) => {
+  return `svelte-${hash(filename === "(unknown)" ? css : (filename ?? css))}`;
+});
+```
+
+It hashes the **filename**, and only falls back to the CSS when there is no filename. The contract
+layer materialises each project at `.tmp/runs/w<workerId>/<name>/`, so the filename — and therefore
+every scoped class in the output — depends on which of four workers Vitest handed the job to. Two
+observed hashes, two workers.
+
+Fixed in the example rather than the harness, with
+`cssHash: ({ css, hash }) => \`svelte-${hash(css)}\``, because the property worth having is that build
+output is a function of the source. Normalising the hash away in `filterDistForSnapshots` would have
+hidden a real difference in emitted CSS just as effectively.
+
+**Why no Vite Svelte project hit this:** `examples/svelte-basic` and `examples/svelte-ssr` keep their
+styles in a shared stylesheet, so no component has a `<style>` block and no scoped class is ever
+emitted. The Rspack example keeps the block because `create-rsbuild`'s template has one. So this was
+never a host difference — it was the first Svelte project in the suite with scoped styles at all.
+
+**The near-miss worth recording.** The first two reproductions were read as "a contract left the
+worker copy mutated", and the response was to wipe `.tmp/runs` and re-record — which produced a green
+run, twice, and would have been reported as fixed. It only came apart because `vpr ci` failed again
+immediately afterwards. A snapshot that is a function of the worker id passes about half the time, and
+half the time is exactly the rate at which "wipe and re-record" looks like a fix.

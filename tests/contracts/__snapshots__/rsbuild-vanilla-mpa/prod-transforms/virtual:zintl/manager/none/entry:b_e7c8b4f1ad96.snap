@@ -1,0 +1,18 @@
+export default { id: "b_e7c8b4f1ad96", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_e7c8b4f1ad96": {
+      "70f8bb9a": "Home",
+      "bf073fae": "Guide",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_e7c8b4f1ad96").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_e7c8b4f1ad96").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_e7c8b4f1ad96").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

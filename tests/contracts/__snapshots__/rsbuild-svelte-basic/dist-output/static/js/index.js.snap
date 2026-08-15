@@ -1,0 +1,517 @@
+(() => {
+"use strict";
+var __webpack_modules__ = ({
+113(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+109(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (App)
+});
+/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(110);
+/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(48);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_3 = __webpack_require__(1);
+/* import */ var _lib_LocaleSwitcher_svelte__rspack_import_4 = __webpack_require__(112);
+
+
+
+
+
+var root = svelte_internal_client__rspack_import_1.from_html(`<main><div class="content svelte-18cqzv2"><h1 class="svelte-18cqzv2"> </h1> <p class="svelte-18cqzv2"> </p> <p class="svelte-18cqzv2"></p> <button id="counter" type="button" class="counter svelte-18cqzv2"> </button></div></main>`);
+var root_1 = svelte_internal_client__rspack_import_1.from_html(`<!> <!>`, 1);
+const $$css = {
+    hash: 'svelte-18cqzv2',
+    code: '\n  /* `create-rsbuild`\'s `template-svelte-ts/src/App.svelte` styles, plus what the\n   * counter and the inline `<code>` need. */.content.svelte-18cqzv2 {display:flex;box-sizing:border-box;min-height:100vh;padding-block:5rem 2rem;line-height:1.1;text-align:center;flex-direction:column;justify-content:center;}.content.svelte-18cqzv2 h1:where(.svelte-18cqzv2) {font-size:3.6rem;font-weight:700;}.content.svelte-18cqzv2 p:where(.svelte-18cqzv2) {font-size:1.2rem;font-weight:400;opacity:0.5;}\n\n  /* `:global`, and this is the one Svelte-specific thing in the whole example.\n   * A sentence with an inline tag is stitched into a single key, so the\n   * `<code>` elements are rendered from the catalog through `{@html}` rather\n   * than written in this template. Svelte\'s scoped-CSS pass only sees the\n   * markup it can statically attribute to this component, so a plain\n   * `.content code` is reported as `css_unused_selector` and pruned. */.content.svelte-18cqzv2 code {padding:0.1em 0.35em;border-radius:4px;background:rgb(255 255 255 / 10%);font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:0.9em;}.counter.svelte-18cqzv2 {font:inherit;font-size:1rem;color:#fff;cursor:pointer;align-self:center;margin-block-start:1.5rem;padding:0.55rem 1.4rem;border:1px solid rgb(255 255 255 / 15%);border-radius:8px;background:rgb(255 255 255 / 6%);}.counter.svelte-18cqzv2:hover {background:rgb(255 255 255 / 12%);}'
+};
+function App($$anchor, $$props) {
+    svelte_internal_client__rspack_import_1.push($$props, true);
+    svelte_internal_client__rspack_import_1.append_styles($$anchor, $$css);
+    let activeLang = svelte_internal_client__rspack_import_1.state(svelte_internal_client__rspack_import_1.proxy(new URLSearchParams(window.location.search).get("lang") || "en"));
+    let count = svelte_internal_client__rspack_import_1.state(0);
+    const handleSwitch = (lang)=>{
+        // Reassigning is what remounts the tree through `{#key}`. The catalog has
+        // already been swapped by the switcher's own `await zintl(lang)`.
+        svelte_internal_client__rspack_import_1.set(activeLang, lang, true);
+    };
+    /**
+	 * A named handler, not `onclick={() => count++}` inline, and the reason is a
+	 * live extractor defect rather than style: an inline arrow in an event
+	 * attribute on an element whose text content is extractable makes the stitched
+	 * unit start inside the attribute. The key comes out as
+	 * `"count++}>\n  Count is {count}"` and the generated Svelte no longer parses.
+	 * Reproduced on **both** hosts — `examples/svelte-basic` fails the same way
+	 * when its `onclick={increment}` is inlined — so it is Svelte handling in the
+	 * extractor, not anything about Rspack.
+	 */ const increment = ()=>{
+        svelte_internal_client__rspack_import_1.set(count, svelte_internal_client__rspack_import_1.get(count) + 1);
+    };
+    var fragment = root_1();
+    var node = svelte_internal_client__rspack_import_1.first_child(fragment);
+    (0,_lib_LocaleSwitcher_svelte__rspack_import_4["default"])(node, {
+        get lang () {
+            return svelte_internal_client__rspack_import_1.get(activeLang);
+        },
+        onswitch: handleSwitch
+    });
+    var node_1 = svelte_internal_client__rspack_import_1.sibling(node, 2);
+    svelte_internal_client__rspack_import_1.key(node_1, ()=>svelte_internal_client__rspack_import_1.get(activeLang), ($$anchor)=>{
+        var main = root();
+        var div = svelte_internal_client__rspack_import_1.child(main);
+        var h1 = svelte_internal_client__rspack_import_1.child(div);
+        var text = svelte_internal_client__rspack_import_1.child(h1, true);
+        svelte_internal_client__rspack_import_1.reset(h1);
+        var p = svelte_internal_client__rspack_import_1.sibling(h1, 2);
+        var text_1 = svelte_internal_client__rspack_import_1.child(p, true);
+        svelte_internal_client__rspack_import_1.reset(p);
+        var p_1 = svelte_internal_client__rspack_import_1.sibling(p, 2);
+        svelte_internal_client__rspack_import_1.html(p_1, ()=>(0,virtual_zintl_runtime_internal__rspack_import_3._t)('b339a4ca', {
+                _mgr: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"],
+                _bId: 'b_b071a5cc9dda',
+                _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]')
+            }), true);
+        svelte_internal_client__rspack_import_1.reset(p_1);
+        var button = svelte_internal_client__rspack_import_1.sibling(p_1, 2);
+        var text_2 = svelte_internal_client__rspack_import_1.child(button, true);
+        svelte_internal_client__rspack_import_1.reset(button);
+        svelte_internal_client__rspack_import_1.reset(div);
+        svelte_internal_client__rspack_import_1.reset(main);
+        svelte_internal_client__rspack_import_1.template_effect(($0, $1, $2)=>{
+            svelte_internal_client__rspack_import_1.set_text(text, $0);
+            svelte_internal_client__rspack_import_1.set_text(text_1, $1);
+            svelte_internal_client__rspack_import_1.set_text(text_2, $2);
+        }, [
+            ()=>(0,virtual_zintl_runtime_internal__rspack_import_3._t)('b3cbd2ca', {
+                    _mgr: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"],
+                    _bId: 'b_b071a5cc9dda'
+                }),
+            ()=>(0,virtual_zintl_runtime_internal__rspack_import_3._t)('9724cf0a', {
+                    _mgr: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"],
+                    _bId: 'b_b071a5cc9dda'
+                }),
+            ()=>(0,virtual_zintl_runtime_internal__rspack_import_3._t)('aa624128', {
+                    count: svelte_internal_client__rspack_import_1.get(count)
+                }, {
+                    _mgr: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"],
+                    _bId: 'b_b071a5cc9dda'
+                })
+        ]);
+        svelte_internal_client__rspack_import_1.delegated('click', button, increment);
+        svelte_internal_client__rspack_import_1.append($$anchor, main);
+    });
+    svelte_internal_client__rspack_import_1.append($$anchor, fragment);
+    svelte_internal_client__rspack_import_1.pop();
+}
+svelte_internal_client__rspack_import_1.delegate([
+    'click'
+]);
+
+
+},
+112(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (LocaleSwitcher)
+});
+/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(110);
+/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(48);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_3 = __webpack_require__(1);
+
+
+
+
+var root = svelte_internal_client__rspack_import_1.from_html(`<button type="button"> </button>`);
+var root_1 = svelte_internal_client__rspack_import_1.from_html(`<div id="switcher" class="switcher svelte-cocv1f"></div>`);
+const $$css = {
+    hash: 'svelte-cocv1f',
+    code: '\n  /* Logical properties throughout, because `<html dir>` is what Zintl projects\n   * per locale: the Arabic build flips the document and nothing here should need\n   * a second rule to follow it. */.switcher.svelte-cocv1f {position:fixed;inset-block-start:0;inset-inline:0;display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;padding:1rem;}.switcher.svelte-cocv1f button:where(.svelte-cocv1f) {font:inherit;font-size:0.95rem;line-height:1.2;color:#fff;cursor:pointer;padding:0.4rem 0.9rem;border:1px solid rgb(255 255 255 / 15%);border-radius:999px;background:rgb(255 255 255 / 6%);}.switcher.svelte-cocv1f button:where(.svelte-cocv1f):hover {background:rgb(255 255 255 / 12%);}.switcher.svelte-cocv1f button.active:where(.svelte-cocv1f) {border-color:rgb(255 255 255 / 45%);background:rgb(255 255 255 / 18%);}'
+};
+function LocaleSwitcher($$anchor, $$props) {
+    svelte_internal_client__rspack_import_1.push($$props, true);
+    svelte_internal_client__rspack_import_1.append_styles($$anchor, $$css);
+    const locales = [
+        {
+            id: "en",
+            name: "English"
+        },
+        {
+            id: "ar",
+            name: "العربية"
+        },
+        {
+            id: "es",
+            name: "Español"
+        },
+        {
+            id: "zh",
+            name: "中文"
+        }
+    ];
+    const handleSwitch = async (newLang)=>{
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", newLang);
+        window.history.pushState({}, "", url);
+        await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_3.loadI18nInstance)({
+            locale: newLang,
+            loaders: {
+                ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"].loader
+            }
+        }));
+        $$props.onswitch(newLang);
+    };
+    var div = root_1();
+    svelte_internal_client__rspack_import_1.each(div, 21, ()=>locales, (l)=>l.id, ($$anchor, l)=>{
+        var button = root();
+        var text = svelte_internal_client__rspack_import_1.child(button, true);
+        svelte_internal_client__rspack_import_1.reset(button);
+        svelte_internal_client__rspack_import_1.template_effect(()=>{
+            svelte_internal_client__rspack_import_1.set_class(button, 1, svelte_internal_client__rspack_import_1.clsx($$props.lang === svelte_internal_client__rspack_import_1.get(l).id ? "active" : ""), 'svelte-cocv1f');
+            svelte_internal_client__rspack_import_1.set_text(text, svelte_internal_client__rspack_import_1.get(l).name);
+        });
+        svelte_internal_client__rspack_import_1.delegated('click', button, ()=>handleSwitch(svelte_internal_client__rspack_import_1.get(l).id));
+        svelte_internal_client__rspack_import_1.append($$anchor, button);
+    });
+    svelte_internal_client__rspack_import_1.reset(div);
+    svelte_internal_client__rspack_import_1.append($$anchor, div);
+    svelte_internal_client__rspack_import_1.pop();
+}
+svelte_internal_client__rspack_import_1.delegate([
+    'click'
+]);
+
+
+},
+0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var svelte__rspack_import_2 = __webpack_require__(8);
+/* import */ var _App_svelte__rspack_import_3 = __webpack_require__(109);
+/* import */ var _index_css__rspack_import_4 = __webpack_require__(113);
+
+
+
+
+
+async function bootstrap() {
+    // 1. Resolve the current locale from URL query params, falling back to English
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    // 2. Await catalog loading and hydration
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_0.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"].loader
+        }
+    }));
+    // 3. Mount only once translations are active
+    const target = document.getElementById("root");
+    if (target) (0,svelte__rspack_import_2.mount)(_App_svelte__rspack_import_3["default"], {
+        target
+    });
+}
+void bootstrap();
+
+
+},
+
+});
+// The module cache
+var __webpack_module_cache__ = {};
+
+// The require function
+function __webpack_require__(moduleId) {
+
+// Check if module is in cache
+var cachedModule = __webpack_module_cache__[moduleId];
+if (cachedModule !== undefined) {
+return cachedModule.exports;
+}
+// Create a new module (and put it into the cache)
+var module = (__webpack_module_cache__[moduleId] = {
+exports: {}
+});
+// Execute the module function
+__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+
+// Return the exports of the module
+return module.exports;
+
+}
+
+// expose the modules object (__webpack_modules__)
+__webpack_require__.m = __webpack_modules__;
+
+// webpack/runtime/define_property_getters
+(() => {
+__webpack_require__.d = (exports, getters, values) => {
+	var define = (defs, kind) => {
+		for(var key in defs) {
+			if(__webpack_require__.o(defs, key) && !__webpack_require__.o(exports, key)) {
+				Object.defineProperty(exports, key, { enumerable: true, [kind]: defs[key] });
+			}
+		}
+	};
+	define(getters, "get");
+	define(values, "value");
+};
+})();
+// webpack/runtime/ensure_chunk
+(() => {
+__webpack_require__.f = {};
+// This file contains only the entry chunk.
+// The chunk loading function for additional chunks
+__webpack_require__.e = (chunkId) => {
+	return Promise.all(
+		Object.keys(__webpack_require__.f).reduce((promises, key) => {
+			__webpack_require__.f[key](chunkId, promises);
+			return promises;
+		}, [])
+	);
+};
+})();
+// webpack/runtime/get javascript chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.u = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "static/js/async/" + chunkId + ".js"
+}
+})();
+// webpack/runtime/get mini-css chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.miniCssF = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "" + chunkId + ".css"
+}
+})();
+// webpack/runtime/has_own_property
+(() => {
+__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+})();
+// webpack/runtime/load_script
+(() => {
+var inProgress = {};
+
+var uniqueName = "rsbuild-svelte-basic:";
+// loadScript function to load a script via script tag
+__webpack_require__.l = function (url, done, key, chunkId) {
+	if (inProgress[url]) {
+		inProgress[url].push(done);
+		return;
+	}
+	var script, needAttach;
+	if (key !== undefined) {
+		var scripts = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts.length; i++) {
+			var s = scripts[i];
+			if (s.getAttribute("src") == url || s.getAttribute("data-rspack") == uniqueName + key) {
+				script = s;
+				break;
+			}
+		}
+	}
+	if (!script) {
+		needAttach = true;
+		script = document.createElement('script');
+
+script.timeout = 120;
+if (__webpack_require__.nc) {
+  script.setAttribute("nonce", __webpack_require__.nc);
+}
+
+script.setAttribute("data-rspack", uniqueName + key);
+
+
+
+script.src = url;
+
+
+
+	}
+	inProgress[url] = [done];
+	var onScriptComplete = function (prev, event) {
+		script.onerror = script.onload = null;
+		clearTimeout(timeout);
+		var doneFns = inProgress[url];
+		delete inProgress[url];
+		script.parentNode && script.parentNode.removeChild(script);
+		doneFns &&
+			doneFns.forEach(function (fn) {
+				return fn(event);
+			});
+		if (prev) return prev(event);
+	};
+	var timeout = setTimeout(
+		onScriptComplete.bind(null, undefined, {
+			type: 'timeout',
+			target: script
+		}),
+		120000
+	);
+	script.onerror = onScriptComplete.bind(null, script.onerror);
+	script.onload = onScriptComplete.bind(null, script.onload);
+	needAttach && document.head.appendChild(script);
+};
+
+})();
+// webpack/runtime/make_namespace_object
+(() => {
+// define __esModule on exports
+__webpack_require__.r = (exports) => {
+	if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+		Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+	}
+	Object.defineProperty(exports, '__esModule', { value: true });
+};
+})();
+// webpack/runtime/on_chunk_loaded
+(() => {
+var deferred = [];
+__webpack_require__.O = (result, chunkIds, fn, priority) => {
+	if (chunkIds) {
+		priority = priority || 0;
+		for (var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--)
+			deferred[i] = deferred[i - 1];
+		deferred[i] = [chunkIds, fn, priority];
+		return;
+	}
+	var notFulfilled = Infinity;
+	for (var i = 0; i < deferred.length; i++) {
+		var [chunkIds, fn, priority] = deferred[i];
+		var fulfilled = true;
+		for (var j = 0; j < chunkIds.length; j++) {
+			if (
+				(priority & (1 === 0) || notFulfilled >= priority) &&
+				Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))
+			) {
+				chunkIds.splice(j--, 1);
+			} else {
+				fulfilled = false;
+				if (priority < notFulfilled) notFulfilled = priority;
+			}
+		}
+		if (fulfilled) {
+			deferred.splice(i--, 1);
+			var r = fn();
+			if (r !== undefined) result = r;
+		}
+	}
+	return result;
+};
+
+})();
+// webpack/runtime/public_path
+(() => {
+__webpack_require__.p = "/";
+})();
+// webpack/runtime/jsonp_chunk_loading
+(() => {
+
+      // object to store loaded and loading chunks
+      // undefined = chunk not loaded, null = chunk preloaded/prefetched
+      // [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+      var jsonpInstalledChunks = {4: 0,};
+      
+        __webpack_require__.f.j = function (chunkId, promises) {
+          // JSONP chunk loading for javascript
+var installedChunkData = __webpack_require__.o(jsonpInstalledChunks, chunkId)
+	? jsonpInstalledChunks[chunkId]
+	: undefined;
+if (installedChunkData !== 0) {
+	// 0 means "already installed".
+
+	// a Promise means "currently loading".
+	if (installedChunkData) {
+		promises.push(installedChunkData[2]);
+	} else {
+		if (true) {
+			// setup Promise in chunk cache
+			var promise = new Promise((resolve, reject) => (installedChunkData = jsonpInstalledChunks[chunkId] = [resolve, reject]));
+			promises.push((installedChunkData[2] = promise));
+
+			// start chunk loading
+			var url = __webpack_require__.p + __webpack_require__.u(chunkId);
+			// create error before stack unwound to get useful stacktrace later
+			var error = new Error();
+			var loadingEnded = function (event) {
+				if (__webpack_require__.o(jsonpInstalledChunks, chunkId)) {
+					installedChunkData = jsonpInstalledChunks[chunkId];
+					if (installedChunkData !== 0) jsonpInstalledChunks[chunkId] = undefined;
+					if (installedChunkData) {
+						var errorType =
+							event && (event.type === 'load' ? 'missing' : event.type);
+						var realSrc = event && event.target && event.target.src;
+						error.message =
+							'Loading chunk ' +
+							chunkId +
+							' failed.\n(' +
+							errorType +
+							': ' +
+							realSrc +
+							')';
+						error.name = 'ChunkLoadError';
+						error.type = errorType;
+						error.request = realSrc;
+						installedChunkData[1](error);
+					}
+				}
+			};
+			__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
+		} 
+	}
+}
+
+        }
+        __webpack_require__.O.j = (chunkId) => (jsonpInstalledChunks[chunkId] === 0);
+// install a JSONP callback for chunk loading
+var __rspack_jsonp = (parentChunkLoadingFunction, data) => {
+	var [chunkIds, moreModules, runtime] = data;
+	// add "moreModules" to the modules object,
+	// then flag all "chunkIds" as loaded and fire callback
+	var moduleId, chunkId, i = 0;
+	if (chunkIds.some((id) => (jsonpInstalledChunks[id] !== 0))) {
+		for (moduleId in moreModules) {
+			if (__webpack_require__.o(moreModules, moduleId)) {
+				__webpack_require__.m[moduleId] = moreModules[moduleId];
+			}
+		}
+		if (runtime) var result = runtime(__webpack_require__);
+	}
+	if (parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+	for (; i < chunkIds.length; i++) {
+		chunkId = chunkIds[i];
+		if (
+			__webpack_require__.o(jsonpInstalledChunks, chunkId) &&
+			jsonpInstalledChunks[chunkId]
+		) {
+			jsonpInstalledChunks[chunkId][0]();
+		}
+		jsonpInstalledChunks[chunkId] = 0;
+	}
+	
+	return __webpack_require__.O(result);
+	
+};
+
+var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_svelte_basic"] = self["rspackChunkrsbuild_svelte_basic"] || [];
+jsonpChunkLoadingGlobal.forEach(__rspack_jsonp.bind(null, 0));
+jsonpChunkLoadingGlobal.push = __rspack_jsonp.bind(null, jsonpChunkLoadingGlobal.push.bind(jsonpChunkLoadingGlobal));
+
+})();
+// module factories are used so entry inlining is disabled
+// startup
+// Load entry module and return exports
+var __webpack_exports__ = __webpack_require__.O(undefined, ["3"], () => __webpack_require__(0));
+__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+})()
+;

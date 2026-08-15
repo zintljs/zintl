@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vanilla_mpa"] = self["rspackChunkrsbuild_vanilla_mpa"] || []).push([[9], {
+16(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_4f8017c0589a": {
+      "3de7e774": "原生 Rsbuild",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "bce1bd28": "两个文档、两个入口、一个共享页头。",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

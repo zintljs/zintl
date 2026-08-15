@@ -1,0 +1,31 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_e7c8b4f1ad96 from "virtual:zintl/manager/none/entry:b_e7c8b4f1ad96";
+import _zintl_mgr_b_c087d0722440 from "virtual:zintl/manager/none/entry:b_c087d0722440";
+
+
+/**
+ * A shared component with its **own** trust anchor.
+ *
+ * Both pages import this, and it calls `zintl(locale)` itself rather than
+ * inheriting from whichever page mounted it. That is the point: an anchor is
+ * independent, with its own hydration lifecycle, so this header's strings form a
+ * boundary shared by both entries rather than being duplicated into each.
+ *
+ * On Vite this case has its own example (`examples/vanilla-mpa-shared`). Here it
+ * is folded into the one multi-page app rather than adding a second directory.
+ */
+export async function Header(locale: string): Promise<HTMLElement> {
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: locale, loaders: { ["b_c087d0722440"]: _zintl_mgr_b_c087d0722440.loader, ["b_e7c8b4f1ad96"]: _zintl_mgr_b_e7c8b4f1ad96.loader } }));
+
+  const header = document.createElement("header");
+  header.className = "site-header";
+
+  header.innerHTML = `
+    <nav class="nav">
+      <a href="/">${_t("70f8bb9a", { _mgr: _zintl_mgr_b_e7c8b4f1ad96, _bId: "b_e7c8b4f1ad96" })}</a>
+      <a href="/about">${_t("bf073fae", { _mgr: _zintl_mgr_b_e7c8b4f1ad96, _bId: "b_e7c8b4f1ad96" })}</a>
+    </nav>
+  `;
+
+  return header;
+}

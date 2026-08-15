@@ -1,0 +1,12 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Rsbuild con Vanilla",
+      "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild.",
+      "Two documents, two entries, one shared header.": "Dos documentos, dos entradas, una cabecera compartida.",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

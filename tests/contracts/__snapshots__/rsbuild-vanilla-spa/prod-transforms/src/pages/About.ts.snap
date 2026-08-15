@@ -1,0 +1,22 @@
+import { _t } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_4f8017c0589a from "virtual:zintl/manager/none/entry:b_4f8017c0589a";
+/**
+ * Reached only through `await import()`, which is the point.
+ *
+ * These strings belong to a boundary the entry never imports statically, so
+ * Zintl emits their catalog behind the same dynamic import Rspack uses for the
+ * page itself. Nothing here is written differently because of that.
+ */
+export function About(): HTMLElement {
+  const container = document.createElement("div");
+  container.className = "content";
+
+  container.innerHTML = `
+    <h1>${_t("abdb1589", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_41f76352d384" })}</h1>
+    <p>${_t("ab94eb45", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_41f76352d384" })}</p>
+    <p>${_t("5f2f4dd3", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_41f76352d384", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>
+    <nav class="nav"><a id="to-home" href="/" data-link>${_t("a2bcccd6", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_41f76352d384" })}</a></nav>
+  `;
+
+  return container;
+}

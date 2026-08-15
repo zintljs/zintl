@@ -1,0 +1,16 @@
+const catalog = {
+    "b_src_App_tsx_default": {
+      "Rsbuild with React": "Rsbuild مع React",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "عدّل <code>src/App.tsx</code> واحفظ لاختبار <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

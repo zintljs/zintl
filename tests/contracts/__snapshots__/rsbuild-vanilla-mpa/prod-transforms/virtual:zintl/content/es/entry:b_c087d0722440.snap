@@ -1,0 +1,8 @@
+const catalog = {
+    "b_c087d0722440": {
+      "abdb1589": "Todo es una cadena de texto normal",
+      "45d702f4": "Este documento tiene su propia entrada y su propio fragmento de catálogo.",
+      "22857f41": "La cabecera de arriba es compartida y se ancla a sí misma.",
+    },
+  };
+export default catalog;

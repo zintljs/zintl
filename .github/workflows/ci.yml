@@ -145,7 +145,7 @@ jobs:
       - name: Build, Lint, Knip, Test, Format
         run: vp run verify
 
-  # Full e2e gate — 18 example builds + contract specs through real browsers.
+  # Full e2e gate — 24 example builds + contract specs through real browsers.
   # PR-only, and never on a changesets version PR: that PR changes versions and
   # changelogs, nothing a browser could observe, and the tree inside it already
   # passed contracts on the feature PR.

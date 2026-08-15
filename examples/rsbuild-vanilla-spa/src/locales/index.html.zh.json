@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": "",
+  "title": "Vanilla Rsbuild 路由 - Zintl 示例"
+}

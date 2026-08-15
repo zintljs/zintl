@@ -1,0 +1,44 @@
+import { loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_f1bc61690f0b from "virtual:zintl/manager/none/entry:b_f1bc61690f0b";
+import { useSyncExternalStore } from "react";import { StrictMode, useState } from "react";
+import { createRoot } from "react-dom/client";
+
+import App from "./App.tsx";
+
+function Main() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
+  const [lang, setLang] = useState(() => {
+    return new URLSearchParams(window.location.search).get("lang") || "en";
+  });
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_f1bc61690f0b"]: _zintl_mgr_b_f1bc61690f0b.loader } }));
+    setLang(newLang);
+  };
+
+  return <App lang={lang} onSwitch={handleSwitch} />;
+}
+
+async function bootstrap() {
+  // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+
+  // 2. Await Zintl catalog loading and hydration
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_f1bc61690f0b"]: _zintl_mgr_b_f1bc61690f0b.loader } }));
+
+  // 3. Render the React tree only when translations are ready
+  const rootEl = document.getElementById("root");
+  if (rootEl) {
+    createRoot(rootEl).render(
+      <StrictMode>
+        <Main />
+      </StrictMode>,
+    );
+  }
+}
+
+void bootstrap();

@@ -1,0 +1,228 @@
+{
+  "entries": [
+    "src/about:render",
+    "src/components/Header:Header",
+    "src/index:render"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/about": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/about:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/about:render"
+        },
+        {
+          "bindings": [
+            "Header"
+          ],
+          "dynamic": false,
+          "id": "src/components/Header:Header"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/about",
+      "id": "src/about",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/about:render": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "Header"
+          ],
+          "dynamic": false,
+          "id": "src/components/Header:Header"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/about",
+      "id": "src/about:render",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/components/Header": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/components/Header:Header"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/Header",
+      "id": "src/components/Header",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/Header:Header": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/Header",
+      "id": "src/components/Header:Header",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/index": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "Header"
+          ],
+          "dynamic": false,
+          "id": "src/components/Header:Header"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:render"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index:render": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "Header"
+          ],
+          "dynamic": false,
+          "id": "src/components/Header:Header"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index:render",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

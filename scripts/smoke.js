@@ -122,7 +122,7 @@ function tarballOverrides(tarballs) {
 /**
  * The application itself — identical for every host.
  *
- * Deliberately so, and for the same reason `examples/rsbuild-spa` mirrors
+ * Deliberately so, and for the same reason `examples/rsbuild-vanilla-basic` mirrors
  * `examples/vanilla-spa-basic`: if the app is the same, any difference in the
  * result is attributable to the host rather than to what it was asked to build.
  *
@@ -196,7 +196,7 @@ function writeFixture(dir, tarballs, viteMajor) {
  * Two differences from the Vite fixture, both of them the host's rather than
  * ours: the entry is named in the config (`source.entry`) instead of by a
  * `<script src>` in the template — which is the whole of ledger L-021 — and the
- * config is `.mjs`, matching what `examples/rsbuild-spa` ships and what the
+ * config is `.mjs`, matching what `examples/rsbuild-vanilla-basic` ships and what the
  * documentation tells a user to write.
  */
 function writeRsbuildFixture(dir, tarballs) {

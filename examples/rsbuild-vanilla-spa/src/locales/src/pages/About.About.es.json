@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/pages/About.About.schema.json",
+  "Back to the start": "Volver al inicio",
+  "Everything is a plain string": "Todo es una cadena de texto normal",
+  "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "Sin envoltorio <code>t()</code>, sin diccionario de claves, sin catálogo manual.",
+  "This page arrived in its own chunk, and so did its translations.": "Esta página llegó en su propio fragmento, y sus traducciones también."
+}

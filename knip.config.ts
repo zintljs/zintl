@@ -26,6 +26,24 @@ const config: KnipConfig = {
       entry: ["src/{about,main,entry-client,entry-server}.ts"],
       vue: true,
     },
+    /**
+     * The Rsbuild Svelte app needs the framework enabled, and the
+     * `examples/svelte-*` pattern above does not match `rsbuild-svelte-*`.
+     * Entries are `src/index.ts` (and `src/about.ts` on the MPAs), which is what
+     * `create-rsbuild` scaffolds.
+     *
+     * Note what is *not* carried over from `examples/svelte-*`: `sveltekit`.
+     * There is no SvelteKit here — `@rsbuild/plugin-svelte` is plain Svelte on
+     * Rspack — and claiming the framework would have knip looking for routes
+     * that do not exist.
+     *
+     * There is no `examples/rsbuild-vue-*` entry because there is no such
+     * example: Vue on Rspack is blocked by L-051.
+     */
+    "examples/rsbuild-svelte-*": {
+      entry: ["src/{about,index}.ts"],
+      svelte: true,
+    },
     "packages/compiler": {
       entry: ["src/index.ts", "src/runtime/*.ts", "src/facet/index.ts"],
       project: ["src/**/*.ts"],
@@ -50,7 +68,7 @@ const config: KnipConfig = {
   //
   // `@rsbuild/core` is here for the same reason, and only that reason: an inline
   // fixture's `rsbuild.config.mjs` imports it at materialization time.
-  // `examples/rsbuild-spa` declares its own copy and does not rely on this — the
+  // `examples/rsbuild-vanilla-basic` declares its own copy and does not rely on this — the
   // entry was briefly removed when that example was promoted, and had to come
   // back the moment a fixture needed the walk-up again.
   /**

@@ -1,0 +1,26 @@
+export default (() => {
+  const manager = { id: "b_src_about_render", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_about_render": {
+      "Everything is a plain string": "Everything is a plain string",
+      "This document has its own entry, and its own catalog chunk.": "This document has its own entry, and its own catalog chunk.",
+      "The header above is shared, and anchors itself.": "The header above is shared, and anchors itself.",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_src_about_render").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_src_about_render").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_src_about_render").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

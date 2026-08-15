@@ -1,0 +1,12 @@
+const catalog = {
+    "b_b071a5cc9dda": {
+      "b3cbd2ca": "Rsbuild con Svelte",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "b339a4ca": "Edita <code>src/App.svelte</code> y guarda para probar <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+    },
+  };
+export default catalog;

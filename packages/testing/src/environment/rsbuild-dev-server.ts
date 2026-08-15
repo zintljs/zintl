@@ -137,7 +137,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          * no `process.env.NODE_ENV` define at all. Harmless for a vanilla app and
          * fatal for React, whose development build reads that variable: the
          * bundle threw `ReferenceError: process is not defined` before rendering
-         * anything, and every contract on `rsbuild-react` failed on an empty
+         * anything, and every contract on `rsbuild-react-basic` failed on an empty
          * page rather than on what it was testing.
          *
          * Worth stating explicitly regardless of that bug: a driver whose job is
@@ -152,7 +152,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          * connection lost. Reconnecting…", the max-retry warning, and the
          * connect/apply messages all stopped reaching `LabConsole`. A whole class
          * of failure therefore arrived looking like nothing had happened at all,
-         * which is precisely what made the `rsbuild-react` intermittency take five
+         * which is precisely what made the `rsbuild-react-basic` intermittency take five
          * investigations to characterise.
          *
          * The extra server-side noise is worth it: contract output is only read
