@@ -4,6 +4,11 @@ import { generateStressProject } from "./stress-util.js";
 import { rm, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import {
+  CALIBRATION_BENCH_NAME,
+  calibrationSink,
+  calibrationWorkload,
+} from "../../../../scripts/bench-calibration.js";
 
 describe("Zintl Compiler Pipeline", async () => {
   beforeEach(() => {
@@ -54,14 +59,11 @@ describe("Zintl Compiler Pipeline", async () => {
   });
 
   bench(
-    "Reference Calibration (No-Op)",
+    CALIBRATION_BENCH_NAME,
     () => {
-      let sum = 0;
-      for (let i = 0; i < 1000; i++) {
-        sum += Math.sin(i);
-      }
+      calibrationSink.total += calibrationWorkload();
     },
-    { time: 500 },
+    { time: 500, warmupTime: 200, warmupIterations: 10 },
   );
 
   // Raw extraction is benchmarked in @zintljs/extractor's own suite; the plugin
@@ -85,6 +87,13 @@ describe("Zintl Compiler Pipeline", async () => {
         `\n// touch ${Math.random()}\nimport { util_0 } from "../lib/util_0.js";\n`;
       await compiler.transform(newContent, testFile.path, "none");
     },
+    /**
+     * No warmup, deliberately. Each iteration appends a fresh comment, which
+     * mints a new boundary, so the compiler's state grows as the bench runs and
+     * warmup iterations make the *measured* window slower rather than faster —
+     * measured, 0.32ms without and 0.55ms with. The same applies to the Colony
+     * bench below, which writes a new file body per iteration.
+     */
     { time: 2000, iterations: 100 },
   );
 
