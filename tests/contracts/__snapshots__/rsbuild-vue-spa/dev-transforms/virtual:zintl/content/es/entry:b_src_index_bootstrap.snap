@@ -1,0 +1,23 @@
+const catalog = {
+    "b_src_components_HelloWorld_vue": {
+      "Rsbuild with Vue": "Rsbuild con Vue",
+      "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild.",
+      "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>": "Edita <code>src/components/HelloWorld.vue</code> y guarda para probar <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+      "Read the guide": "Leer la guía",
+    },
+    "b_src_components_AboutWorld_vue": {
+      "Everything is a plain string": "Todo es una cadena de texto normal",
+      "This route arrived in its own chunk, and so did its translations.": "Esta ruta llegó en su propio fragmento, y sus traducciones también.",
+      "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "Sin envoltorio <code>t()</code>, sin diccionario de claves, sin catálogo manual.",
+      "Back to the start": "Volver al inicio",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

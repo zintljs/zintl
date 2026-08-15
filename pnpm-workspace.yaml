@@ -19,12 +19,9 @@ catalog:
   # vanilla, which left every framework-shaped question there answerable only by
   # inference. Svelte followed and worked unchanged.
   #
-  # There is deliberately no `@rsbuild/plugin-vue` entry: Vue on Rspack is
-  # blocked by L-051 — `vue-loader`'s per-block child requests do not carry
-  # Zintl's transform, so an app builds green and ships source-locale text.
-  # Adding the plugin without the fix would let someone scaffold exactly that.
   "@rsbuild/plugin-react": ^2.1.0
   "@rsbuild/plugin-svelte": ^2.0.1
+  "@rsbuild/plugin-vue": ^2.0.1
   vite-plus: 0.2.7
   "@vitest/coverage-v8": 4.1.10
   "@vitest/ui": 4.1.10

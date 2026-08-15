@@ -1,0 +1,43 @@
+{
+  "$schema": ".schemas/translations.shared.schema.json",
+  "Everything is a plain string": {
+    "ar": "كل شيء نص عادي",
+    "es": "Todo es una cadena de texto normal",
+    "zh": "一切都是普通字符串"
+  },
+  "Guide": {
+    "ar": "الدليل",
+    "es": "Guía",
+    "zh": "指南"
+  },
+  "Home": {
+    "ar": "الرئيسية",
+    "es": "Inicio",
+    "zh": "首页"
+  },
+  "Rsbuild with Vue": {
+    "ar": "Rsbuild مع Vue",
+    "es": "Rsbuild con Vue",
+    "zh": "Rsbuild 搭配 Vue"
+  },
+  "Start building amazing things with Rsbuild.": {
+    "ar": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+    "es": "Empieza a construir cosas increíbles con Rsbuild.",
+    "zh": "使用 Rsbuild 开始构建精彩的应用。"
+  },
+  "The header above is shared, and anchors itself.": {
+    "ar": "الترويسة أعلاه مشتركة، وتُرسي مرساتها بنفسها.",
+    "es": "La cabecera de arriba es compartida y se ancla a sí misma.",
+    "zh": "上方的页头是共享的，并且自行建立信任锚点。"
+  },
+  "This document has its own entry, and its own catalog chunk.": {
+    "ar": "لهذه الصفحة نقطة دخول خاصة بها، وحزمة كتالوج خاصة بها.",
+    "es": "Este documento tiene su propia entrada y su propio fragmento de catálogo.",
+    "zh": "这个文档有自己的入口，也有自己的目录分块。"
+  },
+  "Two documents, two entries, one shared header.": {
+    "ar": "صفحتان، ونقطتا دخول، وترويسة واحدة مشتركة.",
+    "es": "Dos documentos, dos entradas, una cabecera compartida.",
+    "zh": "两个文档、两个入口、一个共享页头。"
+  }
+}

@@ -1,0 +1,12 @@
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild con Vue",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "6c65d65b": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+    },
+  };
+export default catalog;

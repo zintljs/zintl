@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[6], {
+50(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_67edc86dc5a4": {
+      "abdb1589": "一切都是普通字符串",
+      "45d702f4": "这个文档有自己的入口，也有自己的目录分块。",
+      "22857f41": "上方的页头是共享的，并且自行建立信任锚点。",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

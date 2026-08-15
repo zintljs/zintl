@@ -1,0 +1,16 @@
+const catalog = {
+    "b_src_App_vue": {
+      "Rsbuild with Vue": "Rsbuild con Vue",
+      "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild.",
+      "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

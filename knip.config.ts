@@ -27,19 +27,21 @@ const config: KnipConfig = {
       vue: true,
     },
     /**
-     * The Rsbuild Svelte app needs the framework enabled, and the
-     * `examples/svelte-*` pattern above does not match `rsbuild-svelte-*`.
-     * Entries are `src/index.ts` (and `src/about.ts` on the MPAs), which is what
-     * `create-rsbuild` scaffolds.
+     * The Rsbuild framework apps need their framework enabled, and the
+     * `examples/{vue,svelte}-*` patterns above do not match `rsbuild-vue-*` /
+     * `rsbuild-svelte-*`. Entries are `src/index.ts` (and `src/about.ts` on the
+     * MPAs), which is what `create-rsbuild` scaffolds.
      *
      * Note what is *not* carried over from `examples/svelte-*`: `sveltekit`.
      * There is no SvelteKit here — `@rsbuild/plugin-svelte` is plain Svelte on
      * Rspack — and claiming the framework would have knip looking for routes
      * that do not exist.
-     *
-     * There is no `examples/rsbuild-vue-*` entry because there is no such
-     * example: Vue on Rspack is blocked by L-051.
      */
+    "examples/rsbuild-vue-*": {
+      entry: ["src/{about,index}.ts"],
+      project: ["src/**/*.{ts,vue}"],
+      vue: true,
+    },
     "examples/rsbuild-svelte-*": {
       entry: ["src/{about,index}.ts"],
       svelte: true,

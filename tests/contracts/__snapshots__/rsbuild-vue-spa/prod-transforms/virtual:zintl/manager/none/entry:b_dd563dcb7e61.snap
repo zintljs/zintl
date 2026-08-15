@@ -1,0 +1,30 @@
+export default { id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_07f886859652": {
+      "459e4199": "Rsbuild with Vue",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "e5943c9a": "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+      "b0fb2e27": "Read the guide",
+    },
+    "b_13b9cb21366d": {
+      "abdb1589": "Everything is a plain string",
+      "fc43cf0b": "This route arrived in its own chunk, and so did its translations.",
+      "5f2f4dd3": "No <code>t()</code> wrapper, no key dictionary, no manual catalog.",
+      "a2bcccd6": "Back to the start",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_dd563dcb7e61").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_dd563dcb7e61").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_dd563dcb7e61").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

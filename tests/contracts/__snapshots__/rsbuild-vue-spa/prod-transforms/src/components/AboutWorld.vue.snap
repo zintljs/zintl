@@ -1,0 +1,22 @@
+<script setup lang="ts">
+import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
+import { _t } from "virtual:zintl/runtime/internal";
+
+ /**
+ * Reached only through `() => import(...)` in `src/router.ts`, which is the
+ * point of this example.
+ *
+ * These strings belong to a boundary the entry never imports statically, so
+ * Zintl emits their catalog behind the same dynamic import Rspack uses for the
+ * component. Nothing here is written differently because of that.
+ */
+</script>
+
+<template>
+  <div class="content">
+    <h1>{{ _t('abdb1589', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_13b9cb21366d' }) }}</h1>
+    <p>{{ _t('fc43cf0b', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_13b9cb21366d' }) }}</p>
+    <p><span v-html="_t('5f2f4dd3', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_13b9cb21366d', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+    <nav class="nav"><router-link id="to-home" to="/">{{ _t('a2bcccd6', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_13b9cb21366d' }) }}</router-link></nav>
+  </div>
+</template>

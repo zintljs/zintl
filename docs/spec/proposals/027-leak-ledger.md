@@ -2835,9 +2835,9 @@ broken in the worst available shape.
 
 |                             |                                                                                      |
 | :-------------------------- | :----------------------------------------------------------------------------------- |
-| **Status**                  | **Open** — no Vue example ships; `@rsbuild/plugin-vue` is deliberately uncatalogued  |
+| **Status**                  | **Resolved** — `sfcBlockRequestsCarryWholeFile`; three Vue examples ship             |
 | **Bucket**                  | Silent wrong output — the one failure mode this project treats as worse than a crash |
-| **Facet contract changed?** | Not yet. The fix is a facet-level question, see below                                |
+| **Facet contract changed?** | **Yes** — one new bundler-facet flag; see the fix at the end of this entry           |
 
 Reproduced on 2026-08-14 against `@rsbuild/core@2.1.10`, `@rspack/core@2.1.8`,
 `@rsbuild/plugin-vue@2.0.1`, `vue@3.5.40`, on a `create-rsbuild` vue-ts starter with four locales.
@@ -2932,3 +2932,109 @@ worker copy mutated", and the response was to wipe `.tmp/runs` and re-record —
 run, twice, and would have been reported as fixed. It only came apart because `vpr ci` failed again
 immediately afterwards. A snapshot that is a function of the worker id passes about half the time, and
 half the time is exactly the rate at which "wipe and re-record" looks like a fix.
+
+### L-051, the fix — the host declares whether a block request carries the whole file
+
+Added to the entry above rather than numbered separately, because it is the same finding closed.
+
+**What the earlier write-up got right and wrong.** Right: `vue-loader`'s pitcher rewrites a block
+request into a `-!` request, and `-!` disables pre-loaders. Wrong: the conclusion drawn from it, that
+Zintl's transform therefore never reaches the block. It does. `genRequest` rebuilds the chain from
+`context.loaders` — the loaders matched for the _child_ request — and Zintl's rule matches by resource
+path, so it is in the chain, ahead of `vue-loader`. Measured with a probe on the transform hook:
+
+```
+transform id=…/src/App.vue                                        len=1836
+transform id=…/src/App.vue?vue&type=script&setup=true&lang=ts     len=1836   ← whole file
+transform id=…/src/App.vue?vue&type=style&index=0&…&lang=css      len=1836   ← whole file
+```
+
+Byte-identical lengths. The loader is handed the entire SFC on every block request, because the `-!`
+request's resource is the original file.
+
+**So the defect was one line of ours, not of the host's.** `hooks/transform.ts` skipped every id
+containing `?vue` or `&vue`. That skip is correct on Vite, where `@vitejs/plugin-vue` _loads_ the same
+id as a virtual module holding one block — transforming that fragment would hand the extractor a
+partial document. It is wrong on Rspack, where the id re-reads the whole file. The parent request was
+transformed and discarded; the block requests, which become the code, were skipped.
+
+The skip had also been written as a framework test (`?vue`, `?svelte`) when the question it is really
+asking is about the **bundler**. So the fix is a bundler-facet flag,
+`BundlerFacet.sfcBlockRequestsCarryWholeFile`, declared `true` by `rspackFacet` and left undeclared by
+`viteFacet`. `hooks/transform.ts` asks it instead of testing a query string, which keeps the rule out
+of a bundler-agnostic hook — the same discipline `htmlFanOut` applies to multiplex.
+
+On Vite the behaviour is unchanged, by construction: with the flag `false` the new condition reduces
+to the old one.
+
+**Cost:** a file with N block requests is transformed N+1 times. The transform is pure; a correct
+render is worth the repeat.
+
+**Verified:** `rsbuild-vue-basic`, `rsbuild-vue-spa` and `rsbuild-vue-mpa` render all four locales in
+dev and in a production preview, RTL included, with a lazy route and a shared async boundary among
+them. 25 contract cases across the three.
+
+### L-053 — Vue's Options API was never supported, on either host
+
+|                             |                                                                     |
+| :-------------------------- | :------------------------------------------------------------------ |
+| **Status**                  | **Open** — documented, not fixed; fails loudly rather than silently |
+| **Bucket**                  | Framework support gap, mistaken for a host gap while chasing L-051  |
+| **Facet contract changed?** | No                                                                  |
+
+Found while testing whether L-051's fix covered `?vue&type=template`, which only appears when an SFC
+is _not_ written with `<script setup>`. Converting `rsbuild-vue-basic`'s `App.vue` to
+`defineComponent({ data, methods })` produced an empty page and:
+
+```
+[Vue warn]: Property "_t" was accessed during render but is not defined on instance
+TypeError: _ctx._t is not a function
+```
+
+The mechanism is Vue's, not Zintl's. `<script setup>` compiles the template **inline into the setup
+function**, so the imports Zintl injects into the script block are in scope for template expressions.
+A plain `<script>` compiles the template into a separate render function whose expressions resolve
+against the component instance — where `_t` is not, and cannot be, a property.
+
+**Reproduced on Vite too**, by the same conversion applied to
+`examples/vue-basic/src/components/HelloWorld.vue`: identical error. So this is not an Rspack gap and
+L-051's fix neither caused nor could fix it. Every Vue example in this repository uses
+`<script setup>`, which is why it had never surfaced.
+
+Two things a fix would have to choose between, neither attempted here: inject through the component
+instance (a `setup()`/`beforeCreate` mixin the codegen adds, so `_ctx._t` resolves), or refuse the
+shape at extraction time with an error naming `<script setup>`. The second is cheap and is the
+project's usual answer to "this would otherwise fail confusingly" — the current failure is at least
+loud, which is why this is documented rather than urgent.
+
+### L-054 — `VueLoaderPlugin`'s rule-set counter is module-scoped, and it reached a snapshot
+
+|                             |                                                     |
+| :-------------------------- | :-------------------------------------------------- |
+| **Status**                  | **Resolved** — normalised in `sanitizeCode`         |
+| **Bucket**                  | Snapshot instability that reads as flake and is not |
+| **Facet contract changed?** | No                                                  |
+
+`[Production Build] rsbuild-vue-spa` failed with a diff whose only content was `clonedRuleSet_12`
+against `clonedRuleSet_66`, inside a generated binding name.
+
+`rspack-vue-loader/dist/plugin.js` opens its rule cloning with `let uid = 0` at **module scope** and
+names each cloned rule `clonedRuleSet-${++uid}`. A Vitest worker compiles several projects in one Node
+process, so the number a given project gets depends on how many Vue projects that worker happened to
+build first — which is scheduling, not source.
+
+It could only ever surface here. The counter reaches emitted code through the re-export indirection
+Rspack generates for a **lazily imported** SFC, which prints the entire loader chain into a variable
+name; `rsbuild-vue-spa` is the first project with a lazy `.vue` route.
+
+Normalised in `sanitizeCode` rather than pinned in the app, which is the opposite call from
+[L-052](#l-052) two entries up, and the difference is worth stating: Svelte's `cssHash` had a
+source-derived value to prefer, so pinning it made build output a function of the source. This counter
+identifies a loader chain and nothing else — there is no better value to choose, and the only thing
+normalising hides is the scheduling.
+
+**Both were first read as flake**, and both were caught by the gate rather than by suspicion. That is
+now three snapshot-stability defects in this phase (L-052, L-054) plus one silent-render defect
+(L-051) that no snapshot could have caught. The pattern worth carrying: a snapshot is only as good as
+the determinism of everything it embeds, and third-party identifiers embed whatever that party felt
+like counting.

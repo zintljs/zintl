@@ -1,0 +1,12 @@
+const catalog = {
+    "b_src_App_vue": {
+      "Rsbuild with Vue": "Rsbuild مع Vue",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Two documents, two entries, one shared header.": "صفحتان، ونقطتا دخول، وترويسة واحدة مشتركة.",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

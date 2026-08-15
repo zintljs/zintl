@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Count is {count}": "La cuenta es {count}",
+  "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>": "Edita <code>src/components/HelloWorld.vue</code> y guarda para probar <code>HMR</code>",
+  "Read the guide": "Leer la guía",
+  "Rsbuild with Vue": "Rsbuild con Vue",
+  "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild."
+}

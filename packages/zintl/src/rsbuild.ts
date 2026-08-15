@@ -4,23 +4,20 @@
  * The Zintl Rsbuild plugin — the same plugin as `zintljs/vite` behind a
  * different entry point, not a second implementation.
  *
- * Supported in production builds and in `rsbuild dev`, with **React, Svelte and
- * vanilla JavaScript**, for single-page apps and for ordinary multi-page apps
- * (several `source.entry` keys, several HTML templates). Chunk-aligned catalogs
- * — including lazily-imported routes — ghost mode, localized assets, per-locale
- * `<html lang>`/`dir` and hot updates all carry over, with no Rspack-specific
- * code in the compiler. Requires `@rsbuild/core` — an optional peer dependency,
- * tested against `^2.1.0`. Every configuration named here is driven by the
- * contract suite; see `examples/rsbuild-*`.
+ * Supported in production builds and in `rsbuild dev`, with **React, Vue,
+ * Svelte and vanilla JavaScript**, for single-page apps and for ordinary
+ * multi-page apps (several `source.entry` keys, several HTML templates).
+ * Chunk-aligned catalogs — including lazily-imported routes — ghost mode,
+ * localized assets, per-locale `<html lang>`/`dir` and hot updates all carry
+ * over, with no Rspack-specific code in the compiler. Requires `@rsbuild/core` —
+ * an optional peer dependency, tested against `^2.1.0`. Every configuration
+ * named here is driven by the contract suite; see `examples/rsbuild-*`.
  *
- * **Vue is not supported on this host, and the reason is worth reading before
- * you try it anyway.** `vue-loader` compiles an SFC through per-block child
- * requests that do not carry Zintl's transform, so a Vue app on Rspack extracts
- * correctly, scaffolds correct catalogs, passes `verifyIntegrity`, emits correct
- * catalog chunks — and then ships the source locale, because the code generation
- * never reaches the `.vue` module. It builds green and it is wrong. Use Vite for
- * Vue until this is fixed; the measurement and the options are written up as
- * L-051 in `docs/spec/proposals/027-leak-ledger.md`.
+ * **Vue components must use `<script setup>`**, here and on Vite alike. A plain
+ * `<script>` compiles its template into a separate render function whose
+ * expressions resolve against the component instance, where the helpers Zintl
+ * injects into the script block are not in scope — the render throws
+ * `_ctx._t is not a function`. See L-053.
  *
  * **How a dev edit reaches the screen depends on the app, not on this host.**
  * Where components re-read the catalog, the edit applies in place — today that

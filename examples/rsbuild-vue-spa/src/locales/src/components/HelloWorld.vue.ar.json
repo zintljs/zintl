@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/components/HelloWorld.vue.schema.json",
+  "Count is {count}": "العدد هو {count}",
+  "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>": "عدّل <code>src/components/HelloWorld.vue</code> واحفظ لاختبار <code>HMR</code>",
+  "Read the guide": "اقرأ الدليل",
+  "Rsbuild with Vue": "Rsbuild مع Vue",
+  "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild."
+}

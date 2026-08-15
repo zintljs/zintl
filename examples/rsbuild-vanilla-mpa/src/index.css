@@ -99,6 +99,11 @@ body {
 
 /* --- added for the multi-page variant --- */
 
+.nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
 .site-header {
   position: fixed;
   inset-block-start: 0;

@@ -1,0 +1,22 @@
+{
+  "name": "rsbuild-vue-basic",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev",
+    "build": "rsbuild build",
+    "preview": "rsbuild preview",
+    "check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "catalog:",
+    "@rsbuild/plugin-vue": "catalog:",
+    "typescript": "catalog:",
+    "vue-tsc": "catalog:",
+    "zintljs": "workspace:*"
+  }
+}

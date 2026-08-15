@@ -95,6 +95,25 @@ export class LabPipeline {
         .join("<MONOREPO_ROOT>")
         .replace(/_tmp_runs_w[^_]+_/g, "_tmp_runs_wN_")
         .replace(/_tmp_fixtures_w[^_]+_/g, "_tmp_fixtures_wN_")
+        /**
+         * `VueLoaderPlugin` numbers its cloned rule sets from a **module-scoped**
+         * counter (`let uid = 0` in `rspack-vue-loader/dist/plugin.js`), so the
+         * number depends on how many Vue projects that Node process compiled
+         * first. A worker builds several, in whatever order Vitest scheduled
+         * them, and the same project emitted `clonedRuleSet_12` in one run and
+         * `clonedRuleSet_66` in the next.
+         *
+         * It reaches a snapshot only through a lazily-imported SFC, where the
+         * re-export indirection prints the whole loader chain into a variable
+         * name — so `rsbuild-vue-spa` was the first project able to see it.
+         *
+         * Normalised rather than pinned because the counter says nothing about
+         * the build: it identifies a loader chain, not anything Zintl emitted.
+         * The same reasoning that made Svelte's `cssHash` worth *fixing* in the
+         * app rather than hiding here (L-052) points the other way for this one
+         * — there is no source-derived value to prefer.
+         */
+        .replace(/clonedRuleSet_\d+/g, "clonedRuleSet_N")
     );
   }
 

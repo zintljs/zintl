@@ -41,14 +41,31 @@ export function transformHook(ctx: Context) {
      */
     await ensureDiscovered(ctx);
     const isTargetSsrEntry = ctx.compiler?.isSsrEntryTarget?.(id);
+
+    /**
+     * A single-file component's per-block request, e.g.
+     * `App.vue?vue&type=script&setup=true&lang=ts`.
+     *
+     * Whether these may be transformed is a fact about the **host**, not about
+     * the framework, so the bundler facet answers it. On Vite the id names a
+     * virtual module holding one block, and transforming that fragment would
+     * ask the extractor to read a partial document — the whole file was already
+     * transformed under its unsuffixed id. On Rspack the same id re-reads the
+     * whole file, and skipping it means nothing that becomes code is ever
+     * transformed (ledger L-051).
+     *
+     * `cleanId` below strips the query either way, so the compiler sees one
+     * file id and the block request is just a second pass over the same source.
+     */
+    const isSfcBlockRequest = /[?&](vue|svelte)\b/.test(id);
+    const transformSfcBlocks =
+      isSfcBlockRequest && !!ctx.compiler?._resolved?.flags?.sfcBlockRequestsCarryWholeFile;
+
     if (
       (id.includes("node_modules") && !isTargetSsrEntry) ||
       (id.startsWith("\0") && !isTargetSsrEntry) ||
-      id.includes("?vue") ||
-      id.includes("&vue") ||
-      id.includes("?svelte") ||
-      id.includes("&svelte") ||
-      (id.includes("?") && !id.includes("zintl-multiplex="))
+      (isSfcBlockRequest && !transformSfcBlocks) ||
+      (!transformSfcBlocks && id.includes("?") && !id.includes("zintl-multiplex="))
     )
       return;
 

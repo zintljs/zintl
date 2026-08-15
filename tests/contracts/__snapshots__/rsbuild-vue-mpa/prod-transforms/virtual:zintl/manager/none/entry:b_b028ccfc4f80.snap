@@ -1,0 +1,18 @@
+export default { id: "b_b028ccfc4f80", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_b028ccfc4f80": {
+      "70f8bb9a": "Home",
+      "bf073fae": "Guide",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_b028ccfc4f80").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_b028ccfc4f80").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_b028ccfc4f80").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

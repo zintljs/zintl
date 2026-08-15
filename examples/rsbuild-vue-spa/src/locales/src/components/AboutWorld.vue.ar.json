@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/components/AboutWorld.vue.schema.json",
+  "Back to the start": "العودة إلى البداية",
+  "Everything is a plain string": "كل شيء نص عادي",
+  "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "بلا غلاف <code>t()</code>، وبلا قاموس مفاتيح، وبلا كتالوج يدوي.",
+  "This route arrived in its own chunk, and so did its translations.": "وصل هذا المسار في حزمة خاصة به، وكذلك ترجماته."
+}

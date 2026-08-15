@@ -1,0 +1,9 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": { "ar": "rtl", "es": "", "zh": "" },
+  "title": {
+    "ar": "Rsbuild مع Vue - مثال زينتل متعدد الصفحات",
+    "es": "Rsbuild con Vue - Ejemplo multipágina de Zintl",
+    "zh": "Rsbuild 搭配 Vue - Zintl 多页面示例"
+  }
+}

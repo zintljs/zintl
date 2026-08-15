@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Count is {count}": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {count}"
+    },
+    "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Rsbuild with Vue": {
+      "type": "string"
+    },
+    "Start building amazing things with Rsbuild.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Count is {count}",
+    "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+    "Rsbuild with Vue",
+    "Start building amazing things with Rsbuild."
+  ],
+  "additionalProperties": false
+}

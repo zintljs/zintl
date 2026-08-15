@@ -1,0 +1,19 @@
+const catalog = {
+    "b_07f886859652": {
+      "459e4199": "Rsbuild 搭配 Vue",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "e5943c9a": "编辑 <code>src/components/HelloWorld.vue</code> 并保存以测试 <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+      "b0fb2e27": "阅读指南",
+    },
+    "b_13b9cb21366d": {
+      "abdb1589": "一切都是普通字符串",
+      "fc43cf0b": "这个路由在自己的分块中加载，它的译文也是。",
+      "5f2f4dd3": "无需 <code>t()</code> 包装，无需键名字典，无需手动维护目录。",
+      "a2bcccd6": "返回首页",
+    },
+  };
+export default catalog;

@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/components/AboutWorld.vue.schema.json",
+  "Back to the start": "返回首页",
+  "Everything is a plain string": "一切都是普通字符串",
+  "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "无需 <code>t()</code> 包装，无需键名字典，无需手动维护目录。",
+  "This route arrived in its own chunk, and so did its translations.": "这个路由在自己的分块中加载，它的译文也是。"
+}

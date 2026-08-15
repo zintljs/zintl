@@ -96,6 +96,30 @@ export function rspackFacet(): ZintlFacet {
     dependencyInvalidation: true,
 
     /**
+     * An SFC block request here re-reads the whole file, so Zintl must transform
+     * it rather than skip it.
+     *
+     * `vue-loader`'s pitcher intercepts `App.vue?vue&type=script` and rewrites
+     * it into `-!<chain>!App.vue?vue&type=script` — a request whose resource is
+     * the original file, with the chain re-applied over it
+     * (`rspack-vue-loader/dist/pitcher.js`, `genRequest`). Measured: the loader
+     * receives all 1836 bytes of the SFC, byte-identical to the parent request,
+     * not the block.
+     *
+     * That inverts the rule Vite needs. There, the same id names a virtual
+     * module holding one block, and transforming it would hand the extractor a
+     * fragment. Here, skipping it means the only requests that become code are
+     * never transformed — the parent is transformed and discarded — so the app
+     * extracts correctly, scaffolds correct catalogs, passes `verifyIntegrity`,
+     * and renders the source locale. Ledger L-051.
+     *
+     * The one cost is that a file with N block requests is transformed N+1
+     * times. The transform is pure and the plans are cheap; a correct render is
+     * worth more than the repeat.
+     */
+    sfcBlockRequestsCarryWholeFile: true,
+
+    /**
      * The HMR token, plus acceptance where the framework allows it.
      *
      * The token is what makes the transformed source text actually differ, so

@@ -1,0 +1,16 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
+import _zintl_mgr_b_b028ccfc4f80 from "virtual:zintl/manager/none/entry:b_b028ccfc4f80";
+import _zintl_mgr_b_9e373ef8c775 from "virtual:zintl/manager/none/entry:b_9e373ef8c775";
+import { createApp } from "vue";
+
+import App from "./App.vue";
+import "./index.css";
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_9e373ef8c775"]: _zintl_mgr_b_9e373ef8c775.loader, ["b_b028ccfc4f80"]: _zintl_mgr_b_b028ccfc4f80.loader, ["b_dd563dcb7e61"]: _zintl_mgr_b_dd563dcb7e61.loader } }));
+  createApp(App).mount("#root");
+}
+
+void bootstrap();

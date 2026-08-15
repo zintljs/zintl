@@ -411,6 +411,36 @@ export interface BundlerFacet extends BaseFacet {
    */
   dependencyInvalidation?: boolean;
   /**
+   * When this host compiles one block of a single-file component, does the
+   * loader receive the **whole source file** or just that block?
+   *
+   * The two hosts answer differently, and the difference decides whether Zintl
+   * may transform a sub-block request at all.
+   *
+   * On Vite, `@vitejs/plugin-vue` *loads* `App.vue?vue&type=template` as a
+   * virtual module whose contents are the template block alone. Handing that
+   * fragment to `transform()` would be asking the extractor to read a partial
+   * document as an SFC, so those ids must be skipped — the whole file was
+   * already transformed once, under its unsuffixed id, and the block is derived
+   * from that result.
+   *
+   * On Rspack, `vue-loader`'s pitcher rewrites the block into a `-!` request
+   * that **re-reads the original file** and runs the chain over it
+   * (`rspack-vue-loader/dist/pitcher.js`, `genRequest`). So the loader is handed
+   * the entire SFC, Zintl's transform is the right thing to run, and
+   * `vue-loader` then selects the block out of the transformed source. Skipping
+   * there means the parent request is transformed and thrown away while the
+   * blocks that become code never are — an app that extracts correctly, builds
+   * green, and renders the source locale (ledger L-051).
+   *
+   * Declared by the host rather than tested for, because "is this a sub-block
+   * request" is a question about the bundler and `hooks/transform.ts` is
+   * bundler-agnostic. Undeclared reads as `false`, which keeps Vite's behaviour
+   * as the default — the conservative direction, since a wrong `true` feeds
+   * fragments to the extractor and a wrong `false` only repeats work.
+   */
+  sfcBlockRequestsCarryWholeFile?: boolean;
+  /**
    * How this host spells "accept my own updates", for **generated** modules.
    *
    * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
@@ -642,6 +672,8 @@ export interface CapabilityFlags {
   hotUpdate: boolean;
   /** True when the active bundler facet invalidates generated modules via declared file dependencies */
   dependencyInvalidation: boolean;
+  /** True when the active bundler facet hands SFC sub-block requests the whole source file */
+  sfcBlockRequestsCarryWholeFile: boolean;
 }
 
 /**

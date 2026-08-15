@@ -17,6 +17,7 @@ describe("Runtime Splitting - getRuntimeCode", () => {
     htmlFanOut: false,
     hotUpdate: false,
     dependencyInvalidation: false,
+    sfcBlockRequestsCarryWholeFile: false,
   };
 
   it("should return base store code with only store-core exports when capabilities are disabled", () => {

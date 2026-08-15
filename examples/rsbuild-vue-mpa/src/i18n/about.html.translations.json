@@ -1,0 +1,9 @@
+{
+  "$schema": ".schemas/about.html.schema.json",
+  "dir": { "ar": "rtl", "es": "", "zh": "" },
+  "title": {
+    "ar": "الدليل - مثال زينتل متعدد الصفحات",
+    "es": "Guía - Ejemplo multipágina de Zintl",
+    "zh": "指南 - Zintl 多页面示例"
+  }
+}

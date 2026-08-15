@@ -31,6 +31,7 @@ const NO_FLAGS: CapabilityFlags = {
   htmlFanOut: false,
   hotUpdate: false,
   dependencyInvalidation: false,
+  sfcBlockRequestsCarryWholeFile: false,
 };
 
 function emptySystem(): CompilerSystemView {

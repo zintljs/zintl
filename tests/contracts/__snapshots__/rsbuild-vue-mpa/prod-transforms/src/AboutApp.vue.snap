@@ -1,0 +1,28 @@
+<script setup lang="ts">
+import _zintl_mgr_b_9e373ef8c775 from "virtual:zintl/manager/none/entry:b_9e373ef8c775";
+import { _t } from "virtual:zintl/runtime/internal";
+
+import { ref } from "vue";
+import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+import SiteHeader from "./components/SiteHeader.vue";
+
+const activeLang = ref(new URLSearchParams(window.location.search).get("lang") || "en");
+
+const handleSwitch = (lang: string) => {
+  activeLang.value = lang;
+};
+</script>
+
+<template>
+  <div :key="activeLang">
+    <Suspense>
+      <SiteHeader :lang="activeLang" />
+    </Suspense>
+    <div class="content">
+      <LocaleSwitcher :lang="activeLang" @switch="handleSwitch" />
+      <h1>{{ _t('abdb1589', { _mgr: _zintl_mgr_b_9e373ef8c775, _bId: 'b_67edc86dc5a4' }) }}</h1>
+      <p>{{ _t('45d702f4', { _mgr: _zintl_mgr_b_9e373ef8c775, _bId: 'b_67edc86dc5a4' }) }}</p>
+      <p>{{ _t('22857f41', { _mgr: _zintl_mgr_b_9e373ef8c775, _bId: 'b_67edc86dc5a4' }) }}</p>
+    </div>
+  </div>
+</template>

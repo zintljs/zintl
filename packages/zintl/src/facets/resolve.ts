@@ -154,6 +154,7 @@ interface MergeState {
   htmlFanOut: boolean;
   hotUpdate: boolean;
   dependencyInvalidation: boolean;
+  sfcBlockRequestsCarryWholeFile: boolean;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -203,6 +204,7 @@ function createEmptyState(): MergeState {
     htmlFanOut: false,
     hotUpdate: false,
     dependencyInvalidation: false,
+    sfcBlockRequestsCarryWholeFile: false,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -404,6 +406,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       if (facet.htmlFanOut) state.htmlFanOut = true;
       if (facet.hotUpdate) state.hotUpdate = true;
       if (facet.dependencyInvalidation) state.dependencyInvalidation = true;
+      if (facet.sfcBlockRequestsCarryWholeFile) state.sfcBlockRequestsCarryWholeFile = true;
       break;
     }
   }
@@ -437,6 +440,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     htmlFanOut: state.htmlFanOut,
     hotUpdate: state.hotUpdate,
     dependencyInvalidation: state.dependencyInvalidation,
+    sfcBlockRequestsCarryWholeFile: state.sfcBlockRequestsCarryWholeFile,
   };
 }
 

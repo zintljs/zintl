@@ -1,0 +1,37 @@
+export default (() => {
+  const manager = { id: "b_src_index_bootstrap", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_components_HelloWorld_vue": {
+      "Rsbuild with Vue": "Rsbuild with Vue",
+      "Start building amazing things with Rsbuild.": "Start building amazing things with Rsbuild.",
+      "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>": "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+      "Read the guide": "Read the guide",
+    },
+    "b_src_components_AboutWorld_vue": {
+      "Everything is a plain string": "Everything is a plain string",
+      "This route arrived in its own chunk, and so did its translations.": "This route arrived in its own chunk, and so did its translations.",
+      "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "No <code>t()</code> wrapper, no key dictionary, no manual catalog.",
+      "Back to the start": "Back to the start",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_src_index_bootstrap").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_src_index_bootstrap").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_src_index_bootstrap").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

@@ -1,0 +1,81 @@
+<script setup lang="ts">
+import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+
+
+
+const props = defineProps<{ lang: string }>();
+
+/**
+ * No `@zintl-ignore` needed here, unlike the React, Svelte and vanilla
+ * switchers: the locale names live in a JS array rather than in the template, so
+ * they are never in extraction's reach in the first place.
+ */
+const locales = [
+  { id: "en", name: "English" },
+  { id: "ar", name: "العربية" },
+  { id: "es", name: "Español" },
+  { id: "zh", name: "中文" },
+];
+
+const emit = defineEmits(["switch"]);
+
+const handleSwitch = async (lang: string) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("lang", lang);
+  window.history.pushState({}, "", url.pathname + url.search);
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_dd563dcb7e61"]: _zintl_mgr_b_dd563dcb7e61.loader } }));
+  emit("switch", lang);
+};
+</script>
+
+<template>
+  <div id="switcher" class="switcher">
+    <button
+      v-for="l in locales"
+      :key="l.id"
+      type="button"
+      :class="{ active: props.lang === l.id }"
+      @click="handleSwitch(l.id)"
+    >
+      {{ l.name }}
+    </button>
+  </div>
+</template>
+
+<style scoped>
+/* Logical properties throughout, because `<html dir>` is what Zintl projects
+ * per locale: the Arabic build flips the document and nothing here should need
+ * a second rule to follow it. */
+.switcher {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.switcher button {
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.switcher button:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+.switcher button.active {
+  border-color: rgb(255 255 255 / 45%);
+  background: rgb(255 255 255 / 18%);
+}
+</style>

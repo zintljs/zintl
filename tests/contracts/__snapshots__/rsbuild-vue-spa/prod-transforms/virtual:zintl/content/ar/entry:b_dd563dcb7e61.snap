@@ -1,0 +1,19 @@
+const catalog = {
+    "b_07f886859652": {
+      "459e4199": "Rsbuild مع Vue",
+      "9724cf0a": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "e5943c9a": "عدّل <code>src/components/HelloWorld.vue</code> واحفظ لاختبار <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+      "b0fb2e27": "اقرأ الدليل",
+    },
+    "b_13b9cb21366d": {
+      "abdb1589": "كل شيء نص عادي",
+      "fc43cf0b": "وصل هذا المسار في حزمة خاصة به، وكذلك ترجماته.",
+      "5f2f4dd3": "بلا غلاف <code>t()</code>، وبلا قاموس مفاتيح، وبلا كتالوج يدوي.",
+      "a2bcccd6": "العودة إلى البداية",
+    },
+  };
+export default catalog;
