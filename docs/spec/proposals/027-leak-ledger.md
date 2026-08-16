@@ -3067,6 +3067,14 @@ re-derive it, given L-004's finding that those hand-maintained arrays had been b
   artifact-lifetime hazard again — a golden recorded against warm `.zintl` metadata, which
   `copiedExampleSource` deliberately copies. Third occurrence in this proposal, and the first where
   the stale artifact is baked into a _committed_ file rather than a local directory.
+
+  > **Corrected by [L-055](#l-055).** Right family, wrong mechanism — and the wrong mechanism implied
+  > the wrong fix. It is not a golden recorded from stale local state; it is a _build_ reading a
+  > dev-only boundary back out of persisted metadata, which made the snapshot a function of test
+  > ordering. Re-recording alone would only have moved which side flaked. Left as written, per this
+  > file's own rule: an entry that was honestly written and later proved wrong is evidence about the
+  > method.
+
 - `[HMR Propagation] rsbuild-react-basic` — the intermittent its own manifest already records
   (L-039, ~1 isolated run in 3).
 
@@ -3108,3 +3116,59 @@ now three snapshot-stability defects in this phase (L-052, L-054) plus one silen
 (L-051) that no snapshot could have caught. The pattern worth carrying: a snapshot is only as good as
 the determinism of everything it embeds, and third-party identifiers embed whatever that party felt
 like counting.
+
+### L-055 — a build read a dev-only boundary back out of its own persisted metadata
+
+|                             |                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                             |
+| **Bucket**                  | **3 — delete the guess** (stop trusting persisted state about a mode) |
+| **Facet contract changed?** | No                                                                    |
+
+Found by pulling on the failure L-053's write-up had already recorded as "pre-existing, stash-proven".
+Being pre-existing made it not-this-change's problem; it did not make it a non-problem, and the
+diagnosis turned out to be one probe deep.
+
+**What failed.** `[Serialized Graphs Snapshot] rsbuild-vanilla-basic` mismatched by exactly one node —
+a `b_assets` boundary the golden had and the run did not.
+
+**The first reading was wrong, and it was mine.** It was recorded as another instance of L-004's
+artifact-lifetime hazard: a golden recorded against warm `.zintl` metadata. That is the right family
+and the wrong mechanism, and the difference matters because the stated conclusion — "a golden recorded
+from stale local state" — implies re-recording is the fix. It is not.
+
+**What `b_assets` actually is.** The localized-asset boundary, carrying
+`"@zintl/asset:src/about.txt"`. Real, and the thing L-009's regression coverage rides on. It is
+synthesized in **dev only**, at three deliberate sites: `index.ts:1061` writes it into
+`internalManifest` and `metadataGraph`, and `GraphManager` both hangs entry deps on it (`:283`) and
+creates its node (`:301`) under `this.isDev`. The graph contract compiles `"production"`.
+
+**The mechanism, and the node's own shape is what gives it away.** The dev synthesis produces
+`filePath: "virtual-content"`, `usageCount: 1`. The committed golden read `filePath: "b_assets"`,
+`usageCount: 0` — the shape of the _ordinary_ node loop. So the node was never the dev synthesis
+travelling; it was `b_assets` re-entering as an ordinary boundary candidate, because
+`buildBoundaryGraph` seeds `allKnownBoundaries` from the keys of `internalManifest` and
+`metadataGraph` — and `.zintl`'s manifest keeps both across runs. **A golden that records a shape
+neither code path intends is worth reading twice.**
+
+**Measured, in both directions.** Seeding `examples/rsbuild-vanilla-basic/node_modules/.zintl/manifest.json`
+with a dev-written manifest made the production contract **pass**; restoring the one `vpr build:examples`
+writes made it **fail**. The harness re-copies `.zintl` from the origin each run, so within a run the
+deciding factor is narrower still: after a full suite, three of four worker copies held `b_assets` and
+w1 did not — the three that had run a dev contract for that project first. **The snapshot was a
+function of test ordering.** Same class as L-052's `cssHash` and L-054's rule-set counter, and the
+third time in this proposal that a golden turned out to be a function of the scheduler.
+
+**Why re-recording alone would have been the wrong fix**, and this is the part the first diagnosis
+missed: dropping `b_assets` from the golden only moves which side flakes. The contract would then fail
+whenever a dev contract preceded it on the same worker. Nothing about the ordering dependence would
+have changed, and the next person would have met it from the other direction.
+
+**The fix.** `buildBoundaryGraph` skips virtual boundaries when seeding boundary candidates outside
+dev. Not a new concept — `index.ts:2295` already steps over `b_assets` for its own reasons; this is
+the same statement made where the graph is built. Dev is untouched and still synthesizes the node with
+its own shape, which the new unit test pins from both sides so the two cannot quietly converge again.
+
+**Verified.** The re-recorded golden now passes **with a clean manifest and with a dev-polluted one**
+— the two states that previously disagreed. That is the property worth having: the graph is a function
+of the source, not of what ran before it.

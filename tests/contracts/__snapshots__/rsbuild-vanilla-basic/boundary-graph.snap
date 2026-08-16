@@ -3,14 +3,6 @@
     "src/index:render"
   ],
   "nodes": {
-    "b_assets": {
-      "activeLocales": "all",
-      "deps": [],
-      "filePath": "b_assets",
-      "id": "b_assets",
-      "mode": "boundary",
-      "usageCount": 0
-    },
     "rsbuild.config": {
       "activeLocales": "all",
       "deps": [
