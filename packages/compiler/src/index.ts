@@ -455,10 +455,36 @@ export class ZintlCompiler {
    *
    * Also dev-only: outside a watch build nothing consumes these at all.
    */
-  private declaredInputsFor(boundaryId: string): string[] {
+  private declaredInputsFor(moduleKey: string, boundaryId: string | string[]): string[] {
     if (!this.isDev || !this._resolved.flags.dependencyInvalidation) return [];
-    return this.getBoundaryInputs(boundaryId);
+
+    /**
+     * Unioned with what this module has declared before, and never narrowed.
+     *
+     * The inputs are derived from the boundaries the module *currently*
+     * contains, and a boundary can leave: a syntax error makes its file
+     * unextractable, so it drops out of the catalog for as long as the error
+     * stands. Deriving the watch set from the current contents alone would then
+     * stop watching the very file whose repair brings the boundary back — the
+     * module is never rebuilt, and `syntax-recovery` sees every one of that
+     * boundary's keys go missing rather than just the edited one. Measured that
+     * way round before this was added.
+     *
+     * Monotonic and dev-only, so the set is bounded by the project and watching
+     * a file that has become irrelevant costs one spurious rebuild at most.
+     */
+    const fresh = this.getBoundaryInputs(boundaryId);
+    let declared = this.declaredInputMemo.get(moduleKey);
+    if (!declared) {
+      declared = new Set<string>();
+      this.declaredInputMemo.set(moduleKey, declared);
+    }
+    for (const input of fresh) declared.add(input);
+    return Array.from(declared);
   }
+
+  /** Per generated module, every input it has ever declared. See {@link declaredInputsFor}. */
+  private readonly declaredInputMemo = new Map<string, Set<string>>();
 
   /**
    * Every file a boundary's generated catalog is derived from, as absolute paths.
@@ -481,17 +507,33 @@ export class ZintlCompiler {
    * Cheap enough to call per `load`: one pass over `boundaryOwnership` plus one
    * `getCatalogPath` per locale, both in-memory.
    */
-  public getBoundaryInputs(boundaryId: string): string[] {
+  public getBoundaryInputs(boundaryId: string | string[]): string[] {
+    const wanted = new Set(Array.isArray(boundaryId) ? boundaryId : [boundaryId]);
     const inputs = new Set<string>();
 
+    /**
+     * The **normalized** owner ids behind the requested boundaries.
+     *
+     * `getCatalogPath` reads an id as `<path>:<func>` — it is a *location*. The
+     * ids arriving here are **safe** ids (`b_src_pages_Home_Home`), which are
+     * *identities*. Handing one to the other yields
+     * `<outputDir>/b_src_pages_Home_Home.<locale>.json`: a file that can never
+     * exist, so the watch never fires and the generated module never goes
+     * stale. The loop below already knew the incoming id was safe — it compares
+     * through `getSafeBoundaryId` — and half the function acted on that while
+     * the other half did not. L-026's two-kinds-of-string, a third time.
+     */
+    const normalizedOwners = new Set<string>();
+    const matched = new Set<string>();
+
     for (const [fileId, owners] of this.messages.boundaryOwnership.entries()) {
-      let owned = owners.has(boundaryId);
-      if (!owned) {
-        for (const owner of owners) {
-          if (this.io.getSafeBoundaryId(owner) === boundaryId) {
-            owned = true;
-            break;
-          }
+      let owned = false;
+      for (const owner of owners) {
+        const safe = this.io.getSafeBoundaryId(owner);
+        if (wanted.has(owner) || wanted.has(safe)) {
+          owned = true;
+          normalizedOwners.add(owner);
+          matched.add(wanted.has(owner) ? owner : safe);
         }
       }
       if (owned) {
@@ -500,9 +542,15 @@ export class ZintlCompiler {
       }
     }
 
-    for (const locale of this.locales) {
-      const catPath = this.getCatalogPath(boundaryId, locale);
-      if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+    // A boundary nothing owns — a content boundary contributed by a facet, say —
+    // keeps the id it was asked about, which is the behaviour that predates this.
+    for (const id of wanted) if (!matched.has(id)) normalizedOwners.add(id);
+
+    for (const id of normalizedOwners) {
+      for (const locale of this.locales) {
+        const catPath = this.getCatalogPath(id, locale);
+        if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+      }
     }
 
     return Array.from(inputs);
@@ -2472,7 +2520,14 @@ export class ZintlCompiler {
       }
       return {
         code,
-        watchedFiles: this.declaredInputsFor(bId),
+        /**
+         * Every boundary this chunk *contains*, not just the one it is named
+         * after. An entry chunk carries the catalogs of everything reachable
+         * from the entry, so declaring only the entry's own inputs left an edit
+         * to any other boundary's source invisible: the module was rebuilt for
+         * nothing it embedded. See L-057.
+         */
+        watchedFiles: this.declaredInputsFor(`content:${loc}:${id}`, [bId, ...Object.keys(cat)]),
       };
     }
 
@@ -2550,7 +2605,13 @@ export class ZintlCompiler {
     }
     return {
       code,
-      watchedFiles: this.declaredInputsFor(bId),
+      // The manager inlines the active locale's catalog for every boundary it
+      // serves, so its inputs are theirs too — same reason as the content
+      // chunk above.
+      watchedFiles: this.declaredInputsFor(`manager:${bakedLoc}:${id}`, [
+        bId,
+        ...Object.keys(catData),
+      ]),
     };
   }
 }
