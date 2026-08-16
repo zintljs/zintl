@@ -55,7 +55,16 @@ export const rsbuildVanillaSpa: ProjectManifest = {
    * `performance` is unclaimed on every Rspack project — `performance-size`
    * filters responses by Vite-shaped URLs. `chaos` and `memory` follow `hmr`.
    */
-  capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],
+  capabilities: [
+    "build",
+    "graph",
+    "transform",
+    "spa",
+    "boundary-graph",
+    "locale-switch",
+    "rtl",
+    "hmr",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Vanilla Rsbuild",

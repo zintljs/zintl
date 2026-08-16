@@ -43,7 +43,16 @@ export const rsbuildVueSpa: ProjectManifest = {
    *
    * `performance` is unclaimed on every Rspack project.
    */
-  capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],
+  capabilities: [
+    "build",
+    "graph",
+    "transform",
+    "spa",
+    "boundary-graph",
+    "locale-switch",
+    "rtl",
+    "hmr",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Rsbuild with Vue",

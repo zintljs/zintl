@@ -81,6 +81,7 @@ export const rsbuildSvelteBasic: ProjectManifest = {
     "locale-switch",
     "rtl",
     "locale-switch-stress",
+    "hmr",
   ],
   adapter: {
     headingSelector: "h1",
