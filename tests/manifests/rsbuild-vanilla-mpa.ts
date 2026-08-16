@@ -52,35 +52,46 @@ export const rsbuildVanillaMpa: ProjectManifest = {
    * `/` and assert against a client-rendered page, which is exactly what the
    * home document is. It says nothing about the app being single-page.
    *
-   * **`hmr` is the interesting exclusion here, because the HMR contract itself
-   * passes.** Measured 2026-08-15: `[HMR Propagation] rsbuild-vanilla-mpa`
-   * failed **0 runs in 10** (`node scripts/flake.js hmr.contract --runs=10`),
-   * in the batch where `rsbuild-vanilla-spa` and `rsbuild-vue-spa` each failed
-   * 10 in 10. The heading is in the entry's own boundary, which the manager
-   * inlines, so the full reload a vanilla edit triggers comes back with the text
-   * already present.
+   * **`hmr` is claimed, and it took a contract fix rather than a product one.**
+   * Measured 2026-08-15: `[HMR Propagation] rsbuild-vanilla-mpa` failed **0 runs
+   * in 10** (`node scripts/flake.js hmr.contract --runs=10`), in the batch where
+   * `rsbuild-vanilla-spa` and `rsbuild-vue-spa` each failed 10 in 10. The heading
+   * is in the entry's own boundary, which the manager inlines, so the full reload
+   * a vanilla edit triggers comes back with the text already present.
    *
-   * What blocks the claim is two other contracts gated behind the same
-   * capability: `delivery-ordering` and `delivery-refresh` both abort with
-   * `Could not exercise ordering: no boundary carries "Vanilla Rsbuild"`. That is
-   * an assumption in the contract rather than a defect in delivery — it looks
+   * What blocked the claim was two other contracts gated behind the same
+   * capability: `delivery-ordering` and `delivery-refresh` both aborted with
+   * `Could not exercise ordering: no boundary carries "Vanilla Rsbuild"`. That was
+   * an assumption in the contract rather than a defect in delivery — they looked
    * the heading key up in `store.catalogs[activeLocale]` at first paint, and on
    * this app that map holds `b_src_about_render` and
    * `b_src_components_Header_Header` but not `b_src_index_render`. Inspected in
    * a live page: under `ar` all three boundaries are present and both documents
-   * render fully translated, so nothing is undelivered. The source locale is
+   * render fully translated, so nothing was undelivered. The source locale is
    * ghosted, and the entry's own boundary is inlined into the manager rather
-   * than registered as a catalog — which is exactly the boundary the contract
-   * goes looking for.
+   * than registered as a catalog — which is exactly the boundary the contracts
+   * went looking for.
    *
-   * Worth someone's time, because it is the one capability on this host that is
-   * demonstrably earned and administratively unclaimable. The contract needs a
-   * way to pick its probe boundary that does not assume the string it asserts on
-   * is registered rather than inlined.
+   * Both now pick their probe through `pickDeliveryProbe`, which falls back to
+   * any registered boundary, so what they assert is the receiver's rule rather
+   * than an assumption about how the app was chunked. Ledger L-056.
+   *
+   * Measured before claiming, 2026-08-16, `--no-build` against a confirmed
+   * `dist`: `hmr.contract` **0/10**, `syntax-recovery` **0/10**, `delivery`
+   * (failure + ordering + refresh) **0/10**. Thirty runs, no failure.
    *
    * `performance` is unclaimed on every Rspack project.
    */
-  capabilities: ["build", "graph", "transform", "spa", "boundary-graph", "locale-switch", "rtl"],
+  capabilities: [
+    "build",
+    "graph",
+    "transform",
+    "spa",
+    "boundary-graph",
+    "locale-switch",
+    "rtl",
+    "hmr",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Vanilla Rsbuild",

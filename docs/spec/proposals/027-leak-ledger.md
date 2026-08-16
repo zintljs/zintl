@@ -3172,3 +3172,63 @@ its own shape, which the new unit test pins from both sides so the two cannot qu
 **Verified.** The re-recorded golden now passes **with a clean manifest and with a dev-polluted one**
 — the two states that previously disagreed. That is the property worth having: the graph is a function
 of the source, not of what ran before it.
+
+## Phase 9 — the HMR capability, and a contract that described a chunking
+
+### L-056 — a capability that was earned and administratively unclaimable
+
+|                             |                                                            |
+| :-------------------------- | :--------------------------------------------------------- |
+| **Status**                  | **Fixed** — `rsbuild-vanilla-mpa` claims `hmr`, measured   |
+| **Bucket**                  | **2 — relocate it** (the probe is a property of the store) |
+| **Facet contract changed?** | No — `pickDeliveryProbe` is a testing-layer helper         |
+
+The third contract in this proposal to describe a **project** where it meant a **capability**, after
+`assets` in Phase 2 and `locale-switch` in Phase 4a. This one is the most instructive of the three,
+because it did not name an app: it encoded an assumption about **how an app was chunked**, which is
+harder to see and had the same effect.
+
+`delivery-ordering` and `delivery-refresh` both found their probe boundary by scanning
+`store.catalogs[locale]` for the one carrying `adapter.initialHeadingText`, and aborted when none did.
+That reads as a search for _the_ boundary. It is really a claim that the asserted string arrives in a
+**registered** catalog rather than one the manager **inlines**.
+
+On `rsbuild-vanilla-mpa` it does not. The heading lives in the entry's own boundary, which the manager
+inlines for the active locale; the source locale is ghosted, so nothing registers it. Both contracts
+aborted with `no boundary carries "Vanilla Rsbuild"` on an app where delivery demonstrably works —
+inspected live, all three boundaries present under `ar`, both documents fully translated.
+
+**The cost was a capability, not a test.** `[HMR Propagation] rsbuild-vanilla-mpa` passed **0 runs in
+10** in the same batch where `rsbuild-vanilla-spa` and `rsbuild-vue-spa` each failed 10 in 10. The
+project had earned `hmr` and could not claim it, because two contracts gated behind the same
+capability refused to run — so a **contract** limitation was recorded in a manifest as a **host**
+limitation, which is exactly what L-049 found in `chaos-boundary` one phase earlier. Twice in two
+phases is a pattern, not a coincidence: a contract that cannot run is indistinguishable, from the
+manifest's side, from a host that cannot do the thing.
+
+**The fix is a fallback, not an adapter field**, and that is the part worth keeping. The obvious move
+was a per-project `probeBoundary` in the adapter, the shape `assetSelector` and `isCatalogRequest`
+took. It would have worked and it would have been wrong: Axiom D1 and the push/pull join are
+properties of the **receiver**, not of any particular boundary, so no per-project answer is needed —
+only a probe that stops insisting on one specific boundary. `pickDeliveryProbe`
+(`packages/testing/src/contracts/probe.ts`) prefers the boundary carrying the heading, falls back to
+any registered one, and fails only when the store holds no catalogs at all for the active locale,
+which is a real failure and now says so precisely. **Ask for an adapter answer only when the question
+genuinely has a per-project answer.**
+
+**Recorded honestly:** when the fallback fires, the contract proves the rule one step further from the
+string the page renders — on a registered boundary rather than the heading's. `carriesKey` carries
+that distinction rather than hiding it, the same way Phase 4a stated that this host's
+`isCatalogRequest` cannot prove _which_ locale was fetched.
+
+**Measured before claiming**, per Phase 7's rule, `--no-build` against a confirmed `dist`:
+`hmr.contract` **0/10**, `syntax-recovery` **0/10**, `delivery` (failure + ordering + refresh)
+**0/10**. Thirty runs, no failure. The 12 pre-existing delivery cases pass unchanged, so the fallback
+is inert everywhere it was already working.
+
+**What this does not touch.** `hmr` stays unclaimed on `rsbuild-vanilla-spa`, `rsbuild-vue-*` and
+`rsbuild-svelte-basic`, and for the reason their manifests already measure rather than this one: on a
+full reload the reload beats the catalog write when the edited string lives in a boundary the manager
+must **fetch**. The dividing line on this host is inlined-vs-fetched, not the framework — 0/10 where
+the heading is inlined, 10/10 where it is not. That is a product defect and the next thing to chase;
+this entry only removes the contract-shaped blocker sitting in front of it.

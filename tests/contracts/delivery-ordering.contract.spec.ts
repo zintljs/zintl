@@ -1,4 +1,4 @@
-import { executeContract, type Contract } from "@zintljs/testing";
+import { executeContract, pickDeliveryProbe, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 /**
@@ -30,8 +30,15 @@ export const deliveryOrderingContract: Contract = {
     // The key a catalog is addressed by is the source text itself.
     const key = adapter.initialHeadingText;
 
+    const probe = await pickDeliveryProbe(lab, key);
+    if (!probe.ok) {
+      throw new Error(
+        `Could not exercise ordering: ${probe.why}.\n\n${await lab.assert.describeStall()}`,
+      );
+    }
+
     const applied = await lab.page.evaluate(
-      ({ key: messageKey }) => {
+      ({ key: messageKey, boundaries }) => {
         const store = (
           globalThis as {
             __zintl_current_instance?: {
@@ -44,12 +51,6 @@ export const deliveryOrderingContract: Contract = {
         if (!store) return { ok: false as const, why: "no runtime on the page" };
 
         const locale = store.locale;
-        const boundaries = Object.keys(store.catalogs[locale] ?? {}).filter(
-          (b) => messageKey in (store.catalogs[locale]?.[b] ?? {}),
-        );
-        if (boundaries.length === 0) {
-          return { ok: false as const, why: `no boundary carries ${JSON.stringify(messageKey)}` };
-        }
 
         /**
          * A generation comfortably above anything the compiler has issued, so
@@ -67,7 +68,7 @@ export const deliveryOrderingContract: Contract = {
         }
         return { ok: true as const, boundaries };
       },
-      { key },
+      { key, boundaries: probe.boundaries },
     );
 
     if (!applied.ok) {
