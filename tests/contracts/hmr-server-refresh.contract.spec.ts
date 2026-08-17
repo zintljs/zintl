@@ -48,11 +48,36 @@ export const hmrServerRefreshContract: Contract<SsrAdapter & HmrAdapter> = {
    * specified, implemented, and unreachable, because every hot-update contract
    * required `spa` and no SSR project claims it.
    */
+  /**
+   * **Three of the four steps work. The fourth is Vite's SSR module cache.**
+   *
+   * Instrumented per environment, an edit to `src/entry-server.js` produces:
+   *
+   * ```
+   * ENVRESULT=ssr → count=5      ← the applier invalidated 5 modules
+   * ENVRESULT=ssr → count=5      ← twice; no client environment fires at all
+   * hmr packets: {"full-reload": 2}
+   * ```
+   *
+   * So detection (`ssrBoundaries` minus `clientBoundaries`), signalling (the
+   * broadcast), and invalidation (the SSR environment's module graph) are all
+   * correct. What is stale is what the *server* renders from: the fixture calls
+   * `vite.ssrLoadModule()` per request, and in Vite 6+ that is backed by a
+   * module **runner** whose evaluated-module cache is separate from the module
+   * graph. `mg.invalidateModule()` clears the graph node; it does not evict the
+   * runner's already-evaluated module, so the next request re-renders from the
+   * function object built before the edit.
+   *
+   * Left pending rather than guessed at. The next step is to find what evicts
+   * the runner's cache on this Vite version — the graph invalidation is already
+   * happening and is not the missing piece.
+   */
   pendingFor: {
     "ssr-streaming":
-      "The full-reload packet is sent, but the re-rendered HTML is stale: the heading stays " +
-      "'Get started' after src/entry-server.js is edited. Signalling works, re-execution does " +
-      "not. Measured on first run; no product fix attempted.",
+      "Vite's SSR module runner keeps the pre-edit module. Detection, the full-reload broadcast " +
+      "and SSR module-graph invalidation (5 modules, twice) all measured working; ssrLoadModule " +
+      "still returns the module evaluated before the edit. Needs the runner's evaluated-module " +
+      "cache evicted, which module-graph invalidation does not do in Vite 6+.",
   },
   async execute(lab, adapter) {
     const edit = adapter.serverOnlyEdit;

@@ -4278,3 +4278,46 @@ boundaries dirty). Four handler-level guards for the residual writer measured an
 The residual writer is real, is not addressable at the `unlink` handler, and is not worth a fifth
 guess. Anyone resuming this should start by establishing a same-batch baseline — and should treat
 every rate quoted in the entries above as valid only against the batch it was taken in.
+
+### L-072 — SSR hot updates: three steps of four work, and the fourth is a cache we do not own
+
+ZHMR §4.3 was measured red when `hmr-server-refresh` was written, with the diagnosis "signalling
+works, re-execution does not". Instrumenting the hook per environment sharpens that considerably.
+
+An edit to `src/entry-server.js` on `ssr-streaming` produces:
+
+```
+ENVRESULT=ssr → count=5        ← the applier invalidated 5 modules
+ENVRESULT=ssr → count=5        ← and again; no client environment fires at all
+hmr packets: {"full-reload": 2}
+```
+
+So of the four things that have to happen, **three are already correct**:
+
+1. **Detection.** `ssrBoundaries` minus `clientBoundaries` identifies the server-only boundary.
+2. **Signalling.** The `{ type: "full-reload", path: "*" }` broadcast reaches the browser, twice.
+3. **Invalidation.** The SSR environment's module graph is invalidated — five modules, and the hook
+   correctly uses `this.environment.moduleGraph` rather than the client graph.
+4. **Re-evaluation.** This is the one that does not happen.
+
+**What survives is not the module graph.** The fixture calls `vite.ssrLoadModule()` per request, and
+in Vite 6+ that is backed by a module **runner** holding evaluated modules in a cache separate from
+the graph. `mg.invalidateModule()` clears the graph node's transform result; it does not evict an
+already-evaluated module from the runner. The next request therefore re-renders from the function
+object built before the edit — which is exactly "the reload fetched fresh HTML and the HTML was
+stale".
+
+**Also worth recording: only the `ssr` environment fires here, and it fires twice.** The double call
+is absorbed correctly by `invalidateForUpdate`'s custody (Axiom D3, "another environment reporting
+the same event joins the first pass"), so nothing is done twice. But the comment's premise — that the
+two calls are _different_ environments — does not hold for this project: both are `ssr`. Worth
+revisiting if that custody is ever load-bearing for correctness rather than for cost.
+
+**Not fixed, and deliberately not guessed at.** Finding what evicts the runner's cache on this Vite
+version is a question about Vite's internals, and the previous entry in this proposal is a record of
+four guesses at a different question, each of which measured worse than doing nothing. The graph
+invalidation is already happening and is not the missing piece — that is the finding, and it is what
+the next attempt should start from rather than re-deriving.
+
+`react-ssr` is a separate case still: hot updates do not reach it at all, so it fails before any of
+the four steps above. Its `hmr` claim remains withdrawn.
