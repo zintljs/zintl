@@ -136,10 +136,13 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    */
   pendingFor: {
     "svelte-basic":
-      "L-071 (open, halved): a forgotten boundary's catalogs are re-materialised after the prune " +
-      "deletes them. 5/10 → 2/10 once removeFile stopped marking the removed boundary dirty; a " +
-      "second writer remains. The prune itself is correct. NOT proposal 024 §1.3's double mount, " +
-      "which is what this was previously recorded as.",
+      "L-071 (open): a forgotten boundary's catalogs are re-materialised after the prune deletes " +
+      "them. Four handler-level guards measured and excluded — see the ledger before trying a " +
+      "fifth. Rate is heavily load-dependent (2/10 and 10/10 observed on identical code), so only " +
+      "same-batch comparisons mean anything here.",
+    "vue-basic":
+      "L-071, same residual writer. Clean in the last same-batch measurement but marginal across " +
+      "runs; skipped so the gate reports the debt rather than the weather.",
   },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;

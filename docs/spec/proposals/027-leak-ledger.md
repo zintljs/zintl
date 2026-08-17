@@ -4140,3 +4140,141 @@ verdict, and the difference is entirely in what was known.
 _created_. A boundary that is forgotten and then re-extracted can be reconciled back onto the old id
 by content — which would write the old path. **Stated as the next probe, not as a mechanism**, which
 is the discipline the three entries before this one were written to enforce.
+
+### L-071 — the second writer named: a spurious `unlink` from atomic saves
+
+The thread from the previous entry — `Forgetting deleted file: src/AppNew.svelte`, for the file the
+rename had just _created_ — leads somewhere concrete.
+
+**Atomic saves look like deletions.** The harness's `atomicWrite` does
+`writeFile(tmp)` then `rename(tmp, target)`, and a rename-over is reported by watchers as `unlink`
+followed by `add`. So editing `AppNew.svelte` emits an `unlink` for a file that is still there,
+`removeFile` forgets a live boundary, and the churn that follows re-registers it — writing catalogs
+the prune had just reclaimed.
+
+This is **not** a test artefact. VS Code saves the same way; so does most tooling. The same sequence
+reaches the compiler from an ordinary editor.
+
+**The obvious guard works in isolation and loses on the gate that counts.** Ignoring an `unlink` when
+`existsSync(filePath)` is still true took `chaos-boundary` from 2 failures in 10 to **0 in 10** —
+measured, in isolation. Under `ready:examples` it then failed **both** `svelte-basic` and
+`vue-basic`, twice in two runs, where `vue-basic` had been passing. Net worse on the full suite, so
+it was reverted.
+
+That asymmetry is the finding worth keeping. `tests/manifests/index.ts` already says a capability is
+"a claim about the **full suite**, not about a contract run alone", and this is the sharpest example
+yet: a change measured 0/10 by `flake.js` on one contract file, and negative on the suite. A
+`stat`-based guard is inherently timing-sensitive — under contention a genuine deletion can be
+checked before the unlink is visible, or after something has recreated the path — so the guard trades
+one race for another rather than removing one.
+
+**What survives from this pass:** the first writer is fixed (`removeFile` no longer marks removed
+boundaries dirty, 5/10 → 2/10), and the second is now _named_ rather than suspected. The fix for it
+has to distinguish a save from a deletion without asking the filesystem a question whose answer
+depends on when it is asked — the host's own event stream pairs `unlink` with a following `add`, and
+that pairing, not a `stat`, is the signal.
+
+### L-071 — the unlink/add pairing, tried and falsified
+
+The fix the previous entry named turned out to rest on an assumption nobody had checked, and checking
+it took one counter.
+
+**The pairing was implemented properly.** `ZintlCompiler.reportUnlink` held a removal for 50 ms;
+`reportFilePresent` cancelled it when an `add` or `change` for the same path arrived. Vite reported
+all three events; Rspack needed no window at all, since it hands `removedFiles` and `modifiedFiles`
+for the same batch and a path in both is an atomic save by construction.
+
+**And the cancellation never fired. Not once.**
+
+```
+Cancelled the pending removal: 0
+Forgetting deleted file:       2   (src/App.svelte, src/AppNew.svelte)
+```
+
+No `add` follows the spurious `unlink` of `src/AppNew.svelte`, so it is **not** a rename-over of that
+file. The whole mechanism this entry proposed — atomic save reported as unlink+add — is wrong for
+this event. Measured 2/10 → **4/10**, worse than doing nothing, and reverted.
+
+**Three attempts, three falsifications, and the value is in what they exclude.** An `existsSync`
+guard: 0/10 isolated, negative on the full suite. Event pairing: cancellation never fires. Before
+those, `markDirty` — which _was_ a real writer and is fixed. What remains is a spurious `unlink` on a
+file that was **created moments earlier by the same test**, whose origin is now known not to be an
+atomic save. The next place to look is who else calls `removeFile`, and whether a pooled dev server
+is seeing a _different_ lab's teardown.
+
+**Both projects are now skipped rather than one.** `vue-basic` passed the full suite twice and then
+failed it twice with no code change in between; its greens were marginal, not earned. A gate that
+reports the weather is worse than one that reports the debt, so the residual defect is stated in both
+manifests instead of being rediscovered as flake.
+
+**Net for L-071: halved and stopped.** The first writer is fixed and measured; the second is
+characterised by three excluded hypotheses rather than a fourth guess.
+
+### L-071 — the module-graph guard, and a correction to how the last one was judged
+
+**The graph check is the worst of the four, and it fails informatively.** Ignoring an `unlink` when
+`server.moduleGraph.getModulesByFile(file)` still returns modules produced **10 failures in 10, on
+all four projects** — including the two that had been passing. The reason is ordering: this listener
+runs _before_ Vite prunes its own graph, so at that moment the module is present for a genuine
+deletion exactly as it is for a spurious one. The check cannot distinguish, so it ignores every
+deletion and no boundary is ever forgotten.
+
+That is a useful exclusion rather than just a failure. It says the host's graph carries no more
+information than the filesystem does at the moment the event arrives — and it rules out the "ask the
+host instead of the disk" framing that motivated it.
+
+**And it forces a correction about the `existsSync` guard.** That one was rejected for regressing the
+full suite, and the comparison was not like for like: it was measured with `svelte-basic`
+**un-pended**, against a baseline where `svelte-basic` was **skipped**. Of course more tests failed —
+one of the conditions was running a test the other was not. `vue-basic` failed in _both_, which is
+the fact that should have been read at the time and was not.
+
+So the standing of the four attempts is:
+
+| Guard                          | Measured                                          | Status                          |
+| :----------------------------- | :------------------------------------------------ | :------------------------------ |
+| `removeFile` stops `markDirty` | 5/10 → 2/10                                       | **Kept** — a real writer, fixed |
+| `existsSync` at handler time   | 2/10 → **0/10** isolated; full-suite verdict void | Rejected on a bad comparison    |
+| unlink/add event pairing       | Cancellation never fired; 2/10 → 4/10             | Falsified                       |
+| host module-graph liveness     | 10/10 on all four projects                        | Falsified                       |
+
+**The next step is not a fifth guard.** It is to re-measure `existsSync` against the same pendingFor
+state on both sides, because on the only comparison that was ever valid — `flake.js` on this contract,
+same conditions — it took the failure rate to zero and nothing has since explained that away.
+
+### L-071 — the like-for-like re-measurement, and why every earlier number was noise
+
+The comparison the previous entry asked for, run properly: both projects un-pended on **both** sides,
+baseline and treatment in the **same batch**, nothing else changed.
+
+| Condition                          | Runs failing                 |
+| :--------------------------------- | :--------------------------- |
+| Baseline, no guard                 | **10 / 10** (`svelte-basic`) |
+| `existsSync` guard at handler time | **8 / 10** (`svelte-basic`)  |
+
+`vue-basic` was clean in both.
+
+**So the `existsSync` guard is not the fix.** Two runs in ten is not a result at n=10, and the 0/10
+that made it look like one was measured on a quieter machine at a different time — not against a
+baseline at all. It is reverted, and this time on evidence rather than on a bad comparison.
+
+**The larger finding is about every number in this entry.** The _same code_ has measured 2/10 and
+10/10 on this contract. That is a 5× swing from machine conditions alone, which means every
+cross-session comparison made here — including the ones that promoted and demoted three separate
+guards — carried almost no information. `scripts/flake.js` says this in its own header: the baseline
+must be measured in the same batch as the change. Four of the five measurements in this investigation
+were not, and each one produced a confident verdict that the next measurement overturned.
+
+**Where L-071 stands.** One real writer found and fixed (`removeFile` no longer marks removed
+boundaries dirty). Four handler-level guards for the residual writer measured and excluded:
+
+| Guard                        | Same-batch result          | Verdict   |
+| :--------------------------- | :------------------------- | :-------- |
+| `existsSync` at handler time | 10/10 → 8/10               | Not a fix |
+| unlink/add event pairing     | cancellation never fired   | Falsified |
+| host module-graph liveness   | 10/10 on all four projects | Falsified |
+| (`markDirty`, for contrast)  | 5/10 → 2/10, held up       | **Kept**  |
+
+The residual writer is real, is not addressable at the `unlink` handler, and is not worth a fifth
+guess. Anyone resuming this should start by establishing a same-batch baseline — and should treat
+every rate quoted in the entries above as valid only against the batch it was taken in.
