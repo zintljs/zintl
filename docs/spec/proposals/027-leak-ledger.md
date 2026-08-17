@@ -3746,3 +3746,64 @@ So the axis is not the framework — it is L-056's inlined-vs-fetched line, reac
 direction. They are left pending rather than forced to reload with the others: these projects _can_
 repaint, and making them refresh the page would trade a real defect for a worse experience and call
 it fixed.
+
+### L-068 — subscribers were stranded on the store the swap left behind
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — React passes; Vue is not the same problem |
+| **Bucket**                  | 3 — real defect, in the shipped runtime               |
+| **Facet contract changed?** | No                                                    |
+
+The remainder of L-064 — reactive frameworks whose managers _fetch_ the catalog — turned out to be
+two unrelated things wearing one symptom, and separating them took one measurement:
+
+```
+listeners: 0        ← on the live store, with React's useSyncExternalStore mounted
+version:   2 → 4    ← notify() had run, twice, into an empty set
+hits:      b_src_App_tsx_default / "Rsbuild with React" → "Traducción actualizada en caliente"
+```
+
+The store had the new translation. `notify()` had fired. **Nobody was listening.**
+
+**React: a real defect, and it was never framework-specific.** `subscribe()` resolves through
+`getActiveInstance()`, which falls back to a module-level `defaultInstance` until something calls
+`setActiveInstance`. Anything that renders before the entry's `zintl()` resolves therefore subscribes
+to _that_ store — and `setActiveInstance` reassigned `currentInstance` and the global without taking
+the listeners with it. The subscription survived, pointed at an object nothing would ever notify
+again.
+
+`I18nStore.adoptListeners` moves them across on the swap and notifies once, because a subscriber
+whose store changed underneath it has by definition missed a snapshot. `listeners: 0` became
+`listeners: 2` and `[Catalog Edit] rsbuild-react-basic` went green.
+
+**Why it hid for so long is the interesting half.** On Vite the applier invalidates the entry's own
+modules on every boundary update, so React remounts against the current store and re-subscribes —
+the strand is repaired constantly by a mechanism that exists for another reason. On Rspack nothing
+re-runs, so the strand is permanent. A defect in host-neutral runtime code, observable on exactly one
+host, which is the shape 026 built the second host to find.
+
+**Vue: not a defect at all, and the generated code says so.**
+
+```
+<h1>{{ _t('Rsbuild with Vue', { _mgr: …, _bId: 'b_src_App_vue' }) }}</h1>
+```
+
+`_t` is an ordinary function reading an ordinary object. Vue re-renders when a **reactive dependency**
+changes, and this template has none — so a delivered catalog is invisible to it by construction.
+There is no stranded subscription here because there is no subscription: nothing in the Vue pipeline
+is the counterpart of React's `useSyncExternalStore`. `rsbuild-vue-mpa` passes for an unrelated
+reason, the one L-056 named — its catalog is _inlined_, so the update lands on the manager, the entry
+re-runs and the app remounts.
+
+Closing Vue means giving it a reactive handle the template depends on: a `shallowRef` in the
+component's setup, bumped from a store subscription, that each generated `_t` call reads. That is a
+**feature with a design**, not a defect with a fix, and it is left as one rather than improvised —
+the alternative on offer was to declare Vue non-reactive and reload, which would have made
+`rsbuild-vue-basic` and `rsbuild-vue-spa` pass by taking away a warm path `rsbuild-vue-mpa`
+demonstrably has. Trading a real capability for a green tick is how the entries earlier in this
+proposal went wrong.
+
+**255 contract tests pass, up from 254.** The remaining two skips on this contract are Vue's, with
+the reason stated in the contract rather than in a manifest, because it is a property of the
+framework integration rather than of either project.

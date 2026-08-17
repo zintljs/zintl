@@ -532,6 +532,35 @@ var I18nStore = class {
 		return () => this.listeners.delete(listener);
 	}
 	/**
+	* Take over the subscribers of the store this one is replacing.
+	*
+	* `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+	* module-level `defaultInstance` until something calls `setActiveInstance`.
+	* A component that renders before the entry's `zintl()` resolves therefore
+	* subscribes to *that* store, and the swap left its listener behind on an
+	* object nothing would ever notify again — measured as `listeners: 0` on the
+	* live store while React's `useSyncExternalStore` was demonstrably mounted
+	* (ledger L-068).
+	*
+	* The consequence is invisible until something arrives that only a subscriber
+	* could act on. A hot catalog update is exactly that: the store takes the new
+	* translation, `notify()` runs, and there is nobody in the set. On Vite the
+	* defect is masked because the applier re-runs the entry, which remounts the
+	* components against the current store; on Rspack nothing re-runs and the
+	* page keeps its first paint.
+	*
+	* Listeners are *moved*, not copied — the old store is being retired, and a
+	* subscriber notified twice for one change is a second bug. They are then
+	* notified once, because their snapshot has just changed underneath them by
+	* definition: they were reading a different store a moment ago.
+	*/
+	adoptListeners(previous) {
+		if (previous === this || previous.listeners.size === 0) return;
+		for (const listener of previous.listeners) this.listeners.add(listener);
+		previous.listeners.clear();
+		this.notify();
+	}
+	/**
 	* Tell subscribers something changed.
 	*
 	* `version` is bumped here rather than by each caller, so it cannot drift out
@@ -927,8 +956,16 @@ function getActiveInstance() {
 	return currentInstance;
 }
 function setActiveInstance(instance) {
+	const previous = currentInstance;
 	currentInstance = instance;
 	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+	/**
+	* Subscribers follow the active store rather than the object they happened to
+	* reach first. Without this, anything that rendered before `zintl()` resolved
+	* is subscribed to a store nothing will ever notify again — see
+	* {@link I18nStore.adoptListeners} and ledger L-068.
+	*/
+	if (previous) instance.adoptListeners(previous);
 }
 function registerLoader(boundaryId, loader) {
 	globalRegistry.set(boundaryId, loader);

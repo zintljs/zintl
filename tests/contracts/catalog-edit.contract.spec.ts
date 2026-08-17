@@ -103,12 +103,41 @@ export const catalogEditContract: Contract<LocaleSwitchAdapter> = {
    * *can* repaint, so making them refresh the page would trade a real defect for
    * a worse experience and call it fixed.
    */
+  /**
+   * **React is fixed (L-068). Vue is not a bug — it has no reactivity bridge.**
+   *
+   * React's components subscribe through `useSyncExternalStore`, and the
+   * subscription was landing on a store nothing would ever notify: anything
+   * rendering before `zintl()` resolved reached the module-level
+   * `defaultInstance`, and `setActiveInstance` swapped the pointer without
+   * taking the listeners with it. Measured as `listeners: 0` on the live store
+   * with React demonstrably mounted; `2` after the fix, and the contract passes.
+   *
+   * Vue is a different thing entirely, and the generated code says so plainly:
+   *
+   * ```
+   * <h1>{{ _t('Rsbuild with Vue', { _mgr: …, _bId: 'b_src_App_vue' }) }}</h1>
+   * ```
+   *
+   * `_t` is an ordinary function reading an ordinary object. Vue re-renders when
+   * a *reactive dependency* changes and this template has none, so a new catalog
+   * is invisible to it by construction — there is no subscription to strand.
+   * `rsbuild-vue-mpa` passes for an unrelated reason: its catalog is inlined, so
+   * the update lands on the manager, the entry re-runs, and the app remounts.
+   * Vite passes for the same reason at the applier level.
+   *
+   * Closing it means giving Vue what React has — a reactive handle the template
+   * depends on — which is a feature with a design rather than a defect with a
+   * fix, and it is the one thing in this area that should not be attempted in a
+   * hurry.
+   */
   pendingFor: {
-    "rsbuild-react-basic":
-      "L-064 remainder: reactive framework, fetched catalog. The catalog is delivered and " +
-      "applied; no component redraws. Distinct from the non-reactive case fixed alongside it.",
-    "rsbuild-vue-basic": "L-064 remainder: reactive framework, fetched catalog. Same as above.",
-    "rsbuild-vue-spa": "L-064 remainder: reactive framework, fetched catalog. Same as above.",
+    "rsbuild-vue-basic":
+      "Vue has no reactivity bridge: templates call _t() directly, which is not a reactive " +
+      "dependency, so a delivered catalog cannot re-render a component. Needs a Vue equivalent " +
+      "of React's useSyncExternalStore, not a bug fix. See L-068.",
+    "rsbuild-vue-spa":
+      "Same as rsbuild-vue-basic — fetched catalog, no reactive dependency on the store.",
   },
   async execute(lab, adapter, manifest) {
     await adapter.navigateHome(lab);
