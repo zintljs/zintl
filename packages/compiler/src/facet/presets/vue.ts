@@ -92,6 +92,41 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
     priority: 100,
     extensions: options.extensions || [".vue"],
     match: (filePath: string) => filePath.endsWith(".vue"),
+    /**
+     * Vue's half of the store subscription.
+     *
+     * `shallowRef` rather than `ref`: the value is a number and there is nothing
+     * to deep-track, so the cheaper handle is also the honest one.
+     *
+     * `onScopeDispose` takes the unsubscribe `subscribe()` returns. Without it
+     * every component instance would leave a listener behind on unmount, and the
+     * store's listener set would grow for the life of the page — which the
+     * `memory-leak` contract would eventually find, and which would be a poor
+     * trade for the defect this fixes.
+     *
+     * `getCurrentScope()` guards the dispose registration: `onScopeDispose`
+     * warns when called outside a component or effect scope, and a `_t` can be
+     * reached from a plain module-level helper.
+     */
+    reactiveBridge: {
+      /**
+       * The framework import is written by the facet, inside `setup`, rather
+       * than declared for the pipeline to place. The pipeline's import writer
+       * merges by source across the whole file, and for a `.vue` file that put
+       * `import … from "vue"` *above* the `<script setup>` tag — outside any
+       * block, which is not a valid SFC. Where the import has to land is a
+       * property of the dialect, so the dialect writes it.
+       */
+      setup: [
+        'import { shallowRef, onScopeDispose, getCurrentScope } from "vue";',
+        "const __zintl_v = shallowRef(getStoreVersion());",
+        "const __zintl_off = subscribe(() => {",
+        "  __zintl_v.value = getStoreVersion();",
+        "});",
+        "if (getCurrentScope()) onScopeDispose(__zintl_off);",
+      ].join("\n"),
+      read: "__zintl_v.value",
+    },
     wrapSfcScript: (code: string, options?: { lang?: string }): string => {
       // No options means Zintl is authoring the component's only script block,
       // where TypeScript has always been the default. With options, the block

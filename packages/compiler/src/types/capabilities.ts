@@ -228,6 +228,45 @@ export interface CodegenFacet extends BaseFacet {
    */
   wrapSfcScript?: (code: string, options?: { lang?: string }) => string;
   /**
+   * How this dialect makes a rendered translation **depend on** the store.
+   *
+   * React's components subscribe with `useSyncExternalStore`, injected into each
+   * component function. A template dialect has no component function to inject
+   * into, and — more importantly — subscribing would not be enough on its own:
+   * Vue re-renders when a *reactive dependency it read during render* changes,
+   * and `_t('…')` is an ordinary call to an ordinary function. A component can
+   * be perfectly subscribed and still never redraw, because nothing it rendered
+   * was reactive.
+   *
+   * So this contributes both halves:
+   *
+   * - `setup` establishes a reactive handle in the component's scope and keeps
+   *   it in step with the store.
+   * - `read` is spliced into every generated `_t` call, so rendering a
+   *   translation *is* reading the handle. That is what closes the loop: the
+   *   dependency is recorded during render, by construction, for every sink
+   *   without the codegen having to find them.
+   *
+   * Without it a delivered catalog is invisible to the framework — measured on
+   * Rspack, where nothing else re-runs the component (ledger L-069). Vite hid it
+   * because its applier re-runs the entry on every boundary update, remounting
+   * the tree against the new catalog for unrelated reasons.
+   */
+  reactiveBridge?: {
+    /**
+     * Statements establishing the handle, inserted into the component scope.
+     *
+     * Writes its own framework imports. `subscribe` and `getStoreVersion` are
+     * added from the runtime for you; anything dialect-specific belongs here,
+     * because where an import may legally sit is a property of the dialect —
+     * declaring `vue` for the pipeline to place put it outside the SFC's
+     * `<script setup>` block, which is not a valid single-file component.
+     */
+    setup: string;
+    /** Expression every generated `_t` call reads, as an options-object value. */
+    read: string;
+  };
+  /**
    * Do this dialect's template expressions resolve against the component
    * *instance* rather than the script block's lexical scope?
    *

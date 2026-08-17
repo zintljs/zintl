@@ -44,6 +44,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /**
  * Reached only through `() => import(...)` in `src/router.ts`, which is the
  * point of this example.
@@ -56,7 +57,14 @@ __webpack_require__.r(__webpack_exports__);
     setup (__props, param) {
         let { expose: __expose } = param;
         __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             get _zintl_mgr_b_dd563dcb7e61 () {
                 return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
             },
@@ -95,18 +103,21 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", _hoisted_1, [
         (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('abdb1589', {
             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-            _bId: 'b_13b9cb21366d'
+            _bId: 'b_13b9cb21366d',
+            _v: $setup.__zintl_v.value
         })), 1 /* TEXT */ ),
         (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('fc43cf0b', {
             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-            _bId: 'b_13b9cb21366d'
+            _bId: 'b_13b9cb21366d',
+            _v: $setup.__zintl_v.value
         })), 1 /* TEXT */ ),
         (0,vue__rspack_import_0.createElementVNode)("p", null, [
             (0,vue__rspack_import_0.createElementVNode)("span", {
                 innerHTML: $setup._t('5f2f4dd3', {
                     _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
                     _bId: 'b_13b9cb21366d',
-                    _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]')
+                    _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]'),
+                    _v: $setup.__zintl_v.value
                 })
             }, null, 8 /* PROPS */ , _hoisted_2)
         ]),
@@ -118,7 +129,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                 default: (0,vue__rspack_import_0.withCtx)(()=>[
                         (0,vue__rspack_import_0.createTextVNode)((0,vue__rspack_import_0.toDisplayString)($setup._t('a2bcccd6', {
                             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                            _bId: 'b_13b9cb21366d'
+                            _bId: 'b_13b9cb21366d',
+                            _v: $setup.__zintl_v.value
                         })), 1 /* TEXT */ )
                     ]),
                 _: 1 /* STABLE */ 

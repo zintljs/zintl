@@ -3807,3 +3807,60 @@ proposal went wrong.
 **255 contract tests pass, up from 254.** The remaining two skips on this contract are Vue's, with
 the reason stated in the contract rather than in a manifest, because it is a property of the
 framework integration rather than of either project.
+
+### L-069 — Vue's reactivity bridge, and the loop it uncovered
+
+|                             |                                                               |
+| :-------------------------- | :------------------------------------------------------------ |
+| **Status**                  | **Fixed** — `catalog-edit` green on every project, both hosts |
+| **Bucket**                  | 1 — missing capability, plus a latent defect it exposed       |
+| **Facet contract changed?** | **Yes** — `CodegenFacet.reactiveBridge`                       |
+
+L-068 left Vue as the last red, and correctly identified it as _not a bug_: `_t('…')` is an ordinary
+call to an ordinary function, Vue re-renders on reactive dependencies it read during render, and this
+template had none. Nothing to strand, nothing to repair — a missing capability.
+
+**The bridge is two halves, and it needs both.** A subscription alone would not have worked: a
+component can be perfectly subscribed and still never redraw, because nothing it _rendered_ was
+reactive. So `CodegenFacet.reactiveBridge` contributes
+
+- `setup` — a `shallowRef` seeded from `getStoreVersion()`, kept in step by a `subscribe()` whose
+  unsubscribe goes to `onScopeDispose`, guarded by `getCurrentScope()`; and
+- `read` — spliced into **every** generated `_t` call as `_v: __zintl_v.value`, so rendering a
+  translation _is_ reading the handle.
+
+Splicing at the call site rather than asking the codegen to find its own sinks is what makes it
+total: there is no class of sink that can be missed, and `_t` ignores options it does not know, so a
+dialect without a bridge is unaffected.
+
+**One shape correction, from a failed first attempt.** The framework import was declared for the
+pipeline to place, and the pipeline merges imports by source across the whole file — which put
+`import … from "vue"` _above_ the `<script setup>` tag, outside any block, which is not a valid SFC.
+Where an import may legally sit is a property of the dialect, so the dialect now writes it inside
+`setup`.
+
+**And then the interesting part: `chaos-catalog` went from green to a 45-second timeout on three
+projects, with 167,280 console messages.**
+
+The bridge did not cause that defect; it _closed the circuit_ on one already present. `_t` triggers a
+hydration load when it cannot find a key and re-reads immediately — which is what lets a synchronous
+loader satisfy the first render tick, and is worth keeping. But when the key is genuinely absent, and
+`chaos-catalog` deletes the catalog on purpose to make sure it is, every render triggers another
+load, every load can `addCatalogs`, and every `addCatalogs` notifies. With nothing subscribed the
+cycle stayed open. With Vue reading the handle during render, it closed.
+
+This is the same loop {@link notify}'s comment records for React at ~700 messages in twelve seconds.
+That fix deferred the announcement to a microtask, which stops the synchronous
+`setState`-during-render half and leaves the steady state untouched. `hydrationAttempts` closes the
+other half: **one attempt per `locale`/`boundary`/`key`, never cleared.**
+
+Keyed on the _key_, and the first attempt at this got it wrong in an instructive way. Keying on the
+boundary and clearing the set whenever catalogs changed re-armed the loop exactly: the load _does_
+deliver the boundary — it simply does not contain this key — so `changed` is true, the set empties,
+and the next render claims again. 172,908 messages, one small edit later. Keying on the key is what
+makes "never cleared" safe: the guard gates only the _miss_ path, and a key that later arrives is no
+longer a miss, so the spent claim is never consulted again.
+
+**257 contract tests pass, up from 255.** `[Catalog Edit]` is green on all twelve claimants across
+both hosts — the mutation that started this phase red on six Rspack projects, through three
+independent defects (L-064, L-068) and one missing capability.

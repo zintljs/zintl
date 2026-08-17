@@ -240,6 +240,48 @@ export class I18nStore {
   pendingPromises: Promise<any>[] = [];
   version: number = 0;
   private listeners = new Set<() => void>();
+
+  /**
+   * Boundaries whose catalog has already been chased for a missing key.
+   *
+   * `_t` triggers a hydration load when it cannot find a key, and re-reads
+   * immediately so a synchronous loader satisfies the very first render. That
+   * is right once and catastrophic on repeat: when the key is genuinely absent
+   * — a deleted catalog, a key that never existed — every render triggers
+   * another load, every load can `addCatalogs`, and every `addCatalogs`
+   * notifies. With anything subscribed, that closes into a render loop.
+   *
+   * It is not hypothetical in either direction. React hit it at
+   * ~700 messages in twelve seconds (see {@link notify}, which deferred the
+   * announcement to stop the synchronous half), and Vue reproduced the
+   * steady-state half the moment its templates gained a reactive dependency:
+   * **167,280 console messages** in one `chaos-catalog` run, which deletes the
+   * catalog on purpose.
+   *
+   * One attempt per **key**, and deliberately never cleared. Clearing on
+   * catalog change was tried first and re-armed the loop precisely: the load
+   * *does* deliver the boundary — it simply does not contain this key — so
+   * `changed` is true, the set empties, and the next render claims again.
+   *
+   * Keying on the key rather than the boundary is what makes "never cleared"
+   * safe. The guard gates only the *miss* path, and a key that later arrives is
+   * no longer a miss: `_t` finds it before reaching here, so the claim it
+   * already spent is never consulted again.
+   */
+  private hydrationAttempts = new Set<string>();
+
+  /**
+   * Claim the single hydration attempt for one missing key.
+   *
+   * Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+   * caller loads only when it wins the claim.
+   */
+  claimHydrationAttempt(locale: string, boundaryId: string, messageKey: string): boolean {
+    const claim = locale + "/" + boundaryId + "/" + messageKey;
+    if (this.hydrationAttempts.has(claim)) return false;
+    this.hydrationAttempts.add(claim);
+    return true;
+  }
   /** Whether an announcement is already queued for this turn — see {@link notify}. */
   private notifyScheduled = false;
   private readonly delivery = new Delivery();

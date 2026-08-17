@@ -192,6 +192,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /**
  * A shared component with its **own** trust anchor.
  *
@@ -213,6 +214,11 @@ __webpack_require__.r(__webpack_exports__);
         let { expose: __expose } = param;
         __expose();
         let __temp, __restore;
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_3.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_3.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_3.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const props = __props;
         ;
         [__temp, __restore] = (0,vue__rspack_import_0.withAsyncContext)(()=>globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_3.loadI18nInstance)({
@@ -223,6 +229,8 @@ __webpack_require__.r(__webpack_exports__);
                 }
             })), await __temp, __restore();
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             props,
             get _zintl_mgr_b_b028ccfc4f80 () {
                 return virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2["default"];
@@ -296,11 +304,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         (0,vue__rspack_import_0.createElementVNode)("nav", _hoisted_2, [
             (0,vue__rspack_import_0.createElementVNode)("a", _hoisted_3, (0,vue__rspack_import_0.toDisplayString)($setup._t('70f8bb9a', {
                 _mgr: $setup._zintl_mgr_b_b028ccfc4f80,
-                _bId: 'b_b028ccfc4f80'
+                _bId: 'b_b028ccfc4f80',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ ),
             (0,vue__rspack_import_0.createElementVNode)("a", _hoisted_4, (0,vue__rspack_import_0.toDisplayString)($setup._t('bf073fae', {
                 _mgr: $setup._zintl_mgr_b_b028ccfc4f80,
-                _bId: 'b_b028ccfc4f80'
+                _bId: 'b_b028ccfc4f80',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ )
         ])
     ]);

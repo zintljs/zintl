@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
-import { _t } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
 import { ref } from "vue";
 
@@ -9,12 +15,12 @@ const count = ref(0);
 
 <template>
   <div class="content">
-    <h1>{{ _t('459e4199', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652' }) }}</h1>
-    <p>{{ _t('9724cf0a', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652' }) }}</p>
-    <p><span v-html="_t('e5943c9a', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+    <h1>{{ _t('459e4199', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</h1>
+    <p>{{ _t('9724cf0a', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</p>
+    <p><span v-html="_t('e5943c9a', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]'), _v: __zintl_v.value })"></span></p>
     <button id="counter" type="button" class="counter" @click="count++">
-      {{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652' }) }}
+      {{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
     </button>
-    <nav class="nav"><router-link id="to-about" to="/about">{{ _t('b0fb2e27', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652' }) }}</router-link></nav>
+    <nav class="nav"><router-link id="to-about" to="/about">{{ _t('b0fb2e27', { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</router-link></nav>
   </div>
 </template>

@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import _zintl_mgr_b_9e373ef8c775 from "virtual:zintl/manager/none/entry:b_9e373ef8c775";
 import _zintl_mgr_b_b028ccfc4f80 from "virtual:zintl/manager/none/entry:b_b028ccfc4f80";
-import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
 
 
@@ -23,8 +29,8 @@ await (globalThis.__zintl_inst = loadI18nInstance({ locale: props.lang, loaders:
 <template>
   <header class="site-header">
     <nav class="nav">
-      <a href="/">{{ _t('70f8bb9a', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80' }) }}</a>
-      <a href="/about">{{ _t('bf073fae', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80' }) }}</a>
+      <a href="/">{{ _t('70f8bb9a', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80', _v: __zintl_v.value }) }}</a>
+      <a href="/about">{{ _t('bf073fae', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80', _v: __zintl_v.value }) }}</a>
     </nav>
   </header>
 </template>

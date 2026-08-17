@@ -36,7 +36,9 @@ export function _t(
       if (typeof window === "undefined") {
         if (mgr.loader) {
           try {
-            const result = mgr.loader(locale);
+            const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)
+              ? mgr.loader(locale)
+              : undefined;
             if (result && typeof (result as any).then !== "function") {
               instance.addCatalogs({ [locale]: result } as any);
               const boundaryCatalogAfter = targetBId
@@ -61,7 +63,20 @@ export function _t(
            * async case internally, so nothing is lost by calling it inline.
            */
           try {
-            instance.loadLazyBoundary(mgr.id, mgr.loader);
+            /**
+             * One attempt per boundary between catalog changes.
+             *
+             * Re-reading immediately is what lets a synchronous loader satisfy
+             * the first render tick, and that is worth keeping. Re-*triggering*
+             * on every render is not: when the key is genuinely absent the load
+             * can never satisfy it, and each attempt announces a change that
+             * renders again. See `I18nStore.hydrationAttempts` — with a
+             * reactive framework subscribed this closes into a loop measured at
+             * six figures of console output.
+             */
+            if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) {
+              instance.loadLazyBoundary(mgr.id, mgr.loader);
+            }
             const boundaryCatalogAfter = targetBId
               ? instance.catalogs[locale]?.[targetBId]
               : undefined;

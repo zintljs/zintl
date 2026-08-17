@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import _zintl_mgr_b_src_entry_client from "virtual:zintl/manager/none/entry:b_src_entry_client";
-import { _t } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
 import { ref } from "vue";
 import viteLogo from "../assets/vite.svg";
@@ -14,14 +20,14 @@ const count = ref(0);
   <section id="center">
     <div class="hero">
       <img :src="heroImg" class="base" width="170" height="179" alt="" />
-      <img :src="vueLogo" class="framework" :alt="_t('Vue logo', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' })" />
-      <img :src="viteLogo" class="vite" :alt="_t('Vite logo', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' })" />
+      <img :src="vueLogo" class="framework" :alt="_t('Vue logo', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value })" />
+      <img :src="viteLogo" class="vite" :alt="_t('Vite logo', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value })" />
     </div>
     <div>
-      <h1>{{ _t('Get started', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</h1>
-      <p><span v-html="_t('Edit <code>src/App.vue</code> and save to test <code>HMR</code>', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+      <h1>{{ _t('Get started', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</h1>
+      <p><span v-html="_t('Edit <code>src/App.vue</code> and save to test <code>HMR</code>', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]'), _v: __zintl_v.value })"></span></p>
     </div>
-    <button class="counter" @click="count++">{{ _t('Count is \x7bcount\x7d', { count: count }, { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</button>
+    <button class="counter" @click="count++">{{ _t('Count is \x7bcount\x7d', { count: count }, { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</button>
   </section>
 
   <div class="ticks"></div>
@@ -31,19 +37,19 @@ const count = ref(0);
       <svg class="icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#documentation-icon"></use>
       </svg>
-      <h2>{{ _t('Documentation', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</h2>
-      <p>{{ _t('Your questions, answered', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</p>
+      <h2>{{ _t('Documentation', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</h2>
+      <p>{{ _t('Your questions, answered', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</p>
       <ul>
         <li>
           <a href="https://vite.dev/" target="_blank">
             <img class="logo" :src="viteLogo" alt="" />
-            {{ _t('Explore Vite', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('Explore Vite', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
           <a href="https://vuejs.org/" target="_blank">
             <img class="button-icon" :src="vueLogo" alt="" />
-            {{ _t('Learn more', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('Learn more', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
       </ul>
@@ -52,15 +58,15 @@ const count = ref(0);
       <svg class="icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#social-icon"></use>
       </svg>
-      <h2>{{ _t('Connect with us', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</h2>
-      <p>{{ _t('Join the Vite community', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}</p>
+      <h2>{{ _t('Connect with us', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</h2>
+      <p>{{ _t('Join the Vite community', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</p>
       <ul>
         <li>
           <a href="https://github.com/vitejs/vite" target="_blank">
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#github-icon"></use>
             </svg>
-            {{ _t('GitHub', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('GitHub', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -68,7 +74,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#discord-icon"></use>
             </svg>
-            {{ _t('Discord', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('Discord', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -76,7 +82,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#x-icon"></use>
             </svg>
-            {{ _t('X.com', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('X.com', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -84,7 +90,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#bluesky-icon"></use>
             </svg>
-            {{ _t('Bluesky', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue' }) }}
+            {{ _t('Bluesky', { _mgr: _zintl_mgr_b_src_entry_client, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
           </a>
         </li>
       </ul>

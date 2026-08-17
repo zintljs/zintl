@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
-import { _t } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
 import { ref } from "vue";
 import viteLogo from "../assets/vite.svg";
@@ -15,15 +21,15 @@ const count = ref(0);
   <section id="center">
     <div class="hero">
       <img :src="heroImg" class="base" width="170" height="179" alt="" />
-      <img :src="vueLogo" class="framework" :alt="_t('7d8158dc', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' })" />
-      <img :src="viteLogo" class="vite" :alt="_t('3473a536', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' })" />
+      <img :src="vueLogo" class="framework" :alt="_t('7d8158dc', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value })" />
+      <img :src="viteLogo" class="vite" :alt="_t('3473a536', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value })" />
     </div>
     <div>
-      <h1>{{ _t('90e40d50', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</h1>
-      <p><span v-html="_t('6c65d65b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]') })"></span></p>
+      <h1>{{ _t('90e40d50', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</h1>
+      <p><span v-html="_t('6c65d65b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]'), _v: __zintl_v.value })"></span></p>
       <OptionsNote />
     </div>
-    <button type="button" class="counter" @click="count++">{{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</button>
+    <button type="button" class="counter" @click="count++">{{ _t('aa624128', { count: count }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</button>
   </section>
 
   <div class="ticks"></div>
@@ -33,19 +39,19 @@ const count = ref(0);
       <svg class="icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#documentation-icon"></use>
       </svg>
-      <h2>{{ _t('9e9cf322', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</h2>
-      <p>{{ _t('d0f7666b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</p>
+      <h2>{{ _t('9e9cf322', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</h2>
+      <p>{{ _t('d0f7666b', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</p>
       <ul>
         <li>
           <a href="https://vite.dev/" target="_blank">
             <img class="logo" :src="viteLogo" alt="" />
-            {{ _t('e49cb0ee', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('e49cb0ee', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
           <a href="https://vuejs.org/" target="_blank">
             <img class="button-icon" :src="vueLogo" alt="" />
-            {{ _t('824d76b1', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('824d76b1', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
       </ul>
@@ -54,15 +60,15 @@ const count = ref(0);
       <svg class="icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#social-icon"></use>
       </svg>
-      <h2>{{ _t('65ac13a7', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</h2>
-      <p>{{ _t('15545bc4', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}</p>
+      <h2>{{ _t('65ac13a7', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</h2>
+      <p>{{ _t('15545bc4', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}</p>
       <ul>
         <li>
           <a href="https://github.com/vitejs/vite" target="_blank">
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#github-icon"></use>
             </svg>
-            {{ _t('5442e2b6', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('5442e2b6', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -70,7 +76,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#discord-icon"></use>
             </svg>
-            {{ _t('bccc14ee', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('bccc14ee', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -78,7 +84,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#x-icon"></use>
             </svg>
-            {{ _t('b3c83ea6', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('b3c83ea6', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
         <li>
@@ -86,7 +92,7 @@ const count = ref(0);
             <svg class="button-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#bluesky-icon"></use>
             </svg>
-            {{ _t('daf16c03', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652' }) }}
+            {{ _t('daf16c03', { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_07f886859652', _v: __zintl_v.value }) }}
           </a>
         </li>
       </ul>

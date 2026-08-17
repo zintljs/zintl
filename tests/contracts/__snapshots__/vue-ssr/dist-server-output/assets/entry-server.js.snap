@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { renderToString, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
-import { createSSRApp, defineComponent, ref, useSSRContext } from "vue";
+import { createSSRApp, defineComponent, getCurrentScope, onScopeDispose, ref, shallowRef, useSSRContext } from "vue";
 //#region \0virtual:zintl/runtime/store-core
 var storeStorage = null;
 function setStoreStorage(storage) {
@@ -91,6 +91,46 @@ var I18nStore = class {
 	pendingPromises = [];
 	version = 0;
 	listeners = /* @__PURE__ */ new Set();
+	/**
+	* Boundaries whose catalog has already been chased for a missing key.
+	*
+	* `_t` triggers a hydration load when it cannot find a key, and re-reads
+	* immediately so a synchronous loader satisfies the very first render. That
+	* is right once and catastrophic on repeat: when the key is genuinely absent
+	* — a deleted catalog, a key that never existed — every render triggers
+	* another load, every load can `addCatalogs`, and every `addCatalogs`
+	* notifies. With anything subscribed, that closes into a render loop.
+	*
+	* It is not hypothetical in either direction. React hit it at
+	* ~700 messages in twelve seconds (see {@link notify}, which deferred the
+	* announcement to stop the synchronous half), and Vue reproduced the
+	* steady-state half the moment its templates gained a reactive dependency:
+	* **167,280 console messages** in one `chaos-catalog` run, which deletes the
+	* catalog on purpose.
+	*
+	* One attempt per **key**, and deliberately never cleared. Clearing on
+	* catalog change was tried first and re-armed the loop precisely: the load
+	* *does* deliver the boundary — it simply does not contain this key — so
+	* `changed` is true, the set empties, and the next render claims again.
+	*
+	* Keying on the key rather than the boundary is what makes "never cleared"
+	* safe. The guard gates only the *miss* path, and a key that later arrives is
+	* no longer a miss: `_t` finds it before reaching here, so the claim it
+	* already spent is never consulted again.
+	*/
+	hydrationAttempts = /* @__PURE__ */ new Set();
+	/**
+	* Claim the single hydration attempt for one missing key.
+	*
+	* Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+	* caller loads only when it wins the claim.
+	*/
+	claimHydrationAttempt(locale, boundaryId, messageKey) {
+		const claim = locale + "/" + boundaryId + "/" + messageKey;
+		if (this.hydrationAttempts.has(claim)) return false;
+		this.hydrationAttempts.add(claim);
+		return true;
+	}
 	/** Whether an announcement is already queued for this turn — see {@link notify}. */
 	notifyScheduled = false;
 	delivery = new Delivery();
@@ -517,6 +557,12 @@ function registerLoader(boundaryId, loader) {
 		} else processResult(result);
 	} catch (err) {}
 }
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
 function isThenable(obj) {
 	return obj && typeof obj.then === "function";
 }
@@ -766,7 +812,7 @@ function _t(key, params = {}, options) {
 	if (message === void 0) if (mgr) {
 		if (typeof window === "undefined") {
 			if (mgr.loader) try {
-				const result = mgr.loader(locale);
+				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
 				if (result && typeof result.then !== "function") {
 					instance.addCatalogs({ [locale]: result });
 					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
@@ -785,7 +831,18 @@ function _t(key, params = {}, options) {
 		* async case internally, so nothing is lost by calling it inline.
 		*/
 		try {
-			instance.loadLazyBoundary(mgr.id, mgr.loader);
+			/**
+			* One attempt per boundary between catalog changes.
+			*
+			* Re-reading immediately is what lets a synchronous loader satisfy
+			* the first render tick, and that is worth keeping. Re-*triggering*
+			* on every render is not: when the key is genuinely absent the load
+			* can never satisfy it, and each attempt announces a change that
+			* renders again. See `I18nStore.hydrationAttempts` — with a
+			* reactive framework subscribed this closes into a loop measured at
+			* six figures of console output.
+			*/
+			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
 			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
 			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
 		} catch {}
@@ -907,7 +964,14 @@ var HelloWorld_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defin
 	__name: "HelloWorld",
 	setup(__props, { expose: __expose }) {
 		__expose();
+		const __zintl_v = shallowRef(getStoreVersion());
+		const __zintl_off = subscribe(() => {
+			__zintl_v.value = getStoreVersion();
+		});
+		if (getCurrentScope()) onScopeDispose(__zintl_off);
 		const __returned__ = {
+			__zintl_v,
+			__zintl_off,
 			count: ref(0),
 			get _zintl_mgr_b_764631960fa9() {
 				return entry_b_764631960fa9_default;
@@ -947,50 +1011,65 @@ var _plugin_vue_export_helper_default = (sfc, props) => {
 function _sfc_ssrRender$2(_ctx, _push, _parent, _attrs, $props, $setup, $data, $options) {
 	_push(`<!--[--><section id="center"><div class="hero"><img${ssrRenderAttr("src", $setup.heroImg)} class="base" width="170" height="179" alt=""><img${ssrRenderAttr("src", $setup.vueLogo)} class="framework"${ssrRenderAttr("alt", $setup._t("7d8158dc", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}><img${ssrRenderAttr("src", $setup.viteLogo)} class="vite"${ssrRenderAttr("alt", $setup._t("3473a536", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}></div><div><h1>${ssrInterpolate($setup._t("90e40d50", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</h1><p><span>${$setup._t("6c65d65b", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
 		_bId: "b_07f886859652",
-		_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]")
+		_tags: JSON.parse("[{\"alias\":\"code\",\"originalOpen\":\"<code>\",\"tagName\":\"code\"}]"),
+		_v: $setup.__zintl_v.value
 	}) ?? ""}</span></p></div><button class="counter">${ssrInterpolate($setup._t("aa624128", { count: $setup.count }, {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</button></section><div class="ticks"></div><section id="next-steps"><div id="docs"><svg class="icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#documentation-icon")}></use></svg><h2>${ssrInterpolate($setup._t("9e9cf322", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</h2><p>${ssrInterpolate($setup._t("d0f7666b", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</p><ul><li><a href="https://vite.dev/" target="_blank"><img class="logo"${ssrRenderAttr("src", $setup.viteLogo)} alt=""> ${ssrInterpolate($setup._t("e49cb0ee", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li><li><a href="https://vuejs.org/" target="_blank"><img class="button-icon"${ssrRenderAttr("src", $setup.vueLogo)} alt=""> ${ssrInterpolate($setup._t("824d76b1", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li></ul></div><div id="social"><svg class="icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#social-icon")}></use></svg><h2>${ssrInterpolate($setup._t("65ac13a7", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</h2><p>${ssrInterpolate($setup._t("15545bc4", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</p><ul><li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#github-icon")}></use></svg> ${ssrInterpolate($setup._t("5442e2b6", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li><li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#discord-icon")}></use></svg> ${ssrInterpolate($setup._t("bccc14ee", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li><li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#x-icon")}></use></svg> ${ssrInterpolate($setup._t("b3c83ea6", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li><li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use${ssrRenderAttr("href", icons_default + "#bluesky-icon")}></use></svg> ${ssrInterpolate($setup._t("daf16c03", {
 		_mgr: $setup._zintl_mgr_b_764631960fa9,
-		_bId: "b_07f886859652"
+		_bId: "b_07f886859652",
+		_v: $setup.__zintl_v.value
 	}))}</a></li></ul></div></section><div class="ticks"></div><section id="spacer"></section><!--]-->`);
 }
 var _sfc_setup$2 = HelloWorld_vue_vue_type_script_setup_true_lang_default.setup;

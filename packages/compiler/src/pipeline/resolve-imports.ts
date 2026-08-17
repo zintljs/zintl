@@ -18,6 +18,7 @@ export function resolveImports(
   observation: FileObservation,
   clientReactivityImports: Record<string, string[]> = {},
   serverComponents = false,
+  reactiveBridge?: { setup: string; read: string },
 ): ResolvedImport[] {
   const specifiersBySource: Record<string, Set<string>> = {};
 
@@ -50,6 +51,20 @@ export function resolveImports(
         for (const spec of specifiers) specifiersBySource[source].add(spec);
       }
     }
+  }
+
+  /**
+   * A template dialect's reactive bridge, which is *not* gated on
+   * `componentFunctions` — that is React's shape, and a `.vue` file has none.
+   * Its condition is simply "this file renders a translation", decided by the
+   * caller. See `CodegenFacet.reactiveBridge`.
+   */
+  if (reactiveBridge) {
+    if (!specifiersBySource[RUNTIME_INTERNAL_PACKAGE]) {
+      specifiersBySource[RUNTIME_INTERNAL_PACKAGE] = new Set();
+    }
+    specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("subscribe");
+    specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("getStoreVersion");
   }
 
   for (const intent of intents) {

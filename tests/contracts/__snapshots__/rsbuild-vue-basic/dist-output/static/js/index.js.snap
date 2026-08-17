@@ -158,11 +158,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
     __name: 'App',
     setup (__props, param) {
         let { expose: __expose } = param;
         __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const activeLang = (0,vue__rspack_import_0.ref)(new URLSearchParams(window.location.search).get("lang") || "en");
         const count = (0,vue__rspack_import_0.ref)(0);
         const handleSwitch = (lang)=>{
@@ -171,6 +177,8 @@ __webpack_require__.r(__webpack_exports__);
             activeLang.value = lang;
         };
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             activeLang,
             count,
             handleSwitch,
@@ -275,6 +283,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /**
  * Deliberately written with Vue's **Options API** — a plain `<script>` rather
  * than `<script setup>`. Every other SFC in this repository uses the latter,
@@ -303,7 +312,14 @@ __webpack_require__.r(__webpack_exports__);
     setup (__props, param) {
         let { expose: __expose } = param;
         __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             get _zintl_mgr_b_dd563dcb7e61 () {
                 return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
             },
@@ -347,18 +363,21 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         (0,vue__rspack_import_0.createElementVNode)("div", _hoisted_1, [
             (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('459e4199', {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ ),
             (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('9724cf0a', {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ ),
             (0,vue__rspack_import_0.createElementVNode)("p", null, [
                 (0,vue__rspack_import_0.createElementVNode)("span", {
                     innerHTML: $setup._t('6c65d65b', {
                         _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
                         _bId: 'b_5441d5289c77',
-                        _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]')
+                        _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]'),
+                        _v: $setup.__zintl_v.value
                     })
                 }, null, 8 /* PROPS */ , _hoisted_2)
             ]),
@@ -372,7 +391,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                 count: $setup.count
             }, {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ )
         ])
     ]);
@@ -426,7 +446,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         api: $data.api
     }, {
         _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-        _bId: 'b_4e9f6e20b5a7'
+        _bId: 'b_4e9f6e20b5a7',
+        _v: $setup.__zintl_v.value
     })), 1 /* TEXT */ );
 }
 

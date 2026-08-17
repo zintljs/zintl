@@ -73,16 +73,24 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
     __name: 'App',
     setup (__props, param) {
         let { expose: __expose } = param;
         __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const activeLang = (0,vue__rspack_import_0.ref)(new URLSearchParams(window.location.search).get("lang") || "en");
         const handleSwitch = (lang)=>{
             activeLang.value = lang;
         };
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             activeLang,
             handleSwitch,
             get _zintl_mgr_b_dd563dcb7e61 () {
@@ -137,15 +145,18 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             ]),
             (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('459e4199', {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ ),
             (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('9724cf0a', {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ ),
             (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('bce1bd28', {
                 _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                _bId: 'b_5441d5289c77'
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
             })), 1 /* TEXT */ )
         ])
     ]);

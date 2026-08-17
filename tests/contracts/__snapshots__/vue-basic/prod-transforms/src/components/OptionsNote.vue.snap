@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
-import { _t } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 </script>
 <script lang="ts">
 /**
@@ -25,5 +31,5 @@ export default {
 </script>
 
 <template>
-  <p class="options-note">{{ _t('223fb461', { api: api }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_4e9f6e20b5a7' }) }}</p>
+  <p class="options-note">{{ _t('223fb461', { api: api }, { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: 'b_4e9f6e20b5a7', _v: __zintl_v.value }) }}</p>
 </template>

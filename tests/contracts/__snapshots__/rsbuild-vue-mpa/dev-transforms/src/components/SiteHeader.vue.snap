@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import _zintl_mgr_b_src_about_bootstrap from "virtual:zintl/manager/none/entry:b_src_about_bootstrap";
 import _zintl_mgr_b_src_components_SiteHeader_vue from "virtual:zintl/manager/none/entry:b_src_components_SiteHeader_vue";
-import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 
 
 
@@ -23,8 +29,8 @@ await (globalThis.__zintl_inst = loadI18nInstance({ locale: props.lang, loaders:
 <template>
   <header class="site-header">
     <nav class="nav">
-      <a href="/">{{ _t('Home', { _mgr: _zintl_mgr_b_src_components_SiteHeader_vue, _bId: 'b_src_components_SiteHeader_vue' }) }}</a>
-      <a href="/about">{{ _t('Guide', { _mgr: _zintl_mgr_b_src_components_SiteHeader_vue, _bId: 'b_src_components_SiteHeader_vue' }) }}</a>
+      <a href="/">{{ _t('Home', { _mgr: _zintl_mgr_b_src_components_SiteHeader_vue, _bId: 'b_src_components_SiteHeader_vue', _v: __zintl_v.value }) }}</a>
+      <a href="/about">{{ _t('Guide', { _mgr: _zintl_mgr_b_src_components_SiteHeader_vue, _bId: 'b_src_components_SiteHeader_vue', _v: __zintl_v.value }) }}</a>
     </nav>
   </header>
 </template>

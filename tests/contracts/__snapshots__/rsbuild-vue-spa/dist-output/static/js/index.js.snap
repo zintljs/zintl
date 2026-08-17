@@ -187,13 +187,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
     __name: 'HelloWorld',
     setup (__props, param) {
         let { expose: __expose } = param;
         __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
         const count = (0,vue__rspack_import_0.ref)(0);
         const __returned__ = {
+            __zintl_v,
+            __zintl_off,
             count,
             get _zintl_mgr_b_dd563dcb7e61 () {
                 return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
@@ -336,18 +344,21 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", _hoisted_1, [
         (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('459e4199', {
             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-            _bId: 'b_07f886859652'
+            _bId: 'b_07f886859652',
+            _v: $setup.__zintl_v.value
         })), 1 /* TEXT */ ),
         (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('9724cf0a', {
             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-            _bId: 'b_07f886859652'
+            _bId: 'b_07f886859652',
+            _v: $setup.__zintl_v.value
         })), 1 /* TEXT */ ),
         (0,vue__rspack_import_0.createElementVNode)("p", null, [
             (0,vue__rspack_import_0.createElementVNode)("span", {
                 innerHTML: $setup._t('e5943c9a', {
                     _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
                     _bId: 'b_07f886859652',
-                    _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]')
+                    _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]'),
+                    _v: $setup.__zintl_v.value
                 })
             }, null, 8 /* PROPS */ , _hoisted_2)
         ]),
@@ -360,7 +371,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             count: $setup.count
         }, {
             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-            _bId: 'b_07f886859652'
+            _bId: 'b_07f886859652',
+            _v: $setup.__zintl_v.value
         })), 1 /* TEXT */ ),
         (0,vue__rspack_import_0.createElementVNode)("nav", _hoisted_3, [
             (0,vue__rspack_import_0.createVNode)(_component_router_link, {
@@ -370,7 +382,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                 default: (0,vue__rspack_import_0.withCtx)(()=>[
                         (0,vue__rspack_import_0.createTextVNode)((0,vue__rspack_import_0.toDisplayString)($setup._t('b0fb2e27', {
                             _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
-                            _bId: 'b_07f886859652'
+                            _bId: 'b_07f886859652',
+                            _v: $setup.__zintl_v.value
                         })), 1 /* TEXT */ )
                     ]),
                 _: 1 /* STABLE */ 
