@@ -118,13 +118,17 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * ```
    *
    * So something re-materialises the catalogs of a boundary that has already
-   * been forgotten and reclaimed, and the writer has not been identified.
-   * `removeFile`'s `markDirty` on the removed boundary was the obvious suspect
-   * and is **not** it: removing it moved the rate from 5–6/10 to 4/10, which is
-   * noise, and a unit test states the opposite intent outright — "marks the
-   * removed boundaries dirty so a flush reclaims their catalogs". Reverted
-   * rather than kept on a hunch. The next probe is a timestamped log of catalog
-   * writes interleaved with the prune, not another guess.
+   * been forgotten and reclaimed. Interleaving the write log with the prune's
+   * own decisions named the first writer exactly — `removeFile` marking the
+   * removed boundary dirty, which queues its catalogs to be written straight
+   * back — and fixing that took the rate from **5/10 to 2/10** (L-071).
+   *
+   * A second writer remains, with the same signature one flush later. The thread
+   * to pull is in the same log: `Forgetting deleted file: src/AppNew.svelte`
+   * appears mid-test, for the file the rename just *created*. A boundary that is
+   * forgotten and then re-extracted can be reconciled back onto the old id by
+   * content, which would write the old path. Not yet confirmed — stated as the
+   * next probe, not as a mechanism.
    *
    * Why this project and not `vue-basic`: its entry is not re-execution-safe, so
    * the rename reloads the page, which shifts every timing around the flush.
@@ -132,10 +136,10 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    */
   pendingFor: {
     "svelte-basic":
-      "L-071 (open): a forgotten boundary's catalogs are re-materialised after the prune deletes " +
-      "them. Measured 5/10 runs failing; the prune itself is correct — the debug log shows the " +
-      "files deleted and then present again. NOT proposal 024 §1.3's double mount, which is what " +
-      "this was previously recorded as.",
+      "L-071 (open, halved): a forgotten boundary's catalogs are re-materialised after the prune " +
+      "deletes them. 5/10 → 2/10 once removeFile stopped marking the removed boundary dirty; a " +
+      "second writer remains. The prune itself is correct. NOT proposal 024 §1.3's double mount, " +
+      "which is what this was previously recorded as.",
   },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;

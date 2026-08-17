@@ -969,7 +969,30 @@ export class ZintlCompiler {
     for (const bId of removed) {
       delete this.catalog.getCache()[bId];
       delete this.messages.internalManifest[bId];
-      this.messages.markDirty(bId);
+      /**
+       * A removed boundary is scrubbed from the dirty set, never added to it.
+       *
+       * "Dirty" means *write this boundary's catalog*, so marking a boundary
+       * that has just been deleted queues its catalogs to be re-created. That is
+       * exactly what happened, and the interleaved debug log names it without
+       * ambiguity (ledger L-071):
+       *
+       * ```
+       * Pruning orphaned file: zintl/src/App.svelte.ar.json   +0ms
+       * Writing file:          zintl/src/App.svelte.ar.json   +0ms
+       * ```
+       *
+       * The prune was correct all along and was being undone by the write pass
+       * that followed it in the same flush.
+       *
+       * The flag was added to make sure a deletion during an idle moment did not
+       * sit unflushed — a real concern, and one already served twice over: this
+       * method ends with an explicit `scheduleFlush()`, and a flush deferred by
+       * another now gets its own trigger (L-070). Waking the flush and asking it
+       * to write are different jobs, and only the first was ever wanted here.
+       */
+      this.messages.dirtyBoundaries.delete(bId);
+      this.messages.dirtyRevisions.delete(bId);
       this.boundaryRevisions.delete(bId);
       this.confirmedOnDisk.delete(bId);
       this.graph.boundaryGraph?.nodes.delete(bId);

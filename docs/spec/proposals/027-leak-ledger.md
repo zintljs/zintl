@@ -4095,3 +4095,48 @@ naming the wrong mechanism for long enough that two separate investigations quot
 including mine, one turn earlier, when I recorded `svelte-basic` as pending "for the documented
 double-mount reason" without checking. **Prose in this repository is evidence of what someone once
 measured, not of what is true now.**
+
+### L-071 — halved, by interleaving two logs that already existed
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Partly fixed** — 5/10 → 2/10 measured; one writer remains |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+The probe this entry asked for turned out to need no new instrumentation at all. `safeWriteFile`
+already logs `Writing file: …` through the same logger the prune decisions go to; nobody had read
+them **in order**. Filtering one debug stream to a single path answered in one line what two
+investigations had guessed at:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json   +0ms
+Pruning orphaned file: zintl/src/App.svelte.es.json   +2ms
+Pruning orphaned file: zintl/src/App.svelte.zh.json   +1ms
+Writing file:          zintl/src/App.svelte.ar.json   +0ms
+```
+
+The prune deletes correctly and the write pass immediately after it, in the same flush, puts the
+files back.
+
+**The first writer was `removeFile` marking the removed boundary dirty.** "Dirty" means _write my
+catalog_, so marking a boundary that has just been deleted queues its catalogs for re-creation. The
+flag existed for a real reason — a deletion during an idle moment must not sit unflushed — but that
+job is already done twice over, by the explicit `scheduleFlush()` at the end of `removeFile` and by
+L-070's trailing flush. Waking the flush and asking it to write are different jobs, and only the
+first was ever wanted.
+
+**Measured 5/10 → 2/10**, and the unit test asserting the old behaviour was rewritten rather than
+deleted, because its stated intent was right and only its mechanism was backwards.
+
+**Worth recording: the same change was tried and reverted one turn earlier.** With only a
+4/10-vs-5/10 reading and a unit test contradicting it, reverting was correct — the evidence did not
+support the change. What made it right the second time was not a better argument but a better
+measurement: the interleaved log names the writer instead of inferring it. Same edit, opposite
+verdict, and the difference is entirely in what was known.
+
+**A second writer remains**, with the same signature one flush later. The thread is in the same log:
+`Forgetting deleted file: src/AppNew.svelte` appears mid-test, for the file the rename just
+_created_. A boundary that is forgotten and then re-extracted can be reconciled back onto the old id
+by content — which would write the old path. **Stated as the next probe, not as a mechanism**, which
+is the discipline the three entries before this one were written to enforce.
