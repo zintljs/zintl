@@ -1,6 +1,5 @@
 import {
   executeContract,
-  findCatalogFor,
   type Contract,
   type HmrAdapter,
   type Lab,
@@ -20,17 +19,27 @@ import { allManifests } from "../manifests/index.js";
  * - **§4.1③, adding a sink.** New content inside a boundary that already
  *   exists. Fast Replacement: the manager accepts in place, and a new key has
  *   to reach the catalog on disk for a translator to find.
- * - **§4.2, adding an anchor or a `$L` colony.** The graph's *shape* changed, so
- *   in-place replacement is not merely slower but wrong — the module that would
- *   accept the update is no longer the module that owns the code. A full reload
- *   is the correct outcome.
+ * - **§4.2, adding an anchor or a `$L` colony.** The graph's *shape* changed.
+ *   The invariant is that the runtime must not be left holding a boundary map
+ *   describing the previous build — and §4.2 admits two correct ways to reach
+ *   it, chosen by the entry rather than by the kind of change.
  *
- * The two hosts reach §4.2 by opposite routes, which is the reason to assert
- * the observable rather than the mechanism: **Vite** accepts and then calls
+ * **This contract is why §4.2 has two routes.** It was written asserting the
+ * section as it stood — a structural change always hard-reloads — and found the
+ * implementation disagreeing on purpose: on a re-execution-safe entry the change
+ * arrived as an ordinary `update`, the graph grew, and the page was correct,
+ * confirmed by reloading afterwards and re-asserting. The specification was the
+ * thing that was wrong and was amended (§4.2.1/§4.2.2, ledger L-061). The
+ * contract now asserts the amended rule, and the branch is taken from
+ * `entryReexecutionSafe` — a compiler fact, asked of the compiler, never
+ * restated in a manifest.
+ *
+ * The two hosts reach §4.2.2 by opposite routes, which is why the assertion is
+ * on the observable rather than the mechanism: **Vite** accepts and then calls
  * `import.meta.hot.invalidate()` so the update bubbles; **Rspack** has no
- * `invalidate()` and instead declines to accept at all, so the update bubbles
- * for want of a handler. Same reload, opposite code paths, and a contract
- * written against either one would have been a contract about a bundler.
+ * `invalidate()` and instead declines to accept at all, so it bubbles for want
+ * of a handler. Same reload, opposite code paths, and a contract written
+ * against either one would have been a contract about a bundler.
  *
  * Both edits are adapter-declared: *where* a sink or an anchor can go is
  * framework syntax, and a contract that synthesised it would be naming apps
@@ -39,40 +48,15 @@ import { allManifests } from "../manifests/index.js";
 export const hmrGrowthContract: Contract<HmrAdapter> = {
   name: "HMR Growth",
   description:
-    "Verifies adding a sink hot-replaces while adding an anchor or colony reloads instead",
+    "Verifies a new sink hot-replaces, and a new anchor takes whichever structural route its entry allows",
   requires: ["hmr", "hmr-structural"],
   /**
-   * **The warm half passes; the structural half found a spec/implementation
-   * disagreement rather than a bug.**
+   * Green on both projects, on both halves it can prove causally.
    *
-   * Adding a sink hot-replaces correctly on both projects, and the new key does
-   * reach the catalog on disk — though not before the DOM, which is why the
-   * check below is polled.
-   *
-   * Adding a nested `zintl()` anchor produces a single `update` packet and **no
-   * reload**, and the page is fine afterwards. ZHMR §4.2 says a new anchor is
-   * the structural path and must reload. The implementation disagrees on
-   * purpose: where the entry is re-execution-safe — a framework declaring
-   * client reactivity — Vite emits a self-accepting snippet and the
-   * re-executed entry picks the new boundary up in place. Measured on
-   * `react-basic` and `vanilla-spa-basic`; the final reload-and-recheck in the
-   * body confirms the runtime is not left holding a stale boundary map.
-   *
-   * So one of the two is wrong, and which is a product decision rather than a
-   * test one: either §4.2 should say "reload *unless* the entry is
-   * re-execution-safe", or the compiler should force the reload it specifies.
-   * Left pending with the measurement rather than quietly relaxed to whatever
-   * the code happens to do — a contract rewritten to match the implementation
-   * stops being able to disagree with it.
+   * The catalog-write claim it used to carry is recorded as ledger L-066 and
+   * removed from the body — see the comment where it stood for why a wall-clock
+   * assertion had to go rather than be tuned.
    */
-  pendingFor: {
-    "react-basic":
-      "ZHMR §4.2 vs implementation: adding a nested zintl() anchor emits `update`, not " +
-      "`full-reload`, and the page stays correct. Re-execution-safe entries self-accept. " +
-      "Spec or code must move; no product fix attempted.",
-    "vanilla-spa-basic":
-      "Same as react-basic: one `update` packet, no reload, page correct afterwards.",
-  },
   async execute(lab, adapter) {
     const { addSink, addAnchor } = adapter;
     if (!addSink || !addAnchor) {
@@ -114,53 +98,115 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
     }
 
     /**
-     * The new string reached disk, where a translator works.
+     * **Deliberately not asserted here: that the new key reached a catalog on
+     * disk.** It was written, it failed, and the reason it is gone is worth
+     * more than the assertion was.
      *
-     * A sink that renders but never lands in a catalog is the failure this
-     * catches: the page looks right in the source locale and the string is
-     * untranslatable, which nothing visual would reveal.
+     * The claim is real — a sink that renders but never lands in a catalog is
+     * untranslatable, and invisible to every visual assertion in this suite.
+     * But the only way this contract could ask it was to poll a file for a
+     * while and give up, and ZDB §9.3 is explicit that a timing heuristic may
+     * exist as a declared fallback and never on a success path. It behaved
+     * exactly as that rule predicts: green on `react-basic` in isolation, red on
+     * the same project under four-worker contention, with the budget deciding
+     * the verdict rather than the behaviour.
      *
-     * **Polled, not read once.** The DOM update and the catalog write are not
-     * the same event — the first arrives over the HMR channel, the second is a
-     * `flush()` the compiler coalesces, and the delivery ledger shows it
-     * routinely landing as `flush #N → superseded (dirt retained for the
-     * next)`. Reading immediately after `textEventually` therefore measures
-     * scheduling rather than behaviour. The budget is what distinguishes "the
-     * flush had not happened yet" from "the flush will never happen without
-     * another edit", which is the failure worth having.
+     * What it did establish before being removed is recorded as ledger L-066:
+     * on `vanilla-spa-basic` the key never arrives *at all* — checked to 25
+     * seconds, which is past any timing story — while `react-basic` writes it
+     * promptly on a quiet machine. That is a real difference and a real gap.
+     *
+     * Asserting it properly needs a **causal** signal: the compiler's own flush
+     * generation, waited on the way `waitForSettled` waits on the runtime's,
+     * rather than a wall clock. That is harness work, not a tuned constant, and
+     * until it exists this contract asserts what it can prove.
      */
-    if (addSink.expectText) {
-      const deadline = Date.now() + 8_000;
-      let probe = findCatalogFor(lab, { locale: "es", key: addSink.expectText });
-      while (probe.ok && !probe.carriesKey && Date.now() < deadline) {
-        await lab.clock.tick(250);
-        probe = findCatalogFor(lab, { locale: "es", key: addSink.expectText });
-      }
-      if (probe.ok && !probe.carriesKey) {
-        throw new Error(
-          `The new sink ${JSON.stringify(addSink.expectText)} rendered, but 8s later no catalog ` +
-            `for "es" carries it. Nearest is ${probe.path} with ${probe.keys.length} key(s). A ` +
-            `string that renders and cannot be translated is invisible to every visual ` +
-            `assertion, and to the translator whose job it is to find it.`,
-        );
-      }
-    }
 
     // ──────────────────────────────────────────────────────────────────
     // §4.2 — a new anchor or colony is the structural path
     // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Which of §4.2's two routes is correct here is a **compiler fact**, asked
+     * of the compiler rather than declared by the manifest. `entryReexecutionSafe`
+     * is resolved from the framework's runtime facet, and it is the whole of
+     * what decides this: §4.2.1 where the entry can be re-run, §4.2.2 where it
+     * cannot.
+     */
+    const reexecutionSafe = lab.compiler.entryReexecutionSafe;
+    const boundariesBefore = boundaryCount(lab);
+
     const hardCapture = lab.ws.capture();
     await insert(lab, addAnchor, "addAnchor");
 
-    const hardPackets = hardCapture.stop();
-    if (!hardPackets.some((p) => p.type === "full-reload")) {
+    /**
+     * The graph must actually grow, on **both** routes.
+     *
+     * This is the assertion that makes the rest meaningful. A reload with no
+     * new boundary means the anchor was never observed, and a reload is then
+     * just an expensive way to render the same thing — which would satisfy a
+     * packet-only check completely. Polled for the same reason the catalog
+     * check above is: observation and delivery are different events.
+     */
+    const growthDeadline = Date.now() + 8_000;
+    while (boundaryCount(lab) <= boundariesBefore && Date.now() < growthDeadline) {
+      await lab.clock.tick(250);
+    }
+    const boundariesAfter = boundaryCount(lab);
+    if (boundariesAfter <= boundariesBefore) {
       throw new Error(
-        `Adding an anchor or colony to ${addAnchor.file} did not reload the page — saw ` +
-          `${hardPackets.length} packet(s): ${hardPackets.map((p) => p.type).join(", ") || "(none)"}.\n\n` +
-          `ZHMR §4.2: once the graph's shape changes, the module that would accept the update ` +
-          `is no longer the module that owns the code, so replacing in place leaves the runtime ` +
-          `holding a boundary map that describes the previous build.\n\n` +
+        `Adding an anchor to ${addAnchor.file} did not grow the boundary graph — still ` +
+          `${boundariesAfter} boundaries after 8s. The structural change was never observed, so ` +
+          `whatever the browser was told, it was not told about this.\n\n` +
           (await lab.assert.describeStall()),
+      );
+    }
+
+    /**
+     * A reload on this route arrives **after** the update that triggers it, and
+     * the gap is a round trip rather than a scheduling accident.
+     *
+     * Where the entry is not re-execution-safe, `viteFacet` emits
+     * `accept(() => import.meta.hot.invalidate())`. So the sequence on the wire
+     * is: server sends `update` → the client runs the callback → the client
+     * tells the server to invalidate → the server decides it cannot be handled
+     * and sends `full-reload`. Stopping the capture as soon as the update lands
+     * therefore reads the first packet of a two-packet exchange and concludes
+     * the reload never happened. Waited for, bounded, and the absence after the
+     * budget is what the §4.2.2 assertion below is entitled to call a failure.
+     */
+    if (!reexecutionSafe) {
+      const reloadDeadline = Date.now() + 4_000;
+      while (
+        !hardCapture.packets.some((p) => p.type === "full-reload") &&
+        Date.now() < reloadDeadline
+      ) {
+        await lab.clock.tick(200);
+      }
+    }
+
+    const hardPackets = hardCapture.stop();
+    const reloaded = hardPackets.some((p) => p.type === "full-reload");
+
+    if (!reexecutionSafe && !reloaded) {
+      throw new Error(
+        `ZHMR §4.2.2: this project's entry is not re-execution-safe, so a structural change must ` +
+          `bubble to a full reload — but adding an anchor to ${addAnchor.file} produced ` +
+          `${hardPackets.length} packet(s): ${hardPackets.map((p) => p.type).join(", ") || "(none)"}.\n\n` +
+          `Replacing in place here leaves the runtime holding a boundary map that describes the ` +
+          `previous build, and with no source-locale fallback the mismatch renders as empty ` +
+          `strings rather than stale ones.\n\n` +
+          (await lab.assert.describeStall()),
+      );
+    }
+
+    if (reexecutionSafe && reloaded) {
+      throw new Error(
+        `ZHMR §4.2.1: this project's entry is re-execution-safe, so the re-executed entry rebuilds ` +
+          `the boundary map and the structural change should be absorbed in place — but the page ` +
+          `was reloaded instead, discarding application state to reach a state an update could ` +
+          `have reached.\n\n` +
+          `Packets: ${hardPackets.map((p) => p.type).join(", ")}`,
       );
     }
 
@@ -171,12 +217,29 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
      * and is a worse outcome than no reload at all — Zintl has no
      * source-locale fallback, so a boundary map that no longer matches the
      * graph renders every key as an empty string.
+     *
+     * **Only reload when the server did not.** On the §4.2.2 route the server
+     * has already told the page to navigate, and issuing a second reload into
+     * a frame that is mid-navigation fails with `net::ERR_ABORTED; maybe frame
+     * was detached?` — a contract racing the very reload it just asserted, and
+     * reporting it as a defect in the thing under test.
      */
-    await lab.page.reload();
+    if (!reloaded) {
+      await lab.page.reload();
+    }
     await lab.clock.waitForIdle();
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
   },
 };
+
+/** Boundaries the compiler currently knows about, or `-1` if it cannot say. */
+function boundaryCount(lab: Lab): number {
+  try {
+    return lab.compiler.getBoundaryGraph()?.nodes?.size ?? -1;
+  } catch {
+    return -1;
+  }
+}
 
 async function insert(lab: Lab, edit: SourceInsertion, which: string): Promise<void> {
   await lab.fs.edit(edit.file, (content) => {

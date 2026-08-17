@@ -39,6 +39,21 @@ export class LabCompiler {
     return this.context()?.hmrTrace?.toArray() ?? [];
   }
 
+  /**
+   * Whether re-running this project's entry module is safe.
+   *
+   * The flag ZHMR §4.2's exception turns on: where it holds, a structural
+   * change can be hot-replaced because the re-executed entry rebuilds the
+   * boundary map itself, and the compiler emits a self-accepting snippet
+   * instead of forcing a reload. It is resolved from the framework's runtime
+   * facet, so it is a **compiler fact, not a project one** — a contract that
+   * asked a manifest to declare it would be asking twenty adapters to restate
+   * something the compiler already knows.
+   */
+  get entryReexecutionSafe(): boolean {
+    return this.instance?._resolved?.flags?.entryReexecutionSafe ?? false;
+  }
+
   getBoundaryGraph() {
     const inst = this.instance;
     if (!inst) throw new Error("Zintl compiler not active in current server mode");

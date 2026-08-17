@@ -70,25 +70,48 @@ Triggered when:
 **Mechanism**:
 The `import.meta.hot.accept()` in the virtual manager allows the module to update in-place. The runtime `registerLoader` updates the `globalRegistry`. Existing UI sinks (using the `t()` function) will pick up the new strings on their next reactive update.
 
-### §4.2 — Hard Reload (The Structural Path)
+### §4.2 — The Structural Path
 
-Triggered when:
+The graph's **shape** has changed, rather than its contents:
 
 - A new `zintl()` anchor is added or removed.
 - A dynamic import (`$L`) is added, creating a new Colony.
 - A file's ownership moves between boundaries.
 
-**Mechanism**:
-In these cases, the structural integrity of the graph has changed. Vite's standard HMR bubbling will eventually trigger a hard reload if the change cannot be safely hot-replaced at the entry level.
+**The invariant, in both cases below**: the runtime must not be left holding a boundary map that
+describes the previous build. Replacing a module in place while its boundary map still names
+boundaries that have moved is the failure this section exists to prevent — and because Zintl has no
+source-locale fallback, the symptom is not a stale string but an empty one.
 
-> **Open, and measured.** The `hmr-growth` contract asserts this section and finds that adding a
-> nested `zintl()` anchor to a **re-execution-safe** entry produces an ordinary `update` and no
-> reload — and that the page is correct afterwards, because the re-executed entry picks the new
-> boundary up in place. So the "cannot be safely hot-replaced" clause above is doing more work than
-> the bullet list suggests: for entries whose framework declares client reactivity, the change _can_
-> be safely hot-replaced, and the implementation does. Either this section gains that exception or
-> the compiler forces the reload it specifies. Recorded as ledger L-061; the contract deliberately
-> continues to assert the specification rather than the code.
+There are two correct ways to satisfy that, and which applies is decided by the **entry**, not by the
+kind of change:
+
+#### §4.2.1 — Re-execution-safe entries hot-replace
+
+When the entry module can be safely re-run — `entryReexecutionSafe`, resolved from the framework's
+runtime facet — the re-executed entry rebuilds the boundary map itself. The structural change is then
+absorbed in place, and a reload would discard application state to reach a state the update already
+reached.
+
+**Mechanism**: the compiler emits a self-accepting snippet for the entry. The update arrives as an
+ordinary `update`; the boundary graph grows; the page is correct on the next render.
+
+#### §4.2.2 — Everything else reloads
+
+When the entry is not re-execution-safe, in-place replacement is not merely slower but wrong: the
+module that would accept the update is no longer the module that owns the code.
+
+**Mechanism**: the update bubbles until it becomes a full page reload. Hosts reach that differently —
+Vite accepts and then calls `import.meta.hot.invalidate()`, while Rspack has no `invalidate()` and
+instead declines to accept at all, so the update bubbles for want of a handler (see §5a).
+
+> **Where this exception came from.** The section originally specified a hard reload for every
+> structural change, with no exception. The `hmr-growth` contract asserted that and found the
+> implementation disagreeing on purpose: adding a nested `zintl()` anchor to a re-execution-safe
+> entry produced an ordinary `update`, no reload, and a correct page — confirmed by reloading
+> afterwards and re-asserting, so the runtime was demonstrably not left holding a stale boundary map.
+> The specification was the thing that was wrong, and it has been changed rather than the code
+> (ledger L-061).
 
 ### §4.3 — Server-Side Auto-Refresh (The SSR Path)
 

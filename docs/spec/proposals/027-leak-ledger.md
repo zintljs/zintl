@@ -3546,3 +3546,77 @@ That is the specific hazard of a silent no-op, as opposed to a missing assertion
 reviewed. It has a walk, a set, a comparison and a well-written error message, and none of it had ever
 executed against a real directory. Fixing only the outer layer turned three of four projects red with
 false positives — which is how the inner one surfaced.
+
+### L-061 — resolved: §4.2 gains the re-execution-safe exception
+
+|                             |                                                        |
+| :-------------------------- | :----------------------------------------------------- |
+| **Status**                  | **Closed** — the specification moved; the code did not |
+| **Bucket**                  | 4 — the specification was wrong                        |
+| **Facet contract changed?** | No                                                     |
+
+The open decision from this phase, settled: **§4.2 was wrong and has been amended.**
+
+It specified a hard reload for every structural change, with no exception. `hmr-growth` asserted that
+and found the implementation disagreeing deliberately — on a re-execution-safe entry, adding a nested
+`zintl()` anchor arrives as an ordinary `update`, the boundary graph grows, and the page is correct.
+A reload there would discard application state to reach a state the update already reached.
+
+The section now has two routes (§4.2.1 hot-replace, §4.2.2 reload), and states the **invariant** they
+both serve — the runtime must not be left holding a boundary map describing the previous build —
+rather than a mechanism. Which route applies is decided by the entry, not by the kind of change.
+
+**The contract asks the compiler which route to expect**, through a new
+`LabCompiler.entryReexecutionSafe` reading `_resolved.flags.entryReexecutionSafe`. That flag is
+resolved from the framework's runtime facet, so it is a compiler fact; asking twenty manifests to
+declare it would be the `findCatalogPath` mistake in a new place. The contract asserts the reload on
+one side, its _absence_ on the other, and on both sides that the graph actually grew — the check that
+makes the rest mean anything, since a reload with no new boundary is an expensive way to render the
+same thing and would satisfy a packet-only assertion completely.
+
+**Two things the amendment exposed in the contract itself**, both fixed:
+
+1. **The reload arrives after the update that causes it.** On §4.2.2, `viteFacet` emits
+   `accept(() => import.meta.hot.invalidate())`, so the wire carries `update` → client invalidates →
+   server sends `full-reload`. Stopping the capture when the update lands reads the first packet of a
+   two-packet exchange and concludes no reload happened. `react-basic` was failing its own
+   specification for four seconds' want of waiting.
+2. **The contract raced the reload it had just asserted.** Its closing `page.reload()` fired into a
+   frame the server was already navigating — `net::ERR_ABORTED; maybe frame was detached?` — reported
+   as a defect in the thing under test. It now reloads only where the server did not.
+
+### L-066 — a new sink renders but never reaches a merged catalog
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+Found by §4.1③'s half of `hmr-growth`. Adding a translatable string to `vanilla-spa-basic` renders it
+hot, with no reload — that half of the specification holds — and the new key never appears in any
+catalog on disk. Checked against a 25-second budget as well as the committed 8, with an identical
+result, so this is the flush never writing rather than the flush being slow.
+
+`react-basic` writes the key well inside the budget. The visible difference is `catalogFormat:
+"translations.json"` — one merged file holding every locale — against the default one file per
+locale. That is stated as an observation, not a diagnosis: four entries in this phase went wrong by
+inferring a mechanism from a correlation, and one project either side is a correlation.
+
+**Why it matters more than it looks.** A string that renders and cannot be translated is invisible to
+every visual assertion in this suite, and to the translator whose job is to find it. The page is
+correct in the source locale, which is exactly the state Zintl's no-fallback rule is designed to make
+impossible everywhere else.
+
+**The assertion that found it has been removed, and that is the second finding.** It could only ask
+the question by polling a file for a while and giving up, which is precisely what ZDB §9.3 forbids on
+a success path — a timing heuristic deciding a verdict. It then behaved exactly as that rule
+predicts: green on `react-basic` in isolation and **red on the same project under four-worker
+contention**, with the budget rather than the behaviour choosing the outcome. Raising the constant
+would have hidden the flake and kept the violation.
+
+So the gap is recorded here and the contract asserts what it can prove causally. Closing it needs a
+**causal wait on the compiler's flush generation** — the same shape as `waitForSettled` on the
+runtime's — which is harness work rather than a tuned constant. Until that exists, "the new key
+reached disk" is a known-untested claim, which is a better state than a green that depends on how
+busy the machine was.
