@@ -1,4 +1,3 @@
-import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/about.txt?zintl-raw";
 export default (() => {
   const manager = { id: "b_src_index_render", loader: (locale) => {
       switch(locale) { 
@@ -16,7 +15,7 @@ export default (() => {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/about.txt": "Zintl keeps translations next to the code that needs them.\n",
   },
   };
                 case "ar":

@@ -3620,3 +3620,67 @@ So the gap is recorded here and the contract asserts what it can prove causally.
 runtime's — which is harness work rather than a tuned constant. Until that exists, "the new key
 reached disk" is a known-untested claim, which is a better state than a green that depends on how
 busy the machine was.
+
+### L-067 — asset HMR: one symptom, three causes, each hiding the next
+
+|                             |                                                     |
+| :-------------------------- | :-------------------------------------------------- |
+| **Status**                  | **Fixed on Vite**; Rspack advances to L-064's shape |
+| **Bucket**                  | 3 — real defect                                     |
+| **Facet contract changed?** | **Yes** — `ContentFacet.getDeclaredInputs`          |
+
+ZHMR §5 did not work on either host. `asset-hmr` (L-058) measured it red on Vite and Rspack with the
+same symptom — the page keeps rendering the previous text — and the symptom was produced by **three
+independent causes stacked on top of each other**. Fixing any one alone changed nothing visible,
+which is the whole reason the section survived being specified, implemented and believed for as long
+as it did.
+
+**1. The compiler never re-read the file.** Asset text lives in `messages.hive`, and the only thing
+that refills it is `mergeFacetTranslations()` inside `syncGraphs()`. The asset branch of
+`invalidateFile` announced `b_assets` as affected and called `scheduleFlush()` — both of which are
+about _delivery_ — and never marked the graph dirty. So the entire cascade ran, correctly, against
+the previous contents of the file: hot update fired, manager re-imported, content module
+re-evaluated, `addCatalogs` applied, every step carrying the old string.
+
+**2. The text lived in a second module neither host would rebuild.** The generated catalog did not
+hold the text; it held `_zintl_asset_0`, imported from the asset. Those two modules go stale
+independently, and the import is minted under `\0virtual:zintl/rawasset/<base64url>` — an
+extension-free virtual id chosen so no host can misclassify it by extension (L-009). A virtual module
+has no `file`, so Vite's graph cannot associate it with the changed asset at all, and Rspack has no
+declared dependency on which to call it stale. Two hosts, two mechanisms, nothing shared.
+
+The fix is to **delete the second module rather than synchronise it**: in dev the text is inlined
+into the catalog, so the update arrives by the same route as every other translation. Dev-only —
+production keeps the import, where one shared module per asset is right and duplicating a document
+across locale chunks would be a real cost. The committed dev-transform snapshots moved by exactly
+that substitution, in four locales, with the production snapshots untouched.
+
+**3. The correct catalog was delivered, and rejected.** With 1 and 2 fixed, Rspack rebuilt and
+delivered a catalog holding the right text — and the runtime discarded it:
+`runtime/catalog ar/b_assets #0 → superseded (overtaken by seq 0)`. The asset branch returns before
+the shared bookkeeping that every other change goes through, including `catalogGeneration++`, so the
+rebuilt catalog claimed to be no newer than the one already applied. Axiom D1 then did precisely its
+job. **This is the most misleading failure of the three**: compiler right, host right, bytes right,
+receiver correctly refusing them.
+
+**A facet contract change, deliberately.** `getBoundaryInputs` answers "what source owns this
+boundary" out of `boundaryOwnership`, and a virtual boundary is _contributed_ rather than extracted,
+so `b_assets` declared no inputs at all — which on a host that rebuilds from declared dependencies
+means a catalog embedding an asset is never stale. `ContentFacet.getDeclaredInputs` lets a facet name
+the files its virtual boundaries derive from. Asked of the facet rather than special-cased on the id:
+the core has no business knowing `b_assets` means `.txt` and `.md`, and the next facet contributing a
+virtual boundary would otherwise rediscover this the same way.
+
+**Where it stands.** `[Asset HMR] assets-basic` is green — both halves, the translator's edit to
+`about.ar.txt` and the developer's edit to `about.txt`. `rsbuild-vanilla-basic` stays pending, and
+its failure has **moved**: store and DOM both carry the new text about two seconds after the edit,
+measured directly in the page, and a later rebuild puts the old text back. That is L-064's
+reload-beats-the-catalog-write shape rather than anything about assets, and it is where the next pass
+on this host should start.
+
+**The method note worth keeping.** Two changes made during this diagnosis were reverted after
+measurement showed they were not load-bearing — removing the `?zintl-raw` module's self-accept (a
+unit test disagreed, and inlining had made the question moot) — and one was reverted and then
+**restored** when removing it turned the source-asset half red while the localized half stayed green.
+A fix kept because it was proposed, rather than because removing it broke something, is
+indistinguishable from a fix that does nothing.

@@ -562,6 +562,21 @@ export interface ContentFacet extends BaseFacet {
    * boundary to hang catalogs on — the assets facet uses `"b_assets"`.
    */
   virtualBoundaries?: string[];
+  /**
+   * Every file this facet's {@link virtualBoundaries} are derived from, as
+   * absolute paths — sources and their localized outputs alike.
+   *
+   * The answer to "what would change the catalog of a boundary that owns no
+   * source". `boundaryOwnership` cannot supply it, because a virtual boundary
+   * is *contributed* rather than extracted, so without this a generated module
+   * embedding this facet's content declares no dependencies and is never stale
+   * on a host that rebuilds from declared inputs. Ledger L-067.
+   *
+   * Synchronous, unlike {@link getActiveOutputPaths}: it is consulted while
+   * building the watched-file list for a module that is being generated, on a
+   * path with no await to spare.
+   */
+  getDeclaredInputs?: (context: CompilerContext) => string[];
   /** The boundary a localized output file belongs to, or `null` if none. */
   getBoundaryForLocalizedOutput?: (
     filePath: string,

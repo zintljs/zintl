@@ -1,4 +1,3 @@
-import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/i18n/src/about.zh.txt?zintl-raw";
 const catalog = {
     "b_src_index_render": {
       "Vanilla Rsbuild": "原生 Rsbuild",
@@ -15,7 +14,7 @@ const catalog = {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/about.txt": "Zintl 将翻译放在需要它们的代码旁边。\n",
   },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {

@@ -50,31 +50,45 @@ export const assetHmrContract: Contract<AssetsAdapter> = {
    */
   requires: ["assets", "asset-hmr"],
   /**
-   * **Measured red on both hosts, on first execution.** Editing the localized
-   * copy of an asset does not reach the page: the heading keeps rendering the
-   * previous text, on Vite (`assets-basic`, `مرحباً بالعالم!` unchanged) and on
-   * Rspack (`rsbuild-vanilla-basic`, likewise) — two projects, two hosts, two
-   * entirely different invalidation routes, one outcome.
+   * **Green on Vite. Three defects deep, and each one hid the next (L-067).**
    *
-   * That is ZHMR §5 in full: assets map to the virtual boundary `b_assets`,
-   * every entry is marked its dependent in development, and an edit is supposed
-   * to cascade through every entry's manager. The mechanism exists on both
-   * sides — Vite fans out through `entryFilePaths`, Rspack sees a real
-   * `?zintl-raw` import — and neither delivers.
+   * This contract was red on both hosts when written, with the same symptom —
+   * the page keeps rendering the previous text — produced by three independent
+   * causes stacked on top of each other. Fixing any one alone changed nothing
+   * visible, which is why the section had survived being specified,
+   * implemented, and believed:
    *
-   * Skipped rather than deleted, and skipped rather than left red, because the
-   * contract is not what is wrong here. It is recorded as pending with its
-   * measurement so the gap is visible in the report instead of being absent
-   * from it; a contract whose body is commented out still passes and still
-   * claims the slot.
+   * 1. **The compiler never re-read the file.** Asset text lives in the hive,
+   *    which only `syncGraphs()` refills, and the asset branch of
+   *    `invalidateFile` announced `b_assets` and scheduled a flush without
+   *    marking the graph dirty. The entire cascade then ran correctly against
+   *    the previous contents.
+   * 2. **The text lived in a second module neither host would rebuild.** The
+   *    generated catalog imported the asset through a *virtual*,
+   *    extension-free id, so Vite's graph could not associate it with the
+   *    changed file and Rspack had no declared dependency to go stale on. It is
+   *    now inlined in dev, which deletes the second module instead of trying to
+   *    synchronise it on two hosts that share no mechanism.
+   * 3. **The correct catalog was delivered and then rejected.** The asset
+   *    branch returned before the shared `catalogGeneration++`, so the rebuilt
+   *    catalog carried the same generation as the one already applied and the
+   *    receiver discarded it by Axiom D1 — visible as
+   *    `runtime/catalog ar/b_assets #0 → superseded (overtaken by seq 0)`, with
+   *    the right text inside it.
+   *
+   * **`rsbuild-vanilla-basic` remains pending, and the failure has moved.** The
+   * store and the DOM both hold the new text about two seconds after the edit,
+   * measured directly — so the compiler, the delivery and the render are all
+   * correct now. What follows is a later rebuild that puts the old text back,
+   * which is the reload-beats-the-catalog-write shape already recorded as
+   * L-064 rather than anything about assets.
    */
   pendingFor: {
-    "assets-basic":
-      "ZHMR §5 unimplemented in practice: editing src/locales/src/about.ar.txt leaves the page " +
-      "on the previous text. Measured on first run of this contract; no product fix attempted.",
     "rsbuild-vanilla-basic":
-      "Same as assets-basic, on the other host: editing src/i18n/src/about.ar.txt does not " +
-      "reach the page, so the b_assets cascade fails through both hosts' routes.",
+      "L-067 is fixed here too — store and DOM both carry the new asset text ~2s after the " +
+      "edit, measured. A later rebuild then restores the previous text, which is L-064's " +
+      "reload-beats-the-catalog-write shape rather than an asset defect. No further fix " +
+      "attempted in this pass.",
   },
   async execute(lab, adapter) {
     if (!adapter.assetFile) {

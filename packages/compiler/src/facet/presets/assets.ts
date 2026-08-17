@@ -1,5 +1,5 @@
-import { join, isAbsolute, relative } from "node:path";
-import { existsSync } from "node:fs";
+import { join, isAbsolute, relative, extname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
 import type { ZintlFacet, CompilerContext } from "@zintljs/compiler";
 import type { IOManager } from "@zintljs/compiler";
 import type { CatalogManager } from "@zintljs/compiler";
@@ -797,6 +797,25 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
     getStateToSave(context: CompilerContext) {
       return getManager(context).getRegisteredAssetsRaw();
     },
+    /**
+     * The source asset and every localized copy of it, for `b_assets`.
+     *
+     * Sources as well as outputs: a developer editing `about.txt` and a
+     * translator editing `about.ar.txt` both change what the catalog says, and
+     * a host that watches only one of them delivers half the feature.
+     */
+    getDeclaredInputs(context: CompilerContext) {
+      const mgr = getManager(context);
+      const paths: string[] = [];
+      for (const assetId of mgr.getRegisteredAssets()) {
+        paths.push(join(context.root, assetId));
+        for (const locale of context.locales) {
+          if (locale === context.sourceLocale) continue;
+          paths.push(mgr.getAssetPath(assetId, locale));
+        }
+      }
+      return paths;
+    },
     async getBoundaryForLocalizedOutput(filePath: string, context: CompilerContext) {
       const mgr = getManager(context);
       if (await mgr.isLocalizedAsset(filePath)) {
@@ -816,11 +835,45 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
           ? join(context.root, assetId)
           : mgr.getAssetPath(assetId, locale);
         if (existsSync(localizedPath)) {
-          const varName = `_zintl_asset_${assetCounter++}`;
-          imports.push(`import ${varName} from "${toPosixPath(localizedPath)}?zintl-raw";`);
           const assetKey = context.isDev
             ? `@zintl/asset:${assetId}`
             : generateMessageId(`@zintl/asset:${assetId}`);
+
+          if (context.isDev) {
+            /**
+             * **Inlined in development, imported in production.**
+             *
+             * The import is right for a build: one module per asset, shared by
+             * every chunk that needs it, and the text is not duplicated per
+             * locale chunk. In dev it was the whole of ZHMR §5's failure
+             * (ledger L-067). The imported module holds the text, the content
+             * module embeds its default export into a catalog object literal at
+             * evaluation time, and the two go stale independently — so an asset
+             * edit rebuilt the content module perfectly around a value it read
+             * from a module neither host had rebuilt. Fixing that per host
+             * means chasing it twice, in two mechanisms that share nothing:
+             * Vite mints the raw module under a *virtual*, extension-free id
+             * (L-009) that its graph cannot associate with the changed file at
+             * all, and Rspack rebuilds from declared dependencies the raw
+             * module has no way to restate.
+             *
+             * Inlining deletes the second module rather than synchronising it.
+             * The content module is the one both hosts already rebuild
+             * correctly on an asset edit, so putting the text where the catalog
+             * is makes the update arrive by the same route as every other
+             * translation — and one less route is the fix.
+             *
+             * Dev-only, so nothing about the built output changes: bundle size
+             * is not a dev concern, and duplicating a `.md` file across locale
+             * chunks in production would be a real cost.
+             */
+            const ext = extname(localizedPath);
+            catalog[assetKey] = mgr.getTranslationOnly(readFileSync(localizedPath, "utf-8"), ext);
+            continue;
+          }
+
+          const varName = `_zintl_asset_${assetCounter++}`;
+          imports.push(`import ${varName} from "${toPosixPath(localizedPath)}?zintl-raw";`);
           catalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
         }
       }

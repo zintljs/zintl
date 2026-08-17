@@ -553,6 +553,31 @@ export class ZintlCompiler {
       }
     }
 
+    /**
+     * A facet's virtual boundary is derived from **files**, and only the facet
+     * knows which.
+     *
+     * The loop above answers "what source owns this boundary" out of
+     * `boundaryOwnership`, and a virtual boundary like `b_assets` is owned by
+     * nothing — it is contributed, not extracted. It therefore declared no
+     * inputs at all, which on a host that rebuilds from declared dependencies
+     * means a generated catalog embedding an asset **is never stale**. Editing
+     * `about.ar.txt` under Rspack rebuilt nothing, delivered nothing, and left
+     * the page on the previous text (ZHMR §5, ledger L-067).
+     *
+     * Asked of the facet rather than special-cased on the id: the core has no
+     * business knowing that `b_assets` means `.txt` and `.md` files, and a
+     * second facet contributing a virtual boundary would otherwise have to
+     * rediscover this the same way.
+     */
+    for (const facet of this._resolved.system.contentFacets) {
+      const virtuals = facet.virtualBoundaries ?? [];
+      if (!virtuals.some((v) => wanted.has(v))) continue;
+      for (const path of facet.getDeclaredInputs?.(this.getCompilerContext()) ?? []) {
+        inputs.add(isAbsolute(path) ? path : join(this.rootDir, path));
+      }
+    }
+
     return Array.from(inputs);
   }
 
@@ -715,6 +740,51 @@ export class ZintlCompiler {
         await matchedFacet.discover(filePath, context);
       }
       if (this.isDev) {
+        /**
+         * Assets live in the **hive**, and only `syncGraphs()` refills it.
+         *
+         * This branch used to announce `b_assets` as affected and schedule a
+         * flush, and stop there. Both are about *delivery* — which modules to
+         * invalidate, and writing catalogs to disk — and neither re-reads the
+         * file that just changed. The asset text a catalog carries comes from
+         * `mergeFacetTranslations()`, which runs inside `syncGraphs()` and
+         * nowhere else, so without marking the graph dirty the whole cascade
+         * ran perfectly against **the previous contents of the file**: the
+         * hot update fired, the manager re-imported, the content module
+         * re-evaluated, `addCatalogs` applied, and every one of those steps
+         * carried the old string.
+         *
+         * That is why editing a localized asset never reached the page on
+         * either host (ZHMR §5, ledger L-067) — the failure was upstream of
+         * every host-specific mechanism the section describes, which is
+         * precisely why fixing it on one host would not have fixed the other.
+         *
+         * `generateVirtualModule` already awaits `syncGraphs()` when the graph
+         * is dirty, so marking it is the whole of the fix: the next module
+         * generation re-reads the asset from disk.
+         */
+        this.graphDirty = true;
+
+        /**
+         * An asset edit is a real change, so it has to advance the clock.
+         *
+         * This branch returns before the shared bookkeeping below — the cache
+         * drop, the boundary revision, and `catalogGeneration++` that every
+         * other kind of change goes through. The generation is what the runtime
+         * orders deliveries by (ZDB Axiom D1), so a catalog rebuilt around a new
+         * asset was stamped with the **same** number as the one already applied
+         * and correctly discarded on arrival: `runtime/catalog ar/b_assets #0 →
+         * superseded (overtaken by seq 0)`, with the right text in it.
+         *
+         * That is the third and last layer of L-067, and the most misleading:
+         * the compiler was right, the host rebuilt, the bytes were delivered,
+         * and the receiver rejected them for being stale — which is exactly what
+         * it is supposed to do with a delivery that says it is stale.
+         */
+        delete this.catalog.getCache()["b_assets"];
+        this.boundaryRevisions.set("b_assets", (this.boundaryRevisions.get("b_assets") || 0) + 1);
+        this.catalogGeneration++;
+
         this.scheduleFlush();
         return ["b_assets"];
       }

@@ -1,6 +1,6 @@
 import type { ModuleNode, ViteDevServer } from "vite";
 import type Context from "../context.js";
-import { RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
+import { RESOLVED_RAW_ASSET_PREFIX, RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
 import type { HostUpdateApplier, HostUpdateResult } from "./applier.js";
 import { classifyFile } from "./plan.js";
 import type { HotUpdatePlan } from "./types.js";
@@ -88,6 +88,50 @@ export class ViteUpdateApplier implements HostUpdateApplier {
       for (const [id, mod] of mg.idToModuleMap) {
         if (id.includes("virtual:zintl") && id.includes("/manager/")) {
           invalidate(mod);
+        }
+      }
+    }
+
+    /**
+     * The asset's own module is **virtual**, so Vite cannot reach it from the
+     * file that changed.
+     *
+     * `about.txt?raw` and `about.txt?zintl-raw` are both minted under
+     * `\0virtual:zintl/rawasset/<base64url of the id>` — an extension-free
+     * virtual id, chosen so no host can misclassify it by extension and
+     * base64 the generated JavaScript into a `data:` URI (L-009). The cost
+     * lands here: a virtual module has no `file`, so `handleHotUpdate` for the
+     * asset reports only the plain file module, which this method then skips as
+     * the base asset. Nothing is invalidated, no timestamp changes, the browser
+     * answers the import from cache, and the source text baked into that module
+     * is the text from before the edit.
+     *
+     * Measured rather than reasoned: removing this block turns the source-asset
+     * half of the `asset-hmr` contract red on Vite while the localized half
+     * stays green, because only the former is served out of a baked constant
+     * (ledger L-067).
+     *
+     * Matched by decoding the id back to a path rather than by substring, so an
+     * edit to one asset cannot invalidate another's.
+     */
+    if (event.kind === "asset") {
+      for (const [id, mod] of mg.idToModuleMap) {
+        if (!id.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) continue;
+        let decoded: string;
+        try {
+          decoded = Buffer.from(
+            id.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1),
+            "base64url",
+          ).toString("utf8");
+        } catch {
+          continue;
+        }
+        if (decoded.split("?")[0] !== event.file) continue;
+
+        invalidate(mod);
+        // Its importers embed or re-read this value, so they have to re-run too.
+        for (const importer of mod.importers ?? []) {
+          invalidate(importer);
         }
       }
     }

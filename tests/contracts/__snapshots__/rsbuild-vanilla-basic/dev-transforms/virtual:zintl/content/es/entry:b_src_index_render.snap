@@ -1,4 +1,3 @@
-import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/i18n/src/about.es.txt?zintl-raw";
 const catalog = {
     "b_src_index_render": {
       "Vanilla Rsbuild": "Rsbuild con Vanilla",
@@ -17,7 +16,7 @@ const catalog = {
   },
     },
     "b_assets": {
-    "@zintl/asset:src/about.txt": _zintl_asset_0,
+    "@zintl/asset:src/about.txt": "Zintl mantiene las traducciones junto al código que las necesita.\n",
   },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
