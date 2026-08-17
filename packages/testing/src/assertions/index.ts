@@ -425,7 +425,53 @@ export class LabAssertions {
    * output directory forever, gets committed, gets translated, and describes
    * source that no longer exists.
    */
+  /**
+   * Drive the compiler's pending writes to completion, then return.
+   *
+   * A single `await flush()` is not enough, and the compiler says so: a caller
+   * arriving mid-flush is handed the **in-flight** promise, and its own dirt is
+   * deferred to a later run. `flush()`'s own comment states the guarantee as
+   * "your change will be flushed", not "it has been flushed by the time this
+   * resolves". Awaiting once therefore returns while the interesting work is
+   * still outstanding.
+   *
+   * Looping on the dirty set rather than on a clock keeps this a causal wait
+   * (ZDB §9.3): it terminates because the dirt is empty, not because time
+   * passed. The bound is a safety net for a compiler that cannot make progress,
+   * and reaching it is a bug worth failing on rather than papering over — so
+   * the caller's assertion runs anyway and reports whatever it finds.
+   */
+  private async flushUntilQuiescent(rounds = 4): Promise<void> {
+    const compiler = this.lab.compiler.instance as
+      | {
+          flush?(): Promise<void>;
+          messages?: { dirtyBoundaries?: Set<string>; hiveDirty?: boolean };
+        }
+      | undefined;
+    if (!compiler?.flush) return;
+
+    for (let i = 0; i < rounds; i++) {
+      await compiler.flush();
+      const dirty =
+        (compiler.messages?.dirtyBoundaries?.size ?? 0) > 0 ||
+        compiler.messages?.hiveDirty === true;
+      if (!dirty) return;
+    }
+  }
+
   async noOrphanedCatalogs(): Promise<void> {
+    /**
+     * Reclamation happens during a flush, and a flush is debounced.
+     *
+     * Asking the filesystem the instant the DOM settles reads the disk mid-way
+     * through work the compiler has already scheduled — so this asserted on a
+     * state that was never meant to be final, and reported deferred work as an
+     * orphan. Awaiting the compiler's own `flush()` is a **causal** wait rather
+     * than a timed one (ZDB §9.3): it does not sleep hoping the work has
+     * happened, it makes the pending work happen and returns when it has.
+     */
+    await this.flushUntilQuiescent();
+
     const compiler = this.lab.compiler.instance;
     if (!compiler) return;
 

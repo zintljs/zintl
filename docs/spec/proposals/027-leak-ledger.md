@@ -3903,3 +3903,143 @@ ran against a catalog the content module had not replaced yet"` — which was a 
 an observation. Nothing in the evidence distinguished it from "the element was not there yet". A
 probe that cannot tell _not rendered yet_ from _rendered as nothing_ will manufacture defects in
 every asynchronously repainting app it meets, and this one did.
+
+### L-065 — revised: translations are not lost, and dev never prunes at all
+
+|                             |                                                                   |
+| :-------------------------- | :---------------------------------------------------------------- |
+| **Status**                  | **Open, re-scoped** — the original characterisation was too broad |
+| **Bucket**                  | 3 — real, but smaller and differently shaped than recorded        |
+| **Facet contract changed?** | No                                                                |
+
+Investigated with probes rather than reasoning, and three of the entry's implications turn out to be
+wrong. Recorded before attempting a fix, because the fix that the original wording implies — "make
+the rename move the catalogs" — would have been aimed at something that already works.
+
+**1. The boundary is forgotten correctly.** After the rename, `HelloWorld.vue` is absent from
+`boundaryGraph.nodes`, `boundaryOwnership`, `metadataGraph` and `internalManifest`. `removeFile`
+does its job on SFCs exactly as it does on `.tsx`.
+
+**2. The translations migrate. Nothing is lost.** `zintl/src/components/Hello.vue.ar.json` — the
+_new_ name — contains the Arabic strings (`"Bluesky": "بلو سكاي"`). An earlier snapshot showing the
+new boundary with `ar`/`es` but no `zh` was read as a lost locale; polling shows it is the flush
+still in flight. The old files are duplicates left behind, not the only surviving copies.
+
+**3. What remains is the old files, and pruning is disabled in development on purpose.**
+`pruneOrphanedBoundaries` opens with `if (this.isDev && !this.isTestEnv) return`, carrying a comment
+that names this exact complaint — "artifacts outliving their source" — and explains why enabling it
+blind trades an accumulating leak for the chance of deleting a live catalog.
+
+**So the sharpest finding is about the contract, not the compiler.** `isTestEnvironment()` is
+`NODE_ENV === "test" || VITEST`, and the harness runs its Vite dev server in the vitest process — so
+`noOrphanedCatalogs()` asserts a behaviour **only the test environment ever has**. A real
+`pnpm dev` session prunes nothing and always leaves these files. The assertion is not wrong to want
+this; it is wrong to imply users get it.
+
+**What is genuinely open**, and needs one more instrumented cycle rather than a guess: with prune
+eligible and the boundary gone from every live structure, the old catalogs still survive ≥5.75 s.
+Either `knownPaths` is still seeded with them from somewhere, or the `lastPrunedPathsHash`
+short-circuit skips the run that would matter. The next step is to log both inside
+`pruneOrphanedBoundaries` — not to change it.
+
+`react-basic` and `vanilla-spa-basic` leaving no orphans under the same conditions is the control
+that should drive that cycle: whatever reclaims theirs is the mechanism SFCs are missing.
+
+### L-070 — "dirt retained for the next" is only true if there is a next
+
+|                             |                                                    |
+| :-------------------------- | :------------------------------------------------- |
+| **Status**                  | **Open** — mechanism proven, fix not attempted     |
+| **Bucket**                  | 3 — real defect, and the general case behind L-065 |
+| **Facet contract changed?** | No                                                 |
+
+Found by instrumenting `pruneOrphanedBoundaries`, which is what the previous entry asked for. Every
+exit from that function now reports — the two early returns and the per-file keep/prune decisions —
+and the answer was not in any of them.
+
+**What the log showed.** Against `vue-basic`, over the whole `chaos-boundary` run:
+
+| Signal                          | Count |
+| :------------------------------ | :---- |
+| `Flushing compiler state...`    | 2     |
+| `Pruning orphaned catalogs...`  | 1     |
+| `Prune skipped: …` (any reason) | **0** |
+
+The single prune ran at +225 ms — _before_ the rename — and correctly logged
+`Keeping (known): zintl/src/components/HelloWorld.vue.{ar,es,zh}.json`, because at that moment the
+source still existed. The second flush never reached the prune call at all, and no early return
+fired. Prune is not the defect; it simply is never asked again.
+
+**The mechanism is the flush coalescer, and it is documented — as an assumption that does not hold.**
+`flush()` returns the in-flight promise to a mid-flush caller and settles
+`joined the in-flight flush; dirt retained for the next`. The comment justifying that says plainly:
+
+> the next trigger flushes it — the debounce timer is already scheduled by the `transform` that
+> dirtied it.
+
+That is true for every trigger except the last one. `scheduleFlush()` does `clearTimeout` then
+`setTimeout`; when that timer fires it calls `flush()`, which clears the timeout, finds
+`flushPromise` set, mints a `superseded` envelope and returns — **leaving no timer scheduled**. If no
+further change arrives, the retained dirt is never flushed. The in-flight run finishes having
+snapshotted state from before the change.
+
+So the last change before a quiet period is silently deferred forever. For `chaos-boundary` that is
+the deletion: the prune never re-runs, and `Hello.vue.zh.json` — a catalog write queued in the same
+dropped flush — never appears either. The earlier reading of that missing file as "a lost
+translation" and then as "flush still in flight" were both wrong; it is a write that will never
+happen.
+
+**This is not obscure.** `flush #N → superseded (joined the in-flight flush; dirt retained for the
+next)` appears **68 times** in this session's captured diagnoses, in almost every failure this phase
+investigated. It was read as background noise throughout, including by me.
+
+**What a fix must not be.** The comment records two attempts already paid for: an unconditional
+follow-on flush livelocked, because the flush body reaches back into the compiler and dirties state
+again; a guarded one cost a full extra pass per hot update and destabilised HMR contracts under
+parallel load. The cheaper shape neither attempt tried is to **re-arm the debounce timer** when a
+caller joins an in-flight flush, rather than running a follow-on — coalescing further changes and
+running once after the quiet period. That is a proposal, not a conclusion, and it belongs behind a
+`scripts/flake.js` measurement of `hmr-hammer` and the delivery contracts before it is believed.
+
+**L-065 is subsumed.** Orphaned SFC catalogs are one visible consequence; the reason `react-basic`
+and `vanilla-spa-basic` show none is scheduling, not extensions — their last change happened to land
+outside an in-flight flush.
+
+### L-070 — fixed: the trailing flush, and what measuring it separated
+
+The fix is the shape neither earlier attempt tried. `flush()` still hands a mid-flush caller the
+in-flight promise, but now also calls `armTrailingFlush()`, which **re-arms the debounce timer** once
+the in-flight run settles. Arming a timer rather than running a follow-on is the whole difference:
+further changes coalesce into it, so a burst costs one extra pass at the end rather than one per
+update — which is what made the guarded follow-on too expensive.
+
+Three conditions make it terminate, and each is load-bearing:
+
+1. Nothing is armed unless dirt actually remains once the in-flight run finished. The ordinary case
+   leaves none, so the ordinary case pays nothing.
+2. At most one arm per in-flight run, however many callers joined it.
+3. **A trailing flush that leaves the dirt unchanged does not arm another.** That is the termination
+   guarantee — a chain continues only while making progress — and a real edit clears the guard, so
+   genuine work is never refused. This is what the unconditional follow-on lacked when it livelocked.
+
+**`hmr-hammer`: 0 failures in 10 runs.** That is the contract the previous attempt destabilised, and
+it is the number this change had to produce to be allowed to exist.
+
+**A second defect had to be fixed for the first to be visible, and it was in the harness.**
+`noOrphanedCatalogs()` read the filesystem the instant the DOM settled — mid-way through work the
+compiler had already scheduled. Awaiting `flush()` once is not enough either, and the compiler says
+so in its own comment: a mid-flush caller gets the in-flight promise, so the guarantee is "your
+change will be flushed", not "it has been flushed by the time this resolves". `flushUntilQuiescent`
+loops on the **dirty set** rather than a clock, which keeps it a causal wait (ZDB §9.3): it
+terminates because there is no dirt left, not because time passed.
+
+**And measuring separated two projects that had been failing as one.** Both `vue-basic` and
+`svelte-basic` were pending on L-065. `vue-basic` now passes 10 runs in 10. `svelte-basic` fails
+**6 in 10** under contention and passes in isolation — for the reason this contract's own header has
+described all along: renaming the file the entry imports rewrites the entry's source, the entry
+self-accepts and re-executes, and Svelte's `mount()` appends a second copy over the first. Proposal
+024 §1.3, needing a framework `dispose()`, and nothing to do with catalogs.
+
+That is the lesson worth keeping from L-065 through L-070: **two projects failing the same assertion
+is not evidence they fail for the same reason**, and a single skip covering both is what let one
+wrong mechanism be written down for two different defects.

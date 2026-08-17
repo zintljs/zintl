@@ -54,15 +54,6 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * its previous catalogs behind, one per locale. Recorded rather than fixed:
    * pruning is compiler behaviour and this pass changes no product code.
    */
-  pendingFor: {
-    "vue-basic":
-      "L-065: renaming src/components/HelloWorld.vue leaves zintl/src/components/" +
-      "HelloWorld.vue.{ar,es,zh}.json orphaned. The rename and the hot update both succeed; " +
-      "only the old catalogs remain. No product fix attempted.",
-    "svelte-basic":
-      "L-065: same as vue-basic — renaming src/App.svelte leaves zintl/src/App.svelte." +
-      "{ar,es,zh}.json orphaned.",
-  },
   /**
    * Live on three of four projects.
    *
@@ -85,6 +76,36 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * a matching `dispose()` that tears the previous mount down, which is
    * framework knowledge and belongs in a framework facet.
    */
+  /**
+   * **`vue-basic` reclaims its catalogs now; `svelte-basic` is a different
+   * defect that was hiding behind the same skip.**
+   *
+   * Both were pending on L-065, "renaming an SFC boundary orphans its
+   * catalogs". That turned out not to be about SFCs at all — the prune ran once,
+   * before the rename, and was never asked again because the flush carrying the
+   * deletion joined an in-flight run and no later trigger existed to carry its
+   * dirt (L-070). With the trailing flush armed, `vue-basic` passes 10 runs in
+   * 10.
+   *
+   * `svelte-basic` fails 6 in 10 under contention and passes in isolation, and
+   * the reason is the one this contract's header already describes: renaming the
+   * file the entry imports rewrites the entry's own source, the entry
+   * self-accepts and re-executes, and Svelte's `mount()` appends a second copy
+   * over the first — so the heading selector reads the stale one. Proposal 024
+   * §1.3, and the fix is a matching `dispose()`, which is framework knowledge
+   * belonging in a facet.
+   *
+   * Kept separate rather than left as one skip: two projects failing the same
+   * assertion for unrelated reasons is how L-065 came to describe the wrong
+   * mechanism for both of them.
+   */
+  pendingFor: {
+    "svelte-basic":
+      "Proposal 024 §1.3 double-mount, not orphaned catalogs: the entry re-executes on the " +
+      "rename and Svelte's mount() appends a second copy, so the heading reads stale. " +
+      "Measured 6/10 runs failing under contention, 0/10 in isolation. Needs a framework " +
+      "dispose(); unrelated to L-065/L-070.",
+  },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;
     if (!cfg) {

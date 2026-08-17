@@ -2052,9 +2052,89 @@ export class ZintlCompiler {
     return finalCode !== code ? { code: finalCode, map: result.map } : undefined;
   }
 
-  private scheduleFlush() {
+  /**
+   * @param trailing Armed by {@link armTrailingFlush} to catch up dirt a joined
+   * flush deferred, rather than by a real change. Only a non-trailing schedule
+   * clears the no-progress guard, so a genuine edit always re-enables catch-up.
+   */
+  private scheduleFlush(trailing = false) {
+    if (!trailing) this.lastTrailingSignature = null;
     if (this.autoFlushTimeout) clearTimeout(this.autoFlushTimeout);
     this.autoFlushTimeout = setTimeout(() => this.flush(), SAVE_DEBOUNCE_MS);
+  }
+
+  /** The dirt a trailing flush was last armed for. See {@link armTrailingFlush}. */
+  private lastTrailingSignature: string | null = null;
+  /** One trailing arm per in-flight run, however many callers join it. */
+  private trailingArmScheduled = false;
+
+  /**
+   * What the retained dirt currently is, as a comparable value.
+   *
+   * Used only to answer "did the last trailing flush achieve anything", so the
+   * exact encoding does not matter — only that identical dirt compares equal.
+   */
+  private dirtSignature(): string | null {
+    const boundaries = [...this.messages.dirtyBoundaries].sort();
+    if (boundaries.length === 0 && !this.messages.hiveDirty) return null;
+    return boundaries.join("|") + (this.messages.hiveDirty ? "|hive" : "");
+  }
+
+  /**
+   * Give deferred dirt a trigger of its own, once the in-flight flush is done.
+   *
+   * **The bug this closes (ledger L-070).** `flush()` hands a mid-flush caller
+   * the in-flight promise and settles `dirt retained for the next`, justified by
+   * "the debounce timer is already scheduled by the `transform` that dirtied
+   * it". That holds for every trigger except the last one: `scheduleFlush()`
+   * *replaces* the timer, and when it fires `flush()` clears it, finds
+   * `flushPromise` set, and returns — leaving nothing scheduled. If no further
+   * change arrives, the retained dirt is never flushed at all. Measured on
+   * `chaos-boundary`: two flushes, one prune, and a catalog write that never
+   * happened.
+   *
+   * **Why this shape and not the two that were tried.** An unconditional
+   * follow-on flush livelocked, because the flush body reaches back into the
+   * compiler and dirties state again; a guarded follow-on cost a full extra pass
+   * per hot update. This arms the *debounce timer* instead of running a flush,
+   * so further changes coalesce into it and a quiet period costs one pass, not
+   * one per update.
+   *
+   * **Why it cannot livelock.** Three conditions, each necessary:
+   *
+   * 1. Nothing is armed unless dirt actually remains once the in-flight run
+   *    finished — the ordinary case leaves none.
+   * 2. At most one arm per in-flight run, no matter how many callers joined it.
+   * 3. A trailing flush that leaves the dirt *unchanged* does not arm another.
+   *    That is the termination guarantee: a chain continues only while it is
+   *    making progress, and a real edit clears the guard so genuine work is
+   *    never refused.
+   */
+  private armTrailingFlush() {
+    if (this.trailingArmScheduled) return;
+    const inFlight = this.flushPromise;
+    if (!inFlight) return;
+    this.trailingArmScheduled = true;
+
+    const settle = () => {
+      this.trailingArmScheduled = false;
+      const signature = this.dirtSignature();
+      if (signature === null) return;
+      if (signature === this.lastTrailingSignature) {
+        this.logger.debug(
+          "Trailing flush not re-armed: the previous one left the same dirt, so another " +
+            "would not make progress.",
+        );
+        return;
+      }
+      // A real trigger may already have scheduled one; do not stack timers.
+      if (this.autoFlushTimeout) return;
+      this.logger.debug("Arming a trailing flush for dirt a joined flush deferred.");
+      this.lastTrailingSignature = signature;
+      this.scheduleFlush(true);
+    };
+
+    inFlight.then(settle, settle);
   }
 
   public async flush(): Promise<void> {
@@ -2108,6 +2188,12 @@ export class ZintlCompiler {
         "superseded",
         "joined the in-flight flush; dirt retained for the next",
       );
+      /**
+       * "The next" has to exist. The comment above assumed a later trigger
+       * would arrive; for the last change before a quiet period none does, and
+       * the dirt sat unflushed forever (L-070). See {@link armTrailingFlush}.
+       */
+      this.armTrailingFlush();
       return this.flushPromise;
     }
 
