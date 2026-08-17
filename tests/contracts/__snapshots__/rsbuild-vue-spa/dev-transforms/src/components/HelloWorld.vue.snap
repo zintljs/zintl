@@ -1,0 +1,26 @@
+<script setup lang="ts">
+import _zintl_mgr_b_src_index_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_bootstrap";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+
+import { ref } from "vue";
+
+const count = ref(0);
+</script>
+
+<template>
+  <div class="content">
+    <h1>{{ _t('Rsbuild with Vue', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</h1>
+    <p>{{ _t('Start building amazing things with Rsbuild.', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</p>
+    <p><span v-html="_t('Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_HelloWorld_vue', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]'), _v: __zintl_v.value })"></span></p>
+    <button id="counter" type="button" class="counter" @click="count++">
+      {{ _t('Count is \x7bcount\x7d', { count: count }, { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}
+    </button>
+    <nav class="nav"><router-link id="to-about" to="/about">{{ _t('Read the guide', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_HelloWorld_vue', _v: __zintl_v.value }) }}</router-link></nav>
+  </div>
+</template>

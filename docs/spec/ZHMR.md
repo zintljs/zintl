@@ -70,16 +70,48 @@ Triggered when:
 **Mechanism**:
 The `import.meta.hot.accept()` in the virtual manager allows the module to update in-place. The runtime `registerLoader` updates the `globalRegistry`. Existing UI sinks (using the `t()` function) will pick up the new strings on their next reactive update.
 
-### §4.2 — Hard Reload (The Structural Path)
+### §4.2 — The Structural Path
 
-Triggered when:
+The graph's **shape** has changed, rather than its contents:
 
 - A new `zintl()` anchor is added or removed.
 - A dynamic import (`$L`) is added, creating a new Colony.
 - A file's ownership moves between boundaries.
 
-**Mechanism**:
-In these cases, the structural integrity of the graph has changed. Vite's standard HMR bubbling will eventually trigger a hard reload if the change cannot be safely hot-replaced at the entry level.
+**The invariant, in both cases below**: the runtime must not be left holding a boundary map that
+describes the previous build. Replacing a module in place while its boundary map still names
+boundaries that have moved is the failure this section exists to prevent — and because Zintl has no
+source-locale fallback, the symptom is not a stale string but an empty one.
+
+There are two correct ways to satisfy that, and which applies is decided by the **entry**, not by the
+kind of change:
+
+#### §4.2.1 — Re-execution-safe entries hot-replace
+
+When the entry module can be safely re-run — `entryReexecutionSafe`, resolved from the framework's
+runtime facet — the re-executed entry rebuilds the boundary map itself. The structural change is then
+absorbed in place, and a reload would discard application state to reach a state the update already
+reached.
+
+**Mechanism**: the compiler emits a self-accepting snippet for the entry. The update arrives as an
+ordinary `update`; the boundary graph grows; the page is correct on the next render.
+
+#### §4.2.2 — Everything else reloads
+
+When the entry is not re-execution-safe, in-place replacement is not merely slower but wrong: the
+module that would accept the update is no longer the module that owns the code.
+
+**Mechanism**: the update bubbles until it becomes a full page reload. Hosts reach that differently —
+Vite accepts and then calls `import.meta.hot.invalidate()`, while Rspack has no `invalidate()` and
+instead declines to accept at all, so the update bubbles for want of a handler (see §5a).
+
+> **Where this exception came from.** The section originally specified a hard reload for every
+> structural change, with no exception. The `hmr-growth` contract asserted that and found the
+> implementation disagreeing on purpose: adding a nested `zintl()` anchor to a re-execution-safe
+> entry produced an ordinary `update`, no reload, and a correct page — confirmed by reloading
+> afterwards and re-asserting, so the runtime was demonstrably not left holding a stale boundary map.
+> The specification was the thing that was wrong, and it has been changed rather than the code
+> (ledger L-061).
 
 ### §4.3 — Server-Side Auto-Refresh (The SSR Path)
 
@@ -112,6 +144,53 @@ Static assets participate in a specialized HMR track.
 2. **Entry Dependency**: In development mode, every entry point is automatically marked as a dependent of `b_assets`.
 3. **Trigger**: Updating `about.txt` or `about.ar.txt` invalidates `b_assets`.
 4. **Cascading**: This invalidates the virtual managers of all entries, causing the runtime to reload the asset mapping and refresh the UI.
+
+---
+
+## §5a — Host Parity
+
+Everything above §5 is written in Vite's vocabulary, because Vite was the only host when it was
+written. Most of it is genuinely host-neutral and one part of it is not, and the difference matters:
+a reader implementing a third bundler facet needs to know which sentences are requirements and which
+are one host's way of meeting them.
+
+The two supported hosts are **Vite** (`viteFacet`) and **Rspack** (`rspackFacet`, which Rsbuild rides
+through unplugin). Read the table as _feature → how each host provides it_.
+
+| Feature                             | Vite                                                        | Rspack                                                                             |
+| :---------------------------------- | :---------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| §2.2 changed-file hook              | `handleHotUpdate` / `hotUpdate`                             | `compiler.hooks.watchRun` + `modifiedFiles`                                        |
+| §2.2 ordering authority             | the hook's `timestamp`                                      | `Watching.startTime`                                                               |
+| §2.2① direct invalidation           | the returned module list                                    | **not applicable** — Rspack rebuilds from its own graph, and asks nothing          |
+| §2.2③ entry-point cascading         | boundary→path traversal, then an explicit invalidation walk | declared dependencies (`getBoundaryInputs` → `watchedFiles` → `addWatchFile`)      |
+| §2.2④ timestamp propagation (`?t=`) | `lastHMRTimestamp` on each invalidated module               | **no equivalent** — the host owns cache-busting via `<chunk>.<hash>.hot-update.js` |
+| §3.1 manager self-registration      | the IIFE, identically                                       | the IIFE, identically                                                              |
+| §3.1 `accept()` spelling            | `import.meta.hot.accept(cb)`, callback re-registers         | `import.meta.webpackHot.accept()`, **callback dropped** — re-execution suffices    |
+| §3.2 / §4.4 `addCatalogs` injection | identical                                                   | identical                                                                          |
+| §4.2 bubbling to a reload           | accept, then `import.meta.hot.invalidate()`                 | **decline to accept** — there is no `invalidate()`, so it bubbles for want of one  |
+| §4.3 SSR full-reload                | `server.ws.send({ type: "full-reload", path: "*" })`        | `sockWrite("full-reload")` — channel exists, but SSR is unbuilt, so never fires    |
+| §5 `b_assets` cascade               | explicit entry fan-out (`entryFilePaths`)                   | the asset is a real `?zintl-raw` import, so the graph makes the chunk stale        |
+
+Three entries deserve emphasis, because they are where a naive port goes wrong:
+
+1. **"Invalidate these modules" is not the universal shape.** Vite's hook hands over an event and
+   takes back a module list. Rspack asks nothing — it rebuilds whatever _its_ dependency graph says
+   is stale, so a generated catalog that declares no dependencies is never stale however loudly a
+   hook shouts. The portable requirement is "the host must be able to learn what a generated module
+   is derived from", satisfied _either_ by per-module invalidation _or_ by declared file
+   dependencies. `BundlerFacet.dependencyInvalidation` is how a facet says which, and declaring both
+   is a defect rather than belt-and-braces: on a host that honours an explicit list, also declaring
+   the catalogs as dependencies makes Zintl's own `flush()` writes re-enter as source changes.
+
+2. **§4.2's mechanism is not "Vite's standard HMR bubbling".** That is one host's route to the
+   outcome. The outcome — a structural change reaches the browser as a reload rather than as an
+   in-place replacement — is the specification; accepting-then-invalidating and declining-to-accept
+   are two ways to produce it.
+
+3. **§4.3 is Vite-only in practice, not in principle.** The decision is host-neutral
+   (`ssrBoundaries` minus `clientBoundaries`) and both hosts expose a server→client channel. What
+   Rspack lacks is any SSR support to populate `ssrBoundaries` in the first place, so the branch is
+   unreachable there. That is a scope boundary, not a missing mechanism.
 
 ---
 

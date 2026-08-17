@@ -1,0 +1,12 @@
+const catalog = {
+    "b_src_AboutApp_vue": {
+      "Everything is a plain string": "一切都是普通字符串",
+      "This document has its own entry, and its own catalog chunk.": "这个文档有自己的入口，也有自己的目录分块。",
+      "The header above is shared, and anchors itself.": "上方的页头是共享的，并且自行建立信任锚点。",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

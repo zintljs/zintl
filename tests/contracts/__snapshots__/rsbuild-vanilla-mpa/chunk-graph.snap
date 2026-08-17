@@ -1,0 +1,80 @@
+{
+  "boundaryToOwner": {
+    "src/about:render": "src/about:render",
+    "src/components/Header:Header": "src/components/Header:Header",
+    "src/index:render": "src/index:render"
+  },
+  "chunks": {
+    "entry_b_4f8017c0589a": {
+      "boundaries": [
+        "src/index:render"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index:render"
+      ],
+      "id": "entry_b_4f8017c0589a",
+      "type": "entry"
+    },
+    "entry_b_c087d0722440": {
+      "boundaries": [
+        "src/about:render"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/about:render"
+      ],
+      "id": "entry_b_c087d0722440",
+      "type": "entry"
+    },
+    "entry_b_e7c8b4f1ad96": {
+      "boundaries": [
+        "src/components/Header:Header"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/Header:Header"
+      ],
+      "id": "entry_b_e7c8b4f1ad96",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_4d1f28ea17cb": {
+      "boundaries": [
+        "src/switcher:setupSwitcher"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_4d1f28ea17cb",
+      "type": "shared"
+    },
+    "shared_b_c5d38a62d1fa": {
+      "boundaries": [
+        "src/index.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_c5d38a62d1fa",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/about:render": "entry_b_c087d0722440",
+    "src/components/Header:Header": "entry_b_e7c8b4f1ad96",
+    "src/index:render": "entry_b_4f8017c0589a"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_4d1f28ea17cb",
+    "shared_b_c5d38a62d1fa"
+  ]
+}

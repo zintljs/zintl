@@ -48,6 +48,17 @@ export function viteFacet(): ZintlFacet {
      * file: a catalog or manager is code Zintl wrote, so replacing it cannot
      * double-mount anything. The optional body runs with `newModule` in scope.
      */
+    /**
+     * `canRepaint` is deliberately ignored here, for the same reason
+     * {@link hmrInjectionCode} ignores `hasClientReactivity` on this host.
+     *
+     * `ViteUpdateApplier` explicitly invalidates the entry's own modules when a
+     * boundary updates, so the entry re-executes and repaints whether or not a
+     * framework is subscribed to the store. A project with no client reactivity
+     * is therefore still able to act on a new catalog here, which is exactly
+     * what is not true on Rspack — and why this is a facet decision rather than
+     * a shared one.
+     */
     hmrSelfAcceptCode: (callbackBody?: string): string => {
       if (!callbackBody) {
         return `\nif (import.meta.hot) { import.meta.hot.accept(); }`;

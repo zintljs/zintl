@@ -24,10 +24,10 @@ const contextMap = new WeakMap<ResolvedOptions, Context>();
 /**
  * The sliver of Rsbuild's plugin API this plugin uses.
  *
- * Declared structurally rather than imported. `zintljs` does not depend on
- * `@rsbuild/core` — Rsbuild is not a supported target, and adding an optional
- * peer would put a resolution warning in front of every Vite user to type one
- * property. Matches `@rsbuild/core@2.1.10`: `RsbuildPluginAPI.context` is a
+ * Declared structurally rather than imported. `@rsbuild/core` is an *optional*
+ * peer dependency, so it is not there to import from on a Vite-only install —
+ * and importing it for the sake of one property would make every Vite user pay
+ * for it. Matches `@rsbuild/core@2.1.10`: `RsbuildPluginAPI.context` is a
  * `Readonly<RsbuildContext>` and `RsbuildContext.action` is
  * `'dev' | 'build' | 'preview' | undefined`.
  *
@@ -204,7 +204,7 @@ const unplugin = createUnplugin<Options, true>((options) => {
        * block via `api.modifyRspackConfig` was built and measured, and reverted:
        * it works — the `watchRun` batch and `Watching.startTime` arrive exactly
        * as 029 designed — and it deterministically breaks `syntax-recovery` on
-       * `rsbuild-spa`, because a boundary whose parse failed keeps a catalog the
+       * `rsbuild-vanilla-basic`, because a boundary whose parse failed keeps a catalog the
        * recovery edit can no longer replace. That defect has to be fixed before
        * the wiring can land. Ledger L-042.
        *

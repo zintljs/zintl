@@ -11,12 +11,14 @@ describe("Runtime Splitting - getRuntimeCode", () => {
     serverRequestScope: false,
     streaming: false,
     entryReexecutionSafe: true,
+    repaintsOnCatalogUpdate: false,
     ssr: false,
     hmr: false,
     localeRouting: false,
     htmlFanOut: false,
     hotUpdate: false,
     dependencyInvalidation: false,
+    sfcBlockRequestsCarryWholeFile: false,
   };
 
   it("should return base store code with only store-core exports when capabilities are disabled", () => {

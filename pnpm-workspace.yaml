@@ -14,10 +14,14 @@ catalog:
   # It began as proposal 026's falsification harness, which is why the examples
   # and contracts around it read like an investigation.
   "@rsbuild/core": ^2.1.10
-  # React on Rspack. Exists so the contract suite has a *framework* app on a
-  # non-Rollup host — every other Rspack example is vanilla, which left every
-  # framework-shaped question on that host answerable only by inference.
+  # Frameworks on Rspack. React came first, so that the contract suite had a
+  # *framework* app on a non-Rollup host at all — every other Rspack example was
+  # vanilla, which left every framework-shaped question there answerable only by
+  # inference. Svelte followed and worked unchanged.
+  #
   "@rsbuild/plugin-react": ^2.1.0
+  "@rsbuild/plugin-svelte": ^2.0.1
+  "@rsbuild/plugin-vue": ^2.0.1
   vite-plus: 0.2.7
   "@vitest/coverage-v8": 4.1.10
   "@vitest/ui": 4.1.10
@@ -72,3 +76,8 @@ minimumReleaseAge: 720
 
 allowBuilds:
   sharp: true
+  # Pulled in transitively by `@rsbuild/plugin-svelte`. Denied rather than
+  # allowed because its only install script is an `echo` reminding you to
+  # install sass/less/pug if you want them — nothing this workspace needs, so
+  # there is no reason to run arbitrary code at install time for it.
+  svelte-preprocess: false

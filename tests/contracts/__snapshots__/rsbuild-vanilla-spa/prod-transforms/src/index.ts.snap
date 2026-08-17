@@ -1,0 +1,56 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_4f8017c0589a from "virtual:zintl/manager/none/entry:b_4f8017c0589a";
+import "./index.css";
+
+import { Router } from "./router.ts";
+import { Home } from "./pages/Home.ts";
+import { setupSwitcher } from "./switcher.ts";
+
+/**
+ * A routed vanilla SPA on Rspack, from `create-rsbuild`'s vanilla starter.
+ *
+ * What this adds over `examples/rsbuild-vanilla-basic` is one dynamic import.
+ * `/about` is fetched on demand, so its strings live in a boundary the entry
+ * never statically imports — and Zintl emits that boundary's catalog behind the
+ * same dynamic import Rspack uses for the page. Catalogs follow the host's
+ * chunking; nothing in Zintl knows what the host chose.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_4f8017c0589a"]: _zintl_mgr_b_4f8017c0589a.loader, ["b_41f76352d384"]: _zintl_mgr_b_4f8017c0589a.loader } }));
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  const shell = document.createElement("div");
+  shell.innerHTML = `<div id="switcher" class="switcher"></div><div id="view"></div>`;
+  rootEl.replaceChildren(shell);
+
+  const view = shell.querySelector<HTMLDivElement>("#view")!;
+  const router = new Router(view);
+
+  router.addRoute("/", () => Home());
+  router.addRoute("/about", async () => {
+    const { About } = await import("./pages/About.ts");
+    return About();
+  });
+
+  // Intercept in-app links so navigation stays client-side.
+  view.addEventListener("click", (event) => {
+    const link = (event.target as HTMLElement).closest("a[data-link]");
+    if (!link) return;
+    event.preventDefault();
+    void router.navigate(link.getAttribute("href")!);
+  });
+
+  setupSwitcher(shell.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+
+  await router.init();
+}
+
+void render();

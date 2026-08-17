@@ -1,0 +1,322 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[0], {
+20(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0 = __webpack_require__(21);
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(23);
+/* import */ var _LocaleSwitcher_vue_css_vue_type_style_index_0_id_138678bf_scoped_true_lang_css_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_style_index_0_id_138678bf_scoped_true_lang_css__rspack_import_2 = __webpack_require__(25);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3 = __webpack_require__(27);
+
+
+
+
+;
+
+
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3["default"])(_LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0.render],['__scopeId',"data-v-138678bf"],['__file',"src/components/LocaleSwitcher.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+21(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0.render)
+});
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0 = __webpack_require__(22);
+
+
+},
+22(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+
+const _hoisted_1 = {
+    id: "switcher",
+    class: "switcher"
+};
+const _hoisted_2 = [
+    "onClick"
+];
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", _hoisted_1, [
+        ((0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)(vue__rspack_import_0.Fragment, null, (0,vue__rspack_import_0.renderList)($setup.locales, (l)=>{
+            return (0,vue__rspack_import_0.createElementVNode)("button", {
+                key: l.id,
+                type: "button",
+                class: (0,vue__rspack_import_0.normalizeClass)({
+                    active: $setup.props.lang === l.id
+                }),
+                onClick: ($event)=>$setup.handleSwitch(l.id)
+            }, (0,vue__rspack_import_0.toDisplayString)(l.name), 11 /* TEXT, CLASS, PROPS */ , _hoisted_2);
+        }), 64 /* STABLE_FRAGMENT */ ))
+    ]);
+}
+
+
+},
+23(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(24);
+ 
+
+},
+24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+/* import */ var virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_1 = __webpack_require__(9);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+
+
+
+/* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'LocaleSwitcher',
+    props: {
+        lang: {
+            type: String,
+            required: true
+        }
+    },
+    emits: [
+        "switch"
+    ],
+    setup (__props, param) {
+        let { expose: __expose, emit: __emit } = param;
+        __expose();
+        const props = __props;
+        /**
+ * No `@zintl-ignore` needed here, unlike the React, Svelte and vanilla
+ * switchers: the locale names live in a JS array rather than in the template, so
+ * they are never in extraction's reach in the first place.
+ */ const locales = [
+            {
+                id: "en",
+                name: "English"
+            },
+            {
+                id: "ar",
+                name: "العربية"
+            },
+            {
+                id: "es",
+                name: "Español"
+            },
+            {
+                id: "zh",
+                name: "中文"
+            }
+        ];
+        const emit = __emit;
+        const handleSwitch = async (lang)=>{
+            const url = new URL(window.location.href);
+            url.searchParams.set("lang", lang);
+            window.history.pushState({}, "", url.pathname + url.search);
+            await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_2.loadI18nInstance)({
+                locale: lang,
+                loaders: {
+                    ["b_9e373ef8c775"]: virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_1["default"].loader
+                }
+            }));
+            emit("switch", lang);
+        };
+        const __returned__ = {
+            props,
+            locales,
+            emit,
+            handleSwitch
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+25(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _LocaleSwitcher_vue_css_vue_type_style_index_0_id_138678bf_scoped_true_lang_css_node_modules_pnpm_rspack_core_2_1_8_swc_helpers_0_5_23_node_modules_rspack_core_dist_cssExtractLoader_js_node_modules_pnpm_rsbuild_core_2_1_10_node_modules_rsbuild_core_compiled_css_loader_index_js_clonedRuleSet_N_use_1_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_stylePostLoader_js_builtin_lightningcss_loader_clonedRuleSet_N_use_2_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_style_index_0_id_138678bf_scoped_true_lang_css__rspack_import_0 = __webpack_require__(26);
+
+
+},
+26(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+28(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _SiteHeader_vue_ts_vue_type_template_id_a8a65ae7_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_template_id_a8a65ae7_scoped_true_ts_true__rspack_import_0 = __webpack_require__(29);
+/* import */ var _SiteHeader_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(31);
+/* import */ var _SiteHeader_vue_css_vue_type_style_index_0_id_a8a65ae7_scoped_true_lang_css_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_style_index_0_id_a8a65ae7_scoped_true_lang_css__rspack_import_2 = __webpack_require__(33);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3 = __webpack_require__(27);
+
+
+
+
+;
+
+
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3["default"])(_SiteHeader_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_SiteHeader_vue_ts_vue_type_template_id_a8a65ae7_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_template_id_a8a65ae7_scoped_true_ts_true__rspack_import_0.render],['__scopeId',"data-v-a8a65ae7"],['__file',"src/components/SiteHeader.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+29(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _SiteHeader_vue_ts_vue_type_template_id_a8a65ae7_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_template_id_a8a65ae7_scoped_true_ts_true__rspack_import_0.render)
+});
+/* import */ var _SiteHeader_vue_ts_vue_type_template_id_a8a65ae7_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_template_id_a8a65ae7_scoped_true_ts_true__rspack_import_0 = __webpack_require__(30);
+
+
+},
+30(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+
+const _hoisted_1 = {
+    class: "site-header"
+};
+const _hoisted_2 = {
+    class: "nav"
+};
+const _hoisted_3 = {
+    href: "/"
+};
+const _hoisted_4 = {
+    href: "/about"
+};
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("header", _hoisted_1, [
+        (0,vue__rspack_import_0.createElementVNode)("nav", _hoisted_2, [
+            (0,vue__rspack_import_0.createElementVNode)("a", _hoisted_3, (0,vue__rspack_import_0.toDisplayString)($setup._t('70f8bb9a', {
+                _mgr: $setup._zintl_mgr_b_b028ccfc4f80,
+                _bId: 'b_b028ccfc4f80',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ ),
+            (0,vue__rspack_import_0.createElementVNode)("a", _hoisted_4, (0,vue__rspack_import_0.toDisplayString)($setup._t('bf073fae', {
+                _mgr: $setup._zintl_mgr_b_b028ccfc4f80,
+                _bId: 'b_b028ccfc4f80',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ )
+        ])
+    ]);
+}
+
+
+},
+31(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _SiteHeader_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _SiteHeader_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(32);
+ 
+
+},
+32(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+/* import */ var virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_1 = __webpack_require__(9);
+/* import */ var virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2 = __webpack_require__(8);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_3 = __webpack_require__(1);
+
+
+
+
+
+/**
+ * A shared component with its **own** trust anchor.
+ *
+ * Both pages import this, and it awaits `zintl(locale)` itself rather than
+ * inheriting from whichever page mounted it. An anchor is independent, so this
+ * header's strings form one boundary shared by both entries rather than being
+ * duplicated into each.
+ *
+ * `<Suspense>` in each page's root is what lets this top-level `await` work.
+ */ /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'SiteHeader',
+    props: {
+        lang: {
+            type: String,
+            required: true
+        }
+    },
+    async setup (__props, param) {
+        let { expose: __expose } = param;
+        __expose();
+        let __temp, __restore;
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_3.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_3.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_3.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
+        const props = __props;
+        ;
+        [__temp, __restore] = (0,vue__rspack_import_0.withAsyncContext)(()=>globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_3.loadI18nInstance)({
+                locale: props.lang,
+                loaders: {
+                    ["b_9e373ef8c775"]: virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_1["default"].loader,
+                    ["b_b028ccfc4f80"]: virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2["default"].loader
+                }
+            })), await __temp, __restore();
+        const __returned__ = {
+            __zintl_v,
+            __zintl_off,
+            props,
+            get _zintl_mgr_b_b028ccfc4f80 () {
+                return virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2["default"];
+            },
+            get _t () {
+                return virtual_zintl_runtime_internal__rspack_import_3._t;
+            }
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _SiteHeader_vue_css_vue_type_style_index_0_id_a8a65ae7_scoped_true_lang_css_node_modules_pnpm_rspack_core_2_1_8_swc_helpers_0_5_23_node_modules_rspack_core_dist_cssExtractLoader_js_node_modules_pnpm_rsbuild_core_2_1_10_node_modules_rsbuild_core_compiled_css_loader_index_js_clonedRuleSet_N_use_1_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_stylePostLoader_js_builtin_lightningcss_loader_clonedRuleSet_N_use_2_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_SiteHeader_vue_vue_type_style_index_0_id_a8a65ae7_scoped_true_lang_css__rspack_import_0 = __webpack_require__(34);
+
+
+},
+34(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+35(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+
+}]);

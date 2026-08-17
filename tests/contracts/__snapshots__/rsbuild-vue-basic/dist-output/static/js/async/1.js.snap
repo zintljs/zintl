@@ -1,0 +1,26 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_basic"] = self["rspackChunkrsbuild_vue_basic"] || []).push([[1], {
+35(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild con Vue",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "6c65d65b": "Edita <code>src/App.vue</code> y guarda para probar <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+    },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `Esta nota viene de la ${params['api']}.`;
+  },
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

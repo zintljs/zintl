@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/components/OptionsNote.vue.schema.json",
+  "This note comes from the {api}.": "هذه الملاحظة تأتي من {api}."
+}

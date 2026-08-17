@@ -1,0 +1,13 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": {
+    "ar": "rtl",
+    "es": "",
+    "zh": ""
+  },
+  "title": {
+    "ar": "Vanilla Rsbuild - مثال زينتل متعدد الصفحات",
+    "es": "Vanilla Rsbuild - Ejemplo multipágina de Zintl",
+    "zh": "原生 Rsbuild - Zintl 多页面示例"
+  }
+}

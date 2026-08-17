@@ -2823,3 +2823,1501 @@ inherited from the same source app.
 server and counts any `.json` as a catalog. That is a contract-quality problem on the Vite side that
 happens to block a second host, and teaching it one more URL shape would entrench the thing it already
 says is wrong.
+
+## Phase 8 — the other two frameworks
+
+Proposals 026–030 closed with Rsbuild supported "for React and vanilla", and with Vue and Svelte
+described as _untested here rather than unsupported_ — nothing was known to break, and nothing had
+watched them either. This phase built one example each and watched. Svelte needed nothing. Vue is
+broken in the worst available shape.
+
+### L-051 — Vue on Rspack builds green and ships the source locale
+
+|                             |                                                                                      |
+| :-------------------------- | :----------------------------------------------------------------------------------- |
+| **Status**                  | **Resolved** — `sfcBlockRequestsCarryWholeFile`; three Vue examples ship             |
+| **Bucket**                  | Silent wrong output — the one failure mode this project treats as worse than a crash |
+| **Facet contract changed?** | **Yes** — one new bundler-facet flag; see the fix at the end of this entry           |
+
+Reproduced on 2026-08-14 against `@rsbuild/core@2.1.10`, `@rspack/core@2.1.8`,
+`@rsbuild/plugin-vue@2.0.1`, `vue@3.5.40`, on a `create-rsbuild` vue-ts starter with four locales.
+
+**What happens.** Everything except code generation works, which is exactly why it is dangerous:
+
+| Stage                              | Result                                                               |
+| :--------------------------------- | :------------------------------------------------------------------- |
+| Extraction from `.vue`             | ✅ correct — `src/App.vue` is read, stitched, and its boundary built |
+| Catalog scaffolding                | ✅ correct — `zintl/src/App.vue.{ar,es,zh}.json`, right keys         |
+| `verifyIntegrity`                  | ✅ fires on missing translations, so the build gates as designed     |
+| Chunking / ghost mode              | ✅ one async chunk per non-source locale, none for `en`              |
+| Catalog chunk contents             | ✅ correct — Spanish present under `b_src_App_vue`, ICU compiled     |
+| HTML projection (`<title>`, `dir`) | ✅ correct — the document localizes                                  |
+| **Codegen into the `.vue` module** | ❌ **absent** — zero `_t()` calls; the source literal ships verbatim |
+
+So the page renders `<title>Rsbuild con Vue …</title>` above a body that says "Rsbuild with Vue". The
+build is green, the contracts that snapshot compiler output would be green, and the app is wrong.
+
+**Measured, not inferred:** the literal `Rsbuild with Vue` is present in both `dist/static/js/index.*.js`
+and the dev server's `/static/js/index.js`, while the loaded content chunk
+`virtual:zintl/content/es/entry:b_src_index_bootstrap` carries the correct Spanish. The anchor's own
+file (`src/index.ts`) transforms fine and pulls in the manager — it is `.vue` specifically.
+
+**Inferred, not yet reproduced at the loader level:** `vue-loader` compiles an SFC by emitting child
+requests per block (`App.vue?vue&type=template`, `…&type=script`) through its pitcher, and those
+requests are constructed so that pre- and normal loaders do not re-run. Zintl registers with
+`enforce: "pre"` (`plugin.ts:65`), so it transforms the parent `.vue` request — whose output is used
+for descriptor parsing — and never the block requests that actually become code. Plugin ordering was
+ruled out by experiment: `...zintl()` before and after `pluginVue()` produce byte-identical output,
+as expected, since Rspack orders loaders by `enforce` rather than by plugin registration.
+
+`svelte-loader` has no equivalent split. It receives Zintl's transformed source directly, and
+`examples/rsbuild-svelte-basic` renders fully translated in all four locales — first try, with no
+Zintl change. The one Svelte-specific wrinkle is cosmetic and is documented in that example: a
+sentence with an inline tag becomes `{@html}`, so Svelte's scoped-CSS pass prunes a selector like
+`.content code` as unused, and the example uses `:global(code)`.
+
+**Two things this changes about the support statement.** Svelte moves from "untested" to supported for
+SPAs. Vue must move from "untested" to **explicitly not supported on this host**, because "untested"
+invites someone to try it, and trying it succeeds quietly.
+
+**What the fix has to decide**, and why it is not a patch: the block requests carry only one block's
+text, and Zintl's Vue extraction is whole-SFC — it stitches `<template>` against what `<script>`
+declares. Transforming `?vue&type=template` in isolation is a different extraction mode, not the same
+one pointed at a smaller string. The alternatives worth costing are (a) teach the rspack facet to
+transform block requests, with the extractor gaining a block mode; (b) contribute a Vue-on-Rspack
+loader ahead of `vue-loader`'s pitcher; or (c) fence it — refuse the combination at config time with a
+clear error, the way multiplex is fenced (L-022), and ship that first regardless of which of (a)/(b)
+follows. **(c) should land before either**, on this project's own rule: a missing translation is a
+build error, not a silent fallback to the source locale, and this is that rule being violated by the
+integration rather than by the catalog.
+
+### L-052 — Svelte's default `cssHash` hashes the filename, so a build snapshot cannot settle
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Resolved** — the example pins `cssHash`; 6 clean runs in 6 |
+| **Bucket**                  | Snapshot instability that reads as flake and is not          |
+| **Facet contract changed?** | No — an application-level compiler option                    |
+
+`examples/rsbuild-svelte-basic`'s `build` contract failed roughly one run in two, and the diff was
+always the same shape and never the same value: `class="content svelte-8jxiy8"` against
+`class="content svelte-1koy1i1"`, with byte-identical CSS on both sides.
+
+The cause is one line of Svelte, and it is the default:
+
+```js
+// svelte/src/compiler/validate-options.js
+cssHash: fun(({ css, filename, hash }) => {
+  return `svelte-${hash(filename === "(unknown)" ? css : (filename ?? css))}`;
+});
+```
+
+It hashes the **filename**, and only falls back to the CSS when there is no filename. The contract
+layer materialises each project at `.tmp/runs/w<workerId>/<name>/`, so the filename — and therefore
+every scoped class in the output — depends on which of four workers Vitest handed the job to. Two
+observed hashes, two workers.
+
+Fixed in the example rather than the harness, with
+`cssHash: ({ css, hash }) => \`svelte-${hash(css)}\``, because the property worth having is that build
+output is a function of the source. Normalising the hash away in `filterDistForSnapshots` would have
+hidden a real difference in emitted CSS just as effectively.
+
+**Why no Vite Svelte project hit this:** `examples/svelte-basic` and `examples/svelte-ssr` keep their
+styles in a shared stylesheet, so no component has a `<style>` block and no scoped class is ever
+emitted. The Rspack example keeps the block because `create-rsbuild`'s template has one. So this was
+never a host difference — it was the first Svelte project in the suite with scoped styles at all.
+
+**The near-miss worth recording.** The first two reproductions were read as "a contract left the
+worker copy mutated", and the response was to wipe `.tmp/runs` and re-record — which produced a green
+run, twice, and would have been reported as fixed. It only came apart because `vpr ci` failed again
+immediately afterwards. A snapshot that is a function of the worker id passes about half the time, and
+half the time is exactly the rate at which "wipe and re-record" looks like a fix.
+
+### L-051, the fix — the host declares whether a block request carries the whole file
+
+Added to the entry above rather than numbered separately, because it is the same finding closed.
+
+**What the earlier write-up got right and wrong.** Right: `vue-loader`'s pitcher rewrites a block
+request into a `-!` request, and `-!` disables pre-loaders. Wrong: the conclusion drawn from it, that
+Zintl's transform therefore never reaches the block. It does. `genRequest` rebuilds the chain from
+`context.loaders` — the loaders matched for the _child_ request — and Zintl's rule matches by resource
+path, so it is in the chain, ahead of `vue-loader`. Measured with a probe on the transform hook:
+
+```
+transform id=…/src/App.vue                                        len=1836
+transform id=…/src/App.vue?vue&type=script&setup=true&lang=ts     len=1836   ← whole file
+transform id=…/src/App.vue?vue&type=style&index=0&…&lang=css      len=1836   ← whole file
+```
+
+Byte-identical lengths. The loader is handed the entire SFC on every block request, because the `-!`
+request's resource is the original file.
+
+**So the defect was one line of ours, not of the host's.** `hooks/transform.ts` skipped every id
+containing `?vue` or `&vue`. That skip is correct on Vite, where `@vitejs/plugin-vue` _loads_ the same
+id as a virtual module holding one block — transforming that fragment would hand the extractor a
+partial document. It is wrong on Rspack, where the id re-reads the whole file. The parent request was
+transformed and discarded; the block requests, which become the code, were skipped.
+
+The skip had also been written as a framework test (`?vue`, `?svelte`) when the question it is really
+asking is about the **bundler**. So the fix is a bundler-facet flag,
+`BundlerFacet.sfcBlockRequestsCarryWholeFile`, declared `true` by `rspackFacet` and left undeclared by
+`viteFacet`. `hooks/transform.ts` asks it instead of testing a query string, which keeps the rule out
+of a bundler-agnostic hook — the same discipline `htmlFanOut` applies to multiplex.
+
+On Vite the behaviour is unchanged, by construction: with the flag `false` the new condition reduces
+to the old one.
+
+**Cost:** a file with N block requests is transformed N+1 times. The transform is pure; a correct
+render is worth the repeat.
+
+**Verified:** `rsbuild-vue-basic`, `rsbuild-vue-spa` and `rsbuild-vue-mpa` render all four locales in
+dev and in a production preview, RTL included, with a lazy route and a shared async boundary among
+them. 25 contract cases across the three.
+
+### L-053 — Vue's Options API was never supported, on either host — now it is
+
+|                             |                                                                                    |
+| :-------------------------- | :--------------------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — supported by authoring the missing block; three shapes stay fenced     |
+| **Bucket**                  | **1 — declare it** (the dialect declares where its template resolves)              |
+| **Facet contract changed?** | **Yes** — `CodegenFacet.requiresScriptSetup`, and `wrapSfcScript` gains `{ lang }` |
+
+Found while testing whether L-051's fix covered `?vue&type=template`, which only appears when an SFC
+is _not_ written with `<script setup>`. Converting `rsbuild-vue-basic`'s `App.vue` to
+`defineComponent({ data, methods })` produced an empty page and:
+
+```
+[Vue warn]: Property "_t" was accessed during render but is not defined on instance
+TypeError: _ctx._t is not a function
+```
+
+The mechanism is Vue's, not Zintl's. `<script setup>` compiles the template **inline into the setup
+function**, so the imports Zintl injects into the script block are in scope for template expressions.
+A plain `<script>` compiles the template into a separate render function whose expressions resolve
+against the component instance — where `_t` is not, and cannot be, a property.
+
+**Reproduced on Vite too**, by the same conversion applied to
+`examples/vue-basic/src/components/HelloWorld.vue`: identical error. So this is not an Rspack gap and
+L-051's fix neither caused nor could fix it. Every Vue example in this repository uses
+`<script setup>`, which is why it had never surfaced.
+
+### L-053, the fix — neither of the two options this entry proposed
+
+The entry offered a mixin through the component instance, or a fence refusing the shape. **A third
+option existed and is better than both**, and it was found by asking `@vue/compiler-sfc` instead of
+reasoning about Vue: an SFC may carry a plain `<script>` **and** a `<script setup>` together. Vue
+compiles them into one module — `<script setup>`'s imports are hoisted to module scope
+(`compileScript`'s `hoistNode` → `move(start, end, 0)`), the normal block's default export becomes the
+options object, and the template resolves against setup bindings. So the missing block is something
+Zintl can simply **author**, leaving the user's component untouched.
+
+`CodegenFacet.requiresScriptSetup` is the declaration — Vue sets it, Svelte does not, because Svelte's
+`<script>` _is_ the component scope. Core never learns what Vue is; `pipeline/apply.ts` asks the facet.
+
+**Measured before building, against `@vue/compiler-sfc@3.5.40`.** Four probes, and three of the four
+answers changed the design:
+
+| Probe                                     | Result                                                                   |
+| :---------------------------------------- | :----------------------------------------------------------------------- |
+| dual block, dev (`inlineTemplate: false`) | works — `$setup._t`, both bindings in the returned setup object          |
+| dual block, prod (`inlineTemplate: true`) | works — `_unref(_t)(…)`, resolved lexically                              |
+| `lang` mismatch between the blocks        | **throws** — so the authored block must mirror the existing one's `lang` |
+| `<script src>` + `<script setup>`         | **parse error** — cannot be combined                                     |
+| user's options already declare `setup()`  | compiles, and the generated `setup` **silently replaces** theirs         |
+
+The last two, plus a non-JS/TS `lang`, are the residue the fence still refuses — loudly, naming the
+blocker. The refusal is _exact, not generous_, which is L-006's lesson quoted by L-022: it fires only
+when a **template** rewrite needs an injected binding, so two shapes that were always correct keep
+working — strings that live only in the script block, and any baked build, where the rewrite is
+`kind: "bake"` and references nothing.
+
+**A near-miss worth recording, because it would have killed the fix.** The first probe ran prod and dev
+against the same descriptor in one process, and dev came back with an **empty** setup return —
+apparently proving the fix broken in dev. It was `compiler-sfc`'s own `templateAnalysisCache`:
+`isUsedInTemplate` is computed as `false` under `inlineTemplate` and cached by template content, so the
+later dev compile inherited it. Running dev alone gives the right answer, and a real toolchain compiles
+one mode per process. **Two measurements in one process were not two independent measurements.**
+
+**And one defect the unit tests could not see, found by opening the page.** The shape scan was a
+free-floating `/<script[^>]*setup[^>]*>/` over the whole file — so a doc comment _describing_
+`<script setup>` was read as a block, and the imports were spliced into the middle of the sentence. The
+same scan would have read `<script src="setup.js">` as a setup block. Detection is structural now
+(`scriptBlocks()` matches whole `<script>…</script>` spans, and strips attribute _values_ before
+testing for `setup`), so a block's body is never mistaken for the start of another. Every unit test
+passed both before and after; the browser found it in one load. It is regression-tested now.
+
+**Verified in a browser on both hosts**, which is the only place this class of defect is visible:
+`examples/vue-basic` and `examples/rsbuild-vue-basic` each gained an `OptionsNote.vue` written with a
+plain `<script>`, rendered in all four locales in dev and in a production preview, RTL included, with a
+runtime locale switch and a clean console. Its sentence deliberately interpolates Options-API `data`
+(`{{ api }}`) inside translated text, so the golden files record instance scope and setup scope
+resolving in the same expression. `vpr verify` green at 820 unit tests; contracts 197/199, both
+failures pre-existing and on projects this change cannot reach (see below).
+
+**Not covered by the composition golden, deliberately.** `composition.test.ts` records bundler flags
+and lists codegen facets by _name_, so a `CodegenFacet` field is invisible to it — unlike `htmlFanOut`.
+`facets/resolution.test.ts` guards this one instead. Worth stating so the next person does not
+re-derive it, given L-004's finding that those hand-maintained arrays had been blind to a hook.
+
+**Two failures in the final gate, both proven not to be this change:**
+
+- `[Serialized Graphs Snapshot] rsbuild-vanilla-basic` — the committed golden expects a `b_assets`
+  node that a clean build does not produce, and a second `build:examples` does not restore it.
+  **Stash-tested at baseline: it fails identically without this change.** This is L-004's
+  artifact-lifetime hazard again — a golden recorded against warm `.zintl` metadata, which
+  `copiedExampleSource` deliberately copies. Third occurrence in this proposal, and the first where
+  the stale artifact is baked into a _committed_ file rather than a local directory.
+
+  > **Corrected by [L-055](#l-055).** Right family, wrong mechanism — and the wrong mechanism implied
+  > the wrong fix. It is not a golden recorded from stale local state; it is a _build_ reading a
+  > dev-only boundary back out of persisted metadata, which made the snapshot a function of test
+  > ordering. Re-recording alone would only have moved which side flaked. Left as written, per this
+  > file's own rule: an entry that was honestly written and later proved wrong is evidence about the
+  > method.
+
+- `[HMR Propagation] rsbuild-react-basic` — the intermittent its own manifest already records
+  (L-039, ~1 isolated run in 3).
+
+**A separate pre-existing defect noticed in passing**, not fixed here: `examples/vue-basic`'s Spanish
+catalog spells an interpolation `{{ count }}` where the key is `{count}`, so the counter renders
+`El recuento es {{ count }}` literally. The `ar`/`zh` entries use `{ count }` and work;
+`rsbuild-vue-basic` uses the canonical `{count}` throughout. A translation whose placeholder syntax is
+wrong is not a missing translation, so `verifyIntegrity` has nothing to say about it — which is the
+interesting part.
+
+### L-054 — `VueLoaderPlugin`'s rule-set counter is module-scoped, and it reached a snapshot
+
+|                             |                                                     |
+| :-------------------------- | :-------------------------------------------------- |
+| **Status**                  | **Resolved** — normalised in `sanitizeCode`         |
+| **Bucket**                  | Snapshot instability that reads as flake and is not |
+| **Facet contract changed?** | No                                                  |
+
+`[Production Build] rsbuild-vue-spa` failed with a diff whose only content was `clonedRuleSet_12`
+against `clonedRuleSet_66`, inside a generated binding name.
+
+`rspack-vue-loader/dist/plugin.js` opens its rule cloning with `let uid = 0` at **module scope** and
+names each cloned rule `clonedRuleSet-${++uid}`. A Vitest worker compiles several projects in one Node
+process, so the number a given project gets depends on how many Vue projects that worker happened to
+build first — which is scheduling, not source.
+
+It could only ever surface here. The counter reaches emitted code through the re-export indirection
+Rspack generates for a **lazily imported** SFC, which prints the entire loader chain into a variable
+name; `rsbuild-vue-spa` is the first project with a lazy `.vue` route.
+
+Normalised in `sanitizeCode` rather than pinned in the app, which is the opposite call from
+[L-052](#l-052) two entries up, and the difference is worth stating: Svelte's `cssHash` had a
+source-derived value to prefer, so pinning it made build output a function of the source. This counter
+identifies a loader chain and nothing else — there is no better value to choose, and the only thing
+normalising hides is the scheduling.
+
+**Both were first read as flake**, and both were caught by the gate rather than by suspicion. That is
+now three snapshot-stability defects in this phase (L-052, L-054) plus one silent-render defect
+(L-051) that no snapshot could have caught. The pattern worth carrying: a snapshot is only as good as
+the determinism of everything it embeds, and third-party identifiers embed whatever that party felt
+like counting.
+
+### L-055 — a build read a dev-only boundary back out of its own persisted metadata
+
+|                             |                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Status**                  | **Fixed**                                                             |
+| **Bucket**                  | **3 — delete the guess** (stop trusting persisted state about a mode) |
+| **Facet contract changed?** | No                                                                    |
+
+Found by pulling on the failure L-053's write-up had already recorded as "pre-existing, stash-proven".
+Being pre-existing made it not-this-change's problem; it did not make it a non-problem, and the
+diagnosis turned out to be one probe deep.
+
+**What failed.** `[Serialized Graphs Snapshot] rsbuild-vanilla-basic` mismatched by exactly one node —
+a `b_assets` boundary the golden had and the run did not.
+
+**The first reading was wrong, and it was mine.** It was recorded as another instance of L-004's
+artifact-lifetime hazard: a golden recorded against warm `.zintl` metadata. That is the right family
+and the wrong mechanism, and the difference matters because the stated conclusion — "a golden recorded
+from stale local state" — implies re-recording is the fix. It is not.
+
+**What `b_assets` actually is.** The localized-asset boundary, carrying
+`"@zintl/asset:src/about.txt"`. Real, and the thing L-009's regression coverage rides on. It is
+synthesized in **dev only**, at three deliberate sites: `index.ts:1061` writes it into
+`internalManifest` and `metadataGraph`, and `GraphManager` both hangs entry deps on it (`:283`) and
+creates its node (`:301`) under `this.isDev`. The graph contract compiles `"production"`.
+
+**The mechanism, and the node's own shape is what gives it away.** The dev synthesis produces
+`filePath: "virtual-content"`, `usageCount: 1`. The committed golden read `filePath: "b_assets"`,
+`usageCount: 0` — the shape of the _ordinary_ node loop. So the node was never the dev synthesis
+travelling; it was `b_assets` re-entering as an ordinary boundary candidate, because
+`buildBoundaryGraph` seeds `allKnownBoundaries` from the keys of `internalManifest` and
+`metadataGraph` — and `.zintl`'s manifest keeps both across runs. **A golden that records a shape
+neither code path intends is worth reading twice.**
+
+**Measured, in both directions.** Seeding `examples/rsbuild-vanilla-basic/node_modules/.zintl/manifest.json`
+with a dev-written manifest made the production contract **pass**; restoring the one `vpr build:examples`
+writes made it **fail**. The harness re-copies `.zintl` from the origin each run, so within a run the
+deciding factor is narrower still: after a full suite, three of four worker copies held `b_assets` and
+w1 did not — the three that had run a dev contract for that project first. **The snapshot was a
+function of test ordering.** Same class as L-052's `cssHash` and L-054's rule-set counter, and the
+third time in this proposal that a golden turned out to be a function of the scheduler.
+
+**Why re-recording alone would have been the wrong fix**, and this is the part the first diagnosis
+missed: dropping `b_assets` from the golden only moves which side flakes. The contract would then fail
+whenever a dev contract preceded it on the same worker. Nothing about the ordering dependence would
+have changed, and the next person would have met it from the other direction.
+
+**The fix.** `buildBoundaryGraph` skips virtual boundaries when seeding boundary candidates outside
+dev. Not a new concept — `index.ts:2295` already steps over `b_assets` for its own reasons; this is
+the same statement made where the graph is built. Dev is untouched and still synthesizes the node with
+its own shape, which the new unit test pins from both sides so the two cannot quietly converge again.
+
+**Verified.** The re-recorded golden now passes **with a clean manifest and with a dev-polluted one**
+— the two states that previously disagreed. That is the property worth having: the graph is a function
+of the source, not of what ran before it.
+
+## Phase 9 — the HMR capability, and a contract that described a chunking
+
+### L-056 — a capability that was earned and administratively unclaimable
+
+|                             |                                                            |
+| :-------------------------- | :--------------------------------------------------------- |
+| **Status**                  | **Fixed** — `rsbuild-vanilla-mpa` claims `hmr`, measured   |
+| **Bucket**                  | **2 — relocate it** (the probe is a property of the store) |
+| **Facet contract changed?** | No — `pickDeliveryProbe` is a testing-layer helper         |
+
+The third contract in this proposal to describe a **project** where it meant a **capability**, after
+`assets` in Phase 2 and `locale-switch` in Phase 4a. This one is the most instructive of the three,
+because it did not name an app: it encoded an assumption about **how an app was chunked**, which is
+harder to see and had the same effect.
+
+`delivery-ordering` and `delivery-refresh` both found their probe boundary by scanning
+`store.catalogs[locale]` for the one carrying `adapter.initialHeadingText`, and aborted when none did.
+That reads as a search for _the_ boundary. It is really a claim that the asserted string arrives in a
+**registered** catalog rather than one the manager **inlines**.
+
+On `rsbuild-vanilla-mpa` it does not. The heading lives in the entry's own boundary, which the manager
+inlines for the active locale; the source locale is ghosted, so nothing registers it. Both contracts
+aborted with `no boundary carries "Vanilla Rsbuild"` on an app where delivery demonstrably works —
+inspected live, all three boundaries present under `ar`, both documents fully translated.
+
+**The cost was a capability, not a test.** `[HMR Propagation] rsbuild-vanilla-mpa` passed **0 runs in
+10** in the same batch where `rsbuild-vanilla-spa` and `rsbuild-vue-spa` each failed 10 in 10. The
+project had earned `hmr` and could not claim it, because two contracts gated behind the same
+capability refused to run — so a **contract** limitation was recorded in a manifest as a **host**
+limitation, which is exactly what L-049 found in `chaos-boundary` one phase earlier. Twice in two
+phases is a pattern, not a coincidence: a contract that cannot run is indistinguishable, from the
+manifest's side, from a host that cannot do the thing.
+
+**The fix is a fallback, not an adapter field**, and that is the part worth keeping. The obvious move
+was a per-project `probeBoundary` in the adapter, the shape `assetSelector` and `isCatalogRequest`
+took. It would have worked and it would have been wrong: Axiom D1 and the push/pull join are
+properties of the **receiver**, not of any particular boundary, so no per-project answer is needed —
+only a probe that stops insisting on one specific boundary. `pickDeliveryProbe`
+(`packages/testing/src/contracts/probe.ts`) prefers the boundary carrying the heading, falls back to
+any registered one, and fails only when the store holds no catalogs at all for the active locale,
+which is a real failure and now says so precisely. **Ask for an adapter answer only when the question
+genuinely has a per-project answer.**
+
+**Recorded honestly:** when the fallback fires, the contract proves the rule one step further from the
+string the page renders — on a registered boundary rather than the heading's. `carriesKey` carries
+that distinction rather than hiding it, the same way Phase 4a stated that this host's
+`isCatalogRequest` cannot prove _which_ locale was fetched.
+
+**Measured before claiming**, per Phase 7's rule, `--no-build` against a confirmed `dist`:
+`hmr.contract` **0/10**, `syntax-recovery` **0/10**, `delivery` (failure + ordering + refresh)
+**0/10**. Thirty runs, no failure. The 12 pre-existing delivery cases pass unchanged, so the fallback
+is inert everywhere it was already working.
+
+**What this does not touch.** `hmr` stays unclaimed on `rsbuild-vanilla-spa`, `rsbuild-vue-*` and
+`rsbuild-svelte-basic`, and for the reason their manifests already measure rather than this one: on a
+full reload the reload beats the catalog write when the edited string lives in a boundary the manager
+must **fetch**. The dividing line on this host is inlined-vs-fetched, not the framework — 0/10 where
+the heading is inlined, 10/10 where it is not. That is a product defect and the next thing to chase;
+this entry only removes the contract-shaped blocker sitting in front of it.
+
+---
+
+## Phase 10 — ZHMR had a specification and, mostly, no contracts
+
+Phase 9 ended by naming a product defect — the reload beating the catalog write — and calling it the
+next thing to chase. Commit `3c11237` then claimed `hmr` on the five projects that entry had left
+unclaimed, with no measurement recorded. This phase starts by settling that, and the answer sends the
+rest of it somewhere else entirely.
+
+### L-057 — the re-claim was earned; Phase 9's closing note is stale
+
+|                             |                                                                 |
+| :-------------------------- | :-------------------------------------------------------------- |
+| **Status**                  | **Closed** — measured 0 failures in 10, three contract families |
+| **Bucket**                  | 0 — nothing to fix                                              |
+| **Facet contract changed?** | No                                                              |
+
+Measured before touching anything, `--no-build` against a confirmed `dist`, per Phase 7's rule:
+
+| Contract family                                               | Runs | Runs with a failure |
+| :------------------------------------------------------------ | :--- | :------------------ |
+| `hmr.contract`                                                | 10   | **0**               |
+| `syntax-recovery`                                             | 10   | **0**               |
+| `delivery-failure` + `delivery-ordering` + `delivery-refresh` | 10   | **0**               |
+
+Thirty runs across all thirteen `hmr` claimants, including `rsbuild-vanilla-spa`,
+`rsbuild-vanilla-mpa`, `rsbuild-vue-spa`, `rsbuild-vue-mpa` and `rsbuild-svelte-basic`. So the
+inlined-vs-fetched dividing line Phase 9 measured no longer bites for these contracts, and the
+paragraph at the end of L-056 should be read as history rather than as current state.
+
+**What that freed up is the point.** The question "is the `hmr` claim honest" was answered in half an
+hour, and the interesting question turned out to be the one nobody had asked: _how much of
+`docs/spec/ZHMR.md` has a contract behind it at all?_ The answer was **about a third**.
+
+### L-058 — five ZHMR sections were specified, implemented, and never executed
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Contracts added** — four red, and each red is a finding |
+| **Bucket**                  | 1 — the suite could not see it                            |
+| **Facet contract changed?** | No                                                        |
+
+What had coverage: §2.2, §3.1 and §4.4's _arrival_ — all indirectly, through `hmr` editing a source
+string. What had none:
+
+| ZHMR §       | Behaviour                                             | Now                       |
+| :----------- | :---------------------------------------------------- | :------------------------ |
+| §3.2 / §4.1① | a translator edits a catalog, page follows, no reload | `catalog-edit`            |
+| §4.1②, §5    | a localized asset is edited, `b_assets` cascades      | `asset-hmr`               |
+| §4.1③        | a sink is added without reshaping the graph           | `hmr-growth`, first half  |
+| §4.2         | an anchor or colony is added, reload follows          | `hmr-growth`, second half |
+| §4.3         | a server-only boundary is edited, full reload         | `hmr-server-refresh`      |
+| §4.4 / §6    | no blank or foreign frame on the first tick           | `hmr-first-tick`          |
+
+The §4.4 gap is the one worth dwelling on, because it was invisible in a way a coverage list cannot
+show. Every assertion in this suite polls with `textEventually`, which is the right tool for "did the
+update arrive" and is **structurally blind** to what the user saw on the way. A heading going
+`Get started` → `` → `HMR works!` polls green. `delivery-refresh` exists because the _permanent_
+version of that bug rendered blank forever; the transient version is the same defect with better
+luck, and nothing had ever looked for it.
+
+**The results, first execution:**
+
+- **`catalog-edit`: green on 12 of 13 on its first run, and the second run contradicted it.** See
+  L-064 — this is the entry where the suite's own N≥1 rule earned its keep, twice in one session.
+- **`asset-hmr`: red on both hosts.** Editing a localized asset does not reach the page — on Vite
+  (`assets-basic`) and on Rspack (`rsbuild-vanilla-basic`). Two projects, two entirely different
+  invalidation routes (`entryFilePaths` fan-out vs a real `?zintl-raw` import), one outcome. ZHMR §5
+  does not work.
+- **`hmr-server-refresh`: red, and it comes apart informatively.** The full-reload packet _is_ sent —
+  detection and signalling work — and the HTML that comes back is what the server rendered before the
+  edit. Half of §4.3 works.
+- **`hmr-first-tick`: green on 8 of 9**, red on `lazy-boundary` with the frame sequence
+  `"Lazy colony" → "" → "First tick works!"`. See L-060.
+- **`hmr-growth`: warm half green, structural half disagrees with the specification.** See L-061.
+
+None of the reds were fixed. Each is recorded as `pendingFor` carrying its measurement, so it appears
+in the report as a named gap rather than as an absence.
+
+### L-059 — `hmr` contracts were gated on `spa`, and one project's claim had never run
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — gates are `["hmr"]`; `react-ssr` withdrew |
+| **Bucket**                  | 2 — the gate described a rendering mode, not a claim  |
+| **Facet contract changed?** | No                                                    |
+
+Every hot-update contract declared `requires: ["spa", "hmr"]`. The `spa` was doing no work `hmr` did
+not already do — every adapter supplies `navigateHome`, `headingSelector`, `initialHeadingText` and
+`headingFile` however the app renders. What it did instead was exclude SSR by accident.
+
+`react-ssr` has claimed `hmr` for its whole life and **selected zero contracts**. It read as coverage
+and was an empty entry in a list. Remove `spa` from the gates and its first measurement ever is red:
+an ordinary edit to `src/App.tsx` does not reach the page, identically under `hmr-first-tick` and
+`catalog-edit`. The claim is withdrawn in the manifest with that measurement, rather than spread
+across five `pendingFor` entries — a capability is a statement about a project, and the true one
+today is that it does not hot-update. Vite SSR has every mechanism it needs, which makes this a
+defect to fix rather than a scope boundary to state.
+
+**Generalised:** a capability that no contract can select is worse than a missing one. It occupies
+the slot where the coverage would go and reports the slot as filled — the same shape as the
+commented-out contract body `Contract.pending` was invented to prevent.
+
+### L-060 — a lazily-imported boundary renders one empty frame
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+`"Lazy colony" → "" → "First tick works!"` on Vite, on a boundary reached through a dynamic import.
+Exactly ZHMR §6's "Blank/Empty Rendering on First HMR Update", and exactly the ordering §4.4
+guarantees: the content module calls `addCatalogs()` synchronously as it evaluates, which completes
+before the framework's update callback runs, so the store is meant to be populated by the first
+re-render. It is not, here. With no source-locale fallback the miss renders as nothing at all.
+
+**Where it was found matters as much as what it is.** It surfaced on a fixture added in this pass
+because colony behaviour on Vite had **no real-browser coverage at all** — `$L` boundaries are
+exercised by `rsbuild-vanilla-spa` and `rsbuild-vue-spa`, both on Rspack, while the two Vite
+applications with lazy routes (`examples/vanilla-spa`, `examples/vue-spa`) are absent from the
+manifest. Rollup is the original and primary host and its colony path was proven only by unit tests.
+The newer host had better coverage than the older one, and that is how this sat unseen.
+
+### L-061 — §4.2 says reload; a re-execution-safe entry updates in place, correctly
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Open decision** — spec or code must move, not the contract |
+| **Bucket**                  | 4 — the specification is wrong, or the implementation is     |
+| **Facet contract changed?** | No                                                           |
+
+Adding a nested `zintl()` anchor to `react-basic` or `vanilla-spa-basic` produces a single `update`
+packet and no reload, and the page is correct afterwards — confirmed by reloading and re-asserting,
+so the runtime is not left holding a boundary map describing the previous build.
+
+ZHMR §4.2 lists "a new `zintl()` anchor is added or removed" under Hard Reload. The implementation
+disagrees deliberately: where the entry is re-execution-safe, `viteFacet` emits a self-accepting
+snippet and the re-executed entry picks the new boundary up in place. Both cannot be right.
+
+The contract was left asserting what the specification says, and marked pending. **A contract
+rewritten to match the implementation stops being able to disagree with it**, which is the only thing
+it was for. Either §4.2 gains "…unless the entry is re-execution-safe", or the compiler forces the
+reload it specifies. That is a product decision.
+
+### L-062 — three contracts guessed at paths the compiler had already resolved
+
+|                             |                                                                      |
+| :-------------------------- | :------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — `findCatalogFor`, `localizedAssetPath`, `setTranslation` |
+| **Bucket**                  | 2 — relocate it                                                      |
+| **Facet contract changed?** | No — testing-layer helpers                                           |
+
+The fourth instance of the pattern L-049 and L-056 named, and the first where the guess was silently
+_inert_ rather than loudly wrong:
+
+1. **`chaos-catalog.findCatalogPath`** tried `src/i18n/translations.json`, walked `zintl/`, and threw
+   otherwise. It had never heard of `src/locales`, where **every** Rsbuild example keeps catalogs — so
+   `chaos` was unclaimable across the whole Rspack half of the manifest because the contract threw on
+   line one, unable to find files that were sitting right there.
+2. **`noOrphanedCatalogs`** read `(lab.compiler as any).outputDir ?? "src/locales"`, and `LabCompiler`
+   has no `outputDir`: the left side was **always** `undefined`. Not one of the four projects
+   claiming `chaos` uses `src/locales` — three use the default `zintl/`, one uses `src/i18n/` — so
+   `existsSync` was false every time and the assertion **returned without checking anything, on every
+   project, for its entire life**. `chaos-boundary`'s closing guarantee has never run.
+3. **`catalogContains`** joined `<root>/<options.outputDir ?? "locales">/<locale>.json`, a flat layout
+   no project here uses, through an `options` property the compiler does not expose. It could only
+   ever throw, which is presumably why nothing called it.
+
+And a fourth of the same family, host-shaped rather than path-shaped: **`performance-size`** filtered
+catalog responses by `virtual:zintl`, `/zintl/`, `/i18n/` and `.json`. Rspack emits catalogs as
+ordinary hashed async chunks carrying none of those, so the contract could only ever measure zero
+responses there and fail its own `toBeGreaterThan(0)` — recorded in eight manifests as a host that
+cannot meet a performance budget. `LocaleSwitchAdapter.isCatalogRequest` already existed for exactly
+this question and was already declared by those manifests.
+
+`findCatalogFor` asks the compiler, which resolved `outputDir` and `catalogFormat` and owns
+`getCatalogPath` — already handling grouped catalogs, `[locale]` tokens, content boundaries and
+nested-function anchors. Selection among candidates is by content, with `carriesKey` recording
+whether the caller got the catalog it asked for or a stand-in, the same honesty `pickDeliveryProbe`
+introduced.
+
+**`setTranslation` is the near-miss worth recording.** Catalogs come in two shapes: values are
+strings in a per-locale file, and objects keyed by locale in a merged one (`catalogFormat` without a
+`[locale]` token, as `rsbuild-vanilla-basic` uses). A contract assuming the first would have replaced
+an entire per-locale object with a bare string on the second — writing a catalog that still parses,
+still contains the key, and has quietly deleted three languages. Which shape a project uses is a
+compiler-configuration fact, so it is detected once rather than declared in twenty manifests.
+
+### L-063 — "hot update" was two guarantees wearing one capability
+
+|                             |                                                  |
+| :-------------------------- | :----------------------------------------------- |
+| **Status**                  | **Fixed** — `hmr-warm`, claimed on nine projects |
+| **Bucket**                  | 2 — the manifest could not say it                |
+| **Facet contract changed?** | No                                               |
+
+`hmr` says an edit reaches the browser. It does not say _how_, and a full reload satisfies it while
+discarding application state. Those are different guarantees and the difference was recorded only in
+manifest prose (L-035's note that a vanilla Rspack entry declines the update and lets it bubble,
+"which is slower than a hot update and correct").
+
+`hmr-first-tick` made the distinction load-bearing: a contract that observes **frames** has nothing
+to observe when the document is replaced wholesale. Failing those projects would have reported a
+documented, correct host difference as a defect.
+
+Measured, the line runs through the **framework, not the host**: every Vite project hot-replaces;
+on Rspack, React and Vue do, while vanilla and Svelte reload. That is precisely the
+`hasClientReactivity` gate of L-030 and L-035, and it is now a claim in nine manifests instead of a
+paragraph in two.
+
+### L-064 — L-056's defect is still live, on the one mutation nothing performed
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Open** — recorded with rates, not fixed (no product fixes) |
+| **Bucket**                  | 3 — real defect                                              |
+| **Facet contract changed?** | No                                                           |
+
+L-057 measured thirty clean runs and concluded the inlined-vs-fetched problem had stopped biting.
+That conclusion was correct **for the mutations those contracts make**, and `catalog-edit` makes one
+they do not: it edits the catalog _itself_ rather than the source that generates it.
+
+`node scripts/flake.js catalog-edit --runs=10` — 10 of 10 runs carried a failure:
+
+| Project                 | Runs failed | Catalog for the asserted string |
+| :---------------------- | :---------- | :------------------------------ |
+| `rsbuild-svelte-basic`  | **10 / 10** | fetched                         |
+| `rsbuild-vanilla-spa`   | **10 / 10** | fetched                         |
+| `rsbuild-react-basic`   | 7 / 10      | fetched                         |
+| `rsbuild-vue-spa`       | 7 / 10      | fetched                         |
+| `rsbuild-vue-basic`     | 7 / 10      | fetched                         |
+| `rsbuild-vanilla-basic` | 6 / 10      | fetched                         |
+| `rsbuild-vanilla-mpa`   | **0 / 10**  | **inlined**                     |
+| `rsbuild-vue-mpa`       | **0 / 10**  | **inlined**                     |
+| every Vite project      | **0 / 10**  | —                               |
+
+**The two projects that never fail are the two MPAs.** L-056 established why, from the other side:
+on `rsbuild-vanilla-mpa` the heading lives in the entry's own boundary, which the manager _inlines_
+for the active locale, and the source locale is ghosted so nothing registers it — which is what broke
+the delivery probe there. Phase 9 drew the dividing line as **inlined vs fetched, not framework**, and
+this reproduces it exactly. Where the catalog is inlined, an edit is picked up by the rebuild. Where
+the manager must fetch it, the reload beats the compiler's write and the page re-renders from what
+was on disk a moment ago.
+
+Framework is visibly _not_ the variable: `rsbuild-vue-basic` fails 7/10 and `rsbuild-vue-mpa` fails
+0/10, same framework, same host, opposite results.
+
+**Why nothing caught this before.** Every existing mutation goes through source: `hmr` and
+`hmr-hammer` edit a component, `syntax-recovery` breaks and repairs one, `chaos-catalog` deletes and
+corrupts catalogs but only ever asserts on a _source_ edit afterwards, and the three `delivery-*`
+contracts drive the receiver in the page and touch no file at all. A source edit forces a
+recompilation that regenerates the catalog as part of the same cycle; editing the catalog directly
+does not, and that is the whole difference.
+
+Recorded as `pendingFor` per project with its rate. Fixing it is a product change, deliberately out of
+scope for this pass — but it is the most user-visible defect in the ledger, because the person it
+affects is a translator saving a JSON file and watching nothing happen.
+
+### Method note — the single-run result that was wrong twice in one session
+
+Written down because it nearly went into a changeset. `catalog-edit`'s first execution was green on 12
+of 13, and read as a clean result for the most common workflow the product has. The second run failed
+four Rsbuild projects; the third failed five, overlapping but not identical. Only the ten-run batch
+showed the real shape — two projects at 10/10 and four in the 6–7/10 band, which is a _different
+finding_ from "mostly green with some flake" and points at a different cause.
+
+`scripts/flake.js` has enforced N ≥ 10 since L-039 and its header says a single run of an intermittent
+contract carries almost no information. That rule was written for **changes**; this session is the
+case for applying it to **new contracts on their first execution**, where the temptation to believe a
+green is strongest because nothing has been compared against yet.
+
+### L-065 — renaming an SFC boundary orphans its catalogs
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+A consequence of L-062, and the reason that entry matters beyond tidiness. With
+`noOrphanedCatalogs()` actually running for the first time, `chaos-boundary` reports:
+
+| Project             | Rename                          | Left on disk                                 |
+| :------------------ | :------------------------------ | :------------------------------------------- |
+| `vue-basic`         | `src/components/HelloWorld.vue` | `HelloWorld.vue.{ar,es,zh}.json` — 3 orphans |
+| `svelte-basic`      | `src/App.svelte`                | `App.svelte.{ar,es,zh}.json` — 3 orphans     |
+| `react-basic`       | `src/App.tsx`                   | none                                         |
+| `vanilla-spa-basic` | `src/main.ts`                   | none                                         |
+
+The rename itself succeeds on all four, and so does the hot update through the new path — the
+reachability traversal L-023 built is fine. What differs is what happens to the _previous_ catalogs.
+
+`vanilla-spa-basic` is explicable without a defect: it sets `catalogFormat: "translations.json"`, a
+merged catalog whose path does not contain the boundary path, so a rename cannot orphan it. The
+interesting pair is `react-basic` clean and the two SFC projects not, on identical default
+`<path>.<locale>.json` naming — which points at the SFC removal path rather than at pruning in
+general. Stated as an observation; the mechanism is not established here and should not be guessed at.
+
+**Why this was invisible.** CLAUDE.md's "identity is content-based, so moving or renaming files
+doesn't orphan translations" is about the _translations_, which are reconciled into the new catalog
+correctly. The **file** is a separate question, and it is the one a user sees in `git status`.
+
+### Method note — an assertion that never ran had never been debugged either
+
+`noOrphanedCatalogs()` had two independent defects stacked: the directory resolution returned early on
+every project, and the matching logic underneath it could not have matched the default catalog naming
+in either direction. The second was invisible because the first made it unreachable.
+
+That is the specific hazard of a silent no-op, as opposed to a missing assertion: the body looks
+reviewed. It has a walk, a set, a comparison and a well-written error message, and none of it had ever
+executed against a real directory. Fixing only the outer layer turned three of four projects red with
+false positives — which is how the inner one surfaced.
+
+### L-061 — resolved: §4.2 gains the re-execution-safe exception
+
+|                             |                                                        |
+| :-------------------------- | :----------------------------------------------------- |
+| **Status**                  | **Closed** — the specification moved; the code did not |
+| **Bucket**                  | 4 — the specification was wrong                        |
+| **Facet contract changed?** | No                                                     |
+
+The open decision from this phase, settled: **§4.2 was wrong and has been amended.**
+
+It specified a hard reload for every structural change, with no exception. `hmr-growth` asserted that
+and found the implementation disagreeing deliberately — on a re-execution-safe entry, adding a nested
+`zintl()` anchor arrives as an ordinary `update`, the boundary graph grows, and the page is correct.
+A reload there would discard application state to reach a state the update already reached.
+
+The section now has two routes (§4.2.1 hot-replace, §4.2.2 reload), and states the **invariant** they
+both serve — the runtime must not be left holding a boundary map describing the previous build —
+rather than a mechanism. Which route applies is decided by the entry, not by the kind of change.
+
+**The contract asks the compiler which route to expect**, through a new
+`LabCompiler.entryReexecutionSafe` reading `_resolved.flags.entryReexecutionSafe`. That flag is
+resolved from the framework's runtime facet, so it is a compiler fact; asking twenty manifests to
+declare it would be the `findCatalogPath` mistake in a new place. The contract asserts the reload on
+one side, its _absence_ on the other, and on both sides that the graph actually grew — the check that
+makes the rest mean anything, since a reload with no new boundary is an expensive way to render the
+same thing and would satisfy a packet-only assertion completely.
+
+**Two things the amendment exposed in the contract itself**, both fixed:
+
+1. **The reload arrives after the update that causes it.** On §4.2.2, `viteFacet` emits
+   `accept(() => import.meta.hot.invalidate())`, so the wire carries `update` → client invalidates →
+   server sends `full-reload`. Stopping the capture when the update lands reads the first packet of a
+   two-packet exchange and concludes no reload happened. `react-basic` was failing its own
+   specification for four seconds' want of waiting.
+2. **The contract raced the reload it had just asserted.** Its closing `page.reload()` fired into a
+   frame the server was already navigating — `net::ERR_ABORTED; maybe frame was detached?` — reported
+   as a defect in the thing under test. It now reloads only where the server did not.
+
+### L-066 — a new sink renders but never reaches a merged catalog
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+Found by §4.1③'s half of `hmr-growth`. Adding a translatable string to `vanilla-spa-basic` renders it
+hot, with no reload — that half of the specification holds — and the new key never appears in any
+catalog on disk. Checked against a 25-second budget as well as the committed 8, with an identical
+result, so this is the flush never writing rather than the flush being slow.
+
+`react-basic` writes the key well inside the budget. The visible difference is `catalogFormat:
+"translations.json"` — one merged file holding every locale — against the default one file per
+locale. That is stated as an observation, not a diagnosis: four entries in this phase went wrong by
+inferring a mechanism from a correlation, and one project either side is a correlation.
+
+**Why it matters more than it looks.** A string that renders and cannot be translated is invisible to
+every visual assertion in this suite, and to the translator whose job is to find it. The page is
+correct in the source locale, which is exactly the state Zintl's no-fallback rule is designed to make
+impossible everywhere else.
+
+**The assertion that found it has been removed, and that is the second finding.** It could only ask
+the question by polling a file for a while and giving up, which is precisely what ZDB §9.3 forbids on
+a success path — a timing heuristic deciding a verdict. It then behaved exactly as that rule
+predicts: green on `react-basic` in isolation and **red on the same project under four-worker
+contention**, with the budget rather than the behaviour choosing the outcome. Raising the constant
+would have hidden the flake and kept the violation.
+
+So the gap is recorded here and the contract asserts what it can prove causally. Closing it needs a
+**causal wait on the compiler's flush generation** — the same shape as `waitForSettled` on the
+runtime's — which is harness work rather than a tuned constant. Until that exists, "the new key
+reached disk" is a known-untested claim, which is a better state than a green that depends on how
+busy the machine was.
+
+### L-067 — asset HMR: one symptom, three causes, each hiding the next
+
+|                             |                                                     |
+| :-------------------------- | :-------------------------------------------------- |
+| **Status**                  | **Fixed on Vite**; Rspack advances to L-064's shape |
+| **Bucket**                  | 3 — real defect                                     |
+| **Facet contract changed?** | **Yes** — `ContentFacet.getDeclaredInputs`          |
+
+ZHMR §5 did not work on either host. `asset-hmr` (L-058) measured it red on Vite and Rspack with the
+same symptom — the page keeps rendering the previous text — and the symptom was produced by **three
+independent causes stacked on top of each other**. Fixing any one alone changed nothing visible,
+which is the whole reason the section survived being specified, implemented and believed for as long
+as it did.
+
+**1. The compiler never re-read the file.** Asset text lives in `messages.hive`, and the only thing
+that refills it is `mergeFacetTranslations()` inside `syncGraphs()`. The asset branch of
+`invalidateFile` announced `b_assets` as affected and called `scheduleFlush()` — both of which are
+about _delivery_ — and never marked the graph dirty. So the entire cascade ran, correctly, against
+the previous contents of the file: hot update fired, manager re-imported, content module
+re-evaluated, `addCatalogs` applied, every step carrying the old string.
+
+**2. The text lived in a second module neither host would rebuild.** The generated catalog did not
+hold the text; it held `_zintl_asset_0`, imported from the asset. Those two modules go stale
+independently, and the import is minted under `\0virtual:zintl/rawasset/<base64url>` — an
+extension-free virtual id chosen so no host can misclassify it by extension (L-009). A virtual module
+has no `file`, so Vite's graph cannot associate it with the changed asset at all, and Rspack has no
+declared dependency on which to call it stale. Two hosts, two mechanisms, nothing shared.
+
+The fix is to **delete the second module rather than synchronise it**: in dev the text is inlined
+into the catalog, so the update arrives by the same route as every other translation. Dev-only —
+production keeps the import, where one shared module per asset is right and duplicating a document
+across locale chunks would be a real cost. The committed dev-transform snapshots moved by exactly
+that substitution, in four locales, with the production snapshots untouched.
+
+**3. The correct catalog was delivered, and rejected.** With 1 and 2 fixed, Rspack rebuilt and
+delivered a catalog holding the right text — and the runtime discarded it:
+`runtime/catalog ar/b_assets #0 → superseded (overtaken by seq 0)`. The asset branch returns before
+the shared bookkeeping that every other change goes through, including `catalogGeneration++`, so the
+rebuilt catalog claimed to be no newer than the one already applied. Axiom D1 then did precisely its
+job. **This is the most misleading failure of the three**: compiler right, host right, bytes right,
+receiver correctly refusing them.
+
+**A facet contract change, deliberately.** `getBoundaryInputs` answers "what source owns this
+boundary" out of `boundaryOwnership`, and a virtual boundary is _contributed_ rather than extracted,
+so `b_assets` declared no inputs at all — which on a host that rebuilds from declared dependencies
+means a catalog embedding an asset is never stale. `ContentFacet.getDeclaredInputs` lets a facet name
+the files its virtual boundaries derive from. Asked of the facet rather than special-cased on the id:
+the core has no business knowing `b_assets` means `.txt` and `.md`, and the next facet contributing a
+virtual boundary would otherwise rediscover this the same way.
+
+**Where it stands.** `[Asset HMR] assets-basic` is green — both halves, the translator's edit to
+`about.ar.txt` and the developer's edit to `about.txt`. `rsbuild-vanilla-basic` stays pending, and
+its failure has **moved**: store and DOM both carry the new text about two seconds after the edit,
+measured directly in the page, and a later rebuild puts the old text back. That is L-064's
+reload-beats-the-catalog-write shape rather than anything about assets, and it is where the next pass
+on this host should start.
+
+**The method note worth keeping.** Two changes made during this diagnosis were reverted after
+measurement showed they were not load-bearing — removing the `?zintl-raw` module's self-accept (a
+unit test disagreed, and inlining had made the question moot) — and one was reverted and then
+**restored** when removing it turned the source-asset half red while the localized half stayed green.
+A fix kept because it was proposed, rather than because removing it broke something, is
+indistinguishable from a fix that does nothing.
+
+### L-064 — resolved for non-reactive projects: the update was applied and invisible
+
+|                             |                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Status**                  | **Fixed** on 3 of 6; the remainder is a narrower, different question  |
+| **Bucket**                  | 3 — real defect                                                       |
+| **Facet contract changed?** | **Yes** — `RuntimeFacet.repaintsOnCatalogUpdate`, `hmrSelfAcceptCode` |
+
+**The name was wrong, and the name was the reason it looked intractable.** "The reload beats the
+catalog write" described a race, and there is no race. Measured directly in the page after a catalog
+edit on `rsbuild-vanilla-spa`:
+
+```
+store:  b_src_pages_Home_Home / "Vanilla Rsbuild" → "Traducción actualizada en caliente"
+DOM:    "Rsbuild con Vanilla"
+```
+
+The catalog arrives, `addCatalogs` applies it, the delivery ledger records `#7 → applied`, and the
+store holds the new translation. Nothing then redraws. The DOM is a screenshot of the render before
+the edit, and it stays that way indefinitely — not stale-because-overtaken, **stale because nothing
+asked the page to paint again**.
+
+Two conditions have to hold together for that, which is why it looked host-specific and framework-specific
+by turns:
+
+1. **Nothing in the page is subscribed to the store.** A vanilla entry and Svelte's compiled output
+   both paint once.
+2. **The host does not re-run the entry either.** `RspackUpdateApplier` invalidates nothing by
+   design — Rspack rebuilds what its own declared dependencies mark stale. Vite's applier explicitly
+   invalidates the entry's modules on a boundary update, which is why the same projects are green
+   there and why this never reproduced on Vite.
+
+**The fix is to stop claiming an update was handled when it was not.** A generated catalog now
+self-accepts only when something can act on it: `hmrSelfAcceptCode` takes `canRepaint`, Vite ignores
+it (its applier re-runs the entry regardless), and Rspack returns `""` without it. Declining alone
+was not enough — a fetched catalog arrives through a dynamic import, a chunk boundary with no static
+parent, so it does not bubble to a reload the way declining inside an entry does. The plan therefore
+issues the reload itself, from the _same_ facet answer, so what the module says about itself and what
+the server does about it cannot disagree.
+
+**The predicate cost one wrong turn worth recording.** The first attempt read `clientReactivityImports`,
+which lists the hooks a framework needs _injected_ — and only React declares any. That called Vue
+unable to repaint and forced reloads on `rsbuild-vue-mpa`, a project that had been applying catalog
+edits warm all along. Measurement caught it immediately, and `RuntimeFacet.repaintsOnCatalogUpdate`
+replaced it: a framework states whether its components redraw from a store update, which is the
+question actually being asked. It defaults to `false` where `entryReexecutionSafe` defaults to
+`true`, deliberately — a wrong `true` here yields a page that silently lies about its own contents,
+where a wrong `false` costs a refresh.
+
+**Result: 254 contract tests pass, up from 251.** `rsbuild-vanilla-basic`, `rsbuild-vanilla-spa` and
+`rsbuild-svelte-basic` now apply catalog edits — by reload, which is L-035's trade one module kind
+later. `rsbuild-vue-mpa` keeps its warm path. The generated-module snapshots record the change
+exactly: four projects no longer emit `import.meta.webpackHot.accept()` into their catalogs.
+
+**What remains is a third sighting of one line.** `rsbuild-react-basic`, `rsbuild-vue-basic` and
+`rsbuild-vue-spa` are reactive frameworks whose managers **fetch** the catalog rather than inlining
+it, and they still miss the repaint. `rsbuild-vue-mpa` is the same framework and inlines, and passes.
+So the axis is not the framework — it is L-056's inlined-vs-fetched line, reached now from a third
+direction. They are left pending rather than forced to reload with the others: these projects _can_
+repaint, and making them refresh the page would trade a real defect for a worse experience and call
+it fixed.
+
+### L-068 — subscribers were stranded on the store the swap left behind
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — React passes; Vue is not the same problem |
+| **Bucket**                  | 3 — real defect, in the shipped runtime               |
+| **Facet contract changed?** | No                                                    |
+
+The remainder of L-064 — reactive frameworks whose managers _fetch_ the catalog — turned out to be
+two unrelated things wearing one symptom, and separating them took one measurement:
+
+```
+listeners: 0        ← on the live store, with React's useSyncExternalStore mounted
+version:   2 → 4    ← notify() had run, twice, into an empty set
+hits:      b_src_App_tsx_default / "Rsbuild with React" → "Traducción actualizada en caliente"
+```
+
+The store had the new translation. `notify()` had fired. **Nobody was listening.**
+
+**React: a real defect, and it was never framework-specific.** `subscribe()` resolves through
+`getActiveInstance()`, which falls back to a module-level `defaultInstance` until something calls
+`setActiveInstance`. Anything that renders before the entry's `zintl()` resolves therefore subscribes
+to _that_ store — and `setActiveInstance` reassigned `currentInstance` and the global without taking
+the listeners with it. The subscription survived, pointed at an object nothing would ever notify
+again.
+
+`I18nStore.adoptListeners` moves them across on the swap and notifies once, because a subscriber
+whose store changed underneath it has by definition missed a snapshot. `listeners: 0` became
+`listeners: 2` and `[Catalog Edit] rsbuild-react-basic` went green.
+
+**Why it hid for so long is the interesting half.** On Vite the applier invalidates the entry's own
+modules on every boundary update, so React remounts against the current store and re-subscribes —
+the strand is repaired constantly by a mechanism that exists for another reason. On Rspack nothing
+re-runs, so the strand is permanent. A defect in host-neutral runtime code, observable on exactly one
+host, which is the shape 026 built the second host to find.
+
+**Vue: not a defect at all, and the generated code says so.**
+
+```
+<h1>{{ _t('Rsbuild with Vue', { _mgr: …, _bId: 'b_src_App_vue' }) }}</h1>
+```
+
+`_t` is an ordinary function reading an ordinary object. Vue re-renders when a **reactive dependency**
+changes, and this template has none — so a delivered catalog is invisible to it by construction.
+There is no stranded subscription here because there is no subscription: nothing in the Vue pipeline
+is the counterpart of React's `useSyncExternalStore`. `rsbuild-vue-mpa` passes for an unrelated
+reason, the one L-056 named — its catalog is _inlined_, so the update lands on the manager, the entry
+re-runs and the app remounts.
+
+Closing Vue means giving it a reactive handle the template depends on: a `shallowRef` in the
+component's setup, bumped from a store subscription, that each generated `_t` call reads. That is a
+**feature with a design**, not a defect with a fix, and it is left as one rather than improvised —
+the alternative on offer was to declare Vue non-reactive and reload, which would have made
+`rsbuild-vue-basic` and `rsbuild-vue-spa` pass by taking away a warm path `rsbuild-vue-mpa`
+demonstrably has. Trading a real capability for a green tick is how the entries earlier in this
+proposal went wrong.
+
+**255 contract tests pass, up from 254.** The remaining two skips on this contract are Vue's, with
+the reason stated in the contract rather than in a manifest, because it is a property of the
+framework integration rather than of either project.
+
+### L-069 — Vue's reactivity bridge, and the loop it uncovered
+
+|                             |                                                               |
+| :-------------------------- | :------------------------------------------------------------ |
+| **Status**                  | **Fixed** — `catalog-edit` green on every project, both hosts |
+| **Bucket**                  | 1 — missing capability, plus a latent defect it exposed       |
+| **Facet contract changed?** | **Yes** — `CodegenFacet.reactiveBridge`                       |
+
+L-068 left Vue as the last red, and correctly identified it as _not a bug_: `_t('…')` is an ordinary
+call to an ordinary function, Vue re-renders on reactive dependencies it read during render, and this
+template had none. Nothing to strand, nothing to repair — a missing capability.
+
+**The bridge is two halves, and it needs both.** A subscription alone would not have worked: a
+component can be perfectly subscribed and still never redraw, because nothing it _rendered_ was
+reactive. So `CodegenFacet.reactiveBridge` contributes
+
+- `setup` — a `shallowRef` seeded from `getStoreVersion()`, kept in step by a `subscribe()` whose
+  unsubscribe goes to `onScopeDispose`, guarded by `getCurrentScope()`; and
+- `read` — spliced into **every** generated `_t` call as `_v: __zintl_v.value`, so rendering a
+  translation _is_ reading the handle.
+
+Splicing at the call site rather than asking the codegen to find its own sinks is what makes it
+total: there is no class of sink that can be missed, and `_t` ignores options it does not know, so a
+dialect without a bridge is unaffected.
+
+**One shape correction, from a failed first attempt.** The framework import was declared for the
+pipeline to place, and the pipeline merges imports by source across the whole file — which put
+`import … from "vue"` _above_ the `<script setup>` tag, outside any block, which is not a valid SFC.
+Where an import may legally sit is a property of the dialect, so the dialect now writes it inside
+`setup`.
+
+**And then the interesting part: `chaos-catalog` went from green to a 45-second timeout on three
+projects, with 167,280 console messages.**
+
+The bridge did not cause that defect; it _closed the circuit_ on one already present. `_t` triggers a
+hydration load when it cannot find a key and re-reads immediately — which is what lets a synchronous
+loader satisfy the first render tick, and is worth keeping. But when the key is genuinely absent, and
+`chaos-catalog` deletes the catalog on purpose to make sure it is, every render triggers another
+load, every load can `addCatalogs`, and every `addCatalogs` notifies. With nothing subscribed the
+cycle stayed open. With Vue reading the handle during render, it closed.
+
+This is the same loop {@link notify}'s comment records for React at ~700 messages in twelve seconds.
+That fix deferred the announcement to a microtask, which stops the synchronous
+`setState`-during-render half and leaves the steady state untouched. `hydrationAttempts` closes the
+other half: **one attempt per `locale`/`boundary`/`key`, never cleared.**
+
+Keyed on the _key_, and the first attempt at this got it wrong in an instructive way. Keying on the
+boundary and clearing the set whenever catalogs changed re-armed the loop exactly: the load _does_
+deliver the boundary — it simply does not contain this key — so `changed` is true, the set empties,
+and the next render claims again. 172,908 messages, one small edit later. Keying on the key is what
+makes "never cleared" safe: the guard gates only the _miss_ path, and a key that later arrives is no
+longer a miss, so the spent claim is never consulted again.
+
+**257 contract tests pass, up from 255.** `[Catalog Edit]` is green on all twelve claimants across
+both hosts — the mutation that started this phase red on six Rspack projects, through three
+independent defects (L-064, L-068) and one missing capability.
+
+> **L-067 closed, and by something else.** The Rspack half stayed pending on a fourth symptom — the
+> asset text arrived and a later rebuild put the old one back. That was never an asset defect: it was
+> L-064, an update nothing in the page could act on. Fixing L-064 turned `[Asset HMR]
+rsbuild-vanilla-basic` green without a line of asset code changing, measured 0 failures in 10 runs.
+> ZHMR §5 now holds on both hosts.
+>
+> Worth keeping as a method note: the entry was written with the failure attributed to "a later
+> rebuild", which was accurate and was _not_ a diagnosis. Naming the mechanism honestly — rather than
+> guessing at one — is what let a different fix be recognised as this one's fix.
+
+### L-060 — withdrawn: the blank frame was the probe, not the product
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Withdrawn** — no defect; contract corrected, 0/10 failures |
+| **Bucket**                  | 1 — the suite could not see straight                         |
+| **Facet contract changed?** | No                                                           |
+
+L-060 recorded a real-looking frame sequence — `"Lazy colony"` → `""` → `"First tick works!"` — and
+called it ZHMR §6's "Blank/Empty Rendering on First HMR Update", found on the Vite colony fixture.
+The sequence was real. The reading was wrong.
+
+`hmr-first-tick` sampled the heading with `document.querySelector(sel)?.textContent ?? ""`, which
+yields `""` for an element that is **absent** exactly as readily as for one that is empty. The
+fixture's `render()` clears `#app`, `await`s a dynamic import, then paints — so for the duration of
+that await there is no `<h1>` in the document. No translation was involved and no catalog was late.
+Any application that clears a container before an await produces the same trace.
+
+Distinguishing the two states turns the contract green on all nine projects, 0 failures in 10 runs,
+and leaves the assertion §6 actually describes intact: the element **present** with empty text,
+which is what a resolver miss looks like when there is no source-locale fallback.
+
+**The method note is the point of keeping this entry.** The original measurement was taken once,
+believed, and written into the ledger as a product defect with a mechanism attached — `"the resolver
+ran against a catalog the content module had not replaced yet"` — which was a hypothesis dressed as
+an observation. Nothing in the evidence distinguished it from "the element was not there yet". A
+probe that cannot tell _not rendered yet_ from _rendered as nothing_ will manufacture defects in
+every asynchronously repainting app it meets, and this one did.
+
+### L-065 — revised: translations are not lost, and dev never prunes at all
+
+|                             |                                                                   |
+| :-------------------------- | :---------------------------------------------------------------- |
+| **Status**                  | **Open, re-scoped** — the original characterisation was too broad |
+| **Bucket**                  | 3 — real, but smaller and differently shaped than recorded        |
+| **Facet contract changed?** | No                                                                |
+
+Investigated with probes rather than reasoning, and three of the entry's implications turn out to be
+wrong. Recorded before attempting a fix, because the fix that the original wording implies — "make
+the rename move the catalogs" — would have been aimed at something that already works.
+
+**1. The boundary is forgotten correctly.** After the rename, `HelloWorld.vue` is absent from
+`boundaryGraph.nodes`, `boundaryOwnership`, `metadataGraph` and `internalManifest`. `removeFile`
+does its job on SFCs exactly as it does on `.tsx`.
+
+**2. The translations migrate. Nothing is lost.** `zintl/src/components/Hello.vue.ar.json` — the
+_new_ name — contains the Arabic strings (`"Bluesky": "بلو سكاي"`). An earlier snapshot showing the
+new boundary with `ar`/`es` but no `zh` was read as a lost locale; polling shows it is the flush
+still in flight. The old files are duplicates left behind, not the only surviving copies.
+
+**3. What remains is the old files, and pruning is disabled in development on purpose.**
+`pruneOrphanedBoundaries` opens with `if (this.isDev && !this.isTestEnv) return`, carrying a comment
+that names this exact complaint — "artifacts outliving their source" — and explains why enabling it
+blind trades an accumulating leak for the chance of deleting a live catalog.
+
+**So the sharpest finding is about the contract, not the compiler.** `isTestEnvironment()` is
+`NODE_ENV === "test" || VITEST`, and the harness runs its Vite dev server in the vitest process — so
+`noOrphanedCatalogs()` asserts a behaviour **only the test environment ever has**. A real
+`pnpm dev` session prunes nothing and always leaves these files. The assertion is not wrong to want
+this; it is wrong to imply users get it.
+
+**What is genuinely open**, and needs one more instrumented cycle rather than a guess: with prune
+eligible and the boundary gone from every live structure, the old catalogs still survive ≥5.75 s.
+Either `knownPaths` is still seeded with them from somewhere, or the `lastPrunedPathsHash`
+short-circuit skips the run that would matter. The next step is to log both inside
+`pruneOrphanedBoundaries` — not to change it.
+
+`react-basic` and `vanilla-spa-basic` leaving no orphans under the same conditions is the control
+that should drive that cycle: whatever reclaims theirs is the mechanism SFCs are missing.
+
+### L-070 — "dirt retained for the next" is only true if there is a next
+
+|                             |                                                    |
+| :-------------------------- | :------------------------------------------------- |
+| **Status**                  | **Open** — mechanism proven, fix not attempted     |
+| **Bucket**                  | 3 — real defect, and the general case behind L-065 |
+| **Facet contract changed?** | No                                                 |
+
+Found by instrumenting `pruneOrphanedBoundaries`, which is what the previous entry asked for. Every
+exit from that function now reports — the two early returns and the per-file keep/prune decisions —
+and the answer was not in any of them.
+
+**What the log showed.** Against `vue-basic`, over the whole `chaos-boundary` run:
+
+| Signal                          | Count |
+| :------------------------------ | :---- |
+| `Flushing compiler state...`    | 2     |
+| `Pruning orphaned catalogs...`  | 1     |
+| `Prune skipped: …` (any reason) | **0** |
+
+The single prune ran at +225 ms — _before_ the rename — and correctly logged
+`Keeping (known): zintl/src/components/HelloWorld.vue.{ar,es,zh}.json`, because at that moment the
+source still existed. The second flush never reached the prune call at all, and no early return
+fired. Prune is not the defect; it simply is never asked again.
+
+**The mechanism is the flush coalescer, and it is documented — as an assumption that does not hold.**
+`flush()` returns the in-flight promise to a mid-flush caller and settles
+`joined the in-flight flush; dirt retained for the next`. The comment justifying that says plainly:
+
+> the next trigger flushes it — the debounce timer is already scheduled by the `transform` that
+> dirtied it.
+
+That is true for every trigger except the last one. `scheduleFlush()` does `clearTimeout` then
+`setTimeout`; when that timer fires it calls `flush()`, which clears the timeout, finds
+`flushPromise` set, mints a `superseded` envelope and returns — **leaving no timer scheduled**. If no
+further change arrives, the retained dirt is never flushed. The in-flight run finishes having
+snapshotted state from before the change.
+
+So the last change before a quiet period is silently deferred forever. For `chaos-boundary` that is
+the deletion: the prune never re-runs, and `Hello.vue.zh.json` — a catalog write queued in the same
+dropped flush — never appears either. The earlier reading of that missing file as "a lost
+translation" and then as "flush still in flight" were both wrong; it is a write that will never
+happen.
+
+**This is not obscure.** `flush #N → superseded (joined the in-flight flush; dirt retained for the
+next)` appears **68 times** in this session's captured diagnoses, in almost every failure this phase
+investigated. It was read as background noise throughout, including by me.
+
+**What a fix must not be.** The comment records two attempts already paid for: an unconditional
+follow-on flush livelocked, because the flush body reaches back into the compiler and dirties state
+again; a guarded one cost a full extra pass per hot update and destabilised HMR contracts under
+parallel load. The cheaper shape neither attempt tried is to **re-arm the debounce timer** when a
+caller joins an in-flight flush, rather than running a follow-on — coalescing further changes and
+running once after the quiet period. That is a proposal, not a conclusion, and it belongs behind a
+`scripts/flake.js` measurement of `hmr-hammer` and the delivery contracts before it is believed.
+
+**L-065 is subsumed.** Orphaned SFC catalogs are one visible consequence; the reason `react-basic`
+and `vanilla-spa-basic` show none is scheduling, not extensions — their last change happened to land
+outside an in-flight flush.
+
+### L-070 — fixed: the trailing flush, and what measuring it separated
+
+The fix is the shape neither earlier attempt tried. `flush()` still hands a mid-flush caller the
+in-flight promise, but now also calls `armTrailingFlush()`, which **re-arms the debounce timer** once
+the in-flight run settles. Arming a timer rather than running a follow-on is the whole difference:
+further changes coalesce into it, so a burst costs one extra pass at the end rather than one per
+update — which is what made the guarded follow-on too expensive.
+
+Three conditions make it terminate, and each is load-bearing:
+
+1. Nothing is armed unless dirt actually remains once the in-flight run finished. The ordinary case
+   leaves none, so the ordinary case pays nothing.
+2. At most one arm per in-flight run, however many callers joined it.
+3. **A trailing flush that leaves the dirt unchanged does not arm another.** That is the termination
+   guarantee — a chain continues only while making progress — and a real edit clears the guard, so
+   genuine work is never refused. This is what the unconditional follow-on lacked when it livelocked.
+
+**`hmr-hammer`: 0 failures in 10 runs.** That is the contract the previous attempt destabilised, and
+it is the number this change had to produce to be allowed to exist.
+
+**A second defect had to be fixed for the first to be visible, and it was in the harness.**
+`noOrphanedCatalogs()` read the filesystem the instant the DOM settled — mid-way through work the
+compiler had already scheduled. Awaiting `flush()` once is not enough either, and the compiler says
+so in its own comment: a mid-flush caller gets the in-flight promise, so the guarantee is "your
+change will be flushed", not "it has been flushed by the time this resolves". `flushUntilQuiescent`
+loops on the **dirty set** rather than a clock, which keeps it a causal wait (ZDB §9.3): it
+terminates because there is no dirt left, not because time passed.
+
+**And measuring separated two projects that had been failing as one.** Both `vue-basic` and
+`svelte-basic` were pending on L-065. `vue-basic` now passes 10 runs in 10. `svelte-basic` fails
+**6 in 10** under contention and passes in isolation — for the reason this contract's own header has
+described all along: renaming the file the entry imports rewrites the entry's source, the entry
+self-accepts and re-executes, and Svelte's `mount()` appends a second copy over the first. Proposal
+024 §1.3, needing a framework `dispose()`, and nothing to do with catalogs.
+
+That is the lesson worth keeping from L-065 through L-070: **two projects failing the same assertion
+is not evidence they fail for the same reason**, and a single skip covering both is what let one
+wrong mechanism be written down for two different defects.
+
+### L-071 — the Svelte failure is not a double mount, and the prune is not wrong
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Open** — diagnosis corrected, writer not yet identified |
+| **Bucket**                  | 3 — real defect                                           |
+| **Facet contract changed?** | No                                                        |
+
+Set out to fix `chaos-boundary`'s remaining red on `svelte-basic`, which this contract's header has
+described for a long time as proposal 024 §1.3: the rename rewrites the entry, the entry re-executes,
+Svelte's `mount()` appends a second copy, and the heading selector reads the stale one. **That is not
+what it fails on.**
+
+**Measured, every failure is the orphan assertion** — `zintl/src/App.svelte.{ar,es,zh}.json` — at
+**5 runs in 10**, and the instrumented prune (L-070) shows the shape immediately:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json     ← deleted, correctly
+…and that file exists again when the assertion reads the directory
+```
+
+The prune is right. The boundary is forgotten — `boundaryForgotten` confirms the watcher's `unlink`
+landed — and the flush reaches quiescence before the assertion runs. Something **re-materialises the
+catalogs of a boundary that has already been reclaimed**, and that writer has not been found.
+
+**Two things ruled out, both by measurement rather than argument.**
+
+_The watcher._ A causal wait for the compiler to forget the file was added (`boundaryForgotten`) on
+the theory that the assertion was racing the `unlink`. It was not: 5/10 became 6/10, and the wait
+passes on every failing run. The wait is kept — it is correct regardless, and it turns a watcher that
+never fires into a precise failure instead of a puzzling orphan list — but it fixed nothing.
+
+_`removeFile`'s `markDirty`._ The obvious suspect: a boundary marked dirty gets written, and writing
+it would recreate exactly these files. Removing it moved 5–6/10 to 4/10 — noise — and a unit test
+states the opposite intent outright: _"marks the removed boundaries dirty so a flush reclaims their
+catalogs"_. **Reverted.** A change that contradicts a documented decision and shows no measured
+benefit is a guess, and this proposal has enough of those in it already.
+
+**Why `svelte-basic` and not `vue-basic`.** Its entry is not re-execution-safe, so the rename reloads
+the page, which shifts every timing around the flush. Same defect, worse luck — not a different one.
+
+**Next probe, stated so it is not guessed at again:** a timestamped log of catalog writes interleaved
+with the prune's own decisions. The two are already instrumented separately; what is missing is their
+order.
+
+**And the standing lesson, now three entries deep.** L-065 named a mechanism it had not observed.
+L-060 named one that was an artefact of the probe. This entry found a contract header that has been
+naming the wrong mechanism for long enough that two separate investigations quoted it as fact —
+including mine, one turn earlier, when I recorded `svelte-basic` as pending "for the documented
+double-mount reason" without checking. **Prose in this repository is evidence of what someone once
+measured, not of what is true now.**
+
+### L-071 — halved, by interleaving two logs that already existed
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Partly fixed** — 5/10 → 2/10 measured; one writer remains |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+The probe this entry asked for turned out to need no new instrumentation at all. `safeWriteFile`
+already logs `Writing file: …` through the same logger the prune decisions go to; nobody had read
+them **in order**. Filtering one debug stream to a single path answered in one line what two
+investigations had guessed at:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json   +0ms
+Pruning orphaned file: zintl/src/App.svelte.es.json   +2ms
+Pruning orphaned file: zintl/src/App.svelte.zh.json   +1ms
+Writing file:          zintl/src/App.svelte.ar.json   +0ms
+```
+
+The prune deletes correctly and the write pass immediately after it, in the same flush, puts the
+files back.
+
+**The first writer was `removeFile` marking the removed boundary dirty.** "Dirty" means _write my
+catalog_, so marking a boundary that has just been deleted queues its catalogs for re-creation. The
+flag existed for a real reason — a deletion during an idle moment must not sit unflushed — but that
+job is already done twice over, by the explicit `scheduleFlush()` at the end of `removeFile` and by
+L-070's trailing flush. Waking the flush and asking it to write are different jobs, and only the
+first was ever wanted.
+
+**Measured 5/10 → 2/10**, and the unit test asserting the old behaviour was rewritten rather than
+deleted, because its stated intent was right and only its mechanism was backwards.
+
+**Worth recording: the same change was tried and reverted one turn earlier.** With only a
+4/10-vs-5/10 reading and a unit test contradicting it, reverting was correct — the evidence did not
+support the change. What made it right the second time was not a better argument but a better
+measurement: the interleaved log names the writer instead of inferring it. Same edit, opposite
+verdict, and the difference is entirely in what was known.
+
+**A second writer remains**, with the same signature one flush later. The thread is in the same log:
+`Forgetting deleted file: src/AppNew.svelte` appears mid-test, for the file the rename just
+_created_. A boundary that is forgotten and then re-extracted can be reconciled back onto the old id
+by content — which would write the old path. **Stated as the next probe, not as a mechanism**, which
+is the discipline the three entries before this one were written to enforce.
+
+### L-071 — the second writer named: a spurious `unlink` from atomic saves
+
+The thread from the previous entry — `Forgetting deleted file: src/AppNew.svelte`, for the file the
+rename had just _created_ — leads somewhere concrete.
+
+**Atomic saves look like deletions.** The harness's `atomicWrite` does
+`writeFile(tmp)` then `rename(tmp, target)`, and a rename-over is reported by watchers as `unlink`
+followed by `add`. So editing `AppNew.svelte` emits an `unlink` for a file that is still there,
+`removeFile` forgets a live boundary, and the churn that follows re-registers it — writing catalogs
+the prune had just reclaimed.
+
+This is **not** a test artefact. VS Code saves the same way; so does most tooling. The same sequence
+reaches the compiler from an ordinary editor.
+
+**The obvious guard works in isolation and loses on the gate that counts.** Ignoring an `unlink` when
+`existsSync(filePath)` is still true took `chaos-boundary` from 2 failures in 10 to **0 in 10** —
+measured, in isolation. Under `ready:examples` it then failed **both** `svelte-basic` and
+`vue-basic`, twice in two runs, where `vue-basic` had been passing. Net worse on the full suite, so
+it was reverted.
+
+That asymmetry is the finding worth keeping. `tests/manifests/index.ts` already says a capability is
+"a claim about the **full suite**, not about a contract run alone", and this is the sharpest example
+yet: a change measured 0/10 by `flake.js` on one contract file, and negative on the suite. A
+`stat`-based guard is inherently timing-sensitive — under contention a genuine deletion can be
+checked before the unlink is visible, or after something has recreated the path — so the guard trades
+one race for another rather than removing one.
+
+**What survives from this pass:** the first writer is fixed (`removeFile` no longer marks removed
+boundaries dirty, 5/10 → 2/10), and the second is now _named_ rather than suspected. The fix for it
+has to distinguish a save from a deletion without asking the filesystem a question whose answer
+depends on when it is asked — the host's own event stream pairs `unlink` with a following `add`, and
+that pairing, not a `stat`, is the signal.
+
+### L-071 — the unlink/add pairing, tried and falsified
+
+The fix the previous entry named turned out to rest on an assumption nobody had checked, and checking
+it took one counter.
+
+**The pairing was implemented properly.** `ZintlCompiler.reportUnlink` held a removal for 50 ms;
+`reportFilePresent` cancelled it when an `add` or `change` for the same path arrived. Vite reported
+all three events; Rspack needed no window at all, since it hands `removedFiles` and `modifiedFiles`
+for the same batch and a path in both is an atomic save by construction.
+
+**And the cancellation never fired. Not once.**
+
+```
+Cancelled the pending removal: 0
+Forgetting deleted file:       2   (src/App.svelte, src/AppNew.svelte)
+```
+
+No `add` follows the spurious `unlink` of `src/AppNew.svelte`, so it is **not** a rename-over of that
+file. The whole mechanism this entry proposed — atomic save reported as unlink+add — is wrong for
+this event. Measured 2/10 → **4/10**, worse than doing nothing, and reverted.
+
+**Three attempts, three falsifications, and the value is in what they exclude.** An `existsSync`
+guard: 0/10 isolated, negative on the full suite. Event pairing: cancellation never fires. Before
+those, `markDirty` — which _was_ a real writer and is fixed. What remains is a spurious `unlink` on a
+file that was **created moments earlier by the same test**, whose origin is now known not to be an
+atomic save. The next place to look is who else calls `removeFile`, and whether a pooled dev server
+is seeing a _different_ lab's teardown.
+
+**Both projects are now skipped rather than one.** `vue-basic` passed the full suite twice and then
+failed it twice with no code change in between; its greens were marginal, not earned. A gate that
+reports the weather is worse than one that reports the debt, so the residual defect is stated in both
+manifests instead of being rediscovered as flake.
+
+**Net for L-071: halved and stopped.** The first writer is fixed and measured; the second is
+characterised by three excluded hypotheses rather than a fourth guess.
+
+### L-071 — the module-graph guard, and a correction to how the last one was judged
+
+**The graph check is the worst of the four, and it fails informatively.** Ignoring an `unlink` when
+`server.moduleGraph.getModulesByFile(file)` still returns modules produced **10 failures in 10, on
+all four projects** — including the two that had been passing. The reason is ordering: this listener
+runs _before_ Vite prunes its own graph, so at that moment the module is present for a genuine
+deletion exactly as it is for a spurious one. The check cannot distinguish, so it ignores every
+deletion and no boundary is ever forgotten.
+
+That is a useful exclusion rather than just a failure. It says the host's graph carries no more
+information than the filesystem does at the moment the event arrives — and it rules out the "ask the
+host instead of the disk" framing that motivated it.
+
+**And it forces a correction about the `existsSync` guard.** That one was rejected for regressing the
+full suite, and the comparison was not like for like: it was measured with `svelte-basic`
+**un-pended**, against a baseline where `svelte-basic` was **skipped**. Of course more tests failed —
+one of the conditions was running a test the other was not. `vue-basic` failed in _both_, which is
+the fact that should have been read at the time and was not.
+
+So the standing of the four attempts is:
+
+| Guard                          | Measured                                          | Status                          |
+| :----------------------------- | :------------------------------------------------ | :------------------------------ |
+| `removeFile` stops `markDirty` | 5/10 → 2/10                                       | **Kept** — a real writer, fixed |
+| `existsSync` at handler time   | 2/10 → **0/10** isolated; full-suite verdict void | Rejected on a bad comparison    |
+| unlink/add event pairing       | Cancellation never fired; 2/10 → 4/10             | Falsified                       |
+| host module-graph liveness     | 10/10 on all four projects                        | Falsified                       |
+
+**The next step is not a fifth guard.** It is to re-measure `existsSync` against the same pendingFor
+state on both sides, because on the only comparison that was ever valid — `flake.js` on this contract,
+same conditions — it took the failure rate to zero and nothing has since explained that away.
+
+### L-071 — the like-for-like re-measurement, and why every earlier number was noise
+
+The comparison the previous entry asked for, run properly: both projects un-pended on **both** sides,
+baseline and treatment in the **same batch**, nothing else changed.
+
+| Condition                          | Runs failing                 |
+| :--------------------------------- | :--------------------------- |
+| Baseline, no guard                 | **10 / 10** (`svelte-basic`) |
+| `existsSync` guard at handler time | **8 / 10** (`svelte-basic`)  |
+
+`vue-basic` was clean in both.
+
+**So the `existsSync` guard is not the fix.** Two runs in ten is not a result at n=10, and the 0/10
+that made it look like one was measured on a quieter machine at a different time — not against a
+baseline at all. It is reverted, and this time on evidence rather than on a bad comparison.
+
+**The larger finding is about every number in this entry.** The _same code_ has measured 2/10 and
+10/10 on this contract. That is a 5× swing from machine conditions alone, which means every
+cross-session comparison made here — including the ones that promoted and demoted three separate
+guards — carried almost no information. `scripts/flake.js` says this in its own header: the baseline
+must be measured in the same batch as the change. Four of the five measurements in this investigation
+were not, and each one produced a confident verdict that the next measurement overturned.
+
+**Where L-071 stands.** One real writer found and fixed (`removeFile` no longer marks removed
+boundaries dirty). Four handler-level guards for the residual writer measured and excluded:
+
+| Guard                        | Same-batch result          | Verdict   |
+| :--------------------------- | :------------------------- | :-------- |
+| `existsSync` at handler time | 10/10 → 8/10               | Not a fix |
+| unlink/add event pairing     | cancellation never fired   | Falsified |
+| host module-graph liveness   | 10/10 on all four projects | Falsified |
+| (`markDirty`, for contrast)  | 5/10 → 2/10, held up       | **Kept**  |
+
+The residual writer is real, is not addressable at the `unlink` handler, and is not worth a fifth
+guess. Anyone resuming this should start by establishing a same-batch baseline — and should treat
+every rate quoted in the entries above as valid only against the batch it was taken in.
+
+### L-072 — SSR hot updates: three steps of four work, and the fourth is a cache we do not own
+
+ZHMR §4.3 was measured red when `hmr-server-refresh` was written, with the diagnosis "signalling
+works, re-execution does not". Instrumenting the hook per environment sharpens that considerably.
+
+An edit to `src/entry-server.js` on `ssr-streaming` produces:
+
+```
+ENVRESULT=ssr → count=5        ← the applier invalidated 5 modules
+ENVRESULT=ssr → count=5        ← and again; no client environment fires at all
+hmr packets: {"full-reload": 2}
+```
+
+So of the four things that have to happen, **three are already correct**:
+
+1. **Detection.** `ssrBoundaries` minus `clientBoundaries` identifies the server-only boundary.
+2. **Signalling.** The `{ type: "full-reload", path: "*" }` broadcast reaches the browser, twice.
+3. **Invalidation.** The SSR environment's module graph is invalidated — five modules, and the hook
+   correctly uses `this.environment.moduleGraph` rather than the client graph.
+4. **Re-evaluation.** This is the one that does not happen.
+
+**What survives is not the module graph.** The fixture calls `vite.ssrLoadModule()` per request, and
+in Vite 6+ that is backed by a module **runner** holding evaluated modules in a cache separate from
+the graph. `mg.invalidateModule()` clears the graph node's transform result; it does not evict an
+already-evaluated module from the runner. The next request therefore re-renders from the function
+object built before the edit — which is exactly "the reload fetched fresh HTML and the HTML was
+stale".
+
+**Also worth recording: only the `ssr` environment fires here, and it fires twice.** The double call
+is absorbed correctly by `invalidateForUpdate`'s custody (Axiom D3, "another environment reporting
+the same event joins the first pass"), so nothing is done twice. But the comment's premise — that the
+two calls are _different_ environments — does not hold for this project: both are `ssr`. Worth
+revisiting if that custody is ever load-bearing for correctness rather than for cost.
+
+**Not fixed, and deliberately not guessed at.** Finding what evicts the runner's cache on this Vite
+version is a question about Vite's internals, and the previous entry in this proposal is a record of
+four guesses at a different question, each of which measured worse than doing nothing. The graph
+invalidation is already happening and is not the missing piece — that is the finding, and it is what
+the next attempt should start from rather than re-deriving.
+
+`react-ssr` is a separate case still: hot updates do not reach it at all, so it fails before any of
+the four steps above. Its `hmr` claim remains withdrawn.

@@ -1,0 +1,34 @@
+<script setup lang="ts">
+import _zintl_mgr_b_src_index_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_bootstrap";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+
+import { ref } from "vue";
+import LocaleSwitcher from "./components/LocaleSwitcher.vue";
+import SiteHeader from "./components/SiteHeader.vue";
+
+const activeLang = ref(new URLSearchParams(window.location.search).get("lang") || "en");
+
+const handleSwitch = (lang: string) => {
+  activeLang.value = lang;
+};
+</script>
+
+<template>
+  <div :key="activeLang">
+    <Suspense>
+      <SiteHeader :lang="activeLang" />
+    </Suspense>
+    <div class="content">
+      <LocaleSwitcher :lang="activeLang" @switch="handleSwitch" />
+      <h1>{{ _t('Rsbuild with Vue', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_App_vue', _v: __zintl_v.value }) }}</h1>
+      <p>{{ _t('Start building amazing things with Rsbuild.', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_App_vue', _v: __zintl_v.value }) }}</p>
+      <p>{{ _t('Two documents, two entries, one shared header.', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_App_vue', _v: __zintl_v.value }) }}</p>
+    </div>
+  </div>
+</template>

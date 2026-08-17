@@ -1,0 +1,45 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_index_render from "virtual:zintl/manager/none/entry:b_src_index_render";
+import _zintl_mgr_b_src_components_Header_Header from "virtual:zintl/manager/none/entry:b_src_components_Header_Header";
+import _zintl_mgr_b_src_about_render from "virtual:zintl/manager/none/entry:b_src_about_render";
+import "./index.css";
+
+import { Header } from "./components/Header.ts";
+import { setupSwitcher } from "./switcher.ts";
+
+/**
+ * The home page's entry — one of two, each with its own HTML document.
+ *
+ * An Rsbuild template names no scripts; the association between `index.html`
+ * and this file lives in `rsbuild.config.mjs`, and Zintl reads it from there
+ * (ledger L-021). This app is the first to exercise that with **more than one**
+ * entry, which is the case `declareHtmlEntriesHook` and `entriesFor` were
+ * written for and nothing had run.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_about_render"]: _zintl_mgr_b_src_about_render.loader, ["b_src_components_Header_Header"]: _zintl_mgr_b_src_components_Header_Header.loader, ["b_src_index_render"]: _zintl_mgr_b_src_index_render.loader } }));
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  const page = document.createElement("div");
+  page.className = "content";
+  page.innerHTML = `
+    <div id="switcher" class="switcher"></div>
+    <h1>${_t("Vanilla Rsbuild", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_index_render" })}</h1>
+    <p>${_t("Start building amazing things with Rsbuild.", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_index_render" })}</p>
+    <p>${_t("Two documents, two entries, one shared header.", { _mgr: _zintl_mgr_b_src_index_render, _bId: "b_src_index_render" })}</p>
+  `;
+
+  rootEl.replaceChildren(await Header(lang), page);
+
+  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

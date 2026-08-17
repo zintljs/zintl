@@ -1,0 +1,230 @@
+{
+  "entries": [
+    "src/index.tsx:bootstrap",
+    "src/index.tsx:f_501"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "bindings": [
+            "pluginReact"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/plugin-react"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx:default": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:default",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/env.d": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "react"
+        }
+      ],
+      "filePath": "src/env.d",
+      "id": "src/env.d",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:f_501"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index.tsx:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/index.tsx:f_501": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "StrictMode",
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "react"
+        },
+        {
+          "bindings": [
+            "createRoot"
+          ],
+          "dynamic": false,
+          "id": "react-dom/client"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx:f_501",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

@@ -1,0 +1,46 @@
+import "./index.css";
+import { zintl } from "zintljs/macro";
+import { setupCounter } from "./counter.ts";
+import { setupSwitcher } from "./switcher.ts";
+import aboutText from "./about.txt?raw";
+
+/**
+ * `create-rsbuild`'s vanilla starter, with a locale switcher bolted on.
+ *
+ * The strings are ordinary literals in an ordinary template string — there is no
+ * `t()` wrapper and no key dictionary. `zintl(lang)` is the trust anchor, and
+ * everything reachable from this file through imports belongs to its boundary.
+ *
+ * Re-running `render()` is this app's only way to repaint, which is exactly why
+ * it full-reloads on a dev edit rather than hot-updating: a re-executed entry on
+ * Rspack reads its imports from the module cache, so accepting the update would
+ * re-seed the store from a stale catalog. See the README, and ledger L-035.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await zintl(lang);
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  rootEl.innerHTML = `
+  <div class="content">
+    <div id="switcher" class="switcher"></div>
+    <h1>Vanilla Rsbuild</h1>
+    <p>Start building amazing things with Rsbuild.</p>
+    <p>Edit <code>src/index.ts</code> and save to test <code>HMR</code></p>
+    <button id="counter" type="button" class="counter"></button>
+    <p id="about">${aboutText}</p>
+  </div>
+`;
+
+  setupCounter(rootEl.querySelector<HTMLButtonElement>("#counter")!);
+  setupSwitcher(rootEl.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

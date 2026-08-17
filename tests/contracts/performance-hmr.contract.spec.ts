@@ -40,7 +40,7 @@ const BUDGET_MS = process.env.CI || process.env.ZINTL_PARALLEL ? 1500 : 350;
 export const performanceHmrContract: Contract = {
   name: "Performance HMR",
   description: `Verifies E2E HMR propagation finishes and renders in the DOM in under ${BUDGET_MS}ms`,
-  requires: ["spa", "hmr", "performance"],
+  requires: ["hmr", "performance"],
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();

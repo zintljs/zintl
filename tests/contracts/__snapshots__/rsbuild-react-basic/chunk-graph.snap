@@ -1,0 +1,88 @@
+{
+  "boundaryToOwner": {
+    "src/App.tsx:default": "src/index.tsx:bootstrap",
+    "src/index.tsx:bootstrap": "src/index.tsx:bootstrap",
+    "src/index.tsx:f_501": "src/index.tsx:f_501"
+  },
+  "chunks": {
+    "entry_b_5eab9baf311e": {
+      "boundaries": [
+        "src/index.tsx:f_501"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index.tsx:f_501"
+      ],
+      "id": "entry_b_5eab9baf311e",
+      "type": "entry"
+    },
+    "entry_b_f1bc61690f0b": {
+      "boundaries": [
+        "src/index.tsx:bootstrap"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index.tsx:bootstrap"
+      ],
+      "id": "entry_b_f1bc61690f0b",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_147a3a1c1a40": {
+      "boundaries": [
+        "src/App.tsx:default"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_147a3a1c1a40",
+      "type": "shared"
+    },
+    "shared_b_6b810c90aa9a": {
+      "boundaries": [
+        "react"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_6b810c90aa9a",
+      "type": "shared"
+    },
+    "shared_b_aa7165aefcf8": {
+      "boundaries": [
+        "src/App.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_aa7165aefcf8",
+      "type": "shared"
+    },
+    "shared_b_bcbcc96f45a2": {
+      "boundaries": [
+        "react-dom/client"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_bcbcc96f45a2",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/index.tsx:bootstrap": "entry_b_f1bc61690f0b",
+    "src/index.tsx:f_501": "entry_b_5eab9baf311e"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_147a3a1c1a40",
+    "shared_b_6b810c90aa9a",
+    "shared_b_aa7165aefcf8",
+    "shared_b_bcbcc96f45a2"
+  ]
+}

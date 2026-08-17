@@ -1,0 +1,27 @@
+/* `create-rsbuild`'s `template-vue-ts/src/index.css`, unchanged. The layout and
+ * the localization layer's own styles are scoped to the components that own
+ * them, as the template does. */
+body {
+  margin: 0;
+  color: #fff;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  background-image: linear-gradient(to bottom, #020917, #101725);
+}
+
+/* --- added for the routed variant --- */
+
+.nav {
+  margin-block-start: 1.5rem;
+  font-size: 1rem;
+}
+
+.nav a {
+  color: #fff;
+  opacity: 0.75;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nav a:hover {
+  opacity: 1;
+}

@@ -1,0 +1,26 @@
+export default { id: "b_4f8017c0589a", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_16245bf9a205": {
+      "3de7e774": "Vanilla Rsbuild",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "92242ba7": "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>",
+      "b0fb2e27": "Read the guide",
+    },
+    "b_41f76352d384": {
+      "abdb1589": "Everything is a plain string",
+      "ab94eb45": "This page arrived in its own chunk, and so did its translations.",
+      "5f2f4dd3": "No <code>t()</code> wrapper, no key dictionary, no manual catalog.",
+      "a2bcccd6": "Back to the start",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_4f8017c0589a").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_4f8017c0589a").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_4f8017c0589a").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

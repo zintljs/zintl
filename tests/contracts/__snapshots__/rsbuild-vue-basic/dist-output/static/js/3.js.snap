@@ -1,0 +1,1063 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_basic"] = self["rspackChunkrsbuild_vue_basic"] || []).push([[3], {
+1(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  addCatalogs: () => (/* reexport safe */ _store_js__rspack_import_0.addCatalogs),
+  getLocale: () => (/* reexport safe */ _store_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_js__rspack_import_0.getStoreVersion),
+  loadI18nInstance: () => (loadI18nInstance),
+  registerLoader: () => (/* reexport safe */ _store_js__rspack_import_0.registerLoader),
+  registerZintlLoader: () => (/* reexport safe */ _registry_js__rspack_import_2.registerZintlLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_js__rspack_import_0.runInRequestScope),
+  setLocale: () => (/* reexport safe */ _store_js__rspack_import_0.setLocale),
+  subscribe: () => (/* reexport safe */ _store_js__rspack_import_0.subscribe),
+  t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  unregisterZintlLoader: () => (/* reexport safe */ _store_js__rspack_import_0.unregisterLoader),
+  zintl: () => (zintl)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+/* import */ var _resolver_js__rspack_import_1 = __webpack_require__(5);
+/* import */ var _registry_js__rspack_import_2 = __webpack_require__(6);
+
+
+
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+	if (activeLocale) await (0,_store_js__rspack_import_0.setLocale)(activeLocale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new _store_js__rspack_import_0.I18nStore();
+	(0,_store_js__rspack_import_0.setActiveInstance)(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = (0,_store_js__rspack_import_0.getActiveInstance)();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = (0,_store_js__rspack_import_0.getActiveInstance)();
+			(0,_store_js__rspack_import_0.setActiveInstance)(store);
+			try {
+				return (0,_resolver_js__rspack_import_1._t)(key, params);
+			} finally {
+				(0,_store_js__rspack_import_0.setActiveInstance)(prev);
+			}
+		}
+	};
+}
+//#endregion
+
+
+
+},
+2(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (/* reexport safe */ _store_core_js__rspack_import_0.I18nStore),
+  addCatalogs: () => (/* reexport safe */ _store_core_js__rspack_import_0.addCatalogs),
+  defaultInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.defaultInstance),
+  getActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.getActiveInstance),
+  getLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_core_js__rspack_import_0.getStoreVersion),
+  globalRegistry: () => (/* reexport safe */ _store_core_js__rspack_import_0.globalRegistry),
+  isThenable: () => (/* reexport safe */ _store_core_js__rspack_import_0.isThenable),
+  registerLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.registerLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.runInRequestScope),
+  setActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.setActiveInstance),
+  setLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.setLocale),
+  setRunInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.setRunInRequestScope),
+  setStoreStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.setStoreStorage),
+  storeStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.storeStorage),
+  subscribe: () => (/* reexport safe */ _store_core_js__rspack_import_0.subscribe),
+  unregisterLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.unregisterLoader)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(3);
+/* import */ var _store_client_js__rspack_import_1 = __webpack_require__(4);
+
+
+
+
+},
+3(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (I18nStore),
+  addCatalogs: () => (addCatalogs),
+  defaultInstance: () => (defaultInstance),
+  getActiveInstance: () => (getActiveInstance),
+  getLocale: () => (getLocale),
+  getStoreVersion: () => (getStoreVersion),
+  globalRegistry: () => (globalRegistry),
+  isThenable: () => (isThenable),
+  registerLoader: () => (registerLoader),
+  runInRequestScope: () => (runInRequestScope),
+  setActiveInstance: () => (setActiveInstance),
+  setLocale: () => (setLocale),
+  setRunInRequestScope: () => (setRunInRequestScope),
+  setStoreStorage: () => (setStoreStorage),
+  storeStorage: () => (storeStorage),
+  subscribe: () => (subscribe),
+  unregisterLoader: () => (unregisterLoader)
+});
+//#region src/runtime/store-core.ts
+let storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+let runInRequestScope = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope = fn;
+}
+/**
+* Entries retained in the development ledger.
+*
+* Bounded is normative, not an optimization: the `memory-leak` contract measures
+* retained heap across twenty consecutive hot updates against a budget with only
+* a few hundred kilobytes of headroom.
+*/
+const LEDGER_LIMIT = 128;
+/**
+* Publish the settle beacon's zero on runtime startup.
+*
+* So that "the counter is absent" unambiguously means "no Zintl runtime on this
+* page", rather than the ambiguous "runtime present but nothing has settled
+* yet". A harness cannot act on a signal it cannot distinguish from silence.
+*/
+function publishBeaconZero() {
+	if (true) return;
+	// removed by dead control flow
+{}
+}
+/**
+* Record a settled envelope, and advance the settle beacon.
+*
+* The beacon is now derived from delivery outcomes rather than from `notify()`,
+* and that is the substantive change. It used to advance only when a catalog
+* value actually differed, so a redelivery carrying identical content advanced
+* nothing — making "applied, unchanged" indistinguishable from "lost", which is
+* exactly what a harness must be able to tell apart (Corollary D2a).
+*
+* Counting every terminal outcome, not just `applied`, is the point: a harness
+* asks "has the store finished with my change?", and `superseded` is a finished
+* answer. Listeners are a separate concern and still fire only on real change.
+*
+* Process-global rather than request-scoped, which is safe precisely because
+* nothing reads it except a harness driving a single page. The *ordering* state
+* that must not leak across requests lives on the store instance instead.
+*/
+function recordSettle(envelope) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+const DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) {
+			if (false) {}
+			return false;
+		}
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {
+		if (true) return;
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+	}
+};
+/**
+* Report an abandoned catalog delivery.
+*
+* Every abandonment path needs the same three things — a named outcome, the
+* subject it belongs to, and a development log — and having them in one place is
+* what stops the next one being added without them.
+*
+* A free function rather than a method on purpose. Both are development-only,
+* but once every call site folds away a free function is unreferenced and goes
+* with them, whereas a method stays on the prototype forever. The earlier
+* version was worse still: a closure allocated per load that, in production,
+* compiled to `(reason, err) => {}`.
+*/
+function reportDeliveryFailure(delivery, target, boundaryId, reason, err) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug =  false && (0);
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	/**
+	* Boundaries whose catalog has already been chased for a missing key.
+	*
+	* `_t` triggers a hydration load when it cannot find a key, and re-reads
+	* immediately so a synchronous loader satisfies the very first render. That
+	* is right once and catastrophic on repeat: when the key is genuinely absent
+	* — a deleted catalog, a key that never existed — every render triggers
+	* another load, every load can `addCatalogs`, and every `addCatalogs`
+	* notifies. With anything subscribed, that closes into a render loop.
+	*
+	* It is not hypothetical in either direction. React hit it at
+	* ~700 messages in twelve seconds (see {@link notify}, which deferred the
+	* announcement to stop the synchronous half), and Vue reproduced the
+	* steady-state half the moment its templates gained a reactive dependency:
+	* **167,280 console messages** in one `chaos-catalog` run, which deletes the
+	* catalog on purpose.
+	*
+	* One attempt per **key**, and deliberately never cleared. Clearing on
+	* catalog change was tried first and re-armed the loop precisely: the load
+	* *does* deliver the boundary — it simply does not contain this key — so
+	* `changed` is true, the set empties, and the next render claims again.
+	*
+	* Keying on the key rather than the boundary is what makes "never cleared"
+	* safe. The guard gates only the *miss* path, and a key that later arrives is
+	* no longer a miss: `_t` finds it before reaching here, so the claim it
+	* already spent is never consulted again.
+	*/
+	hydrationAttempts = /* @__PURE__ */ new Set();
+	/**
+	* Claim the single hydration attempt for one missing key.
+	*
+	* Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+	* caller loads only when it wins the claim.
+	*/
+	claimHydrationAttempt(locale, boundaryId, messageKey) {
+		const claim = locale + "/" + boundaryId + "/" + messageKey;
+		if (this.hydrationAttempts.has(claim)) return false;
+		this.hydrationAttempts.add(claim);
+		return true;
+	}
+	/** Whether an announcement is already queued for this turn — see {@link notify}. */
+	notifyScheduled = false;
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		publishBeaconZero();
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Take over the subscribers of the store this one is replacing.
+	*
+	* `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+	* module-level `defaultInstance` until something calls `setActiveInstance`.
+	* A component that renders before the entry's `zintl()` resolves therefore
+	* subscribes to *that* store, and the swap left its listener behind on an
+	* object nothing would ever notify again — measured as `listeners: 0` on the
+	* live store while React's `useSyncExternalStore` was demonstrably mounted
+	* (ledger L-068).
+	*
+	* The consequence is invisible until something arrives that only a subscriber
+	* could act on. A hot catalog update is exactly that: the store takes the new
+	* translation, `notify()` runs, and there is nobody in the set. On Vite the
+	* defect is masked because the applier re-runs the entry, which remounts the
+	* components against the current store; on Rspack nothing re-runs and the
+	* page keeps its first paint.
+	*
+	* Listeners are *moved*, not copied — the old store is being retired, and a
+	* subscriber notified twice for one change is a second bug. They are then
+	* notified once, because their snapshot has just changed underneath them by
+	* definition: they were reading a different store a moment ago.
+	*/
+	adoptListeners(previous) {
+		if (previous === this || previous.listeners.size === 0) return;
+		for (const listener of previous.listeners) this.listeners.add(listener);
+		previous.listeners.clear();
+		this.notify();
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	/**
+	* Announce that the catalogs changed — on a microtask, never in the caller's
+	* turn, and coalesced so a burst announces once.
+	*
+	* **Applying is synchronous; announcing is not, and the split is the fix for
+	* ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+	* load and re-reading it in the same expression, because a hot update
+	* registers a new loader whose catalog is available on that very tick — the
+	* manager inlines the anchor's locale, so `loadLazyBoundary` completes
+	* synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+	* it to work.
+	*
+	* What must not happen is the announcement travelling with it. `_t` runs
+	* *during render*, so a synchronous `notify()` reached
+	* `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+	* React reported the first as "Cannot update a component while rendering a
+	* different component" and then, because each re-render ran `_t` again and
+	* each `_t` announced again, "Maximum update depth exceeded" out of every
+	* subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
+	* with the renderer pinned hard enough that the page could not be evaluated
+	* at all, which is why this read as a stall rather than a loop.
+	*
+	* `version` is bumped inside the microtask rather than beside the data on
+	* purpose. It is React's snapshot, and a snapshot that moves *during* render
+	* makes React re-render to reconcile it — so bumping it synchronously would
+	* re-arm the same loop without the warning that names it. Deferring both
+	* together keeps the pair that `useSyncExternalStore` requires: when the
+	* subscriber fires, the snapshot has already moved.
+	*/
+	notify() {
+		if (this.notifyScheduled) return;
+		this.notifyScheduled = true;
+		queueMicrotask(() => {
+			this.notifyScheduled = false;
+			this.version++;
+			for (const listener of this.listeners) try {
+				listener();
+			} catch (err) {
+				if (false) {}
+			}
+		});
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		/**
+		* Corollary D2a — every boundary this call described gets an outcome, even
+		* when its content was already identical.
+		*
+		* The old code advanced nothing unless a value differed, so an idempotent
+		* redelivery and a lost one looked the same from outside. Listeners still
+		* only run on real change: a subscriber has nothing to do when nothing
+		* moved, but an observer still needs to know the store finished.
+		*
+		* Development-only (Axiom D5). These envelopes are pure observation — no
+		* ordering decision hangs on them, because nothing upstream yet stamps a
+		* catalog with a sequence to compare. Minting one per boundary on every
+		* application would be allocation in a hot path bought for nothing.
+		*/
+		if (false) {}
+		if (changed) {
+			if (false) {}
+			this.notify();
+		}
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		/**
+		* The store owns the document's locale attributes; the projection owns
+		* everything document-specific. Both run, in that order.
+		*
+		* This used to be an either/or — call `__zintlApplyHtml` if installed,
+		* otherwise set `lang` — and the branch was the bug. The projection installs
+		* itself unconditionally but only writes `dir` when the project has an RTL
+		* locale, so on every other project it took ownership of the document and
+		* then declined to finish the job, silently suppressing the fallback that
+		* would have (ledger L-019). Sequencing them removes the question: the store
+		* always says what locale it adopted, and the projection still applies the
+		* title, description and body deltas only it knows about.
+		*
+		* `dir` is set only when the project actually has direction data. Empty
+		* means "this project never spoke about direction", and asserting `"ltr"`
+		* there would start writing an attribute onto documents that never had one.
+		*/
+		if (typeof document !== "undefined" && document.documentElement) {
+			document.documentElement.lang = locale;
+			if (["ar"].length > 0) document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
+		}
+		window.__zintlApplyHtml?.(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			if (false) {}
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		if (false) {}
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) {
+			if (false) {}
+			return;
+		}
+		if (false) {}
+		if (false) {}
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) {
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				/**
+				* Publish this load so {@link loadLazyBoundary} can join it.
+				*
+				* This path used to record itself only in `pendingBoundaries`, which
+				* nothing consults before serving a catalog — so an in-flight load
+				* started *here* was invisible to a caller asking for the same boundary
+				* *there*, and that caller was handed whatever was already present.
+				*
+				* Harmless when the catalogs are empty, which is the only case that
+				* existed before hot updates reached a host that re-executes the
+				* manager and the entry independently. On such a host it is the
+				* empty-render defect: the manager re-registers, this load goes out for
+				* the new catalog, the entry re-executes and reads the old one, and
+				* every key that exists only in the new one resolves to "" — because
+				* Zintl has no source-locale fallback, by design.
+				*/
+				const subject = target + "/" + boundaryId;
+				const inFlight = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+					if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
+				});
+				this.inFlight.set(subject, inFlight);
+				return inFlight;
+			}
+			processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*
+		* Checked **before** the already-loaded test below, and the order is the
+		* fix rather than a tidy-up. A load is in flight precisely because
+		* something decided the present catalog needs replacing; serving the
+		* present one instead is choosing the older of two known states, which is
+		* the inverse of Axiom D1. The two tests only disagree while a refresh is
+		* outstanding, and that is exactly the window the empty-render defect lived
+		* in: the entry re-executed, found a stale-but-present catalog, returned in
+		* zero milliseconds, and rendered "" for every key the incoming catalog was
+		* about to supply.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		if (this.catalogs[target]?.[boundaryId]) {
+			/**
+			* Already loaded, and nothing better on the way. Named rather than
+			* returned silently (Axiom D2), so a skipped load appears in the ledger
+			* instead of looking like nothing happened.
+			*
+			* Still skips a *refresh* nobody has started — a catalog that is present
+			* and stale, with no load outstanding, cannot be re-fetched through this
+			* path. That remains true and is not a live problem: every refresh in
+			* development arrives as a load somebody did start, which the check above
+			* now joins.
+			*/
+			if (false) {}
+			return;
+		}
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) {
+				/**
+				* An empty result abandons the boundary: nothing is applied and `_t`
+				* keeps returning "" for every key bound to it, permanently, because
+				* nothing schedules a retry (ZDB §6 — retry cannot fix ordering, and
+				* would turn a loud failure into a slow one).
+				*
+				* The compiler's integrity check guarantees catalogs are complete, so
+				* reaching here means *delivery* failed, not content.
+				*/
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+			if (false) {}
+		}
+	}
+};
+let globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+let defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+let currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	const previous = currentInstance;
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+	/**
+	* Subscribers follow the active store rather than the object they happened to
+	* reach first. Without this, anything that rendered before `zintl()` resolved
+	* is subscribed to a store nothing will ever notify again — see
+	* {@link I18nStore.adoptListeners} and ledger L-068.
+	*/
+	if (previous) instance.adoptListeners(previous);
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {
+				if (false) {}
+			});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {
+		if (false) {}
+	}
+}
+function unregisterLoader(boundaryId) {
+	globalRegistry.delete(boundaryId);
+}
+function setLocale(locale) {
+	return getActiveInstance().setLocale(locale);
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function addCatalogs(catalogs, seq) {
+	return getActiveInstance().addCatalogs(catalogs, seq);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+
+
+
+},
+4(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  syncLocale: () => (syncLocale)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(3);
+
+//#region src/runtime/store-client.ts
+const syncLocale = () => {
+	const inst = (0,_store_core_js__rspack_import_0.getActiveInstance)();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+
+
+
+},
+5(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (_t)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+
+//#region src/runtime/resolver.ts
+function _t(key, params = {}, options) {
+	const instance = (0,_store_js__rspack_import_0.getActiveInstance)();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			/**
+			* One attempt per boundary between catalog changes.
+			*
+			* Re-reading immediately is what lets a synchronous loader satisfy
+			* the first render tick, and that is worth keeping. Re-*triggering*
+			* on every render is not: when the key is genuinely absent the load
+			* can never satisfy it, and each attempt announces a change that
+			* renders again. See `I18nStore.hydrationAttempts` — with a
+			* reactive framework subscribed this closes into a loop measured at
+			* six figures of console output.
+			*/
+			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) {
+			if (false) {}
+			return ``;
+		}
+	} else {
+		if (false) {}
+		return ``;
+	}
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+
+
+
+},
+6(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  registerZintlLoader: () => (registerZintlLoader)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+
+//#region src/runtime/registry.ts
+/**
+* A helper for the Zintl compiler to register a boundary loader.
+* This is designed to be called with a minimal footprint in the transformed source.
+*/
+function registerZintlLoader(boundaryId, loader) {
+	return (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+}
+//#endregion
+
+
+
+},
+7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ({ id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild with Vue",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+    },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
+  };
+                case "ar":
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 34)).then(m => m.default);
+        case "es":
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 35)).then(m => m.default);
+        case "zh":
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 36)).then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] });
+
+},
+
+}]);

@@ -240,6 +240,48 @@ export class I18nStore {
   pendingPromises: Promise<any>[] = [];
   version: number = 0;
   private listeners = new Set<() => void>();
+
+  /**
+   * Boundaries whose catalog has already been chased for a missing key.
+   *
+   * `_t` triggers a hydration load when it cannot find a key, and re-reads
+   * immediately so a synchronous loader satisfies the very first render. That
+   * is right once and catastrophic on repeat: when the key is genuinely absent
+   * — a deleted catalog, a key that never existed — every render triggers
+   * another load, every load can `addCatalogs`, and every `addCatalogs`
+   * notifies. With anything subscribed, that closes into a render loop.
+   *
+   * It is not hypothetical in either direction. React hit it at
+   * ~700 messages in twelve seconds (see {@link notify}, which deferred the
+   * announcement to stop the synchronous half), and Vue reproduced the
+   * steady-state half the moment its templates gained a reactive dependency:
+   * **167,280 console messages** in one `chaos-catalog` run, which deletes the
+   * catalog on purpose.
+   *
+   * One attempt per **key**, and deliberately never cleared. Clearing on
+   * catalog change was tried first and re-armed the loop precisely: the load
+   * *does* deliver the boundary — it simply does not contain this key — so
+   * `changed` is true, the set empties, and the next render claims again.
+   *
+   * Keying on the key rather than the boundary is what makes "never cleared"
+   * safe. The guard gates only the *miss* path, and a key that later arrives is
+   * no longer a miss: `_t` finds it before reaching here, so the claim it
+   * already spent is never consulted again.
+   */
+  private hydrationAttempts = new Set<string>();
+
+  /**
+   * Claim the single hydration attempt for one missing key.
+   *
+   * Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+   * caller loads only when it wins the claim.
+   */
+  claimHydrationAttempt(locale: string, boundaryId: string, messageKey: string): boolean {
+    const claim = locale + "/" + boundaryId + "/" + messageKey;
+    if (this.hydrationAttempts.has(claim)) return false;
+    this.hydrationAttempts.add(claim);
+    return true;
+  }
   /** Whether an announcement is already queued for this turn — see {@link notify}. */
   private notifyScheduled = false;
   private readonly delivery = new Delivery();
@@ -294,6 +336,38 @@ export class I18nStore {
   }
 
   /**
+   * Take over the subscribers of the store this one is replacing.
+   *
+   * `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+   * module-level `defaultInstance` until something calls `setActiveInstance`.
+   * A component that renders before the entry's `zintl()` resolves therefore
+   * subscribes to *that* store, and the swap left its listener behind on an
+   * object nothing would ever notify again — measured as `listeners: 0` on the
+   * live store while React's `useSyncExternalStore` was demonstrably mounted
+   * (ledger L-068).
+   *
+   * The consequence is invisible until something arrives that only a subscriber
+   * could act on. A hot catalog update is exactly that: the store takes the new
+   * translation, `notify()` runs, and there is nobody in the set. On Vite the
+   * defect is masked because the applier re-runs the entry, which remounts the
+   * components against the current store; on Rspack nothing re-runs and the
+   * page keeps its first paint.
+   *
+   * Listeners are *moved*, not copied — the old store is being retired, and a
+   * subscriber notified twice for one change is a second bug. They are then
+   * notified once, because their snapshot has just changed underneath them by
+   * definition: they were reading a different store a moment ago.
+   */
+  adoptListeners(previous: I18nStore) {
+    if (previous === this || previous.listeners.size === 0) return;
+    for (const listener of previous.listeners) {
+      this.listeners.add(listener);
+    }
+    previous.listeners.clear();
+    this.notify();
+  }
+
+  /**
    * Tell subscribers something changed.
    *
    * `version` is bumped here rather than by each caller, so it cannot drift out
@@ -322,7 +396,7 @@ export class I18nStore {
    * React reported the first as "Cannot update a component while rendering a
    * different component" and then, because each re-render ran `_t` again and
    * each `_t` announced again, "Maximum update depth exceeded" out of every
-   * subscriber after it. Measured on `rsbuild-react`: ~700 in twelve seconds,
+   * subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
    * with the renderer pinned hard enough that the page could not be evaluated
    * at all, which is why this read as a stall rather than a loop.
    *
@@ -835,10 +909,18 @@ export function getActiveInstance() {
 }
 
 export function setActiveInstance(instance: I18nStore) {
+  const previous = currentInstance;
   currentInstance = instance;
   if (typeof globalThis !== "undefined") {
     (globalThis as any).__zintl_current_instance = instance;
   }
+  /**
+   * Subscribers follow the active store rather than the object they happened to
+   * reach first. Without this, anything that rendered before `zintl()` resolved
+   * is subscribed to a store nothing will ever notify again — see
+   * {@link I18nStore.adoptListeners} and ledger L-068.
+   */
+  if (previous) instance.adoptListeners(previous);
 }
 
 export function registerLoader(boundaryId: string, loader: Loader) {

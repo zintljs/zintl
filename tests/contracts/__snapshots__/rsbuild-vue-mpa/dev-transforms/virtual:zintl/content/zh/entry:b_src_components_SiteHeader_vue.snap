@@ -1,0 +1,11 @@
+const catalog = {
+    "b_src_components_SiteHeader_vue": {
+      "Home": "首页",
+      "Guide": "指南",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

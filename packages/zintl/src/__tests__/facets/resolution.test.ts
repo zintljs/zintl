@@ -447,6 +447,24 @@ describe("Facet Resolution Engine", () => {
         `<script>\nimport { t } from "zintljs"</script>\n`,
       );
     });
+
+    /**
+     * The composition golden files list codegen facets by name only, so a
+     * `CodegenFacet` field is invisible there by construction — unlike a bundler
+     * flag, which `flags:` records. This is the guard for L-053's field.
+     */
+    it("vue declares requiresScriptSetup and svelte does not", () => {
+      const { system } = resolveFacets([
+        vueExtractionFacet(),
+        vueCodegenFacet(),
+        svelteExtractionFacet(),
+        svelteCodegenFacet(),
+      ]);
+      const vueCodegen = system.codegenFacets.find((a) => a.extensions.includes(".vue"))!;
+      const svelteCodegen = system.codegenFacets.find((a) => a.extensions.includes(".svelte"))!;
+      expect(vueCodegen.requiresScriptSetup).toBe(true);
+      expect(svelteCodegen.requiresScriptSetup).toBeUndefined();
+    });
   });
 
   // ── User-Authored Partial Adapters ──────────────────────────────────────────
@@ -558,11 +576,17 @@ describe("Facet Resolution Engine", () => {
       expect(resolveFacets([reactRuntimeFacet()]).flags.entryReexecutionSafe).toBe(false);
     });
 
-    it("vueFacet compiles to vueExtractionFacet and vueCodegenFacet", () => {
+    it("vueFacet compiles to extraction, codegen and runtime facets", () => {
       const facets = vueFacet();
-      expect(facets.length).toBe(2);
-      expect(facets[0].name).toBe("vue-extraction");
-      expect(facets[1].name).toBe("vue-codegen");
+      expect(facets.map((f) => f.name)).toEqual([
+        "vue-extraction",
+        "vue-codegen",
+        // Declares that Vue redraws from a store update without the entry
+        // re-running, which decides whether a catalog edit can be applied hot
+        // or has to reload (ledger L-064).
+        "vue-runtime",
+      ]);
+      expect(facets[2]).toMatchObject({ repaintsOnCatalogUpdate: true });
     });
 
     it("svelteFacet compiles to extraction, codegen and runtime facets", () => {

@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vanilla_mpa"] = self["rspackChunkrsbuild_vanilla_mpa"] || []).push([[8], {
+15(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_4f8017c0589a": {
+      "3de7e774": "Rsbuild con Vanilla",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "bce1bd28": "Dos documentos, dos entradas, una cabecera compartida.",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

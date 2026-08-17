@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/pages/Home.Home.schema.json",
+  "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/pages/Home.ts</code> 并保存以测试 <code>HMR</code>",
+  "Read the guide": "阅读指南",
+  "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。",
+  "Vanilla Rsbuild": "原生 Rsbuild"
+}

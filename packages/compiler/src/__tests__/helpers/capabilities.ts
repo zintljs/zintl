@@ -25,12 +25,14 @@ const NO_FLAGS: CapabilityFlags = {
   serverRequestScope: false,
   streaming: false,
   entryReexecutionSafe: true,
+  repaintsOnCatalogUpdate: false,
   ssr: false,
   hmr: false,
   localeRouting: false,
   htmlFanOut: false,
   hotUpdate: false,
   dependencyInvalidation: false,
+  sfcBlockRequestsCarryWholeFile: false,
 };
 
 function emptySystem(): CompilerSystemView {

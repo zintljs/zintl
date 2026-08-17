@@ -1,0 +1,66 @@
+<script setup lang="ts">
+import _zintl_mgr_b_9e373ef8c775 from "virtual:zintl/manager/none/entry:b_9e373ef8c775";
+import _zintl_mgr_b_b028ccfc4f80 from "virtual:zintl/manager/none/entry:b_b028ccfc4f80";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+
+
+
+/**
+ * A shared component with its **own** trust anchor.
+ *
+ * Both pages import this, and it awaits `zintl(locale)` itself rather than
+ * inheriting from whichever page mounted it. An anchor is independent, so this
+ * header's strings form one boundary shared by both entries rather than being
+ * duplicated into each.
+ *
+ * `<Suspense>` in each page's root is what lets this top-level `await` work.
+ */
+const props = defineProps<{ lang: string }>();
+
+await (globalThis.__zintl_inst = loadI18nInstance({ locale: props.lang, loaders: { ["b_9e373ef8c775"]: _zintl_mgr_b_9e373ef8c775.loader, ["b_b028ccfc4f80"]: _zintl_mgr_b_b028ccfc4f80.loader } }));
+</script>
+
+<template>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="/">{{ _t('70f8bb9a', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80', _v: __zintl_v.value }) }}</a>
+      <a href="/about">{{ _t('bf073fae', { _mgr: _zintl_mgr_b_b028ccfc4f80, _bId: 'b_b028ccfc4f80', _v: __zintl_v.value }) }}</a>
+    </nav>
+  </header>
+</template>
+
+<style scoped>
+.nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.site-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+
+.site-header a {
+  color: #fff;
+  opacity: 0.75;
+  text-decoration: none;
+}
+
+.site-header a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+</style>

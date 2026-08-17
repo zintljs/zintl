@@ -1,0 +1,328 @@
+{
+  "entries": [
+    "src/about:bootstrap",
+    "src/components/LocaleSwitcher.vue:f_700",
+    "src/components/SiteHeader.vue",
+    "src/index:bootstrap"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "bindings": [
+            "pluginVue"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/plugin-vue"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/AboutApp.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.vue"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/SiteHeader.vue"
+        },
+        {
+          "bindings": [
+            "ref"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        }
+      ],
+      "filePath": "src/AboutApp.vue",
+      "id": "src/AboutApp.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.vue"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/SiteHeader.vue"
+        },
+        {
+          "bindings": [
+            "ref"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        }
+      ],
+      "filePath": "src/App.vue",
+      "id": "src/App.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/about": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/AboutApp.vue"
+        },
+        {
+          "dynamic": false,
+          "id": "src/about:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/about:bootstrap"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/about",
+      "id": "src/about",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/about:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/AboutApp.vue"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/about",
+      "id": "src/about:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.vue:f_700"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.vue",
+      "id": "src/components/LocaleSwitcher.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.vue:f_700": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.vue",
+      "id": "src/components/LocaleSwitcher.vue:f_700",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/components/SiteHeader.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/SiteHeader.vue",
+      "id": "src/components/SiteHeader.vue",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/env.d": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "DefineComponent"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        }
+      ],
+      "filePath": "src/env.d",
+      "id": "src/env.d",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.vue"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.vue"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "entries": [
+    "src/index:render"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/counter:setupCounter": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/counter",
+      "id": "src/counter:setupCounter",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:render"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:render"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index:render": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/about.txt?raw"
+        },
+        {
+          "bindings": [
+            "setupCounter"
+          ],
+          "dynamic": false,
+          "id": "src/counter:setupCounter"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "setupSwitcher"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:setupSwitcher"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index:render",
+      "mode": "entry",
+      "usageCount": 0
+    }
+  }
+}

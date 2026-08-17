@@ -1,0 +1,55 @@
+{
+  "boundaryToOwner": {
+    "src/App.vue": "src/index:bootstrap",
+    "src/components/LocaleSwitcher.vue": "src/index:bootstrap",
+    "src/components/LocaleSwitcher.vue:f_700": "src/components/LocaleSwitcher.vue:f_700",
+    "src/components/OptionsNote.vue": "src/index:bootstrap",
+    "src/index:bootstrap": "src/index:bootstrap"
+  },
+  "chunks": {
+    "entry_b_cc009e432cb5": {
+      "boundaries": [
+        "src/components/LocaleSwitcher.vue:f_700"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/LocaleSwitcher.vue:f_700"
+      ],
+      "id": "entry_b_cc009e432cb5",
+      "type": "entry"
+    },
+    "entry_b_dd563dcb7e61": {
+      "boundaries": [
+        "src/App.vue",
+        "src/components/LocaleSwitcher.vue",
+        "src/components/OptionsNote.vue",
+        "src/index.css",
+        "src/index:bootstrap",
+        "vue"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index:bootstrap"
+      ],
+      "id": "entry_b_dd563dcb7e61",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/components/LocaleSwitcher.vue:f_700": "entry_b_cc009e432cb5",
+    "src/index:bootstrap": "entry_b_dd563dcb7e61"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10"
+  ]
+}

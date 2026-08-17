@@ -19,5 +19,11 @@ const catalog = {
       "7d8158dc": "شعار فيو",
       "3473a536": "شعار فيت",
     },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `هذه الملاحظة تأتي من ${params['api']}.`;
+  },
+    },
   };
 export default catalog;

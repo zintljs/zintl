@@ -95,6 +95,25 @@ export class LabPipeline {
         .join("<MONOREPO_ROOT>")
         .replace(/_tmp_runs_w[^_]+_/g, "_tmp_runs_wN_")
         .replace(/_tmp_fixtures_w[^_]+_/g, "_tmp_fixtures_wN_")
+        /**
+         * `VueLoaderPlugin` numbers its cloned rule sets from a **module-scoped**
+         * counter (`let uid = 0` in `rspack-vue-loader/dist/plugin.js`), so the
+         * number depends on how many Vue projects that Node process compiled
+         * first. A worker builds several, in whatever order Vitest scheduled
+         * them, and the same project emitted `clonedRuleSet_12` in one run and
+         * `clonedRuleSet_66` in the next.
+         *
+         * It reaches a snapshot only through a lazily-imported SFC, where the
+         * re-export indirection prints the whole loader chain into a variable
+         * name — so `rsbuild-vue-spa` was the first project able to see it.
+         *
+         * Normalised rather than pinned because the counter says nothing about
+         * the build: it identifies a loader chain, not anything Zintl emitted.
+         * The same reasoning that made Svelte's `cssHash` worth *fixing* in the
+         * app rather than hiding here (L-052) points the other way for this one
+         * — there is no source-derived value to prefer.
+         */
+        .replace(/clonedRuleSet_\d+/g, "clonedRuleSet_N")
     );
   }
 
@@ -111,11 +130,71 @@ export class LabPipeline {
     return filtered;
   }
 
+  /**
+   * Put an Rspack chunk's module blocks in id order.
+   *
+   * **The order Rspack writes them in is not a guarantee, and pinning it made
+   * CI disagree with every developer's machine.** A chunk is emitted as
+   * `push([[3], { 7(…){…}, 8(…){…}, 12(…){…} }])`, and which module lands where
+   * depends on the order the build *finished* them rather than on anything
+   * derived from the source. `rsbuild-vanilla-basic` produced module `8` — the
+   * raw asset text, which imports nothing — before module `12` locally and
+   * after it on CI, byte-identical either way. Same ids, same bodies, different
+   * sequence.
+   *
+   * That is the third assertion in this suite found to be pinning something
+   * that was never the guarantee, after `noOrphanedCatalogs` and
+   * `hmr-first-tick`. The snapshot exists to prove *what Zintl emitted*; the
+   * bundler's write order is the bundler's business.
+   *
+   * Sorted rather than stripped, so a module appearing or disappearing still
+   * fails the snapshot — which is the part that does matter. A file with no
+   * such blocks passes through untouched.
+   */
+  private orderRspackModules(code: string): string {
+    const lines = code.split("\n");
+    const blockStart = /^(\d+)\(__unused_rspack_module/;
+
+    const prologue: string[] = [];
+    const blocks: { id: number; lines: string[] }[] = [];
+    let epilogue: string[] = [];
+    let current: { id: number; lines: string[] } | null = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const match = blockStart.exec(line);
+
+      if (!current && match) {
+        current = { id: Number(match[1]), lines: [line] };
+        continue;
+      }
+      if (current) {
+        current.lines.push(line);
+        // Block boundaries sit at column zero; nested closers are indented.
+        if (line === "},") {
+          blocks.push(current);
+          current = null;
+        }
+        continue;
+      }
+      if (blocks.length === 0) prologue.push(line);
+      else epilogue.push(line);
+    }
+
+    // An unterminated block means the shape is not what this expects. Leave the
+    // file exactly as it was rather than emit a half-reordered approximation.
+    if (current || blocks.length < 2) return code;
+
+    blocks.sort((a, b) => a.id - b.id);
+    epilogue = epilogue.length > 0 ? epilogue : [];
+    return [...prologue, ...blocks.flatMap((b) => b.lines), ...epilogue].join("\n");
+  }
+
   filterDistForSnapshots(results: Record<string, string>): Record<string, string> {
     const filtered: Record<string, string> = {};
     for (const [path, code] of Object.entries(results)) {
       if (path.match(/\.(js|json|html)$/) && !path.endsWith(".css")) {
-        filtered[path] = this.sanitizeCode(code);
+        filtered[path] = this.orderRspackModules(this.sanitizeCode(code));
       }
     }
     return filtered;

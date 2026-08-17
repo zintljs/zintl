@@ -96,6 +96,30 @@ export function rspackFacet(): ZintlFacet {
     dependencyInvalidation: true,
 
     /**
+     * An SFC block request here re-reads the whole file, so Zintl must transform
+     * it rather than skip it.
+     *
+     * `vue-loader`'s pitcher intercepts `App.vue?vue&type=script` and rewrites
+     * it into `-!<chain>!App.vue?vue&type=script` — a request whose resource is
+     * the original file, with the chain re-applied over it
+     * (`rspack-vue-loader/dist/pitcher.js`, `genRequest`). Measured: the loader
+     * receives all 1836 bytes of the SFC, byte-identical to the parent request,
+     * not the block.
+     *
+     * That inverts the rule Vite needs. There, the same id names a virtual
+     * module holding one block, and transforming it would hand the extractor a
+     * fragment. Here, skipping it means the only requests that become code are
+     * never transformed — the parent is transformed and discarded — so the app
+     * extracts correctly, scaffolds correct catalogs, passes `verifyIntegrity`,
+     * and renders the source locale. Ledger L-051.
+     *
+     * The one cost is that a file with N block requests is transformed N+1
+     * times. The transform is pure and the plans are cheap; a correct render is
+     * worth more than the repeat.
+     */
+    sfcBlockRequestsCarryWholeFile: true,
+
+    /**
      * The HMR token, plus acceptance where the framework allows it.
      *
      * The token is what makes the transformed source text actually differ, so
@@ -166,7 +190,27 @@ export function rspackFacet(): ZintlFacet {
      * are ESM, and Webpack forbids `module.hot` in a strict ESM module. It is the
      * spelling Rsbuild's own HMR client uses.
      */
-    hmrSelfAcceptCode: (): string =>
-      `\nif (import.meta.webpackHot) { import.meta.webpackHot.accept(); }`,
+    hmrSelfAcceptCode: (_callbackBody?: string, canRepaint = true): string => {
+      /**
+       * **Accepting is only correct when something can redraw.**
+       *
+       * This applier invalidates nothing by design — Rspack rebuilds whatever
+       * its own dependency graph marks stale — so a generated catalog that
+       * accepts its own update is the end of the line. On a project with no
+       * client reactivity there is nothing subscribed to the store and nothing
+       * re-runs the entry, so the update lands, `addCatalogs` applies it, and
+       * the page keeps rendering the DOM it painted before the edit. Measured
+       * exactly that way: the store held the new translation and the heading
+       * held the old one (ledger L-064).
+       *
+       * Declining lets the update bubble to a full reload, which repaints from
+       * the new catalog. Slower than a hot update and correct — the same trade
+       * L-035 made for source files on this host, arrived at again one module
+       * kind later, and for the same reason: a repaint this app cannot perform
+       * must not be claimed as handled.
+       */
+      if (!canRepaint) return "";
+      return `\nif (import.meta.webpackHot) { import.meta.webpackHot.accept(); }`;
+    },
   };
 }

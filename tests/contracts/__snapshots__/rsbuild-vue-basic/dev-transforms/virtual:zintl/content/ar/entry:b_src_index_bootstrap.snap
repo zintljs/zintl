@@ -1,0 +1,22 @@
+const catalog = {
+    "b_src_App_vue": {
+      "Rsbuild with Vue": "Rsbuild مع Vue",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "عدّل <code>src/App.vue</code> واحفظ لاختبار <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+    },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `هذه الملاحظة تأتي من ${params['api']}.`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

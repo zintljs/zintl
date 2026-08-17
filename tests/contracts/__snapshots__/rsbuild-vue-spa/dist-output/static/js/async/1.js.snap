@@ -1,0 +1,27 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_spa"] = self["rspackChunkrsbuild_vue_spa"] || []).push([[1], {
+43(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_07f886859652": {
+      "459e4199": "Rsbuild con Vue",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "e5943c9a": "Edita <code>src/components/HelloWorld.vue</code> y guarda para probar <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `La cuenta es ${params['count']}`;
+  },
+      "b0fb2e27": "Leer la guía",
+    },
+    "b_13b9cb21366d": {
+      "abdb1589": "Todo es una cadena de texto normal",
+      "fc43cf0b": "Esta ruta llegó en su propio fragmento, y sus traducciones también.",
+      "5f2f4dd3": "Sin envoltorio <code>t()</code>, sin diccionario de claves, sin catálogo manual.",
+      "a2bcccd6": "Volver al inicio",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

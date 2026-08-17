@@ -1,0 +1,28 @@
+<script setup lang="ts">
+import _zintl_mgr_b_src_index_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_bootstrap";
+import { shallowRef, onScopeDispose, getCurrentScope } from "vue";
+const __zintl_v = shallowRef(getStoreVersion());
+const __zintl_off = subscribe(() => {
+  __zintl_v.value = getStoreVersion();
+});
+if (getCurrentScope()) onScopeDispose(__zintl_off);
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+
+ /**
+ * Reached only through `() => import(...)` in `src/router.ts`, which is the
+ * point of this example.
+ *
+ * These strings belong to a boundary the entry never imports statically, so
+ * Zintl emits their catalog behind the same dynamic import Rspack uses for the
+ * component. Nothing here is written differently because of that.
+ */
+</script>
+
+<template>
+  <div class="content">
+    <h1>{{ _t('Everything is a plain string', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_AboutWorld_vue', _v: __zintl_v.value }) }}</h1>
+    <p>{{ _t('This route arrived in its own chunk, and so did its translations.', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_AboutWorld_vue', _v: __zintl_v.value }) }}</p>
+    <p><span v-html="_t('No <code>t()</code> wrapper, no key dictionary, no manual catalog.', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_AboutWorld_vue', _tags: JSON.parse('[\x7b&quot;alias&quot;:&quot;code&quot;,&quot;originalOpen&quot;:&quot;<code>&quot;,&quot;tagName&quot;:&quot;code&quot;\x7d]'), _v: __zintl_v.value })"></span></p>
+    <nav class="nav"><router-link id="to-home" to="/">{{ _t('Back to the start', { _mgr: _zintl_mgr_b_src_index_bootstrap, _bId: 'b_src_components_AboutWorld_vue', _v: __zintl_v.value }) }}</router-link></nav>
+  </div>
+</template>

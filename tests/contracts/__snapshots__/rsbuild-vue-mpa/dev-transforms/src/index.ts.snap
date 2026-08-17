@@ -1,0 +1,16 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_index_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_bootstrap";
+import _zintl_mgr_b_src_components_SiteHeader_vue from "virtual:zintl/manager/none/entry:b_src_components_SiteHeader_vue";
+import _zintl_mgr_b_src_about_bootstrap from "virtual:zintl/manager/none/entry:b_src_about_bootstrap";
+import { createApp } from "vue";
+
+import App from "./App.vue";
+import "./index.css";
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_about_bootstrap"]: _zintl_mgr_b_src_about_bootstrap.loader, ["b_src_components_SiteHeader_vue"]: _zintl_mgr_b_src_components_SiteHeader_vue.loader, ["b_src_index_bootstrap"]: _zintl_mgr_b_src_index_bootstrap.loader } }));
+  createApp(App).mount("#root");
+}
+
+void bootstrap();

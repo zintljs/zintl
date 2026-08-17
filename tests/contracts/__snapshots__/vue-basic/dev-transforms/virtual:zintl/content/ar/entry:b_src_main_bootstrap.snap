@@ -19,6 +19,12 @@ const catalog = {
       "Vue logo": "شعار فيو",
       "Vite logo": "شعار فيت",
     },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `هذه الملاحظة تأتي من ${params['api']}.`;
+  },
+    },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);

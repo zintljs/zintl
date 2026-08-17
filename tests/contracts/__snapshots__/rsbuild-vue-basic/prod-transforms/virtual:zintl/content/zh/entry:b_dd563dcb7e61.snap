@@ -1,0 +1,18 @@
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild 搭配 Vue",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "6c65d65b": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+    },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `这条说明来自 ${params['api']}。`;
+  },
+    },
+  };
+export default catalog;

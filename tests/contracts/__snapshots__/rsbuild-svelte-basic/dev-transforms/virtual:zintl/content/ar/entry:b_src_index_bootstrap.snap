@@ -1,0 +1,15 @@
+const catalog = {
+    "b_src_App_svelte": {
+      "Rsbuild with Svelte": "Rsbuild مع Svelte",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "عدّل <code>src/App.svelte</code> واحفظ لاختبار <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;

@@ -1,0 +1,16 @@
+{
+  "name": "rsbuild-vanilla-spa",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev",
+    "build": "tsc && rsbuild build",
+    "preview": "rsbuild preview"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "catalog:",
+    "typescript": "catalog:",
+    "zintljs": "workspace:*"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Read the guide": {
+      "type": "string"
+    },
+    "Start building amazing things with Rsbuild.": {
+      "type": "string"
+    },
+    "Vanilla Rsbuild": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>",
+    "Read the guide",
+    "Start building amazing things with Rsbuild.",
+    "Vanilla Rsbuild"
+  ],
+  "additionalProperties": false
+}

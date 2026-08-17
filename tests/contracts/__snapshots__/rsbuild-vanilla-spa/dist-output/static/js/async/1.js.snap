@@ -1,0 +1,23 @@
+"use strict";
+(self["rspackChunkrsbuild_vanilla_spa"] = self["rspackChunkrsbuild_vanilla_spa"] || []).push([[1], {
+13(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_16245bf9a205": {
+      "3de7e774": "Rsbuild الأساسي",
+      "9724cf0a": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "92242ba7": "عدّل <code>src/pages/Home.ts</code> واحفظ لاختبار <code>HMR</code>",
+      "b0fb2e27": "اقرأ الدليل",
+    },
+    "b_41f76352d384": {
+      "abdb1589": "كل شيء نص عادي",
+      "ab94eb45": "وصلت هذه الصفحة في حزمة خاصة بها، وكذلك ترجماتها.",
+      "5f2f4dd3": "بلا غلاف <code>t()</code>، وبلا قاموس مفاتيح، وبلا كتالوج يدوي.",
+      "a2bcccd6": "العودة إلى البداية",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

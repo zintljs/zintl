@@ -1,0 +1,8 @@
+const catalog = {
+    "b_4f8017c0589a": {
+      "3de7e774": "Rsbuild con Vanilla",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "bce1bd28": "Dos documentos, dos entradas, una cabecera compartida.",
+    },
+  };
+export default catalog;

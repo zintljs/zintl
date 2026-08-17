@@ -1,0 +1,7 @@
+{
+  "$schema": "../.schemas/src/App.svelte.schema.json",
+  "Count is {count}": "计数为 {count}",
+  "Edit <code>src/App.svelte</code> and save to test <code>HMR</code>": "编辑 <code>src/App.svelte</code> 并保存以测试 <code>HMR</code>",
+  "Rsbuild with Svelte": "Rsbuild 搭配 Svelte",
+  "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。"
+}

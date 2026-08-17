@@ -1,0 +1,275 @@
+{
+  "entries": [
+    "src/components/LocaleSwitcher.vue:f_700",
+    "src/index:bootstrap"
+  ],
+  "nodes": {
+    "rsbuild.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/core"
+        },
+        {
+          "bindings": [
+            "pluginVue"
+          ],
+          "dynamic": false,
+          "id": "@rsbuild/plugin-vue"
+        },
+        {
+          "dynamic": false,
+          "id": "rsbuild.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/rsbuild"
+        }
+      ],
+      "filePath": "rsbuild.config",
+      "id": "rsbuild.config",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.vue"
+        },
+        {
+          "bindings": [
+            "ref",
+            "watch"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "useRoute",
+            "useRouter"
+          ],
+          "dynamic": false,
+          "id": "vue-router"
+        }
+      ],
+      "filePath": "src/App.vue",
+      "id": "src/App.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/AboutWorld.vue": {
+      "activeLocales": "all",
+      "deps": [],
+      "filePath": "src/components/AboutWorld.vue",
+      "id": "src/components/AboutWorld.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/HelloWorld.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "ref"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        }
+      ],
+      "filePath": "src/components/HelloWorld.vue",
+      "id": "src/components/HelloWorld.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.vue": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.vue:f_700"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.vue",
+      "id": "src/components/LocaleSwitcher.vue",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.vue:f_700": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.vue",
+      "id": "src/components/LocaleSwitcher.vue:f_700",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/env.d": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "DefineComponent"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        }
+      ],
+      "filePath": "src/env.d",
+      "id": "src/env.d",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.vue"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index:bootstrap"
+        },
+        {
+          "bindings": [
+            "router"
+          ],
+          "dynamic": false,
+          "id": "src/router"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.vue"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "router"
+          ],
+          "dynamic": false,
+          "id": "src/router"
+        },
+        {
+          "bindings": [
+            "createApp"
+          ],
+          "dynamic": false,
+          "id": "vue"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index",
+      "id": "src/index:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/router": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": true,
+          "id": "src/components/AboutWorld.vue"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/HelloWorld.vue"
+        },
+        {
+          "dynamic": false,
+          "id": "src/router"
+        },
+        {
+          "bindings": [
+            "createRouter",
+            "createWebHistory"
+          ],
+          "dynamic": false,
+          "id": "vue-router"
+        }
+      ],
+      "filePath": "src/router",
+      "id": "src/router",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

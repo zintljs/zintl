@@ -1,4 +1,4 @@
-import { executeContract, type Contract } from "@zintljs/testing";
+import { executeContract, pickDeliveryProbe, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
 
 /**
@@ -18,7 +18,7 @@ import { allManifests } from "../manifests/index.js";
  * D1, arrived at by a different route than `delivery-ordering` covers.
  *
  * **Why this contract exists.** It was a real defect, found by hand on
- * `rsbuild-spa` and then pinned down deterministically: `loadLazyBoundary`
+ * `rsbuild-vanilla-basic` and then pinned down deterministically: `loadLazyBoundary`
  * checked "already loaded" *before* "already loading", so it returned in zero
  * milliseconds with the stale catalog while the fresh one was still in the air.
  * The visible symptom was the worst kind — a permanently blank heading, because
@@ -40,8 +40,15 @@ export const deliveryRefreshContract: Contract = {
     await adapter.navigateHome(lab);
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
+    const probe = await pickDeliveryProbe(lab, adapter.initialHeadingText);
+    if (!probe.ok) {
+      throw new Error(
+        `Could not exercise refresh: ${probe.why}.\n\n${await lab.assert.describeStall()}`,
+      );
+    }
+
     const result = await lab.page.evaluate(
-      async ({ key: messageKey }) => {
+      async ({ boundary }) => {
         const store = (
           globalThis as {
             __zintl_current_instance?: {
@@ -55,12 +62,6 @@ export const deliveryRefreshContract: Contract = {
         if (!store) return { ok: false as const, why: "no runtime on the page" };
 
         const locale = store.locale;
-        const boundary = Object.keys(store.catalogs[locale] ?? {}).find(
-          (b) => messageKey in (store.catalogs[locale]?.[b] ?? {}),
-        );
-        if (!boundary) {
-          return { ok: false as const, why: `no boundary carries ${JSON.stringify(messageKey)}` };
-        }
 
         const FRESH = "__zintl_refresh_probe__";
         const present = store.catalogs[locale][boundary];
@@ -90,7 +91,7 @@ export const deliveryRefreshContract: Contract = {
           sawFresh: FRESH in (store.catalogs[locale]?.[boundary] ?? {}),
         };
       },
-      { key: adapter.initialHeadingText },
+      { boundary: probe.boundaries[0] },
     );
 
     if (!result.ok) {

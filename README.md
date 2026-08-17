@@ -110,7 +110,7 @@ A literal is a promise the compiler can keep: it bakes that locale straight into
 
 ## Where it runs
 
-Zintl ships a **Vite plugin** and an **[Rsbuild](https://rsbuild.dev) plugin**, and works with **React, Vue, Svelte, and vanilla** apps. On Vite that means client-rendered, server-rendered, and multi-page alike; on Rsbuild it means single-page apps in React or vanilla JavaScript, in production builds and in dev — see [the Rsbuild section](docs/configuration.md#rsbuild) for what is and is not covered there. Every example in [`examples/`](examples) is a real app the test suite drives end to end, on both bundlers.
+Zintl ships a **Vite plugin** and an **[Rsbuild](https://rsbuild.dev) plugin**, and works with **React, Vue, Svelte, and vanilla** apps. On Vite that means client-rendered, server-rendered, and multi-page alike. On Rsbuild it means single-page and multi-page apps, with all four frameworks — not SSR, and not per-locale HTML fan-out. See [the Rsbuild section](docs/configuration.md#rsbuild) for exactly what is and is not covered. Every example in [`examples/`](examples) is a real app the test suite drives end to end, on both bundlers.
 
 That list is a starting point, not the design. The extractor carries no framework knowledge, the compiler is bundler-agnostic, and both frameworks and toolchains are composed from **facets** — so support for another framework or another build tool is something you add, not something the core has to be rewritten around. Rsbuild was the proof: it runs on Rspack, whose plugin model is about as unlike Vite's as a bundler's gets, and it arrived without a single Rspack branch in the compiler. More of both are coming.
 
@@ -126,7 +126,7 @@ Most projects only ever install `zintljs`.
 
 ## Status
 
-Zintl is in **alpha**. The ideas are settled and the test suite is thorough — 18 example apps driven through real browsers on every change — but the API can still move between releases. Pin your version, and please [open an issue](https://github.com/zintljs/zintl/issues) when something surprises you. Early reports shape this more than anything else right now.
+Zintl is in **alpha**. The ideas are settled and the test suite is thorough — 26 example apps driven through real browsers on every change — but the API can still move between releases. Pin your version, and please [open an issue](https://github.com/zintljs/zintl/issues) when something surprises you. Early reports shape this more than anything else right now.
 
 ## Contributing
 

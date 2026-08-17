@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "dir": {
+      "additionalProperties": false,
+      "properties": {
+        "ar": {
+          "default": "",
+          "enum": ["ltr", "rtl", "auto", ""],
+          "type": "string"
+        },
+        "es": {
+          "default": "",
+          "enum": ["ltr", "rtl", "auto", ""],
+          "type": "string"
+        },
+        "zh": {
+          "default": "",
+          "enum": ["ltr", "rtl", "auto", ""],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "title": {
+      "additionalProperties": false,
+      "properties": {
+        "ar": {
+          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "type": "string"
+        },
+        "es": {
+          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "type": "string"
+        },
+        "zh": {
+          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "type": "object"
+}

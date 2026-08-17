@@ -1,0 +1,11 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "原生 Rsbuild",
+      "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。",
+      "Two documents, two entries, one shared header.": "两个文档、两个入口、一个共享页头。",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;

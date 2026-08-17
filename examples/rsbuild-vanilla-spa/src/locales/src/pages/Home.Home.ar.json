@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/pages/Home.Home.schema.json",
+  "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/pages/Home.ts</code> واحفظ لاختبار <code>HMR</code>",
+  "Read the guide": "اقرأ الدليل",
+  "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+  "Vanilla Rsbuild": "Rsbuild الأساسي"
+}

@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[5], {
+49(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_67edc86dc5a4": {
+      "abdb1589": "Todo es una cadena de texto normal",
+      "45d702f4": "Este documento tiene su propia entrada y su propio fragmento de catálogo.",
+      "22857f41": "La cabecera de arriba es compartida y se ancla a sí misma.",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

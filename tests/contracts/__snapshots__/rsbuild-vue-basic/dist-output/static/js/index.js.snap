@@ -1,0 +1,792 @@
+(() => {
+"use strict";
+var __webpack_modules__ = ({
+0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var vue__rspack_import_2 = __webpack_require__(8);
+/* import */ var _App_vue__rspack_import_3 = __webpack_require__(13);
+/* import */ var _index_css__rspack_import_4 = __webpack_require__(33);
+
+
+
+
+
+async function bootstrap() {
+    // 1. Resolve the current locale from URL query params, falling back to English
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    // 2. Await catalog loading and hydration
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_0.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"].loader
+        }
+    }));
+    // 3. Mount only once translations are active
+    (0,vue__rspack_import_2.createApp)(_App_vue__rspack_import_3["default"]).mount("#root");
+}
+void bootstrap();
+
+
+},
+13(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _App_vue_ts_vue_type_template_id_7a7a37b1_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_scoped_true_ts_true__rspack_import_0 = __webpack_require__(14);
+/* import */ var _App_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(16);
+/* import */ var _App_vue_css_vue_type_style_index_0_id_7a7a37b1_scoped_true_lang_css_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_style_index_0_id_7a7a37b1_scoped_true_lang_css__rspack_import_2 = __webpack_require__(31);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3 = __webpack_require__(25);
+
+
+
+
+;
+
+
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3["default"])(_App_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_App_vue_ts_vue_type_template_id_7a7a37b1_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_scoped_true_ts_true__rspack_import_0.render],['__scopeId',"data-v-7a7a37b1"],['__file',"src/App.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+14(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _App_vue_ts_vue_type_template_id_7a7a37b1_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_scoped_true_ts_true__rspack_import_0.render)
+});
+/* import */ var _App_vue_ts_vue_type_template_id_7a7a37b1_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_scoped_true_ts_true__rspack_import_0 = __webpack_require__(15);
+
+
+},
+15(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+
+const _hoisted_1 = {
+    class: "content"
+};
+const _hoisted_2 = [
+    "innerHTML"
+];
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", {
+        key: $setup.activeLang
+    }, [
+        (0,vue__rspack_import_0.createVNode)($setup["LocaleSwitcher"], {
+            lang: $setup.activeLang,
+            onSwitch: $setup.handleSwitch
+        }, null, 8 /* PROPS */ , [
+            "lang"
+        ]),
+        (0,vue__rspack_import_0.createElementVNode)("div", _hoisted_1, [
+            (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('459e4199', {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ ),
+            (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('9724cf0a', {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ ),
+            (0,vue__rspack_import_0.createElementVNode)("p", null, [
+                (0,vue__rspack_import_0.createElementVNode)("span", {
+                    innerHTML: $setup._t('6c65d65b', {
+                        _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                        _bId: 'b_5441d5289c77',
+                        _tags: JSON.parse('[\x7b"alias":"code","originalOpen":"<code>","tagName":"code"\x7d]'),
+                        _v: $setup.__zintl_v.value
+                    })
+                }, null, 8 /* PROPS */ , _hoisted_2)
+            ]),
+            (0,vue__rspack_import_0.createVNode)($setup["OptionsNote"]),
+            (0,vue__rspack_import_0.createElementVNode)("button", {
+                id: "counter",
+                type: "button",
+                class: "counter",
+                onClick: _cache[0] || (_cache[0] = ($event)=>$setup.count++)
+            }, (0,vue__rspack_import_0.toDisplayString)($setup._t('aa624128', {
+                count: $setup.count
+            }, {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ )
+        ])
+    ]);
+}
+
+
+},
+16(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _App_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _App_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(17);
+ 
+
+},
+17(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+/* import */ var _components_LocaleSwitcher_vue__rspack_import_3 = __webpack_require__(18);
+/* import */ var _components_OptionsNote_vue__rspack_import_4 = __webpack_require__(26);
+
+
+
+
+
+
+
+/* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'App',
+    setup (__props, param) {
+        let { expose: __expose } = param;
+        __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
+        const activeLang = (0,vue__rspack_import_0.ref)(new URLSearchParams(window.location.search).get("lang") || "en");
+        const count = (0,vue__rspack_import_0.ref)(0);
+        const handleSwitch = (lang)=>{
+            // Updating the ref is what remounts the tree through `:key`. The catalog has
+            // already been swapped by the switcher's own `await zintl(lang)`.
+            activeLang.value = lang;
+        };
+        const __returned__ = {
+            __zintl_v,
+            __zintl_off,
+            activeLang,
+            count,
+            handleSwitch,
+            get _zintl_mgr_b_dd563dcb7e61 () {
+                return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
+            },
+            get _t () {
+                return virtual_zintl_runtime_internal__rspack_import_2._t;
+            },
+            LocaleSwitcher: _components_LocaleSwitcher_vue__rspack_import_3["default"],
+            OptionsNote: _components_OptionsNote_vue__rspack_import_4["default"]
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+18(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0 = __webpack_require__(19);
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(21);
+/* import */ var _LocaleSwitcher_vue_css_vue_type_style_index_0_id_138678bf_scoped_true_lang_css_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_style_index_0_id_138678bf_scoped_true_lang_css__rspack_import_2 = __webpack_require__(23);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3 = __webpack_require__(25);
+
+
+
+
+;
+
+
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_3["default"])(_LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0.render],['__scopeId',"data-v-138678bf"],['__file',"src/components/LocaleSwitcher.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+19(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0.render)
+});
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_template_id_138678bf_scoped_true_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_template_id_138678bf_scoped_true_ts_true__rspack_import_0 = __webpack_require__(20);
+
+
+},
+20(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+
+const _hoisted_1 = {
+    id: "switcher",
+    class: "switcher"
+};
+const _hoisted_2 = [
+    "onClick"
+];
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", _hoisted_1, [
+        ((0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)(vue__rspack_import_0.Fragment, null, (0,vue__rspack_import_0.renderList)($setup.locales, (l)=>{
+            return (0,vue__rspack_import_0.createElementVNode)("button", {
+                key: l.id,
+                type: "button",
+                class: (0,vue__rspack_import_0.normalizeClass)({
+                    active: $setup.props.lang === l.id
+                }),
+                onClick: ($event)=>$setup.handleSwitch(l.id)
+            }, (0,vue__rspack_import_0.toDisplayString)(l.name), 11 /* TEXT, CLASS, PROPS */ , _hoisted_2);
+        }), 64 /* STABLE_FRAGMENT */ ))
+    ]);
+}
+
+
+},
+21(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _LocaleSwitcher_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(22);
+ 
+
+},
+22(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+
+
+
+/* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'LocaleSwitcher',
+    props: {
+        lang: {
+            type: String,
+            required: true
+        }
+    },
+    emits: [
+        "switch"
+    ],
+    setup (__props, param) {
+        let { expose: __expose, emit: __emit } = param;
+        __expose();
+        const props = __props;
+        /**
+ * No `@zintl-ignore` needed here, unlike the React, Svelte and vanilla
+ * switchers: the locale names live in a JS array rather than in the template, so
+ * they are never in extraction's reach in the first place.
+ */ const locales = [
+            {
+                id: "en",
+                name: "English"
+            },
+            {
+                id: "ar",
+                name: "العربية"
+            },
+            {
+                id: "es",
+                name: "Español"
+            },
+            {
+                id: "zh",
+                name: "中文"
+            }
+        ];
+        const emit = __emit;
+        const handleSwitch = async (lang)=>{
+            const url = new URL(window.location.href);
+            url.searchParams.set("lang", lang);
+            window.history.pushState({}, "", url.pathname + url.search);
+            await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_2.loadI18nInstance)({
+                locale: lang,
+                loaders: {
+                    ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"].loader
+                }
+            }));
+            emit("switch", lang);
+        };
+        const __returned__ = {
+            props,
+            locales,
+            emit,
+            handleSwitch
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+23(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _LocaleSwitcher_vue_css_vue_type_style_index_0_id_138678bf_scoped_true_lang_css_node_modules_pnpm_rspack_core_2_1_8_swc_helpers_0_5_23_node_modules_rspack_core_dist_cssExtractLoader_js_node_modules_pnpm_rsbuild_core_2_1_10_node_modules_rsbuild_core_compiled_css_loader_index_js_clonedRuleSet_N_use_1_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_stylePostLoader_js_builtin_lightningcss_loader_clonedRuleSet_N_use_2_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_LocaleSwitcher_vue_vue_type_style_index_0_id_138678bf_scoped_true_lang_css__rspack_import_0 = __webpack_require__(24);
+
+
+},
+24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+26(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _OptionsNote_vue_ts_vue_type_template_id_d325eb37_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_template_id_d325eb37_ts_true__rspack_import_0 = __webpack_require__(27);
+/* import */ var _OptionsNote_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(29);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_2 = __webpack_require__(25);
+
+
+
+
+;
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_2["default"])(_OptionsNote_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_OptionsNote_vue_ts_vue_type_template_id_d325eb37_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_template_id_d325eb37_ts_true__rspack_import_0.render],['__file',"src/components/OptionsNote.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+27(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _OptionsNote_vue_ts_vue_type_template_id_d325eb37_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_template_id_d325eb37_ts_true__rspack_import_0.render)
+});
+/* import */ var _OptionsNote_vue_ts_vue_type_template_id_d325eb37_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_template_id_d325eb37_ts_true__rspack_import_0 = __webpack_require__(28);
+
+
+},
+28(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+
+const _hoisted_1 = {
+    class: "options-note"
+};
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("p", _hoisted_1, (0,vue__rspack_import_0.toDisplayString)($setup._t('223fb461', {
+        api: $data.api
+    }, {
+        _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+        _bId: 'b_4e9f6e20b5a7',
+        _v: $setup.__zintl_v.value
+    })), 1 /* TEXT */ );
+}
+
+
+},
+29(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _OptionsNote_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _OptionsNote_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_OptionsNote_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(30);
+ 
+
+},
+30(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+
+
+
+
+/**
+ * Deliberately written with Vue's **Options API** — a plain `<script>` rather
+ * than `<script setup>`. Every other SFC in this repository uses the latter,
+ * which is why ledger L-053 went unnoticed: Vue compiles a plain `<script>`
+ * component's template into a separate render function, so the `_t` and
+ * manager bindings Zintl injects into a script block are not in scope there and
+ * the paragraph below rendered empty.
+ *
+ * Zintl now authors a `<script setup>` block beside this one to carry those
+ * bindings. `api` proves the two coexist: it is Options-API `data`, resolved
+ * through the component instance, inside a sentence whose surrounding text is
+ * resolved through setup.
+ *
+ * The twin of `examples/vue-basic/src/components/OptionsNote.vue` — the defect
+ * was found on Rspack and is not Rspack's, so it is watched on both hosts.
+ */ const __default__ = {
+    name: "OptionsNote",
+    data () {
+        return {
+            api: "Options API"
+        };
+    }
+};
+/* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    ...__default__,
+    setup (__props, param) {
+        let { expose: __expose } = param;
+        __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
+        const __returned__ = {
+            __zintl_v,
+            __zintl_off,
+            get _zintl_mgr_b_dd563dcb7e61 () {
+                return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
+            },
+            get _t () {
+                return virtual_zintl_runtime_internal__rspack_import_2._t;
+            }
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+31(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _App_vue_css_vue_type_style_index_0_id_7a7a37b1_scoped_true_lang_css_node_modules_pnpm_rspack_core_2_1_8_swc_helpers_0_5_23_node_modules_rspack_core_dist_cssExtractLoader_js_node_modules_pnpm_rsbuild_core_2_1_10_node_modules_rsbuild_core_compiled_css_loader_index_js_clonedRuleSet_N_use_1_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_stylePostLoader_js_builtin_lightningcss_loader_clonedRuleSet_N_use_2_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_style_index_0_id_7a7a37b1_scoped_true_lang_css__rspack_import_0 = __webpack_require__(32);
+
+
+},
+32(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+
+});
+// The module cache
+var __webpack_module_cache__ = {};
+
+// The require function
+function __webpack_require__(moduleId) {
+
+// Check if module is in cache
+var cachedModule = __webpack_module_cache__[moduleId];
+if (cachedModule !== undefined) {
+return cachedModule.exports;
+}
+// Create a new module (and put it into the cache)
+var module = (__webpack_module_cache__[moduleId] = {
+exports: {}
+});
+// Execute the module function
+__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+
+// Return the exports of the module
+return module.exports;
+
+}
+
+// expose the modules object (__webpack_modules__)
+__webpack_require__.m = __webpack_modules__;
+
+// webpack/runtime/define_property_getters
+(() => {
+__webpack_require__.d = (exports, getters, values) => {
+	var define = (defs, kind) => {
+		for(var key in defs) {
+			if(__webpack_require__.o(defs, key) && !__webpack_require__.o(exports, key)) {
+				Object.defineProperty(exports, key, { enumerable: true, [kind]: defs[key] });
+			}
+		}
+	};
+	define(getters, "get");
+	define(values, "value");
+};
+})();
+// webpack/runtime/ensure_chunk
+(() => {
+__webpack_require__.f = {};
+// This file contains only the entry chunk.
+// The chunk loading function for additional chunks
+__webpack_require__.e = (chunkId) => {
+	return Promise.all(
+		Object.keys(__webpack_require__.f).reduce((promises, key) => {
+			__webpack_require__.f[key](chunkId, promises);
+			return promises;
+		}, [])
+	);
+};
+})();
+// webpack/runtime/get javascript chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.u = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "static/js/async/" + chunkId + ".js"
+}
+})();
+// webpack/runtime/get mini-css chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.miniCssF = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "" + chunkId + ".css"
+}
+})();
+// webpack/runtime/global
+(() => {
+__webpack_require__.g = (() => {
+	if (typeof globalThis === 'object') return globalThis;
+	try {
+		return this || new Function('return this')();
+	} catch (e) {
+		if (typeof window === 'object') return window;
+	}
+})();
+})();
+// webpack/runtime/has_own_property
+(() => {
+__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+})();
+// webpack/runtime/load_script
+(() => {
+var inProgress = {};
+
+var uniqueName = "rsbuild-vue-basic:";
+// loadScript function to load a script via script tag
+__webpack_require__.l = function (url, done, key, chunkId) {
+	if (inProgress[url]) {
+		inProgress[url].push(done);
+		return;
+	}
+	var script, needAttach;
+	if (key !== undefined) {
+		var scripts = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts.length; i++) {
+			var s = scripts[i];
+			if (s.getAttribute("src") == url || s.getAttribute("data-rspack") == uniqueName + key) {
+				script = s;
+				break;
+			}
+		}
+	}
+	if (!script) {
+		needAttach = true;
+		script = document.createElement('script');
+
+script.timeout = 120;
+if (__webpack_require__.nc) {
+  script.setAttribute("nonce", __webpack_require__.nc);
+}
+
+script.setAttribute("data-rspack", uniqueName + key);
+
+
+
+script.src = url;
+
+
+
+	}
+	inProgress[url] = [done];
+	var onScriptComplete = function (prev, event) {
+		script.onerror = script.onload = null;
+		clearTimeout(timeout);
+		var doneFns = inProgress[url];
+		delete inProgress[url];
+		script.parentNode && script.parentNode.removeChild(script);
+		doneFns &&
+			doneFns.forEach(function (fn) {
+				return fn(event);
+			});
+		if (prev) return prev(event);
+	};
+	var timeout = setTimeout(
+		onScriptComplete.bind(null, undefined, {
+			type: 'timeout',
+			target: script
+		}),
+		120000
+	);
+	script.onerror = onScriptComplete.bind(null, script.onerror);
+	script.onload = onScriptComplete.bind(null, script.onload);
+	needAttach && document.head.appendChild(script);
+};
+
+})();
+// webpack/runtime/make_namespace_object
+(() => {
+// define __esModule on exports
+__webpack_require__.r = (exports) => {
+	if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+		Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+	}
+	Object.defineProperty(exports, '__esModule', { value: true });
+};
+})();
+// webpack/runtime/on_chunk_loaded
+(() => {
+var deferred = [];
+__webpack_require__.O = (result, chunkIds, fn, priority) => {
+	if (chunkIds) {
+		priority = priority || 0;
+		for (var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--)
+			deferred[i] = deferred[i - 1];
+		deferred[i] = [chunkIds, fn, priority];
+		return;
+	}
+	var notFulfilled = Infinity;
+	for (var i = 0; i < deferred.length; i++) {
+		var [chunkIds, fn, priority] = deferred[i];
+		var fulfilled = true;
+		for (var j = 0; j < chunkIds.length; j++) {
+			if (
+				(priority & (1 === 0) || notFulfilled >= priority) &&
+				Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))
+			) {
+				chunkIds.splice(j--, 1);
+			} else {
+				fulfilled = false;
+				if (priority < notFulfilled) notFulfilled = priority;
+			}
+		}
+		if (fulfilled) {
+			deferred.splice(i--, 1);
+			var r = fn();
+			if (r !== undefined) result = r;
+		}
+	}
+	return result;
+};
+
+})();
+// webpack/runtime/public_path
+(() => {
+__webpack_require__.p = "/";
+})();
+// webpack/runtime/jsonp_chunk_loading
+(() => {
+
+      // object to store loaded and loading chunks
+      // undefined = chunk not loaded, null = chunk preloaded/prefetched
+      // [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+      var jsonpInstalledChunks = {4: 0,};
+      
+        __webpack_require__.f.j = function (chunkId, promises) {
+          // JSONP chunk loading for javascript
+var installedChunkData = __webpack_require__.o(jsonpInstalledChunks, chunkId)
+	? jsonpInstalledChunks[chunkId]
+	: undefined;
+if (installedChunkData !== 0) {
+	// 0 means "already installed".
+
+	// a Promise means "currently loading".
+	if (installedChunkData) {
+		promises.push(installedChunkData[2]);
+	} else {
+		if (true) {
+			// setup Promise in chunk cache
+			var promise = new Promise((resolve, reject) => (installedChunkData = jsonpInstalledChunks[chunkId] = [resolve, reject]));
+			promises.push((installedChunkData[2] = promise));
+
+			// start chunk loading
+			var url = __webpack_require__.p + __webpack_require__.u(chunkId);
+			// create error before stack unwound to get useful stacktrace later
+			var error = new Error();
+			var loadingEnded = function (event) {
+				if (__webpack_require__.o(jsonpInstalledChunks, chunkId)) {
+					installedChunkData = jsonpInstalledChunks[chunkId];
+					if (installedChunkData !== 0) jsonpInstalledChunks[chunkId] = undefined;
+					if (installedChunkData) {
+						var errorType =
+							event && (event.type === 'load' ? 'missing' : event.type);
+						var realSrc = event && event.target && event.target.src;
+						error.message =
+							'Loading chunk ' +
+							chunkId +
+							' failed.\n(' +
+							errorType +
+							': ' +
+							realSrc +
+							')';
+						error.name = 'ChunkLoadError';
+						error.type = errorType;
+						error.request = realSrc;
+						installedChunkData[1](error);
+					}
+				}
+			};
+			__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
+		} 
+	}
+}
+
+        }
+        __webpack_require__.O.j = (chunkId) => (jsonpInstalledChunks[chunkId] === 0);
+// install a JSONP callback for chunk loading
+var __rspack_jsonp = (parentChunkLoadingFunction, data) => {
+	var [chunkIds, moreModules, runtime] = data;
+	// add "moreModules" to the modules object,
+	// then flag all "chunkIds" as loaded and fire callback
+	var moduleId, chunkId, i = 0;
+	if (chunkIds.some((id) => (jsonpInstalledChunks[id] !== 0))) {
+		for (moduleId in moreModules) {
+			if (__webpack_require__.o(moreModules, moduleId)) {
+				__webpack_require__.m[moduleId] = moreModules[moduleId];
+			}
+		}
+		if (runtime) var result = runtime(__webpack_require__);
+	}
+	if (parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+	for (; i < chunkIds.length; i++) {
+		chunkId = chunkIds[i];
+		if (
+			__webpack_require__.o(jsonpInstalledChunks, chunkId) &&
+			jsonpInstalledChunks[chunkId]
+		) {
+			jsonpInstalledChunks[chunkId][0]();
+		}
+		jsonpInstalledChunks[chunkId] = 0;
+	}
+	
+	return __webpack_require__.O(result);
+	
+};
+
+var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_vue_basic"] = self["rspackChunkrsbuild_vue_basic"] || [];
+jsonpChunkLoadingGlobal.forEach(__rspack_jsonp.bind(null, 0));
+jsonpChunkLoadingGlobal.push = __rspack_jsonp.bind(null, jsonpChunkLoadingGlobal.push.bind(jsonpChunkLoadingGlobal));
+
+})();
+// module factories are used so entry inlining is disabled
+// startup
+// Load entry module and return exports
+var __webpack_exports__ = __webpack_require__.O(undefined, ["5", "3"], () => __webpack_require__(0));
+__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+})()
+;

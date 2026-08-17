@@ -1,0 +1,53 @@
+{
+  "boundaryToOwner": {
+    "src/App.svelte": "src/index:bootstrap",
+    "src/index:bootstrap": "src/index:bootstrap",
+    "src/lib/LocaleSwitcher.svelte": "src/index:bootstrap",
+    "src/lib/LocaleSwitcher.svelte:f_525": "src/lib/LocaleSwitcher.svelte:f_525"
+  },
+  "chunks": {
+    "entry_b_581042b7afb9": {
+      "boundaries": [
+        "src/lib/LocaleSwitcher.svelte:f_525"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/lib/LocaleSwitcher.svelte:f_525"
+      ],
+      "id": "entry_b_581042b7afb9",
+      "type": "entry"
+    },
+    "entry_b_dd563dcb7e61": {
+      "boundaries": [
+        "src/App.svelte",
+        "src/index.css",
+        "src/index:bootstrap",
+        "src/lib/LocaleSwitcher.svelte",
+        "svelte"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index:bootstrap"
+      ],
+      "id": "entry_b_dd563dcb7e61",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/index:bootstrap": "entry_b_dd563dcb7e61",
+    "src/lib/LocaleSwitcher.svelte:f_525": "entry_b_581042b7afb9"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10"
+  ]
+}

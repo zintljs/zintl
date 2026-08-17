@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vanilla Rsbuild router - Zintl example</title>
+  <script defer src="/static/js/4.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
+    <script id="zintl-projection">
+      (function() {
+        const l = localStorage.getItem('zintl-locale') || 'en';
+        const rtl = ["ar"];
+        const deltas = {"ar":{"title":"موجّه Vanilla Rsbuild - مثال زينتل"},"es":{"title":"Enrutador Vanilla Rsbuild - Ejemplo de Zintl"},"zh":{"title":"Vanilla Rsbuild 路由 - Zintl 示例"}};
+        const originals = {
+        title: document.title,
+      };
+        function apply(locale) {
+          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
+          document.documentElement.lang = locale;
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
+        }
+        window.__zintlApplyHtml = apply;
+        if (l !== 'en') {
+          apply(l);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

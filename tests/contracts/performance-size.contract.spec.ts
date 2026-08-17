@@ -21,6 +21,16 @@ import { allManifests } from "../manifests/index.js";
  * the way `build.contract` already does — locate the emitted lazy catalog chunks
  * in `dist` and check their size. That is deterministic, it is the number that
  * matters to a user, and it needs no timing window at all.
+ *
+ * **Fixed since, separately:** the URL filter was four hardcoded Vite-shaped
+ * fragments — `virtual:zintl`, `/zintl/`, `/i18n/`, `.json`. An Rspack build
+ * emits catalogs as ordinary hashed async chunks whose URLs carry none of
+ * those, so this contract could only ever measure zero responses there, fail
+ * its `toBeGreaterThan(0)` guard, and be recorded in every Rsbuild manifest as
+ * a host that cannot meet a performance budget. It was a contract that could
+ * not see. `LocaleSwitchAdapter.isCatalogRequest` already existed for exactly
+ * this question and is already declared by those manifests — so `performance`
+ * on Rspack was blocked by a filter, not by the host.
  */
 export const performanceSizeContract: Contract<LocaleSwitchAdapter> = {
   name: "Performance Size",
@@ -31,16 +41,23 @@ export const performanceSizeContract: Contract<LocaleSwitchAdapter> = {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
 
-    const catalogSizes: number[] = [];
-    const onResponse = async (res: any) => {
-      const url = res.url();
-      // Target Zintl dynamic virtual modules or catalog JSON files
-      if (
+    /**
+     * The same `??` default `locale-switch` uses, so one project answers the
+     * "is this a catalog request" question once, for both contracts.
+     */
+    const isCatalogRequest =
+      adapter.isCatalogRequest ??
+      ((url: string, locale: string) =>
+        url.includes(`virtual:zintl/content/${locale}/`) ||
         url.includes("virtual:zintl") ||
         url.includes("/zintl/") ||
         url.includes("/i18n/") ||
-        url.endsWith(".json")
-      ) {
+        url.endsWith(".json"));
+
+    const catalogSizes: number[] = [];
+    const onResponse = async (res: any) => {
+      const url = res.url();
+      if (isCatalogRequest(url, "es")) {
         try {
           const body = await res.body();
           catalogSizes.push(body.length);

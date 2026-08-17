@@ -92,7 +92,50 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
     priority: 100,
     extensions: options.extensions || [".vue"],
     match: (filePath: string) => filePath.endsWith(".vue"),
-    wrapSfcScript: (code: string): string => `<script setup lang="ts">\n${code}</script>\n`,
+    /**
+     * Vue's half of the store subscription.
+     *
+     * `shallowRef` rather than `ref`: the value is a number and there is nothing
+     * to deep-track, so the cheaper handle is also the honest one.
+     *
+     * `onScopeDispose` takes the unsubscribe `subscribe()` returns. Without it
+     * every component instance would leave a listener behind on unmount, and the
+     * store's listener set would grow for the life of the page — which the
+     * `memory-leak` contract would eventually find, and which would be a poor
+     * trade for the defect this fixes.
+     *
+     * `getCurrentScope()` guards the dispose registration: `onScopeDispose`
+     * warns when called outside a component or effect scope, and a `_t` can be
+     * reached from a plain module-level helper.
+     */
+    reactiveBridge: {
+      /**
+       * The framework import is written by the facet, inside `setup`, rather
+       * than declared for the pipeline to place. The pipeline's import writer
+       * merges by source across the whole file, and for a `.vue` file that put
+       * `import … from "vue"` *above* the `<script setup>` tag — outside any
+       * block, which is not a valid SFC. Where the import has to land is a
+       * property of the dialect, so the dialect writes it.
+       */
+      setup: [
+        'import { shallowRef, onScopeDispose, getCurrentScope } from "vue";',
+        "const __zintl_v = shallowRef(getStoreVersion());",
+        "const __zintl_off = subscribe(() => {",
+        "  __zintl_v.value = getStoreVersion();",
+        "});",
+        "if (getCurrentScope()) onScopeDispose(__zintl_off);",
+      ].join("\n"),
+      read: "__zintl_v.value",
+    },
+    wrapSfcScript: (code: string, options?: { lang?: string }): string => {
+      // No options means Zintl is authoring the component's only script block,
+      // where TypeScript has always been the default. With options, the block
+      // sits beside one that already exists and the language must match it
+      // exactly — including matching "no lang" for a plain JavaScript SFC.
+      const lang = options ? options.lang : "ts";
+      return `<script setup${lang ? ` lang="${lang}"` : ""}>\n${code}</script>\n`;
+    },
+    requiresScriptSetup: true,
     wrapHtmlText: (replacement: string, hasTags: boolean, _hasVars: boolean): string => {
       if (hasTags) {
         return `<span v-html="${replacement.replace(/"/g, "&quot;")}"></span>`;
@@ -119,5 +162,34 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
  * Included in the built-in set when Vue is detected.
  */
 export function vueFacet(options: VueFacetOptions = {}): ZintlFacet[] {
-  return [vueExtractionFacet(options), vueCodegenFacet(options)];
+  return [vueExtractionFacet(options), vueCodegenFacet(options), vueRuntimeFacet()];
+}
+
+/**
+ * Vue's half of {@link RuntimeFacet.repaintsOnCatalogUpdate}.
+ *
+ * Measured rather than reasoned: `rsbuild-vue-mpa` applies a catalog edit to its
+ * heading with no reload, on a host whose applier invalidates nothing. Declaring
+ * `false` here would take that warmth away and replace it with a page refresh,
+ * which is why the flag is set — the alternative was measurably worse on a
+ * project that already worked.
+ *
+ * **Necessary, not sufficient**, and the gap is recorded rather than papered
+ * over: `rsbuild-vue-basic` and `rsbuild-vue-spa` still miss the repaint, and
+ * the line between them and the MPA is not the framework but whether the
+ * manager *inlines* the catalog or *fetches* it. A fetched catalog on this host
+ * updates a module nothing re-runs. See ledger L-064.
+ *
+ * It declares no `entryReexecutionSafe`, so it keeps the permissive default: the
+ * two flags answer different questions, and Vue's mount is replayable where
+ * React's `createRoot` and Svelte's `mount` are not.
+ */
+function vueRuntimeFacet(): ZintlFacet {
+  return {
+    name: "vue-runtime",
+    when: { framework: "vue" },
+    concern: "runtime",
+    priority: 100,
+    repaintsOnCatalogUpdate: true,
+  };
 }

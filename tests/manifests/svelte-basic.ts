@@ -16,6 +16,7 @@ export const svelteBasic: ProjectManifest = {
   capabilities: [
     "spa",
     "hmr",
+    "hmr-warm",
     "locale-switch",
     "rtl",
     "boundary-graph",

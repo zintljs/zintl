@@ -1,0 +1,42 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_components_Header_Header from "virtual:zintl/manager/none/entry:b_src_components_Header_Header";
+import _zintl_mgr_b_src_about_render from "virtual:zintl/manager/none/entry:b_src_about_render";
+import "./index.css";
+
+import { Header } from "./components/Header.ts";
+import { setupSwitcher } from "./switcher.ts";
+
+/**
+ * The second page's entry, with its own document and its own trust anchor.
+ *
+ * Its boundary is independent of the home page's — nothing is inherited across
+ * documents — while `Header`'s boundary is shared by both, because both import
+ * it and it anchors itself.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_about_render"]: _zintl_mgr_b_src_about_render.loader, ["b_src_components_Header_Header"]: _zintl_mgr_b_src_components_Header_Header.loader } }));
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  const page = document.createElement("div");
+  page.className = "content";
+  page.innerHTML = `
+    <div id="switcher" class="switcher"></div>
+    <h1>${_t("Everything is a plain string", { _mgr: _zintl_mgr_b_src_about_render, _bId: "b_src_about_render" })}</h1>
+    <p>${_t("This document has its own entry, and its own catalog chunk.", { _mgr: _zintl_mgr_b_src_about_render, _bId: "b_src_about_render" })}</p>
+    <p>${_t("The header above is shared, and anchors itself.", { _mgr: _zintl_mgr_b_src_about_render, _bId: "b_src_about_render" })}</p>
+  `;
+
+  rootEl.replaceChildren(await Header(lang), page);
+
+  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

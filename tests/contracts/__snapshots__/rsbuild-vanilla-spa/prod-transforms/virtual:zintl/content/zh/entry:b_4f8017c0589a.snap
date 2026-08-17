@@ -1,0 +1,15 @@
+const catalog = {
+    "b_16245bf9a205": {
+      "3de7e774": "原生 Rsbuild",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "92242ba7": "编辑 <code>src/pages/Home.ts</code> 并保存以测试 <code>HMR</code>",
+      "b0fb2e27": "阅读指南",
+    },
+    "b_41f76352d384": {
+      "abdb1589": "一切都是普通字符串",
+      "ab94eb45": "这个页面在自己的分块中加载，它的译文也是。",
+      "5f2f4dd3": "无需 <code>t()</code> 包装，无需键名字典，无需手动维护目录。",
+      "a2bcccd6": "返回首页",
+    },
+  };
+export default catalog;

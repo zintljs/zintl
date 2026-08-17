@@ -131,6 +131,63 @@ describe("GraphManager", () => {
     expect(entryChunk?.boundaries).toContain("b_assets");
   });
 
+  /**
+   * A production compile must not inherit a dev-only virtual boundary from a
+   * persisted `.zintl` manifest. It used to: `manifest["b_assets"]` and
+   * `metadata["b_assets"]` are written in dev and kept on disk, and the
+   * candidate-seeding loop read them back, so a build grew a `b_assets` node
+   * whenever a dev run had touched the same project first. That made a
+   * serialized-graph snapshot a function of test ordering rather than of the
+   * source.
+   */
+  it("does not build a virtual boundary node from persisted dev metadata in a build", () => {
+    const persistedManifest = {
+      "src/main": [entry("key1", "src/main")],
+      b_assets: [entry("@zintl/asset:src/about.txt", "b_assets")],
+    };
+    const persistedMetadata: Record<string, BoundaryMetadata> = {
+      "src/main": {
+        hasZintlMacro: false,
+        hasZintlMarker: false,
+        isEntry: true,
+        anchorSites: [],
+        needsLoader: false,
+        exportedBoundaries: {},
+        internalDependencies: {},
+      },
+      b_assets: {
+        hasZintlMacro: false,
+        hasZintlMarker: false,
+        isEntry: false,
+        anchorSites: [],
+        needsLoader: false,
+        exportedBoundaries: {},
+        internalDependencies: {},
+      },
+    };
+
+    const build = new GraphManager(
+      new IOManager("/root", false, logger, {}, [], []),
+      false,
+      logger,
+      ["en", "ar"],
+    );
+    const buildGraph = build.buildBoundaryGraph(persistedManifest, persistedMetadata, {}, [
+      "b_assets",
+    ]);
+    expect(buildGraph.nodes.has("b_assets")).toBe(false);
+    expect(buildGraph.nodes.has("src/main")).toBe(true);
+
+    // Dev still synthesizes it, and with its own shape — `virtual-content`,
+    // not the id — which is what makes the leaked node identifiable.
+    const dev = new GraphManager(new IOManager("/root", true, logger, {}), true, logger, [
+      "en",
+      "ar",
+    ]);
+    const devGraph = dev.buildBoundaryGraph(persistedManifest, persistedMetadata, {}, ["b_assets"]);
+    expect(devGraph.nodes.has("b_assets")).toBe(true);
+  });
+
   it("should cover leadsToBoundary branches: sovereign/contextual anchors and early returns", () => {
     const io = new IOManager("/root", false, logger, {}, [], []);
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);

@@ -219,8 +219,68 @@ export interface CodegenFacet extends BaseFacet {
   /**
    * Wrap injected code inside an SFC script block.
    * Vue: <script setup lang="ts">, Svelte: <script>
+   *
+   * `options.lang` is passed when the block is being authored *beside* one the
+   * component already has, and must be mirrored exactly — Vue hard-errors with
+   * "<script> and <script setup> must have the same language type". Called with
+   * no options, the facet picks its own default, which is the case where the
+   * component had no script block at all.
    */
-  wrapSfcScript?: (code: string) => string;
+  wrapSfcScript?: (code: string, options?: { lang?: string }) => string;
+  /**
+   * How this dialect makes a rendered translation **depend on** the store.
+   *
+   * React's components subscribe with `useSyncExternalStore`, injected into each
+   * component function. A template dialect has no component function to inject
+   * into, and — more importantly — subscribing would not be enough on its own:
+   * Vue re-renders when a *reactive dependency it read during render* changes,
+   * and `_t('…')` is an ordinary call to an ordinary function. A component can
+   * be perfectly subscribed and still never redraw, because nothing it rendered
+   * was reactive.
+   *
+   * So this contributes both halves:
+   *
+   * - `setup` establishes a reactive handle in the component's scope and keeps
+   *   it in step with the store.
+   * - `read` is spliced into every generated `_t` call, so rendering a
+   *   translation *is* reading the handle. That is what closes the loop: the
+   *   dependency is recorded during render, by construction, for every sink
+   *   without the codegen having to find them.
+   *
+   * Without it a delivered catalog is invisible to the framework — measured on
+   * Rspack, where nothing else re-runs the component (ledger L-069). Vite hid it
+   * because its applier re-runs the entry on every boundary update, remounting
+   * the tree against the new catalog for unrelated reasons.
+   */
+  reactiveBridge?: {
+    /**
+     * Statements establishing the handle, inserted into the component scope.
+     *
+     * Writes its own framework imports. `subscribe` and `getStoreVersion` are
+     * added from the runtime for you; anything dialect-specific belongs here,
+     * because where an import may legally sit is a property of the dialect —
+     * declaring `vue` for the pipeline to place put it outside the SFC's
+     * `<script setup>` block, which is not a valid single-file component.
+     */
+    setup: string;
+    /** Expression every generated `_t` call reads, as an options-object value. */
+    read: string;
+  };
+  /**
+   * Do this dialect's template expressions resolve against the component
+   * *instance* rather than the script block's lexical scope?
+   *
+   * Vue declares it: a plain `<script>` component compiles its template into a
+   * separate render function, so `_t` and `_zintl_mgr_*` injected into that
+   * block are invisible to the template and the page renders empty with
+   * `_ctx._t is not a function` (ledger L-053). `<script setup>` compiles the
+   * template against setup bindings, which is why it is the supported shape.
+   *
+   * Svelte leaves it undeclared: its `<script>` *is* the component scope.
+   * Undeclared rather than `false`, per the convention {@link BundlerFacet.hotUpdate}
+   * sets out — saying nothing is the honest form of saying no.
+   */
+  requiresScriptSetup?: boolean;
   /**
    * Wrap JSX children that contain rich HTML tags.
    * React: dangerouslySetInnerHTML={{ __html: ... }}
@@ -315,6 +375,33 @@ export interface RuntimeFacet extends BaseFacet {
    * project containing any non-replayable mount has one.
    */
   entryReexecutionSafe?: boolean;
+  /**
+   * Whether components built by this framework **redraw themselves** when a new
+   * catalog reaches the store.
+   *
+   * The question a hot catalog update turns on, and a different one from
+   * {@link entryReexecutionSafe}: that asks whether re-running the entry is
+   * *safe*, this asks whether anything repaints without re-running it at all.
+   * React reads the store through `useSyncExternalStore`; Vue's components
+   * track it through its own reactivity. Svelte's compiled output and a plain
+   * vanilla entry do neither — they paint once and the DOM is a snapshot.
+   *
+   * Where it is false, a delivered catalog is *applied and invisible*: the store
+   * holds the new translation and the page keeps showing the text it painted
+   * before the edit. That is not a hot update the user can perceive, so the host
+   * is told to reload instead (ledger L-064).
+   *
+   * Absent means `false`, unlike `entryReexecutionSafe`, and the asymmetry is
+   * deliberate. There the conservative direction keeps hot updates working; here
+   * the conservative direction is to reload, because the failure mode of a
+   * wrong `true` is a page that silently lies about its own contents while a
+   * wrong `false` costs a page refresh.
+   *
+   * Merged optimistically — one facet declaring `true` decides it, since a
+   * single reactive framework in the project is enough for its own components
+   * to redraw.
+   */
+  repaintsOnCatalogUpdate?: boolean;
   /**
    * Custom locale detection from URL/request context.
    * Chained: first non-undefined result from any facet wins.
@@ -411,6 +498,36 @@ export interface BundlerFacet extends BaseFacet {
    */
   dependencyInvalidation?: boolean;
   /**
+   * When this host compiles one block of a single-file component, does the
+   * loader receive the **whole source file** or just that block?
+   *
+   * The two hosts answer differently, and the difference decides whether Zintl
+   * may transform a sub-block request at all.
+   *
+   * On Vite, `@vitejs/plugin-vue` *loads* `App.vue?vue&type=template` as a
+   * virtual module whose contents are the template block alone. Handing that
+   * fragment to `transform()` would be asking the extractor to read a partial
+   * document as an SFC, so those ids must be skipped — the whole file was
+   * already transformed once, under its unsuffixed id, and the block is derived
+   * from that result.
+   *
+   * On Rspack, `vue-loader`'s pitcher rewrites the block into a `-!` request
+   * that **re-reads the original file** and runs the chain over it
+   * (`rspack-vue-loader/dist/pitcher.js`, `genRequest`). So the loader is handed
+   * the entire SFC, Zintl's transform is the right thing to run, and
+   * `vue-loader` then selects the block out of the transformed source. Skipping
+   * there means the parent request is transformed and thrown away while the
+   * blocks that become code never are — an app that extracts correctly, builds
+   * green, and renders the source locale (ledger L-051).
+   *
+   * Declared by the host rather than tested for, because "is this a sub-block
+   * request" is a question about the bundler and `hooks/transform.ts` is
+   * bundler-agnostic. Undeclared reads as `false`, which keeps Vite's behaviour
+   * as the default — the conservative direction, since a wrong `true` feeds
+   * fragments to the extractor and a wrong `false` only repeats work.
+   */
+  sfcBlockRequestsCarryWholeFile?: boolean;
+  /**
    * How this host spells "accept my own updates", for **generated** modules.
    *
    * Distinct from {@link hmrInjectionCode}, which decorates a *source* file and
@@ -421,13 +538,29 @@ export interface BundlerFacet extends BaseFacet {
    *
    * `callbackBody` receives `newModule` in scope when supplied.
    *
+   * `canRepaint` says whether **anything in the running page can act on a new
+   * catalog** — a framework subscribed to the store, or a host that re-executes
+   * the entry as part of applying the update. Accepting is only correct when
+   * something downstream will redraw: an accept that nothing acts on *swallows*
+   * the update, leaving a page whose store is right and whose DOM is a
+   * screenshot of the previous one (ledger L-064). A facet that cannot repaint
+   * should return `""` so the update bubbles to a reload instead — which is the
+   * same trade L-035 made for source files, one module kind later.
+   *
+   * Hosts differ on this, which is why it is a facet decision rather than a
+   * compiler one: Vite's applier explicitly invalidates the entry's own modules
+   * on a boundary update, so the entry re-runs and repaints whatever the
+   * framework does. Rspack's applier deliberately invalidates nothing and
+   * rebuilds only what its declared dependencies mark stale, so a generated
+   * catalog that accepts its own update is the end of the line.
+   *
    * This exists because two call sites in the compiler hardcoded
    * `import.meta.hot` and consulted no facet at all, so every host was handed
    * Vite's API for its generated modules regardless of who was building. A
    * facet returning `""` declares that it has no hot-update story yet, which is
    * a better answer than the wrong API.
    */
-  hmrSelfAcceptCode?: (callbackBody?: string) => string;
+  hmrSelfAcceptCode?: (callbackBody?: string, canRepaint?: boolean) => string;
 
   /** HMR injection code generation (appended to transformed files in dev) */
   hmrInjectionCode?: (
@@ -511,6 +644,21 @@ export interface ContentFacet extends BaseFacet {
    * boundary to hang catalogs on — the assets facet uses `"b_assets"`.
    */
   virtualBoundaries?: string[];
+  /**
+   * Every file this facet's {@link virtualBoundaries} are derived from, as
+   * absolute paths — sources and their localized outputs alike.
+   *
+   * The answer to "what would change the catalog of a boundary that owns no
+   * source". `boundaryOwnership` cannot supply it, because a virtual boundary
+   * is *contributed* rather than extracted, so without this a generated module
+   * embedding this facet's content declares no dependencies and is never stale
+   * on a host that rebuilds from declared inputs. Ledger L-067.
+   *
+   * Synchronous, unlike {@link getActiveOutputPaths}: it is consulted while
+   * building the watched-file list for a module that is being generated, on a
+   * path with no await to spare.
+   */
+  getDeclaredInputs?: (context: CompilerContext) => string[];
   /** The boundary a localized output file belongs to, or `null` if none. */
   getBoundaryForLocalizedOutput?: (
     filePath: string,
@@ -618,6 +766,7 @@ export interface CapabilityFlags {
    * `RuntimeFacet.entryReexecutionSafe`.
    */
   entryReexecutionSafe: boolean;
+  repaintsOnCatalogUpdate: boolean;
   /** True when client-side locale sync is active (popstate, pushState, MutationObserver) */
   clientLocaleSync: boolean;
   /** True when server-side request scoping is active (AsyncLocalStorage) */
@@ -642,6 +791,8 @@ export interface CapabilityFlags {
   hotUpdate: boolean;
   /** True when the active bundler facet invalidates generated modules via declared file dependencies */
   dependencyInvalidation: boolean;
+  /** True when the active bundler facet hands SFC sub-block requests the whole source file */
+  sfcBlockRequestsCarryWholeFile: boolean;
 }
 
 /**
@@ -696,7 +847,7 @@ export interface CompilerSystemView {
    * Resolved self-accept generator for generated modules (undefined if no
    * bundler facet supplies one, which means: emit nothing).
    */
-  hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
+  hmrSelfAcceptCode: ((callbackBody?: string, canRepaint?: boolean) => string) | undefined;
   /** Resolved HMR injection code generator (undefined if no HMR facet) */
   hmrInjectionCode:
     | ((

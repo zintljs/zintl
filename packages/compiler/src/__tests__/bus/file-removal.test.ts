@@ -45,18 +45,31 @@ describe("removeFile", () => {
     expect(compiler.messages.dependencyGraph["src/Gone.tsx"]).toBeUndefined();
   });
 
-  it("marks the removed boundaries dirty so a flush reclaims their catalogs", async () => {
+  it("leaves the removed boundaries out of the dirty set, so nothing rewrites them", async () => {
     /**
-     * Pruning finds orphans by comparing the output directory against the live
-     * graph, but the flush still has to be told something changed — otherwise a
-     * deletion made during an idle moment sits unflushed until an unrelated
-     * edit happens to wake it.
+     * This asserted the opposite — that removal marks the boundary dirty "so a
+     * flush reclaims their catalogs" — and the intent behind it was sound while
+     * the mechanism was backwards. Pruning does find orphans by comparing the
+     * output directory against the live graph, and a deletion during an idle
+     * moment must not sit unflushed. But "dirty" does not mean *reclaim me*, it
+     * means **write my catalog**, so the flag queued the deleted boundary's
+     * catalogs to be written straight back after the prune had removed them:
+     *
+     * ```
+     * Pruning orphaned file: zintl/src/App.svelte.ar.json   +0ms
+     * Writing file:          zintl/src/App.svelte.ar.json   +0ms
+     * ```
+     *
+     * Ledger L-071. The waking the flag was really for is already handled twice
+     * over — `removeFile` ends with an explicit `scheduleFlush()`, and a flush
+     * deferred by another gets its own trigger (L-070) — so removing it costs
+     * nothing that was wanted.
      */
     const compiler = makeCompiler();
 
     await compiler.removeFile("/tmp/zintl-removal-test/src/Gone.tsx");
 
-    expect([...compiler.messages.dirtyBoundaries]).toContain("src/Gone.tsx:Gone");
+    expect([...compiler.messages.dirtyBoundaries]).not.toContain("src/Gone.tsx:Gone");
   });
 
   it("names the deletion in the ledger", async () => {

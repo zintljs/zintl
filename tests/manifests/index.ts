@@ -8,8 +8,15 @@ import { vanillaSpaBasic } from "./vanilla-spa-basic.js";
 import { vanillaSsr } from "./vanilla-ssr.js";
 import { assetsBasic } from "../fixtures/assets-basic.js";
 import { ssrStreaming } from "../fixtures/ssr-streaming.js";
-import { rsbuildSpa } from "./rsbuild-spa.js";
-import { rsbuildReact } from "./rsbuild-react.js";
+import { lazyBoundary } from "../fixtures/lazy-boundary.js";
+import { rsbuildVanillaBasic } from "./rsbuild-vanilla-basic.js";
+import { rsbuildReactBasic } from "./rsbuild-react-basic.js";
+import { rsbuildSvelteBasic } from "./rsbuild-svelte-basic.js";
+import { rsbuildVanillaSpa } from "./rsbuild-vanilla-spa.js";
+import { rsbuildVanillaMpa } from "./rsbuild-vanilla-mpa.js";
+import { rsbuildVueBasic } from "./rsbuild-vue-basic.js";
+import { rsbuildVueSpa } from "./rsbuild-vue-spa.js";
+import { rsbuildVueMpa } from "./rsbuild-vue-mpa.js";
 import { multiplexAssets } from "../fixtures/multiplex-assets.js";
 import { multiplexRsbuildFence } from "../fixtures/multiplex-rsbuild-fence.js";
 import type { ProjectManifest } from "@zintljs/testing";
@@ -37,8 +44,15 @@ export const allManifests: ProjectManifest[] = [
   vanillaSsr,
   assetsBasic,
   ssrStreaming,
-  rsbuildSpa,
-  rsbuildReact,
+  lazyBoundary,
+  rsbuildVanillaBasic,
+  rsbuildReactBasic,
+  rsbuildSvelteBasic,
+  rsbuildVanillaSpa,
+  rsbuildVanillaMpa,
+  rsbuildVueBasic,
+  rsbuildVueSpa,
+  rsbuildVueMpa,
   multiplexAssets,
   multiplexRsbuildFence,
 ];

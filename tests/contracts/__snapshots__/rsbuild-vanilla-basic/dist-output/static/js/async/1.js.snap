@@ -1,0 +1,37 @@
+"use strict";
+(self["rspackChunkrsbuild_vanilla_basic"] = self["rspackChunkrsbuild_vanilla_basic"] || []).push([[1], {
+15(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_vanilla_basic_src_i18n_src_about_es_txt_zintl_raw__rspack_import_0 = __webpack_require__(16);
+
+const catalog = {
+    "b_4f8017c0589a": {
+      "3de7e774": "Rsbuild con Vanilla",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "822f0fb2": "Edita <code>src/index.ts</code> y guarda para probar <code>HMR</code>",
+    },
+    "b_f05b8e5701f3": {
+      "3aaf6932": (params) => {
+    const { counter } = params;
+    return `${(() => {
+      if (params['counter'] == 0) return `Aún no has contado`;
+      const rule = new Intl.PluralRules('es').select(params['counter']);
+      if (rule === 'one') return `La cuenta es uno`;
+      return `La cuenta es ${params['counter']}`;
+    })()}`;
+  },
+    },
+    "b_assets": {
+    "749ed136": <MONOREPO_ROOT>_tmp_runs_wN_rsbuild_vanilla_basic_src_i18n_src_about_es_txt_zintl_raw__rspack_import_0["default"],
+  },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+16(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ("Zintl mantiene las traducciones junto al código que las necesita.\n");
+
+},
+
+}]);

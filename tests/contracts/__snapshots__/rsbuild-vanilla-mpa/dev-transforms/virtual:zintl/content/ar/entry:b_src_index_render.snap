@@ -1,0 +1,11 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Rsbuild الأساسي",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Two documents, two entries, one shared header.": "صفحتان، ونقطتا دخول، وترويسة واحدة مشتركة.",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;

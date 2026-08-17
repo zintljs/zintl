@@ -23,12 +23,14 @@ const EXCLUDED_EXTENSIONS = new Set([
 ]);
 
 /**
- * A `BuildToolDriver` backed by Rsbuild, for proposal 026.
+ * A `BuildToolDriver` backed by Rsbuild.
  *
- * This exists to falsify, not to support. It is the second host the contract
- * layer can drive, so that "the compiler is bundler-agnostic" has something
- * capable of disagreeing with it. Scope is ZDB §7a Tier 1 — build only, no dev
- * server and no hot updates.
+ * It was written to falsify rather than to support (proposal 026): a second
+ * host the contract layer can drive, so that "the compiler is bundler-agnostic"
+ * has something capable of disagreeing with it. It kept disagreeing, the
+ * disagreements got fixed, and Rsbuild is a supported target since proposal
+ * 030 — so this now covers builds, and `RsbuildDevServerDriver` next to it
+ * covers the dev server and hot updates.
  *
  * The one structural difference from `ViteDriver` is `build()`, and it is not
  * cosmetic. Vite's build returns an in-memory bundle under `write: false`, so

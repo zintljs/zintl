@@ -1,0 +1,29 @@
+import _zintl_asset_0 from "<MONOREPO_ROOT>/examples/rsbuild-vanilla-basic/src/about.txt?zintl-raw";
+export default { id: "b_4f8017c0589a", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_4f8017c0589a": {
+      "3de7e774": "Vanilla Rsbuild",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "822f0fb2": "Edit <code>src/index.ts</code> and save to test <code>HMR</code>",
+    },
+    "b_f05b8e5701f3": {
+      "3aaf6932": (params) => {
+    const { counter } = params;
+    return `Count is ${params['counter']}`;
+  },
+    },
+    "b_assets": {
+    "749ed136": _zintl_asset_0,
+  },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_4f8017c0589a").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_4f8017c0589a").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_4f8017c0589a").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

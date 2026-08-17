@@ -1,0 +1,23 @@
+{
+  "name": "rsbuild-svelte-basic",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev",
+    "build": "npm run check && rsbuild build",
+    "preview": "rsbuild preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "svelte": "catalog:"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "catalog:",
+    "@rsbuild/plugin-svelte": "catalog:",
+    "@tsconfig/svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "typescript": "catalog:",
+    "zintljs": "workspace:*"
+  }
+}

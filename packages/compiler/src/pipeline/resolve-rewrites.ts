@@ -15,7 +15,10 @@ import type { CodegenFacet } from "../types/capabilities.js";
  * Find the codegen facet for a given file path.
  * Uses the resolved facet system.
  */
-function findCodegen(filePath: string | undefined, config: ZintlConfig): CodegenFacet | undefined {
+export function findCodegen(
+  filePath: string | undefined,
+  config: ZintlConfig,
+): CodegenFacet | undefined {
   if (!filePath) return undefined;
   if (config.system?.codegenFacets) {
     const found = config.system.codegenFacets.find((a) => a.match(filePath));
@@ -357,7 +360,16 @@ function generateSinkWrapRewrite(
     }
   }
 
-  let replacement = `_t(${quoteFn(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${quoteFn(intent.boundaryId)}${tagsPart} })`;
+  /**
+   * Rendering a translation *is* reading the framework's reactive handle.
+   *
+   * Spliced in here rather than left to the codegen to find its own sinks:
+   * every generated `_t` call gets the dependency by construction, so there is
+   * no class of sink that can be missed. `_t` ignores options it does not know,
+   * so on a dialect without a bridge nothing changes at all.
+   */
+  const reactiveRead = adapter?.reactiveBridge ? `, _v: ${adapter.reactiveBridge.read}` : "";
+  let replacement = `_t(${quoteFn(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${quoteFn(intent.boundaryId)}${tagsPart}${reactiveRead} })`;
   if (intent.sink.isFragment) replacement = `\${${replacement}}`;
 
   // Custom HTML_TEXT and html:attr: wrapping for Vue / Svelte template syntax

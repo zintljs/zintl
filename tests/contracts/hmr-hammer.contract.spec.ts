@@ -6,7 +6,7 @@ import { join } from "node:path";
 export const hmrHammerContract: Contract = {
   name: "HMR Hammer",
   description: "Verifies rapid concurrent filesystem updates converge correctly on the final text",
-  requires: ["spa", "hmr-stress"],
+  requires: ["hmr", "hmr-stress"],
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();

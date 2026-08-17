@@ -1,0 +1,45 @@
+{
+  "boundaryToOwner": {
+    "src/index:render": "src/index:render",
+    "src/pages/About": "src/pages/About",
+    "src/pages/Home:Home": "src/index:render"
+  },
+  "chunks": {
+    "entry_b_4f8017c0589a": {
+      "boundaries": [
+        "src/index.css",
+        "src/index:render",
+        "src/pages/Home:Home",
+        "src/router",
+        "src/switcher:setupSwitcher",
+        "zintljs/macro"
+      ],
+      "colonies": [
+        "src/pages/About"
+      ],
+      "entrySources": [
+        "src/index:render"
+      ],
+      "id": "entry_b_4f8017c0589a",
+      "type": "entry"
+    },
+    "lazy_b_9152c1db0645": {
+      "boundaries": [
+        "src/pages/About"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/pages/About"
+      ],
+      "id": "lazy_b_9152c1db0645",
+      "type": "lazy"
+    }
+  },
+  "entryChunks": {
+    "src/index:render": "entry_b_4f8017c0589a"
+  },
+  "lazyChunks": [
+    "lazy_b_9152c1db0645"
+  ],
+  "sharedChunks": []
+}

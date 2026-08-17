@@ -1,5 +1,10 @@
 import { describe, bench, beforeEach } from "vite-plus/test";
 import { extract, resolveTargets, type TargetDescriptor } from "../index.js";
+import {
+  CALIBRATION_BENCH_NAME,
+  calibrationSink,
+  calibrationWorkload,
+} from "../../../../scripts/bench-calibration.js";
 
 /**
  * The sinks a real React project installs — `vanillaFacet` + `reactFacet` +
@@ -90,12 +95,13 @@ describe("Zintl Extractor Performance", () => {
     }
   `;
 
-  bench("Reference Calibration (No-Op)", () => {
-    let sum = 0;
-    for (let i = 0; i < 1000; i++) {
-      sum += Math.sin(i);
-    }
-  });
+  bench(
+    CALIBRATION_BENCH_NAME,
+    () => {
+      calibrationSink.total += calibrationWorkload();
+    },
+    { time: 500, warmupTime: 200, warmupIterations: 10 },
+  );
 
   bench(
     "Extract Short File",

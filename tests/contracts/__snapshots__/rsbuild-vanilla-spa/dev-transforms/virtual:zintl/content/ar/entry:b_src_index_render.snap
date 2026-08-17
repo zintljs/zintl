@@ -1,0 +1,18 @@
+const catalog = {
+    "b_src_pages_Home_Home": {
+      "Vanilla Rsbuild": "Rsbuild الأساسي",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/pages/Home.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/pages/Home.ts</code> واحفظ لاختبار <code>HMR</code>",
+      "Read the guide": "اقرأ الدليل",
+    },
+    "b_src_pages_About_About": {
+      "Everything is a plain string": "كل شيء نص عادي",
+      "This page arrived in its own chunk, and so did its translations.": "وصلت هذه الصفحة في حزمة خاصة بها، وكذلك ترجماتها.",
+      "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "بلا غلاف <code>t()</code>، وبلا قاموس مفاتيح، وبلا كتالوج يدوي.",
+      "Back to the start": "العودة إلى البداية",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;

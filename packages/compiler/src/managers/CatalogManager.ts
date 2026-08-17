@@ -1159,7 +1159,10 @@ export class CatalogManager {
     /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
     precomputedReachable?: Set<string> | null,
   ) {
-    if (!this.prune) return;
+    if (!this.prune) {
+      this.logger.debug("Prune skipped: disabled by the `prune` option.");
+      return;
+    }
     if (this.isDev && !this.isTestEnv) {
       /**
        * Pruning is disabled for real development sessions, so a source file's
@@ -1175,6 +1178,10 @@ export class CatalogManager {
        * catalog, which is much worse. Until then the staleness has a name in the
        * ledger instead of being invisible.
        */
+      this.logger.debug(
+        `Prune skipped: disabled for development sessions (isDev=${this.isDev}, ` +
+          `isTestEnv=${this.isTestEnv}). Stale outputs are retained by design.`,
+      );
       this.io.bus?.settle(
         this.io.bus.mint("io/write", "prune"),
         "superseded",
@@ -1325,13 +1332,37 @@ export class CatalogManager {
     const pathsHash = Array.from(knownPaths)
       .sort((a, b) => a.localeCompare(b))
       .join("|");
-    if (this.lastPrunedPathsHash !== null && this.lastPrunedPathsHash === pathsHash) return;
+    if (this.lastPrunedPathsHash !== null && this.lastPrunedPathsHash === pathsHash) {
+      /**
+       * A silent `return` here for the life of this optimization, and it is the
+       * one branch that most needs a voice.
+       *
+       * "The prune did not delete a file" has three completely different causes
+       * — it never ran, it ran and considered the file live, or it ran and the
+       * file was not there yet — and from outside they are indistinguishable.
+       * Ledger L-065 spent an investigation on exactly that ambiguity. Both the
+       * bus and the log carry the answer now, matching the dev-gate return
+       * above, which was already reported this way.
+       */
+      this.logger.debug(
+        `Prune skipped: the known-path set is unchanged (${knownPaths.size} paths). ` +
+          `Anything stale on disk was already stale the last time this ran.`,
+      );
+      this.io.bus?.settle(
+        this.io.bus.mint("io/write", "prune"),
+        "superseded",
+        `known-path set unchanged (${knownPaths.size} paths); scan skipped`,
+      );
+      return;
+    }
     this.lastPrunedPathsHash = pathsHash;
 
     const baseDir = isAbsolute(this.outputDir) ? this.outputDir : join(this.root, this.outputDir);
     if (!(await this.io.exists(baseDir))) return;
 
-    this.logger.debug(`Pruning orphaned catalogs in ${this.outputDir}...`);
+    this.logger.debug(
+      `Pruning orphaned catalogs in ${this.outputDir} against ${knownPaths.size} known path(s)...`,
+    );
     let prunedCount = 0;
 
     const scan = async (dir: string) => {
@@ -1349,6 +1380,14 @@ export class CatalogManager {
             this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
             await this.io.rm(full);
             prunedCount++;
+          } else {
+            /**
+             * The other half of the same question. A file that survives a scan
+             * did so because something put it in `knownPaths`, and when the
+             * survivor is a catalog whose source was deleted, *which* seeding
+             * step claimed it is the whole investigation.
+             */
+            this.logger.debug(`Keeping (known): ${relative(this.root, full)}`);
           }
         }
       }

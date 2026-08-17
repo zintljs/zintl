@@ -1,0 +1,22 @@
+const catalog = {
+    "b_src_App_vue": {
+      "Rsbuild with Vue": "Rsbuild 搭配 Vue",
+      "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。",
+      "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+    },
+    "b_src_components_OptionsNote_vue": {
+      "This note comes from the {api}.": (params) => {
+    const { api } = params;
+    return `这条说明来自 ${params['api']}。`;
+  },
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

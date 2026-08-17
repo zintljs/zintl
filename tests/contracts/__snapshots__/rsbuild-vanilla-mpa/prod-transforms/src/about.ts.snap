@@ -1,0 +1,42 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_e7c8b4f1ad96 from "virtual:zintl/manager/none/entry:b_e7c8b4f1ad96";
+import _zintl_mgr_b_c087d0722440 from "virtual:zintl/manager/none/entry:b_c087d0722440";
+import "./index.css";
+
+import { Header } from "./components/Header.ts";
+import { setupSwitcher } from "./switcher.ts";
+
+/**
+ * The second page's entry, with its own document and its own trust anchor.
+ *
+ * Its boundary is independent of the home page's — nothing is inherited across
+ * documents — while `Header`'s boundary is shared by both, because both import
+ * it and it anchors itself.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_c087d0722440"]: _zintl_mgr_b_c087d0722440.loader, ["b_e7c8b4f1ad96"]: _zintl_mgr_b_e7c8b4f1ad96.loader } }));
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  const page = document.createElement("div");
+  page.className = "content";
+  page.innerHTML = `
+    <div id="switcher" class="switcher"></div>
+    <h1>${_t("abdb1589", { _mgr: _zintl_mgr_b_c087d0722440, _bId: "b_c087d0722440" })}</h1>
+    <p>${_t("45d702f4", { _mgr: _zintl_mgr_b_c087d0722440, _bId: "b_c087d0722440" })}</p>
+    <p>${_t("22857f41", { _mgr: _zintl_mgr_b_c087d0722440, _bId: "b_c087d0722440" })}</p>
+  `;
+
+  rootEl.replaceChildren(await Header(lang), page);
+
+  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

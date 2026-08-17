@@ -1,0 +1,23 @@
+{
+  "$schema": ".schemas/translations.shared.schema.json",
+  "Count is {count}": {
+    "ar": "العدد هو {count}",
+    "es": "La cuenta es {count}",
+    "zh": "计数为 {count}"
+  },
+  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": {
+    "ar": "عدّل <code>src/App.tsx</code> واحفظ لاختبار <code>HMR</code>",
+    "es": "Editar <code>src/App.tsx</code> y guardar para probar <code>HMR</code>",
+    "zh": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>"
+  },
+  "Rsbuild with React": {
+    "ar": "Rsbuild مع React",
+    "es": "Rsbuild con React",
+    "zh": "Rsbuild 搭配 React"
+  },
+  "Start building amazing things with Rsbuild.": {
+    "ar": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+    "es": "Empieza a construir cosas increíbles con Rsbuild.",
+    "zh": "使用 Rsbuild 开始构建精彩的应用。"
+  }
+}

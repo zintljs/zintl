@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": "",
+  "title": "Enrutador Rsbuild con Vue - Ejemplo de Zintl"
+}

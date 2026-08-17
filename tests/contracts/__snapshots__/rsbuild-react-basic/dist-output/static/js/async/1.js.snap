@@ -1,0 +1,20 @@
+"use strict";
+(self["rspackChunkrsbuild_react_basic"] = self["rspackChunkrsbuild_react_basic"] || []).push([[1], {
+25(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_147a3a1c1a40": {
+      "e33ef204": "Rsbuild مع React",
+      "9724cf0a": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "9fd2f187": "عدّل <code>src/App.tsx</code> واحفظ لاختبار <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

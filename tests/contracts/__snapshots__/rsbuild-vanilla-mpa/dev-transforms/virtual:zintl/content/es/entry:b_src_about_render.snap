@@ -1,0 +1,11 @@
+const catalog = {
+    "b_src_about_render": {
+      "Everything is a plain string": "Todo es una cadena de texto normal",
+      "This document has its own entry, and its own catalog chunk.": "Este documento tiene su propia entrada y su propio fragmento de catálogo.",
+      "The header above is shared, and anchors itself.": "La cabecera de arriba es compartida y se ancla a sí misma.",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;

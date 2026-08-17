@@ -1,0 +1,28 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Rsbuild الأساسي",
+      "Start building amazing things with Rsbuild.": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/index.ts</code> واحفظ لاختبار <code>HMR</code>",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `${(() => {
+      const rule = new Intl.PluralRules('ar').select(params['counter']);
+      if (rule === 'zero') return `لم يبدأ العد بعد`;
+      if (rule === 'one') return `العدد واحد`;
+      if (rule === 'two') return `العدد اثنان`;
+      if (rule === 'few') return `العدد ${params['counter']}`;
+      if (rule === 'many') return `العدد ${params['counter']}`;
+      return `العدد ${params['counter']}`;
+    })()}`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": "يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.\n",
+  },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;

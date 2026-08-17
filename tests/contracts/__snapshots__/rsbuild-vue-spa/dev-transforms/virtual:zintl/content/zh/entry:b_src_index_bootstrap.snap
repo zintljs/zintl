@@ -1,0 +1,23 @@
+const catalog = {
+    "b_src_components_HelloWorld_vue": {
+      "Rsbuild with Vue": "Rsbuild 搭配 Vue",
+      "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。",
+      "Edit <code>src/components/HelloWorld.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/components/HelloWorld.vue</code> 并保存以测试 <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `计数为 ${params['count']}`;
+  },
+      "Read the guide": "阅读指南",
+    },
+    "b_src_components_AboutWorld_vue": {
+      "Everything is a plain string": "一切都是普通字符串",
+      "This route arrived in its own chunk, and so did its translations.": "这个路由在自己的分块中加载，它的译文也是。",
+      "No <code>t()</code> wrapper, no key dictionary, no manual catalog.": "无需 <code>t()</code> 包装，无需键名字典，无需手动维护目录。",
+      "Back to the start": "返回首页",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

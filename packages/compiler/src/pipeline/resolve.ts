@@ -13,7 +13,7 @@ import type {
   ZintlLogger,
 } from "../types/index.js";
 import { resolveImports, resolvePrepends } from "./resolve-imports.js";
-import { resolveRewrites, resolveConflicts } from "./resolve-rewrites.js";
+import { resolveRewrites, resolveConflicts, findCodegen } from "./resolve-rewrites.js";
 
 /**
  * Resolve transformation intents into a deterministic mutation plan.
@@ -27,13 +27,26 @@ export const resolve: ResolveFn = (
 ): ResolvedPlan => {
   const diagnostics: Diagnostic[] = [];
 
+  const codegen = findCodegen(filePath || observation.fileId, config);
+  /**
+   * A dialect whose translations must take a reactive dependency needs both
+   * halves — the handle and the imports that build it — only when this file
+   * actually renders something. A component with no sinks has nothing to track.
+   */
+  const needsReactiveBridge =
+    !!codegen?.reactiveBridge && intents.some((i) => i.type === "sink_wrap");
+
   const imports = resolveImports(
     intents,
     observation,
     config.system?.clientReactivityImports,
     config.system?.serverComponents === true,
+    needsReactiveBridge ? codegen!.reactiveBridge : undefined,
   );
   const prepends = resolvePrepends(intents, observation, logger);
+  if (needsReactiveBridge) {
+    prepends.push({ code: codegen!.reactiveBridge!.setup });
+  }
   const rewrites = resolveRewrites(intents, config, filePath || observation.fileId);
 
   /**

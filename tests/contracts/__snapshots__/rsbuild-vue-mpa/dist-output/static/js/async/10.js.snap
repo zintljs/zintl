@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[10], {
+44(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild 搭配 Vue",
+      "9724cf0a": "使用 Rsbuild 开始构建精彩的应用。",
+      "bce1bd28": "两个文档、两个入口、一个共享页头。",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

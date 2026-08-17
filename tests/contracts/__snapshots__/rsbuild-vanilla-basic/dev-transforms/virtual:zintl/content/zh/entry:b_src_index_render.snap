@@ -1,0 +1,23 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "原生 Rsbuild",
+      "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/index.ts</code> 并保存以测试 <code>HMR</code>",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `${(() => {
+      if (params['counter'] == 0) return `还没有开始计数`;
+      return `计数为 ${params['counter']}`;
+    })()}`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": "Zintl 将翻译放在需要它们的代码旁边。\n",
+  },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;

@@ -1,0 +1,19 @@
+export default { id: "b_4f8017c0589a", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_4f8017c0589a": {
+      "3de7e774": "Vanilla Rsbuild",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "bce1bd28": "Two documents, two entries, one shared header.",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_4f8017c0589a").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_4f8017c0589a").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_4f8017c0589a").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

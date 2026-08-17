@@ -1,0 +1,29 @@
+export default { id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild with Vue",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "6c65d65b": "Edit <code>src/App.vue</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+    },
+    "b_4e9f6e20b5a7": {
+      "223fb461": (params) => {
+    const { api } = params;
+    return `This note comes from the ${params['api']}.`;
+  },
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_dd563dcb7e61").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_dd563dcb7e61").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_dd563dcb7e61").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

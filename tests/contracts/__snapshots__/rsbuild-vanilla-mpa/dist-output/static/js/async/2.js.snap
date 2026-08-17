@@ -1,0 +1,15 @@
+"use strict";
+(self["rspackChunkrsbuild_vanilla_mpa"] = self["rspackChunkrsbuild_vanilla_mpa"] || []).push([[2], {
+19(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_e7c8b4f1ad96": {
+      "70f8bb9a": "首页",
+      "bf073fae": "指南",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

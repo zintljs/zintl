@@ -1,0 +1,10 @@
+const catalog = {
+    "b_src_components_Header_Header": {
+      "Home": "Inicio",
+      "Guide": "Guía",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;

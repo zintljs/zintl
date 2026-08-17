@@ -1,0 +1,506 @@
+(() => {
+"use strict";
+var __webpack_modules__ = ({
+0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_3 = __webpack_require__(9);
+/* import */ var vue__rspack_import_4 = __webpack_require__(10);
+/* import */ var _App_vue__rspack_import_5 = __webpack_require__(15);
+/* import */ var _index_css__rspack_import_6 = __webpack_require__(35);
+
+
+
+
+
+
+
+async function bootstrap() {
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_0.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_9e373ef8c775"]: virtual_zintl_manager_none_entry_b_9e373ef8c775__rspack_import_3["default"].loader,
+            ["b_b028ccfc4f80"]: virtual_zintl_manager_none_entry_b_b028ccfc4f80__rspack_import_2["default"].loader,
+            ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"].loader
+        }
+    }));
+    (0,vue__rspack_import_4.createApp)(_App_vue__rspack_import_5["default"]).mount("#root");
+}
+void bootstrap();
+
+
+},
+7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ({ id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild with Vue",
+      "9724cf0a": "Start building amazing things with Rsbuild.",
+      "bce1bd28": "Two documents, two entries, one shared header.",
+    },
+  };
+                case "ar":
+          return __webpack_require__.e(/* import() */ 8).then(__webpack_require__.bind(__webpack_require__, 42)).then(m => m.default);
+        case "es":
+          return __webpack_require__.e(/* import() */ 9).then(__webpack_require__.bind(__webpack_require__, 43)).then(m => m.default);
+        case "zh":
+          return __webpack_require__.e(/* import() */ 10).then(__webpack_require__.bind(__webpack_require__, 44)).then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] });
+
+},
+15(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var _App_vue_ts_vue_type_template_id_7a7a37b1_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_ts_true__rspack_import_0 = __webpack_require__(16);
+/* import */ var _App_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_1 = __webpack_require__(18);
+/* import */ var _node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_2 = __webpack_require__(27);
+
+
+
+
+;
+const __exports__ = /*#__PURE__*/(0,_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_exportHelper_js__rspack_import_2["default"])(_App_vue_ts_vue_type_script_setup_true_lang_ts_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_1["default"], [['render',_App_vue_ts_vue_type_template_id_7a7a37b1_ts_true_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_ts_true__rspack_import_0.render],['__file',"src/App.vue"]])
+/* hot reload */
+if (false) {}
+
+
+/* export default */ __webpack_exports__["default"] = (__exports__);
+
+},
+16(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (/* reexport safe */ _App_vue_ts_vue_type_template_id_7a7a37b1_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_ts_true__rspack_import_0.render)
+});
+/* import */ var _App_vue_ts_vue_type_template_id_7a7a37b1_ts_true_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_templateLoader_js_ruleSet_1_rules_15_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_template_id_7a7a37b1_ts_true__rspack_import_0 = __webpack_require__(17);
+
+
+},
+17(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  render: () => (render)
+});
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+
+const _hoisted_1 = {
+    class: "content"
+};
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+    return (0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createElementBlock)("div", {
+        key: $setup.activeLang
+    }, [
+        ((0,vue__rspack_import_0.openBlock)(), (0,vue__rspack_import_0.createBlock)(vue__rspack_import_0.Suspense, null, {
+            default: (0,vue__rspack_import_0.withCtx)(()=>[
+                    (0,vue__rspack_import_0.createVNode)($setup["SiteHeader"], {
+                        lang: $setup.activeLang
+                    }, null, 8 /* PROPS */ , [
+                        "lang"
+                    ])
+                ]),
+            _: 1 /* STABLE */ 
+        })),
+        (0,vue__rspack_import_0.createElementVNode)("div", _hoisted_1, [
+            (0,vue__rspack_import_0.createVNode)($setup["LocaleSwitcher"], {
+                lang: $setup.activeLang,
+                onSwitch: $setup.handleSwitch
+            }, null, 8 /* PROPS */ , [
+                "lang"
+            ]),
+            (0,vue__rspack_import_0.createElementVNode)("h1", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('459e4199', {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ ),
+            (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('9724cf0a', {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ ),
+            (0,vue__rspack_import_0.createElementVNode)("p", null, (0,vue__rspack_import_0.toDisplayString)($setup._t('bce1bd28', {
+                _mgr: $setup._zintl_mgr_b_dd563dcb7e61,
+                _bId: 'b_5441d5289c77',
+                _v: $setup.__zintl_v.value
+            })), 1 /* TEXT */ )
+        ])
+    ]);
+}
+
+
+},
+18(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _App_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _App_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_App_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(19);
+ 
+
+},
+19(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(10);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+/* import */ var _components_LocaleSwitcher_vue__rspack_import_3 = __webpack_require__(20);
+/* import */ var _components_SiteHeader_vue__rspack_import_4 = __webpack_require__(28);
+
+
+
+
+
+
+
+/* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'App',
+    setup (__props, param) {
+        let { expose: __expose } = param;
+        __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
+        const activeLang = (0,vue__rspack_import_0.ref)(new URLSearchParams(window.location.search).get("lang") || "en");
+        const handleSwitch = (lang)=>{
+            activeLang.value = lang;
+        };
+        const __returned__ = {
+            __zintl_v,
+            __zintl_off,
+            activeLang,
+            handleSwitch,
+            get _zintl_mgr_b_dd563dcb7e61 () {
+                return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
+            },
+            get _t () {
+                return virtual_zintl_runtime_internal__rspack_import_2._t;
+            },
+            LocaleSwitcher: _components_LocaleSwitcher_vue__rspack_import_3["default"],
+            SiteHeader: _components_SiteHeader_vue__rspack_import_4["default"]
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
+
+
+},
+
+});
+// The module cache
+var __webpack_module_cache__ = {};
+
+// The require function
+function __webpack_require__(moduleId) {
+
+// Check if module is in cache
+var cachedModule = __webpack_module_cache__[moduleId];
+if (cachedModule !== undefined) {
+return cachedModule.exports;
+}
+// Create a new module (and put it into the cache)
+var module = (__webpack_module_cache__[moduleId] = {
+exports: {}
+});
+// Execute the module function
+__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+
+// Return the exports of the module
+return module.exports;
+
+}
+
+// expose the modules object (__webpack_modules__)
+__webpack_require__.m = __webpack_modules__;
+
+// webpack/runtime/define_property_getters
+(() => {
+__webpack_require__.d = (exports, getters, values) => {
+	var define = (defs, kind) => {
+		for(var key in defs) {
+			if(__webpack_require__.o(defs, key) && !__webpack_require__.o(exports, key)) {
+				Object.defineProperty(exports, key, { enumerable: true, [kind]: defs[key] });
+			}
+		}
+	};
+	define(getters, "get");
+	define(values, "value");
+};
+})();
+// webpack/runtime/ensure_chunk
+(() => {
+__webpack_require__.f = {};
+// This file contains only the entry chunk.
+// The chunk loading function for additional chunks
+__webpack_require__.e = (chunkId) => {
+	return Promise.all(
+		Object.keys(__webpack_require__.f).reduce((promises, key) => {
+			__webpack_require__.f[key](chunkId, promises);
+			return promises;
+		}, [])
+	);
+};
+})();
+// webpack/runtime/get javascript chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.u = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "static/js/async/" + chunkId + ".js"
+}
+})();
+// webpack/runtime/get mini-css chunk filename
+(() => {
+// This function allow to reference chunks
+__webpack_require__.miniCssF = (chunkId) => {
+  // return url for filenames not based on template
+  
+  // return url for filenames based on template
+  return "" + chunkId + ".css"
+}
+})();
+// webpack/runtime/global
+(() => {
+__webpack_require__.g = (() => {
+	if (typeof globalThis === 'object') return globalThis;
+	try {
+		return this || new Function('return this')();
+	} catch (e) {
+		if (typeof window === 'object') return window;
+	}
+})();
+})();
+// webpack/runtime/has_own_property
+(() => {
+__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+})();
+// webpack/runtime/load_script
+(() => {
+var inProgress = {};
+
+var uniqueName = "rsbuild-vue-mpa:";
+// loadScript function to load a script via script tag
+__webpack_require__.l = function (url, done, key, chunkId) {
+	if (inProgress[url]) {
+		inProgress[url].push(done);
+		return;
+	}
+	var script, needAttach;
+	if (key !== undefined) {
+		var scripts = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts.length; i++) {
+			var s = scripts[i];
+			if (s.getAttribute("src") == url || s.getAttribute("data-rspack") == uniqueName + key) {
+				script = s;
+				break;
+			}
+		}
+	}
+	if (!script) {
+		needAttach = true;
+		script = document.createElement('script');
+
+script.timeout = 120;
+if (__webpack_require__.nc) {
+  script.setAttribute("nonce", __webpack_require__.nc);
+}
+
+script.setAttribute("data-rspack", uniqueName + key);
+
+
+
+script.src = url;
+
+
+
+	}
+	inProgress[url] = [done];
+	var onScriptComplete = function (prev, event) {
+		script.onerror = script.onload = null;
+		clearTimeout(timeout);
+		var doneFns = inProgress[url];
+		delete inProgress[url];
+		script.parentNode && script.parentNode.removeChild(script);
+		doneFns &&
+			doneFns.forEach(function (fn) {
+				return fn(event);
+			});
+		if (prev) return prev(event);
+	};
+	var timeout = setTimeout(
+		onScriptComplete.bind(null, undefined, {
+			type: 'timeout',
+			target: script
+		}),
+		120000
+	);
+	script.onerror = onScriptComplete.bind(null, script.onerror);
+	script.onload = onScriptComplete.bind(null, script.onload);
+	needAttach && document.head.appendChild(script);
+};
+
+})();
+// webpack/runtime/make_namespace_object
+(() => {
+// define __esModule on exports
+__webpack_require__.r = (exports) => {
+	if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+		Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+	}
+	Object.defineProperty(exports, '__esModule', { value: true });
+};
+})();
+// webpack/runtime/on_chunk_loaded
+(() => {
+var deferred = [];
+__webpack_require__.O = (result, chunkIds, fn, priority) => {
+	if (chunkIds) {
+		priority = priority || 0;
+		for (var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--)
+			deferred[i] = deferred[i - 1];
+		deferred[i] = [chunkIds, fn, priority];
+		return;
+	}
+	var notFulfilled = Infinity;
+	for (var i = 0; i < deferred.length; i++) {
+		var [chunkIds, fn, priority] = deferred[i];
+		var fulfilled = true;
+		for (var j = 0; j < chunkIds.length; j++) {
+			if (
+				(priority & (1 === 0) || notFulfilled >= priority) &&
+				Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))
+			) {
+				chunkIds.splice(j--, 1);
+			} else {
+				fulfilled = false;
+				if (priority < notFulfilled) notFulfilled = priority;
+			}
+		}
+		if (fulfilled) {
+			deferred.splice(i--, 1);
+			var r = fn();
+			if (r !== undefined) result = r;
+		}
+	}
+	return result;
+};
+
+})();
+// webpack/runtime/public_path
+(() => {
+__webpack_require__.p = "/";
+})();
+// webpack/runtime/jsonp_chunk_loading
+(() => {
+
+      // object to store loaded and loading chunks
+      // undefined = chunk not loaded, null = chunk preloaded/prefetched
+      // [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+      var jsonpInstalledChunks = {12: 0,};
+      
+        __webpack_require__.f.j = function (chunkId, promises) {
+          // JSONP chunk loading for javascript
+var installedChunkData = __webpack_require__.o(jsonpInstalledChunks, chunkId)
+	? jsonpInstalledChunks[chunkId]
+	: undefined;
+if (installedChunkData !== 0) {
+	// 0 means "already installed".
+
+	// a Promise means "currently loading".
+	if (installedChunkData) {
+		promises.push(installedChunkData[2]);
+	} else {
+		if (true) {
+			// setup Promise in chunk cache
+			var promise = new Promise((resolve, reject) => (installedChunkData = jsonpInstalledChunks[chunkId] = [resolve, reject]));
+			promises.push((installedChunkData[2] = promise));
+
+			// start chunk loading
+			var url = __webpack_require__.p + __webpack_require__.u(chunkId);
+			// create error before stack unwound to get useful stacktrace later
+			var error = new Error();
+			var loadingEnded = function (event) {
+				if (__webpack_require__.o(jsonpInstalledChunks, chunkId)) {
+					installedChunkData = jsonpInstalledChunks[chunkId];
+					if (installedChunkData !== 0) jsonpInstalledChunks[chunkId] = undefined;
+					if (installedChunkData) {
+						var errorType =
+							event && (event.type === 'load' ? 'missing' : event.type);
+						var realSrc = event && event.target && event.target.src;
+						error.message =
+							'Loading chunk ' +
+							chunkId +
+							' failed.\n(' +
+							errorType +
+							': ' +
+							realSrc +
+							')';
+						error.name = 'ChunkLoadError';
+						error.type = errorType;
+						error.request = realSrc;
+						installedChunkData[1](error);
+					}
+				}
+			};
+			__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
+		} 
+	}
+}
+
+        }
+        __webpack_require__.O.j = (chunkId) => (jsonpInstalledChunks[chunkId] === 0);
+// install a JSONP callback for chunk loading
+var __rspack_jsonp = (parentChunkLoadingFunction, data) => {
+	var [chunkIds, moreModules, runtime] = data;
+	// add "moreModules" to the modules object,
+	// then flag all "chunkIds" as loaded and fire callback
+	var moduleId, chunkId, i = 0;
+	if (chunkIds.some((id) => (jsonpInstalledChunks[id] !== 0))) {
+		for (moduleId in moreModules) {
+			if (__webpack_require__.o(moreModules, moduleId)) {
+				__webpack_require__.m[moduleId] = moreModules[moduleId];
+			}
+		}
+		if (runtime) var result = runtime(__webpack_require__);
+	}
+	if (parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+	for (; i < chunkIds.length; i++) {
+		chunkId = chunkIds[i];
+		if (
+			__webpack_require__.o(jsonpInstalledChunks, chunkId) &&
+			jsonpInstalledChunks[chunkId]
+		) {
+			jsonpInstalledChunks[chunkId][0]();
+		}
+		jsonpInstalledChunks[chunkId] = 0;
+	}
+	
+	return __webpack_require__.O(result);
+	
+};
+
+var jsonpChunkLoadingGlobal = self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || [];
+jsonpChunkLoadingGlobal.forEach(__rspack_jsonp.bind(null, 0));
+jsonpChunkLoadingGlobal.push = __rspack_jsonp.bind(null, jsonpChunkLoadingGlobal.push.bind(jsonpChunkLoadingGlobal));
+
+})();
+// module factories are used so entry inlining is disabled
+// startup
+// Load entry module and return exports
+var __webpack_exports__ = __webpack_require__.O(undefined, ["13", "7", "0"], () => __webpack_require__(0));
+__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+})()
+;

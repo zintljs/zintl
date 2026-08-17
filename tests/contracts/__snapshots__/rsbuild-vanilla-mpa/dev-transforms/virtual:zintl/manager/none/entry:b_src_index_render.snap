@@ -1,0 +1,26 @@
+export default (() => {
+  const manager = { id: "b_src_index_render", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Vanilla Rsbuild",
+      "Start building amazing things with Rsbuild.": "Start building amazing things with Rsbuild.",
+      "Two documents, two entries, one shared header.": "Two documents, two entries, one shared header.",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_src_index_render").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_src_index_render").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_src_index_render").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

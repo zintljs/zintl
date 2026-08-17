@@ -10,13 +10,14 @@ const MONOREPO_ROOT = findMonorepoRoot(dirname(fileURLToPath(import.meta.url)));
 /**
  * A project directory the lab can boot, plus whatever teardown it needs.
  *
- * Anything the driver touches — `vite.config.*`, framework detection, the
- * filesystem snapshot — reads from `root`, so a source only has to produce a
- * real directory. It does not matter whether that directory was authored by
- * hand or written moments ago.
+ * Anything the driver touches — `vite.config.*` or `rsbuild.config.mjs`,
+ * framework detection, the filesystem snapshot — reads from `root`, so a source
+ * only has to produce a real directory. It does not matter whether that
+ * directory was authored by hand or written moments ago, or which host will
+ * boot it.
  */
 export interface MaterializedProject {
-  /** Absolute path to a real directory Vite can boot. */
+  /** Absolute path to a real directory the manifest's driver can boot. */
   readonly root: string;
   /** Release anything `materialize()` allocated. */
   cleanup(): Promise<void>;

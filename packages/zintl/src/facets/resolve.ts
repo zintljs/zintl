@@ -125,6 +125,7 @@ interface MergeState {
   serverRequestScope: boolean;
   streamInjection: boolean;
   entryReexecutionSafe: boolean;
+  repaintsOnCatalogUpdate: boolean;
   detectLocaleChain: ((context: LocaleDetectionContext) => string | undefined)[];
 
   // Bundler (highest-priority-wins)
@@ -154,6 +155,7 @@ interface MergeState {
   htmlFanOut: boolean;
   hotUpdate: boolean;
   dependencyInvalidation: boolean;
+  sfcBlockRequestsCarryWholeFile: boolean;
 
   getProtectedCatalogKeysChain: ((
     boundaryId: string,
@@ -184,6 +186,7 @@ function createEmptyState(): MergeState {
     serverRequestScope: false,
     streamInjection: false,
     entryReexecutionSafe: true,
+    repaintsOnCatalogUpdate: false,
     detectLocaleChain: [],
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
@@ -203,6 +206,7 @@ function createEmptyState(): MergeState {
     htmlFanOut: false,
     hotUpdate: false,
     dependencyInvalidation: false,
+    sfcBlockRequestsCarryWholeFile: false,
     getProtectedCatalogKeysChain: [],
   };
 }
@@ -322,6 +326,8 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
        * real hazard another facet reported.
        */
       if (facet.entryReexecutionSafe === false) state.entryReexecutionSafe = false;
+      // Optimistic, unlike the line above: one reactive framework is enough.
+      if (facet.repaintsOnCatalogUpdate === true) state.repaintsOnCatalogUpdate = true;
       if (facet.detectLocale) state.detectLocaleChain.push(facet.detectLocale);
       break;
     }
@@ -404,6 +410,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       if (facet.htmlFanOut) state.htmlFanOut = true;
       if (facet.hotUpdate) state.hotUpdate = true;
       if (facet.dependencyInvalidation) state.dependencyInvalidation = true;
+      if (facet.sfcBlockRequestsCarryWholeFile) state.sfcBlockRequestsCarryWholeFile = true;
       break;
     }
   }
@@ -423,6 +430,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     serverRequestScope: state.serverRequestScope,
     streaming: state.streamInjection,
     entryReexecutionSafe: state.entryReexecutionSafe,
+    repaintsOnCatalogUpdate: state.repaintsOnCatalogUpdate,
 
     // SSR
     ssr:
@@ -437,6 +445,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     htmlFanOut: state.htmlFanOut,
     hotUpdate: state.hotUpdate,
     dependencyInvalidation: state.dependencyInvalidation,
+    sfcBlockRequestsCarryWholeFile: state.sfcBlockRequestsCarryWholeFile,
   };
 }
 

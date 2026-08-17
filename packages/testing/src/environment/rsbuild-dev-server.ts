@@ -137,7 +137,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          * no `process.env.NODE_ENV` define at all. Harmless for a vanilla app and
          * fatal for React, whose development build reads that variable: the
          * bundle threw `ReferenceError: process is not defined` before rendering
-         * anything, and every contract on `rsbuild-react` failed on an empty
+         * anything, and every contract on `rsbuild-react-basic` failed on an empty
          * page rather than on what it was testing.
          *
          * Worth stating explicitly regardless of that bug: a driver whose job is
@@ -152,7 +152,7 @@ export class RsbuildDevServerDriver implements DevServerDriver {
          * connection lost. Reconnecting…", the max-retry warning, and the
          * connect/apply messages all stopped reaching `LabConsole`. A whole class
          * of failure therefore arrived looking like nothing had happened at all,
-         * which is precisely what made the `rsbuild-react` intermittency take five
+         * which is precisely what made the `rsbuild-react-basic` intermittency take five
          * investigations to characterise.
          *
          * The extra server-side noise is worth it: contract output is only read
@@ -164,7 +164,49 @@ export class RsbuildDevServerDriver implements DevServerDriver {
       },
     });
 
+    /**
+     * Take back the process-level shutdown handlers, and with them the right to
+     * kill this process.
+     *
+     * `setupGracefulShutdown` registers `process.once("SIGTERM", …)` — plus, off
+     * CI, a `process.stdin` `"end"` listener — and both call
+     * `handleTermination`, which ends in `process.exit()`. Correct for a CLI,
+     * and wrong in a test runner: a worker that receives SIGTERM during teardown
+     * is force-exited with `SIGTERM + 128` before Vitest can finish, which
+     * surfaces as a **non-zero exit with no failing test** — the signature that
+     * made `flake.js` read `9/10` on a suite whose every case passed.
+     *
+     * It also leaks. Rsbuild builds a *new closure per server* and removes it
+     * only when a refcount returns to zero:
+     *
+     *     !(--shutdownRefCount > 0) && process.removeListener("SIGTERM", onSigterm)
+     *
+     * so of N pooled servers, N−1 handlers are never removed — which is the
+     * `MaxListenersExceededWarning: 11 SIGTERM listeners` this suite prints.
+     *
+     * Vite needs none of this: it keeps one shared `parentSigtermCallback`,
+     * registered when its callback set goes 0→1 and removed at 0, so a hundred
+     * servers still add one listener and give it back. The asymmetry is the
+     * reason this lives here and not in `dev-server.ts`.
+     *
+     * Dropped immediately rather than in `close()`, because servers are pooled
+     * for the lifetime of a worker — deferring would leave the hazard armed for
+     * almost the whole run. Nothing is lost: `close()` already shuts the server
+     * down, and Rsbuild's own cleanup removing an absent listener is a no-op.
+     */
+    const sigtermBefore = new Set<unknown>(process.listeners("SIGTERM"));
+    const stdinEndBefore = new Set<unknown>(process.stdin.listeners("end"));
+
     const server = await rsbuild.startDevServer();
+
+    for (const listener of process.listeners("SIGTERM")) {
+      if (!sigtermBefore.has(listener)) process.removeListener("SIGTERM", listener);
+    }
+    for (const listener of process.stdin.listeners("end")) {
+      if (!stdinEndBefore.has(listener)) {
+        process.stdin.removeListener("end", listener as (...args: unknown[]) => void);
+      }
+    }
 
     return {
       url: server.urls[0] ?? `http://localhost:${server.port}`,

@@ -1,0 +1,16 @@
+"use strict";
+(self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[8], {
+42(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild مع Vue",
+      "9724cf0a": "ابدأ ببناء أشياء مذهلة مع Rsbuild.",
+      "bce1bd28": "صفحتان، ونقطتا دخول، وترويسة واحدة مشتركة.",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

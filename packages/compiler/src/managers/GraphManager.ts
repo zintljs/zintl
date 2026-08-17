@@ -99,10 +99,33 @@ export class GraphManager {
     const nodes = new Map<string, Boundary>();
     const entries = new Set<string>();
 
+    /**
+     * A virtual boundary belongs in *this* graph only in dev, where the three
+     * sites below synthesize it. It is not a source boundary — it owns no file,
+     * and in a build its catalog reaches the output through the content facet
+     * instead.
+     *
+     * The filter exists because the dev synthesis is **persisted**: `.zintl`'s
+     * manifest keeps `manifest["b_assets"]` and `metadata["b_assets"]`, and the
+     * seeding loop below reads boundary candidates straight out of those. A
+     * production compile that happened to load a dev-written manifest therefore
+     * grew a `b_assets` node through the ordinary loop — with `filePath` set to
+     * the id and `usageCount: 0`, a shape *neither* code path intends — and one
+     * that did not was identical apart from it. Which of the two you got
+     * depended on whether a dev run had touched that project in the same
+     * worker first, so a serialized-graph snapshot became a function of test
+     * ordering rather than of the source.
+     */
+    const leakedVirtual = this.isDev ? new Set<string>() : new Set(vbList);
+
     const allKnownBoundaries = new Set<string>();
-    for (const k of Object.keys(internalManifest)) allKnownBoundaries.add(k);
+    for (const k of Object.keys(internalManifest)) {
+      if (leakedVirtual.has(k)) continue;
+      allKnownBoundaries.add(k);
+    }
     for (const k of Object.keys(metadataGraph)) {
       const nId = k;
+      if (leakedVirtual.has(nId)) continue;
       allKnownBoundaries.add(nId);
       for (const site of metadataGraph[k].anchorSites || []) {
         allKnownBoundaries.add(this.io.getNormalizedId(site.boundaryId));

@@ -1,0 +1,25 @@
+const catalog = {
+    "b_src_index_render": {
+      "Vanilla Rsbuild": "Rsbuild con Vanilla",
+      "Start building amazing things with Rsbuild.": "Empieza a construir cosas increíbles con Rsbuild.",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "Edita <code>src/index.ts</code> y guarda para probar <code>HMR</code>",
+    },
+    "b_src_counter_setupCounter": {
+      "Count is {counter}": (params) => {
+    const { counter } = params;
+    return `${(() => {
+      if (params['counter'] == 0) return `Aún no has contado`;
+      const rule = new Intl.PluralRules('es').select(params['counter']);
+      if (rule === 'one') return `La cuenta es uno`;
+      return `La cuenta es ${params['counter']}`;
+    })()}`;
+  },
+    },
+    "b_assets": {
+    "@zintl/asset:src/about.txt": "Zintl mantiene las traducciones junto al código que las necesita.\n",
+  },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;

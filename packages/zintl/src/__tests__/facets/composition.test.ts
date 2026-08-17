@@ -60,7 +60,7 @@ function exampleNames(): string[] {
  * Which bundler hosts this example, derived from the config file it ships.
  *
  * Not a constant, since `examples/` stopped being Vite-only. A golden file that
- * described `rsbuild-spa` as resolving `viteFacet` — and an invariant that
+ * described `rsbuild-vanilla-basic` as resolving `viteFacet` — and an invariant that
  * asserted it — would be a guardrail vouching for a world the app does not live
  * in, which is worse than no guardrail: the composition it captured would be one
  * no build ever produces.
@@ -207,7 +207,7 @@ describe("composition invariants", () => {
    * first-contributor-wins race deciding which host's syntax gets emitted.
    *
    * It used to assert the literal `["vite"]`, which was true while `examples/`
-   * was Vite-only and became a lie the moment `rsbuild-spa` was promoted — the
+   * was Vite-only and became a lie the moment `rsbuild-vanilla-basic` was promoted — the
    * check would have kept passing by describing that app as resolving
    * `viteFacet`, which is exactly the defect ledger L-012 was: Vite syntax
    * emitted into Rspack output.

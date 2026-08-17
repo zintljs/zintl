@@ -427,6 +427,39 @@ export class ZintlCompiler {
   public isWritingFile(path: string) {
     return this.io.writingFiles.has(path);
   }
+  /**
+   * Whether a running page could redraw itself from a newly delivered catalog.
+   *
+   * True when some framework runtime facet declares `repaintsOnCatalogUpdate`.
+   *
+   * Deliberately **not** `clientReactivityImports`, which was the first thing
+   * tried and is a narrower question: it lists the hooks a framework needs
+   * *injected*, and only React has any. Vue subscribes through its own
+   * reactivity and declares nothing there, so that predicate called Vue
+   * unable to repaint and forced it into reloads it did not need — measured, on
+   * a project that had been applying catalog edits warm all along.
+   */
+  private get canRepaint(): boolean {
+    return this._resolved.flags.repaintsOnCatalogUpdate === true;
+  }
+
+  /**
+   * Whether this host's generated catalogs handle their own updates.
+   *
+   * Derived from the facet's own answer rather than duplicating its reasoning:
+   * a host that returns `""` from `hmrSelfAcceptCode` for this project has
+   * declared that nothing in the page can act on a new catalog. The plan reads
+   * this to force a reload, so the *same* facet decision drives both halves —
+   * what the module says about itself, and what the server does about it.
+   *
+   * Without the second half the update is simply lost on Rspack: a catalog the
+   * manager fetches arrives through a dynamic import, which is a chunk boundary
+   * with no static parent to bubble to, so declining to accept does not reach a
+   * reload the way declining in a statically imported entry does (ledger L-064).
+   */
+  public get generatedModulesSelfAccept(): boolean {
+    return (this._resolved.system.hmrSelfAcceptCode?.(undefined, this.canRepaint) ?? "") !== "";
+  }
   public isLiveOwner(id: string) {
     return this.graph.isLiveOwner(id, this.messages.internalManifest);
   }
@@ -455,10 +488,36 @@ export class ZintlCompiler {
    *
    * Also dev-only: outside a watch build nothing consumes these at all.
    */
-  private declaredInputsFor(boundaryId: string): string[] {
+  private declaredInputsFor(moduleKey: string, boundaryId: string | string[]): string[] {
     if (!this.isDev || !this._resolved.flags.dependencyInvalidation) return [];
-    return this.getBoundaryInputs(boundaryId);
+
+    /**
+     * Unioned with what this module has declared before, and never narrowed.
+     *
+     * The inputs are derived from the boundaries the module *currently*
+     * contains, and a boundary can leave: a syntax error makes its file
+     * unextractable, so it drops out of the catalog for as long as the error
+     * stands. Deriving the watch set from the current contents alone would then
+     * stop watching the very file whose repair brings the boundary back — the
+     * module is never rebuilt, and `syntax-recovery` sees every one of that
+     * boundary's keys go missing rather than just the edited one. Measured that
+     * way round before this was added.
+     *
+     * Monotonic and dev-only, so the set is bounded by the project and watching
+     * a file that has become irrelevant costs one spurious rebuild at most.
+     */
+    const fresh = this.getBoundaryInputs(boundaryId);
+    let declared = this.declaredInputMemo.get(moduleKey);
+    if (!declared) {
+      declared = new Set<string>();
+      this.declaredInputMemo.set(moduleKey, declared);
+    }
+    for (const input of fresh) declared.add(input);
+    return Array.from(declared);
   }
+
+  /** Per generated module, every input it has ever declared. See {@link declaredInputsFor}. */
+  private readonly declaredInputMemo = new Map<string, Set<string>>();
 
   /**
    * Every file a boundary's generated catalog is derived from, as absolute paths.
@@ -481,17 +540,33 @@ export class ZintlCompiler {
    * Cheap enough to call per `load`: one pass over `boundaryOwnership` plus one
    * `getCatalogPath` per locale, both in-memory.
    */
-  public getBoundaryInputs(boundaryId: string): string[] {
+  public getBoundaryInputs(boundaryId: string | string[]): string[] {
+    const wanted = new Set(Array.isArray(boundaryId) ? boundaryId : [boundaryId]);
     const inputs = new Set<string>();
 
+    /**
+     * The **normalized** owner ids behind the requested boundaries.
+     *
+     * `getCatalogPath` reads an id as `<path>:<func>` — it is a *location*. The
+     * ids arriving here are **safe** ids (`b_src_pages_Home_Home`), which are
+     * *identities*. Handing one to the other yields
+     * `<outputDir>/b_src_pages_Home_Home.<locale>.json`: a file that can never
+     * exist, so the watch never fires and the generated module never goes
+     * stale. The loop below already knew the incoming id was safe — it compares
+     * through `getSafeBoundaryId` — and half the function acted on that while
+     * the other half did not. L-026's two-kinds-of-string, a third time.
+     */
+    const normalizedOwners = new Set<string>();
+    const matched = new Set<string>();
+
     for (const [fileId, owners] of this.messages.boundaryOwnership.entries()) {
-      let owned = owners.has(boundaryId);
-      if (!owned) {
-        for (const owner of owners) {
-          if (this.io.getSafeBoundaryId(owner) === boundaryId) {
-            owned = true;
-            break;
-          }
+      let owned = false;
+      for (const owner of owners) {
+        const safe = this.io.getSafeBoundaryId(owner);
+        if (wanted.has(owner) || wanted.has(safe)) {
+          owned = true;
+          normalizedOwners.add(owner);
+          matched.add(wanted.has(owner) ? owner : safe);
         }
       }
       if (owned) {
@@ -500,9 +575,40 @@ export class ZintlCompiler {
       }
     }
 
-    for (const locale of this.locales) {
-      const catPath = this.getCatalogPath(boundaryId, locale);
-      if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+    // A boundary nothing owns — a content boundary contributed by a facet, say —
+    // keeps the id it was asked about, which is the behaviour that predates this.
+    for (const id of wanted) if (!matched.has(id)) normalizedOwners.add(id);
+
+    for (const id of normalizedOwners) {
+      for (const locale of this.locales) {
+        const catPath = this.getCatalogPath(id, locale);
+        if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
+      }
+    }
+
+    /**
+     * A facet's virtual boundary is derived from **files**, and only the facet
+     * knows which.
+     *
+     * The loop above answers "what source owns this boundary" out of
+     * `boundaryOwnership`, and a virtual boundary like `b_assets` is owned by
+     * nothing — it is contributed, not extracted. It therefore declared no
+     * inputs at all, which on a host that rebuilds from declared dependencies
+     * means a generated catalog embedding an asset **is never stale**. Editing
+     * `about.ar.txt` under Rspack rebuilt nothing, delivered nothing, and left
+     * the page on the previous text (ZHMR §5, ledger L-067).
+     *
+     * Asked of the facet rather than special-cased on the id: the core has no
+     * business knowing that `b_assets` means `.txt` and `.md` files, and a
+     * second facet contributing a virtual boundary would otherwise have to
+     * rediscover this the same way.
+     */
+    for (const facet of this._resolved.system.contentFacets) {
+      const virtuals = facet.virtualBoundaries ?? [];
+      if (!virtuals.some((v) => wanted.has(v))) continue;
+      for (const path of facet.getDeclaredInputs?.(this.getCompilerContext()) ?? []) {
+        inputs.add(isAbsolute(path) ? path : join(this.rootDir, path));
+      }
     }
 
     return Array.from(inputs);
@@ -667,6 +773,51 @@ export class ZintlCompiler {
         await matchedFacet.discover(filePath, context);
       }
       if (this.isDev) {
+        /**
+         * Assets live in the **hive**, and only `syncGraphs()` refills it.
+         *
+         * This branch used to announce `b_assets` as affected and schedule a
+         * flush, and stop there. Both are about *delivery* — which modules to
+         * invalidate, and writing catalogs to disk — and neither re-reads the
+         * file that just changed. The asset text a catalog carries comes from
+         * `mergeFacetTranslations()`, which runs inside `syncGraphs()` and
+         * nowhere else, so without marking the graph dirty the whole cascade
+         * ran perfectly against **the previous contents of the file**: the
+         * hot update fired, the manager re-imported, the content module
+         * re-evaluated, `addCatalogs` applied, and every one of those steps
+         * carried the old string.
+         *
+         * That is why editing a localized asset never reached the page on
+         * either host (ZHMR §5, ledger L-067) — the failure was upstream of
+         * every host-specific mechanism the section describes, which is
+         * precisely why fixing it on one host would not have fixed the other.
+         *
+         * `generateVirtualModule` already awaits `syncGraphs()` when the graph
+         * is dirty, so marking it is the whole of the fix: the next module
+         * generation re-reads the asset from disk.
+         */
+        this.graphDirty = true;
+
+        /**
+         * An asset edit is a real change, so it has to advance the clock.
+         *
+         * This branch returns before the shared bookkeeping below — the cache
+         * drop, the boundary revision, and `catalogGeneration++` that every
+         * other kind of change goes through. The generation is what the runtime
+         * orders deliveries by (ZDB Axiom D1), so a catalog rebuilt around a new
+         * asset was stamped with the **same** number as the one already applied
+         * and correctly discarded on arrival: `runtime/catalog ar/b_assets #0 →
+         * superseded (overtaken by seq 0)`, with the right text in it.
+         *
+         * That is the third and last layer of L-067, and the most misleading:
+         * the compiler was right, the host rebuilt, the bytes were delivered,
+         * and the receiver rejected them for being stale — which is exactly what
+         * it is supposed to do with a delivery that says it is stale.
+         */
+        delete this.catalog.getCache()["b_assets"];
+        this.boundaryRevisions.set("b_assets", (this.boundaryRevisions.get("b_assets") || 0) + 1);
+        this.catalogGeneration++;
+
         this.scheduleFlush();
         return ["b_assets"];
       }
@@ -818,7 +969,30 @@ export class ZintlCompiler {
     for (const bId of removed) {
       delete this.catalog.getCache()[bId];
       delete this.messages.internalManifest[bId];
-      this.messages.markDirty(bId);
+      /**
+       * A removed boundary is scrubbed from the dirty set, never added to it.
+       *
+       * "Dirty" means *write this boundary's catalog*, so marking a boundary
+       * that has just been deleted queues its catalogs to be re-created. That is
+       * exactly what happened, and the interleaved debug log names it without
+       * ambiguity (ledger L-071):
+       *
+       * ```
+       * Pruning orphaned file: zintl/src/App.svelte.ar.json   +0ms
+       * Writing file:          zintl/src/App.svelte.ar.json   +0ms
+       * ```
+       *
+       * The prune was correct all along and was being undone by the write pass
+       * that followed it in the same flush.
+       *
+       * The flag was added to make sure a deletion during an idle moment did not
+       * sit unflushed — a real concern, and one already served twice over: this
+       * method ends with an explicit `scheduleFlush()`, and a flush deferred by
+       * another now gets its own trigger (L-070). Waking the flush and asking it
+       * to write are different jobs, and only the first was ever wanted here.
+       */
+      this.messages.dirtyBoundaries.delete(bId);
+      this.messages.dirtyRevisions.delete(bId);
       this.boundaryRevisions.delete(bId);
       this.confirmedOnDisk.delete(bId);
       this.graph.boundaryGraph?.nodes.delete(bId);
@@ -1901,9 +2075,89 @@ export class ZintlCompiler {
     return finalCode !== code ? { code: finalCode, map: result.map } : undefined;
   }
 
-  private scheduleFlush() {
+  /**
+   * @param trailing Armed by {@link armTrailingFlush} to catch up dirt a joined
+   * flush deferred, rather than by a real change. Only a non-trailing schedule
+   * clears the no-progress guard, so a genuine edit always re-enables catch-up.
+   */
+  private scheduleFlush(trailing = false) {
+    if (!trailing) this.lastTrailingSignature = null;
     if (this.autoFlushTimeout) clearTimeout(this.autoFlushTimeout);
     this.autoFlushTimeout = setTimeout(() => this.flush(), SAVE_DEBOUNCE_MS);
+  }
+
+  /** The dirt a trailing flush was last armed for. See {@link armTrailingFlush}. */
+  private lastTrailingSignature: string | null = null;
+  /** One trailing arm per in-flight run, however many callers join it. */
+  private trailingArmScheduled = false;
+
+  /**
+   * What the retained dirt currently is, as a comparable value.
+   *
+   * Used only to answer "did the last trailing flush achieve anything", so the
+   * exact encoding does not matter — only that identical dirt compares equal.
+   */
+  private dirtSignature(): string | null {
+    const boundaries = [...this.messages.dirtyBoundaries].sort();
+    if (boundaries.length === 0 && !this.messages.hiveDirty) return null;
+    return boundaries.join("|") + (this.messages.hiveDirty ? "|hive" : "");
+  }
+
+  /**
+   * Give deferred dirt a trigger of its own, once the in-flight flush is done.
+   *
+   * **The bug this closes (ledger L-070).** `flush()` hands a mid-flush caller
+   * the in-flight promise and settles `dirt retained for the next`, justified by
+   * "the debounce timer is already scheduled by the `transform` that dirtied
+   * it". That holds for every trigger except the last one: `scheduleFlush()`
+   * *replaces* the timer, and when it fires `flush()` clears it, finds
+   * `flushPromise` set, and returns — leaving nothing scheduled. If no further
+   * change arrives, the retained dirt is never flushed at all. Measured on
+   * `chaos-boundary`: two flushes, one prune, and a catalog write that never
+   * happened.
+   *
+   * **Why this shape and not the two that were tried.** An unconditional
+   * follow-on flush livelocked, because the flush body reaches back into the
+   * compiler and dirties state again; a guarded follow-on cost a full extra pass
+   * per hot update. This arms the *debounce timer* instead of running a flush,
+   * so further changes coalesce into it and a quiet period costs one pass, not
+   * one per update.
+   *
+   * **Why it cannot livelock.** Three conditions, each necessary:
+   *
+   * 1. Nothing is armed unless dirt actually remains once the in-flight run
+   *    finished — the ordinary case leaves none.
+   * 2. At most one arm per in-flight run, no matter how many callers joined it.
+   * 3. A trailing flush that leaves the dirt *unchanged* does not arm another.
+   *    That is the termination guarantee: a chain continues only while it is
+   *    making progress, and a real edit clears the guard so genuine work is
+   *    never refused.
+   */
+  private armTrailingFlush() {
+    if (this.trailingArmScheduled) return;
+    const inFlight = this.flushPromise;
+    if (!inFlight) return;
+    this.trailingArmScheduled = true;
+
+    const settle = () => {
+      this.trailingArmScheduled = false;
+      const signature = this.dirtSignature();
+      if (signature === null) return;
+      if (signature === this.lastTrailingSignature) {
+        this.logger.debug(
+          "Trailing flush not re-armed: the previous one left the same dirt, so another " +
+            "would not make progress.",
+        );
+        return;
+      }
+      // A real trigger may already have scheduled one; do not stack timers.
+      if (this.autoFlushTimeout) return;
+      this.logger.debug("Arming a trailing flush for dirt a joined flush deferred.");
+      this.lastTrailingSignature = signature;
+      this.scheduleFlush(true);
+    };
+
+    inFlight.then(settle, settle);
   }
 
   public async flush(): Promise<void> {
@@ -1957,6 +2211,12 @@ export class ZintlCompiler {
         "superseded",
         "joined the in-flight flush; dirt retained for the next",
       );
+      /**
+       * "The next" has to exist. The comment above assumed a later trigger
+       * would arrive; for the last change before a quiet period none does, and
+       * the dirt sat unflushed forever (L-070). See {@link armTrailingFlush}.
+       */
+      this.armTrailingFlush();
       return this.flushPromise;
     }
 
@@ -2468,11 +2728,25 @@ export class ZintlCompiler {
       }
       code += `export default catalog;`;
       if (this.isDev) {
-        code += this._resolved.system.hmrSelfAcceptCode?.() ?? "";
+        /**
+         * Whether anything in the page can act on the catalog this module is
+         * about to deliver. See `BundlerFacet.hmrSelfAcceptCode`: a host whose
+         * applier re-runs the entry ignores this, and one that does not uses it
+         * to decline the update so it bubbles to a reload rather than being
+         * swallowed (ledger L-064).
+         */
+        code += this._resolved.system.hmrSelfAcceptCode?.(undefined, this.canRepaint) ?? "";
       }
       return {
         code,
-        watchedFiles: this.declaredInputsFor(bId),
+        /**
+         * Every boundary this chunk *contains*, not just the one it is named
+         * after. An entry chunk carries the catalogs of everything reachable
+         * from the entry, so declaring only the entry's own inputs left an edit
+         * to any other boundary's source invisible: the module was rebuilt for
+         * nothing it embedded. See L-057.
+         */
+        watchedFiles: this.declaredInputsFor(`content:${loc}:${id}`, [bId, ...Object.keys(cat)]),
       };
     }
 
@@ -2550,7 +2824,13 @@ export class ZintlCompiler {
     }
     return {
       code,
-      watchedFiles: this.declaredInputsFor(bId),
+      // The manager inlines the active locale's catalog for every boundary it
+      // serves, so its inputs are theirs too — same reason as the content
+      // chunk above.
+      watchedFiles: this.declaredInputsFor(`manager:${bakedLoc}:${id}`, [
+        bId,
+        ...Object.keys(catData),
+      ]),
     };
   }
 }

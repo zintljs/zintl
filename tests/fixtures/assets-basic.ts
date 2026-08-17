@@ -63,7 +63,18 @@ export const assetsBasic: ProjectManifest = {
     },
   }),
   zintlOptions,
-  capabilities: ["spa", "assets"],
+  /**
+   * `asset-hmr` is the dev-loop half of `assets`: the build substitution is one
+   * claim, the `b_assets` cascade reaching every entry's manager on an edit is
+   * another. Vite is the host under test here — the only Vite application that
+   * localizes an asset is `website`, which has no manifest, so without this
+   * fixture ZHMR §5 would be measured on Rspack alone.
+   *
+   * Not `hmr`: that would enrol an asset-only fixture in five contracts written
+   * for application source, including one that appends a JavaScript syntax
+   * error to what is, here, a `.txt` file.
+   */
+  capabilities: ["spa", "assets", "asset-hmr"],
   adapter: {
     headingSelector: "#asset-text",
     initialHeadingText: SOURCE_TEXT,
@@ -77,6 +88,13 @@ export const assetsBasic: ProjectManifest = {
     // say so.
     assetSelector: "#asset-text",
     assetText: { en: SOURCE_TEXT, ar: ARABIC_TEXT },
+    /**
+     * Only the source asset is named. Where its localized siblings live is a
+     * compiler fact — `outputDir` plus `<path>.<locale><ext>` — so
+     * `localizedAssetPath()` derives `src/locales/src/about.ar.txt` rather than
+     * asking this manifest to repeat a convention it does not own.
+     */
+    assetFile: "src/about.txt",
     navigateLocale: async (lab, locale) => {
       await lab.page.goto(`${lab.url}/?lang=${locale}`);
     },

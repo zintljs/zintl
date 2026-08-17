@@ -1,0 +1,7 @@
+{
+  "$schema": "../.schemas/src/App.vue.schema.json",
+  "Count is {count}": "计数为 {count}",
+  "Edit <code>src/App.vue</code> and save to test <code>HMR</code>": "编辑 <code>src/App.vue</code> 并保存以测试 <code>HMR</code>",
+  "Rsbuild with Vue": "Rsbuild 搭配 Vue",
+  "Start building amazing things with Rsbuild.": "使用 Rsbuild 开始构建精彩的应用。"
+}

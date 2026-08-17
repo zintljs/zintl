@@ -1,0 +1,8 @@
+const catalog = {
+    "b_5441d5289c77": {
+      "459e4199": "Rsbuild con Vue",
+      "9724cf0a": "Empieza a construir cosas increíbles con Rsbuild.",
+      "bce1bd28": "Dos documentos, dos entradas, una cabecera compartida.",
+    },
+  };
+export default catalog;

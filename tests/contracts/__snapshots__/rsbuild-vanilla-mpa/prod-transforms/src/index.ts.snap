@@ -1,0 +1,45 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_4f8017c0589a from "virtual:zintl/manager/none/entry:b_4f8017c0589a";
+import _zintl_mgr_b_e7c8b4f1ad96 from "virtual:zintl/manager/none/entry:b_e7c8b4f1ad96";
+import _zintl_mgr_b_c087d0722440 from "virtual:zintl/manager/none/entry:b_c087d0722440";
+import "./index.css";
+
+import { Header } from "./components/Header.ts";
+import { setupSwitcher } from "./switcher.ts";
+
+/**
+ * The home page's entry — one of two, each with its own HTML document.
+ *
+ * An Rsbuild template names no scripts; the association between `index.html`
+ * and this file lives in `rsbuild.config.mjs`, and Zintl reads it from there
+ * (ledger L-021). This app is the first to exercise that with **more than one**
+ * entry, which is the case `declareHtmlEntriesHook` and `entriesFor` were
+ * written for and nothing had run.
+ */
+async function render() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_c087d0722440"]: _zintl_mgr_b_c087d0722440.loader, ["b_e7c8b4f1ad96"]: _zintl_mgr_b_e7c8b4f1ad96.loader, ["b_4f8017c0589a"]: _zintl_mgr_b_4f8017c0589a.loader } }));
+
+  const rootEl = document.querySelector<HTMLDivElement>("#root");
+  if (!rootEl) return;
+
+  const page = document.createElement("div");
+  page.className = "content";
+  page.innerHTML = `
+    <div id="switcher" class="switcher"></div>
+    <h1>${_t("3de7e774", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</h1>
+    <p>${_t("9724cf0a", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</p>
+    <p>${_t("bce1bd28", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</p>
+  `;
+
+  rootEl.replaceChildren(await Header(lang), page);
+
+  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url);
+    void render();
+  });
+}
+
+void render();

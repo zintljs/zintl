@@ -135,6 +135,12 @@ export function reactRuntimeFacet(): ZintlFacet {
     concern: "runtime",
     priority: 100,
     entryReexecutionSafe: false,
+    /**
+     * Components read the store through `useSyncExternalStore`, so a delivered
+     * catalog redraws them without the entry running again. Measured: a catalog
+     * edit reaches the heading here with no reload.
+     */
+    repaintsOnCatalogUpdate: true,
   };
 }
 

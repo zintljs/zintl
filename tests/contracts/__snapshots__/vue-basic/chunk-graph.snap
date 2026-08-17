@@ -4,6 +4,7 @@
     "src/components/HelloWorld.vue": "src/main:bootstrap",
     "src/components/LocaleSwitcher.vue": "src/main:bootstrap",
     "src/components/LocaleSwitcher.vue:f_459": "src/components/LocaleSwitcher.vue:f_459",
+    "src/components/OptionsNote.vue": "src/main:bootstrap",
     "src/main:bootstrap": "src/main:bootstrap"
   },
   "chunks": {
@@ -26,6 +27,7 @@
         "src/assets/vue.svg",
         "src/components/HelloWorld.vue",
         "src/components/LocaleSwitcher.vue",
+        "src/components/OptionsNote.vue",
         "src/main:bootstrap",
         "src/style.css",
         "vue"
