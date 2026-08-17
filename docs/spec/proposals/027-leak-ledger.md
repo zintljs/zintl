@@ -3684,3 +3684,65 @@ unit test disagreed, and inlining had made the question moot) — and one was re
 **restored** when removing it turned the source-asset half red while the localized half stayed green.
 A fix kept because it was proposed, rather than because removing it broke something, is
 indistinguishable from a fix that does nothing.
+
+### L-064 — resolved for non-reactive projects: the update was applied and invisible
+
+|                             |                                                                       |
+| :-------------------------- | :-------------------------------------------------------------------- |
+| **Status**                  | **Fixed** on 3 of 6; the remainder is a narrower, different question  |
+| **Bucket**                  | 3 — real defect                                                       |
+| **Facet contract changed?** | **Yes** — `RuntimeFacet.repaintsOnCatalogUpdate`, `hmrSelfAcceptCode` |
+
+**The name was wrong, and the name was the reason it looked intractable.** "The reload beats the
+catalog write" described a race, and there is no race. Measured directly in the page after a catalog
+edit on `rsbuild-vanilla-spa`:
+
+```
+store:  b_src_pages_Home_Home / "Vanilla Rsbuild" → "Traducción actualizada en caliente"
+DOM:    "Rsbuild con Vanilla"
+```
+
+The catalog arrives, `addCatalogs` applies it, the delivery ledger records `#7 → applied`, and the
+store holds the new translation. Nothing then redraws. The DOM is a screenshot of the render before
+the edit, and it stays that way indefinitely — not stale-because-overtaken, **stale because nothing
+asked the page to paint again**.
+
+Two conditions have to hold together for that, which is why it looked host-specific and framework-specific
+by turns:
+
+1. **Nothing in the page is subscribed to the store.** A vanilla entry and Svelte's compiled output
+   both paint once.
+2. **The host does not re-run the entry either.** `RspackUpdateApplier` invalidates nothing by
+   design — Rspack rebuilds what its own declared dependencies mark stale. Vite's applier explicitly
+   invalidates the entry's modules on a boundary update, which is why the same projects are green
+   there and why this never reproduced on Vite.
+
+**The fix is to stop claiming an update was handled when it was not.** A generated catalog now
+self-accepts only when something can act on it: `hmrSelfAcceptCode` takes `canRepaint`, Vite ignores
+it (its applier re-runs the entry regardless), and Rspack returns `""` without it. Declining alone
+was not enough — a fetched catalog arrives through a dynamic import, a chunk boundary with no static
+parent, so it does not bubble to a reload the way declining inside an entry does. The plan therefore
+issues the reload itself, from the _same_ facet answer, so what the module says about itself and what
+the server does about it cannot disagree.
+
+**The predicate cost one wrong turn worth recording.** The first attempt read `clientReactivityImports`,
+which lists the hooks a framework needs _injected_ — and only React declares any. That called Vue
+unable to repaint and forced reloads on `rsbuild-vue-mpa`, a project that had been applying catalog
+edits warm all along. Measurement caught it immediately, and `RuntimeFacet.repaintsOnCatalogUpdate`
+replaced it: a framework states whether its components redraw from a store update, which is the
+question actually being asked. It defaults to `false` where `entryReexecutionSafe` defaults to
+`true`, deliberately — a wrong `true` here yields a page that silently lies about its own contents,
+where a wrong `false` costs a refresh.
+
+**Result: 254 contract tests pass, up from 251.** `rsbuild-vanilla-basic`, `rsbuild-vanilla-spa` and
+`rsbuild-svelte-basic` now apply catalog edits — by reload, which is L-035's trade one module kind
+later. `rsbuild-vue-mpa` keeps its warm path. The generated-module snapshots record the change
+exactly: four projects no longer emit `import.meta.webpackHot.accept()` into their catalogs.
+
+**What remains is a third sighting of one line.** `rsbuild-react-basic`, `rsbuild-vue-basic` and
+`rsbuild-vue-spa` are reactive frameworks whose managers **fetch** the catalog rather than inlining
+it, and they still miss the repaint. `rsbuild-vue-mpa` is the same framework and inlines, and passes.
+So the axis is not the framework — it is L-056's inlined-vs-fetched line, reached now from a third
+direction. They are left pending rather than forced to reload with the others: these projects _can_
+repaint, and making them refresh the page would trade a real defect for a worse experience and call
+it fixed.

@@ -81,17 +81,36 @@ export const catalogEditContract: Contract<LocaleSwitchAdapter> = {
    * rather than having a catalog-specific problem; its `hmr` claim is withdrawn
    * in its manifest, with the measurement.
    */
+  /**
+   * **Half of L-064 is fixed; the half that remains is a different question.**
+   *
+   * The three projects with no client reactivity — `rsbuild-vanilla-basic`,
+   * `rsbuild-vanilla-spa`, `rsbuild-svelte-basic` — now pass. Their catalogs
+   * were arriving and being applied all along; nothing in the page could redraw
+   * from them, and Rspack's applier invalidates nothing, so the update was
+   * *swallowed*: store correct, DOM a screenshot of the previous render. They
+   * now reload instead, which is L-035's trade one module kind later.
+   *
+   * The three that remain are the reactive frameworks whose managers **fetch**
+   * the catalog rather than inlining it. `rsbuild-vue-mpa` inlines and passes
+   * warm; `rsbuild-vue-basic` and `rsbuild-vue-spa` are the same framework and
+   * fetch, and fail. So the axis is not the framework — it is L-056's
+   * inlined-vs-fetched line, arrived at a third time and from a third
+   * direction. A fetched catalog on this host updates a module that nothing
+   * re-runs and nothing is subscribed through.
+   *
+   * Left pending rather than forced to reload with the others: these projects
+   * *can* repaint, so making them refresh the page would trade a real defect for
+   * a worse experience and call it fixed.
+   */
   pendingFor: {
-    "rsbuild-svelte-basic":
-      "L-064: 10/10 runs failed. Fetched catalog; the reload beats the write.",
-    "rsbuild-vanilla-spa": "L-064: 10/10 runs failed. Fetched catalog; the reload beats the write.",
-    "rsbuild-react-basic": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
-    "rsbuild-vue-spa": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
-    "rsbuild-vue-basic": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
-    "rsbuild-vanilla-basic":
-      "L-064: 6/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-react-basic":
+      "L-064 remainder: reactive framework, fetched catalog. The catalog is delivered and " +
+      "applied; no component redraws. Distinct from the non-reactive case fixed alongside it.",
+    "rsbuild-vue-basic": "L-064 remainder: reactive framework, fetched catalog. Same as above.",
+    "rsbuild-vue-spa": "L-064 remainder: reactive framework, fetched catalog. Same as above.",
   },
-  async execute(lab, adapter) {
+  async execute(lab, adapter, manifest) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
@@ -121,10 +140,26 @@ export const catalogEditContract: Contract<LocaleSwitchAdapter> = {
     // 1. The translation arrives.
     await lab.assert.textEventually(adapter.headingSelector, EDITED);
 
-    // 2. It arrived warm.
+    /**
+     * 2. It arrived warm — asserted only where the project claims to be able to.
+     *
+     * `hmr-warm` is the claim that a hot update is replaced *in place* rather
+     * than answered by a reload, and it is a genuinely different guarantee from
+     * `hmr`: a reload delivers the same text while discarding application
+     * state. Measured, the line runs through client reactivity — a project with
+     * nothing subscribed to the store has nothing that can redraw from a new
+     * catalog, so declining the update and reloading is the correct outcome
+     * rather than a failure to be warm (L-035 for source files, L-064 for
+     * catalogs).
+     *
+     * Asserting warmth unconditionally would demand that every project meet a
+     * guarantee only some of them make, which is what the capability model
+     * exists to stop.
+     */
     const packets = capture.stop();
+    const claimsWarm = manifest.capabilities.includes("hmr-warm");
     const reloads = packets.filter((p) => p.type === "full-reload");
-    if (reloads.length > 0) {
+    if (claimsWarm && reloads.length > 0) {
       throw new Error(
         `The edited translation reached the page, but by full reload — ${reloads.length} ` +
           `full-reload packet(s) among ${packets.length}: ` +

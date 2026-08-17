@@ -127,5 +127,34 @@ export function vueCodegenFacet(options: VueFacetOptions = {}): ZintlFacet {
  * Included in the built-in set when Vue is detected.
  */
 export function vueFacet(options: VueFacetOptions = {}): ZintlFacet[] {
-  return [vueExtractionFacet(options), vueCodegenFacet(options)];
+  return [vueExtractionFacet(options), vueCodegenFacet(options), vueRuntimeFacet()];
+}
+
+/**
+ * Vue's half of {@link RuntimeFacet.repaintsOnCatalogUpdate}.
+ *
+ * Measured rather than reasoned: `rsbuild-vue-mpa` applies a catalog edit to its
+ * heading with no reload, on a host whose applier invalidates nothing. Declaring
+ * `false` here would take that warmth away and replace it with a page refresh,
+ * which is why the flag is set — the alternative was measurably worse on a
+ * project that already worked.
+ *
+ * **Necessary, not sufficient**, and the gap is recorded rather than papered
+ * over: `rsbuild-vue-basic` and `rsbuild-vue-spa` still miss the repaint, and
+ * the line between them and the MPA is not the framework but whether the
+ * manager *inlines* the catalog or *fetches* it. A fetched catalog on this host
+ * updates a module nothing re-runs. See ledger L-064.
+ *
+ * It declares no `entryReexecutionSafe`, so it keeps the permissive default: the
+ * two flags answer different questions, and Vue's mount is replayable where
+ * React's `createRoot` and Svelte's `mount` are not.
+ */
+function vueRuntimeFacet(): ZintlFacet {
+  return {
+    name: "vue-runtime",
+    when: { framework: "vue" },
+    concern: "runtime",
+    priority: 100,
+    repaintsOnCatalogUpdate: true,
+  };
 }

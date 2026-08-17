@@ -23,4 +23,3 @@ if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
   globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
 }
 export default catalog;
-if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

@@ -576,11 +576,17 @@ describe("Facet Resolution Engine", () => {
       expect(resolveFacets([reactRuntimeFacet()]).flags.entryReexecutionSafe).toBe(false);
     });
 
-    it("vueFacet compiles to vueExtractionFacet and vueCodegenFacet", () => {
+    it("vueFacet compiles to extraction, codegen and runtime facets", () => {
       const facets = vueFacet();
-      expect(facets.length).toBe(2);
-      expect(facets[0].name).toBe("vue-extraction");
-      expect(facets[1].name).toBe("vue-codegen");
+      expect(facets.map((f) => f.name)).toEqual([
+        "vue-extraction",
+        "vue-codegen",
+        // Declares that Vue redraws from a store update without the entry
+        // re-running, which decides whether a catalog edit can be applied hot
+        // or has to reload (ledger L-064).
+        "vue-runtime",
+      ]);
+      expect(facets[2]).toMatchObject({ repaintsOnCatalogUpdate: true });
     });
 
     it("svelteFacet compiles to extraction, codegen and runtime facets", () => {

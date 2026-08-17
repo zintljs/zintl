@@ -125,6 +125,7 @@ interface MergeState {
   serverRequestScope: boolean;
   streamInjection: boolean;
   entryReexecutionSafe: boolean;
+  repaintsOnCatalogUpdate: boolean;
   detectLocaleChain: ((context: LocaleDetectionContext) => string | undefined)[];
 
   // Bundler (highest-priority-wins)
@@ -185,6 +186,7 @@ function createEmptyState(): MergeState {
     serverRequestScope: false,
     streamInjection: false,
     entryReexecutionSafe: true,
+    repaintsOnCatalogUpdate: false,
     detectLocaleChain: [],
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
@@ -324,6 +326,8 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
        * real hazard another facet reported.
        */
       if (facet.entryReexecutionSafe === false) state.entryReexecutionSafe = false;
+      // Optimistic, unlike the line above: one reactive framework is enough.
+      if (facet.repaintsOnCatalogUpdate === true) state.repaintsOnCatalogUpdate = true;
       if (facet.detectLocale) state.detectLocaleChain.push(facet.detectLocale);
       break;
     }
@@ -426,6 +430,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     serverRequestScope: state.serverRequestScope,
     streaming: state.streamInjection,
     entryReexecutionSafe: state.entryReexecutionSafe,
+    repaintsOnCatalogUpdate: state.repaintsOnCatalogUpdate,
 
     // SSR
     ssr:

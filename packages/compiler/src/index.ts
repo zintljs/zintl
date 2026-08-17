@@ -427,6 +427,39 @@ export class ZintlCompiler {
   public isWritingFile(path: string) {
     return this.io.writingFiles.has(path);
   }
+  /**
+   * Whether a running page could redraw itself from a newly delivered catalog.
+   *
+   * True when some framework runtime facet declares `repaintsOnCatalogUpdate`.
+   *
+   * Deliberately **not** `clientReactivityImports`, which was the first thing
+   * tried and is a narrower question: it lists the hooks a framework needs
+   * *injected*, and only React has any. Vue subscribes through its own
+   * reactivity and declares nothing there, so that predicate called Vue
+   * unable to repaint and forced it into reloads it did not need — measured, on
+   * a project that had been applying catalog edits warm all along.
+   */
+  private get canRepaint(): boolean {
+    return this._resolved.flags.repaintsOnCatalogUpdate === true;
+  }
+
+  /**
+   * Whether this host's generated catalogs handle their own updates.
+   *
+   * Derived from the facet's own answer rather than duplicating its reasoning:
+   * a host that returns `""` from `hmrSelfAcceptCode` for this project has
+   * declared that nothing in the page can act on a new catalog. The plan reads
+   * this to force a reload, so the *same* facet decision drives both halves —
+   * what the module says about itself, and what the server does about it.
+   *
+   * Without the second half the update is simply lost on Rspack: a catalog the
+   * manager fetches arrives through a dynamic import, which is a chunk boundary
+   * with no static parent to bubble to, so declining to accept does not reach a
+   * reload the way declining in a statically imported entry does (ledger L-064).
+   */
+  public get generatedModulesSelfAccept(): boolean {
+    return (this._resolved.system.hmrSelfAcceptCode?.(undefined, this.canRepaint) ?? "") !== "";
+  }
   public isLiveOwner(id: string) {
     return this.graph.isLiveOwner(id, this.messages.internalManifest);
   }
@@ -2586,7 +2619,14 @@ export class ZintlCompiler {
       }
       code += `export default catalog;`;
       if (this.isDev) {
-        code += this._resolved.system.hmrSelfAcceptCode?.() ?? "";
+        /**
+         * Whether anything in the page can act on the catalog this module is
+         * about to deliver. See `BundlerFacet.hmrSelfAcceptCode`: a host whose
+         * applier re-runs the entry ignores this, and one that does not uses it
+         * to decline the update so it bubbles to a reload rather than being
+         * swallowed (ledger L-064).
+         */
+        code += this._resolved.system.hmrSelfAcceptCode?.(undefined, this.canRepaint) ?? "";
       }
       return {
         code,

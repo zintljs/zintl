@@ -190,7 +190,27 @@ export function rspackFacet(): ZintlFacet {
      * are ESM, and Webpack forbids `module.hot` in a strict ESM module. It is the
      * spelling Rsbuild's own HMR client uses.
      */
-    hmrSelfAcceptCode: (): string =>
-      `\nif (import.meta.webpackHot) { import.meta.webpackHot.accept(); }`,
+    hmrSelfAcceptCode: (_callbackBody?: string, canRepaint = true): string => {
+      /**
+       * **Accepting is only correct when something can redraw.**
+       *
+       * This applier invalidates nothing by design — Rspack rebuilds whatever
+       * its own dependency graph marks stale — so a generated catalog that
+       * accepts its own update is the end of the line. On a project with no
+       * client reactivity there is nothing subscribed to the store and nothing
+       * re-runs the entry, so the update lands, `addCatalogs` applies it, and
+       * the page keeps rendering the DOM it painted before the edit. Measured
+       * exactly that way: the store held the new translation and the heading
+       * held the old one (ledger L-064).
+       *
+       * Declining lets the update bubble to a full reload, which repaints from
+       * the new catalog. Slower than a hot update and correct — the same trade
+       * L-035 made for source files on this host, arrived at again one module
+       * kind later, and for the same reason: a repaint this app cannot perform
+       * must not be claimed as handled.
+       */
+      if (!canRepaint) return "";
+      return `\nif (import.meta.webpackHot) { import.meta.webpackHot.accept(); }`;
+    },
   };
 }

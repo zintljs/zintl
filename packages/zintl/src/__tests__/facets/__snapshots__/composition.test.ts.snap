@@ -23,6 +23,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -65,6 +66,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -107,6 +109,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -149,6 +152,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -189,6 +193,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -231,6 +236,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -273,6 +279,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -315,6 +322,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -358,6 +366,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -397,6 +406,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -445,6 +455,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -484,6 +495,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -530,6 +542,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -569,6 +582,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -617,6 +631,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -656,6 +671,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -702,6 +718,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -741,6 +758,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -789,6 +807,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -828,6 +847,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
@@ -874,6 +894,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -916,6 +937,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -961,6 +983,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1003,6 +1026,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -1043,6 +1067,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1085,6 +1110,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1127,6 +1153,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1169,6 +1196,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1209,6 +1237,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1251,6 +1280,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1293,6 +1323,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1335,6 +1366,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1375,6 +1407,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1417,6 +1450,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1459,6 +1493,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: true
@@ -1501,6 +1536,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -1526,6 +1562,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1543,6 +1580,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1594,6 +1632,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1610,6 +1649,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1629,6 +1669,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1678,6 +1719,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1696,6 +1738,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1713,6 +1756,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1764,6 +1808,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1780,6 +1825,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1799,6 +1845,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1848,6 +1895,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -1866,6 +1914,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -1883,6 +1932,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -1934,6 +1984,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -1950,6 +2001,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -1969,6 +2021,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: true
@@ -2018,6 +2071,7 @@ activation trace:
   ✗ vite                         when.bundler=vite ✗ (host: rspack)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -2054,6 +2108,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -2096,6 +2151,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2141,6 +2197,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -2183,6 +2240,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2226,6 +2284,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -2268,6 +2327,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2313,6 +2373,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -2355,6 +2416,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2395,6 +2457,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2437,6 +2500,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2479,6 +2543,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2521,6 +2586,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2561,6 +2627,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2603,6 +2670,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2645,6 +2713,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2687,6 +2756,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2727,6 +2797,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2769,6 +2840,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2811,6 +2883,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2853,6 +2926,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2893,6 +2967,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -2935,6 +3010,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -2977,6 +3053,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3019,6 +3096,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3059,6 +3137,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3101,6 +3180,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3143,6 +3223,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3185,6 +3266,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3225,6 +3307,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3267,6 +3350,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3309,6 +3393,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3351,6 +3436,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3391,6 +3477,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3433,6 +3520,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3475,6 +3563,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3517,6 +3606,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -3562,6 +3652,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3601,6 +3692,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
@@ -3649,6 +3741,7 @@ flags:
   jsx: true
   jsxRichText: true
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -3688,6 +3781,7 @@ ssr:
 activation trace:
   ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
@@ -3716,6 +3810,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -3733,6 +3828,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -3784,6 +3880,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -3800,6 +3897,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -3819,6 +3917,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -3868,6 +3967,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -3886,6 +3986,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -3903,6 +4004,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -3954,6 +4056,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -3970,6 +4073,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -3989,6 +4093,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -4038,6 +4143,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -4056,6 +4162,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -4073,6 +4180,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -4124,6 +4232,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -4140,6 +4249,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -4159,6 +4269,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -4208,6 +4319,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -4226,6 +4338,7 @@ ssr: false
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
   vanilla-extraction  [extraction]  priority=100
   html-extraction  [extraction]  priority=100
@@ -4243,6 +4356,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: false
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -4294,6 +4408,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ client-spa                   unconditional
   ✓ vanilla-extraction           unconditional
   ✓ html-extraction              unconditional
@@ -4310,6 +4425,7 @@ ssr: true
 facets (resolution order):
   vue-extraction  [extraction]  priority=100
   vue-codegen  [codegen]  priority=100
+  vue-runtime  [runtime]  priority=100
   ssr-wrapping  [ssr]  priority=100
   ssr-runtime  [runtime]  priority=100
   client-spa  [runtime]  priority=100
@@ -4329,6 +4445,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: true
   serverRequestScope: true
   sfc: true
   sfcBlockRequestsCarryWholeFile: false
@@ -4378,6 +4495,7 @@ activation trace:
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ vue-extraction               framework=vue ✓
   ✓ vue-codegen                  framework=vue ✓
+  ✓ vue-runtime                  framework=vue ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -4411,6 +4529,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: false
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -4453,6 +4572,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
@@ -4495,6 +4615,7 @@ flags:
   jsx: false
   jsxRichText: false
   localeRouting: true
+  repaintsOnCatalogUpdate: false
   serverRequestScope: true
   sfc: false
   sfcBlockRequestsCarryWholeFile: false
@@ -4537,6 +4658,7 @@ activation trace:
   ✗ react-runtime                when.framework=react ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)

@@ -337,6 +337,33 @@ export interface RuntimeFacet extends BaseFacet {
    */
   entryReexecutionSafe?: boolean;
   /**
+   * Whether components built by this framework **redraw themselves** when a new
+   * catalog reaches the store.
+   *
+   * The question a hot catalog update turns on, and a different one from
+   * {@link entryReexecutionSafe}: that asks whether re-running the entry is
+   * *safe*, this asks whether anything repaints without re-running it at all.
+   * React reads the store through `useSyncExternalStore`; Vue's components
+   * track it through its own reactivity. Svelte's compiled output and a plain
+   * vanilla entry do neither — they paint once and the DOM is a snapshot.
+   *
+   * Where it is false, a delivered catalog is *applied and invisible*: the store
+   * holds the new translation and the page keeps showing the text it painted
+   * before the edit. That is not a hot update the user can perceive, so the host
+   * is told to reload instead (ledger L-064).
+   *
+   * Absent means `false`, unlike `entryReexecutionSafe`, and the asymmetry is
+   * deliberate. There the conservative direction keeps hot updates working; here
+   * the conservative direction is to reload, because the failure mode of a
+   * wrong `true` is a page that silently lies about its own contents while a
+   * wrong `false` costs a page refresh.
+   *
+   * Merged optimistically — one facet declaring `true` decides it, since a
+   * single reactive framework in the project is enough for its own components
+   * to redraw.
+   */
+  repaintsOnCatalogUpdate?: boolean;
+  /**
    * Custom locale detection from URL/request context.
    * Chained: first non-undefined result from any facet wins.
    */
@@ -472,13 +499,29 @@ export interface BundlerFacet extends BaseFacet {
    *
    * `callbackBody` receives `newModule` in scope when supplied.
    *
+   * `canRepaint` says whether **anything in the running page can act on a new
+   * catalog** — a framework subscribed to the store, or a host that re-executes
+   * the entry as part of applying the update. Accepting is only correct when
+   * something downstream will redraw: an accept that nothing acts on *swallows*
+   * the update, leaving a page whose store is right and whose DOM is a
+   * screenshot of the previous one (ledger L-064). A facet that cannot repaint
+   * should return `""` so the update bubbles to a reload instead — which is the
+   * same trade L-035 made for source files, one module kind later.
+   *
+   * Hosts differ on this, which is why it is a facet decision rather than a
+   * compiler one: Vite's applier explicitly invalidates the entry's own modules
+   * on a boundary update, so the entry re-runs and repaints whatever the
+   * framework does. Rspack's applier deliberately invalidates nothing and
+   * rebuilds only what its declared dependencies mark stale, so a generated
+   * catalog that accepts its own update is the end of the line.
+   *
    * This exists because two call sites in the compiler hardcoded
    * `import.meta.hot` and consulted no facet at all, so every host was handed
    * Vite's API for its generated modules regardless of who was building. A
    * facet returning `""` declares that it has no hot-update story yet, which is
    * a better answer than the wrong API.
    */
-  hmrSelfAcceptCode?: (callbackBody?: string) => string;
+  hmrSelfAcceptCode?: (callbackBody?: string, canRepaint?: boolean) => string;
 
   /** HMR injection code generation (appended to transformed files in dev) */
   hmrInjectionCode?: (
@@ -684,6 +727,7 @@ export interface CapabilityFlags {
    * `RuntimeFacet.entryReexecutionSafe`.
    */
   entryReexecutionSafe: boolean;
+  repaintsOnCatalogUpdate: boolean;
   /** True when client-side locale sync is active (popstate, pushState, MutationObserver) */
   clientLocaleSync: boolean;
   /** True when server-side request scoping is active (AsyncLocalStorage) */
@@ -764,7 +808,7 @@ export interface CompilerSystemView {
    * Resolved self-accept generator for generated modules (undefined if no
    * bundler facet supplies one, which means: emit nothing).
    */
-  hmrSelfAcceptCode: ((callbackBody?: string) => string) | undefined;
+  hmrSelfAcceptCode: ((callbackBody?: string, canRepaint?: boolean) => string) | undefined;
   /** Resolved HMR injection code generator (undefined if no HMR facet) */
   hmrInjectionCode:
     | ((

@@ -165,6 +165,25 @@ export async function computeHotUpdatePlan(
     const isSsr = ctx.compiler.ssrBoundaries?.has(boundaryId);
     const isClient = ctx.compiler.clientBoundaries?.has(boundaryId);
     if (isSsr && !isClient) fullReload = true;
+
+    /**
+     * Nothing in the page can act on the new catalog, so the server has to say so.
+     *
+     * When the host declines to make generated catalogs self-accepting — no
+     * framework subscribed to the store, and an applier that does not re-run the
+     * entry — the update reaches the browser and is simply lost. A fetched
+     * catalog arrives through a dynamic import, which is a chunk boundary with
+     * no static parent, so *declining* does not bubble to a reload the way it
+     * does inside a statically imported entry. The measured result was the worst
+     * kind of silent: `addCatalogs` applied, the store holding the new
+     * translation, and the heading still showing the text painted before the
+     * edit (ledger L-064).
+     *
+     * So the reload is issued deliberately rather than hoped for. Slower than a
+     * hot update and correct, which is the same trade L-035 made for source
+     * files on this host.
+     */
+    if (!ctx.compiler.generatedModulesSelfAccept) fullReload = true;
   }
 
   return { event, boundaries, fullReload, invalidateAllManagers };
