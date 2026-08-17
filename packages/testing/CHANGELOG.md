@@ -1,5 +1,235 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.16
+
+### Patch Changes
+
+- 33cc981: Build snapshots no longer pin the order Rspack happens to write modules in.
+
+  `[Production Build] rsbuild-vanilla-basic` passed on every developer machine and failed on CI, with a
+  diff that looks alarming and means nothing: module `8` — the raw asset text, which imports nothing —
+  appearing before module `12` locally and after it on CI. Same ids, byte-identical bodies, different
+  sequence. A chunk is emitted as `push([[3], { 7(…){…}, 8(…){…}, 12(…){…} }])`, and which module lands
+  where depends on the order the build _finished_ them, which is timing and therefore machine.
+
+  `filterDistForSnapshots` now sorts module blocks by id, so the snapshot asserts what the bundle
+  contains rather than what order the bundler wrote it in. Sorted rather than stripped: a module
+  appearing or disappearing still fails, which is the part that matters. Files without that shape pass
+  through untouched, and an unterminated block leaves the file exactly as it was rather than emitting a
+  half-reordered approximation.
+
+  Regenerating the 24 affected snapshots produced 100,052 insertions against 100,052 deletions, and the
+  sorted line multiset is identical before and after — confirmed per file, so the update is provably a
+  permutation and not a content change.
+
+  Separately, `describeStall` no longer attaches browser diagnostics to failures in project mode.
+  `build`, `graph` and the transform contracts run without a page, and this one reported
+  `hmr packets: unavailable`, `settle beacon: unreadable` and — on a production bundle snapshot
+  mismatch — `← the page itself is the failure`, pointing an investigation at a browser that was never
+  opened. The compiler ledger and HMR trace are genuinely useful there and are kept; the browser-side
+  sections are skipped rather than answered wrongly, under a `── build diagnosis (no page) ──` header.
+
+- 8064f19: A flush deferred by another flush now gets a trigger of its own.
+
+  `flush()` hands a mid-flush caller the in-flight promise and settles `dirt retained for the next`,
+  justified by "the debounce timer is already scheduled by the `transform` that dirtied it". That holds
+  for every trigger except the last one: `scheduleFlush()` _replaces_ the timer, and when it fires
+  `flush()` clears it, finds a run already in flight, and returns — leaving nothing scheduled. If no
+  further change arrives, the retained dirt is never flushed at all.
+
+  Measured on a boundary rename: two flushes, one catalog prune that ran _before_ the rename, and a
+  catalog write that simply never happened. The signal for it,
+  `flush #N → superseded (joined the in-flight flush; dirt retained for the next)`, appears 68 times
+  across one session's captured diagnoses and had been read as background noise throughout.
+
+  `armTrailingFlush` re-arms the **debounce timer** once the in-flight run settles, rather than running
+  a follow-on flush. That is the difference from the two attempts this replaces: further changes
+  coalesce into the timer, so a burst costs one extra pass at the end rather than one per update. It
+  cannot livelock, because nothing is armed unless dirt actually remains, at most one arm exists per
+  in-flight run, and a trailing flush that leaves the dirt unchanged does not arm another — while a
+  real edit clears that guard so genuine work is never refused. `hmr-hammer`, the contract the earlier
+  follow-on destabilised, measures 0 failures in 10 runs.
+
+  `noOrphanedCatalogs()` needed fixing to see any of this: it read the filesystem the instant the DOM
+  settled, mid-way through work already scheduled. Awaiting `flush()` once is not enough either, since
+  a mid-flush caller receives the in-flight promise. `flushUntilQuiescent` loops on the dirty set
+  rather than a clock, so it terminates because there is no dirt left rather than because time passed.
+
+  `[Chaos Boundary] vue-basic` passes 10 runs in 10. `svelte-basic` stays pending for an unrelated
+  defect the shared skip had been hiding — proposal 024 §1.3's double mount, measured 6/10 under
+  contention and 0/10 in isolation.
+
+- d2ffd5b: The delivery contracts no longer assume how an app was chunked.
+
+  `delivery-ordering` and `delivery-refresh` found their probe boundary by scanning the store for the
+  one carrying the app's heading, and aborted when none did. That is really a claim that the asserted
+  string arrives in a _registered_ catalog rather than one the manager _inlines_ — and on an app whose
+  heading sits in the entry's own boundary, it does not hold. Both contracts aborted on a project where
+  delivery demonstrably works, which cost that project a capability it had already earned.
+
+  `pickDeliveryProbe` prefers the boundary carrying the heading, falls back to any registered one, and
+  fails only when the store holds no catalogs at all for the active locale. Axiom D1 and the push/pull
+  join are properties of the receiver rather than of any particular boundary, so this needs no
+  per-project answer — which is why it is a fallback rather than a new adapter field. When the fallback
+  fires, `carriesKey` records that the probe was a stand-in rather than hiding it.
+
+  `examples/rsbuild-vanilla-mpa` claims `hmr` as a result, measured at 0 failures in 10 runs across
+  `hmr`, `syntax-recovery` and the three delivery contracts. See ledger L-056.
+
+- cd4eae5: `hmr-first-tick` no longer reports an absent element as a blank render, and asset HMR reclaims Rspack.
+
+  The contract sampled the heading with `document.querySelector(sel)?.textContent ?? ""`, which yields
+  `""` for an element that is **absent** exactly as readily as for one that is empty. On an app that
+  clears its container, `await`s a dynamic import and then paints, that reads as
+  `"Lazy colony"` → `""` → `"First tick works!"` — which was written up as ZHMR §6's "Blank/Empty
+  Rendering on First HMR Update" and entered in the ledger as a product defect. It was neither: for the
+  duration of the await there is simply no heading in the document, no translation is involved, and no
+  catalog is late.
+
+  The two states are now distinguished. What §6 actually describes still fails the contract — the
+  element **present** with empty text, which is what a resolver miss looks like when there is no
+  source-locale fallback. Green on all nine projects, 0 failures in 10 runs. Ledger L-060 is withdrawn
+  with the reasoning kept, because a probe that cannot tell _not rendered yet_ from _rendered as
+  nothing_ will manufacture defects in every asynchronously repainting app it meets.
+
+  `[Asset HMR] rsbuild-vanilla-basic` also returns, unrelated to any asset change: it was pending on a
+  later rebuild restoring the old text, which was L-064 — an update nothing in the page could act on.
+  Fixing that cleared this. Measured 0 failures in 10 runs, so ZHMR §5 now holds on both hosts.
+
+- 6a3d1b8: Fix Vue on Rsbuild, and rebuild the Rsbuild examples as `create-rsbuild` starters across all four frameworks.
+
+  **The fix.** Vue on Rsbuild built green and shipped the source locale. Extraction, catalog scaffolding, `verifyIntegrity`, chunk alignment and the HTML projection were all correct — only the code generation was missing, so a page rendered English under a Spanish `<title>`. The cause was one skip in Zintl: `hooks/transform.ts` ignored every id containing `?vue`, which is right on Vite (that id names a virtual module holding one block of the SFC) and wrong on Rspack (`vue-loader`'s pitcher rewrites it into a request that re-reads the whole file). Zintl was transforming the parent request, which is discarded, and skipping the block requests, which become the code.
+
+  Whether a block request carries the whole file is a fact about the **bundler**, so it is now a bundler-facet declaration — `BundlerFacet.sfcBlockRequestsCarryWholeFile`, `true` on `rspackFacet`, undeclared on `viteFacet` — and `hooks/transform.ts` asks it instead of matching a query string. Vite's behaviour is unchanged by construction. Written up as L-051.
+
+  **The examples.** The two Rsbuild examples were never written to be examples: they grew out of proposal 026's falsification harness and were Vite's starter with the branding torn out, with names (`rsbuild-spa` = vanilla, `rsbuild-react` = no pattern) that did not say what they were. They are now `rsbuild-<framework>-<pattern>`, and each reads as "I ran `pnpm create rsbuild`, then added localization": the page, the CSS and the mount point are the template's, and what is added is the four-locale switcher, `?lang=`, the catalogs, and the `index.html` Zintl needs to localize `<title>` and `<html dir>`.
+
+  Renamed: `rsbuild-spa` → `rsbuild-vanilla-basic`, `rsbuild-react` → `rsbuild-react-basic`.
+
+  New, each in the contract suite with capabilities earned one contract at a time:
+
+  - **`rsbuild-vue-basic`** — the app that found L-051 and now guards the fix.
+  - **`rsbuild-svelte-basic`** — Svelte 5 on Rspack; it needed no Zintl change at all.
+  - **`rsbuild-vanilla-spa`** and **`rsbuild-vue-spa`** — a hand-rolled router and `vue-router`, each with a lazy `await import()` route, so catalog splitting on Rspack is demonstrated for a boundary the entry never imports statically.
+  - **`rsbuild-vanilla-mpa`** and **`rsbuild-vue-mpa`** — two `source.entry` keys, two HTML templates, and a shared component that anchors itself. The first projects on either host to drive Zintl's multi-entry HTML path, which `hooks/html.ts` was written for and nothing had run.
+
+  The support statement moves with the evidence: Rsbuild now covers all four frameworks, single-page and multi-page, in build and dev. `multiplex` and SSR remain Vite-only.
+
+  **Two limitations found on the way, both documented rather than fixed.** Vue's Options API has never worked on either host — a plain `<script>` compiles its template into a separate render function where the helpers Zintl injects are not in scope, and the render throws `_ctx._t is not a function`; every Vue example here uses `<script setup>`, which is why it had never surfaced (L-053). And an inline arrow in a Svelte event attribute on an element with extractable text makes the stitched unit start inside the attribute, producing unparsable output — also on both hosts.
+
+  Also here: the `hmr` capability is not claimed on the new projects, and the reason is measured rather than assumed — an edit to a string in a boundary the runtime has to _fetch_ loses the race with the catalog write when the page full-reloads (10 failures in 10 on Svelte, against React and vanilla passing 10 in 10 in the same batch).
+
+  Two build-snapshot stability defects were found and fixed on the way, both of which had first been read as flake. `examples/rsbuild-svelte-basic` pins Svelte's `cssHash`, whose default hashes the absolute filename and made its snapshot depend on which test worker copied the project (L-052). And `@zintljs/testing`'s `sanitizeCode` now normalises `clonedRuleSet_N`, which `VueLoaderPlugin` numbers from a module-scoped counter that accumulates across every Vue project a worker compiles (L-054).
+
+  Documentation that described Rsbuild as an unsupported falsification target has been corrected in four places, and the `18 example apps → 72 contract tests` counts, already stale, are now 27 and 199.
+
+  **The performance gate was failing on machine state, and now scales properly.** `vpr bench` had started reporting regressions that were not there: on one laptop, `Structural HMR Latency` measured 0.44 ms against a recorded 0.2139 ms and `Colony HMR Latency` 0.75 ms against 0.4124 ms — on identical code, verified by building the original commit in a worktree and running it alongside. The machine had 14 GB of 15 GB swap in use. The calibration that exists to absorb exactly that could not see it, because it was a `Math.sin` loop: it stays in L1, allocates nothing, never provokes the collector, and reported the machine 1.00× while every allocation-heavy path had halved in speed.
+
+  Four changes came out of it. The calibration workload now allocates a working set large enough to touch fresh pages, builds strings, sorts and serializes, so it degrades with the resources the benchmarks depend on — its size mattered as much as its shape, since a first attempt at 48 short-lived strings never grew the heap and so missed `Extract Long File`, which builds a large native AST, entirely. Across the suite that took normalised ratio spread from 54–121% down to 1–9%. Budgets are expressed as multiples of that calibration rather than as milliseconds plus a separate reference constant, so there is no second number to keep in step and nothing to drift apart from. The comparison moved from the mean to **p75**, after a run where `Fast-Path (No Translations/Sinks)` reported mean 0.1183 ms against p75 0.0549 ms and max 16.3 ms — two stalled iterations moved the mean by 2.2× and failed the gate while p75 sat comfortably inside it. And `vpr ready` now runs the benchmark **second**, right after the package build, instead of last: measured after 27 example builds, a type-aware lint and 800 tests, the same benchmark reads 3.4 ms where it reads 0.5 ms run early.
+
+  A budget failure now also prints the calibration reading and says to check swap before concluding the code regressed, and a missing calibration is a hard failure rather than eight meaningless violations against zero. `vpr ready` went from failing roughly every other run to four consecutive passes.
+
+  **Example typechecks are wired into the gate**, which immediately paid for itself. The Vue and Svelte Rsbuild examples built with a bare `rsbuild build` and their `check` script was run by nothing, so two defects had shipped: `rsbuild-vue-mpa` carried a real type error (`SiteHeader.vue`'s top-level `await` needs `module: es2022+`, which `create-rsbuild`'s Vue tsconfig does not set — swc compiled it happily, `vue-tsc` did not), and `rsbuild-svelte-basic`'s `check` had never worked at all, reporting every component as `Error in vite.config` because `svelte-check` falls back to hunting for a Vite plugin when it finds no Svelte config. Both fixed; the typecheck now runs inside `build`, matching the Vite peers, and verified to fail a deliberately introduced error. `examples/svelte-basic` had the same ungated hole on Vite and is wired the same way.
+
+  **ICU plurals are now exercised on Rspack.** No Rsbuild example touched grammar compilation — only `examples/website` did, on Vite — so ICU on this host was an inference from "baking happens in the compiler". `rsbuild-vanilla-basic`'s catalog now carries real plural forms, in the documented shape: the source stays `` `Count is ${counter}` `` and the grammar lives in the catalog. The emitted Arabic chunk is a native `Intl.PluralRules` call and a conditional chain, with identical branches folded and no parser in the bundle. Clicking the counter in Arabic walks `zero → one → two → few`.
+
+  Also measured and recorded: `hmr` on the four newest projects. `rsbuild-vanilla-mpa` passes the HMR contract 0 failures in 10 — the heading is in the entry's own inlined boundary, so the reload comes back with the text already there — but cannot claim the capability, because `delivery-ordering` and `delivery-refresh` are gated behind it and abort on a contract assumption (they look the heading key up in `catalogs[activeLocale]`, where the entry's own boundary is inlined rather than registered under the ghosted source locale). `rsbuild-vanilla-spa` and `rsbuild-vue-spa` fail 10 in 10 and `rsbuild-vue-mpa` 8 in 10, all the empty-render reload race. Each manifest carries its own number.
+
+- f33d11d: `chaos-boundary` waits for the compiler to forget a deleted file before asserting on disk.
+
+  A deletion reaches the compiler through the host's watcher, which is asynchronous and outside the
+  harness's control. Until the `unlink` lands the boundary is still live, still in the prune's
+  known-path set, and its catalogs are correctly _kept_ — so reading the directory first asserts on a
+  state that was never wrong. `boundaryForgotten` terminates on the condition rather than on a clock,
+  and turns a watcher that never fires into a precise failure instead of a puzzling orphan list.
+
+  It did not fix the flake it was written for, and that is recorded rather than glossed: `svelte-basic`
+  moved from 5/10 to 6/10 failing, which is noise, and the wait passes on every failing run. The
+  assertion was not racing the watcher.
+
+  **What the investigation did establish is a corrected diagnosis.** This contract's header has long
+  attributed `svelte-basic`'s failure to proposal 024 §1.3 — the entry re-executing and Svelte's
+  `mount()` appending a second copy. Measured, every failure is the orphan assertion instead, and the
+  instrumented prune shows the files deleted correctly and then present again by the time the assertion
+  reads them. Something re-materialises the catalogs of a boundary already reclaimed; the writer has not
+  been identified, and `removeFile`'s `markDirty` — the obvious candidate — was tried and reverted,
+  because it moved the rate only within noise and a unit test states its opposite intent outright.
+
+  Ledger L-071 carries the measurements and names the next probe: a timestamped log of catalog writes
+  interleaved with the prune's decisions. Both halves are already instrumented; their order is what is
+  missing.
+
+- ed5965d: Hot-update contracts cover what ZHMR specifies, and stop guessing where files live.
+
+  Most of `docs/spec/ZHMR.md` had no contract behind it. Nothing edited a translation catalog and
+  checked the page followed — the most common thing anyone does with an i18n toolchain. Nothing edited
+  a static asset, so §5's `b_assets` cascade was unobserved on both hosts. Nothing edited a server-only
+  boundary, so §4.3's full-reload broadcast was specified, implemented and never executed. Nothing
+  distinguished a change that fits the boundary graph from one that reshapes it (§4.1③ vs §4.2). And
+  because every assertion polls with `textEventually`, a heading that flashed empty mid-update — ZHMR
+  §6's named failure mode — polled green.
+
+  Five contracts close that: `catalog-edit`, `asset-hmr`, `hmr-server-refresh`, `hmr-growth` and
+  `hmr-first-tick`. Three new capabilities carry the claims that need a per-project answer —
+  `asset-hmr`, `hmr-server-refresh` and `hmr-structural` — each earned only with the matching adapter
+  field declared, the relationship `chaos` already had with `renameBoundary`.
+
+  **Hot updates are no longer gated on `spa`.** Every HMR contract required `["spa", "hmr"]`, and `spa`
+  was doing no work `hmr` did not already do — what it did instead was exclude SSR by accident, so
+  `react-ssr` carried a `hmr` capability that selected zero tests. Hot updates are not a property of
+  client-side routing.
+
+  **Three places guessed at paths a compiler had already resolved**, and all three are now asked rather
+  than assumed, via `findCatalogFor` and `localizedAssetPath`:
+
+  - `chaos-catalog` tried `src/i18n/translations.json`, then walked `zintl/`, and threw otherwise. It
+    had never heard of `src/locales`, where every Rsbuild example keeps catalogs — so `chaos` was
+    unclaimable on eight projects because the contract could not find files that were sitting there.
+  - `noOrphanedCatalogs` read `(lab.compiler as any).outputDir ?? "src/locales"`, and `LabCompiler` has
+    no `outputDir`: the left side was always `undefined`. Not one project claiming `chaos` uses
+    `src/locales`, so the directory never existed and the assertion **returned without checking
+    anything, on every project, for its whole life**.
+  - `catalogContains` joined `<root>/<options.outputDir ?? "locales">/<locale>.json`, a flat layout no
+    project here uses, through a property the compiler does not expose.
+
+  `performance-size` filtered catalog responses by four hardcoded Vite URL shapes and so could only
+  ever measure zero responses on Rspack — recorded in those manifests as a host that cannot meet a
+  budget. It now uses `LocaleSwitchAdapter.isCatalogRequest`, which already existed for this question
+  and was already declared there.
+
+  `setTranslation` writes a translation in whichever of the two catalog shapes a project uses — values
+  are strings in a per-locale file and objects in a merged one — because a contract that assumed the
+  first would silently delete three languages on the second.
+
+  A `lazy-boundary` fixture covers colonies on Vite, which real-application coverage reached only on
+  Rspack. (An apparent blank frame it reported there turned out to be the probe conflating an
+  absent element with an empty one — withdrawn as ledger L-060.)
+
+  `hmr-warm` splits a capability that was carrying two guarantees: `hmr` says an edit reaches the
+  browser, `hmr-warm` says it is hot-replaced rather than answered by a reload. Measured, that line runs
+  through the framework rather than the host, which is the `hasClientReactivity` gate of L-030 and L-035
+  turned into a manifest claim instead of a paragraph.
+
+  Contracts that measured red are recorded as `pendingFor` carrying the measurement, not fixed — the
+  product changes are deliberately a separate pass. The largest is ledger L-064: editing a catalog
+  directly is unreliable on Rspack wherever the manager must _fetch_ the catalog rather than inline it
+  (10/10 runs failing on two projects, 6–7/10 on four, 0/10 on the two MPAs and on every Vite project).
+  That is L-056's defect, still live, exposed by the one mutation no existing contract performs.
+
+- Updated dependencies [a6d0820]
+- Updated dependencies [05b34f8]
+- Updated dependencies [6edeca3]
+- Updated dependencies [8064f19]
+- Updated dependencies [eca2c86]
+- Updated dependencies [8064f19]
+- Updated dependencies [e34d412]
+- Updated dependencies [6a3d1b8]
+- Updated dependencies [4925f0d]
+- Updated dependencies [d04b7d6]
+- Updated dependencies [5d8f4d4]
+  - @zintljs/compiler@0.1.0-alpha.16
+  - zintljs@0.1.0-alpha.16
+
 ## 0.1.0-alpha.15
 
 ### Patch Changes
