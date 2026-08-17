@@ -7,66 +7,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 },
-13(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
-/* import */ var virtual_zintl_manager_none_entry_b_e7c8b4f1ad96__rspack_import_1 = __webpack_require__(8);
-/* import */ var virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2 = __webpack_require__(9);
-/* import */ var _index_css__rspack_import_3 = __webpack_require__(10);
-/* import */ var _components_Header_ts__rspack_import_4 = __webpack_require__(11);
-/* import */ var _switcher_ts__rspack_import_5 = __webpack_require__(12);
-
-
-
-
-
-
-/**
- * The second page's entry, with its own document and its own trust anchor.
- *
- * Its boundary is independent of the home page's — nothing is inherited across
- * documents — while `Header`'s boundary is shared by both, because both import
- * it and it anchors itself.
- */ async function render() {
-    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_0.loadI18nInstance)({
-        locale: lang,
-        loaders: {
-            ["b_c087d0722440"]: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"].loader,
-            ["b_e7c8b4f1ad96"]: virtual_zintl_manager_none_entry_b_e7c8b4f1ad96__rspack_import_1["default"].loader
-        }
-    }));
-    const rootEl = document.querySelector("#root");
-    if (!rootEl) return;
-    const page = document.createElement("div");
-    page.className = "content";
-    page.innerHTML = `
-    <div id="switcher" class="switcher"></div>
-    <h1>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("abdb1589", {
-        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
-        _bId: "b_c087d0722440"
-    })}</h1>
-    <p>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("45d702f4", {
-        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
-        _bId: "b_c087d0722440"
-    })}</p>
-    <p>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("22857f41", {
-        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
-        _bId: "b_c087d0722440"
-    })}</p>
-  `;
-    rootEl.replaceChildren(await (0,_components_Header_ts__rspack_import_4.Header)(lang), page);
-    (0,_switcher_ts__rspack_import_5.setupSwitcher)(page.querySelector("#switcher"), (newLang)=>{
-        const url = new URL(window.location.href);
-        url.searchParams.set("lang", newLang);
-        window.history.pushState({}, "", url);
-        void render();
-    });
-}
-void render();
-
-
-},
 11(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
@@ -153,6 +93,66 @@ function setupSwitcher(element, onSwitch) {
         });
     });
 }
+
+
+},
+13(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_manager_none_entry_b_e7c8b4f1ad96__rspack_import_1 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2 = __webpack_require__(9);
+/* import */ var _index_css__rspack_import_3 = __webpack_require__(10);
+/* import */ var _components_Header_ts__rspack_import_4 = __webpack_require__(11);
+/* import */ var _switcher_ts__rspack_import_5 = __webpack_require__(12);
+
+
+
+
+
+
+/**
+ * The second page's entry, with its own document and its own trust anchor.
+ *
+ * Its boundary is independent of the home page's — nothing is inherited across
+ * documents — while `Header`'s boundary is shared by both, because both import
+ * it and it anchors itself.
+ */ async function render() {
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_0.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_c087d0722440"]: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"].loader,
+            ["b_e7c8b4f1ad96"]: virtual_zintl_manager_none_entry_b_e7c8b4f1ad96__rspack_import_1["default"].loader
+        }
+    }));
+    const rootEl = document.querySelector("#root");
+    if (!rootEl) return;
+    const page = document.createElement("div");
+    page.className = "content";
+    page.innerHTML = `
+    <div id="switcher" class="switcher"></div>
+    <h1>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("abdb1589", {
+        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
+        _bId: "b_c087d0722440"
+    })}</h1>
+    <p>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("45d702f4", {
+        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
+        _bId: "b_c087d0722440"
+    })}</p>
+    <p>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("22857f41", {
+        _mgr: virtual_zintl_manager_none_entry_b_c087d0722440__rspack_import_2["default"],
+        _bId: "b_c087d0722440"
+    })}</p>
+  `;
+    rootEl.replaceChildren(await (0,_components_Header_ts__rspack_import_4.Header)(lang), page);
+    (0,_switcher_ts__rspack_import_5.setupSwitcher)(page.querySelector("#switcher"), (newLang)=>{
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", newLang);
+        window.history.pushState({}, "", url);
+        void render();
+    });
+}
+void render();
 
 
 },

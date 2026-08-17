@@ -1,38 +1,6 @@
 (() => {
 "use strict";
 var __webpack_modules__ = ({
-9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-// extracted by css-extract-rspack-plugin
-
-
-},
-10(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-__webpack_require__.d(__webpack_exports__, {
-  setupCounter: () => (setupCounter)
-});
-/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
-/* import */ var virtual_zintl_manager_none_entry_b_4f8017c0589a__rspack_import_1 = __webpack_require__(7);
-
-
-function setupCounter(element) {
-    let counter = 0;
-    const setCounter = (count)=>{
-        counter = count;
-        element.innerHTML = (0,virtual_zintl_runtime_internal__rspack_import_0._t)("3aaf6932", {
-            counter: counter
-        }, {
-            _mgr: virtual_zintl_manager_none_entry_b_4f8017c0589a__rspack_import_1["default"],
-            _bId: "b_f05b8e5701f3"
-        });
-    };
-    element.addEventListener("click", ()=>setCounter(counter + 1));
-    setCounter(0);
-}
-
-
-},
 0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 /* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
@@ -103,6 +71,38 @@ __webpack_require__.r(__webpack_exports__);
     });
 }
 void render();
+
+
+},
+9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+10(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  setupCounter: () => (setupCounter)
+});
+/* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_manager_none_entry_b_4f8017c0589a__rspack_import_1 = __webpack_require__(7);
+
+
+function setupCounter(element) {
+    let counter = 0;
+    const setCounter = (count)=>{
+        counter = count;
+        element.innerHTML = (0,virtual_zintl_runtime_internal__rspack_import_0._t)("3aaf6932", {
+            counter: counter
+        }, {
+            _mgr: virtual_zintl_manager_none_entry_b_4f8017c0589a__rspack_import_1["default"],
+            _bId: "b_f05b8e5701f3"
+        });
+    };
+    element.addEventListener("click", ()=>setCounter(counter + 1));
+    setCounter(0);
+}
 
 
 },

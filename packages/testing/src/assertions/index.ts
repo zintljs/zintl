@@ -95,85 +95,101 @@ export class LabAssertions {
    * a fresh investigation.
    */
   async describeStall(selector?: string, expected?: string): Promise<string> {
-    const lines: string[] = ["── page diagnosis ──"];
-
-    try {
-      const packets = this.lab.ws.recentPackets ?? [];
-      const kinds = packets.reduce<Record<string, number>>((acc, p: { type?: string }) => {
-        const key = p?.type ?? "unknown";
-        acc[key] = (acc[key] ?? 0) + 1;
-        return acc;
-      }, {});
-      lines.push(
-        `hmr packets: ${packets.length === 0 ? "NONE — the dev server never pushed an update" : JSON.stringify(kinds)}`,
-      );
-    } catch {
-      lines.push("hmr packets: unavailable");
-    }
-
-    try {
-      const beacon = await withTimeout(
-        this.lab.page.evaluate(() => (globalThis as { __zintl_version?: number }).__zintl_version),
-        "settle beacon",
-      );
-      lines.push(
-        beacon === undefined
-          ? "settle beacon: ABSENT — no Zintl runtime on the page"
-          : `settle beacon: ${beacon} (runtime applied ${beacon} update(s))`,
-      );
-    } catch {
-      lines.push("settle beacon: unreadable (page navigating, closed, or unresponsive)");
-    }
-
     /**
-     * The delivery ledger — what the runtime was actually asked to do.
+     * Project-mode labs have no page, and saying so beats guessing at one.
      *
-     * Packet counts and a beacon say *how much* happened; they cannot say which
-     * boundary, in what order, or whether anything was superseded or failed.
-     * That is the difference between "the update did not arrive" and "it
-     * arrived and was discarded as older than one already applied", which have
-     * completely different fixes and used to cost a fresh investigation each.
+     * `build`, `graph` and the transform contracts run without a browser, and
+     * this diagnosis was attached to their failures regardless — so a snapshot
+     * mismatch in a production bundle reported "hmr packets: unavailable",
+     * "settle beacon: unreadable" and, worst of all, `← the page itself is the
+     * failure`, pointing an investigation at a browser that was never opened.
+     * The compiler-side sections below are genuinely useful in project mode and
+     * are kept; the browser-side ones are skipped rather than answered wrongly.
      */
-    try {
-      const ledger = await withTimeout(
-        this.lab.page.evaluate(
-          () =>
-            (
-              globalThis as {
-                __zintl_ledger?: {
-                  channel: string;
-                  subject: string;
-                  seq: number;
-                  outcome: string;
-                  reason?: string;
-                }[];
-              }
-            ).__zintl_ledger,
-        ),
-        "delivery ledger",
-      );
-      if (ledger === undefined) {
-        lines.push("delivery ledger: ABSENT — no Zintl runtime, or a production build");
-      } else if (ledger.length === 0) {
-        lines.push("delivery ledger: EMPTY — the runtime was never asked to apply anything");
-      } else {
-        const notable = ledger.filter((e) => e.outcome !== "applied");
+    const hasPage = Boolean((this.lab as { page?: unknown }).page);
+    const lines: string[] = [hasPage ? "── page diagnosis ──" : "── build diagnosis (no page) ──"];
+
+    if (hasPage) {
+      try {
+        const packets = this.lab.ws.recentPackets ?? [];
+        const kinds = packets.reduce<Record<string, number>>((acc, p: { type?: string }) => {
+          const key = p?.type ?? "unknown";
+          acc[key] = (acc[key] ?? 0) + 1;
+          return acc;
+        }, {});
         lines.push(
-          `delivery ledger: ${ledger.length} entries, last 6 (oldest first):\n` +
-            ledger
-              .slice(-6)
-              .map(
-                (e) =>
-                  `    ${e.channel} ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
-              )
-              .join("\n") +
-            (notable.length > 0
-              ? `\n  not applied: ${notable.length} (${[...new Set(notable.map((e) => e.outcome))].join(", ")})`
-              : ""),
+          `hmr packets: ${packets.length === 0 ? "NONE — the dev server never pushed an update" : JSON.stringify(kinds)}`,
         );
+      } catch {
+        lines.push("hmr packets: unavailable");
       }
-    } catch {
-      lines.push("delivery ledger: unreadable (page navigating, closed, or unresponsive)");
+
+      try {
+        const beacon = await withTimeout(
+          this.lab.page.evaluate(
+            () => (globalThis as { __zintl_version?: number }).__zintl_version,
+          ),
+          "settle beacon",
+        );
+        lines.push(
+          beacon === undefined
+            ? "settle beacon: ABSENT — no Zintl runtime on the page"
+            : `settle beacon: ${beacon} (runtime applied ${beacon} update(s))`,
+        );
+      } catch {
+        lines.push("settle beacon: unreadable (page navigating, closed, or unresponsive)");
+      }
+
+      /**
+       * The delivery ledger — what the runtime was actually asked to do.
+       *
+       * Packet counts and a beacon say *how much* happened; they cannot say which
+       * boundary, in what order, or whether anything was superseded or failed.
+       * That is the difference between "the update did not arrive" and "it
+       * arrived and was discarded as older than one already applied", which have
+       * completely different fixes and used to cost a fresh investigation each.
+       */
+      try {
+        const ledger = await withTimeout(
+          this.lab.page.evaluate(
+            () =>
+              (
+                globalThis as {
+                  __zintl_ledger?: {
+                    channel: string;
+                    subject: string;
+                    seq: number;
+                    outcome: string;
+                    reason?: string;
+                  }[];
+                }
+              ).__zintl_ledger,
+          ),
+          "delivery ledger",
+        );
+        if (ledger === undefined) {
+          lines.push("delivery ledger: ABSENT — no Zintl runtime, or a production build");
+        } else if (ledger.length === 0) {
+          lines.push("delivery ledger: EMPTY — the runtime was never asked to apply anything");
+        } else {
+          const notable = ledger.filter((e) => e.outcome !== "applied");
+          lines.push(
+            `delivery ledger: ${ledger.length} entries, last 6 (oldest first):\n` +
+              ledger
+                .slice(-6)
+                .map(
+                  (e) =>
+                    `    ${e.channel} ${e.subject} #${e.seq} → ${e.outcome}${e.reason ? ` (${e.reason})` : ""}`,
+                )
+                .join("\n") +
+              (notable.length > 0
+                ? `\n  not applied: ${notable.length} (${[...new Set(notable.map((e) => e.outcome))].join(", ")})`
+                : ""),
+          );
+        }
+      } catch {
+        lines.push("delivery ledger: unreadable (page navigating, closed, or unresponsive)");
+      }
     }
 
     /**
@@ -270,81 +286,87 @@ export class LabAssertions {
      * cannot tell a closed context from a wedged one, and those have nothing in
      * common but the symptom.
      */
-    try {
-      const closed = this.lab.page.isClosed();
-      const all = this.lab.console.messages ?? [];
-      lines.push(
-        `page liveness: ${closed ? "CLOSED" : "open"} at ${this.lab.page.url()} ` +
-          `· ${all.length} console message(s) captured`,
-      );
-      if (!closed && all.length > 0) {
+    if (hasPage) {
+      try {
+        const closed = this.lab.page.isClosed();
+        const all = this.lab.console.messages ?? [];
         lines.push(
-          `last console lines:\n${all
-            .slice(-4)
-            .map((m: { type: string; text: string }) => `    [${m.type}] ${m.text.slice(0, 120)}`)
-            .join("\n")}`,
+          `page liveness: ${closed ? "CLOSED" : "open"} at ${this.lab.page.url()} ` +
+            `· ${all.length} console message(s) captured`,
+        );
+        if (!closed && all.length > 0) {
+          lines.push(
+            `last console lines:\n${all
+              .slice(-4)
+              .map((m: { type: string; text: string }) => `    [${m.type}] ${m.text.slice(0, 120)}`)
+              .join("\n")}`,
+          );
+        }
+      } catch {
+        lines.push("page liveness: unavailable");
+      }
+
+      try {
+        const errors = this.lab.console.errors ?? [];
+        lines.push(
+          errors.length === 0
+            ? "console errors: none"
+            : `console errors:\n${errors
+                .slice(0, 5)
+                .map((e: { text: string }) => `    ${e.text}`)
+                .join("\n")}`,
+        );
+      } catch {
+        lines.push("console errors: unavailable");
+      }
+
+      /**
+       * The body outline is what distinguishes "the element is missing" from
+       * "the page rendered nothing at all". A `page.click` that never finds its
+       * target for 30s usually means the second, and only the page state says so.
+       */
+      try {
+        const body = await withTimeout(
+          this.lab.page.evaluate(() => {
+            const b = document.body;
+            return {
+              length: b?.innerHTML?.length ?? 0,
+              buttons: Array.from(document.querySelectorAll("button"))
+                .map((el) => (el.textContent ?? "").trim())
+                .slice(0, 8),
+              text: (b?.innerText ?? "").trim().slice(0, 160),
+            };
+          }),
+          "body outline",
+        );
+        lines.push(
+          `body html length: ${body.length}${body.length === 0 ? "  ← PAGE IS EMPTY" : ""}`,
+        );
+        lines.push(
+          `buttons present: ${body.buttons.length ? JSON.stringify(body.buttons) : "NONE"}`,
+        );
+        lines.push(`body text: ${body.text || "(empty)"}`);
+      } catch {
+        lines.push(
+          "page state: unreadable (navigating, closed, or unresponsive)  ← the page itself is the failure",
         );
       }
-    } catch {
-      lines.push("page liveness: unavailable");
-    }
 
-    try {
-      const errors = this.lab.console.errors ?? [];
-      lines.push(
-        errors.length === 0
-          ? "console errors: none"
-          : `console errors:\n${errors
-              .slice(0, 5)
-              .map((e: { text: string }) => `    ${e.text}`)
-              .join("\n")}`,
-      );
-    } catch {
-      lines.push("console errors: unavailable");
-    }
-
-    /**
-     * The body outline is what distinguishes "the element is missing" from
-     * "the page rendered nothing at all". A `page.click` that never finds its
-     * target for 30s usually means the second, and only the page state says so.
-     */
-    try {
-      const body = await withTimeout(
-        this.lab.page.evaluate(() => {
-          const b = document.body;
-          return {
-            length: b?.innerHTML?.length ?? 0,
-            buttons: Array.from(document.querySelectorAll("button"))
-              .map((el) => (el.textContent ?? "").trim())
-              .slice(0, 8),
-            text: (b?.innerText ?? "").trim().slice(0, 160),
-          };
-        }),
-        "body outline",
-      );
-      lines.push(`body html length: ${body.length}${body.length === 0 ? "  ← PAGE IS EMPTY" : ""}`);
-      lines.push(`buttons present: ${body.buttons.length ? JSON.stringify(body.buttons) : "NONE"}`);
-      lines.push(`body text: ${body.text || "(empty)"}`);
-    } catch {
-      lines.push(
-        "page state: unreadable (navigating, closed, or unresponsive)  ← the page itself is the failure",
-      );
-    }
-
-    if (selector) {
-      try {
-        const html = await withTimeout(
-          this.lab.page
-            .locator(selector)
-            .first()
-            .innerHTML()
-            .catch(() => "<not found>"),
-          "selector html",
-        );
-        lines.push(`selector ${selector} html: ${html.slice(0, 200)}`);
-        if (expected !== undefined) lines.push(`expected to contain: ${expected}`);
-      } catch {
-        lines.push(`selector ${selector}: unreadable`);
+      if (selector) {
+        try {
+          const html = await withTimeout(
+            this.lab.page
+              .locator(selector)
+              .first()
+              .innerHTML()
+              .catch(() => "<not found>"),
+            "selector html",
+          );
+          lines.push(`selector ${selector} html: ${html.slice(0, 200)}`);
+          if (expected !== undefined) lines.push(`expected to contain: ${expected}`);
+        } catch {
+          lines.push(`selector ${selector}: unreadable`);
+        }
       }
     }
 

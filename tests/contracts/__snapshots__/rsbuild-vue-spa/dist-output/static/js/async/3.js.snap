@@ -27,61 +27,6 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-48(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-__webpack_require__.d(__webpack_exports__, {
-  "default": () => (/* reexport safe */ _AboutWorld_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_AboutWorld_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
-});
-/* import */ var _AboutWorld_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_AboutWorld_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(49);
- 
-
-},
-49(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-/* import */ var vue__rspack_import_0 = __webpack_require__(8);
-/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
-/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
-
-
-
-
-/**
- * Reached only through `() => import(...)` in `src/router.ts`, which is the
- * point of this example.
- *
- * These strings belong to a boundary the entry never imports statically, so
- * Zintl emits their catalog behind the same dynamic import Rspack uses for the
- * component. Nothing here is written differently because of that.
- */ /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
-    __name: 'AboutWorld',
-    setup (__props, param) {
-        let { expose: __expose } = param;
-        __expose();
-        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
-        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
-            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
-        });
-        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
-        const __returned__ = {
-            __zintl_v,
-            __zintl_off,
-            get _zintl_mgr_b_dd563dcb7e61 () {
-                return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
-            },
-            get _t () {
-                return virtual_zintl_runtime_internal__rspack_import_2._t;
-            }
-        };
-        Object.defineProperty(__returned__, '__isScriptSetup', {
-            enumerable: false,
-            value: true
-        });
-        return __returned__;
-    }
-}));
-
-
-},
 47(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
@@ -138,6 +83,61 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         ])
     ]);
 }
+
+
+},
+48(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (/* reexport safe */ _AboutWorld_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_AboutWorld_vue_vue_type_script_setup_true_lang_ts__rspack_import_0["default"])
+});
+/* import */ var _AboutWorld_vue_ts_vue_type_script_setup_true_lang_ts_builtin_swc_loader_clonedRuleSet_N_use_0_node_modules_pnpm_rspack_vue_loader_17_6_2_rspack_core_2_1_8_swc_helpers_0_5_23_vue_compiler_sfc_3_5_40_vue_3_5_40_typescript_6_0_3_node_modules_rspack_vue_loader_dist_index_js_ruleSet_0_use_0_node_modules_pnpm_unplugin_3_3_0_rspack_core_2_1_8_swc_helpers_0_5_23_voidzero_dev_vite_plus_core_0_2_ae37e126e85673e6ddba3befbcae618f_node_modules_unplugin_dist_rspack_loaders_transform_mjs_zintl_AboutWorld_vue_vue_type_script_setup_true_lang_ts__rspack_import_0 = __webpack_require__(49);
+ 
+
+},
+49(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* import */ var vue__rspack_import_0 = __webpack_require__(8);
+/* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_2 = __webpack_require__(1);
+
+
+
+
+/**
+ * Reached only through `() => import(...)` in `src/router.ts`, which is the
+ * point of this example.
+ *
+ * These strings belong to a boundary the entry never imports statically, so
+ * Zintl emits their catalog behind the same dynamic import Rspack uses for the
+ * component. Nothing here is written differently because of that.
+ */ /* export default */ __webpack_exports__["default"] = (/*@__PURE__*/(0,vue__rspack_import_0.defineComponent)({
+    __name: 'AboutWorld',
+    setup (__props, param) {
+        let { expose: __expose } = param;
+        __expose();
+        const __zintl_v = (0,vue__rspack_import_0.shallowRef)((0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)());
+        const __zintl_off = (0,virtual_zintl_runtime_internal__rspack_import_2.subscribe)(()=>{
+            __zintl_v.value = (0,virtual_zintl_runtime_internal__rspack_import_2.getStoreVersion)();
+        });
+        if ((0,vue__rspack_import_0.getCurrentScope)()) (0,vue__rspack_import_0.onScopeDispose)(__zintl_off);
+        const __returned__ = {
+            __zintl_v,
+            __zintl_off,
+            get _zintl_mgr_b_dd563dcb7e61 () {
+                return virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1["default"];
+            },
+            get _t () {
+                return virtual_zintl_runtime_internal__rspack_import_2._t;
+            }
+        };
+        Object.defineProperty(__returned__, '__isScriptSetup', {
+            enumerable: false,
+            value: true
+        });
+        return __returned__;
+    }
+}));
 
 
 },

@@ -1,9 +1,63 @@
 (() => {
 "use strict";
 var __webpack_modules__ = ({
-24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
-// extracted by css-extract-rspack-plugin
+/* import */ var react_jsx_runtime__rspack_import_0 = __webpack_require__(1);
+/* import */ var virtual_zintl_runtime_internal__rspack_import_1 = __webpack_require__(7);
+/* import */ var virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2 = __webpack_require__(13);
+/* import */ var react__rspack_import_3 = __webpack_require__(4);
+/* import */ var react__rspack_import_3_default = /*#__PURE__*/__webpack_require__.n(react__rspack_import_3);
+/* import */ var react_dom_client__rspack_import_4 = __webpack_require__(14);
+/* import */ var _App_tsx__rspack_import_5 = __webpack_require__(23);
+
+
+
+
+
+
+
+function Main() {
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
+    const [lang, setLang] = (0,react__rspack_import_3.useState)(()=>{
+        return new URLSearchParams(window.location.search).get("lang") || "en";
+    });
+    const handleSwitch = async (newLang)=>{
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", newLang);
+        window.history.pushState({}, "", url);
+        await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
+            locale: newLang,
+            loaders: {
+                ["b_f1bc61690f0b"]: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"].loader
+            }
+        }));
+        setLang(newLang);
+    };
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(_App_tsx__rspack_import_5["default"], {
+        lang: lang,
+        onSwitch: handleSwitch
+    });
+}
+async function bootstrap() {
+    // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
+    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+    // 2. Await Zintl catalog loading and hydration
+    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
+        locale: lang,
+        loaders: {
+            ["b_f1bc61690f0b"]: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"].loader
+        }
+    }));
+    // 3. Render the React tree only when translations are ready
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+        (0,react_dom_client__rspack_import_4.createRoot)(rootEl).render(/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(react__rspack_import_3.StrictMode, {
+            children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(Main, {})
+        }));
+    }
+}
+void bootstrap();
 
 
 },
@@ -123,63 +177,9 @@ const locales = [
 
 
 },
-0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
-/* import */ var react_jsx_runtime__rspack_import_0 = __webpack_require__(1);
-/* import */ var virtual_zintl_runtime_internal__rspack_import_1 = __webpack_require__(7);
-/* import */ var virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2 = __webpack_require__(13);
-/* import */ var react__rspack_import_3 = __webpack_require__(4);
-/* import */ var react__rspack_import_3_default = /*#__PURE__*/__webpack_require__.n(react__rspack_import_3);
-/* import */ var react_dom_client__rspack_import_4 = __webpack_require__(14);
-/* import */ var _App_tsx__rspack_import_5 = __webpack_require__(23);
-
-
-
-
-
-
-
-function Main() {
-    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
-    const [lang, setLang] = (0,react__rspack_import_3.useState)(()=>{
-        return new URLSearchParams(window.location.search).get("lang") || "en";
-    });
-    const handleSwitch = async (newLang)=>{
-        const url = new URL(window.location.href);
-        url.searchParams.set("lang", newLang);
-        window.history.pushState({}, "", url);
-        await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
-            locale: newLang,
-            loaders: {
-                ["b_f1bc61690f0b"]: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"].loader
-            }
-        }));
-        setLang(newLang);
-    };
-    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(_App_tsx__rspack_import_5["default"], {
-        lang: lang,
-        onSwitch: handleSwitch
-    });
-}
-async function bootstrap() {
-    // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
-    const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-    // 2. Await Zintl catalog loading and hydration
-    await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_1.loadI18nInstance)({
-        locale: lang,
-        loaders: {
-            ["b_f1bc61690f0b"]: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"].loader
-        }
-    }));
-    // 3. Render the React tree only when translations are ready
-    const rootEl = document.getElementById("root");
-    if (rootEl) {
-        (0,react_dom_client__rspack_import_4.createRoot)(rootEl).render(/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(react__rspack_import_3.StrictMode, {
-            children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(Main, {})
-        }));
-    }
-}
-void bootstrap();
+// extracted by css-extract-rspack-plugin
 
 
 },

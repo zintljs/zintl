@@ -1,12 +1,6 @@
 (() => {
 "use strict";
 var __webpack_modules__ = ({
-8(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-// extracted by css-extract-rspack-plugin
-
-
-},
 0(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 /* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
@@ -69,6 +63,57 @@ void render();
 
 
 },
+8(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Router: () => (Router)
+});
+/**
+ * The smallest router that can ask the interesting question.
+ *
+ * A route whose component arrives through `await import()` is a lazy boundary,
+ * and a lazy boundary is what makes Zintl's catalog split follow the bundler's
+ * own chunking rather than sit in the entry. On Rspack that is `async/` chunks;
+ * on Vite it is Rollup's. Neither Zintl nor this file knows which.
+ */ class Router {
+    routes = [];
+    rootElement;
+    constructor(rootElement){
+        this.rootElement = rootElement;
+        window.addEventListener("popstate", ()=>void this.handleRoute());
+    }
+    addRoute(path, component) {
+        this.routes.push({
+            path,
+            component
+        });
+    }
+    /** Navigate, carrying `?lang` across so the locale survives a route change. */ async navigate(path) {
+        const url = new URL(path, window.location.origin);
+        const lang = new URLSearchParams(window.location.search).get("lang");
+        if (lang && !url.searchParams.has("lang")) url.searchParams.set("lang", lang);
+        window.history.pushState({}, "", url.pathname + url.search + url.hash);
+        await this.handleRoute();
+    }
+    async handleRoute() {
+        const path = window.location.pathname;
+        const route = this.routes.find((r)=>r.path === path) ?? this.routes[0];
+        if (!route) return;
+        this.rootElement.replaceChildren(await route.component());
+    }
+    async init() {
+        await this.handleRoute();
+    }
+}
+
+
+},
 10(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
@@ -114,51 +159,6 @@ __webpack_require__.d(__webpack_exports__, {
     })}</a></nav>
   `;
     return container;
-}
-
-
-},
-9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-__webpack_require__.d(__webpack_exports__, {
-  Router: () => (Router)
-});
-/**
- * The smallest router that can ask the interesting question.
- *
- * A route whose component arrives through `await import()` is a lazy boundary,
- * and a lazy boundary is what makes Zintl's catalog split follow the bundler's
- * own chunking rather than sit in the entry. On Rspack that is `async/` chunks;
- * on Vite it is Rollup's. Neither Zintl nor this file knows which.
- */ class Router {
-    routes = [];
-    rootElement;
-    constructor(rootElement){
-        this.rootElement = rootElement;
-        window.addEventListener("popstate", ()=>void this.handleRoute());
-    }
-    addRoute(path, component) {
-        this.routes.push({
-            path,
-            component
-        });
-    }
-    /** Navigate, carrying `?lang` across so the locale survives a route change. */ async navigate(path) {
-        const url = new URL(path, window.location.origin);
-        const lang = new URLSearchParams(window.location.search).get("lang");
-        if (lang && !url.searchParams.has("lang")) url.searchParams.set("lang", lang);
-        window.history.pushState({}, "", url.pathname + url.search + url.hash);
-        await this.handleRoute();
-    }
-    async handleRoute() {
-        const path = window.location.pathname;
-        const route = this.routes.find((r)=>r.path === path) ?? this.routes[0];
-        if (!route) return;
-        this.rootElement.replaceChildren(await route.component());
-    }
-    async init() {
-        await this.handleRoute();
-    }
 }
 
 
