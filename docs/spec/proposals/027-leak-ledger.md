@@ -4043,3 +4043,55 @@ self-accepts and re-executes, and Svelte's `mount()` appends a second copy over 
 That is the lesson worth keeping from L-065 through L-070: **two projects failing the same assertion
 is not evidence they fail for the same reason**, and a single skip covering both is what let one
 wrong mechanism be written down for two different defects.
+
+### L-071 — the Svelte failure is not a double mount, and the prune is not wrong
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Open** — diagnosis corrected, writer not yet identified |
+| **Bucket**                  | 3 — real defect                                           |
+| **Facet contract changed?** | No                                                        |
+
+Set out to fix `chaos-boundary`'s remaining red on `svelte-basic`, which this contract's header has
+described for a long time as proposal 024 §1.3: the rename rewrites the entry, the entry re-executes,
+Svelte's `mount()` appends a second copy, and the heading selector reads the stale one. **That is not
+what it fails on.**
+
+**Measured, every failure is the orphan assertion** — `zintl/src/App.svelte.{ar,es,zh}.json` — at
+**5 runs in 10**, and the instrumented prune (L-070) shows the shape immediately:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json     ← deleted, correctly
+…and that file exists again when the assertion reads the directory
+```
+
+The prune is right. The boundary is forgotten — `boundaryForgotten` confirms the watcher's `unlink`
+landed — and the flush reaches quiescence before the assertion runs. Something **re-materialises the
+catalogs of a boundary that has already been reclaimed**, and that writer has not been found.
+
+**Two things ruled out, both by measurement rather than argument.**
+
+_The watcher._ A causal wait for the compiler to forget the file was added (`boundaryForgotten`) on
+the theory that the assertion was racing the `unlink`. It was not: 5/10 became 6/10, and the wait
+passes on every failing run. The wait is kept — it is correct regardless, and it turns a watcher that
+never fires into a precise failure instead of a puzzling orphan list — but it fixed nothing.
+
+_`removeFile`'s `markDirty`._ The obvious suspect: a boundary marked dirty gets written, and writing
+it would recreate exactly these files. Removing it moved 5–6/10 to 4/10 — noise — and a unit test
+states the opposite intent outright: _"marks the removed boundaries dirty so a flush reclaims their
+catalogs"_. **Reverted.** A change that contradicts a documented decision and shows no measured
+benefit is a guess, and this proposal has enough of those in it already.
+
+**Why `svelte-basic` and not `vue-basic`.** Its entry is not re-execution-safe, so the rename reloads
+the page, which shifts every timing around the flush. Same defect, worse luck — not a different one.
+
+**Next probe, stated so it is not guessed at again:** a timestamped log of catalog writes interleaved
+with the prune's own decisions. The two are already instrumented separately; what is missing is their
+order.
+
+**And the standing lesson, now three entries deep.** L-065 named a mechanism it had not observed.
+L-060 named one that was an artefact of the probe. This entry found a contract header that has been
+naming the wrong mechanism for long enough that two separate investigations quoted it as fact —
+including mine, one turn earlier, when I recorded `svelte-basic` as pending "for the documented
+double-mount reason" without checking. **Prose in this repository is evidence of what someone once
+measured, not of what is true now.**

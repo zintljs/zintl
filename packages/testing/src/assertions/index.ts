@@ -459,6 +459,32 @@ export class LabAssertions {
     }
   }
 
+  /**
+   * Wait until the compiler has been told `filePath` is gone.
+   *
+   * A deletion reaches the compiler through the host's watcher, which is
+   * asynchronous and entirely outside the harness's control. Until the `unlink`
+   * lands, the boundary is still live, still in the prune's known-path set, and
+   * its catalogs are correctly *kept* — so asserting on disk before then is
+   * racing the watcher and reads a state that was never wrong.
+   *
+   * Terminates on the condition rather than on elapsed time: it returns as soon
+   * as the boundary is forgotten, and fails saying so if it never is. The budget
+   * exists because a watcher that never fires is a real defect that should
+   * surface here rather than as a puzzling orphan list.
+   */
+  async boundaryForgotten(filePath: string, timeoutMs = 8000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (!this.lab.compiler.hasBoundary(filePath)) return;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error(
+      `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted. ` +
+        `The host's watcher never reported the unlink, so nothing can reclaim what it owned.`,
+    );
+  }
+
   async noOrphanedCatalogs(): Promise<void> {
     /**
      * Reclamation happens during a flush, and a flush is debounced.

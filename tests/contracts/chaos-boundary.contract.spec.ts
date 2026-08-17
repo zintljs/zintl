@@ -99,12 +99,43 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * assertion for unrelated reasons is how L-065 came to describe the wrong
    * mechanism for both of them.
    */
+  /**
+   * **`vue-basic` reclaims its catalogs. `svelte-basic` is the same defect, not
+   * the one this file used to name.**
+   *
+   * Both were pending on L-065. `vue-basic` now passes 10 runs in 10 once the
+   * deferred flush gets a trigger (L-070).
+   *
+   * `svelte-basic` still fails 4–6 runs in 10, and the header's long-standing
+   * explanation — proposal 024 §1.3's double mount, the page rendering twice and
+   * the selector reading the stale copy — is **not** what it fails on. Measured,
+   * every failure is the orphan assertion, on `zintl/src/App.svelte.{ar,es,zh}.json`.
+   * The instrumented prune shows why it is not a prune bug either:
+   *
+   * ```
+   * Pruning orphaned file: zintl/src/App.svelte.ar.json   ← deleted, correctly
+   * …and the file exists again by the time the assertion reads the directory
+   * ```
+   *
+   * So something re-materialises the catalogs of a boundary that has already
+   * been forgotten and reclaimed, and the writer has not been identified.
+   * `removeFile`'s `markDirty` on the removed boundary was the obvious suspect
+   * and is **not** it: removing it moved the rate from 5–6/10 to 4/10, which is
+   * noise, and a unit test states the opposite intent outright — "marks the
+   * removed boundaries dirty so a flush reclaims their catalogs". Reverted
+   * rather than kept on a hunch. The next probe is a timestamped log of catalog
+   * writes interleaved with the prune, not another guess.
+   *
+   * Why this project and not `vue-basic`: its entry is not re-execution-safe, so
+   * the rename reloads the page, which shifts every timing around the flush.
+   * That makes it the intermittent one — not a different bug.
+   */
   pendingFor: {
     "svelte-basic":
-      "Proposal 024 §1.3 double-mount, not orphaned catalogs: the entry re-executes on the " +
-      "rename and Svelte's mount() appends a second copy, so the heading reads stale. " +
-      "Measured 6/10 runs failing under contention, 0/10 in isolation. Needs a framework " +
-      "dispose(); unrelated to L-065/L-070.",
+      "L-071 (open): a forgotten boundary's catalogs are re-materialised after the prune deletes " +
+      "them. Measured 5/10 runs failing; the prune itself is correct — the debug log shows the " +
+      "files deleted and then present again. NOT proposal 024 §1.3's double mount, which is what " +
+      "this was previously recorded as.",
   },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;
@@ -148,7 +179,17 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
 
     await lab.assert.textEventually(adapter.headingSelector, "Boundary Rename Worked!");
 
-    // 7. The deleted boundary's catalogs are reclaimed, not left orphaned
+    /**
+     * 7. The deleted boundary's catalogs are reclaimed, not left orphaned.
+     *
+     * The forgetting is waited for explicitly, because it arrives through the
+     * host's watcher and nothing else in this contract depends on it having
+     * happened. Until the `unlink` lands the boundary is still live and its
+     * catalogs are correctly *kept* — so asserting first raced the watcher and
+     * failed 5 runs in 10 on `svelte-basic`, whose entry additionally reloads
+     * and so shifts every timing around it.
+     */
+    await lab.assert.boundaryForgotten(cfg.fromPath);
     await lab.assert.noOrphanedCatalogs();
   },
 };
