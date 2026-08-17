@@ -51,6 +51,7 @@ export const rsbuildVueBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "hmr-warm",
   ],
   adapter: {
     headingSelector: "h1",

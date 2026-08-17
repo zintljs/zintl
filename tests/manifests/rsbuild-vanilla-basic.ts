@@ -106,6 +106,7 @@ export const rsbuildVanillaBasic: ProjectManifest = {
     "transform",
     "spa",
     "assets",
+    "asset-hmr",
     "boundary-graph",
     "locale-switch",
     "rtl",
@@ -122,6 +123,7 @@ export const rsbuildVanillaBasic: ProjectManifest = {
     },
     /** The asset is `src/about.txt`, rendered into `#about` — not the heading. */
     assetSelector: "#about",
+    assetFile: "src/about.txt",
     assetText: {
       en: "Zintl keeps translations next to the code that needs them.",
       ar: "يبقي Zintl الترجمات بجانب الشيفرة التي تحتاجها.",

@@ -1,48 +1,46 @@
-import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
+import {
+  executeContract,
+  findCatalogFor,
+  type Contract,
+  type LocaleSwitchAdapter,
+} from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
-import { readdirSync, existsSync } from "node:fs";
-import { join, relative } from "node:path";
 
-function findCatalogPath(root: string): string {
-  const vanillaPath = join(root, "src/i18n/translations.json");
-  if (existsSync(vanillaPath)) {
-    return "src/i18n/translations.json";
-  }
-
-  const zintlDir = join(root, "zintl");
-  if (existsSync(zintlDir)) {
-    const files: string[] = [];
-    const getFiles = (dir: string) => {
-      const list = readdirSync(dir, { withFileTypes: true });
-      for (const entry of list) {
-        const res = join(dir, entry.name);
-        if (entry.isDirectory()) {
-          getFiles(res);
-        } else if (res.endsWith(".es.json") || res.endsWith(".ar.json")) {
-          files.push(res);
-        }
-      }
-    };
-    getFiles(zintlDir);
-    if (files.length > 0) {
-      return relative(root, files[0]);
-    }
-  }
-  throw new Error(`Could not find any translation catalog JSON file in ${root}`);
-}
-
+/**
+ * This carried its own `findCatalogPath`, which tried `src/i18n/translations.json`,
+ * then walked `zintl/`, and threw `Could not find any translation catalog JSON
+ * file` otherwise. Both are real layouts; neither is *the* layout. `outputDir`
+ * is a user option, and every Rsbuild example in this repository points it at
+ * `src/locales` — a directory that helper had never heard of.
+ *
+ * The cost was a capability on eight projects. `chaos` went unclaimed across
+ * the whole Rspack half of the manifest for a reason that had nothing to do
+ * with the host: the contract threw on line one because it could not find files
+ * that were sitting right there. That is the third time a **contract**
+ * limitation was recorded in a manifest as a **host** limitation (L-049,
+ * L-056), and `findCatalogFor` exists so there is not a fourth — it asks the
+ * compiler, which resolved `outputDir` and `catalogFormat` and owns
+ * `getCatalogPath`.
+ *
+ * The lookup now happens **after** navigation rather than before it, because
+ * asking the compiler requires a compiler to be running.
+ */
 export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
   name: "Chaos Catalog",
   description:
     "Verifies compiler and runtime resilience when translation catalogs are deleted or corrupted",
-  requires: ["spa", "hmr", "chaos"],
+  requires: ["hmr", "chaos"],
   strictDeliveryExempt: "deletes and corrupts catalogs; the runtime legitimately cannot apply them",
   async execute(lab, adapter) {
-    const catalogPath = findCatalogPath(lab.root);
-    const originalCatalog = await lab.fs.read(catalogPath);
-
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
+
+    const probe = findCatalogFor(lab, { locale: "es", key: adapter.initialHeadingText });
+    if (!probe.ok) {
+      throw new Error(`Could not find a catalog to break: ${probe.why}`);
+    }
+    const catalogPath = probe.path;
+    const originalCatalog = await lab.fs.read(catalogPath);
 
     // 1. Verify Spanish locale switches cleanly before chaos
     await adapter.switchLocale(lab, "es");

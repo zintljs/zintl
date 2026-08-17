@@ -86,6 +86,7 @@ export const rsbuildReactBasic: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "hmr-warm",
     "locale-switch-stress",
   ],
   adapter: {

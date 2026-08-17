@@ -52,6 +52,7 @@ export const rsbuildVueSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "hmr-warm",
   ],
   adapter: {
     headingSelector: "h1",

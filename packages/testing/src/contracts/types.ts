@@ -18,6 +18,56 @@ export type Capability =
   | "build"
   | "graph"
   | "assets"
+  /**
+   * Editing a localized static asset updates the page (ZHMR §5).
+   *
+   * Separate from `assets`, which is a build-time claim: the asset contract
+   * proves the compiler *substituted* the right file for the active boundary,
+   * and this one proves the `b_assets` virtual boundary cascades to every
+   * entry's manager when that file changes. The two hosts reach it by different
+   * routes — Vite fans out through `entryFilePaths`, Rspack relies on the asset
+   * being a genuine `?zintl-raw` import — so neither implies the other.
+   */
+  | "asset-hmr"
+  /**
+   * The project can declare source edits that *grow* the graph (ZHMR §4.1③, §4.2).
+   *
+   * Adding a sink is the warm path and adding an anchor or a `$L` colony is the
+   * hard one, and both need a per-project answer for where and what to insert —
+   * framework syntax differs. Claim it only with `addSink` and `addAnchor`
+   * declared, the same relationship `chaos` has with `renameBoundary`.
+   */
+  | "hmr-structural"
+  /**
+   * An edit to a server-only boundary reaches the browser (ZHMR §4.3).
+   *
+   * Distinct from `hmr`, which is about the client graph. A module the browser
+   * never imported cannot be hot-replaced there at all, so the guarantee is a
+   * different one — the server broadcasts a full reload — and it is provable
+   * only on a project with a string that renders *only* on the server. Claim it
+   * with `serverOnlyEdit` declared.
+   */
+  | "hmr-server-refresh"
+  /**
+   * A source string edit is **hot-replaced in place**, not answered by a reload.
+   *
+   * `hmr` says the edit reaches the browser. This says *how*, and the two are
+   * genuinely different guarantees — a reload delivers the same text while
+   * discarding application state, so `hmr` alone is satisfied by both.
+   *
+   * The line is real and was measured, not assumed. It runs through the
+   * framework rather than the host: every Vite project hot-replaces, and on
+   * Rspack the React and Vue projects do while the vanilla and Svelte ones
+   * reload, which is exactly the `hasClientReactivity` gate L-030 describes —
+   * a vanilla entry's only repaint is re-running itself, so it declines the
+   * update and lets it bubble (L-035). That is correct behaviour, not a defect,
+   * and until now it lived only in manifest prose.
+   *
+   * Gate anything that observes *frames* on this. A contract watching for a
+   * blank intermediate render has nothing to watch when the document is
+   * replaced wholesale.
+   */
+  | "hmr-warm"
   | "multiplex-fenced";
 
 export interface BaseAdapter {
@@ -51,7 +101,63 @@ export interface LocaleSwitchAdapter extends BaseAdapter {
   isCatalogRequest?(url: string, locale: string): boolean;
 }
 
-export interface HmrAdapter extends BaseAdapter {}
+/**
+ * A source edit a contract makes, described by the project rather than guessed.
+ *
+ * `anchorOn` is text that must already be present in `file`; `insert` goes in
+ * immediately after it. Anchoring on existing content rather than on a line
+ * number keeps the declaration honest when the example is edited — a stale
+ * `anchorOn` fails loudly instead of inserting into the wrong place.
+ */
+export interface SourceInsertion {
+  /** The file to edit, relative to the project root. */
+  file: string;
+  /** Existing text in `file` that `insert` is placed after. */
+  anchorOn: string;
+  /** What to insert. */
+  insert: string;
+  /** Text the insertion is expected to make visible, if it renders. */
+  expectText?: string;
+  /**
+   * Where `expectText` appears, when it is not the project's usual heading.
+   *
+   * A new sink is normally a new element, so conflating it with
+   * `headingSelector` is the same mistake `AssetsAdapter` had to undo.
+   */
+  selector?: string;
+}
+
+export interface HmrAdapter extends BaseAdapter {
+  /**
+   * Where this project keeps a string that is rendered **only on the server**.
+   *
+   * ZHMR §4.3: a browser cannot hot-update a module that is not in its own
+   * graph, so an edit to a server-only boundary has to arrive as a full reload
+   * instead. Proving that needs a boundary which really is server-only — an
+   * edit to a shared component takes the ordinary warm path and would pass the
+   * contract for the wrong reason.
+   *
+   * Omit it and the project cannot claim the server-refresh capability, which
+   * is the honest relationship; `ChaosAdapter.renameBoundary` is the precedent.
+   */
+  serverOnlyEdit?: { file: string; find: string; replaceWith: string };
+
+  /**
+   * Add a translatable string without changing the boundary hierarchy.
+   *
+   * ZHMR §4.1③ calls this the warm path: a new sink is new content in an
+   * existing boundary, so it must hot-replace rather than reload.
+   */
+  addSink?: SourceInsertion;
+
+  /**
+   * Add a `zintl()` anchor or a dynamic import that opens a new colony.
+   *
+   * ZHMR §4.2 calls this the structural path: the graph's shape changed, so a
+   * full reload is the *correct* outcome rather than a failure to hot-replace.
+   */
+  addAnchor?: SourceInsertion;
+}
 
 /**
  * How to rename one of this project's boundary files.
@@ -104,6 +210,17 @@ export interface AssetsAdapter extends BaseAdapter {
   assetSelector: string;
   /** Expected asset text per locale, keyed by locale code */
   assetText: Record<string, string>;
+  /**
+   * The **source** asset file, relative to the project root.
+   *
+   * Only the source path is declared. Where its localized siblings live is not
+   * a project fact but a compiler one — `outputDir` plus the default
+   * `<path>.<locale><ext>` pattern — so `localizedAssetPath()` derives it
+   * rather than asking every manifest to repeat a convention it does not own.
+   *
+   * Omit it and the project cannot claim `asset-hmr`.
+   */
+  assetFile?: string;
   /**
    * Show the app in `locale` from a cold load.
    *

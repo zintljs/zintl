@@ -36,8 +36,33 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
-  requires: ["spa", "hmr", "chaos"],
+  requires: ["hmr", "chaos"],
   strictDeliveryExempt: "deletes and renames boundary sources",
+  /**
+   * **Its closing `noOrphanedCatalogs()` had never run, and now that it does it
+   * finds something (ledger L-062, L-065).**
+   *
+   * That assertion resolved its directory through a property `LabCompiler` does
+   * not have, fell back to `src/locales`, and returned early on all four
+   * projects because none of them uses it. Underneath, its matching compared a
+   * file's basename to boundary ids by mutual `includes`, which cannot match
+   * the default `<path>.<locale>.json` naming in either direction. Two layers
+   * of the same bug, the outer one hiding the inner.
+   *
+   * Both now ask `getCatalogPath`. React and the merged-catalog vanilla project
+   * come back clean; the two SFC projects do not — renaming the boundary leaves
+   * its previous catalogs behind, one per locale. Recorded rather than fixed:
+   * pruning is compiler behaviour and this pass changes no product code.
+   */
+  pendingFor: {
+    "vue-basic":
+      "L-065: renaming src/components/HelloWorld.vue leaves zintl/src/components/" +
+      "HelloWorld.vue.{ar,es,zh}.json orphaned. The rename and the hot update both succeed; " +
+      "only the old catalogs remain. No product fix attempted.",
+    "svelte-basic":
+      "L-065: same as vue-basic — renaming src/App.svelte leaves zintl/src/App.svelte." +
+      "{ar,es,zh}.json orphaned.",
+  },
   /**
    * Live on three of four projects.
    *

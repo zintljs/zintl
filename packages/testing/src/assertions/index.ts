@@ -1,5 +1,6 @@
 import { expect } from "vite-plus/test";
 import type { Lab } from "../environment/lab.js";
+import { findCatalogFor } from "../contracts/catalog.js";
 import { existsSync } from "node:fs";
 import { readFile, readdir, unlink } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -425,36 +426,84 @@ export class LabAssertions {
    * source that no longer exists.
    */
   async noOrphanedCatalogs(): Promise<void> {
-    const compiler = this.lab.compiler.instance as
-      | { graph?: { boundaryGraph?: { nodes: Map<string, unknown> } }; _outputDir?: string }
-      | undefined;
-    const graph = compiler?.graph?.boundaryGraph;
-    if (!graph) return;
+    const compiler = this.lab.compiler.instance;
+    if (!compiler) return;
 
-    const outputDir = join(this.lab.root, (this.lab.compiler as any).outputDir ?? "src/locales");
-    if (!existsSync(outputDir)) return;
-
-    const live = new Set<string>();
-    for (const id of graph.nodes.keys()) {
-      live.add(this.lab.compiler.getSafeBoundaryId(id));
-      live.add(id);
+    let boundaryIds: string[];
+    try {
+      boundaryIds = [...(this.lab.compiler.getBoundaryGraph()?.nodes?.keys() ?? [])];
+    } catch {
+      return;
     }
 
-    const orphans: string[] = [];
+    /**
+     * Both halves of this asked the wrong source, and it went unnoticed because
+     * the first half made the second unreachable.
+     *
+     * The directory came from `(this.lab.compiler as any).outputDir ?? "src/locales"`,
+     * and `LabCompiler` has no `outputDir` — the left side was **always**
+     * `undefined`. Not one of the four projects claiming `chaos` keeps catalogs
+     * in `src/locales`: three use the default `zintl/` and one uses `src/i18n/`.
+     * So `existsSync` was false every time and this returned without checking
+     * anything, on every project, for its entire life.
+     *
+     * And the matching underneath it could not have worked either. It compared
+     * a file's **basename** against boundary ids by mutual `includes` —
+     * `"HelloWorld.vue.ar"` against `"src/components/HelloWorld.vue:default"`,
+     * which matches in neither direction. Every catalog under the default
+     * `<path>.<locale>.json` naming would have been reported as an orphan.
+     *
+     * Both are now one question asked of the compiler: `getCatalogPath` already
+     * knows where a given boundary's catalog goes for a given locale, including
+     * grouped catalogs, `[locale]` tokens and nested-function anchors. Anything
+     * on disk that is not in that set belongs to no boundary — which is the
+     * claim, stated in the compiler's own terms rather than approximated by
+     * substring.
+     */
+    const resolved = compiler.outputDir;
+    if (!resolved) return;
+    const outputDir = join(this.lab.root, resolved);
+    if (!existsSync(outputDir)) return;
+
+    const locales = new Set<string>();
+    const legitimate = new Set<string>();
     const walk = async (dir: string) => {
       for (const entry of await readdir(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
+          if (entry.name === ".schemas") continue;
           await walk(full);
           continue;
         }
         if (!entry.name.endsWith(".json") || entry.name.endsWith(".schema.json")) continue;
-        const stem = entry.name.replace(/\.json$/, "");
-        const known = [...live].some((id) => stem.includes(id) || id.includes(stem));
-        if (!known) orphans.push(relative(this.lab.root, full));
+        // `<name>.<locale>.json` — the locale is the segment before `.json`.
+        const parts = entry.name.slice(0, -".json".length).split(".");
+        if (parts.length > 1) locales.add(parts[parts.length - 1]);
       }
     };
     await walk(outputDir);
+
+    for (const bId of boundaryIds) {
+      for (const locale of locales) {
+        const path = compiler.catalog.getCatalogPath(bId, locale);
+        if (path) legitimate.add(path);
+      }
+    }
+
+    const orphans: string[] = [];
+    const collect = async (dir: string) => {
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === ".schemas") continue;
+          await collect(full);
+          continue;
+        }
+        if (!entry.name.endsWith(".json") || entry.name.endsWith(".schema.json")) continue;
+        if (!legitimate.has(full)) orphans.push(relative(this.lab.root, full));
+      }
+    };
+    await collect(outputDir);
 
     if (orphans.length > 0) {
       throw new Error(
@@ -473,16 +522,34 @@ export class LabAssertions {
     }
   }
 
+  /**
+   * A translation reached disk with the value the caller expects.
+   *
+   * Located through {@link findCatalogFor}, so the catalog is the one the
+   * compiler says holds `key` rather than a path this file invented. The
+   * previous implementation joined `<root>/<options.outputDir ?? "locales">/
+   * <locale>.json` — a flat one-file-per-locale layout **no project in this
+   * repository uses**, reached through an `options` property the compiler does
+   * not expose. It could only ever throw "Catalog file not found", which is
+   * presumably why nothing called it.
+   */
   async catalogContains(opts: { locale: string; key: string; value: string }): Promise<void> {
-    const outputDir = (this.lab.compiler.instance as any)?.options?.outputDir || "locales";
-    const catalogPath = join(this.lab.root, outputDir, `${opts.locale}.json`);
-    if (!existsSync(catalogPath)) {
-      throw new Error(`Catalog file not found on disk at: ${catalogPath}`);
+    const probe = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
+    if (!probe.ok) {
+      throw new Error(`Cannot check the catalog for ${JSON.stringify(opts.key)}: ${probe.why}`);
     }
-    const content = JSON.parse(await readFile(catalogPath, "utf-8"));
+    if (!probe.carriesKey) {
+      throw new Error(
+        `No catalog for locale ${JSON.stringify(opts.locale)} carries the key ` +
+          `${JSON.stringify(opts.key)}. Nearest is ${probe.path}, holding ${probe.keys.length} ` +
+          `key(s): ${probe.keys.slice(0, 8).join(", ")}`,
+      );
+    }
+    const content = JSON.parse(await readFile(join(this.lab.root, probe.path), "utf-8"));
     if (content[opts.key] !== opts.value) {
       throw new Error(
-        `Expected catalog key "${opts.key}" to have value "${opts.value}", but got "${content[opts.key]}"`,
+        `Expected catalog key "${opts.key}" in ${probe.path} to have value "${opts.value}", ` +
+          `but got "${content[opts.key]}"`,
       );
     }
   }

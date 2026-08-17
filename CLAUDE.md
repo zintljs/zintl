@@ -26,7 +26,7 @@ Type-aware lint resolves workspace imports through each package's `dist/*.d.mts`
 
 ```bash
 vpr verify         # build:examples → lint → knip → unit tests → format check   (~1 min)
-vpr ready:examples # build 27 example packages → 199 contract e2e tests        (~2-5 min)
+vpr ready:examples # build 27 example packages → 262 contract e2e tests        (~2-5 min)
 vpr ready           # verify + bench, local pre-handoff check
 vpr ci              # ready + ready:examples, what CI runs
 ```
@@ -53,15 +53,15 @@ Piping `vpr verify`/`vpr ready*` into `tail`/`grep` reports the _pipe's_ exit co
 
 ## Layout
 
-| Path                 | What it is                                                                                                                                                                                       |
-| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/zintl`     | Published as `zintljs`. Vite plugin + macro. Most users only install this.                                                                                                                       |
-| `packages/compiler`  | Published as `@zintljs/compiler`. Boundary graph, chunking, ICU baking, runtime source.                                                                                                          |
-| `packages/extractor` | Published as `@zintljs/extractor`. Framework-blind AST string extraction.                                                                                                                        |
-| `packages/testing`   | Internal, never published. Contract-test harness (`Lab`, assertions, environment).                                                                                                               |
-| `examples/`          | 18 real apps (React/Vue/Svelte/vanilla × SPA/SSR/MPA). Not demos — the contract suite drives them through real browsers.                                                                         |
-| `tests/`             | Contract specs, fixtures, manifests — shared across examples.                                                                                                                                    |
-| `docs/`              | User docs (`architecture.md`, `configuration.md`, `directives.md`, `icu.md`, `glossary.md`). `docs/spec/` has internal design notes; `zrs-*` test names refer to sections of `docs/spec/ZRS.md`. |
+| Path                 | What it is                                                                                                                                                                                             |
+| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/zintl`     | Published as `zintljs`. Vite plugin + macro. Most users only install this.                                                                                                                             |
+| `packages/compiler`  | Published as `@zintljs/compiler`. Boundary graph, chunking, ICU baking, runtime source.                                                                                                                |
+| `packages/extractor` | Published as `@zintljs/extractor`. Framework-blind AST string extraction.                                                                                                                              |
+| `packages/testing`   | Internal, never published. Contract-test harness (`Lab`, assertions, environment).                                                                                                                     |
+| `examples/`          | 27 workspace packages — 26 real apps (React/Vue/Svelte/vanilla × SPA/SSR/MPA, on Vite and Rsbuild) plus the `custom-facets` library. Not demos — the contract suite drives them through real browsers. |
+| `tests/`             | Contract specs, fixtures, manifests — shared across examples.                                                                                                                                          |
+| `docs/`              | User docs (`architecture.md`, `configuration.md`, `directives.md`, `icu.md`, `glossary.md`). `docs/spec/` has internal design notes; `zrs-*` test names refer to sections of `docs/spec/ZRS.md`.       |
 
 ## Architecture
 

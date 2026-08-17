@@ -3232,3 +3232,317 @@ full reload the reload beats the catalog write when the edited string lives in a
 must **fetch**. The dividing line on this host is inlined-vs-fetched, not the framework — 0/10 where
 the heading is inlined, 10/10 where it is not. That is a product defect and the next thing to chase;
 this entry only removes the contract-shaped blocker sitting in front of it.
+
+---
+
+## Phase 10 — ZHMR had a specification and, mostly, no contracts
+
+Phase 9 ended by naming a product defect — the reload beating the catalog write — and calling it the
+next thing to chase. Commit `3c11237` then claimed `hmr` on the five projects that entry had left
+unclaimed, with no measurement recorded. This phase starts by settling that, and the answer sends the
+rest of it somewhere else entirely.
+
+### L-057 — the re-claim was earned; Phase 9's closing note is stale
+
+|                             |                                                                 |
+| :-------------------------- | :-------------------------------------------------------------- |
+| **Status**                  | **Closed** — measured 0 failures in 10, three contract families |
+| **Bucket**                  | 0 — nothing to fix                                              |
+| **Facet contract changed?** | No                                                              |
+
+Measured before touching anything, `--no-build` against a confirmed `dist`, per Phase 7's rule:
+
+| Contract family                                               | Runs | Runs with a failure |
+| :------------------------------------------------------------ | :--- | :------------------ |
+| `hmr.contract`                                                | 10   | **0**               |
+| `syntax-recovery`                                             | 10   | **0**               |
+| `delivery-failure` + `delivery-ordering` + `delivery-refresh` | 10   | **0**               |
+
+Thirty runs across all thirteen `hmr` claimants, including `rsbuild-vanilla-spa`,
+`rsbuild-vanilla-mpa`, `rsbuild-vue-spa`, `rsbuild-vue-mpa` and `rsbuild-svelte-basic`. So the
+inlined-vs-fetched dividing line Phase 9 measured no longer bites for these contracts, and the
+paragraph at the end of L-056 should be read as history rather than as current state.
+
+**What that freed up is the point.** The question "is the `hmr` claim honest" was answered in half an
+hour, and the interesting question turned out to be the one nobody had asked: _how much of
+`docs/spec/ZHMR.md` has a contract behind it at all?_ The answer was **about a third**.
+
+### L-058 — five ZHMR sections were specified, implemented, and never executed
+
+|                             |                                                           |
+| :-------------------------- | :-------------------------------------------------------- |
+| **Status**                  | **Contracts added** — four red, and each red is a finding |
+| **Bucket**                  | 1 — the suite could not see it                            |
+| **Facet contract changed?** | No                                                        |
+
+What had coverage: §2.2, §3.1 and §4.4's _arrival_ — all indirectly, through `hmr` editing a source
+string. What had none:
+
+| ZHMR §       | Behaviour                                             | Now                       |
+| :----------- | :---------------------------------------------------- | :------------------------ |
+| §3.2 / §4.1① | a translator edits a catalog, page follows, no reload | `catalog-edit`            |
+| §4.1②, §5    | a localized asset is edited, `b_assets` cascades      | `asset-hmr`               |
+| §4.1③        | a sink is added without reshaping the graph           | `hmr-growth`, first half  |
+| §4.2         | an anchor or colony is added, reload follows          | `hmr-growth`, second half |
+| §4.3         | a server-only boundary is edited, full reload         | `hmr-server-refresh`      |
+| §4.4 / §6    | no blank or foreign frame on the first tick           | `hmr-first-tick`          |
+
+The §4.4 gap is the one worth dwelling on, because it was invisible in a way a coverage list cannot
+show. Every assertion in this suite polls with `textEventually`, which is the right tool for "did the
+update arrive" and is **structurally blind** to what the user saw on the way. A heading going
+`Get started` → `` → `HMR works!` polls green. `delivery-refresh` exists because the _permanent_
+version of that bug rendered blank forever; the transient version is the same defect with better
+luck, and nothing had ever looked for it.
+
+**The results, first execution:**
+
+- **`catalog-edit`: green on 12 of 13 on its first run, and the second run contradicted it.** See
+  L-064 — this is the entry where the suite's own N≥1 rule earned its keep, twice in one session.
+- **`asset-hmr`: red on both hosts.** Editing a localized asset does not reach the page — on Vite
+  (`assets-basic`) and on Rspack (`rsbuild-vanilla-basic`). Two projects, two entirely different
+  invalidation routes (`entryFilePaths` fan-out vs a real `?zintl-raw` import), one outcome. ZHMR §5
+  does not work.
+- **`hmr-server-refresh`: red, and it comes apart informatively.** The full-reload packet _is_ sent —
+  detection and signalling work — and the HTML that comes back is what the server rendered before the
+  edit. Half of §4.3 works.
+- **`hmr-first-tick`: green on 8 of 9**, red on `lazy-boundary` with the frame sequence
+  `"Lazy colony" → "" → "First tick works!"`. See L-060.
+- **`hmr-growth`: warm half green, structural half disagrees with the specification.** See L-061.
+
+None of the reds were fixed. Each is recorded as `pendingFor` carrying its measurement, so it appears
+in the report as a named gap rather than as an absence.
+
+### L-059 — `hmr` contracts were gated on `spa`, and one project's claim had never run
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — gates are `["hmr"]`; `react-ssr` withdrew |
+| **Bucket**                  | 2 — the gate described a rendering mode, not a claim  |
+| **Facet contract changed?** | No                                                    |
+
+Every hot-update contract declared `requires: ["spa", "hmr"]`. The `spa` was doing no work `hmr` did
+not already do — every adapter supplies `navigateHome`, `headingSelector`, `initialHeadingText` and
+`headingFile` however the app renders. What it did instead was exclude SSR by accident.
+
+`react-ssr` has claimed `hmr` for its whole life and **selected zero contracts**. It read as coverage
+and was an empty entry in a list. Remove `spa` from the gates and its first measurement ever is red:
+an ordinary edit to `src/App.tsx` does not reach the page, identically under `hmr-first-tick` and
+`catalog-edit`. The claim is withdrawn in the manifest with that measurement, rather than spread
+across five `pendingFor` entries — a capability is a statement about a project, and the true one
+today is that it does not hot-update. Vite SSR has every mechanism it needs, which makes this a
+defect to fix rather than a scope boundary to state.
+
+**Generalised:** a capability that no contract can select is worse than a missing one. It occupies
+the slot where the coverage would go and reports the slot as filled — the same shape as the
+commented-out contract body `Contract.pending` was invented to prevent.
+
+### L-060 — a lazily-imported boundary renders one empty frame
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+`"Lazy colony" → "" → "First tick works!"` on Vite, on a boundary reached through a dynamic import.
+Exactly ZHMR §6's "Blank/Empty Rendering on First HMR Update", and exactly the ordering §4.4
+guarantees: the content module calls `addCatalogs()` synchronously as it evaluates, which completes
+before the framework's update callback runs, so the store is meant to be populated by the first
+re-render. It is not, here. With no source-locale fallback the miss renders as nothing at all.
+
+**Where it was found matters as much as what it is.** It surfaced on a fixture added in this pass
+because colony behaviour on Vite had **no real-browser coverage at all** — `$L` boundaries are
+exercised by `rsbuild-vanilla-spa` and `rsbuild-vue-spa`, both on Rspack, while the two Vite
+applications with lazy routes (`examples/vanilla-spa`, `examples/vue-spa`) are absent from the
+manifest. Rollup is the original and primary host and its colony path was proven only by unit tests.
+The newer host had better coverage than the older one, and that is how this sat unseen.
+
+### L-061 — §4.2 says reload; a re-execution-safe entry updates in place, correctly
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Open decision** — spec or code must move, not the contract |
+| **Bucket**                  | 4 — the specification is wrong, or the implementation is     |
+| **Facet contract changed?** | No                                                           |
+
+Adding a nested `zintl()` anchor to `react-basic` or `vanilla-spa-basic` produces a single `update`
+packet and no reload, and the page is correct afterwards — confirmed by reloading and re-asserting,
+so the runtime is not left holding a boundary map describing the previous build.
+
+ZHMR §4.2 lists "a new `zintl()` anchor is added or removed" under Hard Reload. The implementation
+disagrees deliberately: where the entry is re-execution-safe, `viteFacet` emits a self-accepting
+snippet and the re-executed entry picks the new boundary up in place. Both cannot be right.
+
+The contract was left asserting what the specification says, and marked pending. **A contract
+rewritten to match the implementation stops being able to disagree with it**, which is the only thing
+it was for. Either §4.2 gains "…unless the entry is re-execution-safe", or the compiler forces the
+reload it specifies. That is a product decision.
+
+### L-062 — three contracts guessed at paths the compiler had already resolved
+
+|                             |                                                                      |
+| :-------------------------- | :------------------------------------------------------------------- |
+| **Status**                  | **Fixed** — `findCatalogFor`, `localizedAssetPath`, `setTranslation` |
+| **Bucket**                  | 2 — relocate it                                                      |
+| **Facet contract changed?** | No — testing-layer helpers                                           |
+
+The fourth instance of the pattern L-049 and L-056 named, and the first where the guess was silently
+_inert_ rather than loudly wrong:
+
+1. **`chaos-catalog.findCatalogPath`** tried `src/i18n/translations.json`, walked `zintl/`, and threw
+   otherwise. It had never heard of `src/locales`, where **every** Rsbuild example keeps catalogs — so
+   `chaos` was unclaimable across the whole Rspack half of the manifest because the contract threw on
+   line one, unable to find files that were sitting right there.
+2. **`noOrphanedCatalogs`** read `(lab.compiler as any).outputDir ?? "src/locales"`, and `LabCompiler`
+   has no `outputDir`: the left side was **always** `undefined`. Not one of the four projects
+   claiming `chaos` uses `src/locales` — three use the default `zintl/`, one uses `src/i18n/` — so
+   `existsSync` was false every time and the assertion **returned without checking anything, on every
+   project, for its entire life**. `chaos-boundary`'s closing guarantee has never run.
+3. **`catalogContains`** joined `<root>/<options.outputDir ?? "locales">/<locale>.json`, a flat layout
+   no project here uses, through an `options` property the compiler does not expose. It could only
+   ever throw, which is presumably why nothing called it.
+
+And a fourth of the same family, host-shaped rather than path-shaped: **`performance-size`** filtered
+catalog responses by `virtual:zintl`, `/zintl/`, `/i18n/` and `.json`. Rspack emits catalogs as
+ordinary hashed async chunks carrying none of those, so the contract could only ever measure zero
+responses there and fail its own `toBeGreaterThan(0)` — recorded in eight manifests as a host that
+cannot meet a performance budget. `LocaleSwitchAdapter.isCatalogRequest` already existed for exactly
+this question and was already declared by those manifests.
+
+`findCatalogFor` asks the compiler, which resolved `outputDir` and `catalogFormat` and owns
+`getCatalogPath` — already handling grouped catalogs, `[locale]` tokens, content boundaries and
+nested-function anchors. Selection among candidates is by content, with `carriesKey` recording
+whether the caller got the catalog it asked for or a stand-in, the same honesty `pickDeliveryProbe`
+introduced.
+
+**`setTranslation` is the near-miss worth recording.** Catalogs come in two shapes: values are
+strings in a per-locale file, and objects keyed by locale in a merged one (`catalogFormat` without a
+`[locale]` token, as `rsbuild-vanilla-basic` uses). A contract assuming the first would have replaced
+an entire per-locale object with a bare string on the second — writing a catalog that still parses,
+still contains the key, and has quietly deleted three languages. Which shape a project uses is a
+compiler-configuration fact, so it is detected once rather than declared in twenty manifests.
+
+### L-063 — "hot update" was two guarantees wearing one capability
+
+|                             |                                                  |
+| :-------------------------- | :----------------------------------------------- |
+| **Status**                  | **Fixed** — `hmr-warm`, claimed on nine projects |
+| **Bucket**                  | 2 — the manifest could not say it                |
+| **Facet contract changed?** | No                                               |
+
+`hmr` says an edit reaches the browser. It does not say _how_, and a full reload satisfies it while
+discarding application state. Those are different guarantees and the difference was recorded only in
+manifest prose (L-035's note that a vanilla Rspack entry declines the update and lets it bubble,
+"which is slower than a hot update and correct").
+
+`hmr-first-tick` made the distinction load-bearing: a contract that observes **frames** has nothing
+to observe when the document is replaced wholesale. Failing those projects would have reported a
+documented, correct host difference as a defect.
+
+Measured, the line runs through the **framework, not the host**: every Vite project hot-replaces;
+on Rspack, React and Vue do, while vanilla and Svelte reload. That is precisely the
+`hasClientReactivity` gate of L-030 and L-035, and it is now a claim in nine manifests instead of a
+paragraph in two.
+
+### L-064 — L-056's defect is still live, on the one mutation nothing performed
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Open** — recorded with rates, not fixed (no product fixes) |
+| **Bucket**                  | 3 — real defect                                              |
+| **Facet contract changed?** | No                                                           |
+
+L-057 measured thirty clean runs and concluded the inlined-vs-fetched problem had stopped biting.
+That conclusion was correct **for the mutations those contracts make**, and `catalog-edit` makes one
+they do not: it edits the catalog _itself_ rather than the source that generates it.
+
+`node scripts/flake.js catalog-edit --runs=10` — 10 of 10 runs carried a failure:
+
+| Project                 | Runs failed | Catalog for the asserted string |
+| :---------------------- | :---------- | :------------------------------ |
+| `rsbuild-svelte-basic`  | **10 / 10** | fetched                         |
+| `rsbuild-vanilla-spa`   | **10 / 10** | fetched                         |
+| `rsbuild-react-basic`   | 7 / 10      | fetched                         |
+| `rsbuild-vue-spa`       | 7 / 10      | fetched                         |
+| `rsbuild-vue-basic`     | 7 / 10      | fetched                         |
+| `rsbuild-vanilla-basic` | 6 / 10      | fetched                         |
+| `rsbuild-vanilla-mpa`   | **0 / 10**  | **inlined**                     |
+| `rsbuild-vue-mpa`       | **0 / 10**  | **inlined**                     |
+| every Vite project      | **0 / 10**  | —                               |
+
+**The two projects that never fail are the two MPAs.** L-056 established why, from the other side:
+on `rsbuild-vanilla-mpa` the heading lives in the entry's own boundary, which the manager _inlines_
+for the active locale, and the source locale is ghosted so nothing registers it — which is what broke
+the delivery probe there. Phase 9 drew the dividing line as **inlined vs fetched, not framework**, and
+this reproduces it exactly. Where the catalog is inlined, an edit is picked up by the rebuild. Where
+the manager must fetch it, the reload beats the compiler's write and the page re-renders from what
+was on disk a moment ago.
+
+Framework is visibly _not_ the variable: `rsbuild-vue-basic` fails 7/10 and `rsbuild-vue-mpa` fails
+0/10, same framework, same host, opposite results.
+
+**Why nothing caught this before.** Every existing mutation goes through source: `hmr` and
+`hmr-hammer` edit a component, `syntax-recovery` breaks and repairs one, `chaos-catalog` deletes and
+corrupts catalogs but only ever asserts on a _source_ edit afterwards, and the three `delivery-*`
+contracts drive the receiver in the page and touch no file at all. A source edit forces a
+recompilation that regenerates the catalog as part of the same cycle; editing the catalog directly
+does not, and that is the whole difference.
+
+Recorded as `pendingFor` per project with its rate. Fixing it is a product change, deliberately out of
+scope for this pass — but it is the most user-visible defect in the ledger, because the person it
+affects is a translator saving a JSON file and watching nothing happen.
+
+### Method note — the single-run result that was wrong twice in one session
+
+Written down because it nearly went into a changeset. `catalog-edit`'s first execution was green on 12
+of 13, and read as a clean result for the most common workflow the product has. The second run failed
+four Rsbuild projects; the third failed five, overlapping but not identical. Only the ten-run batch
+showed the real shape — two projects at 10/10 and four in the 6–7/10 band, which is a _different
+finding_ from "mostly green with some flake" and points at a different cause.
+
+`scripts/flake.js` has enforced N ≥ 10 since L-039 and its header says a single run of an intermittent
+contract carries almost no information. That rule was written for **changes**; this session is the
+case for applying it to **new contracts on their first execution**, where the temptation to believe a
+green is strongest because nothing has been compared against yet.
+
+### L-065 — renaming an SFC boundary orphans its catalogs
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — recorded, not fixed (no product fixes this pass) |
+| **Bucket**                  | 3 — real defect                                             |
+| **Facet contract changed?** | No                                                          |
+
+A consequence of L-062, and the reason that entry matters beyond tidiness. With
+`noOrphanedCatalogs()` actually running for the first time, `chaos-boundary` reports:
+
+| Project             | Rename                          | Left on disk                                 |
+| :------------------ | :------------------------------ | :------------------------------------------- |
+| `vue-basic`         | `src/components/HelloWorld.vue` | `HelloWorld.vue.{ar,es,zh}.json` — 3 orphans |
+| `svelte-basic`      | `src/App.svelte`                | `App.svelte.{ar,es,zh}.json` — 3 orphans     |
+| `react-basic`       | `src/App.tsx`                   | none                                         |
+| `vanilla-spa-basic` | `src/main.ts`                   | none                                         |
+
+The rename itself succeeds on all four, and so does the hot update through the new path — the
+reachability traversal L-023 built is fine. What differs is what happens to the _previous_ catalogs.
+
+`vanilla-spa-basic` is explicable without a defect: it sets `catalogFormat: "translations.json"`, a
+merged catalog whose path does not contain the boundary path, so a rename cannot orphan it. The
+interesting pair is `react-basic` clean and the two SFC projects not, on identical default
+`<path>.<locale>.json` naming — which points at the SFC removal path rather than at pruning in
+general. Stated as an observation; the mechanism is not established here and should not be guessed at.
+
+**Why this was invisible.** CLAUDE.md's "identity is content-based, so moving or renaming files
+doesn't orphan translations" is about the _translations_, which are reconciled into the new catalog
+correctly. The **file** is a separate question, and it is the one a user sees in `git status`.
+
+### Method note — an assertion that never ran had never been debugged either
+
+`noOrphanedCatalogs()` had two independent defects stacked: the directory resolution returned early on
+every project, and the matching logic underneath it could not have matched the default catalog naming
+in either direction. The second was invisible because the first made it unreachable.
+
+That is the specific hazard of a silent no-op, as opposed to a missing assertion: the body looks
+reviewed. It has a walk, a set, a comparison and a well-written error message, and none of it had ever
+executed against a real directory. Fixing only the outer layer turned three of four projects red with
+false positives — which is how the inner one surfaced.

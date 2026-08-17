@@ -1,0 +1,142 @@
+import {
+  executeContract,
+  findCatalogFor,
+  setTranslation,
+  type Contract,
+  type LocaleSwitchAdapter,
+} from "@zintljs/testing";
+import { allManifests } from "../manifests/index.js";
+
+/**
+ * A translator edits a catalog and the page follows (ZHMR §3.2, §4.1①).
+ *
+ * **The most common thing anyone does with an i18n toolchain, and until now the
+ * one hot-update path with no contract at all.** The suite edited *source*
+ * strings (`hmr`, `hmr-hammer`), deleted catalogs and corrupted them
+ * (`chaos-catalog`), and drove the receiver directly (`delivery-*`) — but
+ * nothing ever wrote a valid new translation into a catalog JSON and checked it
+ * arrived. That is the workflow the product exists to serve.
+ *
+ * Two claims, asserted separately because they fail for different reasons:
+ *
+ * 1. **The translation arrives.** ZHMR §3.2 — invalidating the content module
+ *    causes dependent managers to re-import the fresh data.
+ * 2. **It arrives warm.** ZHMR §4.1 lists a JSON translation edit first among
+ *    the triggers for Fast Replacement, whose whole mechanism is
+ *    `import.meta.hot.accept()` updating in place. A full reload delivers the
+ *    same text and is a different thing: it discards application state, and on
+ *    this project's own evidence (L-056) it can race the compiler's catalog
+ *    write and deliver the *old* text instead.
+ *
+ * Driven in a target locale, necessarily. The source locale is ghosted — never
+ * written to disk — so there is no source-locale catalog to edit and an attempt
+ * to find one is not a failure but a category error.
+ */
+
+/** Left-to-right, so a failure here is never confused with an RTL defect. */
+const LOCALE = "es";
+const EDITED = "Traducción actualizada en caliente";
+
+export const catalogEditContract: Contract<LocaleSwitchAdapter> = {
+  name: "Catalog Edit",
+  description: "Verifies editing a translation catalog updates the page without a full reload",
+  requires: ["hmr", "locale-switch"],
+  /**
+   * **Green on every Vite project, 10 runs in 10. On Rspack it splits, and the
+   * line it splits along is the finding.**
+   *
+   * The first run was green on 12 of 13, which looked like a clean result for
+   * the single most common thing anyone does with an i18n toolchain. It was
+   * one run. Measured properly (`node scripts/flake.js catalog-edit --runs=10`,
+   * 10/10 runs carrying a failure):
+   *
+   * | Project                 | Runs failed |
+   * | :---------------------- | :---------- |
+   * | `rsbuild-svelte-basic`  | **10 / 10** |
+   * | `rsbuild-vanilla-spa`   | **10 / 10** |
+   * | `rsbuild-react-basic`   | 7 / 10      |
+   * | `rsbuild-vue-spa`       | 7 / 10      |
+   * | `rsbuild-vue-basic`     | 7 / 10      |
+   * | `rsbuild-vanilla-basic` | 6 / 10      |
+   * | `rsbuild-vanilla-mpa`   | 0 / 10      |
+   * | `rsbuild-vue-mpa`       | 0 / 10      |
+   * | every Vite project      | 0 / 10      |
+   *
+   * **The two that never fail are the two MPAs, and that is not a coincidence.**
+   * L-056 established that on `rsbuild-vanilla-mpa` the heading lives in the
+   * entry's own boundary, which the manager *inlines* for the active locale
+   * rather than fetching. Phase 9 drew the dividing line there — inlined vs
+   * fetched, not framework — and this contract reproduces it from the opposite
+   * direction: a catalog edit is reliable exactly where the catalog is inlined,
+   * and unreliable wherever the manager has to go and get it. The reload beats
+   * the compiler's write, and the page re-renders from what was on disk a
+   * moment ago.
+   *
+   * So this is not a new defect. It is L-056's, still live, exposed by the one
+   * mutation neither `hmr` nor the delivery contracts perform — editing the
+   * catalog *itself* rather than the source that generates it. Phase 9's thirty
+   * clean runs were accurate for the mutations they made.
+   *
+   * The thirteenth project was `react-ssr`, which does not hot-update at all
+   * rather than having a catalog-specific problem; its `hmr` claim is withdrawn
+   * in its manifest, with the measurement.
+   */
+  pendingFor: {
+    "rsbuild-svelte-basic":
+      "L-064: 10/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-vanilla-spa": "L-064: 10/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-react-basic": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-vue-spa": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-vue-basic": "L-064: 7/10 runs failed. Fetched catalog; the reload beats the write.",
+    "rsbuild-vanilla-basic":
+      "L-064: 6/10 runs failed. Fetched catalog; the reload beats the write.",
+  },
+  async execute(lab, adapter) {
+    await adapter.navigateHome(lab);
+    await lab.clock.waitForIdle();
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
+
+    await adapter.switchLocale(lab, LOCALE);
+    await lab.clock.waitForIdle();
+
+    // The key a catalog is addressed by is the source text itself.
+    const key = adapter.initialHeadingText;
+    const probe = findCatalogFor(lab, { locale: LOCALE, key });
+    if (!probe.ok) {
+      throw new Error(`Could not locate a catalog to edit: ${probe.why}`);
+    }
+    if (!probe.carriesKey) {
+      throw new Error(
+        `No catalog for ${LOCALE} carries ${JSON.stringify(key)}, so editing one would not ` +
+          `change the heading this contract asserts on. Nearest is ${probe.path} with ` +
+          `${probe.keys.length} key(s): ${probe.keys.slice(0, 8).join(", ")}\n\n` +
+          (await lab.assert.describeStall()),
+      );
+    }
+
+    const capture = lab.ws.capture();
+
+    await lab.fs.edit(probe.path, (content) => setTranslation(content, key, LOCALE, EDITED));
+
+    // 1. The translation arrives.
+    await lab.assert.textEventually(adapter.headingSelector, EDITED);
+
+    // 2. It arrived warm.
+    const packets = capture.stop();
+    const reloads = packets.filter((p) => p.type === "full-reload");
+    if (reloads.length > 0) {
+      throw new Error(
+        `The edited translation reached the page, but by full reload — ${reloads.length} ` +
+          `full-reload packet(s) among ${packets.length}: ` +
+          `${packets.map((p) => p.type).join(", ")}.\n\n` +
+          `ZHMR §4.1 lists a JSON translation edit first among the triggers for Fast ` +
+          `Replacement, whose mechanism is the manager's import.meta.hot.accept() updating in ` +
+          `place. A reload delivers the same text while discarding application state, and it ` +
+          `races the compiler's catalog write — which is how L-056's stale-text failure ` +
+          `happened.`,
+      );
+    }
+  },
+};
+
+executeContract(catalogEditContract, allManifests);

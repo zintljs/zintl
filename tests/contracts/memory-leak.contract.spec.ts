@@ -5,7 +5,7 @@ import { allManifests } from "../manifests/index.js";
 export const memoryLeakContract: Contract = {
   name: "Memory Leak",
   description: "Verifies the JS heap size remains stable and does not leak after 20 HMR iterations",
-  requires: ["spa", "hmr", "memory"],
+  requires: ["hmr", "memory"],
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();

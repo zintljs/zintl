@@ -17,16 +17,25 @@ export const reactSsr: ProjectManifest = {
     { name: "dist" },
     { name: "dist-server", overrides: { build: { ssr: "src/entry-server.tsx" } } },
   ],
-  capabilities: [
-    "ssr",
-    "hmr",
-    "locale-switch",
-    "rtl",
-    "boundary-graph",
-    "transform",
-    "build",
-    "graph",
-  ],
+  /**
+   * **`hmr` was claimed here for this project's whole life and never once
+   * tested.** Every hot-update contract required `["spa", "hmr"]`, and this
+   * project claims `ssr` rather than `spa` — so the capability selected zero
+   * contracts. It read as coverage and was an empty entry in a list.
+   *
+   * Removing `spa` from those gates made it selectable, and the first
+   * measurement it has ever had is red: an ordinary edit to `src/App.tsx` does
+   * not reach the page. `[HMR First Tick] react-ssr` and `[Catalog Edit]
+   * react-ssr` both fail the same way — `expected 'Get started' to contain …` —
+   * so it is not specific to catalogs or to frames.
+   *
+   * So the claim is dropped rather than moved to `pendingFor` on five separate
+   * contracts. A capability is a statement about the project, and the true
+   * statement today is that this one does not hot-update. It should be
+   * reinstated the moment that changes — SSR on Vite has every mechanism it
+   * needs, which is what makes this a defect rather than a scope boundary.
+   */
+  capabilities: ["ssr", "locale-switch", "rtl", "boundary-graph", "transform", "build", "graph"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",

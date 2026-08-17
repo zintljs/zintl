@@ -144,10 +144,21 @@ export const ssrStreaming: ProjectManifest = {
   }),
   zintlOptions,
   /**
-   * `ssr` only. A fixture exists to answer one question, and claiming more
-   * would pull it into browser contracts it has no UI for.
+   * `ssr`, plus the one hot-update guarantee this shape can actually prove.
+   *
+   * A fixture exists to answer one question, and claiming `hmr` would pull it
+   * into browser contracts it has no UI for — there is no client script here at
+   * all, so nothing would install `__zintl_current_instance` for the delivery
+   * contracts to drive. `hmr-server-refresh` is deliberately *not* gated on
+   * `hmr` for exactly that reason.
+   *
+   * It is the purest claimant ZHMR §4.3 has. The heading lives in
+   * `src/entry-server.js` and nowhere else, so the edited boundary is in
+   * `ssrBoundaries` and absent from `clientBoundaries` — the precise condition
+   * that makes a hot update unaddressable and the full-reload broadcast the
+   * only way the browser can learn anything.
    */
-  capabilities: ["ssr"],
+  capabilities: ["ssr", "hmr-server-refresh"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
@@ -155,6 +166,11 @@ export const ssrStreaming: ProjectManifest = {
     ssrPath: (locale) => `/${locale}/`,
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/en/`);
+    },
+    serverOnlyEdit: {
+      file: "src/entry-server.js",
+      find: "Get started",
+      replaceWith: "Server refreshed",
     },
   },
 };
