@@ -76,20 +76,13 @@ export const assetHmrContract: Contract<AssetsAdapter> = {
    *    `runtime/catalog ar/b_assets #0 → superseded (overtaken by seq 0)`, with
    *    the right text inside it.
    *
-   * **`rsbuild-vanilla-basic` remains pending, and the failure has moved.** The
-   * store and the DOM both hold the new text about two seconds after the edit,
-   * measured directly — so the compiler, the delivery and the render are all
-   * correct now. What follows is a later rebuild that puts the old text back,
-   * which is the reload-beats-the-catalog-write shape already recorded as
-   * L-064 rather than anything about assets.
+   * **Green on both hosts, 0 failures in 10 runs.** `rsbuild-vanilla-basic` was
+   * pending here for a fourth reason that turned out not to be about assets at
+   * all: the text arrived correctly and a later rebuild put the old one back.
+   * That was L-064 — an update nothing in the page could act on — and fixing it
+   * cleared this without a line of asset code changing. Re-measured rather than
+   * assumed, and the claim restored.
    */
-  pendingFor: {
-    "rsbuild-vanilla-basic":
-      "L-067 is fixed here too — store and DOM both carry the new asset text ~2s after the " +
-      "edit, measured. A later rebuild then restores the previous text, which is L-064's " +
-      "reload-beats-the-catalog-write shape rather than an asset defect. No further fix " +
-      "attempted in this pass.",
-  },
   async execute(lab, adapter) {
     if (!adapter.assetFile) {
       throw new Error(

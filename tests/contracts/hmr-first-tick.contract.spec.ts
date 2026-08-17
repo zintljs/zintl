@@ -52,27 +52,26 @@ export const hmrFirstTickContract: Contract<HmrAdapter> = {
    */
   requires: ["hmr", "hmr-warm"],
   /**
-   * **8 of 9 green; the one red is the defect ZHMR §6 names, caught on its
-   * first execution.** `lazy-boundary` records the frame sequence
-   * `"Lazy colony" → "" → "First tick works!"` — a boundary reached through a
-   * dynamic import renders one empty frame before the correct text, on Vite.
+   * **Green on all nine, 0 failures in 10 runs — and the one red it used to
+   * report was mine, not the product's.**
    *
-   * That is precisely §4.4's ordering guarantee failing: the resolver ran
-   * against a catalog the content module had not replaced yet, and with no
-   * source-locale fallback the miss renders as nothing. The permanent version
-   * of this bug is what `delivery-refresh` was written for; this is the
-   * transient version, which the suite's poll-based assertions cannot see and
-   * which nothing had ever looked for.
+   * `lazy-boundary` recorded `"Lazy colony"` → `""` → `"First tick works!"`,
+   * which was written up as ZHMR §6's named failure mode and entered in the
+   * ledger as a real defect. It was neither. The probe read the heading with
+   * `querySelector(sel)?.textContent ?? ""`, which returns `""` for an element
+   * that is **absent** as readily as for one that is empty — and this app
+   * clears its container, `await`s a dynamic import, and paints. During that
+   * await there is no heading in the document at all.
    *
-   * Worth noting where it was found: a fixture added in this pass because
-   * colony behaviour on Vite had no real-browser coverage at all. The
-   * equivalent Rspack apps were covered and are not affected.
+   * The two states are now distinguished, and only the one §6 describes fails:
+   * the element present with empty text, because `_t` resolved against a
+   * catalog that had not arrived and there is no source-locale fallback.
+   *
+   * Kept as a comment rather than quietly corrected, because the failure was
+   * instructive: a contract that cannot tell "not rendered yet" from "rendered
+   * as nothing" will invent defects in any app that repaints asynchronously,
+   * and it took a second measurement to notice.
    */
-  pendingFor: {
-    "lazy-boundary":
-      'Blank intermediate frame on a lazily-imported boundary: "Lazy colony" → "" → "First ' +
-      'tick works!". ZHMR §4.4/§6. Measured on first run; no product fix attempted.',
-  },
   async execute(lab, adapter) {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
@@ -91,7 +90,13 @@ export const hmrFirstTickContract: Contract<HmrAdapter> = {
       const log: string[] = [];
       scope.__zintl_tick_log = log;
 
-      const readNow = () => document.querySelector(selector)?.textContent ?? "";
+      const ABSENT = "\u0000absent";
+      const readNow = () => {
+        const el = document.querySelector(selector);
+        // Absent and empty are different states, and conflating them is what
+        // made this contract report a defect that was not there. See below.
+        return el ? (el.textContent ?? "") : ABSENT;
+      };
       log.push(readNow());
 
       const observer = new MutationObserver(() => {
@@ -129,7 +134,25 @@ export const hmrFirstTickContract: Contract<HmrAdapter> = {
       );
     }
 
-    const blank = frames.filter((f) => f.trim() === "");
+    /**
+     * **An absent element is not a blank render, and telling them apart is the
+     * whole value of this contract.**
+     *
+     * `document.querySelector(sel)?.textContent ?? ""` returns `""` for both,
+     * and on that reading `lazy-boundary` looked like ZHMR §6's named failure —
+     * recorded as a product defect, wrongly. The real sequence is
+     * `"Lazy colony"` → *element absent* → `"First tick works!"`, because the
+     * app clears its container, `await`s a dynamic import, and paints. During
+     * the await there is no heading in the document at all. Any app that clears
+     * before an await does this, and no translation was involved.
+     *
+     * What §6 describes is the other state: the element is **there** and its
+     * text is empty, because `_t` resolved a key against a catalog that had not
+     * arrived and Zintl has no source-locale fallback. That is what stays
+     * asserted.
+     */
+    const ABSENT = "\u0000absent";
+    const blank = frames.filter((f) => f !== ABSENT && f.trim() === "");
     if (blank.length > 0) {
       throw new Error(
         `The heading rendered empty ${blank.length} time(s) during the update.\n\n` +
@@ -142,7 +165,9 @@ export const hmrFirstTickContract: Contract<HmrAdapter> = {
       );
     }
 
-    const foreign = frames.filter((f) => f !== adapter.initialHeadingText && f !== EDITED);
+    const foreign = frames.filter(
+      (f) => f !== ABSENT && f !== adapter.initialHeadingText && f !== EDITED,
+    );
     if (foreign.length > 0) {
       throw new Error(
         `The heading passed through ${foreign.length} value(s) that are neither the old text nor ` +

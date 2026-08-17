@@ -45,7 +45,8 @@ are strings in a per-locale file and objects in a merged one — because a contr
 first would silently delete three languages on the second.
 
 A `lazy-boundary` fixture covers colonies on Vite, which real-application coverage reached only on
-Rspack — and it immediately found a blank intermediate frame there (ledger L-060).
+Rspack. (An apparent blank frame it reported there turned out to be the probe conflating an
+absent element with an empty one — withdrawn as ledger L-060.)
 
 `hmr-warm` splits a capability that was carrying two guarantees: `hmr` says an edit reaches the
 browser, `hmr-warm` says it is hot-replaced rather than answered by a reload. Measured, that line runs

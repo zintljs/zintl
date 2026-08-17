@@ -3864,3 +3864,42 @@ longer a miss, so the spent claim is never consulted again.
 **257 contract tests pass, up from 255.** `[Catalog Edit]` is green on all twelve claimants across
 both hosts — the mutation that started this phase red on six Rspack projects, through three
 independent defects (L-064, L-068) and one missing capability.
+
+> **L-067 closed, and by something else.** The Rspack half stayed pending on a fourth symptom — the
+> asset text arrived and a later rebuild put the old one back. That was never an asset defect: it was
+> L-064, an update nothing in the page could act on. Fixing L-064 turned `[Asset HMR]
+rsbuild-vanilla-basic` green without a line of asset code changing, measured 0 failures in 10 runs.
+> ZHMR §5 now holds on both hosts.
+>
+> Worth keeping as a method note: the entry was written with the failure attributed to "a later
+> rebuild", which was accurate and was _not_ a diagnosis. Naming the mechanism honestly — rather than
+> guessing at one — is what let a different fix be recognised as this one's fix.
+
+### L-060 — withdrawn: the blank frame was the probe, not the product
+
+|                             |                                                              |
+| :-------------------------- | :----------------------------------------------------------- |
+| **Status**                  | **Withdrawn** — no defect; contract corrected, 0/10 failures |
+| **Bucket**                  | 1 — the suite could not see straight                         |
+| **Facet contract changed?** | No                                                           |
+
+L-060 recorded a real-looking frame sequence — `"Lazy colony"` → `""` → `"First tick works!"` — and
+called it ZHMR §6's "Blank/Empty Rendering on First HMR Update", found on the Vite colony fixture.
+The sequence was real. The reading was wrong.
+
+`hmr-first-tick` sampled the heading with `document.querySelector(sel)?.textContent ?? ""`, which
+yields `""` for an element that is **absent** exactly as readily as for one that is empty. The
+fixture's `render()` clears `#app`, `await`s a dynamic import, then paints — so for the duration of
+that await there is no `<h1>` in the document. No translation was involved and no catalog was late.
+Any application that clears a container before an await produces the same trace.
+
+Distinguishing the two states turns the contract green on all nine projects, 0 failures in 10 runs,
+and leaves the assertion §6 actually describes intact: the element **present** with empty text,
+which is what a resolver miss looks like when there is no source-locale fallback.
+
+**The method note is the point of keeping this entry.** The original measurement was taken once,
+believed, and written into the ledger as a product defect with a mechanism attached — `"the resolver
+ran against a catalog the content module had not replaced yet"` — which was a hypothesis dressed as
+an observation. Nothing in the evidence distinguished it from "the element was not there yet". A
+probe that cannot tell _not rendered yet_ from _rendered as nothing_ will manufacture defects in
+every asynchronously repainting app it meets, and this one did.
