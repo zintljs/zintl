@@ -500,6 +500,14 @@ export class LabAssertions {
    * as the boundary is forgotten, and fails saying so if it never is. The budget
    * exists because a watcher that never fires is a real defect that should
    * surface here rather than as a puzzling orphan list.
+   *
+   * **Its failure message used to name that cause outright, and on Rspack the
+   * name was wrong.** Traced, the host reports the removal correctly —
+   * `1 removed: …/src/App.tsx` — and the boundary comes back seventeen
+   * milliseconds later, which is L-071 and not the watcher. A diagnosis frozen
+   * into an error string is prose that outlives its measurement, the habit this
+   * suite keeps catching itself in, so the message now names both causes and
+   * says how to tell them apart.
    */
   async boundaryForgotten(filePath: string, timeoutMs = 8000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
@@ -508,8 +516,12 @@ export class LabAssertions {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw new Error(
-      `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted. ` +
-        `The host's watcher never reported the unlink, so nothing can reclaim what it owned.`,
+      `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted, ` +
+        `so nothing can reclaim what it owned.\n\n` +
+        `Two causes produce this and they are not the same. Either the host never reported the ` +
+        `unlink — check the hot-update trace for a "removed" batch — or it did, the compiler ` +
+        `forgot the boundary, and something re-registered it (ledger L-071); the compiler logs ` +
+        `"Re-registering …, which removeFile had forgotten" when that happens.`,
     );
   }
 

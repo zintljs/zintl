@@ -36,7 +36,7 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
-  requires: ["hmr", "chaos"],
+  requires: ["hmr", "chaos-boundary"],
   strictDeliveryExempt: "deletes and renames boundary sources",
   /**
    * **Its closing `noOrphanedCatalogs()` had never run, and now that it does it

@@ -51,10 +51,19 @@ export const rsbuildVueBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "chaos",
     "hmr-structural",
     "hmr-warm",
   ],
   adapter: {
+    /** Which file `chaos-boundary` renames, and who imports it. */
+    renameBoundary: {
+      fromPath: "src/App.vue",
+      toPath: "src/AppNew.vue",
+      parentPath: "src/index.ts",
+      importSearch: "./App.vue",
+      importReplace: "./AppNew.vue",
+    },
     /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
      *

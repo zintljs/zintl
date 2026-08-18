@@ -26,6 +26,7 @@ export const vanillaSpaBasic: ProjectManifest = {
     "hmr-structural",
     "locale-switch-stress",
     "chaos",
+    "chaos-boundary",
     "memory",
     "performance",
     "transform",

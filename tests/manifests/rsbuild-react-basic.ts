@@ -86,6 +86,7 @@ export const rsbuildReactBasic: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "chaos",
     "hmr-structural",
     "hmr-warm",
     "locale-switch-stress",
@@ -126,18 +127,26 @@ export const rsbuildReactBasic: ProjectManifest = {
     /**
      * Which file `chaos-boundary` renames, and who imports it.
      *
-     * Present but **not claimed**: with this config in place the contract runs
-     * and fails 10 times in 10. The trace says why, and it is not the rename —
-     * `watch (batch) → 1 modified` lists only the entry, so the newly created
-     * `AppNew.tsx` never reaches the watch hook at all, and its boundary
-     * (`b_src_AppNew_tsx_default`) has no catalog by the time the page asks. A
-     * file created outside the dependency graph and imported in the same cycle
-     * is a gap in how this host reports changes, not in the rename itself.
+     * **`chaos` is claimed here now; `chaos-boundary` is not, and the reason is
+     * not the host.** This adapter sat here unclaimed with a diagnosis attached
+     * — that `watch (batch) → 1 modified` listed only the entry, so a file
+     * created and imported in the same cycle never reached the watch hook.
+     * Re-measured with the removal batch traced as well as the modified one,
+     * the host reports everything it should:
      *
-     * The contract used to carry a `switch (exampleName)` and throw for any
-     * project it did not recognise — so claiming `chaos` meant editing the
-     * contract, and a capability that was really contract-limited got
-     * recorded as host-limited.
+     * ```
+     * watch (batch) → 1 removed: …/src/App.tsx
+     * Forgetting deleted file: src/App.tsx
+     * Re-registering src/App.tsx, which removeFile had forgotten            ← +17ms
+     * ```
+     *
+     * That is ledger L-071, reproduced on the second host. The residual writer
+     * is not a Vite watcher quirk, which is exactly the question proposal 026
+     * built this host to answer.
+     *
+     * The catalog half needed none of that: `chaos` had been unclaimable across
+     * all of Rspack because the contract's own catalog lookup had never heard of
+     * `src/locales` (L-062), and once that was fixed it simply passed.
      */
     renameBoundary: {
       fromPath: "src/App.tsx",

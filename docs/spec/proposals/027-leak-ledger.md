@@ -4600,3 +4600,67 @@ evidence. A control has to be watched failing, exactly like the assertion it is 
 
 Measured across both hosts: `reloaded` is `!absorbsStructuralChange` on all eight projects, with the
 packet sequence recorded per project in the contract.
+
+### L-075 — `chaos` was two guarantees, and L-071 is not a Vite defect
+
+|                             |                                                   |
+| :-------------------------- | :------------------------------------------------ |
+| **Status**                  | **Fixed** — `chaos` on 10 projects, 6 of them new |
+| **Bucket**                  | 2 — the manifest could not say it                 |
+| **Facet contract changed?** | No — a testing capability split                   |
+
+`chaos` was claimed by four projects, all on Vite. L-062 established that this was a **contract**
+limitation rather than a host one — the catalog lookup had never heard of `src/locales`, where every
+Rsbuild example keeps its catalogs, so the contract threw on line one — and fixed the lookup. Nobody
+re-tried the claim afterwards, so the second host had still never run either chaos contract.
+
+Claimed on six Rsbuild projects, the result splits perfectly along the contract boundary:
+
+| Contract         | Rsbuild projects | Result     |
+| :--------------- | :--------------- | :--------- |
+| `chaos-catalog`  | 6                | **6 pass** |
+| `chaos-boundary` | 6                | **6 fail** |
+
+Deleting and corrupting catalogs under a running Rspack app works, and needed nothing beyond L-062's
+fix. Renaming a boundary does not — and the interesting part is **why**.
+
+**The recorded reason was wrong, and tracing removals is what showed it.** The adapter for
+`rsbuild-react-basic` had been sitting unclaimed with a diagnosis attached: `watch (batch) → 1
+modified` lists only the entry, so a file created and imported in the same cycle never reaches the
+watch hook. The hot-update trace recorded modified files and **not removed ones**, so "the host
+reported no deletion" and "the deletion was reported and dropped" were indistinguishable — the same
+blindness L-041 recorded for the tap itself, one event kind further in. Traced:
+
+```
+watch (batch) → 1 removed: …/src/App.tsx
+Forgetting deleted file: src/App.tsx
+Re-registering src/App.tsx, which removeFile had forgotten — boundaries: src/App.tsx:default   +17ms
+```
+
+The host reports everything it should. **This is L-071, on the second host.** An observation already
+in flight re-registers the boundary the deletion just scrubbed, seventeen milliseconds later, so
+`boundaryForgotten` never returns and the contract fails before reaching its orphan assertion at all.
+
+**That is a real strengthening of L-071.** Four of its five excluded guards were about interpreting a
+_Vite_ `unlink`, and a reasonable reading was that the residual writer was a chokidar artefact.
+Reproduced independently on Rspack — a different watcher, a different event API, a different applier
+— it is neither host's. Proposal 026 built this host to answer exactly that kind of question, and
+this is the second time it has (after L-068's stranded subscribers).
+
+**So the capability splits**, the same way `hmr` split into `hmr`/`hmr-warm` at L-063. One capability
+covering both halves would have to be refused on all six projects, recording a defect Zintl has on
+_every_ host as something Rsbuild cannot do — which is the mistake L-049, L-056 and L-062 each made
+somewhere else.
+
+**And one assertion was carrying a frozen diagnosis.** `boundaryForgotten` failed with "the host's
+watcher never reported the unlink" — measured false here, on the first host it was pointed at that
+had not been checked. It now names both causes and says how to tell them apart. Prose in an error
+string ages exactly like prose in a comment, and it is read at the worst possible moment.
+
+**Not chased, and stated so it is not assumed:** `rsbuild-svelte-basic` and `rsbuild-vanilla-spa`
+fail `chaos-boundary` with a _blank_ heading rather than a surviving boundary, which is the
+no-fallback symptom of a boundary with no catalog. That is consistent with the original
+created-file diagnosis and was **not** measured here. Only `rsbuild-react-basic`'s cause is
+established.
+
+Measured 0 failures in 10 runs across both contracts and all ten claimants.

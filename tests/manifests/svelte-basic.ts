@@ -24,6 +24,7 @@ export const svelteBasic: ProjectManifest = {
     "hmr-stress",
     "locale-switch-stress",
     "chaos",
+    "chaos-boundary",
     "memory",
     "performance",
     "transform",

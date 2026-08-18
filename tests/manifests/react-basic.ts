@@ -24,6 +24,7 @@ export const reactBasic: ProjectManifest = {
     "hmr-structural",
     "locale-switch-stress",
     "chaos",
+    "chaos-boundary",
     "memory",
     "performance",
     "transform",

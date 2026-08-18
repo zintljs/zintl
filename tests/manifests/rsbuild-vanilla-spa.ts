@@ -64,8 +64,17 @@ export const rsbuildVanillaSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "chaos",
   ],
   adapter: {
+    /** Which file `chaos-boundary` renames, and who imports it. */
+    renameBoundary: {
+      fromPath: "src/pages/Home.ts",
+      toPath: "src/pages/HomeNew.ts",
+      parentPath: "src/index.ts",
+      importSearch: "./pages/Home.ts",
+      importReplace: "./pages/HomeNew.ts",
+    },
     headingSelector: "h1",
     initialHeadingText: "Vanilla Rsbuild",
     /** The heading lives on the home page, not the entry. */

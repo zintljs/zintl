@@ -82,9 +82,18 @@ export const rsbuildSvelteBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "chaos",
     "hmr-structural",
   ],
   adapter: {
+    /** Which file `chaos-boundary` renames, and who imports it. */
+    renameBoundary: {
+      fromPath: "src/App.svelte",
+      toPath: "src/AppNew.svelte",
+      parentPath: "src/index.ts",
+      importSearch: "./App.svelte",
+      importReplace: "./AppNew.svelte",
+    },
     /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
      *

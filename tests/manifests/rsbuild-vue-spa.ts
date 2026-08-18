@@ -52,9 +52,18 @@ export const rsbuildVueSpa: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "chaos",
     "hmr-warm",
   ],
   adapter: {
+    /** Which file `chaos-boundary` renames, and who imports it. */
+    renameBoundary: {
+      fromPath: "src/components/HelloWorld.vue",
+      toPath: "src/components/HelloWorldNew.vue",
+      parentPath: "src/router.ts",
+      importSearch: "./components/HelloWorld.vue",
+      importReplace: "./components/HelloWorldNew.vue",
+    },
     headingSelector: "h1",
     initialHeadingText: "Rsbuild with Vue",
     /** The heading lives on the home route's component. */

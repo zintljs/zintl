@@ -11,7 +11,28 @@ export type Capability =
   | "boundary-graph"
   | "hmr-stress"
   | "locale-switch-stress"
+  /**
+   * Catalogs can be deleted and corrupted underneath a running app, and it
+   * survives (`chaos-catalog`).
+   */
   | "chaos"
+  /**
+   * A boundary file can be **renamed** underneath a running app: the update
+   * still propagates, and the old catalogs are reclaimed (`chaos-boundary`).
+   *
+   * Split from `chaos` because they are two guarantees, and measuring the second
+   * host is what showed it. All six Rsbuild projects satisfy `chaos` — the
+   * capability had been unclaimable there for a *contract* reason (L-062), and
+   * once that was fixed the catalog half simply passed. Not one of them
+   * satisfies this, and none of them fails for a host reason: L-071's residual
+   * writer re-registers the boundary 17 ms after `removeFile` forgets it, on
+   * Rspack exactly as on Vite.
+   *
+   * One capability covering both would have to be refused on all six, recording
+   * a defect Zintl has on *every* host as something Rsbuild cannot do — the
+   * mistake L-049, L-056 and L-062 each made in a different place.
+   */
+  | "chaos-boundary"
   | "memory"
   | "performance"
   | "transform"
