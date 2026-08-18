@@ -4637,15 +4637,16 @@ Forgetting deleted file: src/App.tsx
 Re-registering src/App.tsx, which removeFile had forgotten — boundaries: src/App.tsx:default   +17ms
 ```
 
-The host reports everything it should. **This is L-071, on the second host.** An observation already
-in flight re-registers the boundary the deletion just scrubbed, seventeen milliseconds later, so
-`boundaryForgotten` never returns and the contract fails before reaching its orphan assertion at all.
+The host reports everything it should, and `boundaryForgotten` fails anyway — so a boundary survives
+a deletion the compiler was told about and acted on.
 
-**That is a real strengthening of L-071.** Four of its five excluded guards were about interpreting a
-_Vite_ `unlink`, and a reasonable reading was that the residual writer was a chokidar artefact.
-Reproduced independently on Rspack — a different watcher, a different event API, a different applier
-— it is neither host's. Proposal 026 built this host to answer exactly that kind of question, and
-this is the second time it has (after L-068's stranded subscribers).
+> **Correction, from L-076.** This entry originally read the `+17ms` on the following
+> `Re-registering …` line as "seventeen milliseconds after the deletion", and concluded that L-071's
+> residual writer had reproduced on the second host. That figure is the **logger's delta since the
+> previous debug line**, not since the forget. Interleaved with the harness's own filesystem
+> operations, both re-registrations land during _teardown_, after `restoreAll` puts the file back —
+> which is legitimate and not a defect at all. What survives here is something else, named in L-076.
+> The claim is retracted; the capability split below rests on its own measurement and stands.
 
 **So the capability splits**, the same way `hmr` split into `hmr`/`hmr-warm` at L-063. One capability
 covering both halves would have to be refused on all six projects, recording a defect Zintl has on
@@ -4664,3 +4665,88 @@ created-file diagnosis and was **not** measured here. Only `rsbuild-react-basic`
 established.
 
 Measured 0 failures in 10 runs across both contracts and all ten claimants.
+
+### L-076 — the residual writer was never a writer, and one number was misread twice
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — one real gap closed; the dominant cause narrowed |
+| **Bucket**                  | 3 — real defect, and a correction to two entries above      |
+| **Facet contract changed?** | No                                                          |
+
+L-071 closed by naming its residual writer as "an observation already in flight re-registers a
+boundary `removeFile` has forgotten", and L-075 reported that reproducing on Rspack. **Both readings
+came from the same misread number, and both are wrong.**
+
+**The number.** The compiler's debug logger prints `+Nms` as the delta **since the previous debug
+line**, not since any particular event. `Re-registering src/App.tsx … +17ms` was read as seventeen
+milliseconds after the forget. It is seventeen milliseconds after whatever happened to log last.
+
+**What the interleaving shows.** The harness now traces its own filesystem operations
+(`ZINTL_FS_TRACE`), which is the one stream this investigation never had — the compiler's log and
+the test's mutations had been read separately for five entries:
+
+```
+18:16:35.366  lab:fs delete src/App.svelte
+              Watcher unlink → Forgetting deleted file: src/App.svelte      ← correct
+18:16:36.313  lab:fs edit   src/AppNew.svelte
+18:16:39.565  lab:fs restore src/App.svelte (delete)                        ← teardown
+              Re-registering src/App.svelte … onDisk=true                   ← after the restore
+```
+
+The re-registration happens in **teardown**, four seconds after the assertion has already failed,
+because `restoreAll` puts the file back and registering a boundary for a file that exists is correct.
+On Rspack the same, at eight seconds. There is no in-flight read being overtaken — a removal-epoch
+probe, captured on transform entry and compared at commit, reported `epochAtRead=1 now=1` on both
+hosts: **every** such read began _after_ the deletion. That also falsifies the next step L-071's
+closing paragraph named — "an observation generation compared at commit time" — before it was built.
+
+**What is actually wrong, and it is small.** `removeFile` reclaimed only the boundaries
+`boundaryOwnership` lists for a file. A file that is an entry, or carries an HTML projection,
+registers a boundary under the **bare** `fileId` as well, and the ownership map does not list it:
+
+```
+Forgetting deleted file: src/App.tsx — owns 1 boundary: src/App.tsx:default
+…8s later: the compiler still knows a boundary for src/App.tsx
+Matched by: src/App.tsx
+```
+
+Matching graph nodes by id — `nodeId === fileId` or `fileId:` prefixed, the shape the compiler mints
+them in — makes the deletion reclaim both. Content-addressed ids are untouched, since they are not
+derived from a path.
+
+**Measured, same batch, machine otherwise idle:**
+
+| Condition                  | `rsbuild-react-basic` | `svelte-basic` |
+| :------------------------- | :-------------------- | :------------- |
+| Baseline                   | 10 / 10               | 8 / 10         |
+| `removeFile` matches by id | 10 / 10               | 9 / 10         |
+
+**No rate movement, and the change is kept anyway** — the first time in this investigation that
+combination is right. Every earlier candidate was a _heuristic_ whose only evidence was a rate, so a
+flat rate left nothing behind. This one has direct evidence independent of any rate: the log goes
+from `owns 1 boundary` to `owns 2 boundaries`, and a graph node for a deleted file is wrong whether
+or not a contract notices. The rate does not move because a second cause dominates.
+
+**And the second cause is now a narrow question rather than a hunt.** With `removeFile` reclaiming
+both nodes, `src/App.tsx` is back in the graph eight seconds later. So the question is no longer
+"who writes these catalogs" but **"what re-adds a bare `fileId` graph node for a file with no
+metadata entry"** — and the graph is rebuilt from `metadataGraph`, which `removeFile` clears. That
+is one traversal to instrument, not a fifth guard to guess.
+
+**The method note is the reason this entry exists.** Five entries of this investigation rested on a
+delta printed by a logger, read as if it were a measurement between two named events. Nobody checked
+what the number meant, including me, twice in one day — once writing L-075 and once quoting it back.
+`scripts/flake.js` exists because single runs were being believed; this is the same failure one level
+lower, where a _unit_ was being assumed. The harness's filesystem trace is the durable fix: the two
+streams that had to be interleaved to see this were the compiler's and the **test's**, and only one
+of them had ever been instrumented.
+
+**And one more thing the new claimants found**, recorded here rather than in its own entry because
+it is the same defect L-061 already fixed elsewhere. `chaos-catalog` ends with a `page.reload()`,
+and on a host that answers the final edit with a `full-reload` of its own that call fires into a
+frame already navigating: `net::ERR_ABORTED; maybe frame was detached?`, reported as a failure of
+the thing under test. `hmr-growth` had this exact line and L-061 fixed it there; the copy in
+`chaos-catalog` stayed green only because no project claiming `chaos` reloaded, until L-075 let six
+Rspack projects claim it. **A fix applied to one contract is not applied to the suite** — the same
+lesson `findCatalogPath` taught three times, in a different shape. 0 failures in 10 runs after.

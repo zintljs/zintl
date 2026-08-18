@@ -168,17 +168,6 @@ export class ZintlCompiler {
   /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
   private graphGeneration = 0;
   private flushPromise: Promise<void> | null = null;
-  /**
-   * Files the host has reported deleted, until one is seen on disk again.
-   *
-   * A deletion and a transform of the same file are two independent arrivals,
-   * and nothing sequenced them: `removeFile` scrubs the boundary, and a
-   * transform already on its way commits its observation afterwards and puts it
-   * straight back — into `internalManifest`, into `dirtyBoundaries`, and so into
-   * the next flush's write pass, undoing the prune that had just reclaimed its
-   * catalogs. See {@link noteStaleRegistration} and ledger L-071.
-   */
-  private forgottenFiles = new Set<string>();
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
   /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
@@ -962,7 +951,37 @@ export class ZintlCompiler {
   public async removeFile(filePath: string): Promise<string[]> {
     const fileId = this.io.getNormalizedId(filePath);
     const owned = this.messages.boundaryOwnership.get(fileId);
-    const removed = owned ? [...owned] : [];
+
+    /**
+     * The file's boundaries are what the ownership map lists **and** what the
+     * graph holds under this file's id.
+     *
+     * Those two disagree, and ledger L-071 is what the disagreement looks like
+     * from a distance. A file that is an entry, or that carries an HTML
+     * projection, registers a boundary whose id is the bare `fileId` — the graph
+     * then holds `src/App.tsx` beside `src/App.tsx:default`, and only the second
+     * is ever attributed to the file in `boundaryOwnership`. Deleting the file
+     * reclaimed one of the two and left the other in the graph for the life of
+     * the process:
+     *
+     * ```
+     * Forgetting deleted file: src/App.tsx — owns 1 boundary: src/App.tsx:default
+     * …8s later: the compiler still knows a boundary for src/App.tsx
+     * Matched by: src/App.tsx
+     * ```
+     *
+     * Matching on the id rather than on the map closes it, and uses the shape
+     * the compiler mints ids in: a boundary belongs to a file when it *is* the
+     * file id, or is that id with a `:<function>` suffix. Content-addressed ids
+     * are unaffected — they are not derived from a path, so they never match,
+     * and the ownership map remains the only route to them.
+     */
+    const byId = new Set<string>();
+    for (const nodeId of this.graph.boundaryGraph?.nodes.keys() ?? []) {
+      if (nodeId === fileId || nodeId.startsWith(`${fileId}:`)) byId.add(nodeId);
+    }
+    for (const bId of owned ?? []) byId.add(bId);
+    const removed = [...byId];
 
     if (removed.length === 0 && !this.messages.metadataGraph[fileId]) {
       // Not a file the compiler ever knew about — an asset, a stylesheet, or a
@@ -970,9 +989,11 @@ export class ZintlCompiler {
       return [];
     }
 
-    this.logger.debug(`Forgetting deleted file: ${fileId}`);
+    this.logger.debug(
+      `Forgetting deleted file: ${fileId} — owns ${removed.length} boundar` +
+        `${removed.length === 1 ? "y" : "ies"}: ${removed.join(", ") || "(none)"}`,
+    );
 
-    this.forgottenFiles.add(fileId);
     this.messages.trackBoundaryChange(fileId, new Set());
     this.messages.boundaryOwnership.delete(fileId);
     delete this.messages.metadataGraph[fileId];
@@ -1613,7 +1634,6 @@ export class ZintlCompiler {
           this.messages.metadataGraph[fileId].htmlProjection
         )
           trackedBoundaries.add(fileId);
-        this.noteStaleRegistration(fileId, trackedBoundaries);
         this.messages.trackBoundaryChange(fileId, trackedBoundaries);
 
         for (const bId of trackedBoundaries) {
@@ -2513,35 +2533,6 @@ export class ZintlCompiler {
    * L-069 made when a framework import was placed outside its `<script setup>`
    * tag. A project with no SFC facet can never take the splice branch.
    */
-  /**
-   * Say so when an observation re-registers a file `removeFile` has forgotten.
-   *
-   * This is ledger L-071's residual writer, named at last. A deletion and a
-   * transform of the same file are independent arrivals and nothing sequences
-   * them: `removeFile` scrubs the boundary from `internalManifest`, the
-   * `dirtyBoundaries` set and the graph, and a transform already in flight
-   * commits its observation afterwards and puts all three back. The next flush
-   * then finds the boundary dirty and writes the catalogs the prune reclaimed
-   * moments earlier — which is why the write is tagged `dirty` rather than
-   * `recover-missing`, and why four guards at the `unlink` handler could never
-   * have reached it.
-   *
-   * **A log rather than a guard, deliberately.** Refusing the registration when
-   * the file is no longer on disk was implemented and measured: 10 failures in
-   * 10 against a 6-in-10 baseline, and clean in isolation — the same asymmetry
-   * the `existsSync` guard produced, because a `stat` is timing-sensitive
-   * wherever it is asked, not just at the watcher. Reverted. What survives is
-   * the mechanism, stated and observable, so the next attempt starts from a
-   * measurement instead of a fifth hypothesis.
-   */
-  private noteStaleRegistration(fileId: string, boundaries: Set<string>): void {
-    if (!this.forgottenFiles.has(fileId)) return;
-    this.logger.debug(
-      `Re-registering ${fileId}, which removeFile had forgotten — boundaries: ` +
-        `${[...boundaries].join(", ")}. Its catalogs will be written again (L-071).`,
-    );
-  }
-
   private spliceHmrCode(fileId: string, finalCode: string, hmrCode: string): string {
     const isSfc = (this._resolved.system.codegenFacets ?? []).some(
       (facet) => (facet.wrapSfcScript || facet.sfc) && facet.match(fileId),

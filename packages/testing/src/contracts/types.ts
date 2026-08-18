@@ -24,9 +24,9 @@ export type Capability =
    * host is what showed it. All six Rsbuild projects satisfy `chaos` — the
    * capability had been unclaimable there for a *contract* reason (L-062), and
    * once that was fixed the catalog half simply passed. Not one of them
-   * satisfies this, and none of them fails for a host reason: L-071's residual
-   * writer re-registers the boundary 17 ms after `removeFile` forgets it, on
-   * Rspack exactly as on Vite.
+   * satisfies this, and none of them fails for a host reason: a graph node for
+   * the deleted file survives a deletion the compiler was told about and acted
+   * on (L-076).
    *
    * One capability covering both would have to be refused on all six, recording
    * a defect Zintl has on *every* host as something Rsbuild cannot do — the

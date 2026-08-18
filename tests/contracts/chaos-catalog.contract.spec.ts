@@ -89,8 +89,29 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
       return content.replace("Chaos Corruption", "Chaos Recovered!");
     });
 
-    // Reload the page to ensure the browser recovers from temporary module load errors and fetches healed catalog state
-    await lab.page.reload();
+    /**
+     * Reload so the browser recovers from the module-load errors the corrupt
+     * catalog caused — **unless the server is already reloading it.**
+     *
+     * On a host that answers this edit with a `full-reload` of its own, calling
+     * `reload()` fires into a frame that is mid-navigation and fails with
+     * `net::ERR_ABORTED; maybe frame was detached?` — the contract racing a
+     * navigation it did not cause, and reporting it as a defect in the thing
+     * under test. Ledger L-061 found and fixed exactly this in `hmr-growth`;
+     * the same line was here, unfixed, and stayed green until Rspack projects
+     * were allowed to claim `chaos` (L-075) and brought a host that reloads.
+     *
+     * Retrying rather than skipping, because the reason for reloading is real
+     * and a swallowed navigation would leave the page on the corrupt modules:
+     * an aborted reload means a navigation is already happening, so waiting for
+     * the page to settle is the same destination by the other route.
+     */
+    await lab.page.reload().catch((err: unknown) => {
+      const message = String(err);
+      if (!message.includes("ERR_ABORTED") && !message.includes("frame was detached")) {
+        throw err;
+      }
+    });
     await lab.clock.waitForIdle();
 
     await lab.assert.textEventually(adapter.headingSelector, "Chaos Recovered!");

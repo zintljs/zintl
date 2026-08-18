@@ -14,10 +14,8 @@ under a running Rspack app works on all six; renaming a boundary works on none.
 
 **The reason renaming fails is not the host.** The hot-update trace recorded modified files and not
 removed ones, so "the host reported no deletion" and "the deletion was reported and dropped" looked
-identical. Traced, the host reports the removal correctly and the boundary is re-registered
-seventeen milliseconds after the compiler forgets it — the residual writer already recorded against
-Vite, reproduced on a different watcher, a different event API and a different applier. It is
-neither host's defect.
+identical. Traced, the host reports the removal correctly and the compiler acts on it — and a
+boundary for the deleted file survives anyway, on both hosts.
 
 So the capability splits into `chaos` and `chaos-boundary`, the way `hmr` split into `hmr`/`hmr-warm`
 for the same kind of reason. One capability covering both would refuse all six Rsbuild projects and

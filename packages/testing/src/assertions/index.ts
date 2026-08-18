@@ -518,6 +518,7 @@ export class LabAssertions {
     throw new Error(
       `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted, ` +
         `so nothing can reclaim what it owned.\n\n` +
+        `Matched by: ${this.lab.compiler.matchingBoundaries(filePath).join(", ") || "(nothing — the match is stale)"}\n\n` +
         `Two causes produce this and they are not the same. Either the host never reported the ` +
         `unlink — check the hot-update trace for a "removed" batch — or it did, the compiler ` +
         `forgot the boundary, and something re-registered it (ledger L-071); the compiler logs ` +

@@ -87,6 +87,33 @@ export class LabCompiler {
     return (inst as any)._chunkGraph || (inst as any).graph?.chunkGraph;
   }
 
+  /**
+   * The boundary-graph node ids that {@link hasBoundary} considers a match for
+   * `filePath`, so a failure can say *which* one it found.
+   *
+   * `hasBoundary` returns a boolean, and a boolean is the wrong answer to give
+   * a failing assertion here: `boundaryForgotten` timed out saying the compiler
+   * "still knows a boundary", and finding out which took a debug build of the
+   * compiler. The matching is deliberately generous — safe-id comparison, three
+   * ways — so what it matched is rarely what the reader assumes.
+   */
+  matchingBoundaries(filePath: string): string[] {
+    const inst = this.instance;
+    if (!inst) return [];
+    let bg;
+    try {
+      bg = this.getBoundaryGraph();
+    } catch {
+      return [];
+    }
+    if (!bg) return [];
+    const safeId = inst.getSafeBoundaryId(filePath);
+    return [...bg.nodes.keys()].filter(
+      (nodeId: string) =>
+        nodeId === filePath || nodeId === safeId || inst.getSafeBoundaryId(nodeId) === safeId,
+    );
+  }
+
   hasBoundary(filePath: string): boolean {
     const inst = this.instance;
     if (!inst) return false;

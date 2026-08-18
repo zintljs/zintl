@@ -8,6 +8,19 @@ export type FsMutation =
   | { type: "delete"; path: string; original: string }
   | { type: "rename"; from: string; to: string };
 
+/**
+ * Timestamped trace of what the harness itself does to the project's files.
+ *
+ * Off unless `ZINTL_FS_TRACE` is set. It exists because the compiler's debug log
+ * and the harness's mutations were two streams nobody had read *in order* —
+ * which is exactly what named L-071's first writer, one layer down, and what
+ * this file's own operations had no way of contributing to.
+ */
+function fsTrace(op: string, path: string, extra = ""): void {
+  if (!process.env.ZINTL_FS_TRACE) return;
+  console.debug(`  lab:fs ${new Date().toISOString().slice(11, 23)} ${op} ${path} ${extra}`);
+}
+
 export class LabFilesystem {
   private exampleRoot: string;
   private _mutations: FsMutation[] = [];
@@ -133,6 +146,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "edit", path: relativePath, original });
     }
 
+    fsTrace("edit", relativePath);
     await this.runBeforeMutation();
     await this.atomicWrite(fullPath, updated);
 
@@ -157,6 +171,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "write", path: relativePath, existed, original });
     }
 
+    fsTrace("write", relativePath);
     await this.runBeforeMutation();
     await this.atomicWrite(fullPath, content);
 
@@ -172,6 +187,7 @@ export class LabFilesystem {
     const original = await readFile(fullPath, "utf-8");
     this._mutations.push({ type: "delete", path: relativePath, original });
 
+    fsTrace("delete", relativePath);
     await this.runBeforeMutation();
     await unlink(fullPath);
 
@@ -209,6 +225,7 @@ export class LabFilesystem {
     // 1. Restore tracked mutations
     for (let i = this._mutations.length - 1; i >= 0; i--) {
       const m = this._mutations[i];
+      fsTrace("restore", "path" in m ? m.path : `${m.from} → ${m.to}`, `(${m.type})`);
       try {
         if (m.type === "edit") {
           const fullPath = this.resolvePath(m.path);
