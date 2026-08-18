@@ -4498,6 +4498,15 @@ the boundary back — into the manifest, into the dirty set, and so into the nex
 That is why four guards at the `unlink` handler could never have reached it: every one of them was
 watching the wrong event. The unlink was always correct.
 
+> **Retracted by L-076.** The paragraph above is wrong, and the probe output above it is real but
+> was misread. The `+17ms` on that log line is the **logger's delta since the previous debug line**,
+> not the time since the forget. Interleaved with the harness's own filesystem operations, every
+> such re-registration lands during _teardown_, after `restoreAll` puts the file back — registering
+> a boundary for a file that exists, which is correct. A removal-epoch probe confirmed it
+> independently: `epochAtRead === now` on both hosts, so no read was ever overtaken by a deletion.
+> The "in-flight observation" mechanism, and the sequencing fix it implied, are both dead. What
+> actually survives a deletion is named in L-076.
+
 **And the fix that follows from it does not measure.** Refusing to commit a registration for a file
 that is no longer on disk: **10 failures in 10**, against a **6 in 10** baseline — and then the
 revert measured **10 in 10 as well**. The guard was neither better nor worse than doing nothing; the

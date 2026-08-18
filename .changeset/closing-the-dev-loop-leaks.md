@@ -19,10 +19,10 @@ read out of the text, so a project with no SFC facet cannot take that branch at 
 
 **Write attribution (L-071).** A flush has five independent reasons to write a catalog and the write
 could not say which applied. Each producer now tags what it schedules, and the tag reaches both the
-debug log and the `io/write` envelope. That immediately named the writer that had survived four
-investigations: an observation already in flight re-registers a boundary `removeFile` has forgotten,
-so the next flush writes back the catalogs the prune just reclaimed. The mechanism is now stated and
-observable; the fix it suggests was measured and did not earn its place, so it is not here.
+debug log and the `io/write` envelope. That immediately showed the write undoing the prune is
+tagged `dirty` rather than `recover-missing` — so a boundary the deletion scrubbed is back in the
+dirty set by the time the write pass runs. (The mechanism first inferred from that, an in-flight
+observation re-registering the boundary, was retracted a day later: it was teardown. See L-076.)
 
 **Harness (L-066).** `catalogContains` now waits on the compiler's dirty set before reading, reads
 through merged catalogs instead of comparing an object to a string, and takes an optional `value` so
