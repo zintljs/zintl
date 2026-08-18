@@ -14,6 +14,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -100,6 +101,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -184,6 +186,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -270,6 +273,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -357,6 +361,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -446,6 +451,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -533,6 +539,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -622,6 +629,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -709,6 +717,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: false
@@ -798,6 +807,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: false
@@ -885,6 +895,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: false
@@ -974,6 +985,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: false
@@ -1058,6 +1070,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1144,6 +1157,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1228,6 +1242,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1314,6 +1329,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1398,6 +1414,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1484,6 +1501,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1571,6 +1589,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1660,6 +1679,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1747,6 +1767,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1836,6 +1857,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -1923,6 +1945,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -2012,6 +2035,7 @@ facets (resolution order):
   rspack  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: false
   clientLocaleSync: true
   dependencyInvalidation: true
   entryReexecutionSafe: true
@@ -2099,6 +2123,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -2188,6 +2213,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -2275,6 +2301,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -2364,6 +2391,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -2448,6 +2476,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2534,6 +2563,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2618,6 +2648,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2704,6 +2735,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2788,6 +2820,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2874,6 +2907,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -2958,6 +2992,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3044,6 +3079,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3128,6 +3164,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3214,6 +3251,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3298,6 +3336,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3384,6 +3423,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3468,6 +3508,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3554,6 +3595,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3643,6 +3685,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: false
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -3732,6 +3775,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: false
   dependencyInvalidation: false
   entryReexecutionSafe: false
@@ -3819,6 +3863,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3908,6 +3953,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -3995,6 +4041,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4084,6 +4131,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4171,6 +4219,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4260,6 +4309,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4347,6 +4397,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4436,6 +4487,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4520,6 +4572,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true
@@ -4606,6 +4659,7 @@ facets (resolution order):
   vite  [bundler]  priority=100
 
 flags:
+  absorbsStructuralChange: true
   clientLocaleSync: true
   dependencyInvalidation: false
   entryReexecutionSafe: true

@@ -126,6 +126,7 @@ interface MergeState {
   streamInjection: boolean;
   entryReexecutionSafe: boolean;
   repaintsOnCatalogUpdate: boolean;
+  absorbsStructuralChange: boolean;
   detectLocaleChain: ((context: LocaleDetectionContext) => string | undefined)[];
 
   // Bundler (highest-priority-wins)
@@ -187,6 +188,7 @@ function createEmptyState(): MergeState {
     streamInjection: false,
     entryReexecutionSafe: true,
     repaintsOnCatalogUpdate: false,
+    absorbsStructuralChange: true,
     detectLocaleChain: [],
     resolveVirtualPath: undefined,
     resolveVirtualPathProvider: "",
@@ -332,6 +334,12 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       break;
     }
     case "bundler": {
+      /**
+       * Pessimistic, like `entryReexecutionSafe` and for the same reason: a host
+       * that cannot absorb a graph change decides it for the project, and a
+       * capable one must not vote that away.
+       */
+      if (facet.absorbsStructuralChange === false) state.absorbsStructuralChange = false;
       if (facet.resolveVirtualPath !== undefined) {
         state.resolveVirtualPath = mergeHook(
           state.resolveVirtualPath,
@@ -431,6 +439,7 @@ function stateToCapabilities(state: MergeState): CapabilityFlags {
     streaming: state.streamInjection,
     entryReexecutionSafe: state.entryReexecutionSafe,
     repaintsOnCatalogUpdate: state.repaintsOnCatalogUpdate,
+    absorbsStructuralChange: state.absorbsStructuralChange,
 
     // SSR
     ssr:

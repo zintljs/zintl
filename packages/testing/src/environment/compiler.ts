@@ -54,6 +54,27 @@ export class LabCompiler {
     return this.instance?._resolved?.flags?.entryReexecutionSafe ?? false;
   }
 
+  /**
+   * Whether a structural change can be absorbed in place on this project.
+   *
+   * ZHMR §4.2 asks the entry — `entryReexecutionSafe` — and that is a framework
+   * fact. The **host** gets a veto the section did not originally name: a new
+   * boundary is a new catalog chunk, and on Rspack a changed entrypoint chunk
+   * set is a reload the dev server issues before any plugin is consulted
+   * (ledger L-074).
+   *
+   * Both halves are compiler facts, resolved from the runtime and bundler
+   * facets respectively, so the contract asks one question here rather than
+   * twenty manifests declaring an answer they would have to keep in step with a
+   * host they do not choose.
+   */
+  get absorbsStructuralChange(): boolean {
+    return (
+      this.entryReexecutionSafe &&
+      this.instance?._resolved?.flags?.absorbsStructuralChange !== false
+    );
+  }
+
   getBoundaryGraph() {
     const inst = this.instance;
     if (!inst) throw new Error("Zintl compiler not active in current server mode");

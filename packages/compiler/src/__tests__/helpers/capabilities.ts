@@ -25,6 +25,7 @@ const NO_FLAGS: CapabilityFlags = {
   serverRequestScope: false,
   streaming: false,
   entryReexecutionSafe: true,
+  absorbsStructuralChange: true,
   repaintsOnCatalogUpdate: false,
   ssr: false,
   hmr: false,

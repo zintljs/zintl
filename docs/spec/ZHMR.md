@@ -83,8 +83,8 @@ describes the previous build. Replacing a module in place while its boundary map
 boundaries that have moved is the failure this section exists to prevent — and because Zintl has no
 source-locale fallback, the symptom is not a stale string but an empty one.
 
-There are two correct ways to satisfy that, and which applies is decided by the **entry**, not by the
-kind of change:
+There are two correct ways to satisfy that, and which applies is decided by the **entry and the
+host**, not by the kind of change:
 
 #### §4.2.1 — Re-execution-safe entries hot-replace
 
@@ -93,13 +93,20 @@ runtime facet — the re-executed entry rebuilds the boundary map itself. The st
 absorbed in place, and a reload would discard application state to reach a state the update already
 reached.
 
+**The host has a veto**, and it is the half this section originally missed. A new boundary is a new
+catalog chunk, and a host that answers a changed entrypoint chunk set with a full reload does so
+before Zintl is consulted — measured on Rspack, where `plan.fullReload` is `false` for exactly the
+edits that reload. `BundlerFacet.absorbsStructuralChange` states it, defaulting to `true`, and a
+project takes §4.2.1 only when the framework _and_ the host both allow it (ledger L-074).
+
 **Mechanism**: the compiler emits a self-accepting snippet for the entry. The update arrives as an
 ordinary `update`; the boundary graph grows; the page is correct on the next render.
 
 #### §4.2.2 — Everything else reloads
 
 When the entry is not re-execution-safe, in-place replacement is not merely slower but wrong: the
-module that would accept the update is no longer the module that owns the code.
+module that would accept the update is no longer the module that owns the code. The same route
+applies, for a different reason, wherever the host cannot absorb a graph change at all.
 
 **Mechanism**: the update bubbles until it becomes a full page reload. Hosts reach that differently —
 Vite accepts and then calls `import.meta.hot.invalidate()`, while Rspack has no `invalidate()` and

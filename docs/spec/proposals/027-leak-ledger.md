@@ -4524,3 +4524,79 @@ strength of 30-odd clean isolated runs, and `ready:examples` failed it on the sa
 pending again, and for the same writer. The asymmetry is the finding, not the failure: `flake.js` on
 one contract and the full suite are different questions, and this contract answers them differently
 every time it is asked. `tests/manifests/index.ts` has said so since it was written.
+
+### L-074 — §4.2's route has a third input, and two projects could not have found it
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — `hmr-structural` on 8 projects, 6 of them new   |
+| **Bucket**                  | 1 — a capability claimed by too few projects to be wrong in |
+| **Facet contract changed?** | **Yes** — `BundlerFacet.absorbsStructuralChange`            |
+
+`hmr-structural` was claimed by **two** projects — `react-basic` and `vanilla-spa-basic` — so ZHMR
+§4.1③ and §4.2 had never run on Vue, on Svelte, or on Rspack at all. §4.2 is the section L-061
+_amended the specification for_, and the rule it gained was written from a sample of two.
+
+Extending the claim to six more projects — Vue and Svelte on Vite, and React, Vue, Svelte and vanilla
+on Rspack — is adapter work: where a sink and an anchor may go is framework syntax, so it belongs in
+the manifest. It found three things on the first run.
+
+**1. The warm half was asserting a capability the contract did not require.** `rsbuild-vanilla-basic`
+and `rsbuild-svelte-basic` reload for _every_ edit — measured, named and given a capability by L-063
+— so §4.1③'s "this must not reload" reported documented, correct host behaviour as a defect. `hmr`
+says an edit reaches the browser; `hmr-warm` says how. The no-reload assertion moved to its own
+contract requiring `hmr-warm`, rather than becoming a conditional inside this one: which projects can
+promise it is a manifest question, and the suite answers manifest questions by _selection_. A
+contract that read a capability and branched on it would be the first per-project conditional in the
+directory.
+
+**2. The host has a veto §4.2 did not name.** `rsbuild-vue-basic` and `rsbuild-vanilla-basic` have
+re-execution-safe entries and reloaded anyway. The instinct was that the entry self-accept predicate
+was stale — it gates on `clientReactivityImports`, which is React-only, and L-064 already replaced
+exactly that proxy with `repaintsOnCatalogUpdate` one layer over. Swapping it changed **nothing**,
+which is the useful half of the experiment, and a probe said why:
+
+```
+PROBE plan.fullReload=false for .../src/index.ts
+PROBE plan.fullReload=false for .../src/App.vue
+```
+
+**Zintl never asks for that reload.** A new anchor is a new boundary, a new boundary is a new catalog
+chunk, and on Rspack a changed entrypoint chunk set is a full reload the dev server sends before any
+plugin is consulted. So §4.2's route is decided by the entry **and** by the host, and
+`entryReexecutionSafe` alone — a runtime-facet fact — cannot express it.
+`BundlerFacet.absorbsStructuralChange` is the host's half, defaulting to `true` and declared `false`
+by `rspackFacet`, merged pessimistically like `entryReexecutionSafe` for the same reason. The
+contract asks one compiler fact that composes both.
+
+**4. And one contract was doing three jobs on one budget.** With the sink work, the catalog claim
+and the §4.2 route in a single test, `vue-basic` exhausted its 45-second cap under four-worker
+contention — green 10 times in 10 in isolation, red on `ready:examples`. Splitting into `HMR Sink`,
+`HMR Sink Warm` and `HMR Growth` is not tidying: the §4.2 assertion is the one that has to spend
+time proving a reload _did not_ happen, and it should not be spending it out of an allowance two
+other assertions have already drawn on. 22 tests where there were 2.
+
+Splitting was necessary and not sufficient: `HMR Sink` then exhausted the same cap on the same
+project, because `catalogContains` drove the compiler to full quiescence — four flushes on the
+heaviest project in the manifest — when it only ever needed the one that put its key on disk. The
+wait now stops on the **claim**, which is more causal rather than less: it terminates because the
+thing being asserted is true, and keeps the remaining rounds for the case where it never becomes
+true.
+
+`ready:examples`: **285 passed, 2 skipped**, up from 265.
+
+**3. And the §4.2 assertion had been vacuous, which a negative control caught and nearly did not.**
+Inverting the route predicate left all fourteen tests green. The first repair — the branch decided
+_how long to watch the wire_, so each arm looked for exactly as long as it needed to see what it
+predicted — was real and is fixed: both routes now observe for the same budget. It was not the whole
+story, because the control still passed afterwards. The reason was that the control itself was a
+no-op: a `sed` written against a one-line getter that the formatter had since wrapped across four,
+matching nothing and reporting success. Re-run properly, the inverted predicate fails **8 of 8**.
+
+That is the entry's sharpest note, and it is not about Zintl. **A negative control that cannot fail
+is worth less than no control**, because it converts an untested assertion into a believed one — the
+same shape as `noOrphanedCatalogs` in L-062, and as this proposal's own habit of quoting prose as
+evidence. A control has to be watched failing, exactly like the assertion it is checking.
+
+Measured across both hosts: `reloaded` is `!absorbsStructuralChange` on all eight projects, with the
+packet sequence recorded per project in the contract.

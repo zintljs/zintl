@@ -459,8 +459,16 @@ export class LabAssertions {
    * passed. The bound is a safety net for a compiler that cannot make progress,
    * and reaching it is a bug worth failing on rather than papering over — so
    * the caller's assertion runs anyway and reports whatever it finds.
+   *
+   * `satisfied` lets a caller leave the moment its own claim is true, rather
+   * than driving the compiler to a quiescence it does not need. That is not an
+   * optimisation: on `vue-basic` — the heaviest project here — four full
+   * flushes under four-worker contention exhausted the 45-second test cap,
+   * green ten times in ten in isolation and red on `ready:examples`. Stopping
+   * on the claim keeps the wait causal *and* proportionate; the remaining
+   * rounds still exist for the case where the claim never becomes true.
    */
-  private async flushUntilQuiescent(rounds = 4): Promise<void> {
+  private async flushUntilQuiescent(rounds = 4, satisfied?: () => boolean): Promise<void> {
     const compiler = this.lab.compiler.instance as
       | {
           flush?(): Promise<void>;
@@ -470,6 +478,7 @@ export class LabAssertions {
     if (!compiler?.flush) return;
 
     for (let i = 0; i < rounds; i++) {
+      if (satisfied?.()) return;
       await compiler.flush();
       const dirty =
         (compiler.messages?.dirtyBoundaries?.size ?? 0) > 0 ||
@@ -652,7 +661,11 @@ export class LabAssertions {
    *    it in.
    */
   async catalogContains(opts: { locale: string; key: string; value?: string }): Promise<void> {
-    await this.flushUntilQuiescent();
+    const onDisk = () => {
+      const p = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
+      return p.ok && p.carriesKey;
+    };
+    await this.flushUntilQuiescent(4, onDisk);
 
     const probe = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
     if (!probe.ok) {

@@ -16,6 +16,7 @@ export const svelteBasic: ProjectManifest = {
   capabilities: [
     "spa",
     "hmr",
+    "hmr-structural",
     "hmr-warm",
     "locale-switch",
     "rtl",
@@ -30,6 +31,38 @@ export const svelteBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
+     *
+     * Svelte's entry is not re-execution-safe, so this is the first project to exercise
+     * §4.2.2 — the reload route — on a framework rather than on a vanilla app.
+     */
+    addSink: {
+      file: "src/App.svelte",
+      anchorOn: "<h1>Get started</h1>",
+      insert: `\n    <p id="new-sink">A brand new sentence</p>`,
+      expectText: "A brand new sentence",
+      selector: "#new-sink",
+    },
+    addAnchor: {
+      file: "src/main.ts",
+      anchorOn: `import { zintl } from "zintljs/macro";`,
+      insert: [
+        ``,
+        ``,
+        `// A second, independent trust anchor — nested in a function, so it is a`,
+        `// new boundary rather than a second entry point.`,
+        `async function extraAnchor() {`,
+        `  // A *variable* locale, deliberately: a literal is a build-time fact the`,
+        `  // compiler bakes, and baking the source locale emits no catalog chunk at`,
+        `  // all — so the graph might not grow, and the contract would assert on a`,
+        `  // structural change that never happened.`,
+        `  const extraLang = new URLSearchParams(window.location.search).get("x") || "ar";`,
+        `  await zintl(extraLang);`,
+        `  document.title = "Extra anchor added";`,
+        `}`,
+      ].join("\n"),
+    },
     /**
      * Which file `chaos-boundary` renames, and who imports it.
      *

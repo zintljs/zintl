@@ -414,6 +414,26 @@ export interface RuntimeFacet extends BaseFacet {
  */
 export interface BundlerFacet extends BaseFacet {
   concern: "bundler";
+  /**
+   * Can this host absorb a change to the boundary *graph* without reloading?
+   *
+   * ZHMR §4.2 routes a structural change — a new `zintl()` anchor, a new `$L`
+   * colony — by asking the entry: where re-running it is safe, the re-executed
+   * entry rebuilds the boundary map in place, and a reload would discard
+   * application state to reach a state the update already reached. That is
+   * `RuntimeFacet.entryReexecutionSafe`, and it is a **framework** fact.
+   *
+   * It is not the whole answer, because the host gets a veto. A new boundary is
+   * a new catalog chunk, and on Rspack a changed entrypoint chunk set is a full
+   * reload by construction: the dev server sends one before any plugin is
+   * consulted. Measured — `plan.fullReload` is `false` for exactly the edits
+   * that reload, so Zintl is not the one asking (ledger L-074).
+   *
+   * Absent means `true`: a host says so only when it cannot, the same polarity
+   * as `entryReexecutionSafe`, because the common case is the capable one and a
+   * silent default should not cost anyone a reload.
+   */
+  absorbsStructuralChange?: boolean;
   /** Resolve virtual module paths (e.g. "virtual:zintl/..." → "\0virtual:zintl/...") */
   resolveVirtualPath?: (id: string) => string;
   /**
@@ -766,6 +786,8 @@ export interface CapabilityFlags {
    * `RuntimeFacet.entryReexecutionSafe`.
    */
   entryReexecutionSafe: boolean;
+  /** See {@link BundlerFacet.absorbsStructuralChange}. */
+  absorbsStructuralChange: boolean;
   repaintsOnCatalogUpdate: boolean;
   /** True when client-side locale sync is active (popstate, pushState, MutationObserver) */
   clientLocaleSync: boolean;

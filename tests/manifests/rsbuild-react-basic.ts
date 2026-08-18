@@ -86,10 +86,43 @@ export const rsbuildReactBasic: ProjectManifest = {
     "locale-switch",
     "rtl",
     "hmr",
+    "hmr-structural",
     "hmr-warm",
     "locale-switch-stress",
   ],
   adapter: {
+    /**
+     * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
+     *
+     * The structural path had never run on Rspack at all. React first, because it is the
+     * host's only project with a framework runtime that repaints from the store.
+     */
+    addSink: {
+      file: "src/App.tsx",
+      anchorOn: "<h1>Rsbuild with React</h1>",
+      insert: `\n      <p id="new-sink">A brand new sentence</p>`,
+      expectText: "A brand new sentence",
+      selector: "#new-sink",
+    },
+    addAnchor: {
+      file: "src/index.tsx",
+      anchorOn: `import { zintl } from "zintljs/macro";`,
+      insert: [
+        ``,
+        ``,
+        `// A second, independent trust anchor — nested in a function, so it is a`,
+        `// new boundary rather than a second entry point.`,
+        `async function extraAnchor() {`,
+        `  // A *variable* locale, deliberately: a literal is a build-time fact the`,
+        `  // compiler bakes, and baking the source locale emits no catalog chunk at`,
+        `  // all — so the graph might not grow, and the contract would assert on a`,
+        `  // structural change that never happened.`,
+        `  const extraLang = new URLSearchParams(window.location.search).get("x") || "ar";`,
+        `  await zintl(extraLang);`,
+        `  document.title = "Extra anchor added";`,
+        `}`,
+      ].join("\n"),
+    },
     /**
      * Which file `chaos-boundary` renames, and who imports it.
      *
