@@ -4750,3 +4750,62 @@ the thing under test. `hmr-growth` had this exact line and L-061 fixed it there;
 `chaos-catalog` stayed green only because no project claiming `chaos` reloaded, until L-075 let six
 Rspack projects claim it. **A fix applied to one contract is not applied to the suite** — the same
 lesson `findCatalogPath` taught three times, in a different shape. 0 failures in 10 runs after.
+
+### L-077 — a size assertion that never weighed a shipped byte
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 runs, 3 s per run from 20-plus |
+| **Bucket**                  | 1 — the contract could not ask its own question             |
+| **Facet contract changed?** | No                                                          |
+
+`performance-size` asserted that "dynamically loaded translation chunks stay under a 10KB payload
+size budget". It captured HTTP response bodies inside a timing window **on the dev server**, and its
+own budget comment conceded the number: "adjusted to 10KB to support Vite dev-mode wrapper overhead".
+A dev-wrapped module bears no fixed relationship to shipped bytes, so the contract defended a budget
+against an artifact no user downloads.
+
+It carried a `TODO` saying exactly this, and the `TODO` was right about the fix — assert against the
+built output, the way `build.contract` already does. What the rewrite found is that **three separate
+things had to be wrong at once for the contract to look reasonable**:
+
+1. **The wrong artifact** — dev modules, not build output.
+2. **A timing window** — which responses landed inside it varied per run, observed failing 1 in 7 at
+   10,972 bytes while passing 3 of 3 in isolation. A size is a property of a file; nothing about it
+   should depend on when you look.
+3. **A URL filter that could not see** — four Vite-shaped fragments, one of them any `.json`. On
+   Rspack it matched nothing, failed its own `toBeGreaterThan(0)`, and was recorded in eight
+   manifests as a host that cannot meet a performance budget (L-062).
+
+**Identifying a catalog chunk in build output is the interesting part**, and two obvious answers are
+both wrong. A path pattern cannot be host-neutral: Rollup emits `assets/entry_b_<hash>.js` and Rspack
+`static/js/async/<hash>.js`, and a pattern matching both matches nearly everything. Asking the
+boundary graph fails differently — enumerated after a build it resolved a single catalog on three of
+four projects, because the graph a _build_ leaves behind is not the one the dev compiler holds.
+
+What works is **content**: a catalog chunk is the emitted file carrying a translation the project has
+on disk. Same identity rule as boundaries, and it survives a change of host by construction.
+
+**Two false starts worth keeping, because each produced a confident wrong answer.**
+
+- Taking any catalog value as the needle matched `index.js` on all four projects and reported a
+  538 KB application bundle as an oversized catalog. Catalogs legitimately carry passthrough
+  entries — brand names, anything left untranslated — and those strings are in the main bundle
+  because that is where the source text lives. **A needle has to differ from its key** to prove it
+  came from a catalog.
+- `findCatalogFor` returns one path, sorted, and first alphabetically is
+  `index.html.<locale>.json` — a title and a text direction, no prose. The contract declared three
+  projects untestable with their real catalogs sitting beside them.
+
+**Measured:** 0 failures in 10 runs, and 3 seconds per run against a version that booted a browser
+and drove a locale switch. Catalog chunks weigh 611–982 bytes against an 8 KB budget — deliberate
+headroom, because the budget guards a _shape_: a catalog holds one boundary's strings for one locale
+and grows with the text an author wrote, so anything near the limit means something else was pulled
+into the chunk. The negative control — budget of one byte — fails all four projects and names the
+chunks it weighed, which is how the file list was confirmed to be catalogs rather than the bundle.
+
+**Left undone on purpose, and the sequencing is the point.** Nothing in this contract is host-shaped
+any more, so the six Rsbuild projects could claim `performance` today. They are not given it in this
+pass because `performance` also gates `performance-hmr`, whose absolute wall-clock budget is the
+suite's most frequent false red. Extending a claim into a contract known to report the weather would
+trade one fixed gate for a noisier one — fix that first, then extend both.

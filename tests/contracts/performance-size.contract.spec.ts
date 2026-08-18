@@ -1,88 +1,203 @@
-import { expect } from "vite-plus/test";
-import { executeContract, type Contract, type LocaleSwitchAdapter } from "@zintljs/testing";
+import { executeProjectContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /**
- * TODO: measure the payload this contract's name promises.
+ * A lazily loaded catalog stays small in the bundle a user actually downloads.
  *
- * It captures response bodies inside a timing window and asserts each is under
- * 10 KB — but it runs against the **dev server**, so what it measures is
- * dev-wrapped modules, which its own budget comment concedes ("adjusted to 10KB
- * to support Vite dev-mode wrapper overhead"). A dev module bears no fixed
- * relationship to the bytes a user downloads.
+ * **This contract measured something else for its whole life**, and its own
+ * header said so. It captured HTTP response bodies inside a timing window on the
+ * **dev server** and asserted each under 10 KB — a budget its comment conceded
+ * was "adjusted to 10KB to support Vite dev-mode wrapper overhead". A dev module
+ * bears no fixed relationship to shipped bytes, so the number it defended was
+ * not the number in its name.
  *
- * It is also timing-dependent in a way a size assertion should never be: which
- * responses land inside the window varies run to run, and the URL filter
- * includes any `.json`, so an unrelated response can be measured as a catalog.
- * Observed failing once in seven runs at 10,972 bytes while passing 3/3 in
- * isolation.
+ * Three separate ways it could not answer the question:
  *
- * What would actually answer the question: assert against the **built** output,
- * the way `build.contract` already does — locate the emitted lazy catalog chunks
- * in `dist` and check their size. That is deterministic, it is the number that
- * matters to a user, and it needs no timing window at all.
+ * 1. **The wrong artifact.** Dev-wrapped modules, not build output.
+ * 2. **A timing window.** Which responses landed inside it varied per run —
+ *    observed failing 1 run in 7 at 10,972 bytes while passing 3/3 in
+ *    isolation. A size is a property of a file; nothing about it should depend
+ *    on when you look.
+ * 3. **A URL filter that could not see.** Four Vite-shaped fragments, one of
+ *    them any `.json`, so an unrelated response could be measured as a catalog
+ *    — and on Rspack, whose builds emit catalogs as ordinary hashed async
+ *    chunks, it matched nothing at all and failed its own `toBeGreaterThan(0)`.
+ *    That was recorded in eight manifests as a host missing a performance
+ *    budget (ledger L-062).
  *
- * **Fixed since, separately:** the URL filter was four hardcoded Vite-shaped
- * fragments — `virtual:zintl`, `/zintl/`, `/i18n/`, `.json`. An Rspack build
- * emits catalogs as ordinary hashed async chunks whose URLs carry none of
- * those, so this contract could only ever measure zero responses there, fail
- * its `toBeGreaterThan(0)` guard, and be recorded in every Rsbuild manifest as
- * a host that cannot meet a performance budget. It was a contract that could
- * not see. `LocaleSwitchAdapter.isCatalogRequest` already existed for exactly
- * this question and is already declared by those manifests — so `performance`
- * on Rspack was blocked by a filter, not by the host.
+ * So it builds, and reads the emitted files. No page, no window, no URL.
+ *
+ * **Still to do: let Rspack claim it.** `performance` is claimed by four Vite
+ * projects, and the filter that kept the second host out is gone — nothing in
+ * here is host-shaped any more. The claim is not extended in the same pass
+ * because `performance` also gates `performance-hmr`, whose absolute wall-clock
+ * budget is the suite's most frequent false red; pulling four more projects
+ * into it would trade a fixed contract for a noisier gate. That is the order to
+ * do them in, not a reason to leave either.
+ *
+ * **Chunks are found by content, which is the only host-neutral way to ask.**
+ * Rollup emits `assets/entry_b_<hash>.js` and Rspack emits
+ * `static/js/async/<hash>.js`; a path pattern that recognises both is a pattern
+ * that recognises almost anything. A catalog chunk is instead the file carrying
+ * a translation the compiler says is on disk for that locale — content-based
+ * identity, the same rule boundary ids follow, and the reason a catalog can move
+ * between hosts and still be recognised.
  */
-export const performanceSizeContract: Contract<LocaleSwitchAdapter> = {
+
+/** The compiler's resolved `outputDir`, asked of the compiler rather than assumed. */
+function instanceOutputDir(lab: { compiler: { instance?: unknown } }): string {
+  const resolved = (lab.compiler.instance as { outputDir?: string } | undefined)?.outputDir;
+  if (!resolved) {
+    throw new Error(
+      `No live Zintl compiler for this project, so its output directory — a resolved option, not ` +
+        `a fixed path — cannot be asked for.`,
+    );
+  }
+  return resolved;
+}
+
+export const performanceSizeContract: Contract<any> = {
   name: "Performance Size",
-  description:
-    "Verifies dynamically loaded translations chunks stay under a 10KB payload size budget",
-  requires: ["spa", "locale-switch", "performance"],
-  async execute(lab, adapter) {
-    await adapter.navigateHome(lab);
-    await lab.clock.waitForIdle();
+  description: "Verifies built lazy catalog chunks stay within a payload size budget",
+  /**
+   * `build` rather than `spa` + `locale-switch`: nothing here drives a page, and
+   * what it needs is an emitted bundle and more than one locale in it.
+   */
+  requires: ["performance", "build"],
+  async execute(lab) {
+    const results = await lab.pipeline.build();
+
+    const sourceLocale = (lab.compiler.instance as { sourceLocale?: string } | undefined)
+      ?.sourceLocale;
+    const locales = (
+      (lab.compiler.instance as { locales?: string[] } | undefined)?.locales ?? []
+    ).filter((l) => l !== sourceLocale);
+    if (locales.length === 0) {
+      throw new Error(
+        `The compiler reports no locale other than the source one, so no catalog chunk is ever ` +
+          `emitted and there is nothing to weigh.`,
+      );
+    }
 
     /**
-     * The same `??` default `locale-switch` uses, so one project answers the
-     * "is this a catalog request" question once, for both contracts.
+     * Needles from **every** catalog this project ships, in every locale.
+     *
+     * Two earlier shapes of this were not enough, and each failed differently.
+     * `findCatalogFor` returns one path, sorted, and the first alphabetically is
+     * `index.html.<locale>.json` — a title and a text direction, no prose — so
+     * the contract declared the project untestable with its real catalogs
+     * sitting beside it. Enumerating the boundary graph instead resolved a
+     * single catalog on three of four projects, because the graph a *build*
+     * leaves behind is not the one the dev compiler holds.
+     *
+     * The output directory is the durable answer, and it is still the
+     * compiler's own: `outputDir` is a resolved option, not a path this file
+     * invented (L-062).
+     *
+     * Every non-source locale, not one: a per-locale catalog names its language
+     * in its filename and a merged one keys by it, so walking the directory
+     * yields all of them for free — and weighing *every* emitted catalog chunk
+     * is the stronger claim. Restricting to one locale would leave the other
+     * chunks unmeasured while reading exactly the same files.
      */
-    const isCatalogRequest =
-      adapter.isCatalogRequest ??
-      ((url: string, locale: string) =>
-        url.includes(`virtual:zintl/content/${locale}/`) ||
-        url.includes("virtual:zintl") ||
-        url.includes("/zintl/") ||
-        url.includes("/i18n/") ||
-        url.endsWith(".json"));
-
-    const catalogSizes: number[] = [];
-    const onResponse = async (res: any) => {
-      const url = res.url();
-      if (isCatalogRequest(url, "es")) {
+    const outputDir = join(lab.root, instanceOutputDir(lab));
+    const needles: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== ".schemas") walk(full);
+          continue;
+        }
+        if (!entry.name.endsWith(".json") || entry.name.endsWith(".schema.json")) continue;
+        let catalog: Record<string, unknown>;
         try {
-          const body = await res.body();
-          catalogSizes.push(body.length);
+          catalog = JSON.parse(readFileSync(full, "utf-8")) as Record<string, unknown>;
         } catch {
-          // Ignore non-readable/aborted responses
+          continue;
+        }
+        for (const [key, value] of Object.entries(catalog)) {
+          if (key.startsWith("$")) continue;
+          const texts: unknown[] =
+            typeof value === "string"
+              ? [value]
+              : value && typeof value === "object" && !Array.isArray(value)
+                ? locales.map((l) => (value as Record<string, unknown>)[l])
+                : [];
+          /**
+           * The needle has to be a **translation**, not a value that happens to
+           * equal its key.
+           *
+           * Catalogs legitimately carry passthrough entries — brand names,
+           * anything a translator left as-is — and those strings are in the main
+           * bundle too, because that is where the source text lives. Matching
+           * one identified `index.js` as a catalog chunk on all four projects,
+           * and reported a 538 KB application bundle as an oversized catalog. A
+           * value that differs from its key can only have come from a catalog.
+           */
+          for (const text of texts) {
+            if (
+              typeof text === "string" &&
+              text.trim() !== "" &&
+              text !== key &&
+              text.length >= 8 &&
+              !text.includes("{")
+            ) {
+              needles.push(text);
+            }
+          }
         }
       }
     };
+    if (existsSync(outputDir)) walk(outputDir);
 
-    lab.page.on("response", onResponse);
+    if (needles.length === 0) {
+      throw new Error(
+        `No catalog under ${outputDir} holds a plain translated string, so no emitted chunk ` +
+          `can be identified by its content. Every value is empty, ICU, or identical to its key.`,
+      );
+    }
 
-    // Switch locale to Spanish to trigger dynamic catalog import
-    await adapter.switchLocale(lab, "es");
-    await lab.clock.waitForIdle();
+    const chunks = Object.entries(results).filter(
+      ([path, code]) => path.endsWith(".js") && needles.some((needle) => code.includes(needle)),
+    );
 
-    lab.page.off("response", onResponse);
+    if (chunks.length === 0) {
+      throw new Error(
+        `No emitted file carries any translation this project has on disk, so this build ships ` +
+          `no catalogs at all — which is a delivery failure, not a size one.\n\n` +
+          `Looked for ${needles.length} translated string(s) across ` +
+          `${Object.keys(results).length} emitted file(s).`,
+      );
+    }
 
-    // Ensure at least one dynamic catalog import chunk was tracked
-    expect(catalogSizes.length).toBeGreaterThan(0);
-
-    // Check payload budgets (adjusted to 10KB to support Vite dev-mode wrapper overhead)
-    for (const size of catalogSizes) {
-      expect(size).toBeLessThan(10 * 1024); // 10 KB maximum limit
+    /**
+     * 8 KB, against catalogs that measure well under 1 KB today.
+     *
+     * The budget guards a **shape**, not a target: a catalog chunk carries one
+     * boundary's strings for one locale, so it grows with the text an author
+     * wrote and not with the application. Anything approaching this size means
+     * something else has been pulled into the chunk — a runtime, a framework
+     * import, the whole catalog set — which is the regression worth catching.
+     * Sizes are reported on failure so the number can be judged rather than
+     * guessed at.
+     */
+    const BUDGET = 8 * 1024;
+    const oversize = chunks.filter(([, code]) => Buffer.byteLength(code, "utf8") > BUDGET);
+    if (oversize.length > 0) {
+      const report = chunks
+        .map(([path, code]) => `  ${path}: ${Buffer.byteLength(code, "utf8")} bytes`)
+        .join("\n");
+      throw new Error(
+        `${oversize.length} of ${chunks.length} catalog chunk(s) exceed the ${BUDGET}-byte ` +
+          `budget:\n${report}\n\n` +
+          `A catalog chunk holds one boundary's strings for one locale. At this size it is ` +
+          `carrying something else.`,
+      );
     }
   },
 };
 
-executeContract(performanceSizeContract, allManifests);
+executeProjectContract(performanceSizeContract, allManifests);
