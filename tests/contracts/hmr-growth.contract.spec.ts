@@ -51,11 +51,12 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
     "Verifies a new sink hot-replaces, and a new anchor takes whichever structural route its entry allows",
   requires: ["hmr", "hmr-structural"],
   /**
-   * Green on both projects, on both halves it can prove causally.
+   * Both halves of §4.1③ are asserted again, and both causally.
    *
-   * The catalog-write claim it used to carry is recorded as ledger L-066 and
-   * removed from the body — see the comment where it stood for why a wall-clock
-   * assertion had to go rather than be tuned.
+   * The catalog-write claim this contract used to carry was recorded as ledger
+   * L-066 and deleted from the body, because the only way to ask it then was a
+   * wall-clock poll. It is back — see the comment where it stood — now that
+   * `catalogContains` waits on the compiler's dirty set instead of a budget.
    */
   async execute(lab, adapter) {
     const { addSink, addAnchor } = adapter;
@@ -98,29 +99,39 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
     }
 
     /**
-     * **Deliberately not asserted here: that the new key reached a catalog on
-     * disk.** It was written, it failed, and the reason it is gone is worth
-     * more than the assertion was.
+     * The new key reached a catalog, so a translator can find it (ledger L-066).
      *
-     * The claim is real — a sink that renders but never lands in a catalog is
-     * untranslatable, and invisible to every visual assertion in this suite.
-     * But the only way this contract could ask it was to poll a file for a
-     * while and give up, and ZDB §9.3 is explicit that a timing heuristic may
-     * exist as a declared fallback and never on a success path. It behaved
-     * exactly as that rule predicts: green on `react-basic` in isolation, red on
-     * the same project under four-worker contention, with the budget deciding
-     * the verdict rather than the behaviour.
+     * A sink that renders and never lands in a catalog is untranslatable, and
+     * **invisible to every visual assertion in this suite** — the page is
+     * correct in the source locale, which is precisely the state Zintl's
+     * no-fallback rule exists to make impossible everywhere else.
      *
-     * What it did establish before being removed is recorded as ledger L-066:
-     * on `vanilla-spa-basic` the key never arrives *at all* — checked to 25
-     * seconds, which is past any timing story — while `react-basic` writes it
-     * promptly on a quiet machine. That is a real difference and a real gap.
+     * This claim was asserted once, failed, and was removed rather than tuned.
+     * The only way to ask it then was to poll a file for a while and give up,
+     * and ZDB §9.3 is explicit that a timing heuristic may exist as a declared
+     * fallback and never on a success path. It behaved exactly as that rule
+     * predicts: green on `react-basic` in isolation, red on the same project
+     * under four-worker contention, with the budget deciding the verdict rather
+     * than the behaviour.
      *
-     * Asserting it properly needs a **causal** signal: the compiler's own flush
-     * generation, waited on the way `waitForSettled` waits on the runtime's,
-     * rather than a wall clock. That is harness work, not a tuned constant, and
-     * until it exists this contract asserts what it can prove.
+     * What brings it back is the **causal** signal it said it needed.
+     * `catalogContains` now drives the compiler's own flush to quiescence
+     * first — looping on the dirty set, so it terminates because there is no
+     * work left rather than because time passed. Nothing here is waited for on
+     * a clock.
+     *
+     * The locale is a non-source one deliberately: the source locale is
+     * ghosted and never written to disk, so asking for it would assert the
+     * absence of a file the compiler is designed not to produce. No value is
+     * asserted — a newly extracted key is written empty until someone
+     * translates it, and "the translator can find it" is the whole claim.
      */
+    if (addSink.expectText) {
+      await lab.assert.catalogContains({
+        locale: catalogLocale(lab),
+        key: addSink.expectText,
+      });
+    }
 
     // ──────────────────────────────────────────────────────────────────
     // §4.2 — a new anchor or colony is the structural path
@@ -231,6 +242,29 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
     await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
   },
 };
+
+/**
+ * A locale this project actually writes catalogs for.
+ *
+ * Asked of the compiler rather than declared by the manifest, for the reason
+ * L-062 records: `outputDir`, `catalogFormat` and which locales exist are
+ * resolved compiler facts, and twenty adapters restating them is how a contract
+ * comes to guess at paths the compiler had already worked out. The source
+ * locale is excluded because ghost mode never writes it.
+ */
+function catalogLocale(lab: Lab): string {
+  const compiler = lab.compiler.instance as
+    | { locales?: string[]; sourceLocale?: string }
+    | undefined;
+  const target = compiler?.locales?.find((l) => l !== compiler.sourceLocale);
+  if (!target) {
+    throw new Error(
+      `The compiler reports no locale other than the source one, so no catalog is ever ` +
+        `written and there is nothing for this assertion to look in.`,
+    );
+  }
+  return target;
+}
 
 /** Boundaries the compiler currently knows about, or `-1` if it cannot say. */
 function boundaryCount(lab: Lab): number {

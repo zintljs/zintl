@@ -4321,3 +4321,206 @@ the next attempt should start from rather than re-deriving.
 
 `react-ssr` is a separate case still: hot updates do not reach it at all, so it fails before any of
 the four steps above. Its `hmr` claim remains withdrawn.
+
+### L-066 — closed: the key was never missing, the flush was
+
+|                             |                                                          |
+| :-------------------------- | :------------------------------------------------------- |
+| **Status**                  | **Closed** — 0 failures in 10 runs, on both claimants    |
+| **Bucket**                  | 3 — real defect, already fixed by the time it was re-run |
+| **Facet contract changed?** | No                                                       |
+
+L-066 recorded that a new sink renders on `vanilla-spa-basic` and its key never reaches a catalog —
+checked to 25 seconds, "past any timing story" — while `react-basic` writes it promptly. The
+observation was accurate. **The entry was written before L-070, and L-070 is its fix.**
+
+"The last change before a quiet period is silently deferred forever" is exactly the shape of this
+symptom: `hmr-growth` adds one sink and then stops editing, so the flush carrying that key joined an
+in-flight run and no later trigger existed to carry its dirt. Twenty-five seconds was never going to
+be enough, because nothing was going to happen at any point after the first second either.
+
+The causal signal the entry asked for also already existed, built for `noOrphanedCatalogs` in the
+same pass: `flushUntilQuiescent` loops on the **dirty set**, so it terminates because there is no
+work left rather than because time passed. Restoring the assertion on top of it needed no new
+machinery — which is the useful part of this entry, since the removal note said it needed "harness
+work, not a tuned constant" and the harness work had since been done for a different reason.
+
+**Three things had to be repaired in `catalogContains` before it could be called**, and they are
+worth listing because it had never been called at all:
+
+1. It compared `content[key]` against a string, but a merged catalog stores `{ ar: …, es: … }`
+   there. It could only ever fail on `vanilla-spa-basic` and `rsbuild-vanilla-basic` — the exact
+   defect L-062 named in `setTranslation`, one layer down and still live.
+2. `value` was mandatory, so "the translator can find this string" was inexpressible. A newly
+   extracted key is written empty until someone fills it in.
+3. It read the filesystem without waiting for the compiler.
+
+**Measured: 0 failures in 10 runs**, `react-basic` and `vanilla-spa-basic`. The assertion was
+falsified first — asking for a key that cannot exist fails on both projects, with the nearest
+catalog and its contents named — because an assertion that has never been seen to fail is the thing
+this proposal has been wrong about most often.
+
+### L-072 — closed: three steps of four worked, and the fourth was a page with no client
+
+|                             |                                                                  |
+| :-------------------------- | :--------------------------------------------------------------- |
+| **Status**                  | **Closed** — 0 failures in 10 runs; `react-ssr` reclaims `hmr`   |
+| **Bucket**                  | 1 — the suite could not see straight, over a real product defect |
+| **Facet contract changed?** | No                                                               |
+
+The previous entry measured ZHMR §4.3 red and concluded: detection, signalling and SSR module-graph
+invalidation all work, and what survives is Vite's module **runner**, whose evaluated-module cache
+`invalidateModule` does not evict. It named the mechanism precisely, in the installed version, with
+line numbers. **It was wrong, and every observation behind it was taken on the server.**
+
+`interceptViteHmr` wraps `ws.send`. So `hmr packets: {"full-reload": 8}` says the server broadcast
+eight times — not that anything received one. The `ssr-streaming` fixture streams its own document
+with an empty `<head>`, so the page had **no `/@vite/client` and therefore no WebSocket at all**. The
+browser never reloaded and never re-requested; the server was never asked to render again, so its
+runner cache was never reached, stale or otherwise. `textEventually` then read the unchanged text and
+the unchanged text was reported as a stale server render.
+
+This is L-060 exactly, one layer out: a probe that cannot distinguish _never asked_ from _asked and
+answered wrongly_ will manufacture a defect in whichever component it happens to be pointed at.
+
+**Two things were wrong, and only one of them was Zintl's.**
+
+1. **The fixture did not model a dev SSR page.** A real app gets Vite's client from
+   `transformIndexHtml`; one that builds its own document has to say so. Now it does.
+2. **Adding the client immediately produced a 500 on every request** — and that was a genuine
+   product defect, recorded as L-073 below.
+
+**And a third, which is why `react-ssr` had no hot updates at all.** In middleware mode Vite has no
+listener to attach its HMR socket to, so unless it is handed one it opens a second on a **fixed**
+port — 24678, the same for every SSR app in the suite, across four workers. Whichever bound first
+owned it and every other page connected to nothing. `server: { middlewareMode: true, hmr: { server } }`
+in all four examples and the fixture:
+
+| Project         | Before                          | After                                     |
+| :-------------- | :------------------------------ | :---------------------------------------- |
+| `ssr-streaming` | pending on `hmr-server-refresh` | **0/10**                                  |
+| `react-ssr`     | `hmr` withdrawn as unearned     | `hmr` reclaimed — HMR + Catalog Edit pass |
+| `svelte-ssr`    | never claimed `hmr`             | claims it, passes                         |
+| `vanilla-ssr`   | never claimed `hmr`             | claims it, passes                         |
+| `vue-ssr`       | never claimed `hmr`             | claims it, passes                         |
+
+The last three had never claimed `hmr` and were never suspected of lacking it; the capability was
+simply absent from four manifests, which is the quiet version of the same problem L-058 named.
+Claiming it surfaced two **adapter drifts** as well — `vue-ssr` pointed `headingFile` at
+`src/App.vue` and `vanilla-ssr` at `src/entry-client.ts`, neither of which contains the heading.
+Both had been unreachable for the same reason the capability was: nothing selected them.
+
+**The runner-cache hypothesis is not disproven so much as never reached.** With a client on the page,
+`ssrLoadModule` returns freshly evaluated code and §4.3 holds. If a future case shows a stale SSR
+module, the analysis in the previous entry is still the right starting point — it is accurate about
+what the code does. It was simply not what was happening here.
+
+### L-073 — the dev HMR snippet was spliced into a string literal
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — gated on the dialect; regression test added     |
+| **Bucket**                  | 3 — real defect, in shipped dev behaviour                   |
+| **Facet contract changed?** | No — it consults `CodegenFacet.match`, which already exists |
+
+Found by fixing L-072's fixture, and independent of it. The dev transform placed its HMR snippet
+with:
+
+```ts
+const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+```
+
+An SFC's module code lives inside a `<script>` block, so on `.vue` and `.svelte` the snippet must go
+before that block's closing tag or it lands in the template. The rule was applied to **every file**,
+and in a plain module the last `</script>` is whatever the source happens to contain — here, a string:
+
+```js
+const shell = "<head>" + '<script src="/@vite/client"></script>' + "</head>";
+```
+
+The snippet was spliced into the middle of that string. The module then failed Vite's import
+analysis, the SSR entry threw on **every request**, and the app served a 500 whose message —
+`Failed to parse source for import analysis` — points at the bundler rather than at Zintl.
+
+**The blast radius is any dev module with `</script>` inside a string**, which is every SSR shell,
+every MPA template built in JS, every string that embeds an analytics or client tag. It is dev-only,
+which is worse rather than better: the build is clean and the dev server is broken.
+
+Which files carry script blocks is a **dialect** fact, so `spliceHmrCode` asks the codegen facets
+(`wrapSfcScript || sfc`, then `match(fileId)`) instead of reading the text. That is the same
+correction L-069 made when a framework import was placed outside its `<script setup>` tag. A project
+with no SFC facet can no longer take the splice branch at all.
+
+The regression test asserts the transformed module **parses**, with Vite's own `parseAst` — the
+parser that rejected it — rather than asserting the snippet's position. Falsified by reverting the
+gate: the test fails, and it fails on the parse.
+
+### L-071 — the residual writer named, and a fifth guard measured into the ground
+
+|                             |                                                                      |
+| :-------------------------- | :------------------------------------------------------------------- |
+| **Status**                  | **Open** — mechanism identified and observable; no fix that measures |
+| **Bucket**                  | 3 — real defect                                                      |
+| **Facet contract changed?** | No                                                                   |
+
+Four attempts had established what the residual writer is _not_. This one establishes what it **is**,
+by making the writes say why they happened instead of inferring it from their order.
+
+**The instrument.** A flush has five independent reasons to write a catalog — the adopted dirty set,
+reconciliation's renames, moves and deletes, and the auto-recover pass that writes any boundary whose
+catalog is missing from disk — and `safeWriteFile` could say _that_ a file was written, never _why_.
+Each producer now tags the boundaries it adds, the tag travels with the group into
+`syncPathCatalogs`, and it lands in both the debug log and the `io/write` envelope.
+
+**The answer, first run:**
+
+```
+Forgetting deleted file: src/App.svelte
+Pruning orphaned file:   zintl/src/App.svelte.{ar,es,zh}.json
+Writing file:            zintl/src/App.svelte.ar.json — dirty
+```
+
+`dirty`, which excludes auto-recover outright — the hypothesis this pass went in holding, and the one
+with the most attractive shape, since it writes _because_ a file is missing and the prune had just
+made it so. It is not that. A boundary `removeFile` had scrubbed from `dirtyBoundaries` and
+`internalManifest` was back in both.
+
+**A probe then named the writer.** Marking every file `removeFile` forgets, and logging any later
+observation that re-registers one:
+
+```
+PROBE: re-registering src/App.svelte, which removeFile had forgotten — boundaries: src/App.svelte
+```
+
+A deletion and a transform of the same file are two independent arrivals and **nothing sequences
+them**. The transform was already in flight when the deletion landed; it commits afterwards and puts
+the boundary back — into the manifest, into the dirty set, and so into the next flush's write pass.
+That is why four guards at the `unlink` handler could never have reached it: every one of them was
+watching the wrong event. The unlink was always correct.
+
+**And the fix that follows from it does not measure.** Refusing to commit a registration for a file
+that is no longer on disk: **10 failures in 10**, against a **6 in 10** baseline — and then the
+revert measured **10 in 10 as well**. The guard was neither better nor worse than doing nothing; the
+_baseline_ moved by 4/10 in twenty minutes on an unchanged machine.
+
+So the verdict on guard five is **void, not negative**, and saying so matters more than the guard
+does. The previous entry closed by warning that every rate here is valid only against the batch it
+was taken in; this pass reproduced that warning at full strength while trying to respect it, and one
+of its own batches was additionally spoiled by a `dist` rebuild started while it ran. A same-batch
+comparison means the same batch **and** an otherwise idle machine.
+
+**What is kept.** The write-cause tags and the re-registration log, because they cost nothing and
+they are what turned a four-entry guessing game into a named mechanism. **What is reverted:** the
+guard. A change with no measured benefit does not stay, whatever its story.
+
+**What the next attempt should start from**, stated so it is not re-derived a sixth time: the fix has
+to sequence the deletion against reads already in flight — an observation generation compared at
+commit time, rather than a question about the filesystem asked at any point. And the baseline has to
+be measured in the same batch, on a machine doing nothing else.
+
+**One more measurement, from the full gate.** `vue-basic` was un-pended for this pass on the
+strength of 30-odd clean isolated runs, and `ready:examples` failed it on the same assertion —
+`HelloWorld.vue.{ar,es,zh}.json`, three catalogs outliving their source. So both projects are
+pending again, and for the same writer. The asymmetry is the finding, not the failure: `flake.js` on
+one contract and the full suite are different questions, and this contract answers them differently
+every time it is asked. `tests/manifests/index.ts` has said so since it was written.

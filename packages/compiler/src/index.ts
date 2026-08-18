@@ -168,6 +168,17 @@ export class ZintlCompiler {
   /** Monotonic generation for graph rebuilds — see `syncGraphs`. */
   private graphGeneration = 0;
   private flushPromise: Promise<void> | null = null;
+  /**
+   * Files the host has reported deleted, until one is seen on disk again.
+   *
+   * A deletion and a transform of the same file are two independent arrivals,
+   * and nothing sequenced them: `removeFile` scrubs the boundary, and a
+   * transform already on its way commits its observation afterwards and puts it
+   * straight back — into `internalManifest`, into `dirtyBoundaries`, and so into
+   * the next flush's write pass, undoing the prune that had just reclaimed its
+   * catalogs. See {@link noteStaleRegistration} and ledger L-071.
+   */
+  private forgottenFiles = new Set<string>();
   private autoFlushTimeout: NodeJS.Timeout | null = null;
   private discoveryPhase = false;
   /** Boundaries whose catalog/schema files have been confirmed present on disk. Cleared when they become affected/dirty. */
@@ -961,6 +972,7 @@ export class ZintlCompiler {
 
     this.logger.debug(`Forgetting deleted file: ${fileId}`);
 
+    this.forgottenFiles.add(fileId);
     this.messages.trackBoundaryChange(fileId, new Set());
     this.messages.boundaryOwnership.delete(fileId);
     delete this.messages.metadataGraph[fileId];
@@ -1601,6 +1613,7 @@ export class ZintlCompiler {
           this.messages.metadataGraph[fileId].htmlProjection
         )
           trackedBoundaries.add(fileId);
+        this.noteStaleRegistration(fileId, trackedBoundaries);
         this.messages.trackBoundaryChange(fileId, trackedBoundaries);
 
         for (const bId of trackedBoundaries) {
@@ -2044,30 +2057,12 @@ export class ZintlCompiler {
           hasClientReactivity,
         );
         if (hmrCode) {
-          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
-          if (scriptCloseIdx !== -1) {
-            finalCode =
-              finalCode.substring(0, scriptCloseIdx) +
-              hmrCode +
-              "\n" +
-              finalCode.substring(scriptCloseIdx);
-          } else {
-            finalCode += hmrCode;
-          }
+          finalCode = this.spliceHmrCode(fileId, finalCode, hmrCode);
         }
       } else {
         if (this.messages.metadataGraph[fileId].anchorSites.length > 0) {
           const hmrCode = selfAcceptHmrSnippet(fileId);
-          const scriptCloseIdx = finalCode.lastIndexOf("</script>");
-          if (scriptCloseIdx !== -1) {
-            finalCode =
-              finalCode.substring(0, scriptCloseIdx) +
-              hmrCode +
-              "\n" +
-              finalCode.substring(scriptCloseIdx);
-          } else {
-            finalCode += hmrCode;
-          }
+          finalCode = this.spliceHmrCode(fileId, finalCode, hmrCode);
         }
       }
     }
@@ -2367,13 +2362,27 @@ export class ZintlCompiler {
       for (const bId of adopted) {
         adoptedRevisions.set(bId, this.messages.dirtyRevisions.get(bId) ?? 0);
       }
+      /**
+       * Why each boundary is being written, recorded as it is added.
+       *
+       * A flush has five independent reasons to write a catalog and the write
+       * itself cannot tell them apart — which is the gap ledger L-071 spent four
+       * excluded hypotheses in. First reason wins: the point is to name what put
+       * a path into this pass, and the earliest producer is the one that did.
+       */
       const affectedBoundaries = new Set<string>(adopted);
-      for (const bId of Object.keys(changes.renames)) affectedBoundaries.add(bId);
+      const writeCause = new Map<string, string>();
+      const affect = (bId: string, cause: string) => {
+        affectedBoundaries.add(bId);
+        if (!writeCause.has(bId)) writeCause.set(bId, cause);
+      };
+      for (const bId of adopted) writeCause.set(bId, "dirty");
+      for (const bId of Object.keys(changes.renames)) affect(bId, "rename");
       for (const move of changes.moves) {
-        affectedBoundaries.add(move.fromBoundary);
-        affectedBoundaries.add(move.toBoundary);
+        affect(move.fromBoundary, "move-from");
+        affect(move.toBoundary, "move-to");
       }
-      for (const bId of Object.keys(changes.deletes)) affectedBoundaries.add(bId);
+      for (const bId of Object.keys(changes.deletes)) affect(bId, "delete");
 
       // Invalidate on-disk confirmation for any boundary that is now affected/dirty.
       for (const bId of affectedBoundaries) this.confirmedOnDisk.delete(bId);
@@ -2412,7 +2421,15 @@ export class ZintlCompiler {
           }
 
           if (missing) {
-            affectedBoundaries.add(bId);
+            /**
+             * The producer with L-071's exact signature, and the one none of its
+             * four attempts considered: this writes a boundary *because its
+             * catalog is absent from disk* — which is the state
+             * `pruneOrphanedBoundaries` created earlier in this same flush.
+             * Whether it is the residual writer is a question for the log, not
+             * for another guess, so it is named rather than guarded.
+             */
+            affect(bId, "recover-missing");
           } else {
             // All files present — mark confirmed so future flushes skip the stat.
             this.confirmedOnDisk.add(bId);
@@ -2440,6 +2457,7 @@ export class ZintlCompiler {
           this.graph.chunkGraph!,
           this.messages.dependencyGraph,
           precomputedReachable,
+          causeFor(writeCause, allBIds),
         );
       }
       // Only what this run adopted, and only if nothing re-dirtied it since —
@@ -2472,6 +2490,69 @@ export class ZintlCompiler {
        */
       await this.messages.flushHive();
     }
+  }
+
+  /**
+   * Put the dev HMR snippet where the file can legally hold it.
+   *
+   * An SFC's module code lives inside a `<script>` block, so the snippet has to
+   * go **before** that block's closing tag or it lands in the template. Every
+   * other file is a module from its first character, and the snippet appends.
+   *
+   * **The rule used to be `lastIndexOf("</script>")`, unconditionally**, and
+   * that reads a string literal as readily as a block. A server entry building
+   * its own document — `'<head>' + '<script src="/@vite/client"></script>' +
+   * '</head>'`, which is what any SSR shell does in dev — had the snippet
+   * spliced *into the string*, producing a module Vite could not parse at all:
+   * `Failed to parse source for import analysis`. The app 500s on every
+   * request, and only in dev, and only once something puts a script tag in a
+   * string (ledger L-073).
+   *
+   * Which files carry script blocks is a **dialect** fact, so it is asked of
+   * the codegen facets rather than guessed from the text — the same correction
+   * L-069 made when a framework import was placed outside its `<script setup>`
+   * tag. A project with no SFC facet can never take the splice branch.
+   */
+  /**
+   * Say so when an observation re-registers a file `removeFile` has forgotten.
+   *
+   * This is ledger L-071's residual writer, named at last. A deletion and a
+   * transform of the same file are independent arrivals and nothing sequences
+   * them: `removeFile` scrubs the boundary from `internalManifest`, the
+   * `dirtyBoundaries` set and the graph, and a transform already in flight
+   * commits its observation afterwards and puts all three back. The next flush
+   * then finds the boundary dirty and writes the catalogs the prune reclaimed
+   * moments earlier — which is why the write is tagged `dirty` rather than
+   * `recover-missing`, and why four guards at the `unlink` handler could never
+   * have reached it.
+   *
+   * **A log rather than a guard, deliberately.** Refusing the registration when
+   * the file is no longer on disk was implemented and measured: 10 failures in
+   * 10 against a 6-in-10 baseline, and clean in isolation — the same asymmetry
+   * the `existsSync` guard produced, because a `stat` is timing-sensitive
+   * wherever it is asked, not just at the watcher. Reverted. What survives is
+   * the mechanism, stated and observable, so the next attempt starts from a
+   * measurement instead of a fifth hypothesis.
+   */
+  private noteStaleRegistration(fileId: string, boundaries: Set<string>): void {
+    if (!this.forgottenFiles.has(fileId)) return;
+    this.logger.debug(
+      `Re-registering ${fileId}, which removeFile had forgotten — boundaries: ` +
+        `${[...boundaries].join(", ")}. Its catalogs will be written again (L-071).`,
+    );
+  }
+
+  private spliceHmrCode(fileId: string, finalCode: string, hmrCode: string): string {
+    const isSfc = (this._resolved.system.codegenFacets ?? []).some(
+      (facet) => (facet.wrapSfcScript || facet.sfc) && facet.match(fileId),
+    );
+    if (!isSfc) return finalCode + hmrCode;
+
+    const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+    if (scriptCloseIdx === -1) return finalCode + hmrCode;
+    return (
+      finalCode.substring(0, scriptCloseIdx) + hmrCode + "\n" + finalCode.substring(scriptCloseIdx)
+    );
   }
 
   private async verifyIntegrity() {
@@ -2837,6 +2918,25 @@ export class ZintlCompiler {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+/**
+ * Summarise why the boundaries sharing one catalog path are being written.
+ *
+ * Grouped catalogs mean one file can be reached by several boundaries with
+ * different causes, so the summary is the distinct set rather than the first —
+ * a merged catalog written for `delete` *and* `recover-missing` is a different
+ * event from one written for either alone, and that distinction is the whole
+ * reason this string exists (ledger L-071).
+ */
+function causeFor(writeCause: Map<string, string>, bIds: Set<string>): string | undefined {
+  const causes = new Set<string>();
+  for (const bId of bIds) {
+    const cause = writeCause.get(bId);
+    if (cause) causes.add(cause);
+  }
+  if (causes.size === 0) return undefined;
+  return [...causes].sort().join("+");
+}
 
 export function getRuntimeCode(
   moduleName:

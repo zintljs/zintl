@@ -25,7 +25,7 @@ export const svelteSsr: ProjectManifest = {
     { name: "dist" },
     { name: "dist-server", overrides: { build: { ssr: "src/entry-server.ts" } } },
   ],
-  capabilities: ["ssr", "boundary-graph", "transform", "build", "graph"],
+  capabilities: ["ssr", "hmr", "boundary-graph", "transform", "build", "graph"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",

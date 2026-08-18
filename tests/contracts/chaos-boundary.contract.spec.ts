@@ -134,15 +134,48 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * the rename reloads the page, which shifts every timing around the flush.
    * That makes it the intermittent one — not a different bug.
    */
+  /**
+   * **The residual writer is named, and it is not at the `unlink` handler.**
+   *
+   * Catalog writes now carry the reason the flush scheduled them, and the write
+   * that undoes the prune is tagged **`dirty`** — not `recover-missing`, not
+   * `rename`, `move` or `delete`. So a boundary that `removeFile` scrubbed is
+   * back in `dirtyBoundaries` and back in `internalManifest` by the time the
+   * write pass runs, and a probe says exactly how:
+   *
+   * ```
+   * Forgetting deleted file: src/App.svelte
+   * Pruning orphaned file:   zintl/src/App.svelte.{ar,es,zh}.json
+   * Re-registering src/App.svelte, which removeFile had forgotten
+   * Writing file: zintl/src/App.svelte.ar.json — dirty
+   * ```
+   *
+   * A deletion and a transform of the same file are independent arrivals and
+   * nothing sequences them: the transform was already in flight when the
+   * deletion landed, and it commits its observation afterwards. That is why
+   * four guards at the `unlink` handler could not touch it — none of them was
+   * looking at the right event.
+   *
+   * **The obvious fix from there was measured and is not one.** Refusing a
+   * registration for a file no longer on disk: 10 failures in 10, clean in
+   * isolation — and the revert measured **10 in 10 as well**, against a 6-in-10
+   * baseline taken twenty minutes earlier on the same machine. So the guard was
+   * neither better nor worse; the *baseline* moved. Third time this contract has
+   * shown a swing that size from load alone, and the standing warning in the
+   * ledger applies to every number here: only a same-batch comparison means
+   * anything, and a batch taken while anything else builds is not one.
+   */
   pendingFor: {
     "svelte-basic":
-      "L-071 (open): a forgotten boundary's catalogs are re-materialised after the prune deletes " +
-      "them. Four handler-level guards measured and excluded — see the ledger before trying a " +
-      "fifth. Rate is heavily load-dependent (2/10 and 10/10 observed on identical code), so only " +
-      "same-batch comparisons mean anything here.",
+      "L-071 (open): an observation already in flight re-registers a boundary removeFile has " +
+      "forgotten, so the next flush writes back the catalogs the prune just reclaimed. Named by " +
+      "the write-cause tag (`dirty`) and a re-registration probe, not inferred. Five guards now " +
+      "measured and excluded — read the ledger before trying a sixth, and take the baseline in " +
+      "the same batch or the number means nothing.",
     "vue-basic":
-      "L-071, same residual writer. Clean in the last same-batch measurement but marginal across " +
-      "runs; skipped so the gate reports the debt rather than the weather.",
+      "L-071, same writer. Clean across 30+ isolated runs in one sitting and red on `ready:examples` " +
+      "with the identical assertion — which is the manifest rule's own point: a capability is a claim " +
+      "about the full suite, and this project's greens are a property of running alone.",
   },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;

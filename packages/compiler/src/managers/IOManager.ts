@@ -219,7 +219,21 @@ export class IOManager {
     this.bus.settle(this.bus.mint("io/write", this.getNormalizedId(path)), outcome, reason);
   }
 
-  public async safeWriteFile(path: string | null, content: string) {
+  /**
+   * @param cause Why this write was scheduled, when the caller knows.
+   *
+   * Ledger L-071 spent four attempts on a file that kept coming back after the
+   * prune correctly deleted it, and every one of them guessed at the writer.
+   * The interleaved log that finally named the first one existed only because
+   * `Writing file:` and `Pruning orphaned file:` happen to share a logger — it
+   * could say *that* a file was written and never *why*. A flush has five
+   * independent reasons to write a catalog and they are indistinguishable on
+   * the wire, which is what made the second writer a matter of inference.
+   *
+   * Carried through to the `io/write` envelope as well as the log, so the
+   * reason survives wherever the delivery ledger is read.
+   */
+  public async safeWriteFile(path: string | null, content: string, cause?: string) {
     if (!path) return;
     let finalContent = content;
     if (path.endsWith(".json")) {
@@ -233,7 +247,11 @@ export class IOManager {
           // Not a no-op worth hiding: an artifact that is already correct is a
           // delivery that landed, and saying nothing makes it indistinguishable
           // from one that never ran.
-          this.settleWrite(path, "superseded", "content already identical");
+          this.settleWrite(
+            path,
+            "superseded",
+            cause ? `content already identical (${cause})` : "content already identical",
+          );
           return;
         }
       }
@@ -241,14 +259,14 @@ export class IOManager {
       // Ignore read errors and proceed to write
     }
 
-    this.logger.debug(`Writing file: ${relative(this.root, path)}`);
+    this.logger.debug(`Writing file: ${relative(this.root, path)}${cause ? ` — ${cause}` : ""}`);
     this.writingFiles.add(path);
     try {
       const dir = dirname(path);
       await mkdir(dir, { recursive: true });
       await writeFile(path, finalContent, "utf-8");
       await this.formatFile(path);
-      this.settleWrite(path, "applied");
+      this.settleWrite(path, "applied", cause);
     } catch (err) {
       this.settleWrite(path, "failed", String(err));
       throw err;

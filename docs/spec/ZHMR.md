@@ -122,6 +122,21 @@ Triggered when:
 **Mechanism**:
 Since browser-based HMR cannot execute HMR updates for modules not imported in the client graph, server-only updates are untracked by the browser. To resolve this, Zintl tracks SSR vs client transformations. If an update affects a boundary in `ssrBoundaries` but not `clientBoundaries`, Zintl sends a `{ type: 'full-reload', path: '*' }` WebSocket message to the browser, prompting a full page refresh to fetch the newly server-rendered HTML.
 
+**Precondition — the page has to be listening.** Zintl broadcasts; the _host's_ HMR client is what
+acts on the packet, so §4.3 holds only where the served document carries it. Two ways an SSR app
+loses that without any sign of it, both measured (ledger L-072):
+
+- **A document Zintl or the app builds itself**, rather than one passed through
+  `transformIndexHtml`, has no client script injected into it. The broadcast reaches nothing.
+- **A dev server in middleware mode** has no listener for the host to attach the HMR WebSocket to,
+  so unless the app passes one (`server: { middlewareMode: true, hmr: { server } }`) the host opens
+  its own on a fixed port. A second SSR app on that machine then either fails to bind or answers the
+  first app's browser.
+
+Neither is visible from the server: the broadcast is sent, logged and counted in both cases. A
+reload that does not happen and a reload that happens onto stale output look identical unless the
+_client_ is observed, which is what the contract for this section now does.
+
 ### §4.4 — Synchronous HMR Catalog Injection (Framework Agnostic HMR)
 
 Zintl supports instant, framework-agnostic HMR updates without requiring components to subscribe to store notifications.

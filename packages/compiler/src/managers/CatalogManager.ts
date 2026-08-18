@@ -844,6 +844,8 @@ export class CatalogManager {
     dependencyGraph?: DependencyGraph,
     /** Pre-computed reachable file set — hoisted from flush() to avoid per-call DFS traversal. */
     precomputedReachable?: Set<string> | null,
+    /** Why the flush scheduled this path — see `causeFor` and ledger L-071. */
+    cause?: string,
   ) {
     const isMulti = this.isMultilingualFormat();
     const firstBId = Array.from(bIds)[0];
@@ -1091,7 +1093,7 @@ export class CatalogManager {
       const final = schemaPath ? this.ensureSchemaAtTop(sorted, schemaPath, path) : sorted;
       this.logger.debug(`Saving catalog to ${path}`);
       const content = JSON.stringify(final, null, 2);
-      await this.io.safeWriteFile(path, content);
+      await this.io.safeWriteFile(path, content, cause);
 
       // Update mtime to avoid redundant disk reads in loadUserCatalog
       try {

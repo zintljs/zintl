@@ -39,6 +39,23 @@ export function configureServerHook(ctx: Context) {
      * of the interface it cares about.
      */
     server.watcher?.on?.("unlink", (file: string) => {
+      /**
+       * Logged before it is acted on, with whether the path is still there.
+       *
+       * Ledger L-071 turns on an `unlink` the host reports for a file the test
+       * had just *created*, and three of the four hypotheses tried against it
+       * were about what the event meant. The event itself was never recorded —
+       * only its consequence, one layer down in `removeFile`, and only for the
+       * files the compiler already knew about. An unlink for anything else is
+       * still evidence about who is emitting them, and it was being dropped.
+       *
+       * `existsSync` here is a *log line*, not a guard: reading it and deciding
+       * on it are different things, and deciding on it was measured (10/10 →
+       * 8/10) and rejected.
+       */
+      ctx.compiler._logger
+        .withPrefix("Vite")
+        .debug(`Watcher unlink: ${file} (still on disk: ${existsSync(file)})`);
       void ctx.compiler.removeFile(file).catch((err: unknown) => {
         ctx.compiler._logger
           .withPrefix("Vite")

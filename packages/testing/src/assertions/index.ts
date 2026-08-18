@@ -440,15 +440,12 @@ export class LabAssertions {
   }
 
   /**
-   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
-   *
-   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
-   * throws and the UI goes blank — but an orphan is silent: it sits in the
-   * output directory forever, gets committed, gets translated, and describes
-   * source that no longer exists.
-   */
-  /**
    * Drive the compiler's pending writes to completion, then return.
+   *
+   * Two assertions depend on it, from opposite directions: `noOrphanedCatalogs`
+   * asks what is still on disk that should not be, and `catalogContains` asks
+   * what is not yet on disk that should be. Both are reading the output of work
+   * the compiler has scheduled and not finished.
    *
    * A single `await flush()` is not enough, and the compiler says so: a caller
    * arriving mid-flush is handed the **in-flight** promise, and its own dirt is
@@ -507,6 +504,14 @@ export class LabAssertions {
     );
   }
 
+  /**
+   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
+   *
+   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
+   * throws and the UI goes blank — but an orphan is silent: it sits in the
+   * output directory forever, gets committed, gets translated, and describes
+   * source that no longer exists.
+   */
   async noOrphanedCatalogs(): Promise<void> {
     /**
      * Reclamation happens during a flush, and a flush is debounced.
@@ -617,7 +622,7 @@ export class LabAssertions {
   }
 
   /**
-   * A translation reached disk with the value the caller expects.
+   * A key reached a catalog on disk, optionally with the value the caller expects.
    *
    * Located through {@link findCatalogFor}, so the catalog is the one the
    * compiler says holds `key` rather than a path this file invented. The
@@ -626,8 +631,29 @@ export class LabAssertions {
    * repository uses**, reached through an `options` property the compiler does
    * not expose. It could only ever throw "Catalog file not found", which is
    * presumably why nothing called it.
+   *
+   * **Three things had to change before it could be called.**
+   *
+   * 1. It waits for the compiler first. A key reaches disk during a flush, and
+   *    a flush is debounced — reading the directory the instant the DOM settles
+   *    asks the question before the work has happened. {@link flushUntilQuiescent}
+   *    makes it happen instead of hoping it has (ZDB §9.3), which is what let
+   *    ledger L-066's claim come back as a causal assertion rather than the
+   *    wall-clock poll that had to be deleted.
+   * 2. It reads through the catalog's *shape*. Values are strings in a
+   *    per-locale file and objects keyed by locale in a merged one — the same
+   *    distinction {@link setTranslation} was given for writing. Comparing
+   *    `content[key]` to a string could only ever fail on a merged catalog, so
+   *    this assertion was latently broken on `vanilla-spa-basic` and
+   *    `rsbuild-vanilla-basic` for its whole life.
+   * 3. `value` is optional. "The translator can find this string" is a weaker
+   *    claim than "it has been translated", and it is the one §4.1③ makes: a
+   *    newly extracted key is written with an empty value until someone fills
+   *    it in.
    */
-  async catalogContains(opts: { locale: string; key: string; value: string }): Promise<void> {
+  async catalogContains(opts: { locale: string; key: string; value?: string }): Promise<void> {
+    await this.flushUntilQuiescent();
+
     const probe = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
     if (!probe.ok) {
       throw new Error(`Cannot check the catalog for ${JSON.stringify(opts.key)}: ${probe.why}`);
@@ -639,11 +665,19 @@ export class LabAssertions {
           `key(s): ${probe.keys.slice(0, 8).join(", ")}`,
       );
     }
+    if (opts.value === undefined) return;
+
     const content = JSON.parse(await readFile(join(this.lab.root, probe.path), "utf-8"));
-    if (content[opts.key] !== opts.value) {
+    const entry = content[opts.key];
+    const actual =
+      entry !== null && typeof entry === "object" && !Array.isArray(entry)
+        ? (entry as Record<string, unknown>)[opts.locale]
+        : entry;
+
+    if (actual !== opts.value) {
       throw new Error(
         `Expected catalog key "${opts.key}" in ${probe.path} to have value "${opts.value}", ` +
-          `but got "${content[opts.key]}"`,
+          `but got ${JSON.stringify(actual)}`,
       );
     }
   }
