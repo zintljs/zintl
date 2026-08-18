@@ -29,13 +29,10 @@ import { join } from "node:path";
  *
  * So it builds, and reads the emitted files. No page, no window, no URL.
  *
- * **Still to do: let Rspack claim it.** `performance` is claimed by four Vite
- * projects, and the filter that kept the second host out is gone — nothing in
- * here is host-shaped any more. The claim is not extended in the same pass
- * because `performance` also gates `performance-hmr`, whose absolute wall-clock
- * budget is the suite's most frequent false red; pulling four more projects
- * into it would trade a fixed contract for a noisier gate. That is the order to
- * do them in, not a reason to leave either.
+ * **Rspack claims it now** (L-078). The filter that kept the second host out is
+ * gone and nothing here is host-shaped, so four Rsbuild projects were added
+ * once `performance-hmr` stopped reporting the weather — that ordering was
+ * deliberate, since `performance` gates both.
  *
  * **Chunks are found by content, which is the only host-neutral way to ask.**
  * Rollup emits `assets/entry_b_<hash>.js` and Rspack emits

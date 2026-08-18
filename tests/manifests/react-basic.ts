@@ -33,6 +33,15 @@ export const reactBasic: ProjectManifest = {
   ],
   adapter: {
     /**
+     * The host's round trip with nothing for Zintl to do — a comment inside the
+     * script region, which every dialect here accepts and no extractor reads.
+     */
+    perfNoopEdit: {
+      file: "src/App.tsx",
+      anchorOn: `import { useState } from "react";`,
+      insert: `\n// zintl perf baseline`,
+    },
+    /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural
      * line. The sink goes in `App.tsx` because that is where this app's markup
      * lives; the anchor goes in `main.tsx` because that is where `zintl` is

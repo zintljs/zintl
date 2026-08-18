@@ -169,6 +169,22 @@ export interface HmrAdapter extends BaseAdapter {
    * ZHMR §4.1③ calls this the warm path: a new sink is new content in an
    * existing boundary, so it must hot-replace rather than reload.
    */
+  /**
+   * An edit to the heading file that changes the file and **no translatable
+   * string** — the host's own hot-update round trip, with nothing for Zintl to
+   * reconcile.
+   *
+   * `performance-hmr` prices this immediately before the real edit and compares
+   * the two, so a busy machine inflates both and cancels out. It has to be
+   * declared rather than synthesised: appending trailing whitespace works on a
+   * module and is *nothing at all* to an SFC, where content outside the blocks
+   * never reaches the compiler and no update is pushed. Where a no-op may
+   * legally go is a property of the dialect, which is the same reason
+   * `addSink` and `addAnchor` are declared here (ledger L-069, L-074).
+   *
+   * A comment just inside the file's script region is the usual answer.
+   */
+  perfNoopEdit?: SourceInsertion;
   addSink?: SourceInsertion;
 
   /**

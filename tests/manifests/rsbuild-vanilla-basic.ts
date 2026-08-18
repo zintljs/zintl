@@ -112,10 +112,21 @@ export const rsbuildVanillaBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "performance",
     "hmr-structural",
     "hmr-stress",
   ],
   adapter: {
+    /**
+     * The host's round trip with nothing for Zintl to do. A statement rather
+     * than a comment on Vue, whose plugin compares compiled output and strips
+     * comments before comparing.
+     */
+    perfNoopEdit: {
+      file: "src/index.ts",
+      anchorOn: `import "./index.css";`,
+      insert: `\n// zintl perf baseline`,
+    },
     /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
      *

@@ -4809,3 +4809,55 @@ any more, so the six Rsbuild projects could claim `performance` today. They are 
 pass because `performance` also gates `performance-hmr`, whose absolute wall-clock budget is the
 suite's most frequent false red. Extending a claim into a contract known to report the weather would
 trade one fixed gate for a noisier one — fix that first, then extend both.
+
+### L-078 — the suite's most frequent false red, and the three no-ops that are not no-ops
+
+|                             |                                                                |
+| :-------------------------- | :------------------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 runs; `performance` on 8 projects |
+| **Bucket**                  | 1 — the contract measured the machine                          |
+| **Facet contract changed?** | No — an adapter field, `perfNoopEdit`                          |
+
+`performance-hmr` asserted an absolute wall clock: 350 ms locally, **1,500 ms** whenever CI or
+parallel workers were detected. That 4× relaxation is the admission — a threshold that has to be
+loosened when the machine is busy is measuring the machine. It was the suite's most frequent false
+red: 1,893-3,689 ms against the relaxed budget during one busy session, 5 of 5 clean in isolation
+immediately after.
+
+The fix its own `TODO` specified: price the **host's** round trip in the same lab, moments before
+the real edit, and compare. A busy box inflates both and cancels.
+
+**Getting a baseline that is genuinely a no-op took three attempts, and each failed on a different
+dialect.** This is the substance of the entry, because "an edit that changes the file but not a
+translatable string" sounds host-neutral and is not:
+
+| Baseline edit                     | Result                                                                                                                                                          |
+| :-------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Append a trailing newline         | **Nothing to an SFC** — content outside the blocks never reaches the compiler; `vue-basic` produced no update in 10 s while three projects produced one at once |
+| A comment inside `<script setup>` | **Nothing to Vue** — the plugin compares _compiled_ block output and comments do not survive compilation. 10 failures in 10                                     |
+| `void 0;` inside `<script setup>` | Compiles to something, repeats safely, mentions no string — works                                                                                               |
+
+So where a no-op may legally go is a property of the dialect, and it is declared as
+`HmrAdapter.perfNoopEdit` rather than synthesised — the same conclusion L-069 reached for import
+placement and L-074 for structural edits.
+
+**And the first measurement was measuring the order the two edits were taken in.** Untimed:
+baselines ran 49-182 ms against treatments at a steady 95-101 ms — ratios of 0.5× to 2.1×, with the
+treatment _faster_ than its own baseline on two projects. That is not Zintl beating the host; it is
+the first edit in a lab paying for the first re-transform, the first watcher batch and the first
+update the client ever applies. One untimed warm-up edit first, and the ratios become coherent:
+**1.2×, 1.2×, 1.3×, 2.0×**.
+
+Both sides are timed to the **same observable** — the `update` packet on the wire. Timing one to a
+packet and the other to the DOM would put render time on one side of the ratio only, which is the
+asymmetry that made `hmr-growth`'s route assertion vacuous (L-074). The DOM assertion stays,
+unbudgeted: "it renders" is still worth proving, it is simply not what is being timed.
+
+**Then the capability extended, which is why this pass waited for it.** Nothing in either
+performance contract is host-shaped any more, so `performance` went to four Rsbuild projects — and
+`rsbuild-vanilla-basic` and `rsbuild-svelte-basic` immediately exhausted the 45-second cap. Neither
+hot-replaces on that host, so all three edits become full page reloads and the ratio compares two
+navigations. `performance-hmr` now requires `hmr-warm`, the capability L-063 created for exactly
+that line; both projects keep `performance` and are measured by `performance-size`.
+
+**Net: 0 failures in 10 runs, 27 s per run from 50 s, and the contract that cried wolf now cannot.**

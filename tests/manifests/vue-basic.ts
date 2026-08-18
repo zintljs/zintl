@@ -33,6 +33,23 @@ export const vueBasic: ProjectManifest = {
   ],
   adapter: {
     /**
+     * A **statement**, not a comment — Vue is the dialect where the difference
+     * matters.
+     *
+     * `@vitejs/plugin-vue` compares a block's *compiled* output to decide
+     * whether an update is needed, and comments do not survive compilation. A
+     * `// zintl perf baseline` line therefore changed the file and produced no
+     * update packet at all: measured, 10 failures in 10, while the same comment
+     * worked on React, Svelte and vanilla. `void 0;` compiles to something,
+     * repeats safely however many times it is inserted, and mentions no string
+     * for the extractor to find.
+     */
+    perfNoopEdit: {
+      file: "src/components/HelloWorld.vue",
+      anchorOn: `<script setup lang="ts">`,
+      insert: `\nvoid 0;`,
+    },
+    /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
      *
      * The sink goes where the markup is — `HelloWorld.vue`, not `App.vue` — and the anchor

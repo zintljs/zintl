@@ -51,11 +51,22 @@ export const rsbuildVueBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "performance",
     "chaos",
     "hmr-structural",
     "hmr-warm",
   ],
   adapter: {
+    /**
+     * The host's round trip with nothing for Zintl to do. A statement rather
+     * than a comment on Vue, whose plugin compares compiled output and strips
+     * comments before comparing.
+     */
+    perfNoopEdit: {
+      file: "src/App.vue",
+      anchorOn: `<script setup lang="ts">`,
+      insert: `\nvoid 0;`,
+    },
     /** Which file `chaos-boundary` renames, and who imports it. */
     renameBoundary: {
       fromPath: "src/App.vue",

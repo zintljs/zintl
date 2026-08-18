@@ -82,10 +82,21 @@ export const rsbuildSvelteBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "performance",
     "chaos",
     "hmr-structural",
   ],
   adapter: {
+    /**
+     * The host's round trip with nothing for Zintl to do. A statement rather
+     * than a comment on Vue, whose plugin compares compiled output and strips
+     * comments before comparing.
+     */
+    perfNoopEdit: {
+      file: "src/App.svelte",
+      anchorOn: `<script lang="ts">`,
+      insert: `\n// zintl perf baseline`,
+    },
     /** Which file `chaos-boundary` renames, and who imports it. */
     renameBoundary: {
       fromPath: "src/App.svelte",

@@ -33,6 +33,15 @@ export const svelteBasic: ProjectManifest = {
   ],
   adapter: {
     /**
+     * The host's round trip with nothing for Zintl to do — a comment inside the
+     * script region, which every dialect here accepts and no extractor reads.
+     */
+    perfNoopEdit: {
+      file: "src/App.svelte",
+      anchorOn: `<script lang="ts">`,
+      insert: `\n// zintl perf baseline`,
+    },
+    /**
      * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
      *
      * Svelte's entry is not re-execution-safe, so this is the first project to exercise
