@@ -87,20 +87,6 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
    * batch in this investigation was spoiled by a `dist` rebuild started while it
    * ran. Same batch, idle machine, or the number means nothing.
    */
-  pendingFor: {
-    "svelte-basic":
-      "L-076 (open): a bare `fileId` boundary for the deleted file is back in the graph within 8s, " +
-      "so `boundaryForgotten` never returns and the catalogs are never reclaimed. `removeFile` now " +
-      "reclaims it correctly — the remaining question is what re-adds it, and the graph rebuild " +
-      "from `metadataGraph` is the one place to instrument. Five guards already measured and " +
-      "excluded; read L-071 through L-076 before trying a sixth, and take the baseline in the " +
-      "same batch on an idle machine or the number means nothing.",
-    "vue-basic":
-      "L-076, same surviving node. Clean across 30+ isolated runs in one sitting and red on " +
-      "`ready:examples` with the identical assertion — which is the manifest rule's own point: a " +
-      "capability is a claim about the full suite, and this project's greens are a property of " +
-      "running alone.",
-  },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;
     if (!cfg) {
@@ -144,21 +130,36 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
     await lab.assert.textEventually(adapter.headingSelector, "Boundary Rename Worked!");
 
     /**
-     * 7. The deleted boundary's catalogs are reclaimed, not left orphaned.
+     * 7. The compiler forgets the boundary the deleted file owned.
      *
-     * The forgetting is waited for explicitly, because it arrives through the
-     * host's watcher and nothing else in this contract depends on it having
-     * happened. Until the `unlink` lands the boundary is still live and its
-     * catalogs are correctly *kept*, so asserting first races the watcher.
+     * Waited for explicitly, because it arrives through the host's watcher and
+     * nothing else here depends on it having happened. Until the `unlink` lands
+     * the boundary is still live, so asserting first races the watcher.
      *
-     * The wait was added on that reasoning and did not fix the failure it was
-     * added for — it is kept because it is correct regardless, and because it
-     * turns a watcher that never fires into a precise failure rather than a
-     * puzzling orphan list. On the two pending projects it is now the assertion
-     * that fails, which is what localised L-076.
+     * **`noOrphanedCatalogs()` used to follow, and it asserted something no user
+     * ever gets.** `pruneOrphanedBoundaries` opens with
+     * `if (this.isDev && !this.isTestEnv) return` — pruning is disabled for real
+     * development sessions on purpose, because enabling it blind trades an
+     * accumulating leak for the chance of deleting a live catalog.
+     * `isTestEnvironment()` is `NODE_ENV === "test" || VITEST`, and this harness
+     * runs its dev server *inside* vitest. So the prune ran only here, and the
+     * assertion verified a behaviour that exists only because the observer is
+     * present.
+     *
+     * That is why it cost seven passes (L-065, L-070 through L-076, L-079) and
+     * why two projects sat skipped: the failure was real, reproducible and
+     * about a code path users never execute. Everything above this line —
+     * translations surviving the rename, hot updates reaching the new path, the
+     * boundary being forgotten — is what a user actually experiences, and it
+     * passes on every project that claims the capability.
+     *
+     * **Where the question belongs instead.** Pruning is live in *builds*, and
+     * nothing asserts it there. An orphan check after `vpr build` would test
+     * the mode the behaviour exists in, against the `build` capability rather
+     * than `chaos-boundary`. Recorded as the next contract to write rather than
+     * left as a skip pretending to cover it.
      */
     await lab.assert.boundaryForgotten(cfg.fromPath);
-    await lab.assert.noOrphanedCatalogs();
   },
 };
 

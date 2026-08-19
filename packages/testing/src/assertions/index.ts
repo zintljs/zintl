@@ -529,6 +529,17 @@ export class LabAssertions {
   /**
    * Assert no catalog on disk belongs to a boundary the compiler no longer has.
    *
+   * **Kept, and currently uncalled, deliberately.** `chaos-boundary` called it
+   * and was wrong to: `pruneOrphanedBoundaries` returns early when
+   * `isDev && !isTestEnv`, so pruning happens in a dev session *only because a
+   * test runner is present*, and the assertion verified a code path users never
+   * execute. Seven ledger passes and two skipped projects went into that.
+   *
+   * It is correct and it has a home — pruning is live in **builds**, where
+   * nothing asserts it. The contract that should call it is a post-build orphan
+   * check gated on `build`, and it is not written yet. Deleting this would mean
+   * writing it twice.
+   *
    * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
    * throws and the UI goes blank — but an orphan is silent: it sits in the
    * output directory forever, gets committed, gets translated, and describes

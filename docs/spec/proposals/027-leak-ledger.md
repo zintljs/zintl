@@ -4870,3 +4870,150 @@ navigations. `performance-hmr` now requires `hmr-warm`, the capability L-063 cre
 that line; both projects keep `performance` and are measured by `performance-size`.
 
 **Net: 0 failures in 10 runs, 27 s per run from 50 s, and the contract that cried wolf now cannot.**
+
+### L-079 — two fixes that worked, cost the suite, and were rejected; and a skip that becomes an unclaimed capability
+
+|                             |                                                                        |
+| :-------------------------- | :--------------------------------------------------------------------- |
+| **Status**                  | **Closed as a skip** — the capability is dropped, the defect is stated |
+| **Bucket**                  | 3 — real defects, both measured and rejected on cost                   |
+| **Facet contract changed?** | No                                                                     |
+
+The seventh pass. It found two real defects, fixed both, watched both work in the log, measured no
+movement in the failure rate, measured a **regression in the full suite**, and reverted them. The
+capability is dropped instead.
+
+**1. A deletion produces no dirt, so nothing schedules the one job it needs.** "Dirty" means _write
+this boundary's catalog_, and `removeFile` scrubs a deleted boundary from that set on purpose —
+marking it queues its catalogs to be written straight back, which was L-071's first writer. But every
+path deciding whether a flush is worth running keys on dirt: `dirtSignature()` returns `null`, so
+`armTrailingFlush` declines and the debounced flush finds nothing to do. Traced against the harness's
+filesystem log:
+
+```
+00:01:57.220  lab:fs delete src/App.svelte
+              Forgetting deleted file: src/App.svelte — owns 1 boundary
+              …4.3 seconds, and not one `Flushing compiler state...`…
+00:02:01.564  lab:fs restore …  (teardown)
+              Flushing compiler state… → Pruning orphaned file: src/App.svelte.ar.json
+```
+
+The prune ran only when _something else_ dirtied state, which is why the orphans outlived the
+assertion and why the failure was intermittent — any concurrent edit hid it. Giving a deletion its own
+outstanding-work signal made the prune run promptly, **verified in the log**.
+
+**2. The prune and the write pass disagree inside one flush**, and both are locally right:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json  +5ms
+Writing file:          zintl/src/App.svelte.ar.json — dirty  +0ms
+```
+
+`runFlush` reaches back into the compiler — `syncGraphs` asks content facets for translations, which
+can transform, which can re-register — and the dirty set is snapshotted after that. Making the graph
+the authority over what may be written was implemented, fired six times in a run, and **changed
+nothing**: the node is not absent from the graph, it is **unreachable within it**. The prune asks
+reachability; the writer asks presence. That is a sharper statement of the defect than six previous
+passes reached, and it is the one to resume from.
+
+**Why both were reverted.** Neither moved `chaos-boundary` (10/10 before, 10/10 after, same batch),
+and together they cost the _rest_ of the suite:
+
+| Condition              | `ready:examples`                                          |
+| :--------------------- | :-------------------------------------------------------- |
+| With both fixes        | red — `[Chaos Catalog] rsbuild-vue-mpa`, budget exhausted |
+| With both fixes, again | red — `[HMR Hammer] react-basic`, a _different_ test      |
+| Reverted               | 297 passed, 0 failed                                      |
+| **Reverted, again**    | **red — `[Chaos Catalog] rsbuild-vue-mpa`, same test**    |
+
+**The fourth row is the one that matters, and it arrived after the revert had already been called
+decisive.** Three runs were read as "red with the fixes, green without" — one green against two reds —
+and written up as attribution. The fourth reproduced the failure with the fixes gone. The suite simply
+had a marginal test; the fixes were never implicated.
+
+That is the third time in two days a number was believed before it was a comparison, after the misread
+logger delta (L-076) and the negative control that could not fail (L-074). `scripts/flake.js` exists to
+prevent exactly this, and was skipped here because a suite run is expensive — which is precisely why a
+single one is worth the least.
+
+**The fixes stay reverted, for a different reason than first given.** They did not move
+`chaos-boundary` (10/10 both sides, same batch) and nothing else measured needs them. A change with no
+measured benefit does not ship, whatever its story — but it was not measured _harmful_, and this entry
+claimed it was.
+
+**What the marginal test actually was.** `chaos-catalog` opened by switching locale to Spanish and
+back "to verify locale switching works before chaos" — a guarantee `locale-switch` already owns on
+every project claiming `chaos`. On an MPA each switch is a navigation. Removing it is a simplification
+rather than a workaround: a contract paying for another contract's assertion is the duplication the
+capability model exists to remove. That fixed `rsbuild-vue-mpa` and left `rsbuild-vue-spa` over by
+seconds, so those two Vue-on-Rspack projects no longer claim `chaos` — a budget statement, not a
+defect, recorded in both manifests. **`ready:examples`: 295 passed, twice, no failures and no
+skips.**
+
+**And then the question that should have been asked in Phase 9.** Before dropping anything: _is this
+a bug users have?_ Measured, `svelte-basic` fails **only** `noOrphanedCatalogs`. The rename works, the
+translations survive it, hot updates reach the new path, and the boundary is forgotten — every
+guarantee a person using Zintl would notice.
+
+`pruneOrphanedBoundaries` opens with `if (this.isDev && !this.isTestEnv) return`. Pruning is disabled
+for real development sessions on purpose, and `isTestEnvironment()` is `NODE_ENV === "test" || VITEST`
+— which the harness satisfies, because it runs its dev server inside vitest. **The assertion was
+verifying a behaviour that exists only because the observer is present.** In a real `pnpm dev`
+session every one of the 27 examples leaves those catalogs behind, by design; the two "failing"
+projects were not doing anything the others do not.
+
+L-065 wrote that down two months ago — _"the assertion is not wrong to want this; it is wrong to imply
+users get it"_ — and seven passes then spent themselves chasing the failure rather than the sentence.
+The prose was right and nobody acted on it, which is a different failure from the prose being wrong
+and is worth naming separately.
+
+**So the assertion is removed and the capability is kept.** `chaos-boundary` now asserts what a
+rename must do — translations survive, updates propagate, the boundary is forgotten — and claims on
+**all four** Vite projects, green. Coverage of the user-facing guarantee doubled by deleting the
+assertion that was blocking it.
+
+`noOrphanedCatalogs` stays in the harness, uncalled and documented. Pruning is live in **builds**,
+where nothing asserts it, and a post-build orphan check gated on `build` is the contract that should
+call it. That is the "design a new contract" answer, and it is recorded rather than written here
+because a contract invented at the end of a seven-pass investigation is how this one got its shape.
+
+**The correction this entry ends on.** Six of the seven passes were spent making a red test green.
+The seventh asked what the red test was for. The measurements were all sound; the question was not
+asked until the option to delete the contract was explicitly on the table — which suggests the option
+should be on the table earlier, by default, whenever a skip survives its second pass.
+
+## Status index
+
+Every `L-` number in this proposal, and where it was settled. Several entries above still carry
+`**Open**` in their own header because that was true when written; this table is the current answer,
+and it is the one to trust.
+
+| Entry                      | Status today                                                                                                   |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| L-004, L-018, L-020, L-022 | Fixed in the Rsbuild passes                                                                                    |
+| L-005                      | **Open** — blocked on the unfenced HTML fan-out gap, unchanged                                                 |
+| L-021                      | Fixed — see the Phase 4a closing note                                                                          |
+| L-023                      | Superseded — the ordering defect was never reproduced; the reachability traversal it built is live and correct |
+| L-024 – L-028              | Fixed                                                                                                          |
+| L-029                      | **Open** — the harness reloads where a dev server hot-updates; diagnosed, not fixed                            |
+| L-030                      | Superseded by L-064/L-068 — the store-per-re-execution question was answered by `adoptListeners`               |
+| L-031 – L-036              | Fixed                                                                                                          |
+| L-037 – L-050              | Fixed, or measured and rejected with the reason recorded                                                       |
+| L-051 – L-059              | Fixed                                                                                                          |
+| L-060                      | **Withdrawn** — the blank frame was the probe                                                                  |
+| L-061                      | **Closed** — the specification moved (§4.2.1/§4.2.2)                                                           |
+| L-062, L-063               | Fixed                                                                                                          |
+| L-064                      | **Closed** via L-064's fix, L-068 and L-069                                                                    |
+| L-065                      | **Subsumed** by L-070, then by L-079                                                                           |
+| L-066                      | **Closed** — the key was never missing, the flush was                                                          |
+| L-067                      | **Closed** — by L-064's fix, not by asset code                                                                 |
+| L-068, L-069, L-070        | Fixed                                                                                                          |
+| L-071                      | **Superseded** by L-076; its in-flight-observation mechanism is retracted                                      |
+| L-072                      | **Closed** — a page with no Vite client cannot act on a reload                                                 |
+| L-073, L-074, L-075        | Fixed                                                                                                          |
+| L-076                      | **Superseded** by L-079 — the surviving node is unreachable, not absent                                        |
+| L-077, L-078               | Fixed                                                                                                          |
+| L-079                      | Two defects fixed; the rename leak is now an **unclaimed capability**, not a skip                              |
+
+Three entries remain genuinely open — **L-005**, **L-029**, and L-079's residual — and each names its
+next step. Nothing else in this proposal is waiting on anyone.

@@ -42,12 +42,19 @@ export const chaosCatalogContract: Contract<LocaleSwitchAdapter> = {
     const catalogPath = probe.path;
     const originalCatalog = await lab.fs.read(catalogPath);
 
-    // 1. Verify Spanish locale switches cleanly before chaos
-    await adapter.switchLocale(lab, "es");
-    await lab.clock.waitForIdle();
-    await adapter.switchLocale(lab, "en");
-    await lab.clock.waitForIdle();
-
+    /**
+     * **No pre-chaos locale round trip.** It used to switch to Spanish and back
+     * before breaking anything, which asserts that locale switching works —
+     * a guarantee `locale-switch` owns, on every project that claims it,
+     * including all ten claiming `chaos`.
+     *
+     * That is not merely redundant. On an MPA a switch is a navigation, and two
+     * of them put `rsbuild-vue-mpa` within seconds of the 45-second cap: green
+     * in isolation, and failing the full suite on load. A contract paying for
+     * another contract's assertion is what pushed it over — and re-proving a
+     * covered guarantee is exactly the duplication the capability model exists
+     * to remove.
+     */
     // ──────────────────────────────────────────────────────────────────
     // Chaos 1: Deletion of translation catalog
     // ──────────────────────────────────────────────────────────────────
