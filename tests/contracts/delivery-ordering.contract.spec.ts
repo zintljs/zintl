@@ -53,9 +53,30 @@ export const deliveryOrderingContract: Contract = {
         const locale = store.locale;
 
         /**
-         * A generation comfortably above anything the compiler has issued, so
-         * the "newer" delivery cannot itself be superseded by a real one
-         * arriving mid-test.
+         * A high generation, and — the part that matters — the verdict is read
+         * **in this same evaluate**, before control returns to the page.
+         *
+         * This used to pick `1_000_000` and call it "comfortably above anything
+         * the compiler has issued, so the newer delivery cannot itself be
+         * superseded by a real one arriving mid-test". That premise is wrong,
+         * and CI proved it: the runtime assigns a generation by *incrementing
+         * from the highest it has seen*, so nothing is ever above it. Picking a
+         * large number only moves the counter, and the next genuine delivery
+         * outranks it:
+         *
+         * ```
+         * #1000001 → applied                                  ← a real delivery
+         * #999999  → superseded (overtaken by seq 1000000)    ← D1 worked
+         * #1000002 → applied
+         * #1000003 → applied                                  ← restores the file's own text
+         * ```
+         *
+         * Ordering was never the failure. The contract asserted on the store
+         * after a round trip to Node and back, and on a loaded machine a real
+         * flush landed inside that window and legitimately overwrote the probe.
+         * Reading the value here closes the window entirely: no await, no
+         * message boundary, nothing else can run between the writes and the
+         * read.
          */
         const newer = 1_000_000;
         const older = newer - 1;
@@ -66,7 +87,9 @@ export const deliveryOrderingContract: Contract = {
         for (const boundary of boundaries) {
           store.addCatalogs({ [locale]: { [boundary]: { [messageKey]: "OLDER" } } }, older);
         }
-        return { ok: true as const, boundaries };
+
+        const held = store.catalogs[locale]?.[boundaries[0]]?.[messageKey];
+        return { ok: true as const, boundaries, held };
       },
       { key, boundaries: probe.boundaries },
     );
@@ -78,27 +101,18 @@ export const deliveryOrderingContract: Contract = {
     }
 
     /**
-     * Assert on the *store*, not the DOM.
+     * Assert on the *store*, not the DOM, and on the value read at injection
+     * time rather than one fetched afterwards.
      *
      * D1 governs what the receiver applies. Whether a framework then re-renders
      * is a different question with its own contracts (`hmr`, `locale-switch`),
      * and asserting it here would couple this to every framework's reactivity
      * and report their failures as ordering failures.
+     *
+     * And a second fetch is not a second look at the same moment — it is a look
+     * at a later one, into which the compiler is entitled to deliver.
      */
-    const value = await lab.page.evaluate(
-      ({ key: messageKey, boundaries }) => {
-        const store = (
-          globalThis as {
-            __zintl_current_instance?: {
-              locale: string;
-              catalogs: Record<string, Record<string, Record<string, unknown>>>;
-            };
-          }
-        ).__zintl_current_instance;
-        return store?.catalogs[store.locale]?.[boundaries[0]]?.[messageKey];
-      },
-      { key, boundaries: applied.boundaries },
-    );
+    const value = applied.held;
 
     if (value !== "NEWER") {
       throw new Error(
