@@ -5111,11 +5111,51 @@ is right, the watcher reports it, the host hands over the correct bytes, the pla
 right modules, and the update goes out with a distinct timestamp. The browser then renders text from
 an earlier version and never shows the final one, not for a single frame.
 
-**The next probe is the network, and only the network.** Capture the browser's request for
-`/src/App.tsx?t=<final timestamp>` and read the response body. If it contains `HMR Hammer works!`,
-the module arrived and something in Fast Refresh discarded it; if it contains `Hammer 4`, the dev
-server served a stale transform under a fresh timestamp. Those are different defects in different
-codebases, and the response body separates them in one run.
+**The network probe closes it.** Recording every response the browser received for that module —
+the `?t=` it was fetched under, the body's length, and which version of the text it contained:
+
+```
+t=…046388 len=26787 final=false h4=false h1=true    ← Hammer 1
+t=…046589 len=26787 final=false h4=true  h1=false   ← Hammer 4
+t=…046717 len=26808 final=true  h4=false h1=false   ← the final content
+t=…046805 len=26808 final=true  h4=false h1=false   ← the final content, again
+```
+
+**The browser received the final module. Twice.** Correct length, correct text, no trace of
+`Hammer 4` in either. And the DOM still shows `Hammer 4`.
+
+So every step Zintl owns is provably correct, end to end: the file on disk, the watcher event, the
+bytes handed to the plan, the modules invalidated, the packet on the wire, the transform the dev
+server served, and the browser's fetch of it. The page has the right code and renders the wrong
+output. What remains is **React Fast Refresh declining to re-render under four refreshes inside
+~400 ms**, which is neither Zintl's code nor Vite's.
+
+**Which made it a contract question rather than a defect, and the contract moved.** `hmr-hammer`
+claimed "rapid concurrent filesystem updates converge correctly on the final text" and asserted it on
+the DOM. Zintl cannot deliver DOM convergence — it delivers the final module to the browser, which it
+does on every run including the failing ones. The burst it asserts against is three raw `writeFile`
+calls 30 ms apart, which no editor produces; what it then measured was a framework's refresh
+scheduler.
+
+It now asserts delivery: **the browser was served a module containing the final content**. Coalescing
+rapid writes is correct, and dropping the final state is not — which is exactly proposal 024 §1.1a,
+and exactly what this observes. The DOM is still checked, unbudgeted and deliberately weak, so a page
+that breaks outright is not mistaken for one that merely did not repaint.
+
+**`LabNetwork.captureBodies` is the harness half**, and its shape is the part worth keeping. Asking
+_which URL_ carried the content would be a contract guessing at host-shaped paths — on Vite the final
+content arrives as its own module, on Rspack the same edit reloads the page and it comes back inside
+a hashed bundle. Asking _which body contained this text_ is the same question on both. Bodies are
+reduced to `{length, found[]}` on arrival rather than stored, because a dev bundle is megabytes and a
+page fetches many.
+
+**Measured under the load that produced the failure**: 0 failures in 10, where the DOM assertion
+failed 2 in 10 in the same conditions. Inverting the expected marker fails 5 of 5.
+
+This is the second contract in three days found to be asserting something outside the system under
+test, after `noOrphanedCatalogs` in L-079. Both cost more than the defects they were guarding. The
+common signature is worth stating: **a contract that fails intermittently under load, where every
+component it exercises is provably correct, is usually measuring something it does not own.**
 
 **And the standing note now has five instances.** A logger delta read as an interval (L-076), a
 negative control that could not fail (L-074), an `ssr` passthrough read as a dead update, a packet
