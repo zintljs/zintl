@@ -8,6 +8,19 @@ export type FsMutation =
   | { type: "delete"; path: string; original: string }
   | { type: "rename"; from: string; to: string };
 
+/**
+ * Timestamped trace of what the harness itself does to the project's files.
+ *
+ * Off unless `ZINTL_FS_TRACE` is set. It exists because the compiler's debug log
+ * and the harness's mutations were two streams nobody had read *in order* —
+ * which is exactly what named L-071's first writer, one layer down, and what
+ * this file's own operations had no way of contributing to.
+ */
+function fsTrace(op: string, path: string, extra = ""): void {
+  if (!process.env.ZINTL_FS_TRACE) return;
+  console.debug(`  lab:fs ${new Date().toISOString().slice(11, 23)} ${op} ${path} ${extra}`);
+}
+
 export class LabFilesystem {
   private exampleRoot: string;
   private _mutations: FsMutation[] = [];
@@ -118,6 +131,37 @@ export class LabFilesystem {
     await rename(tmp, fullPath);
   }
 
+  /**
+   * Replace a file atomically and return **without waiting for propagation**.
+   *
+   * For contracts that deliberately outrun the dev server, where `edit()`'s
+   * settle wait would defeat the point. The alternative in use was a bare
+   * `writeFile`, which truncates before writing — so a burst mixed truncating
+   * writes with an atomic rename, and chokidar's atomic-save detection
+   * (`unlink` then `add` on one path inside ~100 ms) could collapse the two
+   * into one event. Ledger L-080 caught it losing a burst's **final** write, at
+   * which point no software downstream can converge.
+   *
+   * "Outrun the propagation wait" and "truncate the file" are different things,
+   * and only the first was ever wanted. Every editor a real user runs saves
+   * atomically.
+   */
+  async writeUnsynchronized(relativePath: string, content: string): Promise<void> {
+    const fullPath = this.resolvePath(relativePath);
+    const existed = existsSync(fullPath);
+    const original = existed ? await readFile(fullPath, "utf-8") : undefined;
+
+    const alreadyMutated = this._mutations.some(
+      (m) => (m.type === "edit" || m.type === "write") && m.path === relativePath,
+    );
+    if (!alreadyMutated) {
+      this._mutations.push({ type: "write", path: relativePath, existed, original });
+    }
+
+    fsTrace("write-unsync", relativePath);
+    await this.atomicWrite(fullPath, content);
+  }
+
   async edit(relativePath: string, transform: (content: string) => string): Promise<void> {
     const fullPath = this.resolvePath(relativePath);
     if (!existsSync(fullPath)) {
@@ -133,6 +177,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "edit", path: relativePath, original });
     }
 
+    fsTrace("edit", relativePath);
     await this.runBeforeMutation();
     await this.atomicWrite(fullPath, updated);
 
@@ -157,6 +202,7 @@ export class LabFilesystem {
       this._mutations.push({ type: "write", path: relativePath, existed, original });
     }
 
+    fsTrace("write", relativePath);
     await this.runBeforeMutation();
     await this.atomicWrite(fullPath, content);
 
@@ -172,6 +218,7 @@ export class LabFilesystem {
     const original = await readFile(fullPath, "utf-8");
     this._mutations.push({ type: "delete", path: relativePath, original });
 
+    fsTrace("delete", relativePath);
     await this.runBeforeMutation();
     await unlink(fullPath);
 
@@ -209,6 +256,7 @@ export class LabFilesystem {
     // 1. Restore tracked mutations
     for (let i = this._mutations.length - 1; i >= 0; i--) {
       const m = this._mutations[i];
+      fsTrace("restore", "path" in m ? m.path : `${m.from} → ${m.to}`, `(${m.type})`);
       try {
         if (m.type === "edit") {
           const fullPath = this.resolvePath(m.path);

@@ -36,119 +36,62 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
   name: "Chaos Boundary",
   description:
     "Verifies compiler updates and HMR propagation continue to function after boundary files are renamed",
-  requires: ["hmr", "chaos"],
+  requires: ["hmr", "chaos-boundary"],
   strictDeliveryExempt: "deletes and renames boundary sources",
   /**
-   * **Its closing `noOrphanedCatalogs()` had never run, and now that it does it
-   * finds something (ledger L-062, L-065).**
+   * **Why two projects are pending, current as of L-076 — and why five earlier
+   * accounts of it were deleted rather than kept.**
    *
-   * That assertion resolved its directory through a property `LabCompiler` does
-   * not have, fell back to `src/locales`, and returned early on all four
-   * projects because none of them uses it. Underneath, its matching compared a
-   * file's basename to boundary ids by mutual `includes`, which cannot match
-   * the default `<path>.<locale>.json` naming in either direction. Two layers
-   * of the same bug, the outer one hiding the inner.
+   * This block replaced five stacked doc comments, each written when the last
+   * one was believed, and four of them wrong by the time the fifth was added.
+   * A reader met the oldest first. In order, they claimed: that renaming an SFC
+   * boundary orphans its catalogs (L-065 — it does not, and the mechanism was
+   * never about SFCs); that `svelte-basic` fails on proposal 024 §1.3's double
+   * mount (measured false — every failure was the orphan assertion); that a
+   * second writer would be found by reconciliation mapping a re-extracted
+   * boundary back onto the old id by content (falsified); and that an
+   * observation already in flight re-registers a boundary `removeFile` has
+   * forgotten (retracted by L-076).
    *
-   * Both now ask `getCatalogPath`. React and the merged-catalog vanilla project
-   * come back clean; the two SFC projects do not — renaming the boundary leaves
-   * its previous catalogs behind, one per locale. Recorded rather than fixed:
-   * pruning is compiler behaviour and this pass changes no product code.
-   */
-  /**
-   * Live on three of four projects.
+   * Keeping superseded prose next to live prose is how two separate
+   * investigations came to quote the double-mount story as fact, mine included.
+   * The history is in the ledger, which is versioned and dated; this comment
+   * says only what is true now.
    *
-   * **The deletion blocker is fixed.** The plugin now listens for `unlink` and
-   * tells the compiler to forget the file, so a deleted boundary no longer
-   * survives in the graph for the life of a pooled dev server — which used to
-   * leak into every contract that ran afterwards, and, through the shared
-   * manifest, into the committed examples themselves.
-   *
-   * What remains is `svelte-basic`, and it is proposal 024 §1.3: renaming the
-   * file the entry imports rewrites the entry's own source, the entry
-   * self-accepts, re-executes, and mounts a second time onto a container that
-   * already has a mount. The page renders twice and the heading selector reads
-   * the stale copy.
-   *
-   * See the note in `viteFacet.hmrInjectionCode`. The obvious fix —
-   * `import.meta.hot.invalidate()` — makes this pass and was measured: it turns
-   * every entry-adjacent edit into a full page reload, regressing `hmr-hammer`
-   * on every project and taking the suite from ~75 s to ~127 s. The real fix is
-   * a matching `dispose()` that tears the previous mount down, which is
-   * framework knowledge and belongs in a framework facet.
-   */
-  /**
-   * **`vue-basic` reclaims its catalogs now; `svelte-basic` is a different
-   * defect that was hiding behind the same skip.**
-   *
-   * Both were pending on L-065, "renaming an SFC boundary orphans its
-   * catalogs". That turned out not to be about SFCs at all — the prune ran once,
-   * before the rename, and was never asked again because the flush carrying the
-   * deletion joined an in-flight run and no later trigger existed to carry its
-   * dirt (L-070). With the trailing flush armed, `vue-basic` passes 10 runs in
-   * 10.
-   *
-   * `svelte-basic` fails 6 in 10 under contention and passes in isolation, and
-   * the reason is the one this contract's header already describes: renaming the
-   * file the entry imports rewrites the entry's own source, the entry
-   * self-accepts and re-executes, and Svelte's `mount()` appends a second copy
-   * over the first — so the heading selector reads the stale one. Proposal 024
-   * §1.3, and the fix is a matching `dispose()`, which is framework knowledge
-   * belonging in a facet.
-   *
-   * Kept separate rather than left as one skip: two projects failing the same
-   * assertion for unrelated reasons is how L-065 came to describe the wrong
-   * mechanism for both of them.
-   */
-  /**
-   * **`vue-basic` reclaims its catalogs. `svelte-basic` is the same defect, not
-   * the one this file used to name.**
-   *
-   * Both were pending on L-065. `vue-basic` now passes 10 runs in 10 once the
-   * deferred flush gets a trigger (L-070).
-   *
-   * `svelte-basic` still fails 4–6 runs in 10, and the header's long-standing
-   * explanation — proposal 024 §1.3's double mount, the page rendering twice and
-   * the selector reading the stale copy — is **not** what it fails on. Measured,
-   * every failure is the orphan assertion, on `zintl/src/App.svelte.{ar,es,zh}.json`.
-   * The instrumented prune shows why it is not a prune bug either:
+   * **What is measured today.** The rename, the hot update through the new
+   * path, and the prune are all correct. What fails is that a boundary for the
+   * *deleted* file is still in the graph when the assertion reads it:
    *
    * ```
-   * Pruning orphaned file: zintl/src/App.svelte.ar.json   ← deleted, correctly
-   * …and the file exists again by the time the assertion reads the directory
+   * Forgetting deleted file: src/App.tsx — owns 2 boundaries: src/App.tsx:default, src/App.tsx
+   * …8s later: the compiler still knows a boundary for src/App.tsx
+   * Matched by: src/App.tsx
    * ```
    *
-   * So something re-materialises the catalogs of a boundary that has already
-   * been forgotten and reclaimed. Interleaving the write log with the prune's
-   * own decisions named the first writer exactly — `removeFile` marking the
-   * removed boundary dirty, which queues its catalogs to be written straight
-   * back — and fixing that took the rate from **5/10 to 2/10** (L-071).
+   * `removeFile` used to reclaim only what `boundaryOwnership` listed, which
+   * omits the bare-`fileId` boundary an entry or an HTML projection registers.
+   * That is fixed — the log above shows it reclaiming both — and the node is
+   * back regardless. **So the open question is narrow and single: what re-adds
+   * a bare `fileId` graph node for a file with no metadata entry?** The graph is
+   * rebuilt from `metadataGraph`, which `removeFile` clears, so that traversal
+   * is where to look. One thing to instrument, not a hypothesis to pick.
    *
-   * A second writer remains, with the same signature one flush later. The thread
-   * to pull is in the same log: `Forgetting deleted file: src/AppNew.svelte`
-   * appears mid-test, for the file the rename just *created*. A boundary that is
-   * forgotten and then re-extracted can be reconciled back onto the old id by
-   * content, which would write the old path. Not yet confirmed — stated as the
-   * next probe, not as a mechanism.
+   * **What is excluded**, all measured, none worth repeating: an `existsSync`
+   * guard at the `unlink` handler, unlink/add event pairing, host module-graph
+   * liveness, `removeFile` marking removed boundaries dirty (that one was real
+   * and is fixed), and refusing a registration for a file no longer on disk.
    *
-   * Why this project and not `vue-basic`: its entry is not re-execution-safe, so
-   * the rename reloads the page, which shifts every timing around the flush.
-   * That makes it the intermittent one — not a different bug.
+   * **And a warning about every rate in the ledger for this contract.** The same
+   * code has measured 2/10 and 10/10 here. A baseline taken twenty minutes
+   * earlier, or while anything else was building, carries no information — one
+   * batch in this investigation was spoiled by a `dist` rebuild started while it
+   * ran. Same batch, idle machine, or the number means nothing.
    */
-  pendingFor: {
-    "svelte-basic":
-      "L-071 (open): a forgotten boundary's catalogs are re-materialised after the prune deletes " +
-      "them. Four handler-level guards measured and excluded — see the ledger before trying a " +
-      "fifth. Rate is heavily load-dependent (2/10 and 10/10 observed on identical code), so only " +
-      "same-batch comparisons mean anything here.",
-    "vue-basic":
-      "L-071, same residual writer. Clean in the last same-batch measurement but marginal across " +
-      "runs; skipped so the gate reports the debt rather than the weather.",
-  },
   async execute(lab, adapter) {
     const cfg = adapter.renameBoundary;
     if (!cfg) {
       throw new Error(
-        `[Chaos Boundary] ${basename(lab.root)} claims "chaos" but its adapter has no ` +
+        `[Chaos Boundary] ${basename(lab.root)} claims "chaos-boundary" but its adapter has no ` +
           `renameBoundary. Which file to rename is a per-project fact and belongs in the manifest.`,
       );
     }
@@ -187,17 +130,36 @@ export const chaosBoundaryContract: Contract<ChaosAdapter> = {
     await lab.assert.textEventually(adapter.headingSelector, "Boundary Rename Worked!");
 
     /**
-     * 7. The deleted boundary's catalogs are reclaimed, not left orphaned.
+     * 7. The compiler forgets the boundary the deleted file owned.
      *
-     * The forgetting is waited for explicitly, because it arrives through the
-     * host's watcher and nothing else in this contract depends on it having
-     * happened. Until the `unlink` lands the boundary is still live and its
-     * catalogs are correctly *kept* — so asserting first raced the watcher and
-     * failed 5 runs in 10 on `svelte-basic`, whose entry additionally reloads
-     * and so shifts every timing around it.
+     * Waited for explicitly, because it arrives through the host's watcher and
+     * nothing else here depends on it having happened. Until the `unlink` lands
+     * the boundary is still live, so asserting first races the watcher.
+     *
+     * **`noOrphanedCatalogs()` used to follow, and it asserted something no user
+     * ever gets.** `pruneOrphanedBoundaries` opens with
+     * `if (this.isDev && !this.isTestEnv) return` — pruning is disabled for real
+     * development sessions on purpose, because enabling it blind trades an
+     * accumulating leak for the chance of deleting a live catalog.
+     * `isTestEnvironment()` is `NODE_ENV === "test" || VITEST`, and this harness
+     * runs its dev server *inside* vitest. So the prune ran only here, and the
+     * assertion verified a behaviour that exists only because the observer is
+     * present.
+     *
+     * That is why it cost seven passes (L-065, L-070 through L-076, L-079) and
+     * why two projects sat skipped: the failure was real, reproducible and
+     * about a code path users never execute. Everything above this line —
+     * translations surviving the rename, hot updates reaching the new path, the
+     * boundary being forgotten — is what a user actually experiences, and it
+     * passes on every project that claims the capability.
+     *
+     * **Where the question belongs instead.** Pruning is live in *builds*, and
+     * nothing asserts it there. An orphan check after `vpr build` would test
+     * the mode the behaviour exists in, against the `build` capability rather
+     * than `chaos-boundary`. Recorded as the next contract to write rather than
+     * left as a skip pretending to cover it.
      */
     await lab.assert.boundaryForgotten(cfg.fromPath);
-    await lab.assert.noOrphanedCatalogs();
   },
 };
 

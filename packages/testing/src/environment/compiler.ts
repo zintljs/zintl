@@ -54,6 +54,27 @@ export class LabCompiler {
     return this.instance?._resolved?.flags?.entryReexecutionSafe ?? false;
   }
 
+  /**
+   * Whether a structural change can be absorbed in place on this project.
+   *
+   * ZHMR §4.2 asks the entry — `entryReexecutionSafe` — and that is a framework
+   * fact. The **host** gets a veto the section did not originally name: a new
+   * boundary is a new catalog chunk, and on Rspack a changed entrypoint chunk
+   * set is a reload the dev server issues before any plugin is consulted
+   * (ledger L-074).
+   *
+   * Both halves are compiler facts, resolved from the runtime and bundler
+   * facets respectively, so the contract asks one question here rather than
+   * twenty manifests declaring an answer they would have to keep in step with a
+   * host they do not choose.
+   */
+  get absorbsStructuralChange(): boolean {
+    return (
+      this.entryReexecutionSafe &&
+      this.instance?._resolved?.flags?.absorbsStructuralChange !== false
+    );
+  }
+
   getBoundaryGraph() {
     const inst = this.instance;
     if (!inst) throw new Error("Zintl compiler not active in current server mode");
@@ -64,6 +85,33 @@ export class LabCompiler {
     const inst = this.instance;
     if (!inst) throw new Error("Zintl compiler not active in current server mode");
     return (inst as any)._chunkGraph || (inst as any).graph?.chunkGraph;
+  }
+
+  /**
+   * The boundary-graph node ids that {@link hasBoundary} considers a match for
+   * `filePath`, so a failure can say *which* one it found.
+   *
+   * `hasBoundary` returns a boolean, and a boolean is the wrong answer to give
+   * a failing assertion here: `boundaryForgotten` timed out saying the compiler
+   * "still knows a boundary", and finding out which took a debug build of the
+   * compiler. The matching is deliberately generous — safe-id comparison, three
+   * ways — so what it matched is rarely what the reader assumes.
+   */
+  matchingBoundaries(filePath: string): string[] {
+    const inst = this.instance;
+    if (!inst) return [];
+    let bg;
+    try {
+      bg = this.getBoundaryGraph();
+    } catch {
+      return [];
+    }
+    if (!bg) return [];
+    const safeId = inst.getSafeBoundaryId(filePath);
+    return [...bg.nodes.keys()].filter(
+      (nodeId: string) =>
+        nodeId === filePath || nodeId === safeId || inst.getSafeBoundaryId(nodeId) === safeId,
+    );
   }
 
   hasBoundary(filePath: string): boolean {

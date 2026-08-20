@@ -11,7 +11,13 @@ export type { LabDevServer } from "./environment/dev-server.js";
 export type { LabFilesystem, FsMutation } from "./environment/filesystem.js";
 export type { LabCompiler } from "./environment/compiler.js";
 export type { LabWebSocket, HmrPacket, WsCapture } from "./environment/websocket.js";
-export type { LabNetwork, CapturedRequest, NetworkCapture } from "./environment/network.js";
+export type {
+  LabNetwork,
+  CapturedRequest,
+  NetworkCapture,
+  BodyCapture,
+  DeliveredBody,
+} from "./environment/network.js";
 export type { LabConsole, ConsoleMessage, ConsoleCapture } from "./environment/console.js";
 export type { LabClock } from "./environment/clock.js";
 export { LabPipeline } from "./environment/pipeline.js";

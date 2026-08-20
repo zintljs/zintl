@@ -4321,3 +4321,900 @@ the next attempt should start from rather than re-deriving.
 
 `react-ssr` is a separate case still: hot updates do not reach it at all, so it fails before any of
 the four steps above. Its `hmr` claim remains withdrawn.
+
+### L-066 — closed: the key was never missing, the flush was
+
+|                             |                                                          |
+| :-------------------------- | :------------------------------------------------------- |
+| **Status**                  | **Closed** — 0 failures in 10 runs, on both claimants    |
+| **Bucket**                  | 3 — real defect, already fixed by the time it was re-run |
+| **Facet contract changed?** | No                                                       |
+
+L-066 recorded that a new sink renders on `vanilla-spa-basic` and its key never reaches a catalog —
+checked to 25 seconds, "past any timing story" — while `react-basic` writes it promptly. The
+observation was accurate. **The entry was written before L-070, and L-070 is its fix.**
+
+"The last change before a quiet period is silently deferred forever" is exactly the shape of this
+symptom: `hmr-growth` adds one sink and then stops editing, so the flush carrying that key joined an
+in-flight run and no later trigger existed to carry its dirt. Twenty-five seconds was never going to
+be enough, because nothing was going to happen at any point after the first second either.
+
+The causal signal the entry asked for also already existed, built for `noOrphanedCatalogs` in the
+same pass: `flushUntilQuiescent` loops on the **dirty set**, so it terminates because there is no
+work left rather than because time passed. Restoring the assertion on top of it needed no new
+machinery — which is the useful part of this entry, since the removal note said it needed "harness
+work, not a tuned constant" and the harness work had since been done for a different reason.
+
+**Three things had to be repaired in `catalogContains` before it could be called**, and they are
+worth listing because it had never been called at all:
+
+1. It compared `content[key]` against a string, but a merged catalog stores `{ ar: …, es: … }`
+   there. It could only ever fail on `vanilla-spa-basic` and `rsbuild-vanilla-basic` — the exact
+   defect L-062 named in `setTranslation`, one layer down and still live.
+2. `value` was mandatory, so "the translator can find this string" was inexpressible. A newly
+   extracted key is written empty until someone fills it in.
+3. It read the filesystem without waiting for the compiler.
+
+**Measured: 0 failures in 10 runs**, `react-basic` and `vanilla-spa-basic`. The assertion was
+falsified first — asking for a key that cannot exist fails on both projects, with the nearest
+catalog and its contents named — because an assertion that has never been seen to fail is the thing
+this proposal has been wrong about most often.
+
+### L-072 — closed: three steps of four worked, and the fourth was a page with no client
+
+|                             |                                                                  |
+| :-------------------------- | :--------------------------------------------------------------- |
+| **Status**                  | **Closed** — 0 failures in 10 runs; `react-ssr` reclaims `hmr`   |
+| **Bucket**                  | 1 — the suite could not see straight, over a real product defect |
+| **Facet contract changed?** | No                                                               |
+
+The previous entry measured ZHMR §4.3 red and concluded: detection, signalling and SSR module-graph
+invalidation all work, and what survives is Vite's module **runner**, whose evaluated-module cache
+`invalidateModule` does not evict. It named the mechanism precisely, in the installed version, with
+line numbers. **It was wrong, and every observation behind it was taken on the server.**
+
+`interceptViteHmr` wraps `ws.send`. So `hmr packets: {"full-reload": 8}` says the server broadcast
+eight times — not that anything received one. The `ssr-streaming` fixture streams its own document
+with an empty `<head>`, so the page had **no `/@vite/client` and therefore no WebSocket at all**. The
+browser never reloaded and never re-requested; the server was never asked to render again, so its
+runner cache was never reached, stale or otherwise. `textEventually` then read the unchanged text and
+the unchanged text was reported as a stale server render.
+
+This is L-060 exactly, one layer out: a probe that cannot distinguish _never asked_ from _asked and
+answered wrongly_ will manufacture a defect in whichever component it happens to be pointed at.
+
+**Two things were wrong, and only one of them was Zintl's.**
+
+1. **The fixture did not model a dev SSR page.** A real app gets Vite's client from
+   `transformIndexHtml`; one that builds its own document has to say so. Now it does.
+2. **Adding the client immediately produced a 500 on every request** — and that was a genuine
+   product defect, recorded as L-073 below.
+
+**And a third, which is why `react-ssr` had no hot updates at all.** In middleware mode Vite has no
+listener to attach its HMR socket to, so unless it is handed one it opens a second on a **fixed**
+port — 24678, the same for every SSR app in the suite, across four workers. Whichever bound first
+owned it and every other page connected to nothing. `server: { middlewareMode: true, hmr: { server } }`
+in all four examples and the fixture:
+
+| Project         | Before                          | After                                     |
+| :-------------- | :------------------------------ | :---------------------------------------- |
+| `ssr-streaming` | pending on `hmr-server-refresh` | **0/10**                                  |
+| `react-ssr`     | `hmr` withdrawn as unearned     | `hmr` reclaimed — HMR + Catalog Edit pass |
+| `svelte-ssr`    | never claimed `hmr`             | claims it, passes                         |
+| `vanilla-ssr`   | never claimed `hmr`             | claims it, passes                         |
+| `vue-ssr`       | never claimed `hmr`             | claims it, passes                         |
+
+The last three had never claimed `hmr` and were never suspected of lacking it; the capability was
+simply absent from four manifests, which is the quiet version of the same problem L-058 named.
+Claiming it surfaced two **adapter drifts** as well — `vue-ssr` pointed `headingFile` at
+`src/App.vue` and `vanilla-ssr` at `src/entry-client.ts`, neither of which contains the heading.
+Both had been unreachable for the same reason the capability was: nothing selected them.
+
+**The runner-cache hypothesis is not disproven so much as never reached.** With a client on the page,
+`ssrLoadModule` returns freshly evaluated code and §4.3 holds. If a future case shows a stale SSR
+module, the analysis in the previous entry is still the right starting point — it is accurate about
+what the code does. It was simply not what was happening here.
+
+### L-073 — the dev HMR snippet was spliced into a string literal
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — gated on the dialect; regression test added     |
+| **Bucket**                  | 3 — real defect, in shipped dev behaviour                   |
+| **Facet contract changed?** | No — it consults `CodegenFacet.match`, which already exists |
+
+Found by fixing L-072's fixture, and independent of it. The dev transform placed its HMR snippet
+with:
+
+```ts
+const scriptCloseIdx = finalCode.lastIndexOf("</script>");
+```
+
+An SFC's module code lives inside a `<script>` block, so on `.vue` and `.svelte` the snippet must go
+before that block's closing tag or it lands in the template. The rule was applied to **every file**,
+and in a plain module the last `</script>` is whatever the source happens to contain — here, a string:
+
+```js
+const shell = "<head>" + '<script src="/@vite/client"></script>' + "</head>";
+```
+
+The snippet was spliced into the middle of that string. The module then failed Vite's import
+analysis, the SSR entry threw on **every request**, and the app served a 500 whose message —
+`Failed to parse source for import analysis` — points at the bundler rather than at Zintl.
+
+**The blast radius is any dev module with `</script>` inside a string**, which is every SSR shell,
+every MPA template built in JS, every string that embeds an analytics or client tag. It is dev-only,
+which is worse rather than better: the build is clean and the dev server is broken.
+
+Which files carry script blocks is a **dialect** fact, so `spliceHmrCode` asks the codegen facets
+(`wrapSfcScript || sfc`, then `match(fileId)`) instead of reading the text. That is the same
+correction L-069 made when a framework import was placed outside its `<script setup>` tag. A project
+with no SFC facet can no longer take the splice branch at all.
+
+The regression test asserts the transformed module **parses**, with Vite's own `parseAst` — the
+parser that rejected it — rather than asserting the snippet's position. Falsified by reverting the
+gate: the test fails, and it fails on the parse.
+
+### L-071 — the residual writer named, and a fifth guard measured into the ground
+
+|                             |                                                                      |
+| :-------------------------- | :------------------------------------------------------------------- |
+| **Status**                  | **Open** — mechanism identified and observable; no fix that measures |
+| **Bucket**                  | 3 — real defect                                                      |
+| **Facet contract changed?** | No                                                                   |
+
+Four attempts had established what the residual writer is _not_. This one establishes what it **is**,
+by making the writes say why they happened instead of inferring it from their order.
+
+**The instrument.** A flush has five independent reasons to write a catalog — the adopted dirty set,
+reconciliation's renames, moves and deletes, and the auto-recover pass that writes any boundary whose
+catalog is missing from disk — and `safeWriteFile` could say _that_ a file was written, never _why_.
+Each producer now tags the boundaries it adds, the tag travels with the group into
+`syncPathCatalogs`, and it lands in both the debug log and the `io/write` envelope.
+
+**The answer, first run:**
+
+```
+Forgetting deleted file: src/App.svelte
+Pruning orphaned file:   zintl/src/App.svelte.{ar,es,zh}.json
+Writing file:            zintl/src/App.svelte.ar.json — dirty
+```
+
+`dirty`, which excludes auto-recover outright — the hypothesis this pass went in holding, and the one
+with the most attractive shape, since it writes _because_ a file is missing and the prune had just
+made it so. It is not that. A boundary `removeFile` had scrubbed from `dirtyBoundaries` and
+`internalManifest` was back in both.
+
+**A probe then named the writer.** Marking every file `removeFile` forgets, and logging any later
+observation that re-registers one:
+
+```
+PROBE: re-registering src/App.svelte, which removeFile had forgotten — boundaries: src/App.svelte
+```
+
+A deletion and a transform of the same file are two independent arrivals and **nothing sequences
+them**. The transform was already in flight when the deletion landed; it commits afterwards and puts
+the boundary back — into the manifest, into the dirty set, and so into the next flush's write pass.
+That is why four guards at the `unlink` handler could never have reached it: every one of them was
+watching the wrong event. The unlink was always correct.
+
+> **Retracted by L-076.** The paragraph above is wrong, and the probe output above it is real but
+> was misread. The `+17ms` on that log line is the **logger's delta since the previous debug line**,
+> not the time since the forget. Interleaved with the harness's own filesystem operations, every
+> such re-registration lands during _teardown_, after `restoreAll` puts the file back — registering
+> a boundary for a file that exists, which is correct. A removal-epoch probe confirmed it
+> independently: `epochAtRead === now` on both hosts, so no read was ever overtaken by a deletion.
+> The "in-flight observation" mechanism, and the sequencing fix it implied, are both dead. What
+> actually survives a deletion is named in L-076.
+
+**And the fix that follows from it does not measure.** Refusing to commit a registration for a file
+that is no longer on disk: **10 failures in 10**, against a **6 in 10** baseline — and then the
+revert measured **10 in 10 as well**. The guard was neither better nor worse than doing nothing; the
+_baseline_ moved by 4/10 in twenty minutes on an unchanged machine.
+
+So the verdict on guard five is **void, not negative**, and saying so matters more than the guard
+does. The previous entry closed by warning that every rate here is valid only against the batch it
+was taken in; this pass reproduced that warning at full strength while trying to respect it, and one
+of its own batches was additionally spoiled by a `dist` rebuild started while it ran. A same-batch
+comparison means the same batch **and** an otherwise idle machine.
+
+**What is kept.** The write-cause tags and the re-registration log, because they cost nothing and
+they are what turned a four-entry guessing game into a named mechanism. **What is reverted:** the
+guard. A change with no measured benefit does not stay, whatever its story.
+
+**What the next attempt should start from**, stated so it is not re-derived a sixth time: the fix has
+to sequence the deletion against reads already in flight — an observation generation compared at
+commit time, rather than a question about the filesystem asked at any point. And the baseline has to
+be measured in the same batch, on a machine doing nothing else.
+
+**One more measurement, from the full gate.** `vue-basic` was un-pended for this pass on the
+strength of 30-odd clean isolated runs, and `ready:examples` failed it on the same assertion —
+`HelloWorld.vue.{ar,es,zh}.json`, three catalogs outliving their source. So both projects are
+pending again, and for the same writer. The asymmetry is the finding, not the failure: `flake.js` on
+one contract and the full suite are different questions, and this contract answers them differently
+every time it is asked. `tests/manifests/index.ts` has said so since it was written.
+
+### L-074 — §4.2's route has a third input, and two projects could not have found it
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — `hmr-structural` on 8 projects, 6 of them new   |
+| **Bucket**                  | 1 — a capability claimed by too few projects to be wrong in |
+| **Facet contract changed?** | **Yes** — `BundlerFacet.absorbsStructuralChange`            |
+
+`hmr-structural` was claimed by **two** projects — `react-basic` and `vanilla-spa-basic` — so ZHMR
+§4.1③ and §4.2 had never run on Vue, on Svelte, or on Rspack at all. §4.2 is the section L-061
+_amended the specification for_, and the rule it gained was written from a sample of two.
+
+Extending the claim to six more projects — Vue and Svelte on Vite, and React, Vue, Svelte and vanilla
+on Rspack — is adapter work: where a sink and an anchor may go is framework syntax, so it belongs in
+the manifest. It found three things on the first run.
+
+**1. The warm half was asserting a capability the contract did not require.** `rsbuild-vanilla-basic`
+and `rsbuild-svelte-basic` reload for _every_ edit — measured, named and given a capability by L-063
+— so §4.1③'s "this must not reload" reported documented, correct host behaviour as a defect. `hmr`
+says an edit reaches the browser; `hmr-warm` says how. The no-reload assertion moved to its own
+contract requiring `hmr-warm`, rather than becoming a conditional inside this one: which projects can
+promise it is a manifest question, and the suite answers manifest questions by _selection_. A
+contract that read a capability and branched on it would be the first per-project conditional in the
+directory.
+
+**2. The host has a veto §4.2 did not name.** `rsbuild-vue-basic` and `rsbuild-vanilla-basic` have
+re-execution-safe entries and reloaded anyway. The instinct was that the entry self-accept predicate
+was stale — it gates on `clientReactivityImports`, which is React-only, and L-064 already replaced
+exactly that proxy with `repaintsOnCatalogUpdate` one layer over. Swapping it changed **nothing**,
+which is the useful half of the experiment, and a probe said why:
+
+```
+PROBE plan.fullReload=false for .../src/index.ts
+PROBE plan.fullReload=false for .../src/App.vue
+```
+
+**Zintl never asks for that reload.** A new anchor is a new boundary, a new boundary is a new catalog
+chunk, and on Rspack a changed entrypoint chunk set is a full reload the dev server sends before any
+plugin is consulted. So §4.2's route is decided by the entry **and** by the host, and
+`entryReexecutionSafe` alone — a runtime-facet fact — cannot express it.
+`BundlerFacet.absorbsStructuralChange` is the host's half, defaulting to `true` and declared `false`
+by `rspackFacet`, merged pessimistically like `entryReexecutionSafe` for the same reason. The
+contract asks one compiler fact that composes both.
+
+**4. And one contract was doing three jobs on one budget.** With the sink work, the catalog claim
+and the §4.2 route in a single test, `vue-basic` exhausted its 45-second cap under four-worker
+contention — green 10 times in 10 in isolation, red on `ready:examples`. Splitting into `HMR Sink`,
+`HMR Sink Warm` and `HMR Growth` is not tidying: the §4.2 assertion is the one that has to spend
+time proving a reload _did not_ happen, and it should not be spending it out of an allowance two
+other assertions have already drawn on. 22 tests where there were 2.
+
+Splitting was necessary and not sufficient: `HMR Sink` then exhausted the same cap on the same
+project, because `catalogContains` drove the compiler to full quiescence — four flushes on the
+heaviest project in the manifest — when it only ever needed the one that put its key on disk. The
+wait now stops on the **claim**, which is more causal rather than less: it terminates because the
+thing being asserted is true, and keeps the remaining rounds for the case where it never becomes
+true.
+
+`ready:examples`: **285 passed, 2 skipped**, up from 265.
+
+**3. And the §4.2 assertion had been vacuous, which a negative control caught and nearly did not.**
+Inverting the route predicate left all fourteen tests green. The first repair — the branch decided
+_how long to watch the wire_, so each arm looked for exactly as long as it needed to see what it
+predicted — was real and is fixed: both routes now observe for the same budget. It was not the whole
+story, because the control still passed afterwards. The reason was that the control itself was a
+no-op: a `sed` written against a one-line getter that the formatter had since wrapped across four,
+matching nothing and reporting success. Re-run properly, the inverted predicate fails **8 of 8**.
+
+That is the entry's sharpest note, and it is not about Zintl. **A negative control that cannot fail
+is worth less than no control**, because it converts an untested assertion into a believed one — the
+same shape as `noOrphanedCatalogs` in L-062, and as this proposal's own habit of quoting prose as
+evidence. A control has to be watched failing, exactly like the assertion it is checking.
+
+Measured across both hosts: `reloaded` is `!absorbsStructuralChange` on all eight projects, with the
+packet sequence recorded per project in the contract.
+
+### L-075 — `chaos` was two guarantees, and L-071 is not a Vite defect
+
+|                             |                                                   |
+| :-------------------------- | :------------------------------------------------ |
+| **Status**                  | **Fixed** — `chaos` on 10 projects, 6 of them new |
+| **Bucket**                  | 2 — the manifest could not say it                 |
+| **Facet contract changed?** | No — a testing capability split                   |
+
+`chaos` was claimed by four projects, all on Vite. L-062 established that this was a **contract**
+limitation rather than a host one — the catalog lookup had never heard of `src/locales`, where every
+Rsbuild example keeps its catalogs, so the contract threw on line one — and fixed the lookup. Nobody
+re-tried the claim afterwards, so the second host had still never run either chaos contract.
+
+Claimed on six Rsbuild projects, the result splits perfectly along the contract boundary:
+
+| Contract         | Rsbuild projects | Result     |
+| :--------------- | :--------------- | :--------- |
+| `chaos-catalog`  | 6                | **6 pass** |
+| `chaos-boundary` | 6                | **6 fail** |
+
+Deleting and corrupting catalogs under a running Rspack app works, and needed nothing beyond L-062's
+fix. Renaming a boundary does not — and the interesting part is **why**.
+
+**The recorded reason was wrong, and tracing removals is what showed it.** The adapter for
+`rsbuild-react-basic` had been sitting unclaimed with a diagnosis attached: `watch (batch) → 1
+modified` lists only the entry, so a file created and imported in the same cycle never reaches the
+watch hook. The hot-update trace recorded modified files and **not removed ones**, so "the host
+reported no deletion" and "the deletion was reported and dropped" were indistinguishable — the same
+blindness L-041 recorded for the tap itself, one event kind further in. Traced:
+
+```
+watch (batch) → 1 removed: …/src/App.tsx
+Forgetting deleted file: src/App.tsx
+Re-registering src/App.tsx, which removeFile had forgotten — boundaries: src/App.tsx:default   +17ms
+```
+
+The host reports everything it should, and `boundaryForgotten` fails anyway — so a boundary survives
+a deletion the compiler was told about and acted on.
+
+> **Correction, from L-076.** This entry originally read the `+17ms` on the following
+> `Re-registering …` line as "seventeen milliseconds after the deletion", and concluded that L-071's
+> residual writer had reproduced on the second host. That figure is the **logger's delta since the
+> previous debug line**, not since the forget. Interleaved with the harness's own filesystem
+> operations, both re-registrations land during _teardown_, after `restoreAll` puts the file back —
+> which is legitimate and not a defect at all. What survives here is something else, named in L-076.
+> The claim is retracted; the capability split below rests on its own measurement and stands.
+
+**So the capability splits**, the same way `hmr` split into `hmr`/`hmr-warm` at L-063. One capability
+covering both halves would have to be refused on all six projects, recording a defect Zintl has on
+_every_ host as something Rsbuild cannot do — which is the mistake L-049, L-056 and L-062 each made
+somewhere else.
+
+**And one assertion was carrying a frozen diagnosis.** `boundaryForgotten` failed with "the host's
+watcher never reported the unlink" — measured false here, on the first host it was pointed at that
+had not been checked. It now names both causes and says how to tell them apart. Prose in an error
+string ages exactly like prose in a comment, and it is read at the worst possible moment.
+
+**Not chased, and stated so it is not assumed:** `rsbuild-svelte-basic` and `rsbuild-vanilla-spa`
+fail `chaos-boundary` with a _blank_ heading rather than a surviving boundary, which is the
+no-fallback symptom of a boundary with no catalog. That is consistent with the original
+created-file diagnosis and was **not** measured here. Only `rsbuild-react-basic`'s cause is
+established.
+
+Measured 0 failures in 10 runs across both contracts and all ten claimants.
+
+### L-076 — the residual writer was never a writer, and one number was misread twice
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Open** — one real gap closed; the dominant cause narrowed |
+| **Bucket**                  | 3 — real defect, and a correction to two entries above      |
+| **Facet contract changed?** | No                                                          |
+
+L-071 closed by naming its residual writer as "an observation already in flight re-registers a
+boundary `removeFile` has forgotten", and L-075 reported that reproducing on Rspack. **Both readings
+came from the same misread number, and both are wrong.**
+
+**The number.** The compiler's debug logger prints `+Nms` as the delta **since the previous debug
+line**, not since any particular event. `Re-registering src/App.tsx … +17ms` was read as seventeen
+milliseconds after the forget. It is seventeen milliseconds after whatever happened to log last.
+
+**What the interleaving shows.** The harness now traces its own filesystem operations
+(`ZINTL_FS_TRACE`), which is the one stream this investigation never had — the compiler's log and
+the test's mutations had been read separately for five entries:
+
+```
+18:16:35.366  lab:fs delete src/App.svelte
+              Watcher unlink → Forgetting deleted file: src/App.svelte      ← correct
+18:16:36.313  lab:fs edit   src/AppNew.svelte
+18:16:39.565  lab:fs restore src/App.svelte (delete)                        ← teardown
+              Re-registering src/App.svelte … onDisk=true                   ← after the restore
+```
+
+The re-registration happens in **teardown**, four seconds after the assertion has already failed,
+because `restoreAll` puts the file back and registering a boundary for a file that exists is correct.
+On Rspack the same, at eight seconds. There is no in-flight read being overtaken — a removal-epoch
+probe, captured on transform entry and compared at commit, reported `epochAtRead=1 now=1` on both
+hosts: **every** such read began _after_ the deletion. That also falsifies the next step L-071's
+closing paragraph named — "an observation generation compared at commit time" — before it was built.
+
+**What is actually wrong, and it is small.** `removeFile` reclaimed only the boundaries
+`boundaryOwnership` lists for a file. A file that is an entry, or carries an HTML projection,
+registers a boundary under the **bare** `fileId` as well, and the ownership map does not list it:
+
+```
+Forgetting deleted file: src/App.tsx — owns 1 boundary: src/App.tsx:default
+…8s later: the compiler still knows a boundary for src/App.tsx
+Matched by: src/App.tsx
+```
+
+Matching graph nodes by id — `nodeId === fileId` or `fileId:` prefixed, the shape the compiler mints
+them in — makes the deletion reclaim both. Content-addressed ids are untouched, since they are not
+derived from a path.
+
+**Measured, same batch, machine otherwise idle:**
+
+| Condition                  | `rsbuild-react-basic` | `svelte-basic` |
+| :------------------------- | :-------------------- | :------------- |
+| Baseline                   | 10 / 10               | 8 / 10         |
+| `removeFile` matches by id | 10 / 10               | 9 / 10         |
+
+**No rate movement, and the change is kept anyway** — the first time in this investigation that
+combination is right. Every earlier candidate was a _heuristic_ whose only evidence was a rate, so a
+flat rate left nothing behind. This one has direct evidence independent of any rate: the log goes
+from `owns 1 boundary` to `owns 2 boundaries`, and a graph node for a deleted file is wrong whether
+or not a contract notices. The rate does not move because a second cause dominates.
+
+**And the second cause is now a narrow question rather than a hunt.** With `removeFile` reclaiming
+both nodes, `src/App.tsx` is back in the graph eight seconds later. So the question is no longer
+"who writes these catalogs" but **"what re-adds a bare `fileId` graph node for a file with no
+metadata entry"** — and the graph is rebuilt from `metadataGraph`, which `removeFile` clears. That
+is one traversal to instrument, not a fifth guard to guess.
+
+**The method note is the reason this entry exists.** Five entries of this investigation rested on a
+delta printed by a logger, read as if it were a measurement between two named events. Nobody checked
+what the number meant, including me, twice in one day — once writing L-075 and once quoting it back.
+`scripts/flake.js` exists because single runs were being believed; this is the same failure one level
+lower, where a _unit_ was being assumed. The harness's filesystem trace is the durable fix: the two
+streams that had to be interleaved to see this were the compiler's and the **test's**, and only one
+of them had ever been instrumented.
+
+**And one more thing the new claimants found**, recorded here rather than in its own entry because
+it is the same defect L-061 already fixed elsewhere. `chaos-catalog` ends with a `page.reload()`,
+and on a host that answers the final edit with a `full-reload` of its own that call fires into a
+frame already navigating: `net::ERR_ABORTED; maybe frame was detached?`, reported as a failure of
+the thing under test. `hmr-growth` had this exact line and L-061 fixed it there; the copy in
+`chaos-catalog` stayed green only because no project claiming `chaos` reloaded, until L-075 let six
+Rspack projects claim it. **A fix applied to one contract is not applied to the suite** — the same
+lesson `findCatalogPath` taught three times, in a different shape. 0 failures in 10 runs after.
+
+### L-077 — a size assertion that never weighed a shipped byte
+
+|                             |                                                             |
+| :-------------------------- | :---------------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 runs, 3 s per run from 20-plus |
+| **Bucket**                  | 1 — the contract could not ask its own question             |
+| **Facet contract changed?** | No                                                          |
+
+`performance-size` asserted that "dynamically loaded translation chunks stay under a 10KB payload
+size budget". It captured HTTP response bodies inside a timing window **on the dev server**, and its
+own budget comment conceded the number: "adjusted to 10KB to support Vite dev-mode wrapper overhead".
+A dev-wrapped module bears no fixed relationship to shipped bytes, so the contract defended a budget
+against an artifact no user downloads.
+
+It carried a `TODO` saying exactly this, and the `TODO` was right about the fix — assert against the
+built output, the way `build.contract` already does. What the rewrite found is that **three separate
+things had to be wrong at once for the contract to look reasonable**:
+
+1. **The wrong artifact** — dev modules, not build output.
+2. **A timing window** — which responses landed inside it varied per run, observed failing 1 in 7 at
+   10,972 bytes while passing 3 of 3 in isolation. A size is a property of a file; nothing about it
+   should depend on when you look.
+3. **A URL filter that could not see** — four Vite-shaped fragments, one of them any `.json`. On
+   Rspack it matched nothing, failed its own `toBeGreaterThan(0)`, and was recorded in eight
+   manifests as a host that cannot meet a performance budget (L-062).
+
+**Identifying a catalog chunk in build output is the interesting part**, and two obvious answers are
+both wrong. A path pattern cannot be host-neutral: Rollup emits `assets/entry_b_<hash>.js` and Rspack
+`static/js/async/<hash>.js`, and a pattern matching both matches nearly everything. Asking the
+boundary graph fails differently — enumerated after a build it resolved a single catalog on three of
+four projects, because the graph a _build_ leaves behind is not the one the dev compiler holds.
+
+What works is **content**: a catalog chunk is the emitted file carrying a translation the project has
+on disk. Same identity rule as boundaries, and it survives a change of host by construction.
+
+**Two false starts worth keeping, because each produced a confident wrong answer.**
+
+- Taking any catalog value as the needle matched `index.js` on all four projects and reported a
+  538 KB application bundle as an oversized catalog. Catalogs legitimately carry passthrough
+  entries — brand names, anything left untranslated — and those strings are in the main bundle
+  because that is where the source text lives. **A needle has to differ from its key** to prove it
+  came from a catalog.
+- `findCatalogFor` returns one path, sorted, and first alphabetically is
+  `index.html.<locale>.json` — a title and a text direction, no prose. The contract declared three
+  projects untestable with their real catalogs sitting beside them.
+
+**Measured:** 0 failures in 10 runs, and 3 seconds per run against a version that booted a browser
+and drove a locale switch. Catalog chunks weigh 611–982 bytes against an 8 KB budget — deliberate
+headroom, because the budget guards a _shape_: a catalog holds one boundary's strings for one locale
+and grows with the text an author wrote, so anything near the limit means something else was pulled
+into the chunk. The negative control — budget of one byte — fails all four projects and names the
+chunks it weighed, which is how the file list was confirmed to be catalogs rather than the bundle.
+
+**Left undone on purpose, and the sequencing is the point.** Nothing in this contract is host-shaped
+any more, so the six Rsbuild projects could claim `performance` today. They are not given it in this
+pass because `performance` also gates `performance-hmr`, whose absolute wall-clock budget is the
+suite's most frequent false red. Extending a claim into a contract known to report the weather would
+trade one fixed gate for a noisier one — fix that first, then extend both.
+
+### L-078 — the suite's most frequent false red, and the three no-ops that are not no-ops
+
+|                             |                                                                |
+| :-------------------------- | :------------------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 runs; `performance` on 8 projects |
+| **Bucket**                  | 1 — the contract measured the machine                          |
+| **Facet contract changed?** | No — an adapter field, `perfNoopEdit`                          |
+
+`performance-hmr` asserted an absolute wall clock: 350 ms locally, **1,500 ms** whenever CI or
+parallel workers were detected. That 4× relaxation is the admission — a threshold that has to be
+loosened when the machine is busy is measuring the machine. It was the suite's most frequent false
+red: 1,893-3,689 ms against the relaxed budget during one busy session, 5 of 5 clean in isolation
+immediately after.
+
+The fix its own `TODO` specified: price the **host's** round trip in the same lab, moments before
+the real edit, and compare. A busy box inflates both and cancels.
+
+**Getting a baseline that is genuinely a no-op took three attempts, and each failed on a different
+dialect.** This is the substance of the entry, because "an edit that changes the file but not a
+translatable string" sounds host-neutral and is not:
+
+| Baseline edit                     | Result                                                                                                                                                          |
+| :-------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Append a trailing newline         | **Nothing to an SFC** — content outside the blocks never reaches the compiler; `vue-basic` produced no update in 10 s while three projects produced one at once |
+| A comment inside `<script setup>` | **Nothing to Vue** — the plugin compares _compiled_ block output and comments do not survive compilation. 10 failures in 10                                     |
+| `void 0;` inside `<script setup>` | Compiles to something, repeats safely, mentions no string — works                                                                                               |
+
+So where a no-op may legally go is a property of the dialect, and it is declared as
+`HmrAdapter.perfNoopEdit` rather than synthesised — the same conclusion L-069 reached for import
+placement and L-074 for structural edits.
+
+**And the first measurement was measuring the order the two edits were taken in.** Untimed:
+baselines ran 49-182 ms against treatments at a steady 95-101 ms — ratios of 0.5× to 2.1×, with the
+treatment _faster_ than its own baseline on two projects. That is not Zintl beating the host; it is
+the first edit in a lab paying for the first re-transform, the first watcher batch and the first
+update the client ever applies. One untimed warm-up edit first, and the ratios become coherent:
+**1.2×, 1.2×, 1.3×, 2.0×**.
+
+Both sides are timed to the **same observable** — the `update` packet on the wire. Timing one to a
+packet and the other to the DOM would put render time on one side of the ratio only, which is the
+asymmetry that made `hmr-growth`'s route assertion vacuous (L-074). The DOM assertion stays,
+unbudgeted: "it renders" is still worth proving, it is simply not what is being timed.
+
+**Then the capability extended, which is why this pass waited for it.** Nothing in either
+performance contract is host-shaped any more, so `performance` went to four Rsbuild projects — and
+`rsbuild-vanilla-basic` and `rsbuild-svelte-basic` immediately exhausted the 45-second cap. Neither
+hot-replaces on that host, so all three edits become full page reloads and the ratio compares two
+navigations. `performance-hmr` now requires `hmr-warm`, the capability L-063 created for exactly
+that line; both projects keep `performance` and are measured by `performance-size`.
+
+**Net: 0 failures in 10 runs, 27 s per run from 50 s, and the contract that cried wolf now cannot.**
+
+### L-079 — two fixes that worked, cost the suite, and were rejected; and a skip that becomes an unclaimed capability
+
+|                             |                                                                        |
+| :-------------------------- | :--------------------------------------------------------------------- |
+| **Status**                  | **Closed as a skip** — the capability is dropped, the defect is stated |
+| **Bucket**                  | 3 — real defects, both measured and rejected on cost                   |
+| **Facet contract changed?** | No                                                                     |
+
+The seventh pass. It found two real defects, fixed both, watched both work in the log, measured no
+movement in the failure rate, measured a **regression in the full suite**, and reverted them. The
+capability is dropped instead.
+
+**1. A deletion produces no dirt, so nothing schedules the one job it needs.** "Dirty" means _write
+this boundary's catalog_, and `removeFile` scrubs a deleted boundary from that set on purpose —
+marking it queues its catalogs to be written straight back, which was L-071's first writer. But every
+path deciding whether a flush is worth running keys on dirt: `dirtSignature()` returns `null`, so
+`armTrailingFlush` declines and the debounced flush finds nothing to do. Traced against the harness's
+filesystem log:
+
+```
+00:01:57.220  lab:fs delete src/App.svelte
+              Forgetting deleted file: src/App.svelte — owns 1 boundary
+              …4.3 seconds, and not one `Flushing compiler state...`…
+00:02:01.564  lab:fs restore …  (teardown)
+              Flushing compiler state… → Pruning orphaned file: src/App.svelte.ar.json
+```
+
+The prune ran only when _something else_ dirtied state, which is why the orphans outlived the
+assertion and why the failure was intermittent — any concurrent edit hid it. Giving a deletion its own
+outstanding-work signal made the prune run promptly, **verified in the log**.
+
+**2. The prune and the write pass disagree inside one flush**, and both are locally right:
+
+```
+Pruning orphaned file: zintl/src/App.svelte.ar.json  +5ms
+Writing file:          zintl/src/App.svelte.ar.json — dirty  +0ms
+```
+
+`runFlush` reaches back into the compiler — `syncGraphs` asks content facets for translations, which
+can transform, which can re-register — and the dirty set is snapshotted after that. Making the graph
+the authority over what may be written was implemented, fired six times in a run, and **changed
+nothing**: the node is not absent from the graph, it is **unreachable within it**. The prune asks
+reachability; the writer asks presence. That is a sharper statement of the defect than six previous
+passes reached, and it is the one to resume from.
+
+**Why both were reverted.** Neither moved `chaos-boundary` (10/10 before, 10/10 after, same batch),
+and together they cost the _rest_ of the suite:
+
+| Condition              | `ready:examples`                                          |
+| :--------------------- | :-------------------------------------------------------- |
+| With both fixes        | red — `[Chaos Catalog] rsbuild-vue-mpa`, budget exhausted |
+| With both fixes, again | red — `[HMR Hammer] react-basic`, a _different_ test      |
+| Reverted               | 297 passed, 0 failed                                      |
+| **Reverted, again**    | **red — `[Chaos Catalog] rsbuild-vue-mpa`, same test**    |
+
+**The fourth row is the one that matters, and it arrived after the revert had already been called
+decisive.** Three runs were read as "red with the fixes, green without" — one green against two reds —
+and written up as attribution. The fourth reproduced the failure with the fixes gone. The suite simply
+had a marginal test; the fixes were never implicated.
+
+That is the third time in two days a number was believed before it was a comparison, after the misread
+logger delta (L-076) and the negative control that could not fail (L-074). `scripts/flake.js` exists to
+prevent exactly this, and was skipped here because a suite run is expensive — which is precisely why a
+single one is worth the least.
+
+**The fixes stay reverted, for a different reason than first given.** They did not move
+`chaos-boundary` (10/10 both sides, same batch) and nothing else measured needs them. A change with no
+measured benefit does not ship, whatever its story — but it was not measured _harmful_, and this entry
+claimed it was.
+
+**What the marginal test actually was.** `chaos-catalog` opened by switching locale to Spanish and
+back "to verify locale switching works before chaos" — a guarantee `locale-switch` already owns on
+every project claiming `chaos`. On an MPA each switch is a navigation. Removing it is a simplification
+rather than a workaround: a contract paying for another contract's assertion is the duplication the
+capability model exists to remove. That fixed `rsbuild-vue-mpa` and left `rsbuild-vue-spa` over by
+seconds, so those two Vue-on-Rspack projects no longer claim `chaos` — a budget statement, not a
+defect, recorded in both manifests. **`ready:examples`: 295 passed, twice, no failures and no
+skips.**
+
+**And then the question that should have been asked in Phase 9.** Before dropping anything: _is this
+a bug users have?_ Measured, `svelte-basic` fails **only** `noOrphanedCatalogs`. The rename works, the
+translations survive it, hot updates reach the new path, and the boundary is forgotten — every
+guarantee a person using Zintl would notice.
+
+`pruneOrphanedBoundaries` opens with `if (this.isDev && !this.isTestEnv) return`. Pruning is disabled
+for real development sessions on purpose, and `isTestEnvironment()` is `NODE_ENV === "test" || VITEST`
+— which the harness satisfies, because it runs its dev server inside vitest. **The assertion was
+verifying a behaviour that exists only because the observer is present.** In a real `pnpm dev`
+session every one of the 27 examples leaves those catalogs behind, by design; the two "failing"
+projects were not doing anything the others do not.
+
+L-065 wrote that down two months ago — _"the assertion is not wrong to want this; it is wrong to imply
+users get it"_ — and seven passes then spent themselves chasing the failure rather than the sentence.
+The prose was right and nobody acted on it, which is a different failure from the prose being wrong
+and is worth naming separately.
+
+**So the assertion is removed and the capability is kept.** `chaos-boundary` now asserts what a
+rename must do — translations survive, updates propagate, the boundary is forgotten — and claims on
+**all four** Vite projects, green. Coverage of the user-facing guarantee doubled by deleting the
+assertion that was blocking it.
+
+`noOrphanedCatalogs` stays in the harness, uncalled and documented. Pruning is live in **builds**,
+where nothing asserts it, and a post-build orphan check gated on `build` is the contract that should
+call it. That is the "design a new contract" answer, and it is recorded rather than written here
+because a contract invented at the end of a seven-pass investigation is how this one got its shape.
+
+**The correction this entry ends on.** Six of the seven passes were spent making a red test green.
+The seventh asked what the red test was for. The measurements were all sound; the question was not
+asked until the option to delete the contract was explicitly on the table — which suggests the option
+should be on the table earlier, by default, whenever a skip survives its second pass.
+
+## Status index
+
+Every `L-` number in this proposal, and where it was settled. Several entries above still carry
+`**Open**` in their own header because that was true when written; this table is the current answer,
+and it is the one to trust.
+
+| Entry                      | Status today                                                                                                   |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| L-004, L-018, L-020, L-022 | Fixed in the Rsbuild passes                                                                                    |
+| L-005                      | **Open** — blocked on the unfenced HTML fan-out gap, unchanged                                                 |
+| L-021                      | Fixed — see the Phase 4a closing note                                                                          |
+| L-023                      | Superseded — the ordering defect was never reproduced; the reachability traversal it built is live and correct |
+| L-024 – L-028              | Fixed                                                                                                          |
+| L-029                      | **Open** — the harness reloads where a dev server hot-updates; diagnosed, not fixed                            |
+| L-030                      | Superseded by L-064/L-068 — the store-per-re-execution question was answered by `adoptListeners`               |
+| L-031 – L-036              | Fixed                                                                                                          |
+| L-037 – L-050              | Fixed, or measured and rejected with the reason recorded                                                       |
+| L-051 – L-059              | Fixed                                                                                                          |
+| L-060                      | **Withdrawn** — the blank frame was the probe                                                                  |
+| L-061                      | **Closed** — the specification moved (§4.2.1/§4.2.2)                                                           |
+| L-062, L-063               | Fixed                                                                                                          |
+| L-064                      | **Closed** via L-064's fix, L-068 and L-069                                                                    |
+| L-065                      | **Subsumed** by L-070, then by L-079                                                                           |
+| L-066                      | **Closed** — the key was never missing, the flush was                                                          |
+| L-067                      | **Closed** — by L-064's fix, not by asset code                                                                 |
+| L-068, L-069, L-070        | Fixed                                                                                                          |
+| L-071                      | **Superseded** by L-076; its in-flight-observation mechanism is retracted                                      |
+| L-072                      | **Closed** — a page with no Vite client cannot act on a reload                                                 |
+| L-073, L-074, L-075        | Fixed                                                                                                          |
+| L-076                      | **Superseded** by L-079 — the surviving node is unreachable, not absent                                        |
+| L-077, L-078               | Fixed                                                                                                          |
+| L-079                      | Two defects fixed; the rename leak is now an **unclaimed capability**, not a skip                              |
+
+Three entries remain genuinely open — **L-005**, **L-029**, and L-079's residual — and each names its
+next step. Nothing else in this proposal is waiting on anyone.
+
+### L-080 — the hot-update trace could not say which environment, and one field moved the defect
+
+|                             |                                                                     |
+| :-------------------------- | :------------------------------------------------------------------ |
+| **Status**                  | **Open** — relocated out of Zintl's plan, with the next probe named |
+| **Bucket**                  | 1 — the diagnosis could not see straight                            |
+| **Facet contract changed?** | No — one field on `HmrTraceEntry`                                   |
+
+CI failed `[HMR Hammer] react-basic` twice, and the diagnosis it printed said:
+
+```
+enter …/src/App.tsx seq=1787181965534 modules=0
+return …/src/App.tsx invalidated=0/0 (passthrough)
+```
+
+Read plainly, that is "the final edit reached the hook and Zintl had nothing to invalidate" — a
+product defect, and a serious one. It is not what happened.
+
+**Reproduced locally first**, which had not been done: under six CPU-saturating processes (load ~65 on
+8 cores) the contract fails **2 in 10**; idle it is 0 in 10. Nothing about it was CI-specific except
+the contention.
+
+**The first hypothesis was measured and falsified.** The contract's three intermediate edits use a
+bare `writeFile`, bypassing the harness's `atomicWrite` — whose own comment says truncate-then-write
+lets a watcher observe the file _empty_, and that "the harness was the only thing producing the
+intermediate state". An empty module has no boundaries, which would produce exactly `modules=0`.
+Making those writes atomic measured **2/10 → 1/10**, which is noise at n=10, and the residual failure
+carried an identical signature. Reverted: no measured benefit, and the story justifying it had just
+been disproved.
+
+**Then one field.** Vite 6+ defines `client` and `ssr` and calls the hot-update hook **per
+environment**; the trace recorded neither. With `environment` on `HmrTraceEntry`:
+
+```
+enter  src/App.tsx seq=…479866 modules=1 env=client
+return src/App.tsx invalidated=5/1 env=client
+enter  src/App.tsx seq=…479866 modules=0 env=ssr
+return src/App.tsx invalidated=0/0 env=ssr (passthrough)
+```
+
+**Every passthrough is the `ssr` environment**, where a client-only file has no module and never
+could. It is correct, harmless, and was the single most prominent line in a failure diagnosis that
+two investigations had read as the defect. The `client` environment handled **every** update
+including the final one, `modules=1`, five modules invalidated each time.
+
+**So the defect is downstream of anything Zintl decides.** The plan was right, the invalidation
+happened, the update went out — and the page still shows `Hammer 4` after the edit that wrote
+`HMR Hammer works!`. What remains is one event that never arrives.
+
+**The page probe took it the rest of the way.** A `MutationObserver` recording every value the
+heading shows, plus the file on disk and the update payloads on the wire, captured at failure:
+
+```
+WIRE   update[App.tsx@…412747] | update[App.tsx@…412982] | update[App.tsx@…413106] | update[App.tsx@…413188]
+FRAMES [0,"Get started"] → [445,"Hammer 1"] → [830,"Hammer 4"]     ← and nothing after
+DISK   len=4337  hasFinal=true  hasHammer4=false
+```
+
+Together these settle it:
+
+1. **The file on disk is correct and complete** — 4,337 bytes, contains `HMR Hammer works!`, contains
+   no `Hammer 4`. The edit landed.
+2. **The final text never renders, not even for one frame.** So it is not out-of-order application,
+   which was the leading hypothesis going in: the browser never had it.
+3. **Five edits produced four update packets**, each carrying `App.tsx@<timestamp>`, spanning 441 ms
+   — one per edit for four of the five. The last edit produced **no packet at all**.
+
+So five edits produced four packets, and the obvious reading was that the last edit never reached the
+watcher at all: the contract fires three raw `writeFile`s 30 ms apart and then an atomic write — temp
+file plus rename — immediately after, and chokidar collapses an `unlink` followed by an `add` on one
+path inside a 100 ms window as an atomic save. That was written down as the conclusion.
+
+**It was wrong, and one more field disproved it.** Recording how many _bytes_ the host handed over
+for each event — which version of a file an event describes, without the compiler knowing anything
+about its contents — answers it directly. `Hammer N` is 8 characters and `HMR Hammer works!` is 17,
+so the two versions of this file are 4,328 and 4,337 bytes:
+
+```
+enter src/App.tsx seq=…059598 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…059798 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…059918 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…060018 modules=1 bytes=4337 env=client → invalidated=5/1   ← the final content
+```
+
+**The final edit reaches the compiler, with the right bytes, and Zintl invalidates five modules for
+it.** The three `4328` events are `Hammer 2`, `3` and `4` — indistinguishable by length, which is why
+the packet count looked like a missing event rather than a coalesced one. Nothing upstream is broken.
+
+So the defect is back on the browser side, but with far more established than before: the file on disk
+is right, the watcher reports it, the host hands over the correct bytes, the plan invalidates the
+right modules, and the update goes out with a distinct timestamp. The browser then renders text from
+an earlier version and never shows the final one, not for a single frame.
+
+**The network probe closes it.** Recording every response the browser received for that module —
+the `?t=` it was fetched under, the body's length, and which version of the text it contained:
+
+```
+t=…046388 len=26787 final=false h4=false h1=true    ← Hammer 1
+t=…046589 len=26787 final=false h4=true  h1=false   ← Hammer 4
+t=…046717 len=26808 final=true  h4=false h1=false   ← the final content
+t=…046805 len=26808 final=true  h4=false h1=false   ← the final content, again
+```
+
+**The browser received the final module. Twice.** Correct length, correct text, no trace of
+`Hammer 4` in either. And the DOM still shows `Hammer 4`.
+
+So every step Zintl owns is provably correct, end to end: the file on disk, the watcher event, the
+bytes handed to the plan, the modules invalidated, the packet on the wire, the transform the dev
+server served, and the browser's fetch of it. The page has the right code and renders the wrong
+output. What remains is **React Fast Refresh declining to re-render under four refreshes inside
+~400 ms**, which is neither Zintl's code nor Vite's.
+
+**Which made it a contract question rather than a defect, and the contract moved.** `hmr-hammer`
+claimed "rapid concurrent filesystem updates converge correctly on the final text" and asserted it on
+the DOM. Zintl cannot deliver DOM convergence — it delivers the final module to the browser, which it
+does on every run including the failing ones. The burst it asserts against is three raw `writeFile`
+calls 30 ms apart, which no editor produces; what it then measured was a framework's refresh
+scheduler.
+
+It now asserts delivery: **the browser was served a module containing the final content**. Coalescing
+rapid writes is correct, and dropping the final state is not — which is exactly proposal 024 §1.1a,
+and exactly what this observes. The DOM is still checked, unbudgeted and deliberately weak, so a page
+that breaks outright is not mistaken for one that merely did not repaint.
+
+**`LabNetwork.captureBodies` is the harness half**, and its shape is the part worth keeping. Asking
+_which URL_ carried the content would be a contract guessing at host-shaped paths — on Vite the final
+content arrives as its own module, on Rspack the same edit reloads the page and it comes back inside
+a hashed bundle. Asking _which body contained this text_ is the same question on both. Bodies are
+reduced to `{length, found[]}` on arrival rather than stored, because a dev bundle is megabytes and a
+page fetches many.
+
+**Measured under the load that produced the failure**: 0 failures in 10, where the DOM assertion
+failed 2 in 10 in the same conditions. Inverting the expected marker fails 5 of 5.
+
+This is the second contract in three days found to be asserting something outside the system under
+test, after `noOrphanedCatalogs` in L-079. Both cost more than the defects they were guarding. The
+common signature is worth stating: **a contract that fails intermittently under load, where every
+component it exercises is provably correct, is usually measuring something it does not own.**
+
+**And the standing note now has five instances.** A logger delta read as an interval (L-076), a
+negative control that could not fail (L-074), an `ssr` passthrough read as a dead update, a packet
+count read as a missing event, and — twice in this entry alone — a conclusion published before the
+instrument could distinguish the cases it was being asked about. Each correction cost less than the
+investigation it replaced, which is the argument for reaching for the instrument first.
+
+**Two things kept.** `environment` on every `enter`/`return`, and the failure diagnosis widened from
+the last 10 trace entries to the last 40 — with 10, the answer was off the end of the window, which
+is why the ssr passthrough looked like the last thing that happened. Both are printed only on
+failure.
+
+**The method note.** This is the third entry in three days where the diagnosis, not the product, was
+the thing at fault — after a logger delta read as an interval (L-076) and a negative control that
+could not fail (L-074). The pattern is consistent enough to state as a rule: **when a measurement and
+a mechanism disagree, suspect the instrument first.** It is cheaper to check than a hypothesis, and
+in all three cases it was the answer.
+
+### L-081 — the delivery assertion was right and blamed the wrong party
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 under contention         |
+| **Bucket**                  | 1 — the assertion could not name what it had observed |
+| **Facet contract changed?** | No                                                    |
+
+L-080 moved `hmr-hammer` onto the guarantee Zintl makes — the final module reaches the browser — and
+CI failed it on `vanilla-spa-basic` on the next run. The diagnosis is worth reading whole, because it
+says something different from what it looks like:
+
+```
+Bodies received (6):  main.ts?t=…051769 11382B found=[]   ×3, all identical
+hmr trace:            enter src/main.ts seq=…051769 bytes=3496 env=client → invalidated=5/1
+                      enter src/main.ts seq=…051865 bytes=3496 env=client → invalidated=5/0
+                      enter src/main.ts seq=…051933 bytes=3496 env=client → invalidated=5/0
+```
+
+**Three watcher events for five edits, every one carrying the same byte count**, and none carrying
+the final content — `Hammer N` is 8 characters against `HMR Hammer works!`'s 17, so the final version
+is the only one of its size and it is absent. The host never reported the last edit at all. Blaming
+delivery for that is blaming Zintl for an event it never received.
+
+**Which vindicates a mechanism this proposal had already proposed, retracted, and needed twice.** The
+contract mixed three raw truncating `writeFile`s with a final atomic rename, all inside ~100 ms, and
+chokidar's atomic-save detection collapses an `unlink` followed by an `add` on one path in that
+window. L-080 proposed exactly this, measured 2/10 → 1/10 on `react-basic` — noise — and reverted it
+on the rule that a change with no measured benefit does not ship. That rule was right and the
+conclusion drawn from it was too strong: **`react-basic` was the project where the final event
+survived**, so it could not have shown the difference. The burst writes are atomic now, on evidence
+from the project that does lose it.
+
+**And the assertion learned to say which party failed.** Before asserting delivery it now waits for
+the host to _report_ content of the final size, and fails distinctly when it does not — naming
+watcher coalescing rather than Zintl. Two failures that look identical from the browser have
+different owners, which is precisely what L-075 fixed for removals by tracing them separately, and
+what this contract has now taught twice.
+
+One cosmetic defect fixed alongside: the failure printed `Bodies received for {}` because the URL
+matcher had become a `RegExp` and `JSON.stringify` renders those as an empty object. A diagnosis that
+cannot name what it was looking for is the shape this proposal keeps paying for.
+
+**Measured 0 failures in 10 under the CPU contention that produced the original failure.**

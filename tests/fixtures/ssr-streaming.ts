@@ -35,8 +35,28 @@ export async function render(url) {
   const encoder = new TextEncoder();
   return new ReadableStream({
     async start(controller) {
+      /**
+       * The head carries Vite's client, because otherwise nothing here can
+       * receive a hot update at all.
+       *
+       * ZHMR §4.3's guarantee is that a server-only edit reaches the *browser*
+       * as a full reload, and the browser acts on that packet through the HMR
+       * client Vite injects into every dev page. This fixture builds its own
+       * document rather than transforming an \`index.html\`, so nothing injected
+       * it — the server broadcast \`full-reload\` into a page with no socket
+       * open, and the contract read the resulting unchanged text as a stale
+       * server render (ledger L-072).
+       *
+       * A real app gets this from \`transformIndexHtml\`. A fixture that streams
+       * its own document has to say it, and saying it is what makes the
+       * fixture model the thing under test.
+       */
       controller.enqueue(
-        encoder.encode('<!doctype html><html lang="' + locale + '"><head></head><body>'),
+        encoder.encode(
+          '<!doctype html><html lang="' + locale + '"><head>' +
+            '<script type="module" src="/@vite/client"></script>' +
+            '</head><body>',
+        ),
       );
 
       // The yield. Another request enters its own scope here and overwrites the
@@ -68,13 +88,26 @@ import { createServer } from "vite";
 
 const port = Number(process.env.PORT || 0);
 
+const app = http.createServer((req, res) => {
+  handler(req, res);
+});
+
+/**
+ * Vite is handed this server so its HMR socket rides on it.
+ *
+ * In middleware mode Vite has no listener of its own, so without one it opens
+ * a second on a **fixed** port (24678) — shared by every SSR project in the
+ * suite, across four workers. Whichever one binds first owns it and the rest
+ * broadcast into nothing, which looks identical to a server that re-rendered
+ * stale HTML.
+ */
 const vite = await createServer({
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, hmr: { server: app } },
   appType: "custom",
   logLevel: "silent",
 });
 
-const app = http.createServer((req, res) => {
+const handler = (req, res) => {
   vite.middlewares(req, res, async () => {
     try {
       const { render } = await vite.ssrLoadModule("/src/entry-server.js");
@@ -96,7 +129,7 @@ const app = http.createServer((req, res) => {
       res.end(String(err && err.stack ? err.stack : err));
     }
   });
-});
+};
 
 app.listen(port);
 `;

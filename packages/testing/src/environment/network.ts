@@ -13,6 +13,30 @@ export interface NetworkCapture {
   readonly requests: ReadonlyArray<CapturedRequest>;
 }
 
+/** One script body the page received, reduced to what the caller asked about. */
+export interface DeliveredBody {
+  url: string;
+  /** The `?t=` it was fetched under, when the host stamps one. */
+  t?: string;
+  /** Bytes received — enough to tell two versions of one file apart. */
+  length: number;
+  /** Which of the caller's markers this body contained. */
+  found: string[];
+}
+
+export interface BodyCapture {
+  /** Everything received so far, oldest first. */
+  readonly bodies: ReadonlyArray<DeliveredBody>;
+  /**
+   * Resolve once a received body contains `text`; throw listing what did arrive.
+   *
+   * The bound is a failure budget, not a measurement: presence is observed as
+   * soon as it happens, and only absence has to wait.
+   */
+  waitForBody(text: string, opts?: { timeout?: number }): Promise<DeliveredBody>;
+  stop(): DeliveredBody[];
+}
+
 export class LabNetwork {
   private page: Page;
   private _requests: CapturedRequest[] = [];
@@ -66,6 +90,93 @@ export class LabNetwork {
       },
       get requests() {
         return requests;
+      },
+    };
+  }
+
+  /**
+   * Record the **bodies** the page receives for modules matching `match`.
+   *
+   * `capture()` above records that a request happened; this records what came
+   * back, which is a different question and the one that ends an argument about
+   * whether an update reached the browser. Ledger L-080 spent five probes
+   * establishing that every step Zintl owns was correct — the file on disk, the
+   * watcher event, the bytes handed to the plan, the modules invalidated, the
+   * packet on the wire — and the thing that finally settled it was reading what
+   * the browser was actually served.
+   *
+   * `markers` is what makes it host-neutral. On Vite the final content arrives
+   * as its own module; on Rspack the same edit reloads the page and the content
+   * comes back inside a hashed bundle. Asking "which URL" would be a contract
+   * guessing at host-shaped paths, the mistake L-049, L-056 and L-062 each made
+   * somewhere else. Asking "which body contained this text" is the same question
+   * on both.
+   */
+  captureBodies(match: string | RegExp, markers: string[]): BodyCapture {
+    const bodies: DeliveredBody[] = [];
+    let live = true;
+
+    const onResponse = (res: Response) => {
+      if (!live) return;
+      const url = res.url();
+      const hit = typeof match === "string" ? url.includes(match) : match.test(url);
+      if (!hit) return;
+      void res
+        .text()
+        .then((body) => {
+          if (!live) return;
+          /**
+           * Reduced on arrival rather than stored.
+           *
+           * A dev bundle is megabytes and a page fetches many; keeping the text
+           * would hold a project's whole graph for the life of a lab. What a
+           * caller ever asks is "did this contain X", so that is what is kept.
+           */
+          bodies.push({
+            url,
+            t: url.split("?t=")[1]?.split("&")[0],
+            length: body.length,
+            found: markers.filter((m) => body.includes(m)),
+          });
+        })
+        .catch(() => {
+          /* A body the browser discarded is one this cannot report on. */
+        });
+    };
+    this.page.on("response", onResponse);
+
+    const stop = () => {
+      live = false;
+      this.page.off("response", onResponse);
+      return [...bodies];
+    };
+
+    return {
+      get bodies() {
+        return bodies;
+      },
+      stop,
+      async waitForBody(text: string, opts?: { timeout?: number }) {
+        const deadline = Date.now() + (opts?.timeout ?? 10_000);
+        for (;;) {
+          const hit = bodies.find((b) => b.found.includes(text));
+          if (hit) return hit;
+          if (Date.now() > deadline) {
+            const seen = bodies
+              .map(
+                (b) =>
+                  `    ${b.url.split("/").pop()} t=${b.t ?? "(none)"} ${b.length}B ` +
+                  `found=[${b.found.join(",")}]`,
+              )
+              .join("\n");
+            throw new Error(
+              `The browser never received a module containing ${JSON.stringify(text)}.\n\n` +
+                `Bodies received for ${String(match)} (${bodies.length}):\n` +
+                `${seen || "    (none)"}`,
+            );
+          }
+          await new Promise((r) => setTimeout(r, 50));
+        }
       },
     };
   }

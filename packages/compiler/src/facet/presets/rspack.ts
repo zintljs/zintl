@@ -15,6 +15,11 @@ export function rspackFacet(): ZintlFacet {
   return {
     name: "rspack",
     concern: "bundler",
+    /**
+     * A new boundary is a new chunk, and a changed entrypoint chunk set is a
+     * reload on this host — decided by the dev server before Zintl is asked.
+     */
+    absorbsStructuralChange: false,
     priority: 100,
     /**
      * Unplugin's Rspack build context reports `framework: "rspack"` even when

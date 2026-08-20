@@ -240,9 +240,9 @@ export class LabAssertions {
         lines.push("hmr trace: EMPTY — no hot-update hook ran on this host");
       } else {
         lines.push(
-          `hmr trace: ${trace.length} entries, last 10 (oldest first):\n` +
+          `hmr trace: ${trace.length} entries, last 40 (oldest first):\n` +
             trace
-              .slice(-10)
+              .slice(-40)
               .map((e: any) => {
                 switch (e.kind) {
                   case "skip-writing":
@@ -259,11 +259,19 @@ export class LabAssertions {
                      * not report one; "0" would say it reported none, which is
                      * a defect rather than a difference.
                      */
-                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}`;
+                    return (
+                      `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}` +
+                      `${e.contentLength !== undefined ? ` bytes=${e.contentLength}` : ""}` +
+                      `${e.environment ? ` env=${e.environment}` : ""}`
+                    );
                   case "repoint":
                     return `    repoint "${e.moduleId}" ${e.oldFile ?? "(none)"} → ${e.newFile} (boundary=${e.boundaryId}, fileId=${e.fileId})`;
                   case "return":
-                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}${e.passthrough ? " (passthrough)" : ""}`;
+                    return (
+                      `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}` +
+                      `${e.environment ? ` env=${e.environment}` : ""}` +
+                      `${e.passthrough ? " (passthrough)" : ""}`
+                    );
                   default:
                     return `    ${e.kind} ${e.file}`;
                 }
@@ -440,15 +448,12 @@ export class LabAssertions {
   }
 
   /**
-   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
-   *
-   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
-   * throws and the UI goes blank — but an orphan is silent: it sits in the
-   * output directory forever, gets committed, gets translated, and describes
-   * source that no longer exists.
-   */
-  /**
    * Drive the compiler's pending writes to completion, then return.
+   *
+   * Two assertions depend on it, from opposite directions: `noOrphanedCatalogs`
+   * asks what is still on disk that should not be, and `catalogContains` asks
+   * what is not yet on disk that should be. Both are reading the output of work
+   * the compiler has scheduled and not finished.
    *
    * A single `await flush()` is not enough, and the compiler says so: a caller
    * arriving mid-flush is handed the **in-flight** promise, and its own dirt is
@@ -462,8 +467,16 @@ export class LabAssertions {
    * passed. The bound is a safety net for a compiler that cannot make progress,
    * and reaching it is a bug worth failing on rather than papering over — so
    * the caller's assertion runs anyway and reports whatever it finds.
+   *
+   * `satisfied` lets a caller leave the moment its own claim is true, rather
+   * than driving the compiler to a quiescence it does not need. That is not an
+   * optimisation: on `vue-basic` — the heaviest project here — four full
+   * flushes under four-worker contention exhausted the 45-second test cap,
+   * green ten times in ten in isolation and red on `ready:examples`. Stopping
+   * on the claim keeps the wait causal *and* proportionate; the remaining
+   * rounds still exist for the case where the claim never becomes true.
    */
-  private async flushUntilQuiescent(rounds = 4): Promise<void> {
+  private async flushUntilQuiescent(rounds = 4, satisfied?: () => boolean): Promise<void> {
     const compiler = this.lab.compiler.instance as
       | {
           flush?(): Promise<void>;
@@ -473,6 +486,7 @@ export class LabAssertions {
     if (!compiler?.flush) return;
 
     for (let i = 0; i < rounds; i++) {
+      if (satisfied?.()) return;
       await compiler.flush();
       const dirty =
         (compiler.messages?.dirtyBoundaries?.size ?? 0) > 0 ||
@@ -494,6 +508,14 @@ export class LabAssertions {
    * as the boundary is forgotten, and fails saying so if it never is. The budget
    * exists because a watcher that never fires is a real defect that should
    * surface here rather than as a puzzling orphan list.
+   *
+   * **Its failure message used to name that cause outright, and on Rspack the
+   * name was wrong.** Traced, the host reports the removal correctly —
+   * `1 removed: …/src/App.tsx` — and the boundary comes back seventeen
+   * milliseconds later, which is L-071 and not the watcher. A diagnosis frozen
+   * into an error string is prose that outlives its measurement, the habit this
+   * suite keeps catching itself in, so the message now names both causes and
+   * says how to tell them apart.
    */
   async boundaryForgotten(filePath: string, timeoutMs = 8000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
@@ -502,11 +524,35 @@ export class LabAssertions {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw new Error(
-      `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted. ` +
-        `The host's watcher never reported the unlink, so nothing can reclaim what it owned.`,
+      `The compiler still knows a boundary for ${filePath} ${timeoutMs}ms after it was deleted, ` +
+        `so nothing can reclaim what it owned.\n\n` +
+        `Matched by: ${this.lab.compiler.matchingBoundaries(filePath).join(", ") || "(nothing — the match is stale)"}\n\n` +
+        `Two causes produce this and they are not the same. Either the host never reported the ` +
+        `unlink — check the hot-update trace for a "removed" batch — or it did, the compiler ` +
+        `forgot the boundary, and something re-registered it (ledger L-071); the compiler logs ` +
+        `"Re-registering …, which removeFile had forgotten" when that happens.`,
     );
   }
 
+  /**
+   * Assert no catalog on disk belongs to a boundary the compiler no longer has.
+   *
+   * **Kept, and currently uncalled, deliberately.** `chaos-boundary` called it
+   * and was wrong to: `pruneOrphanedBoundaries` returns early when
+   * `isDev && !isTestEnv`, so pruning happens in a dev session *only because a
+   * test runner is present*, and the assertion verified a code path users never
+   * execute. Seven ledger passes and two skipped projects went into that.
+   *
+   * It is correct and it has a home — pruning is live in **builds**, where
+   * nothing asserts it. The contract that should call it is a post-build orphan
+   * check gated on `build`, and it is not written yet. Deleting this would mean
+   * writing it twice.
+   *
+   * The reverse of the usual worry. A missing catalog is loud — `verifyIntegrity`
+   * throws and the UI goes blank — but an orphan is silent: it sits in the
+   * output directory forever, gets committed, gets translated, and describes
+   * source that no longer exists.
+   */
   async noOrphanedCatalogs(): Promise<void> {
     /**
      * Reclamation happens during a flush, and a flush is debounced.
@@ -617,7 +663,7 @@ export class LabAssertions {
   }
 
   /**
-   * A translation reached disk with the value the caller expects.
+   * A key reached a catalog on disk, optionally with the value the caller expects.
    *
    * Located through {@link findCatalogFor}, so the catalog is the one the
    * compiler says holds `key` rather than a path this file invented. The
@@ -626,8 +672,33 @@ export class LabAssertions {
    * repository uses**, reached through an `options` property the compiler does
    * not expose. It could only ever throw "Catalog file not found", which is
    * presumably why nothing called it.
+   *
+   * **Three things had to change before it could be called.**
+   *
+   * 1. It waits for the compiler first. A key reaches disk during a flush, and
+   *    a flush is debounced — reading the directory the instant the DOM settles
+   *    asks the question before the work has happened. {@link flushUntilQuiescent}
+   *    makes it happen instead of hoping it has (ZDB §9.3), which is what let
+   *    ledger L-066's claim come back as a causal assertion rather than the
+   *    wall-clock poll that had to be deleted.
+   * 2. It reads through the catalog's *shape*. Values are strings in a
+   *    per-locale file and objects keyed by locale in a merged one — the same
+   *    distinction {@link setTranslation} was given for writing. Comparing
+   *    `content[key]` to a string could only ever fail on a merged catalog, so
+   *    this assertion was latently broken on `vanilla-spa-basic` and
+   *    `rsbuild-vanilla-basic` for its whole life.
+   * 3. `value` is optional. "The translator can find this string" is a weaker
+   *    claim than "it has been translated", and it is the one §4.1③ makes: a
+   *    newly extracted key is written with an empty value until someone fills
+   *    it in.
    */
-  async catalogContains(opts: { locale: string; key: string; value: string }): Promise<void> {
+  async catalogContains(opts: { locale: string; key: string; value?: string }): Promise<void> {
+    const onDisk = () => {
+      const p = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
+      return p.ok && p.carriesKey;
+    };
+    await this.flushUntilQuiescent(4, onDisk);
+
     const probe = findCatalogFor(this.lab, { locale: opts.locale, key: opts.key });
     if (!probe.ok) {
       throw new Error(`Cannot check the catalog for ${JSON.stringify(opts.key)}: ${probe.why}`);
@@ -639,11 +710,19 @@ export class LabAssertions {
           `key(s): ${probe.keys.slice(0, 8).join(", ")}`,
       );
     }
+    if (opts.value === undefined) return;
+
     const content = JSON.parse(await readFile(join(this.lab.root, probe.path), "utf-8"));
-    if (content[opts.key] !== opts.value) {
+    const entry = content[opts.key];
+    const actual =
+      entry !== null && typeof entry === "object" && !Array.isArray(entry)
+        ? (entry as Record<string, unknown>)[opts.locale]
+        : entry;
+
+    if (actual !== opts.value) {
       throw new Error(
         `Expected catalog key "${opts.key}" in ${probe.path} to have value "${opts.value}", ` +
-          `but got "${content[opts.key]}"`,
+          `but got ${JSON.stringify(actual)}`,
       );
     }
   }

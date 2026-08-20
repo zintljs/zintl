@@ -83,8 +83,8 @@ describes the previous build. Replacing a module in place while its boundary map
 boundaries that have moved is the failure this section exists to prevent — and because Zintl has no
 source-locale fallback, the symptom is not a stale string but an empty one.
 
-There are two correct ways to satisfy that, and which applies is decided by the **entry**, not by the
-kind of change:
+There are two correct ways to satisfy that, and which applies is decided by the **entry and the
+host**, not by the kind of change:
 
 #### §4.2.1 — Re-execution-safe entries hot-replace
 
@@ -93,13 +93,20 @@ runtime facet — the re-executed entry rebuilds the boundary map itself. The st
 absorbed in place, and a reload would discard application state to reach a state the update already
 reached.
 
+**The host has a veto**, and it is the half this section originally missed. A new boundary is a new
+catalog chunk, and a host that answers a changed entrypoint chunk set with a full reload does so
+before Zintl is consulted — measured on Rspack, where `plan.fullReload` is `false` for exactly the
+edits that reload. `BundlerFacet.absorbsStructuralChange` states it, defaulting to `true`, and a
+project takes §4.2.1 only when the framework _and_ the host both allow it (ledger L-074).
+
 **Mechanism**: the compiler emits a self-accepting snippet for the entry. The update arrives as an
 ordinary `update`; the boundary graph grows; the page is correct on the next render.
 
 #### §4.2.2 — Everything else reloads
 
 When the entry is not re-execution-safe, in-place replacement is not merely slower but wrong: the
-module that would accept the update is no longer the module that owns the code.
+module that would accept the update is no longer the module that owns the code. The same route
+applies, for a different reason, wherever the host cannot absorb a graph change at all.
 
 **Mechanism**: the update bubbles until it becomes a full page reload. Hosts reach that differently —
 Vite accepts and then calls `import.meta.hot.invalidate()`, while Rspack has no `invalidate()` and
@@ -121,6 +128,21 @@ Triggered when:
 
 **Mechanism**:
 Since browser-based HMR cannot execute HMR updates for modules not imported in the client graph, server-only updates are untracked by the browser. To resolve this, Zintl tracks SSR vs client transformations. If an update affects a boundary in `ssrBoundaries` but not `clientBoundaries`, Zintl sends a `{ type: 'full-reload', path: '*' }` WebSocket message to the browser, prompting a full page refresh to fetch the newly server-rendered HTML.
+
+**Precondition — the page has to be listening.** Zintl broadcasts; the _host's_ HMR client is what
+acts on the packet, so §4.3 holds only where the served document carries it. Two ways an SSR app
+loses that without any sign of it, both measured (ledger L-072):
+
+- **A document Zintl or the app builds itself**, rather than one passed through
+  `transformIndexHtml`, has no client script injected into it. The broadcast reaches nothing.
+- **A dev server in middleware mode** has no listener for the host to attach the HMR WebSocket to,
+  so unless the app passes one (`server: { middlewareMode: true, hmr: { server } }`) the host opens
+  its own on a fixed port. A second SSR app on that machine then either fails to bind or answers the
+  first app's browser.
+
+Neither is visible from the server: the broadcast is sent, logged and counted in both cases. A
+reload that does not happen and a reload that happens onto stale output look identical unless the
+_client_ is observed, which is what the contract for this section now does.
 
 ### §4.4 — Synchronous HMR Catalog Injection (Framework Agnostic HMR)
 

@@ -36,49 +36,37 @@ export const hmrServerRefreshContract: Contract<SsrAdapter & HmrAdapter> = {
    */
   requires: ["ssr", "hmr-server-refresh"],
   /**
-   * **Measured red, and the halves come apart in an informative place.** The
-   * full-reload broadcast *does* fire — the packet assertion below passes — and
-   * the page that comes back still says `Get started`. So ZHMR §4.3's detection
-   * and signalling work, and what the browser re-fetches is HTML the server
-   * rendered from the module it had before the edit.
+   * **Green, and the fourth step was never the module runner.**
    *
-   * Recorded as pending with the measurement rather than left red. Fixing it is
-   * a product change and out of this pass's scope; the value here is that the
-   * section has an executable contract at all, for the first time — it was
-   * specified, implemented, and unreachable, because every hot-update contract
-   * required `spa` and no SSR project claims it.
+   * This contract was measured red for its whole life with the diagnosis
+   * "detection, signalling and SSR module-graph invalidation all work;
+   * `ssrLoadModule` returns the module evaluated before the edit". Three of
+   * those four observations were correct. The conclusion was not, and the
+   * reason it survived is the one L-060 records: **every piece of evidence was
+   * taken on the server.**
+   *
+   * `interceptViteHmr` wraps `ws.send`, so `hmr packets: {"full-reload": 8}`
+   * says the server broadcast eight times — not that anything heard one. This
+   * fixture streams its own document with an empty `<head>`, so the page had no
+   * `/@vite/client` and therefore no socket at all. The browser never reloaded,
+   * never re-requested, and the unchanged text was read as a stale server
+   * render. The runner's cache was never reached, let alone stale.
+   *
+   * Two things had to change, and both are about the fixture modelling dev SSR
+   * honestly rather than about Zintl:
+   *
+   * 1. **The page carries Vite's client.** A real app gets it from
+   *    `transformIndexHtml`; a fixture that builds its own document has to say
+   *    so. Adding it immediately surfaced a genuine product defect — the dev
+   *    HMR snippet was spliced before the file's last `</script>`, which for a
+   *    plain module is inside a string literal (ledger L-073).
+   * 2. **The HMR socket rides the app's own server.** In middleware mode Vite
+   *    otherwise opens a second listener on a fixed port, shared by every SSR
+   *    project across four workers.
+   *
+   * ZHMR §4.3 holds on `ssr-streaming`, and the same wiring is what let
+   * `react-ssr` reclaim the `hmr` capability it had been carrying unmeasured.
    */
-  /**
-   * **Three of the four steps work. The fourth is Vite's SSR module cache.**
-   *
-   * Instrumented per environment, an edit to `src/entry-server.js` produces:
-   *
-   * ```
-   * ENVRESULT=ssr → count=5      ← the applier invalidated 5 modules
-   * ENVRESULT=ssr → count=5      ← twice; no client environment fires at all
-   * hmr packets: {"full-reload": 2}
-   * ```
-   *
-   * So detection (`ssrBoundaries` minus `clientBoundaries`), signalling (the
-   * broadcast), and invalidation (the SSR environment's module graph) are all
-   * correct. What is stale is what the *server* renders from: the fixture calls
-   * `vite.ssrLoadModule()` per request, and in Vite 6+ that is backed by a
-   * module **runner** whose evaluated-module cache is separate from the module
-   * graph. `mg.invalidateModule()` clears the graph node; it does not evict the
-   * runner's already-evaluated module, so the next request re-renders from the
-   * function object built before the edit.
-   *
-   * Left pending rather than guessed at. The next step is to find what evicts
-   * the runner's cache on this Vite version — the graph invalidation is already
-   * happening and is not the missing piece.
-   */
-  pendingFor: {
-    "ssr-streaming":
-      "Vite's SSR module runner keeps the pre-edit module. Detection, the full-reload broadcast " +
-      "and SSR module-graph invalidation (5 modules, twice) all measured working; ssrLoadModule " +
-      "still returns the module evaluated before the edit. Needs the runner's evaluated-module " +
-      "cache evicted, which module-graph invalidation does not do in Vite 6+.",
-  },
   async execute(lab, adapter) {
     const edit = adapter.serverOnlyEdit;
     if (!edit) {

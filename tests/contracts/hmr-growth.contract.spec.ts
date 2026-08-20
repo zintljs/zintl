@@ -45,24 +45,24 @@ import { allManifests } from "../manifests/index.js";
  * framework syntax, and a contract that synthesised it would be naming apps
  * again.
  */
-export const hmrGrowthContract: Contract<HmrAdapter> = {
-  name: "HMR Growth",
-  description:
-    "Verifies a new sink hot-replaces, and a new anchor takes whichever structural route its entry allows",
+export const hmrSinkContract: Contract<HmrAdapter> = {
+  name: "HMR Sink",
+  description: "Verifies a new sink renders and its key reaches a catalog on disk",
   requires: ["hmr", "hmr-structural"],
   /**
-   * Green on both projects, on both halves it can prove causally.
+   * Both halves of §4.1③ are asserted again, and both causally.
    *
-   * The catalog-write claim it used to carry is recorded as ledger L-066 and
-   * removed from the body — see the comment where it stood for why a wall-clock
-   * assertion had to go rather than be tuned.
+   * The catalog-write claim this contract used to carry was recorded as ledger
+   * L-066 and deleted from the body, because the only way to ask it then was a
+   * wall-clock poll. It is back — see the comment where it stood — now that
+   * `catalogContains` waits on the compiler's dirty set instead of a budget.
    */
   async execute(lab, adapter) {
-    const { addSink, addAnchor } = adapter;
-    if (!addSink || !addAnchor) {
+    const { addSink } = adapter;
+    if (!addSink) {
       throw new Error(
-        `This project claims "hmr-structural" without declaring both "addSink" and "addAnchor". ` +
-          `The capability is exactly the claim that it can describe those two edits.`,
+        `This project claims "hmr-structural" without declaring "addSink". The capability is ` +
+          `exactly the claim that it can describe that edit.`,
       );
     }
 
@@ -87,40 +87,132 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
       await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
     }
 
-    const warmPackets = warmCapture.stop();
-    if (warmPackets.some((p) => p.type === "full-reload")) {
+    warmCapture.stop();
+
+    /**
+     * **Whether it arrived warm is `HMR Sink Warm`, below**, because that is a
+     * `hmr-warm` claim and this contract does not require one.
+     *
+     * Asserted here, it failed `rsbuild-vanilla-basic` and `rsbuild-svelte-basic`
+     * on their first run — both reload for *every* edit, which L-063 measured,
+     * named and gave a capability to. That is the host and framework behaving as
+     * documented, not a §4.1 violation. `hmr` says an edit reaches the browser;
+     * `hmr-warm` says how.
+     */
+
+    /**
+     * The new key reached a catalog, so a translator can find it (ledger L-066).
+     *
+     * A sink that renders and never lands in a catalog is untranslatable, and
+     * **invisible to every visual assertion in this suite** — the page is
+     * correct in the source locale, which is precisely the state Zintl's
+     * no-fallback rule exists to make impossible everywhere else.
+     *
+     * This claim was asserted once, failed, and was removed rather than tuned.
+     * The only way to ask it then was to poll a file for a while and give up,
+     * and ZDB §9.3 is explicit that a timing heuristic may exist as a declared
+     * fallback and never on a success path. It behaved exactly as that rule
+     * predicts: green on `react-basic` in isolation, red on the same project
+     * under four-worker contention, with the budget deciding the verdict rather
+     * than the behaviour.
+     *
+     * What brings it back is the **causal** signal it said it needed.
+     * `catalogContains` now drives the compiler's own flush to quiescence
+     * first — looping on the dirty set, so it terminates because there is no
+     * work left rather than because time passed. Nothing here is waited for on
+     * a clock.
+     *
+     * The locale is a non-source one deliberately: the source locale is
+     * ghosted and never written to disk, so asking for it would assert the
+     * absence of a file the compiler is designed not to produce. No value is
+     * asserted — a newly extracted key is written empty until someone
+     * translates it, and "the translator can find it" is the whole claim.
+     */
+    if (addSink.expectText) {
+      await lab.assert.catalogContains({
+        locale: catalogLocale(lab),
+        key: addSink.expectText,
+      });
+    }
+  },
+};
+
+/**
+ * The same edit, and the guarantee `HMR Sink` cannot make: it arrives warm.
+ *
+ * Split out rather than branched inside, because which projects can promise
+ * this is a **manifest** question and the suite answers manifest questions by
+ * selection. A contract that read a capability and branched on it would be
+ * doing the runner's job in the wrong place, and would be the first per-project
+ * conditional in this directory.
+ */
+export const hmrSinkWarmContract: Contract<HmrAdapter> = {
+  name: "HMR Sink Warm",
+  description: "Verifies adding a new sink is absorbed without a full page reload",
+  requires: ["hmr", "hmr-structural", "hmr-warm"],
+  async execute(lab, adapter) {
+    const { addSink } = adapter;
+    if (!addSink) {
       throw new Error(
-        `Adding a sink to ${addSink.file} reloaded the page. ZHMR §4.1 lists "a sink is added ` +
-          `or removed without changing the boundary hierarchy" among the Fast Replacement ` +
-          `triggers — the boundary already exists, so only its content changed.\n\n` +
-          `Packets: ${warmPackets.map((p) => p.type).join(", ")}`,
+        `This project claims "hmr-structural" without declaring "addSink". The capability is ` +
+          `exactly the claim that it can describe that edit.`,
       );
     }
 
-    /**
-     * **Deliberately not asserted here: that the new key reached a catalog on
-     * disk.** It was written, it failed, and the reason it is gone is worth
-     * more than the assertion was.
-     *
-     * The claim is real — a sink that renders but never lands in a catalog is
-     * untranslatable, and invisible to every visual assertion in this suite.
-     * But the only way this contract could ask it was to poll a file for a
-     * while and give up, and ZDB §9.3 is explicit that a timing heuristic may
-     * exist as a declared fallback and never on a success path. It behaved
-     * exactly as that rule predicts: green on `react-basic` in isolation, red on
-     * the same project under four-worker contention, with the budget deciding
-     * the verdict rather than the behaviour.
-     *
-     * What it did establish before being removed is recorded as ledger L-066:
-     * on `vanilla-spa-basic` the key never arrives *at all* — checked to 25
-     * seconds, which is past any timing story — while `react-basic` writes it
-     * promptly on a quiet machine. That is a real difference and a real gap.
-     *
-     * Asserting it properly needs a **causal** signal: the compiler's own flush
-     * generation, waited on the way `waitForSettled` waits on the runtime's,
-     * rather than a wall clock. That is harness work, not a tuned constant, and
-     * until it exists this contract asserts what it can prove.
-     */
+    await adapter.navigateHome(lab);
+    await lab.clock.waitForIdle();
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
+
+    const capture = lab.ws.capture();
+    await insert(lab, addSink, "addSink");
+
+    if (addSink.expectText) {
+      await lab.assert.textEventually(
+        addSink.selector ?? adapter.headingSelector,
+        addSink.expectText,
+      );
+    } else {
+      await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
+    }
+
+    const packets = capture.stop();
+    if (packets.some((p) => p.type === "full-reload")) {
+      throw new Error(
+        `Adding a sink to ${addSink.file} reloaded the page, on a project claiming "hmr-warm". ` +
+          `ZHMR §4.1 lists "a sink is added or removed without changing the boundary hierarchy" ` +
+          `among the Fast Replacement triggers — the boundary already exists, so only its ` +
+          `content changed.\n\n` +
+          `Packets: ${packets.map((p) => p.type).join(", ")}`,
+      );
+    }
+  },
+};
+
+/**
+ * §4.2 — a structural change takes whichever route the entry *and the host* allow.
+ *
+ * Its own contract, and the split is not cosmetic: sharing one test with the
+ * sink work, `vue-basic` exhausted its 45-second cap under four-worker
+ * contention. Three assertions that can each be made independently were
+ * sharing one budget, and the §4.2 route assertion is the one that has to
+ * spend time proving a reload *did not* happen.
+ */
+export const hmrGrowthContract: Contract<HmrAdapter> = {
+  name: "HMR Growth",
+  description: "Verifies a new anchor grows the graph and takes the structural route it is allowed",
+  requires: ["hmr", "hmr-structural"],
+  async execute(lab, adapter) {
+    const { addAnchor } = adapter;
+    if (!addAnchor) {
+      throw new Error(
+        `This project claims "hmr-structural" without declaring "addAnchor". The capability is ` +
+          `exactly the claim that it can describe that edit.`,
+      );
+    }
+
+    await adapter.navigateHome(lab);
+    await lab.clock.waitForIdle();
+    await lab.assert.textEventually(adapter.headingSelector, adapter.initialHeadingText);
 
     // ──────────────────────────────────────────────────────────────────
     // §4.2 — a new anchor or colony is the structural path
@@ -128,12 +220,18 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
 
     /**
      * Which of §4.2's two routes is correct here is a **compiler fact**, asked
-     * of the compiler rather than declared by the manifest. `entryReexecutionSafe`
-     * is resolved from the framework's runtime facet, and it is the whole of
-     * what decides this: §4.2.1 where the entry can be re-run, §4.2.2 where it
-     * cannot.
+     * of the compiler rather than declared by the manifest.
+     *
+     * `entryReexecutionSafe` alone was believed to be the whole of it, and
+     * extending this contract past its two original projects found the missing
+     * half on the first run. A new anchor is a new boundary, a new boundary is a
+     * new catalog chunk, and on Rspack a changed entrypoint chunk set is a full
+     * reload the dev server sends before Zintl is consulted — measured, with
+     * `plan.fullReload` false for exactly the edits that reload (ledger L-074).
+     * `absorbsStructuralChange` composes both, each resolved where it belongs:
+     * the framework's half in a runtime facet, the host's in a bundler facet.
      */
-    const reexecutionSafe = lab.compiler.entryReexecutionSafe;
+    const reexecutionSafe = lab.compiler.absorbsStructuralChange;
     const boundariesBefore = boundaryCount(lab);
 
     const hardCapture = lab.ws.capture();
@@ -174,15 +272,20 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
      * therefore reads the first packet of a two-packet exchange and concludes
      * the reload never happened. Waited for, bounded, and the absence after the
      * budget is what the §4.2.2 assertion below is entitled to call a failure.
+     *
+     * **Both routes wait, and a negative control is why.** The wait used to run
+     * only where a reload was expected, so each arm looked for exactly as long
+     * as it needed to see what it predicted — and inverting the route predicate
+     * outright still passed every project. An assertion whose arms observe for
+     * different durations compares the budgets, not the routes. Inverted now,
+     * it fails 8 of 8.
      */
-    if (!reexecutionSafe) {
-      const reloadDeadline = Date.now() + 4_000;
-      while (
-        !hardCapture.packets.some((p) => p.type === "full-reload") &&
-        Date.now() < reloadDeadline
-      ) {
-        await lab.clock.tick(200);
-      }
+    const reloadDeadline = Date.now() + 4_000;
+    while (
+      !hardCapture.packets.some((p) => p.type === "full-reload") &&
+      Date.now() < reloadDeadline
+    ) {
+      await lab.clock.tick(200);
     }
 
     const hardPackets = hardCapture.stop();
@@ -232,6 +335,29 @@ export const hmrGrowthContract: Contract<HmrAdapter> = {
   },
 };
 
+/**
+ * A locale this project actually writes catalogs for.
+ *
+ * Asked of the compiler rather than declared by the manifest, for the reason
+ * L-062 records: `outputDir`, `catalogFormat` and which locales exist are
+ * resolved compiler facts, and twenty adapters restating them is how a contract
+ * comes to guess at paths the compiler had already worked out. The source
+ * locale is excluded because ghost mode never writes it.
+ */
+function catalogLocale(lab: Lab): string {
+  const compiler = lab.compiler.instance as
+    | { locales?: string[]; sourceLocale?: string }
+    | undefined;
+  const target = compiler?.locales?.find((l) => l !== compiler.sourceLocale);
+  if (!target) {
+    throw new Error(
+      `The compiler reports no locale other than the source one, so no catalog is ever ` +
+        `written and there is nothing for this assertion to look in.`,
+    );
+  }
+  return target;
+}
+
 /** Boundaries the compiler currently knows about, or `-1` if it cannot say. */
 function boundaryCount(lab: Lab): number {
   try {
@@ -255,4 +381,6 @@ async function insert(lab: Lab, edit: SourceInsertion, which: string): Promise<v
   });
 }
 
+executeContract(hmrSinkContract, allManifests);
+executeContract(hmrSinkWarmContract, allManifests);
 executeContract(hmrGrowthContract, allManifests);

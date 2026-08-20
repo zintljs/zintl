@@ -120,7 +120,28 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
       if (!ctx.updateApplier) return;
     }
 
-    for (const file of c.removedFiles ?? []) {
+    /**
+     * Removals are traced as well as acted on, because the trace could not
+     * previously tell "the host reported no deletion" from "the deletion was
+     * reported and dropped".
+     *
+     * That is the same blindness ledger L-041 recorded for the tap itself —
+     * `(registration)` exists so an empty trace means the hook never ran — one
+     * event kind further in. `chaos-boundary` fails here with "the host's
+     * watcher never reported the unlink", and until this line that claim was an
+     * inference from the *absence* of a consequence rather than an observation.
+     */
+    const removed = c.removedFiles;
+    if (removed?.size) {
+      ctx.hmrTrace.push({
+        ts: Date.now(),
+        kind: "watch",
+        file: "(batch)",
+        modulesLength: removed.size,
+        reason: `${removed.size} removed: ${[...removed].join(", ")}`,
+      });
+    }
+    for (const file of removed ?? []) {
       await ctx.compiler.removeFile(file).catch((err: unknown) => {
         ctx.compiler._logger
           .withPrefix("HMR")

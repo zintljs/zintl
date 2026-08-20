@@ -25,11 +25,11 @@ export const vanillaSsr: ProjectManifest = {
     { name: "dist" },
     { name: "dist-server", overrides: { build: { ssr: "src/entry-server.ts" } } },
   ],
-  capabilities: ["ssr", "boundary-graph", "transform", "build", "graph"],
+  capabilities: ["ssr", "hmr", "boundary-graph", "transform", "build", "graph"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
-    headingFile: "src/entry-client.ts",
+    headingFile: "src/entry-server.ts",
     ssrPath: (locale) => `/${locale}/`,
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/en/`);

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import express from "express";
+import http from "node:http";
 
 // Constants
 const isProduction = process.env.NODE_ENV === "production";
@@ -18,6 +19,21 @@ if (isProduction) {
 
 // Create http server
 const app = express();
+/**
+ * An explicit http server, so Vite's HMR socket can share it.
+ *
+ * In middleware mode Vite has no server of its own to attach the HMR
+ * WebSocket to, so unless it is handed one it opens a second listener on a
+ * **fixed** port (24678). One fixed port is one process: a second SSR app
+ * started alongside this one either fails to bind or answers the first
+ * app's browser, and in both cases hot updates simply never arrive — the
+ * server sends them and nothing is listening.
+ *
+ * `express()` is a request handler, not a server, so the handler has to be
+ * wrapped before Vite is created and `httpServer.listen` replaces
+ * `app.listen` at the bottom.
+ */
+const httpServer = http.createServer(app);
 
 // Add Vite or respective production middlewares
 /** @type {import('vite').ViteDevServer | undefined} */
@@ -25,7 +41,7 @@ let vite;
 if (!isProduction) {
   const { createServer } = await import("vite");
   vite = await createServer({
-    server: { middlewareMode: true },
+    server: { middlewareMode: true, hmr: { server: httpServer } },
     appType: "custom",
     base,
   });
@@ -81,6 +97,6 @@ app.use("*all", async (req, res) => {
 });
 
 // Start http server
-app.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`Server started at http://localhost:${port}`);
 });

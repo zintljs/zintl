@@ -26,6 +26,7 @@ export const vanillaSpaBasic: ProjectManifest = {
     "hmr-structural",
     "locale-switch-stress",
     "chaos",
+    "chaos-boundary",
     "memory",
     "performance",
     "transform",
@@ -33,6 +34,15 @@ export const vanillaSpaBasic: ProjectManifest = {
     "graph",
   ],
   adapter: {
+    /**
+     * The host's round trip with nothing for Zintl to do — a comment inside the
+     * script region, which every dialect here accepts and no extractor reads.
+     */
+    perfNoopEdit: {
+      file: "src/main.ts",
+      anchorOn: `import "./style.css";`,
+      insert: `\n// zintl perf baseline`,
+    },
     /**
      * The two edits `hmr-growth` makes. Both land in `src/main.ts` here — this
      * app has one file, which is what makes it the clearest place to see that

@@ -52,6 +52,8 @@ export interface HotUpdateEvent {
    * decides module scope itself.
    */
   modulesLength?: number;
+  /** Which bundler environment reported it — see `HmrTraceEntry.environment`. */
+  environment?: string;
 }
 
 /**

@@ -57,12 +57,15 @@ export function handleHotUpdateHook(ctx: Context) {
       }
     }
 
+    const environment = this && this.environment ? this.environment.name : undefined;
+
     const plan = await computeHotUpdatePlan(ctx, {
       file,
       seq,
       kind,
       content,
       modulesLength: modules?.length,
+      environment,
     });
     if (!plan) return;
 
@@ -80,6 +83,7 @@ export function handleHotUpdateHook(ctx: Context) {
         file,
         invalidatedCount: result.count,
         modulesLength: modules?.length,
+        environment,
         passthrough: false,
       });
       return result.hostModules;
@@ -91,6 +95,7 @@ export function handleHotUpdateHook(ctx: Context) {
       file,
       invalidatedCount: 0,
       modulesLength: modules?.length,
+      environment,
       passthrough: true,
     });
     return modules;

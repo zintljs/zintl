@@ -11,6 +11,7 @@ describe("Runtime Splitting - getRuntimeCode", () => {
     serverRequestScope: false,
     streaming: false,
     entryReexecutionSafe: true,
+    absorbsStructuralChange: true,
     repaintsOnCatalogUpdate: false,
     ssr: false,
     hmr: false,

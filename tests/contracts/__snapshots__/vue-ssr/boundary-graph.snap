@@ -47,6 +47,13 @@
           "id": "node:fs/promises"
         },
         {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "node:http"
+        },
+        {
           "bindings": [],
           "dynamic": true,
           "id": "sirv"

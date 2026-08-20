@@ -82,8 +82,61 @@ export const rsbuildSvelteBasic: ProjectManifest = {
     "rtl",
     "locale-switch-stress",
     "hmr",
+    "performance",
+    "chaos",
+    "hmr-structural",
   ],
   adapter: {
+    /**
+     * The host's round trip with nothing for Zintl to do. A statement rather
+     * than a comment on Vue, whose plugin compares compiled output and strips
+     * comments before comparing.
+     */
+    perfNoopEdit: {
+      file: "src/App.svelte",
+      anchorOn: `<script lang="ts">`,
+      insert: `\n// zintl perf baseline`,
+    },
+    /** Which file `chaos-boundary` renames, and who imports it. */
+    renameBoundary: {
+      fromPath: "src/App.svelte",
+      toPath: "src/AppNew.svelte",
+      parentPath: "src/index.ts",
+      importSearch: "./App.svelte",
+      importReplace: "./AppNew.svelte",
+    },
+    /**
+     * The two edits `hmr-growth` makes, on opposite sides of ZHMR's structural line.
+     *
+     * Svelte on Rspack, which reloads rather than hot-replaces (L-063), so §4.1③'s
+     * no-reload half is the interesting assertion here.
+     */
+    addSink: {
+      file: "src/App.svelte",
+      anchorOn: "<h1>Rsbuild with Svelte</h1>",
+      insert: `\n      <p id="new-sink">A brand new sentence</p>`,
+      expectText: "A brand new sentence",
+      selector: "#new-sink",
+    },
+    addAnchor: {
+      file: "src/index.ts",
+      anchorOn: `import { zintl } from "zintljs/macro";`,
+      insert: [
+        ``,
+        ``,
+        `// A second, independent trust anchor — nested in a function, so it is a`,
+        `// new boundary rather than a second entry point.`,
+        `async function extraAnchor() {`,
+        `  // A *variable* locale, deliberately: a literal is a build-time fact the`,
+        `  // compiler bakes, and baking the source locale emits no catalog chunk at`,
+        `  // all — so the graph might not grow, and the contract would assert on a`,
+        `  // structural change that never happened.`,
+        `  const extraLang = new URLSearchParams(window.location.search).get("x") || "ar";`,
+        `  await zintl(extraLang);`,
+        `  document.title = "Extra anchor added";`,
+        `}`,
+      ].join("\n"),
+    },
     headingSelector: "h1",
     initialHeadingText: "Rsbuild with Svelte",
     /** The heading lives in the component, not the entry. */

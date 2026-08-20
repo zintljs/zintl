@@ -11,7 +11,28 @@ export type Capability =
   | "boundary-graph"
   | "hmr-stress"
   | "locale-switch-stress"
+  /**
+   * Catalogs can be deleted and corrupted underneath a running app, and it
+   * survives (`chaos-catalog`).
+   */
   | "chaos"
+  /**
+   * A boundary file can be **renamed** underneath a running app: the update
+   * still propagates, and the old catalogs are reclaimed (`chaos-boundary`).
+   *
+   * Split from `chaos` because they are two guarantees, and measuring the second
+   * host is what showed it. All six Rsbuild projects satisfy `chaos` — the
+   * capability had been unclaimable there for a *contract* reason (L-062), and
+   * once that was fixed the catalog half simply passed. Not one of them
+   * satisfies this, and none of them fails for a host reason: a graph node for
+   * the deleted file survives a deletion the compiler was told about and acted
+   * on (L-076).
+   *
+   * One capability covering both would have to be refused on all six, recording
+   * a defect Zintl has on *every* host as something Rsbuild cannot do — the
+   * mistake L-049, L-056 and L-062 each made in a different place.
+   */
+  | "chaos-boundary"
   | "memory"
   | "performance"
   | "transform"
@@ -148,6 +169,22 @@ export interface HmrAdapter extends BaseAdapter {
    * ZHMR §4.1③ calls this the warm path: a new sink is new content in an
    * existing boundary, so it must hot-replace rather than reload.
    */
+  /**
+   * An edit to the heading file that changes the file and **no translatable
+   * string** — the host's own hot-update round trip, with nothing for Zintl to
+   * reconcile.
+   *
+   * `performance-hmr` prices this immediately before the real edit and compares
+   * the two, so a busy machine inflates both and cancels out. It has to be
+   * declared rather than synthesised: appending trailing whitespace works on a
+   * module and is *nothing at all* to an SFC, where content outside the blocks
+   * never reaches the compiler and no update is pushed. Where a no-op may
+   * legally go is a property of the dialect, which is the same reason
+   * `addSink` and `addAnchor` are declared here (ledger L-069, L-074).
+   *
+   * A comment just inside the file's script region is the usual answer.
+   */
+  perfNoopEdit?: SourceInsertion;
   addSink?: SourceInsertion;
 
   /**
