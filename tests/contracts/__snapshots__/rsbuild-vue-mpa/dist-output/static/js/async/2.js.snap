@@ -1,6 +1,6 @@
 "use strict";
 (self["rspackChunkrsbuild_vue_mpa"] = self["rspackChunkrsbuild_vue_mpa"] || []).push([[2], {
-46(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+44(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 const catalog = {
     "b_b028ccfc4f80": {

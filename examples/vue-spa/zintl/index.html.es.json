@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "ltr",
-  "title": "Ejemplo de Zintl Vue SPA"
+  "title": "Vite con Vue — Ejemplo con enrutado de Zintl"
 }

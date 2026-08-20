@@ -1,6 +1,7 @@
 import "./style.css";
 import { Router } from "./router";
 import { Header } from "./components/Header";
+import { localeBar, setupSwitcher } from "./switcher";
 import { Home } from "./pages/Home";
 import { zintl } from "zintljs/macro";
 
@@ -10,10 +11,12 @@ async function initApp() {
   // await zintl(currentLocale);
 
   const appRoot = document.querySelector<HTMLDivElement>("#app")!;
+  const barContainer = document.createElement("div");
   const headerContainer = document.createElement("div");
   const contentContainer = document.createElement("main");
 
   appRoot.innerHTML = "";
+  appRoot.appendChild(barContainer);
   appRoot.appendChild(headerContainer);
   appRoot.appendChild(contentContainer);
 
@@ -25,7 +28,12 @@ async function initApp() {
     // Hydrate the app with the new locale's translations
     await zintl(currentLocale);
 
-    // Update Header
+    // Repaint the shared locale bar, then this app's own header
+    barContainer.innerHTML = localeBar();
+    setupSwitcher(barContainer.querySelector<HTMLDivElement>("#switcher")!, (newLocale) => {
+      window.dispatchEvent(new CustomEvent("locale-change", { detail: newLocale }));
+    });
+
     headerContainer.innerHTML = "";
     headerContainer.appendChild(await Header(currentLocale));
 

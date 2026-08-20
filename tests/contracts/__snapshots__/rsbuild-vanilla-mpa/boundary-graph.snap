@@ -57,6 +57,13 @@
         },
         {
           "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
+        },
+        {
+          "bindings": [
             "setupSwitcher"
           ],
           "dynamic": false,
@@ -89,6 +96,13 @@
           "bindings": [],
           "dynamic": false,
           "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
         },
         {
           "bindings": [
@@ -171,6 +185,13 @@
         },
         {
           "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
+        },
+        {
+          "bindings": [
             "setupSwitcher"
           ],
           "dynamic": false,
@@ -203,6 +224,13 @@
           "bindings": [],
           "dynamic": false,
           "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
         },
         {
           "bindings": [

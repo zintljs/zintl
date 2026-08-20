@@ -3,6 +3,11 @@
 `create-rsbuild`'s **vanilla-ts** starter with a client router, localized. The
 routed counterpart of [`rsbuild-vanilla-basic`](../rsbuild-vanilla-basic).
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```bash
 pnpm dev      # rsbuild dev
 pnpm build    # tsc && rsbuild build

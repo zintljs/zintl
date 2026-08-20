@@ -2,20 +2,20 @@
   "boundaryToOwner": {
     "src/App.vue": "src/index:bootstrap",
     "src/components/LocaleSwitcher.vue": "src/index:bootstrap",
-    "src/components/LocaleSwitcher.vue:f_700": "src/components/LocaleSwitcher.vue:f_700",
+    "src/components/LocaleSwitcher.vue:f_846": "src/components/LocaleSwitcher.vue:f_846",
     "src/components/OptionsNote.vue": "src/index:bootstrap",
     "src/index:bootstrap": "src/index:bootstrap"
   },
   "chunks": {
-    "entry_b_cc009e432cb5": {
+    "entry_b_7ed7f9183f38": {
       "boundaries": [
-        "src/components/LocaleSwitcher.vue:f_700"
+        "src/components/LocaleSwitcher.vue:f_846"
       ],
       "colonies": [],
       "entrySources": [
-        "src/components/LocaleSwitcher.vue:f_700"
+        "src/components/LocaleSwitcher.vue:f_846"
       ],
-      "id": "entry_b_cc009e432cb5",
+      "id": "entry_b_7ed7f9183f38",
       "type": "entry"
     },
     "entry_b_dd563dcb7e61": {
@@ -45,7 +45,7 @@
     }
   },
   "entryChunks": {
-    "src/components/LocaleSwitcher.vue:f_700": "entry_b_cc009e432cb5",
+    "src/components/LocaleSwitcher.vue:f_846": "entry_b_7ed7f9183f38",
     "src/index:bootstrap": "entry_b_dd563dcb7e61"
   },
   "lazyChunks": [],

@@ -32,9 +32,6 @@ await zintl(props.lang);
 }
 
 .site-header {
-  position: fixed;
-  inset-block-start: 0;
-  inset-inline: 0;
   display: flex;
   gap: 1.25rem;
   justify-content: center;

@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/about.html.schema.json",
   "dir": "ltr",
-  "title": "Acerca de - Ejemplo de Zintl Vue MPA"
+  "title": "Acerca de — Vite con Vue — Ejemplo multipágina de Zintl"
 }

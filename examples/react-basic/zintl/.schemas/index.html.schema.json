@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: react-basic",
+      "description": "Original: Vite with React — Zintl example",
       "type": "string"
     }
   },

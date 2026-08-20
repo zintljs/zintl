@@ -1,3 +1,11 @@
+<!--
+  The Zintl locale bar — the one piece of UI every example shares.
+
+  Same markup, same class names and same behaviour on every framework and both
+  hosts, so a difference you notice between two examples is a difference in
+  *Zintl* rather than in their chrome. The vanilla, React and Vue examples render
+  this exact DOM from their own dialect; see `docs/examples-locale-bar.md`.
+-->
 <script lang="ts">
   import { zintl } from "zintljs/macro";
 
@@ -15,57 +23,62 @@
     { id: "zh", name: "中文" },
   ];
 
-  const handleSwitch = async (newLang: string) => {
+  /**
+   * A runtime switch: the catalog is swapped in place and the page repaints,
+   * with nothing navigating. `svelte-ssr` is multiplexed and does the opposite.
+   */
+  const handleSwitch = async (next: string) => {
     const url = new URL(window.location.href);
-    url.searchParams.set("lang", newLang);
-    window.history.pushState({}, "", url);
-    await zintl(newLang);
-    onswitch(newLang);
+    url.searchParams.set("lang", next);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await zintl(next);
+    onswitch(next);
   };
 </script>
 
 <!-- @zintl-ignore -->
-<div id="switcher" class="switcher">
-  {#each locales as l (l.id)}
-    <button type="button" class={lang === l.id ? "active" : ""} onclick={() => handleSwitch(l.id)}>
-      {l.name}
-    </button>
-  {/each}
-</div>
-
-<style>
-  /* Logical properties throughout, because `<html dir>` is what Zintl projects
-   * per locale: the Arabic build flips the document and nothing here should need
-   * a second rule to follow it. */
-  .switcher {
-    position: fixed;
-    inset-block-start: 0;
-    inset-inline: 0;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .switcher button {
-    font: inherit;
-    font-size: 0.95rem;
-    line-height: 1.2;
-    color: #fff;
-    cursor: pointer;
-    padding: 0.4rem 0.9rem;
-    border: 1px solid rgb(255 255 255 / 15%);
-    border-radius: 999px;
-    background: rgb(255 255 255 / 6%);
-  }
-
-  .switcher button:hover {
-    background: rgb(255 255 255 / 12%);
-  }
-
-  .switcher button.active {
-    border-color: rgb(255 255 255 / 45%);
-    background: rgb(255 255 255 / 18%);
-  }
-</style>
+<section id="header">
+  <div id="switcher" class="switcher">
+    {#each locales as l (l.id)}
+      <button
+        type="button"
+        data-lang={l.id}
+        class={lang === l.id ? "active" : ""}
+        aria-current={lang === l.id ? "true" : undefined}
+        onclick={() => handleSwitch(l.id)}
+      >
+        {l.name}
+      </button>
+    {/each}
+  </div>
+  <div class="vertical-ticks"></div>
+  <div class="icon-border">
+    <!--
+      The Zintl mark, inline rather than fetched. Inline is the only form that is
+      identical on both hosts: it needs no `public/` directory (the Rsbuild
+      starters have none) and no second request. It is drawn in `currentColor` so
+      it follows the bar into light or dark without a filter, and it is
+      `aria-hidden` — labelling it would put the brand name into every catalog in
+      every locale, which is precisely what it is not.
+    -->
+    <svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
+      <mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+        <rect width="100" height="100" />
+        <g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M16 45V84" />
+          <path d="M16 24v1" />
+          <path d="M62 84V50" />
+          <path d="M62 60a14 14 0 0 1 28 0v24" />
+        </g>
+        <circle cx="39" cy="52" r="21.5" />
+        <circle cx="39" cy="74" r="23" />
+        <circle cx="39" cy="52" r="17.5" fill="#fff" />
+        <circle cx="39" cy="73" r="19" fill="#fff" />
+        <circle cx="39" cy="52" r="5" />
+        <circle cx="39" cy="74" r="6.5" />
+      </mask>
+      <rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)" />
+    </svg>
+  </div>
+</section>
+<div class="ticks"></div>

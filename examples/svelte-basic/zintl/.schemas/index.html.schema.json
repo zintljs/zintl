@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: svelte-basic",
+      "description": "Original: Vite with Svelte — Zintl example",
       "type": "string"
     }
   },

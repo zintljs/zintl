@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>svelte-ssr</title>
+    <title>Vite 搭配 Svelte — Zintl 服务端渲染示例</title>
     <!--app-head-->
     <script type="module" crossorigin src="/assets/zh/index.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/LocaleSwitcher.js">
-    <link rel="stylesheet" crossorigin href="/assets/LocaleSwitcher-CH9fTQeP.css">
+    <link rel="stylesheet" crossorigin href="/assets/LocaleSwitcher-Ctqw4NUW.css">
   </head>
   <body>
     <div id="app"><!--app-html--></div>

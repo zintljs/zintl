@@ -1,7 +1,7 @@
 import "./index.css";
 import { zintl } from "zintljs/macro";
 import { Header } from "./components/Header.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 
 /**
  * The home page's entry — one of two, each with its own HTML document.
@@ -22,15 +22,15 @@ async function render() {
   const page = document.createElement("div");
   page.className = "content";
   page.innerHTML = `
-    <div id="switcher" class="switcher"></div>
     <h1>Vanilla Rsbuild</h1>
     <p>Start building amazing things with Rsbuild.</p>
     <p>Two documents, two entries, one shared header.</p>
   `;
 
-  rootEl.replaceChildren(await Header(lang), page);
+  rootEl.innerHTML = localeBar();
+  rootEl.append(await Header(lang), page);
 
-  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+  setupSwitcher(rootEl.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);

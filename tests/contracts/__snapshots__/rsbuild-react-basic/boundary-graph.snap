@@ -56,6 +56,13 @@
         {
           "dynamic": false,
           "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",
@@ -77,6 +84,13 @@
           "bindings": [],
           "dynamic": false,
           "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",

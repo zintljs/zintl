@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Zintl - Vanilla Baked I18n SPAs",
+      "description": "Original: Vite with TypeScript — Zintl baked-locale example",
       "type": "string"
     }
   },

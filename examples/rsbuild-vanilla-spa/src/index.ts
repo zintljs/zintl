@@ -2,7 +2,7 @@ import "./index.css";
 import { zintl } from "zintljs/macro";
 import { Router } from "./router.ts";
 import { Home } from "./pages/Home.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 
 /**
  * A routed vanilla SPA on Rspack, from `create-rsbuild`'s vanilla starter.
@@ -21,7 +21,7 @@ async function render() {
   if (!rootEl) return;
 
   const shell = document.createElement("div");
-  shell.innerHTML = `<div id="switcher" class="switcher"></div><div id="view"></div>`;
+  shell.innerHTML = `${localeBar()}<div id="view"></div>`;
   rootEl.replaceChildren(shell);
 
   const view = shell.querySelector<HTMLDivElement>("#view")!;

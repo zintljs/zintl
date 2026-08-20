@@ -111,10 +111,10 @@
         },
         {
           "bindings": [
-            "getLocale"
+            "default"
           ],
           "dynamic": false,
-          "id": "zintljs/macro"
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",
@@ -160,14 +160,50 @@
         },
         {
           "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:App",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        },
+        {
+          "bindings": [
             "getLocale"
           ],
           "dynamic": false,
           "id": "zintljs/macro"
         }
       ],
-      "filePath": "src/App.tsx",
-      "id": "src/App.tsx:App",
+      "filePath": "src/components/LocaleSwitcher.tsx",
+      "id": "src/components/LocaleSwitcher.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.tsx:default": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "getLocale"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.tsx",
+      "id": "src/components/LocaleSwitcher.tsx:default",
       "mode": "boundary",
       "usageCount": 0
     },

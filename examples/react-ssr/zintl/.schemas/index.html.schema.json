@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: react-ssr",
+      "description": "Original: Vite with React — Zintl server-rendered example",
       "type": "string"
     }
   },

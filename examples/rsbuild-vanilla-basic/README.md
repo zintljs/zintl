@@ -4,6 +4,11 @@
 switcher, a counter, and a localized `.txt` asset — built and served by
 [Rsbuild](https://rsbuild.dev) instead of Vite.
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```bash
 pnpm dev      # rsbuild dev     — string edits apply, via a page reload (see below)
 pnpm build    # tsc && rsbuild build

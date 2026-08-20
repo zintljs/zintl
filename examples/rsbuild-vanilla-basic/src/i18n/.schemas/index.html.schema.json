@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Vanilla Rsbuild - Zintl example",
+          "description": "Original: Rsbuild with TypeScript — Zintl example",
           "type": "string"
         },
         "es": {
-          "description": "Original: Vanilla Rsbuild - Zintl example",
+          "description": "Original: Rsbuild with TypeScript — Zintl example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: Vanilla Rsbuild - Zintl example",
+          "description": "Original: Rsbuild with TypeScript — Zintl example",
           "type": "string"
         }
       },

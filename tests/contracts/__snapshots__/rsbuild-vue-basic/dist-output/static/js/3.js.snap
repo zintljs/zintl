@@ -1049,11 +1049,11 @@ __webpack_require__.r(__webpack_exports__);
     },
   };
                 case "ar":
-          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 34)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 32)).then(m => m.default);
         case "es":
-          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 35)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 33)).then(m => m.default);
         case "zh":
-          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 36)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 34)).then(m => m.default);
         default: return {};
       }
     }, manifest: [] });

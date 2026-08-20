@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Vanilla Rsbuild router - Zintl example",
+      "description": "Original: Rsbuild with TypeScript — Zintl routed example",
       "type": "string"
     }
   },

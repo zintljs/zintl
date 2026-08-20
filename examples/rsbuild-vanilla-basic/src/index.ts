@@ -1,11 +1,11 @@
 import "./index.css";
 import { zintl } from "zintljs/macro";
 import { setupCounter } from "./counter.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 import aboutText from "./about.txt?raw";
 
 /**
- * `create-rsbuild`'s vanilla starter, with a locale switcher bolted on.
+ * `create-rsbuild`'s vanilla starter, plus the shared Zintl locale bar.
  *
  * The strings are ordinary literals in an ordinary template string — there is no
  * `t()` wrapper and no key dictionary. `zintl(lang)` is the trust anchor, and
@@ -24,8 +24,9 @@ async function render() {
   if (!rootEl) return;
 
   rootEl.innerHTML = `
+    ${localeBar()}
+
   <div class="content">
-    <div id="switcher" class="switcher"></div>
     <h1>Vanilla Rsbuild</h1>
     <p>Start building amazing things with Rsbuild.</p>
     <p>Edit <code>src/index.ts</code> and save to test <code>HMR</code></p>

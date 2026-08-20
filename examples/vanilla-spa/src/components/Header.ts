@@ -1,6 +1,13 @@
 // import { zintl } from "zintljs/macro";
 
-export async function Header(currentLocale: string) {
+/**
+ * This app's own chrome: a brand and its routes.
+ *
+ * The locale bar is deliberately *not* here. It is the one piece of UI every
+ * Zintl example shares, so it is rendered by `main.ts` from `switcher.ts` in the
+ * same shape as every other example — see `docs/examples-locale-bar.md`.
+ */
+export async function Header(_currentLocale: string) {
   // Establishing an independent anchor for the header
   // await zintl(currentLocale);
 
@@ -16,25 +23,11 @@ export async function Header(currentLocale: string) {
         <a href="/" class="nav-link">Home</a>
         <a href="/about" class="nav-link">About</a>
       </div>
-      <!-- @zintl-ignore -->
-      <div class="locale-switcher">
-        <button data-locale="en" class="lang-btn ${currentLocale === "en" ? "active" : ""}">English</button>
-        <button data-locale="ar" class="lang-btn ${currentLocale === "ar" ? "active" : ""}">العربية</button>
-        <button data-locale="es" class="lang-btn ${currentLocale === "es" ? "active" : ""}">Español</button>
-      </div>
     </nav>
   `;
 
-  // Use event delegation for locale switching
   container.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-    if (target.classList.contains("lang-btn")) {
-      const locale = target.dataset.locale;
-      if (locale) {
-        window.dispatchEvent(new CustomEvent("locale-change", { detail: locale }));
-      }
-    }
-
     if (target.classList.contains("nav-link")) {
       e.preventDefault();
       const path = target.getAttribute("href");

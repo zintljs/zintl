@@ -1,7 +1,7 @@
 {
   "entries": [
     "src/index:bootstrap",
-    "src/lib/LocaleSwitcher.svelte:f_525"
+    "src/lib/LocaleSwitcher.svelte:f_712"
   ],
   "nodes": {
     "rsbuild.config": {
@@ -137,7 +137,7 @@
       "deps": [
         {
           "dynamic": false,
-          "id": "src/lib/LocaleSwitcher.svelte:f_525"
+          "id": "src/lib/LocaleSwitcher.svelte:f_712"
         },
         {
           "bindings": [
@@ -165,6 +165,22 @@
       ],
       "filePath": "src/lib/LocaleSwitcher.svelte",
       "id": "src/lib/LocaleSwitcher.svelte:f_525",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/lib/LocaleSwitcher.svelte:f_712": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/lib/LocaleSwitcher.svelte",
+      "id": "src/lib/LocaleSwitcher.svelte:f_712",
       "mode": "entry",
       "usageCount": 0
     }

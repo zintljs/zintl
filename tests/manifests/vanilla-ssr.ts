@@ -1,4 +1,5 @@
 import {
+  clickLocaleBar,
   copiedExampleSource,
   type ProjectManifest,
   type ZintlPluginOptions,
@@ -34,9 +35,6 @@ export const vanillaSsr: ProjectManifest = {
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/en/`);
     },
-    switchLocale: async (lab, locale) => {
-      const label = { en: "English", ar: "العربية", es: "Español", zh: "中文" }[locale];
-      if (label) await lab.page.click(`button:has-text('${label}')`);
-    },
+    switchLocale: (lab, locale) => clickLocaleBar(lab, locale),
   },
 };

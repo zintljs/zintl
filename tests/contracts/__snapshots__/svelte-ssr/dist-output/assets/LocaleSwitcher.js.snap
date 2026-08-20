@@ -4273,13 +4273,6 @@ function key(node, get_key, render_fn) {
 /** @import { EachItem, EachOutroGroup, EachState, Effect, EffectNodes, MaybeSource, Source, TemplateNode, TransitionManager, Value } from '#client' */
 /** @import { Batch } from '../../reactivity/batch.js'; */
 /**
-* @param {any} _
-* @param {number} i
-*/
-function index(_, i) {
-	return i;
-}
-/**
 * Pause multiple effects simultaneously, and coordinate their
 * subsequent destruction. Used in each blocks
 * @param {EachState} state
@@ -5474,24 +5467,46 @@ var hero_default = "/assets/hero-CLDdwZDr.png";
 //#endregion
 //#region examples/svelte-ssr/src/lib/LocaleSwitcher.svelte
 LocaleSwitcher[FILENAME] = "examples/svelte-ssr/src/lib/LocaleSwitcher.svelte";
-var root = add_locations(/* @__PURE__ */ from_html(`<button> </button>`), LocaleSwitcher[FILENAME], [[28, 6]]);
-var root_1 = add_locations(/* @__PURE__ */ from_html(`<section id="header"><div id="switcher" class="switcher"></div> <div class="vertical-ticks"></div> <div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use href="/icons.svg#translate-icon"></use></svg></div></section> <div class="ticks"></div>`, 1), LocaleSwitcher[FILENAME], [[
-	25,
+var root = add_locations(/* @__PURE__ */ from_html(`<button type="button"> </button>`), LocaleSwitcher[FILENAME], [[41, 6]]);
+var root_1 = add_locations(/* @__PURE__ */ from_html(`<section id="header"><div id="switcher" class="switcher"></div> <div class="vertical-ticks"></div> <div class="icon-border"><svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true"><mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100"></rect><g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M16 45V84"></path><path d="M16 24v1"></path><path d="M62 84V50"></path><path d="M62 60a14 14 0 0 1 28 0v24"></path></g><circle cx="39" cy="52" r="21.5"></circle><circle cx="39" cy="74" r="23"></circle><circle cx="39" cy="52" r="17.5" fill="#fff"></circle><circle cx="39" cy="73" r="19" fill="#fff"></circle><circle cx="39" cy="52" r="5"></circle><circle cx="39" cy="74" r="6.5"></circle></mask><rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)"></rect></svg></div></section> <div class="ticks"></div>`, 1), LocaleSwitcher[FILENAME], [[
+	38,
 	0,
 	[
-		[26, 2],
-		[36, 2],
+		[39, 2],
+		[52, 2],
 		[
-			37,
+			53,
 			2,
 			[[
-				38,
+				62,
 				4,
-				[[39, 6]]
+				[[
+					63,
+					6,
+					[
+						[64, 8],
+						[
+							65,
+							8,
+							[
+								[66, 10],
+								[67, 10],
+								[68, 10],
+								[69, 10]
+							]
+						],
+						[71, 8],
+						[72, 8],
+						[73, 8],
+						[74, 8],
+						[75, 8],
+						[76, 8]
+					]
+				], [78, 6]]
 			]]
 		]
 	]
-], [43, 0]]);
+], [82, 0]]);
 function LocaleSwitcher($$anchor, $$props) {
 	check_target(new.target);
 	push($$props, true, LocaleSwitcher);
@@ -5513,10 +5528,15 @@ function LocaleSwitcher($$anchor, $$props) {
 			name: "中文"
 		}
 	];
-	const handleSwitch = async (targetLang) => {
+	/**
+	* A switch here is a navigation, not a catalog swap: this app is multiplexed,
+	* so every locale is served as its own document under `/<locale>/`. The
+	* runtime-switching examples call `zintl(lang)` and repaint in place instead.
+	*/
+	const handleSwitch = (next) => {
 		const url = new URL(window.location.href);
 		const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
-		url.pathname = `/${targetLang}${strict_equals(path, "/") ? "/" : path}`;
+		url.pathname = `/${next}${strict_equals(path, "/") ? "/" : path}`;
 		window.history.pushState({}, "", url.pathname + url.search);
 		location.reload();
 	};
@@ -5524,19 +5544,21 @@ function LocaleSwitcher($$anchor, $$props) {
 	var fragment = root_1();
 	var section = first_child(fragment);
 	var div = child(section);
-	add_svelte_meta(() => each(div, 21, () => locales, index, ($$anchor, l) => {
+	add_svelte_meta(() => each(div, 21, () => locales, (l) => l.id, ($$anchor, l) => {
 		var button = root();
 		var text = child(button, true);
 		reset(button);
 		template_effect(() => {
+			set_attribute(button, "data-lang", get(l).id);
 			set_class(button, 1, clsx(strict_equals($$props.lang, get(l).id) ? "active" : ""));
+			set_attribute(button, "aria-current", strict_equals($$props.lang, get(l).id) ? "true" : void 0);
 			set_text(text, get(l).name);
 		});
 		delegated("click", button, function click() {
 			return handleSwitch(get(l).id);
 		});
 		append($$anchor, button);
-	}), "each", LocaleSwitcher, 27, 4);
+	}), "each", LocaleSwitcher, 40, 4);
 	reset(div);
 	next(4);
 	reset(section);

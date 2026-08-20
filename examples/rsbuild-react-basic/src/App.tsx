@@ -1,12 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-
-const locales = [
-  { id: "en", name: "English" },
-  { id: "ar", name: "العربية" },
-  { id: "es", name: "Español" },
-  { id: "zh", name: "中文" },
-];
+import LocaleSwitcher from "./components/LocaleSwitcher";
 
 interface AppProps {
   lang: string;
@@ -14,7 +8,7 @@ interface AppProps {
 }
 
 /**
- * `create-rsbuild`'s React starter, with a locale switcher bolted on.
+ * `create-rsbuild`'s React starter, plus the shared Zintl locale bar.
  *
  * The heading lives here, in a component, and that is the point of this example.
  * On `examples/rsbuild-vanilla-basic` the heading is written by the entry
@@ -27,30 +21,24 @@ export default function App({ lang, onSwitch }: AppProps) {
   const [count, setCount] = useState(0);
 
   return (
-    <div key={lang} className="content">
-      {/* @zintl-ignore */}
-      <div id="switcher" className="switcher">
-        {locales.map((l) => (
-          <button
-            key={l.id}
-            type="button"
-            className={lang === l.id ? "active" : ""}
-            onClick={() => onSwitch(l.id)}
-          >
-            {l.name}
-          </button>
-        ))}
+    <>
+      <LocaleSwitcher lang={lang} onSwitch={onSwitch} />
+      <div key={lang} className="content">
+        <h1>Rsbuild with React</h1>
+        <p>Start building amazing things with Rsbuild.</p>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+        </p>
+
+        <button
+          id="counter"
+          type="button"
+          className="counter"
+          onClick={() => setCount((c) => c + 1)}
+        >
+          Count is {count}
+        </button>
       </div>
-
-      <h1>Rsbuild with React</h1>
-      <p>Start building amazing things with Rsbuild.</p>
-      <p>
-        Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-      </p>
-
-      <button id="counter" type="button" className="counter" onClick={() => setCount((c) => c + 1)}>
-        Count is {count}
-      </button>
-    </div>
+    </>
   );
 }

@@ -2,12 +2,12 @@
   "$schema": ".schemas/index.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "",
-    "zh": ""
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "الرئيسية - مثال Zintl MPA المشترك",
-    "es": "Inicio - Ejemplo de Zintl MPA Compartido",
-    "zh": "首页 - Zintl MPA 共享示例"
+    "ar": "Vite مع TypeScript — مثال زينتل بحدود مشتركة",
+    "es": "Vite con TypeScript — Ejemplo de frontera compartida de Zintl",
+    "zh": "Vite 搭配 TypeScript — Zintl 共享边界示例"
   }
 }

@@ -49,8 +49,8 @@ import { _t } from "virtual:zintl/runtime/internal";
   .content {
     display: flex;
     box-sizing: border-box;
-    min-height: 100vh;
-    padding-block: 5rem 2rem;
+    min-height: calc(100svh - 56px);
+    padding-block: 2rem;
     line-height: 1.1;
     text-align: center;
     flex-direction: column;

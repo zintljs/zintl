@@ -40,7 +40,6 @@ __webpack_require__.r(__webpack_exports__);
     const page = document.createElement("div");
     page.className = "content";
     page.innerHTML = `
-    <div id="switcher" class="switcher"></div>
     <h1>${(0,virtual_zintl_runtime_internal__rspack_import_0._t)("3de7e774", {
         _mgr: virtual_zintl_manager_none_entry_b_4f8017c0589a__rspack_import_1["default"],
         _bId: "b_4f8017c0589a"
@@ -54,8 +53,9 @@ __webpack_require__.r(__webpack_exports__);
         _bId: "b_4f8017c0589a"
     })}</p>
   `;
-    rootEl.replaceChildren(await (0,_components_Header_ts__rspack_import_5.Header)(lang), page);
-    (0,_switcher_ts__rspack_import_6.setupSwitcher)(page.querySelector("#switcher"), (newLang)=>{
+    rootEl.innerHTML = (0,_switcher_ts__rspack_import_6.localeBar)();
+    rootEl.append(await (0,_components_Header_ts__rspack_import_5.Header)(lang), page);
+    (0,_switcher_ts__rspack_import_6.setupSwitcher)(rootEl.querySelector("#switcher"), (newLang)=>{
         const url = new URL(window.location.href);
         url.searchParams.set("lang", newLang);
         window.history.pushState({}, "", url);
@@ -146,34 +146,104 @@ __webpack_require__.d(__webpack_exports__, {
 12(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
+  localeBar: () => (localeBar),
   setupSwitcher: () => (setupSwitcher)
 });
-function setupSwitcher(element, onSwitch) {
+/**
+ * The Zintl locale bar — the one piece of UI every example shares.
+ *
+ * Same markup, same class names and same behaviour on every framework and both
+ * hosts, so a difference you notice between two examples is a difference in
+ * *Zintl* rather than in their chrome. The React, Vue and Svelte examples render
+ * this exact DOM from their own dialect; see `docs/examples-locale-bar.md`.
+ */ /**
+ * The locales every example offers, each written in its own language.
+ *
+ * They live in an array rather than in markup on purpose — a locale name must
+ * never be translated, and a JS array is out of extraction's reach to begin
+ * with. Where a name does reach markup, as in the template literals below, it
+ * carries `@zintl-ignore` instead.
+ */ const LOCALES = [
+    {
+        id: "en",
+        name: "English"
+    },
+    {
+        id: "ar",
+        name: "العربية"
+    },
+    {
+        id: "es",
+        name: "Español"
+    },
+    {
+        id: "zh",
+        name: "中文"
+    }
+];
+/**
+ * The Zintl mark, inline rather than fetched.
+ *
+ * Inline is the only form that is identical on both hosts: it needs no `public/`
+ * directory (the Rsbuild starters have none), no sprite injection (the MPA
+ * examples inline theirs with `?raw`) and no second request. It is drawn in
+ * `currentColor`, so it follows the bar's own colour into light or dark without
+ * a filter, and it is `aria-hidden` — labelling it would put the brand name
+ * into every catalog in every locale, which is precisely what it is not.
+ */ const ZINTL_MARK = `
+  <svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
+    <mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" />
+      <g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M16 45V84" />
+        <path d="M16 24v1" />
+        <path d="M62 84V50" />
+        <path d="M62 60a14 14 0 0 1 28 0v24" />
+      </g>
+      <circle cx="39" cy="52" r="21.5" />
+      <circle cx="39" cy="74" r="23" />
+      <circle cx="39" cy="52" r="17.5" fill="#fff" />
+      <circle cx="39" cy="73" r="19" fill="#fff" />
+      <circle cx="39" cy="52" r="5" />
+      <circle cx="39" cy="74" r="6.5" />
+    </mask>
+    <rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)" />
+  </svg>
+`;
+/**
+ * The bar's markup, minus the locale controls — {@link setupSwitcher} fills
+ * those in once the DOM exists.
+ *
+ * Returned as a string so a page can drop it straight into its own template,
+ * which is how the vanilla examples build their DOM.
+ */ function localeBar() {
+    return `
+    <section id="header">
+      <div id="switcher" class="switcher"></div>
+      <div class="vertical-ticks"></div>
+      <div class="icon-border">${ZINTL_MARK}</div>
+    </section>
+    <div class="ticks"></div>
+  `;
+}
+/**
+ * Render the locale controls into `element` and report clicks through `onSwitch`.
+ *
+ * Buttons, not links, because this app switches locale *at runtime* — the
+ * catalog is swapped in place and nothing navigates. The baked examples
+ * (`vanilla-spa-i18n-baked`, `vanilla-mpa-baked-i18n`) render links for the
+ * opposite reason.
+ */ function setupSwitcher(element, onSwitch) {
     const lang = new URLSearchParams(window.location.search).get("lang") || "en";
-    const locales = [
-        {
-            id: "en",
-            name: "English"
-        },
-        {
-            id: "ar",
-            name: "العربية"
-        },
-        {
-            id: "es",
-            name: "Español"
-        },
-        {
-            id: "zh",
-            name: "中文"
-        }
-    ];
-    element.innerHTML = locales.map((l)=>`
+    element.innerHTML = LOCALES.map((l)=>{
+        const active = lang === l.id;
+        return `
     <!-- @zintl-ignore -->
-    <button data-lang="${l.id}" class="${lang === l.id ? "active" : ""}">
+    <button type="button" data-lang="${l.id}" class="${active ? "active" : ""}"${active ? ` aria-current="true"` : ""}>
       ${l.name}
     </button>
-  `).join("");
+  `;
+    }).join("");
     element.querySelectorAll("button").forEach((btn)=>{
         btn.addEventListener("click", ()=>{
             const newLang = btn.dataset.lang;

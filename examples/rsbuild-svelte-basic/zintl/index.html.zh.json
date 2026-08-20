@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "dir": "",
-  "title": "Rsbuild 搭配 Svelte - Zintl 示例"
+  "dir": "ltr",
+  "title": "Rsbuild 搭配 Svelte — Zintl 示例"
 }

@@ -45,6 +45,15 @@
       "id": "shared_b_147a3a1c1a40",
       "type": "shared"
     },
+    "shared_b_56d18dcbbde5": {
+      "boundaries": [
+        "src/components/LocaleSwitcher.tsx:default"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_56d18dcbbde5",
+      "type": "shared"
+    },
     "shared_b_6b810c90aa9a": {
       "boundaries": [
         "react"
@@ -81,6 +90,7 @@
   "sharedChunks": [
     "shared_b_006866fb4e10",
     "shared_b_147a3a1c1a40",
+    "shared_b_56d18dcbbde5",
     "shared_b_6b810c90aa9a",
     "shared_b_aa7165aefcf8",
     "shared_b_bcbcc96f45a2"

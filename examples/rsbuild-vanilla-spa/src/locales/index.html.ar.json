@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "rtl",
-  "title": "موجّه Vanilla Rsbuild - مثال زينتل"
+  "title": "Rsbuild مع TypeScript — مثال زينتل مع التوجيه"
 }

@@ -5,17 +5,14 @@ import heroImg from "./assets/hero.png";
 import { zintl } from "zintljs/macro";
 
 import { setupCounter } from "./counter.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { currentRoute, localeBar } from "./switcher.ts";
 
 await zintl();
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-<section id="header">
-  <div id="switcher" class="switcher"></div>
-  <div class="vertical-ticks"></div>
-  <div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use href="/icons.svg#translate-icon"></use></svg></div>
-</section>
 
-<div class="ticks"></div>
+// Baked: every locale is its own document under `/<locale>/`, so the bar links.
+const { locale } = currentRoute(window.location.pathname);
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+  ${localeBar(locale)}
 
 <section id="center">
   <div class="hero">
@@ -71,4 +68,3 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
-setupSwitcher(document.querySelector<HTMLDivElement>("#switcher")!);

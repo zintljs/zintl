@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: About - Zintl MPA Shared Example",
+          "description": "Original: About — Vite with TypeScript — Zintl shared-boundary example",
           "type": "string"
         },
         "es": {
-          "description": "Original: About - Zintl MPA Shared Example",
+          "description": "Original: About — Vite with TypeScript — Zintl shared-boundary example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: About - Zintl MPA Shared Example",
+          "description": "Original: About — Vite with TypeScript — Zintl shared-boundary example",
           "type": "string"
         }
       },

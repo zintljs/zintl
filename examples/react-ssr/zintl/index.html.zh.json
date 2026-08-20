@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "dir": "",
-  "title": ""
+  "dir": "ltr",
+  "title": "Vite 搭配 React — Zintl 服务端渲染示例"
 }

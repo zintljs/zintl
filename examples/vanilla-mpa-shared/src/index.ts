@@ -4,7 +4,7 @@ import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintljs/macro";
 import { Header } from "./components/Header.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 import iconsSvg from "./assets/icons.svg?raw";
 
 // Inject sprite
@@ -20,13 +20,7 @@ async function render() {
 
   const appRoot = document.querySelector<HTMLDivElement>("#app")!;
   appRoot.innerHTML = `
-    <section id="header">
-      <div id="switcher" class="switcher"></div>
-      <div class="vertical-ticks"></div>
-      <div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use href="#translate-icon"></use></svg></div>
-    </section>
-
-    <div class="ticks"></div>
+    ${localeBar()}
 
     <section id="center">
       <div class="hero">

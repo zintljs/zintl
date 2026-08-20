@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Guide - Zintl multi-page example</title>
-  <script defer src="/static/js/lib-vue.js"></script><script defer src="/static/js/7.js"></script><script defer src="/static/js/0.js"></script><script defer src="/static/js/about.js"></script><link href="/static/css/about.css" rel="stylesheet"><!--zintl-bootstrap-->
+    <title>About — Rsbuild with Vue — Zintl multi-page example</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><script defer src="/static/js/lib-vue.js"></script><script defer src="/static/js/7.js"></script><script defer src="/static/js/0.js"></script><script defer src="/static/js/about.js"></script><link href="/static/css/about.css" rel="stylesheet"><!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"الدليل - مثال زينتل متعدد الصفحات"},"es":{"title":"Guía - Ejemplo multipágina de Zintl"},"zh":{"title":"指南 - Zintl 多页面示例"}};
+        const deltas = {"ar":{"title":"من نحن — Rsbuild مع Vue — مثال زينتل متعدد الصفحات"},"es":{"title":"Acerca de — Rsbuild con Vue — Ejemplo multipágina de Zintl"},"zh":{"title":"关于 — Rsbuild 搭配 Vue — Zintl 多页面示例"}};
         const originals = {
         title: document.title,
       };

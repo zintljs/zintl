@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla Rsbuild - Zintl example</title>
-  <script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
+    <title>Rsbuild with TypeScript — Zintl example</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"Vanilla Rsbuild - مثال زينتل"},"es":{"title":"Vanilla Rsbuild - Ejemplo de Zintl"},"zh":{"title":"Vanilla Rsbuild - Zintl 示例"}};
+        const deltas = {"ar":{"title":"Rsbuild مع TypeScript — مثال زينتل"},"es":{"title":"Rsbuild con TypeScript — Ejemplo de Zintl"},"zh":{"title":"Rsbuild 搭配 TypeScript — Zintl 示例"}};
         const originals = {
         title: document.title,
       };

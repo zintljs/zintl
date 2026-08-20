@@ -3,6 +3,11 @@
 `create-rsbuild`'s **vue-ts** starter with `vue-router`, localized. The routed
 counterpart of [`rsbuild-vue-basic`](../rsbuild-vue-basic).
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```bash
 pnpm dev      # rsbuild dev
 pnpm build    # rsbuild build

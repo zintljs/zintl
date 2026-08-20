@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Guide - Zintl multi-page example",
+          "description": "Original: About — Rsbuild with Vue — Zintl multi-page example",
           "type": "string"
         },
         "es": {
-          "description": "Original: Guide - Zintl multi-page example",
+          "description": "Original: About — Rsbuild with Vue — Zintl multi-page example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: Guide - Zintl multi-page example",
+          "description": "Original: About — Rsbuild with Vue — Zintl multi-page example",
           "type": "string"
         }
       },

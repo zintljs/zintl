@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "description": "Original: Rsbuild with TypeScript — Zintl multi-page example",
           "type": "string"
         },
         "es": {
-          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "description": "Original: Rsbuild with TypeScript — Zintl multi-page example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: Vanilla Rsbuild - Zintl multi-page example",
+          "description": "Original: Rsbuild with TypeScript — Zintl multi-page example",
           "type": "string"
         }
       },

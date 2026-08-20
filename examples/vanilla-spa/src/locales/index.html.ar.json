@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "rtl",
-  "title": "زينتل | مثال تطبيق الصفحة الواحدة"
+  "title": "Vite مع TypeScript — مثال زينتل مع التوجيه"
 }

@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "rtl",
-  "title": ""
+  "title": "Vite مع Svelte — مثال زينتل"
 }

@@ -1,4 +1,5 @@
 import {
+  clickLocaleBar,
   copiedExampleSource,
   type ProjectManifest,
   type ZintlPluginOptions,
@@ -58,7 +59,7 @@ export const vanillaSpaBasic: ProjectManifest = {
     },
     addAnchor: {
       file: "src/main.ts",
-      anchorOn: `import { setupSwitcher } from "./switcher.ts";`,
+      anchorOn: `import { localeBar, setupSwitcher } from "./switcher.ts";`,
       insert: [
         ``,
         ``,
@@ -96,16 +97,6 @@ export const vanillaSpaBasic: ProjectManifest = {
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/`);
     },
-    switchLocale: async (lab, locale) => {
-      if (locale === "ar") {
-        await lab.page.click("button:has-text('العربية')");
-      } else if (locale === "en") {
-        await lab.page.click("button:has-text('English')");
-      } else if (locale === "es") {
-        await lab.page.click("button:has-text('Español')");
-      } else if (locale === "zh") {
-        await lab.page.click("button:has-text('中文')");
-      }
-    },
+    switchLocale: (lab, locale) => clickLocaleBar(lab, locale),
   },
 };

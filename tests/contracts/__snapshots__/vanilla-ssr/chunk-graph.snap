@@ -28,7 +28,8 @@
         "src/assets/typescript.svg",
         "src/assets/vite.svg",
         "src/entry-server:render",
-        "src/switcher:LocaleSwitcher"
+        "src/switcher:currentRoute",
+        "src/switcher:localeBar"
       ],
       "colonies": [],
       "entrySources": [

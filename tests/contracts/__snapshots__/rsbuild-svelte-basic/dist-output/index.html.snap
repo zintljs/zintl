@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rsbuild with Svelte - Zintl example</title>
-  <script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
+    <title>Rsbuild with Svelte — Zintl example</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"Rsbuild مع Svelte - مثال زينتل"},"es":{"title":"Rsbuild con Svelte - Ejemplo de Zintl"},"zh":{"title":"Rsbuild 搭配 Svelte - Zintl 示例"}};
+        const deltas = {"ar":{"title":"Rsbuild مع Svelte — مثال زينتل"},"es":{"title":"Rsbuild con Svelte — Ejemplo de Zintl"},"zh":{"title":"Rsbuild 搭配 Svelte — Zintl 示例"}};
         const originals = {
         title: document.title,
       };

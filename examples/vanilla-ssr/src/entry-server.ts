@@ -2,20 +2,18 @@ import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintljs/macro";
-import { LocaleSwitcher } from "./switcher";
+import { currentRoute, localeBar } from "./switcher";
 
 export async function render(_url: string) {
   await zintl();
 
+  // Multiplexed: the server already knows which locale this request is for,
+  // so the bar is rendered with links and needs no wiring on the client.
+  const { locale } = currentRoute(_url);
+
   const res = {
     text: `
-    <section id="header">
-      <div class="switcher">${LocaleSwitcher(_url)}</div>
-      <div class="vertical-ticks"></div>
-      <div class="icon-border"><svg class="icon" role="img" aria-hidden="true"><use href="/icons.svg#translate-icon"></use></svg></div>
-    </section>
-
-    <div class="ticks"></div>
+    ${localeBar(locale)}
 
     <section id="center">
       <div class="hero">

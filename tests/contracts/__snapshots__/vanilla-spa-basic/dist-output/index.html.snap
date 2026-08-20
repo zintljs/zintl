@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla TS - Zintl SPA Example</title>
+    <title>Vite with TypeScript — Zintl example</title>
     <script type="module" crossorigin src="/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CUFt-qr9.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-DrER1qNV.css">
   
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"فانيلا تي إس - مثال SPA مع زينتل"},"es":{"title":"Vanilla TS - Ejemplo de SPA con Zintl"},"zh":{"title":"Vanilla TS - 带有 Zintl 的 SPA 示例"}};
+        const deltas = {"ar":{"title":"Vite مع TypeScript — مثال زينتل"},"es":{"title":"Vite con TypeScript — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 TypeScript — Zintl 示例"}};
         const originals = {
         title: document.title,
       };

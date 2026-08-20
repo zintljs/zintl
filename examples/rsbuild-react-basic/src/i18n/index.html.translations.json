@@ -2,12 +2,12 @@
   "$schema": ".schemas/index.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "",
-    "zh": ""
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "Rsbuild مع React - مثال زينتل",
-    "es": "Rsbuild con React - Ejemplo de Zintl",
-    "zh": "Rsbuild 搭配 React - Zintl 示例"
+    "ar": "Rsbuild مع React — مثال زينتل",
+    "es": "Rsbuild con React — Ejemplo de Zintl",
+    "zh": "Rsbuild 搭配 React — Zintl 示例"
   }
 }

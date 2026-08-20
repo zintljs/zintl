@@ -58,6 +58,13 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",
@@ -100,6 +107,13 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",

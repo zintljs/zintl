@@ -3,19 +3,19 @@
     "src/App.svelte": "src/main:bootstrap",
     "src/lib/Counter.svelte": "src/main:bootstrap",
     "src/lib/LocaleSwitcher.svelte": "src/main:bootstrap",
-    "src/lib/LocaleSwitcher.svelte:f_525": "src/lib/LocaleSwitcher.svelte:f_525",
+    "src/lib/LocaleSwitcher.svelte:f_712": "src/lib/LocaleSwitcher.svelte:f_712",
     "src/main:bootstrap": "src/main:bootstrap"
   },
   "chunks": {
-    "entry_b_581042b7afb9": {
+    "entry_b_9beaf2d8ef96": {
       "boundaries": [
-        "src/lib/LocaleSwitcher.svelte:f_525"
+        "src/lib/LocaleSwitcher.svelte:f_712"
       ],
       "colonies": [],
       "entrySources": [
-        "src/lib/LocaleSwitcher.svelte:f_525"
+        "src/lib/LocaleSwitcher.svelte:f_712"
       ],
-      "id": "entry_b_581042b7afb9",
+      "id": "entry_b_9beaf2d8ef96",
       "type": "entry"
     },
     "entry_b_aafcf9c6fe16": {
@@ -48,7 +48,7 @@
     }
   },
   "entryChunks": {
-    "src/lib/LocaleSwitcher.svelte:f_525": "entry_b_581042b7afb9",
+    "src/lib/LocaleSwitcher.svelte:f_712": "entry_b_9beaf2d8ef96",
     "src/main:bootstrap": "entry_b_aafcf9c6fe16"
   },
   "lazyChunks": [],

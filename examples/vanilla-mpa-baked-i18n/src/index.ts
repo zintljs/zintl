@@ -3,7 +3,7 @@ import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintljs/macro";
-import { setupSwitcher } from "./switcher.ts";
+import { currentRoute, localeBar } from "./switcher.ts";
 import iconsSvg from "./assets/icons.svg?raw";
 
 const iconsDiv = document.createElement("div");
@@ -15,16 +15,13 @@ document.body.insertBefore(iconsDiv, document.body.firstChild);
 // Baked anchor call
 await zintl();
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <section id="header">
-    <div id="switcher" class="switcher"></div>
-    <div class="vertical-ticks"></div>
-    <div class="icon-border">
-      <svg class="icon" role="img" aria-hidden="true"><use href="#translate-icon"></use></svg>
-    </div>
-  </section>
+// A baked build serves each locale from its own `/<locale>/` document, so the
+// bar links rather than switching in place — `currentRoute` reads which one
+// this document is, and keeps the reader on the same page across the switch.
+const { locale } = currentRoute(window.location.pathname);
 
-  <div class="ticks"></div>
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+  ${localeBar(locale)}
 
   <section id="center">
     <div class="hero">
@@ -42,5 +39,3 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="ticks"></div>
   <section id="spacer"></section>
 `;
-
-setupSwitcher(document.querySelector<HTMLDivElement>("#switcher")!);

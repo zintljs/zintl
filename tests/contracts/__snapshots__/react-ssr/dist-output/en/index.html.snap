@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>react-ssr</title>
+    <title>Vite with React — Zintl server-rendered example</title>
     <!--app-head-->
     <script type="module" crossorigin src="/assets/en/index.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/jsx-dev-runtime.js">
-    <link rel="stylesheet" crossorigin href="/assets/jsx-dev-runtime-isocXI4e.css">
+    <link rel="modulepreload" crossorigin href="/assets/LocaleSwitcher.js">
+    <link rel="stylesheet" crossorigin href="/assets/LocaleSwitcher-tS_Agqth.css">
   </head>
   <body>
     <div id="root"><!--app-html--></div>

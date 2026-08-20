@@ -2,12 +2,12 @@
   "$schema": ".schemas/about.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "",
-    "zh": ""
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "الدليل - مثال زينتل متعدد الصفحات",
-    "es": "Guía - Ejemplo multipágina de Zintl",
-    "zh": "指南 - Zintl 多页面示例"
+    "ar": "من نحن — Rsbuild مع TypeScript — مثال زينتل متعدد الصفحات",
+    "es": "Acerca de — Rsbuild con TypeScript — Ejemplo multipágina de Zintl",
+    "zh": "关于 — Rsbuild 搭配 TypeScript — Zintl 多页面示例"
   }
 }

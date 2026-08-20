@@ -3,51 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
-import { getLocale } from "zintljs/macro";
-
-const locales = [
-  { id: "en", name: "English" },
-  { id: "ar", name: "العربية" },
-  { id: "es", name: "Español" },
-  { id: "zh", name: "中文" },
-];
-
-function LocaleSwitcher() {
-  const locale = getLocale() || "en";
-
-  const handleSwitch = (lang: string) => {
-    const url = new URL(window.location.href);
-    const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
-    url.pathname = `/${lang}${path === "/" ? "/" : path}`;
-    window.history.pushState({}, "", url.pathname + url.search);
-    location.reload();
-  };
-
-  return (
-    <>
-      <section id="header">
-        <div id="switcher" className="switcher">
-          {locales.map((l) => (
-            <button
-              key={l.id}
-              className={locale === l.id ? "active" : ""}
-              onClick={() => handleSwitch(l.id)}
-            >
-              {l.name}
-            </button>
-          ))}
-        </div>
-        <div className="vertical-ticks"></div>
-        <div className="icon-border">
-          <svg className="icon" role="img" aria-hidden="true">
-            <use href="/icons.svg#translate-icon"></use>
-          </svg>
-        </div>
-      </section>
-      <div className="ticks"></div>
-    </>
-  );
-}
+import LocaleSwitcher from "./components/LocaleSwitcher";
 
 function App() {
   const [count, setCount] = useState(0);
