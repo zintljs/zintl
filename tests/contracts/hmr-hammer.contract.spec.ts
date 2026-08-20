@@ -1,7 +1,5 @@
 import { executeContract, type Contract } from "@zintljs/testing";
 import { allManifests } from "../manifests/index.js";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export const hmrHammerContract: Contract = {
   name: "HMR Hammer",
@@ -11,7 +9,6 @@ export const hmrHammerContract: Contract = {
     await adapter.navigateHome(lab);
     await lab.clock.waitForIdle();
 
-    const fullPath = join(lab.root, adapter.headingFile);
     const originalContent = await lab.fs.read(adapter.headingFile);
 
     /**
@@ -30,7 +27,7 @@ export const hmrHammerContract: Contract = {
     // 2. Perform rapid intermediate edits directly to filesystem (bypassing propagation wait)
     for (let i = 2; i <= 4; i++) {
       const modified = originalContent.replace(adapter.initialHeadingText, `Hammer ${i}`);
-      await writeFile(fullPath, modified, "utf-8");
+      await lab.fs.writeUnsynchronized(adapter.headingFile, modified);
       // Short delay to simulate back-to-back chokidar events
       await new Promise((resolve) => setTimeout(resolve, 30));
     }
@@ -76,6 +73,53 @@ export const hmrHammerContract: Contract = {
      * The DOM is still checked below, unbudgeted, so a page that breaks outright
      * is not mistaken for one that merely did not repaint.
      */
+    /**
+     * First: did the host ever *report* the final edit?
+     *
+     * CI failed this with three watcher events for five edits, all carrying the
+     * same byte count — the burst's content — and none carrying the final. The
+     * final write was collapsed into the one before it by chokidar's atomic-save
+     * detection, so nothing downstream was ever told about it. Blaming delivery
+     * for that would be blaming Zintl for an event it never received, which is
+     * exactly the confusion L-075 fixed for removals by tracing them separately.
+     *
+     * Byte count identifies the version without this contract knowing anything
+     * about the file: `Hammer N` is 8 characters and `HMR Hammer works!` is 17,
+     * so the final content is the only one of its size.
+     */
+    const finalLength = (await lab.fs.read(adapter.headingFile)).length;
+    const base = adapter.headingFile.split("/").pop()!;
+    const reportDeadline = Date.now() + 8_000;
+    let reported = false;
+    while (!reported && Date.now() < reportDeadline) {
+      reported = lab.compiler.hmrTrace.some(
+        (e: { kind?: string; file?: string; contentLength?: number }) =>
+          e.kind === "enter" &&
+          typeof e.file === "string" &&
+          e.file.endsWith(base) &&
+          e.contentLength === finalLength,
+      );
+      if (!reported) await lab.clock.tick(100);
+    }
+
+    if (!reported) {
+      const sizes = lab.compiler.hmrTrace
+        .filter(
+          (e: { kind?: string; file?: string }) =>
+            e.kind === "enter" && typeof e.file === "string" && e.file.endsWith(base),
+        )
+        .map((e: { seq?: number; contentLength?: number }) => `${e.seq}:${e.contentLength}B`)
+        .join(" ");
+      throw new Error(
+        `The host never reported the final edit. ${base} is ${finalLength}B on disk, and the ` +
+          `watcher events for it were: ${sizes || "(none)"}.\n\n` +
+          `Every write in this burst is atomic, so this is the host's watcher coalescing two ` +
+          `saves into one event and keeping the earlier content — not a delivery failure. ` +
+          `Nothing downstream can converge on a change it was never told about.`,
+      );
+    }
+
+    // Then: given it was reported, Zintl must get it to the browser.
     await capture.waitForBody("HMR Hammer works!", { timeout: 10_000 });
     capture.stop();
 

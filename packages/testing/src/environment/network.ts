@@ -171,7 +171,7 @@ export class LabNetwork {
               .join("\n");
             throw new Error(
               `The browser never received a module containing ${JSON.stringify(text)}.\n\n` +
-                `Bodies received for ${JSON.stringify(match)} (${bodies.length}):\n` +
+                `Bodies received for ${String(match)} (${bodies.length}):\n` +
                 `${seen || "    (none)"}`,
             );
           }

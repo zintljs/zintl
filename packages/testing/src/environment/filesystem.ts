@@ -131,6 +131,37 @@ export class LabFilesystem {
     await rename(tmp, fullPath);
   }
 
+  /**
+   * Replace a file atomically and return **without waiting for propagation**.
+   *
+   * For contracts that deliberately outrun the dev server, where `edit()`'s
+   * settle wait would defeat the point. The alternative in use was a bare
+   * `writeFile`, which truncates before writing — so a burst mixed truncating
+   * writes with an atomic rename, and chokidar's atomic-save detection
+   * (`unlink` then `add` on one path inside ~100 ms) could collapse the two
+   * into one event. Ledger L-080 caught it losing a burst's **final** write, at
+   * which point no software downstream can converge.
+   *
+   * "Outrun the propagation wait" and "truncate the file" are different things,
+   * and only the first was ever wanted. Every editor a real user runs saves
+   * atomically.
+   */
+  async writeUnsynchronized(relativePath: string, content: string): Promise<void> {
+    const fullPath = this.resolvePath(relativePath);
+    const existed = existsSync(fullPath);
+    const original = existed ? await readFile(fullPath, "utf-8") : undefined;
+
+    const alreadyMutated = this._mutations.some(
+      (m) => (m.type === "edit" || m.type === "write") && m.path === relativePath,
+    );
+    if (!alreadyMutated) {
+      this._mutations.push({ type: "write", path: relativePath, existed, original });
+    }
+
+    fsTrace("write-unsync", relativePath);
+    await this.atomicWrite(fullPath, content);
+  }
+
   async edit(relativePath: string, transform: (content: string) => string): Promise<void> {
     const fullPath = this.resolvePath(relativePath);
     if (!existsSync(fullPath)) {

@@ -5173,3 +5173,48 @@ the thing at fault — after a logger delta read as an interval (L-076) and a ne
 could not fail (L-074). The pattern is consistent enough to state as a rule: **when a measurement and
 a mechanism disagree, suspect the instrument first.** It is cheaper to check than a hypothesis, and
 in all three cases it was the answer.
+
+### L-081 — the delivery assertion was right and blamed the wrong party
+
+|                             |                                                       |
+| :-------------------------- | :---------------------------------------------------- |
+| **Status**                  | **Fixed** — 0 failures in 10 under contention         |
+| **Bucket**                  | 1 — the assertion could not name what it had observed |
+| **Facet contract changed?** | No                                                    |
+
+L-080 moved `hmr-hammer` onto the guarantee Zintl makes — the final module reaches the browser — and
+CI failed it on `vanilla-spa-basic` on the next run. The diagnosis is worth reading whole, because it
+says something different from what it looks like:
+
+```
+Bodies received (6):  main.ts?t=…051769 11382B found=[]   ×3, all identical
+hmr trace:            enter src/main.ts seq=…051769 bytes=3496 env=client → invalidated=5/1
+                      enter src/main.ts seq=…051865 bytes=3496 env=client → invalidated=5/0
+                      enter src/main.ts seq=…051933 bytes=3496 env=client → invalidated=5/0
+```
+
+**Three watcher events for five edits, every one carrying the same byte count**, and none carrying
+the final content — `Hammer N` is 8 characters against `HMR Hammer works!`'s 17, so the final version
+is the only one of its size and it is absent. The host never reported the last edit at all. Blaming
+delivery for that is blaming Zintl for an event it never received.
+
+**Which vindicates a mechanism this proposal had already proposed, retracted, and needed twice.** The
+contract mixed three raw truncating `writeFile`s with a final atomic rename, all inside ~100 ms, and
+chokidar's atomic-save detection collapses an `unlink` followed by an `add` on one path in that
+window. L-080 proposed exactly this, measured 2/10 → 1/10 on `react-basic` — noise — and reverted it
+on the rule that a change with no measured benefit does not ship. That rule was right and the
+conclusion drawn from it was too strong: **`react-basic` was the project where the final event
+survived**, so it could not have shown the difference. The burst writes are atomic now, on evidence
+from the project that does lose it.
+
+**And the assertion learned to say which party failed.** Before asserting delivery it now waits for
+the host to _report_ content of the final size, and fails distinctly when it does not — naming
+watcher coalescing rather than Zintl. Two failures that look identical from the browser have
+different owners, which is precisely what L-075 fixed for removals by tracing them separately, and
+what this contract has now taught twice.
+
+One cosmetic defect fixed alongside: the failure printed `Bodies received for {}` because the URL
+matcher had become a `RegExp` and `JSON.stringify` renders those as an empty object. A diagnosis that
+cannot name what it was looking for is the shape this proposal keeps paying for.
+
+**Measured 0 failures in 10 under the CPU contention that produced the original failure.**
