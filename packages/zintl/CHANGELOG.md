@@ -1,5 +1,138 @@
 # zintl
 
+## 0.1.0-alpha.17
+
+### Patch Changes
+
+- 5bb3a68: Run the chaos contracts on Rspack for the first time, and split the capability the measurement
+  divided.
+
+  `chaos` was claimed by four projects, all on Vite. That was a contract limitation rather than a host
+  one — the catalog lookup had never heard of `src/locales`, where every Rsbuild example keeps its
+  catalogs — and fixing the lookup did not, on its own, get the claim re-tried. Claimed on six Rsbuild
+  projects, the result splits exactly along the contract boundary: deleting and corrupting catalogs
+  under a running Rspack app works on all six; renaming a boundary works on none.
+
+  **The reason renaming fails is not the host.** The hot-update trace recorded modified files and not
+  removed ones, so "the host reported no deletion" and "the deletion was reported and dropped" looked
+  identical. Traced, the host reports the removal correctly and the compiler acts on it — and a
+  boundary for the deleted file survives anyway, on both hosts.
+
+  So the capability splits into `chaos` and `chaos-boundary`, the way `hmr` split into `hmr`/`hmr-warm`
+  for the same kind of reason. One capability covering both would refuse all six Rsbuild projects and
+  record a host-neutral defect as something Rsbuild cannot do.
+
+  Also: `boundaryForgotten` failed with "the host's watcher never reported the unlink", which is
+  measured false on Rspack. It now names both causes and says how to tell them apart.
+
+- 1b68c17: Fix the dev HMR snippet corrupting any module with `</script>` in a string, and close three
+  dev-loop leaks from proposal 027's ledger.
+
+  **The product defect (L-073).** In dev, the HMR snippet was spliced before the file's _last_
+  `</script>`. That rule exists for SFCs, whose module code lives inside a script block — but it was
+  applied to every file, so in a plain module it found whatever the source happened to contain. A
+  server entry building its own document (`'<head>' + '<script src="/@vite/client"></script>' +
+'</head>'`, which is what any SSR shell does) had the snippet spliced into the middle of the string.
+  The module then failed the bundler's import analysis and the app served a 500 on **every request** —
+  dev only, with a clean build, and with an error message pointing at the bundler rather than at
+  Zintl. Where a file may legally hold injected code is now asked of the codegen facets rather than
+  read out of the text, so a project with no SFC facet cannot take that branch at all.
+
+  **Write attribution (L-071).** A flush has five independent reasons to write a catalog and the write
+  could not say which applied. Each producer now tags what it schedules, and the tag reaches both the
+  debug log and the `io/write` envelope. That immediately showed the write undoing the prune is
+  tagged `dirty` rather than `recover-missing` — so a boundary the deletion scrubbed is back in the
+  dirty set by the time the write pass runs. (The mechanism first inferred from that, an in-flight
+  observation re-registering the boundary, was retracted a day later: it was teardown. See L-076.)
+
+  **Harness (L-066).** `catalogContains` now waits on the compiler's dirty set before reading, reads
+  through merged catalogs instead of comparing an object to a string, and takes an optional `value` so
+  "a translator can find this key" is expressible. It had never been called, and could only ever have
+  failed on the two merged-catalog projects. With it, `hmr-growth` asserts again that a new sink
+  reaches disk — 0 failures in 10 runs, including the project the ledger recorded as never writing the
+  key at all.
+
+  **SSR examples.** All four `*-ssr` examples now hand their http server to Vite
+  (`hmr: { server }`). In middleware mode Vite otherwise opens its HMR socket on a fixed port, so a
+  second SSR app on the same machine silently receives no hot updates at all. This is what had made
+  `react-ssr` unable to hot-update; it, and the three SSR examples that had never claimed the
+  capability, now do.
+
+- a6c2689: Reclaim every boundary a deleted file owned, and give the harness a filesystem trace.
+
+  `removeFile` reclaimed only the boundaries `boundaryOwnership` listed for a file. A file that is an
+  entry, or that carries an HTML projection, also registers a boundary under the bare file id — which
+  that map does not list — so deleting the file left a graph node behind for the life of the process.
+  Matching graph nodes by id as well closes it. Content-addressed ids are unaffected: they are not
+  derived from a path, so the ownership map remains the only route to them.
+
+  **Two diagnoses in the ledger are retracted by this pass**, and the correction is worth more than the
+  fix. Both rested on reading the debug logger's `+Nms` — a delta since the _previous log line_ — as
+  the time since a named event. Interleaved against the harness's own filesystem operations, the
+  "residual writer re-registering a forgotten boundary" turns out to be **teardown**: `restoreAll` puts
+  the file back and a boundary is registered for a file that exists, which is correct. A removal-epoch
+  probe confirmed it independently — every such read began after the deletion, not during it.
+
+  New in the testing package: `ZINTL_FS_TRACE` timestamps what the harness itself does to a project's
+  files, so the compiler's log and the test's mutations can be read in one order; `boundaryForgotten`
+  now reports _which_ graph node it matched instead of only that one existed; and the Rspack watch
+  trace records removed files, not just modified ones, so "the host reported nothing" and "we dropped
+  it" stop looking identical.
+
+- 79b75d2: Record how many bytes of source each hot update carried.
+
+  A watcher that coalesces two saves reports one event, and nothing in the trace could say whether that
+  event carried the earlier or the later bytes — so a packet count that did not match the edit count
+  read as a lost event. Recording the size of the content the host handed over answers it directly,
+  without the compiler knowing anything about a file's contents, and it immediately disproved that
+  reading: the final edit of a burst does reach the compiler with the correct bytes, and the three
+  events before it are three separate saves that happen to be the same length.
+
+  Emitted on every `enter` entry and printed only when a contract fails, alongside the environment
+  recorded in the previous release.
+
+- c3a4ad3: Record which bundler environment reported each hot update, and widen the trace a failure prints.
+
+  Vite 6+ defines `client` and `ssr` environments and calls the hot-update hook once per environment, so
+  a client-only file produces a perfectly correct `modules=0` passthrough on the `ssr` pass. The trace
+  recorded neither environment, so that line was indistinguishable from an update that reached nothing —
+  and it was the most prominent line in a failing diagnosis that two investigations read as the defect.
+
+  With the environment recorded, the same failure reads unambiguously: the `client` environment handled
+  every update, invalidating five modules each time, and only `ssr` passed through. The failure is in
+  update application in the browser, not in anything the compiler decided.
+
+  The failure diagnosis now prints the last 40 trace entries rather than the last 10, because at 10 the
+  answer was past the end of the window. Both are emitted only when a contract fails.
+
+- d0fb628: Name the host's half of ZHMR §4.2's routing, and run the structural HMR path on six more projects.
+
+  `hmr-structural` was claimed by two projects, so §4.1③ (a new sink) and §4.2 (a new anchor) had never
+  run on Vue, on Svelte, or on Rspack — and §4.2 is the section whose two-route rule was written from
+  that sample of two. Extending it to Vue and Svelte on Vite, and React, Vue, Svelte and vanilla on
+  Rspack, found the missing input immediately.
+
+  **`BundlerFacet.absorbsStructuralChange`.** §4.2 routed a structural change by asking the entry:
+  where re-running it is safe, the re-executed entry rebuilds the boundary map in place. That is a
+  framework fact, and it is not the whole answer — a new boundary is a new catalog chunk, and a host
+  that answers a changed entrypoint chunk set with a full reload does so before Zintl is consulted.
+  Measured: `plan.fullReload` is `false` for exactly the edits that reload on Rspack. The new flag
+  defaults to `true`, is declared `false` by `rspackFacet`, and merges pessimistically like
+  `entryReexecutionSafe`; the two compose into one question the contract asks once.
+
+  **`hmr-warm` gates the no-reload claim.** The warm half of the structural contract was asserting a
+  guarantee the contract did not require, so projects that reload for every edit — documented, measured
+  behaviour since the capability was created — were failing it. That assertion is now its own contract,
+  selected by capability rather than branched on inside one.
+
+  No runtime behaviour changes for existing users; this names a host difference that was already there
+  and was being attributed to the framework.
+
+- Updated dependencies [1b68c17]
+- Updated dependencies [a6c2689]
+- Updated dependencies [d0fb628]
+  - @zintljs/compiler@0.1.0-alpha.17
+
 ## 0.1.0-alpha.16
 
 ### Minor Changes
