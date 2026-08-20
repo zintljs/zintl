@@ -5065,10 +5065,63 @@ including the final one, `modules=1`, five modules invalidated each time.
 
 **So the defect is downstream of anything Zintl decides.** The plan was right, the invalidation
 happened, the update went out — and the page still shows `Hammer 4` after the edit that wrote
-`HMR Hammer works!`. What remains is update _application_: four `update` packets on the wire, and the
-browser ending on an earlier one. Whether that is out-of-order application under load or Fast Refresh
-coalescing the last is the next probe, and it belongs in the page, not the compiler — log the order
-in which the client applies module updates and compare it to the order they were sent.
+`HMR Hammer works!`. What remains is one event that never arrives.
+
+**The page probe took it the rest of the way.** A `MutationObserver` recording every value the
+heading shows, plus the file on disk and the update payloads on the wire, captured at failure:
+
+```
+WIRE   update[App.tsx@…412747] | update[App.tsx@…412982] | update[App.tsx@…413106] | update[App.tsx@…413188]
+FRAMES [0,"Get started"] → [445,"Hammer 1"] → [830,"Hammer 4"]     ← and nothing after
+DISK   len=4337  hasFinal=true  hasHammer4=false
+```
+
+Together these settle it:
+
+1. **The file on disk is correct and complete** — 4,337 bytes, contains `HMR Hammer works!`, contains
+   no `Hammer 4`. The edit landed.
+2. **The final text never renders, not even for one frame.** So it is not out-of-order application,
+   which was the leading hypothesis going in: the browser never had it.
+3. **Five edits produced four update packets**, each carrying `App.tsx@<timestamp>`, spanning 441 ms
+   — one per edit for four of the five. The last edit produced **no packet at all**.
+
+So five edits produced four packets, and the obvious reading was that the last edit never reached the
+watcher at all: the contract fires three raw `writeFile`s 30 ms apart and then an atomic write — temp
+file plus rename — immediately after, and chokidar collapses an `unlink` followed by an `add` on one
+path inside a 100 ms window as an atomic save. That was written down as the conclusion.
+
+**It was wrong, and one more field disproved it.** Recording how many _bytes_ the host handed over
+for each event — which version of a file an event describes, without the compiler knowing anything
+about its contents — answers it directly. `Hammer N` is 8 characters and `HMR Hammer works!` is 17,
+so the two versions of this file are 4,328 and 4,337 bytes:
+
+```
+enter src/App.tsx seq=…059598 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…059798 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…059918 modules=1 bytes=4328 env=client → invalidated=5/1
+enter src/App.tsx seq=…060018 modules=1 bytes=4337 env=client → invalidated=5/1   ← the final content
+```
+
+**The final edit reaches the compiler, with the right bytes, and Zintl invalidates five modules for
+it.** The three `4328` events are `Hammer 2`, `3` and `4` — indistinguishable by length, which is why
+the packet count looked like a missing event rather than a coalesced one. Nothing upstream is broken.
+
+So the defect is back on the browser side, but with far more established than before: the file on disk
+is right, the watcher reports it, the host hands over the correct bytes, the plan invalidates the
+right modules, and the update goes out with a distinct timestamp. The browser then renders text from
+an earlier version and never shows the final one, not for a single frame.
+
+**The next probe is the network, and only the network.** Capture the browser's request for
+`/src/App.tsx?t=<final timestamp>` and read the response body. If it contains `HMR Hammer works!`,
+the module arrived and something in Fast Refresh discarded it; if it contains `Hammer 4`, the dev
+server served a stale transform under a fresh timestamp. Those are different defects in different
+codebases, and the response body separates them in one run.
+
+**And the standing note now has five instances.** A logger delta read as an interval (L-076), a
+negative control that could not fail (L-074), an `ssr` passthrough read as a dead update, a packet
+count read as a missing event, and — twice in this entry alone — a conclusion published before the
+instrument could distinguish the cases it was being asked about. Each correction cost less than the
+investigation it replaced, which is the argument for reaching for the instrument first.
 
 **Two things kept.** `environment` on every `enter`/`return`, and the failure diagnosis widened from
 the last 10 trace entries to the last 40 — with 10, the answer was off the end of the window, which

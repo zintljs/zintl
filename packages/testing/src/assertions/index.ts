@@ -261,6 +261,7 @@ export class LabAssertions {
                      */
                     return (
                       `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}` +
+                      `${e.contentLength !== undefined ? ` bytes=${e.contentLength}` : ""}` +
                       `${e.environment ? ` env=${e.environment}` : ""}`
                     );
                   case "repoint":
