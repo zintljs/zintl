@@ -5017,3 +5017,66 @@ and it is the one to trust.
 
 Three entries remain genuinely open — **L-005**, **L-029**, and L-079's residual — and each names its
 next step. Nothing else in this proposal is waiting on anyone.
+
+### L-080 — the hot-update trace could not say which environment, and one field moved the defect
+
+|                             |                                                                     |
+| :-------------------------- | :------------------------------------------------------------------ |
+| **Status**                  | **Open** — relocated out of Zintl's plan, with the next probe named |
+| **Bucket**                  | 1 — the diagnosis could not see straight                            |
+| **Facet contract changed?** | No — one field on `HmrTraceEntry`                                   |
+
+CI failed `[HMR Hammer] react-basic` twice, and the diagnosis it printed said:
+
+```
+enter …/src/App.tsx seq=1787181965534 modules=0
+return …/src/App.tsx invalidated=0/0 (passthrough)
+```
+
+Read plainly, that is "the final edit reached the hook and Zintl had nothing to invalidate" — a
+product defect, and a serious one. It is not what happened.
+
+**Reproduced locally first**, which had not been done: under six CPU-saturating processes (load ~65 on
+8 cores) the contract fails **2 in 10**; idle it is 0 in 10. Nothing about it was CI-specific except
+the contention.
+
+**The first hypothesis was measured and falsified.** The contract's three intermediate edits use a
+bare `writeFile`, bypassing the harness's `atomicWrite` — whose own comment says truncate-then-write
+lets a watcher observe the file _empty_, and that "the harness was the only thing producing the
+intermediate state". An empty module has no boundaries, which would produce exactly `modules=0`.
+Making those writes atomic measured **2/10 → 1/10**, which is noise at n=10, and the residual failure
+carried an identical signature. Reverted: no measured benefit, and the story justifying it had just
+been disproved.
+
+**Then one field.** Vite 6+ defines `client` and `ssr` and calls the hot-update hook **per
+environment**; the trace recorded neither. With `environment` on `HmrTraceEntry`:
+
+```
+enter  src/App.tsx seq=…479866 modules=1 env=client
+return src/App.tsx invalidated=5/1 env=client
+enter  src/App.tsx seq=…479866 modules=0 env=ssr
+return src/App.tsx invalidated=0/0 env=ssr (passthrough)
+```
+
+**Every passthrough is the `ssr` environment**, where a client-only file has no module and never
+could. It is correct, harmless, and was the single most prominent line in a failure diagnosis that
+two investigations had read as the defect. The `client` environment handled **every** update
+including the final one, `modules=1`, five modules invalidated each time.
+
+**So the defect is downstream of anything Zintl decides.** The plan was right, the invalidation
+happened, the update went out — and the page still shows `Hammer 4` after the edit that wrote
+`HMR Hammer works!`. What remains is update _application_: four `update` packets on the wire, and the
+browser ending on an earlier one. Whether that is out-of-order application under load or Fast Refresh
+coalescing the last is the next probe, and it belongs in the page, not the compiler — log the order
+in which the client applies module updates and compare it to the order they were sent.
+
+**Two things kept.** `environment` on every `enter`/`return`, and the failure diagnosis widened from
+the last 10 trace entries to the last 40 — with 10, the answer was off the end of the window, which
+is why the ssr passthrough looked like the last thing that happened. Both are printed only on
+failure.
+
+**The method note.** This is the third entry in three days where the diagnosis, not the product, was
+the thing at fault — after a logger delta read as an interval (L-076) and a negative control that
+could not fail (L-074). The pattern is consistent enough to state as a rule: **when a measurement and
+a mechanism disagree, suspect the instrument first.** It is cheaper to check than a hypothesis, and
+in all three cases it was the answer.

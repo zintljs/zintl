@@ -64,6 +64,7 @@ export async function computeHotUpdatePlan(
     file,
     seq,
     modulesLength: event.modulesLength,
+    environment: event.environment,
   });
 
   const invalidatedBoundaries: string[] = [];

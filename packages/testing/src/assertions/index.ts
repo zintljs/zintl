@@ -240,9 +240,9 @@ export class LabAssertions {
         lines.push("hmr trace: EMPTY — no hot-update hook ran on this host");
       } else {
         lines.push(
-          `hmr trace: ${trace.length} entries, last 10 (oldest first):\n` +
+          `hmr trace: ${trace.length} entries, last 40 (oldest first):\n` +
             trace
-              .slice(-10)
+              .slice(-40)
               .map((e: any) => {
                 switch (e.kind) {
                   case "skip-writing":
@@ -259,11 +259,18 @@ export class LabAssertions {
                      * not report one; "0" would say it reported none, which is
                      * a defect rather than a difference.
                      */
-                    return `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}`;
+                    return (
+                      `    enter ${e.file} seq=${e.seq} modules=${e.modulesLength ?? "n/a"}` +
+                      `${e.environment ? ` env=${e.environment}` : ""}`
+                    );
                   case "repoint":
                     return `    repoint "${e.moduleId}" ${e.oldFile ?? "(none)"} → ${e.newFile} (boundary=${e.boundaryId}, fileId=${e.fileId})`;
                   case "return":
-                    return `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}${e.passthrough ? " (passthrough)" : ""}`;
+                    return (
+                      `    return ${e.file} invalidated=${e.invalidatedCount}/${e.modulesLength ?? "n/a"}` +
+                      `${e.environment ? ` env=${e.environment}` : ""}` +
+                      `${e.passthrough ? " (passthrough)" : ""}`
+                    );
                   default:
                     return `    ${e.kind} ${e.file}`;
                 }

@@ -76,6 +76,17 @@ export interface HmrTraceEntry {
   newFile?: string;
   boundaryId?: string;
   fileId?: string;
+  /**
+   * Which bundler environment reported this event.
+   *
+   * Vite 6+ defines `client` and `ssr` and calls the hot-update hook per
+   * environment, so one file edit can produce several calls with different
+   * module graphs — and a file absent from one of them yields `modules=0` and a
+   * harmless passthrough. Without this field those are indistinguishable from
+   * an update that reached nothing, which is exactly the confusion L-041
+   * recorded one layer up and L-075 recorded for removals.
+   */
+  environment?: string;
   /** `return` only. */
   invalidatedCount?: number;
   passthrough?: boolean;
