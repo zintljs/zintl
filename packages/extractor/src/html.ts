@@ -1,6 +1,7 @@
 import { ExtractionOptions, ExtractionResult, HtmlProjectionPayload } from "./types.js";
 import { ExtractionContext } from "./context.js";
 import { generateMessageId } from "./hashing.js";
+import { scanTranslatableAttributes } from "./attributes.js";
 
 /**
  * Extracts translatable configuration and template strings from HTML files/templates.
@@ -164,52 +165,9 @@ export function extractHtml(
       (s, e) => ({ start: s, end: e }),
     );
 
-    // Extract translatable attributes
-    const tagRegex = /<([a-zA-Z0-9:-]+)\s*([^>]*?)\/?>/g;
-    let tagMatch;
-    while ((tagMatch = tagRegex.exec(activeContent)) !== null) {
-      const _tagName = tagMatch[1].toLowerCase();
-      const attrsString = tagMatch[2];
-      if (!attrsString) continue;
-
-      // Use regex to find all attributes in this tag
-      const attrRegex = /\b([a-zA-Z0-9:-]+)\s*=\s*(?:'([^']*)'|"([^"]*)"|([^\s>]+))/gi;
-      let attrMatch;
-      const attrsIndex = tagMatch[0].indexOf(attrsString);
-      while ((attrMatch = attrRegex.exec(attrsString)) !== null) {
-        const attrName = attrMatch[1].toLowerCase();
-        const attrVal = attrMatch[2] || attrMatch[3] || attrMatch[4] || "";
-
-        if (attrVal && ctx.htmlAttributes.has(attrName)) {
-          const attrStart = contentOffset + tagMatch.index + attrsIndex + attrMatch.index;
-          const attrEnd = attrStart + attrMatch[0].length;
-
-          const msgId = generateMessageId(attrVal, "HTML_ATTR");
-          ctx.addMessage(
-            msgId,
-            attrVal,
-            "HTML_ATTR",
-            fileBoundaryId,
-            { line: 0, column: 0 },
-            [],
-            undefined,
-            `html:attr:${attrName}`,
-          );
-
-          ctx.addRawSink({
-            text: attrVal,
-            sinkType: `html:attr:${attrName}`,
-            start: attrStart,
-            end: attrEnd,
-            line: 0,
-            column: 0,
-            boundaryId: fileBoundaryId,
-            variables: [],
-            isFragment: false,
-          });
-        }
-      }
-    }
+    // Extract translatable attributes. Shared with the JavaScript path — see
+    // `scanTranslatableAttributes`, which this loop became.
+    scanTranslatableAttributes(activeContent, ctx, fileBoundaryId, (i) => contentOffset + i);
   }
 
   return {

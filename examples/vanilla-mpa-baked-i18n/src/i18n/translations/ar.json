@@ -5,5 +5,7 @@
   "Go to About Page": "الذهاب إلى صفحة حول",
   "This is the homepage of our multi-page application example.": "هذه هي الصفحة الرئيسية لمثال تطبيقنا متعدد الصفحات.",
   "This page demonstrates clean MPA routing and fully isolated hydration cycles.": "توضح هذه الصفحة توجيه MPA النظيف ودورات إماهة معزولة تماماً.",
+  "TypeScript logo": "شعار تايب سكريبت",
+  "Vite logo": "شعار فيت",
   "Welcome to Zintl MPA Home!": "مرحباً بك في صفحة Zintl MPA الرئيسية"
 }

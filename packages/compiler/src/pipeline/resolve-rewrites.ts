@@ -386,7 +386,17 @@ function generateSinkWrapRewrite(
     }
   } else if (intent.sink.sinkType && intent.sink.sinkType.startsWith("html:attr:")) {
     const attrName = intent.sink.sinkType.substring("html:attr:".length);
-    if (adapter && adapter.wrapHtmlAttribute) {
+    /**
+     * Only for a whole-attribute replacement. `wrapHtmlAttribute` rewrites the
+     * attribute *and its name* — Vue and Svelte both turn `title="…"` into
+     * `title={…}` — which is right when the sink covers `title="…"` entire, as
+     * it does in an HTML document or an SFC template.
+     *
+     * A fragment covers only the value, between quotes that are staying, so the
+     * `${…}` above is already the whole answer. Wrapping again would emit the
+     * attribute name a second time, inside its own value.
+     */
+    if (!intent.sink.isFragment && adapter && adapter.wrapHtmlAttribute) {
       replacement = adapter.wrapHtmlAttribute(attrName, replacement, true);
     }
   }

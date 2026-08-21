@@ -817,6 +817,8 @@ var entry_b_aafcf9c6fe16_default = {
 	loader: (locale) => {
 		switch (locale) {
 			case "en": return { "b_d602f1d7fa4a": {
+				"cadb7719": "Lit logo",
+				"3473a536": "Vite logo",
 				"da6822c3": "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>",
 				"aa624128": (params) => {
 					const { count } = params;

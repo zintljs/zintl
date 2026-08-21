@@ -112,8 +112,14 @@ var MyElement = class MyElement extends LitElement {
       <section id="center">
         <div class="hero">
           <img src=${hero_default} class="base" width="170" height="179" alt="" />
-          <img src=${lit_default} class="framework" alt="Lit logo" />
-          <img src=${vite_default} class="vite" alt="Vite logo" />
+          <img src=${lit_default} class="framework" alt="${_t("cadb7719", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}" />
+          <img src=${vite_default} class="vite" alt="${_t("3473a536", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}" />
         </div>
         <div>
           <slot></slot>

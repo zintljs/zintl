@@ -37,6 +37,12 @@
     "Learn more": {
       "type": "string"
     },
+    "Lit logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
     "Your questions, answered": {
       "type": "string"
     }
@@ -49,6 +55,8 @@
     "Explore Vite",
     "Join the Vite community",
     "Learn more",
+    "Lit logo",
+    "Vite logo",
     "Your questions, answered"
   ],
   "additionalProperties": false

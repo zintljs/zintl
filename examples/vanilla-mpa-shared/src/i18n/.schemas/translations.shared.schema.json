@@ -117,6 +117,38 @@
       },
       "type": "object"
     },
+    "TypeScript logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Vite logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Welcome to Zintl MPA Home": {
       "additionalProperties": false,
       "description": "",
@@ -158,6 +190,8 @@
     "Home Navigation",
     "This is the homepage of our multi-page application example.",
     "This page demonstrates clean MPA routing and fully isolated hydration cycles.",
+    "TypeScript logo",
+    "Vite logo",
     "Welcome to Zintl MPA Home",
     "Zintl MPA Shared"
   ],

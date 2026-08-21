@@ -18,8 +18,8 @@ export async function render(_url: string) {
     <section id="center">
       <div class="hero">
         <img src="${heroImg}" class="base" width="170" height="179" />
-        <img src="${typescriptLogo}" class="framework" alt="TypeScript logo" />
-        <img src="${viteLogo}" class="vite" alt="Vite logo" />
+        <img src="${typescriptLogo}" class="framework" alt="alt="TypeScript logo"" />
+        <img src="${viteLogo}" class="vite" alt="alt="Vite logo"" />
       </div>
       <div>
         <h1>Get started</h1>

@@ -1,5 +1,7 @@
 const catalog = {
     "b_d602f1d7fa4a": {
+      "cadb7719": "Lit 图标",
+      "3473a536": "Vite 图标",
       "da6822c3": "编辑 <code>src/my-element.ts</code> 并保存以测试 <code>HMR</code>",
       "aa624128": (params) => {
     const { count } = params;

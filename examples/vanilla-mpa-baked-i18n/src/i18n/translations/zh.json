@@ -5,5 +5,7 @@
   "Go to About Page": "前往关于页面",
   "This is the homepage of our multi-page application example.": "这是我们多页面应用程序示例的主页。",
   "This page demonstrates clean MPA routing and fully isolated hydration cycles.": "此页面展示了整洁的 MPA 路由和完全隔离的补水生命周期。",
+  "TypeScript logo": "TypeScript 图标",
+  "Vite logo": "Vite 图标",
   "Welcome to Zintl MPA Home!": "欢迎来到 Zintl MPA 主页"
 }

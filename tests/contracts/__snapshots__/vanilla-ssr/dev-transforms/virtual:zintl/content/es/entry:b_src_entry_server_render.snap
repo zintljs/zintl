@@ -1,5 +1,7 @@
 const catalog = {
     "b_src_entry_server_render": {
+      "TypeScript logo": "Logotipo de TypeScript",
+      "Vite logo": "Logotipo de Vite",
       "Get started": "Empezar",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
       "Documentation": "Documentación",

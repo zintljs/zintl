@@ -1,5 +1,7 @@
 //#region \0virtual:zintl/content/es/entry:b_aafcf9c6fe16
 var catalog = { "b_d602f1d7fa4a": {
+	"cadb7719": "Logotipo de Lit",
+	"3473a536": "Logotipo de Vite",
 	"da6822c3": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
 	"aa624128": (params) => {
 		const { count } = params;

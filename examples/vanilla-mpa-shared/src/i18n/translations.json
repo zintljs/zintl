@@ -35,6 +35,16 @@
     "es": "Esta página demuestra un enrutamiento MPA limpio y ciclos de hidratación completamente aislados.",
     "zh": "此页面展示了整洁 of MPA 路由和完全隔离的补水生命周期。"
   },
+  "TypeScript logo": {
+    "ar": "شعار تايب سكريبت",
+    "es": "Logotipo de TypeScript",
+    "zh": "TypeScript 图标"
+  },
+  "Vite logo": {
+    "ar": "شعار فيت",
+    "es": "Logotipo de Vite",
+    "zh": "Vite 图标"
+  },
   "Welcome to Zintl MPA Home": {
     "ar": "مرحباً بك في صفحة Zintl MPA الرئيسية",
     "es": "Bienvenido a la página de inicio de Zintl MPA",

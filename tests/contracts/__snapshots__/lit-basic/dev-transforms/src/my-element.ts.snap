@@ -26,8 +26,8 @@ export class MyElement extends LitElement {
       <section id="center">
         <div class="hero">
           <img src=${heroImg} class="base" width="170" height="179" alt="" />
-          <img src=${litLogo} class="framework" alt="Lit logo" />
-          <img src=${viteLogo} class="vite" alt="Vite logo" />
+          <img src=${litLogo} class="framework" alt="${_t("Lit logo", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_my_element" })}" />
+          <img src=${viteLogo} class="vite" alt="${_t("Vite logo", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_my_element" })}" />
         </div>
         <div>
           <slot></slot>

@@ -133,6 +133,38 @@
       },
       "type": "object"
     },
+    "TypeScript logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Vite logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Your questions, answered": {
       "additionalProperties": false,
       "description": "",
@@ -159,6 +191,8 @@
     "Get started",
     "Join the Vite community",
     "Learn more",
+    "TypeScript logo",
+    "Vite logo",
     "Your questions, answered"
   ],
   "additionalProperties": false

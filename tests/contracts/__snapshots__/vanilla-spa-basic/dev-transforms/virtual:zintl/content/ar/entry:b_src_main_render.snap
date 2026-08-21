@@ -1,5 +1,7 @@
 const catalog = {
     "b_src_main_render": {
+      "TypeScript logo": "شعار تايب سكريبت",
+      "Vite logo": "شعار فيت",
       "Get started": "ابدأ الآن",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
       "Documentation": "وثائق",

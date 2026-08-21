@@ -1,5 +1,5 @@
 const catalog = {
-    "b_src_App_tsx_App": {
+    "b_src_app_tsx_App": {
       "Preact logo": "Preact 图标",
       "Vite logo": "Vite 图标",
       "Get started": "开始",

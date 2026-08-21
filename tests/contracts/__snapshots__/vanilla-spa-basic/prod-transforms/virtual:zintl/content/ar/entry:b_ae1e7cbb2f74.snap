@@ -1,5 +1,7 @@
 const catalog = {
     "b_ae1e7cbb2f74": {
+      "ccbc33a4": "شعار تايب سكريبت",
+      "3473a536": "شعار فيت",
       "90e40d50": "ابدأ الآن",
       "e2aae512": "عدّل <code>src/main.ts</code> واحفظ لاختبار <code>HMR</code>",
       "9e9cf322": "وثائق",

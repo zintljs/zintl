@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 import { zintl } from "zintljs/macro";
 import "./index.css";
-import { App } from "./App.tsx";
+import { App } from "./app.tsx";
 
 /**
  * `create-vite`'s **preact-ts** starter renders in five lines:
