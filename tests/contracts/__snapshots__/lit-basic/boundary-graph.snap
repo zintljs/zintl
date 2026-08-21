@@ -1,7 +1,7 @@
 {
   "entries": [
     "index.html",
-    "src/components/locale-bar:f_1868",
+    "src/components/locale-bar:f_1694",
     "src/main:bootstrap"
   ],
   "nodes": {
@@ -40,7 +40,7 @@
         },
         {
           "dynamic": false,
-          "id": "src/components/locale-bar:f_1868"
+          "id": "src/components/locale-bar:f_1694"
         },
         {
           "bindings": [
@@ -55,7 +55,7 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/components/locale-bar:f_1868": {
+    "src/components/locale-bar:f_1694": {
       "activeLocales": "all",
       "deps": [
         {
@@ -83,7 +83,7 @@
         }
       ],
       "filePath": "src/components/locale-bar",
-      "id": "src/components/locale-bar:f_1868",
+      "id": "src/components/locale-bar:f_1694",
       "mode": "entry",
       "usageCount": 0
     },
@@ -92,8 +92,8 @@
       "deps": [
         {
           "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
+          "dynamic": true,
+          "id": "src/components/locale-bar"
         },
         {
           "dynamic": false,
@@ -105,7 +105,7 @@
         },
         {
           "bindings": [],
-          "dynamic": false,
+          "dynamic": true,
           "id": "src/my-element"
         },
         {
@@ -126,12 +126,12 @@
       "deps": [
         {
           "bindings": [],
-          "dynamic": false,
-          "id": "src/index.css"
+          "dynamic": true,
+          "id": "src/components/locale-bar"
         },
         {
           "bindings": [],
-          "dynamic": false,
+          "dynamic": true,
           "id": "src/my-element"
         },
         {
@@ -153,6 +153,7 @@
         {
           "bindings": [
             "LitElement",
+            "css",
             "html"
           ],
           "dynamic": false,
@@ -161,15 +162,10 @@
         {
           "bindings": [
             "customElement",
-            "state"
+            "property"
           ],
           "dynamic": false,
           "id": "lit/decorators"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
         },
         {
           "bindings": [
@@ -183,12 +179,14 @@
             "default"
           ],
           "dynamic": false,
-          "id": "src/assets/vite.svg"
+          "id": "src/assets/lit.svg"
         },
         {
-          "bindings": [],
+          "bindings": [
+            "default"
+          ],
           "dynamic": false,
-          "id": "src/components/locale-bar"
+          "id": "src/assets/vite.svg"
         }
       ],
       "filePath": "src/my-element",

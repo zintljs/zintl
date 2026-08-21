@@ -2,7 +2,7 @@
   "entries": [
     "index.html",
     "src/main.tsx:bootstrap",
-    "src/main.tsx:f_521"
+    "src/main.tsx:f_877"
   ],
   "nodes": {
     "index.html": {
@@ -30,13 +30,13 @@
           "id": "preact/hooks"
         },
         {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/App.css"
-        },
-        {
           "dynamic": false,
           "id": "src/App.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
         },
         {
           "bindings": [
@@ -50,14 +50,14 @@
             "default"
           ],
           "dynamic": false,
-          "id": "src/assets/vite.svg"
+          "id": "src/assets/preact.svg"
         },
         {
           "bindings": [
             "default"
           ],
           "dynamic": false,
-          "id": "src/components/LocaleSwitcher.tsx:default"
+          "id": "src/assets/vite.svg"
         }
       ],
       "filePath": "src/App.tsx",
@@ -78,7 +78,7 @@
         {
           "bindings": [],
           "dynamic": false,
-          "id": "src/App.css"
+          "id": "src/app.css"
         },
         {
           "bindings": [
@@ -86,6 +86,59 @@
           ],
           "dynamic": false,
           "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/preact.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:App",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/app.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/app.tsx:App"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/preact.svg"
         },
         {
           "bindings": [
@@ -102,8 +155,57 @@
           "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
-      "filePath": "src/App.tsx",
-      "id": "src/App.tsx:App",
+      "filePath": "src/app.tsx",
+      "id": "src/app.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/app.tsx:App": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/preact.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/app.tsx",
+      "id": "src/app.tsx:App",
       "mode": "boundary",
       "usageCount": 0
     },
@@ -129,7 +231,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/App.tsx:App"
+          "id": "src/app.tsx:App"
         },
         {
           "bindings": [],
@@ -146,7 +248,7 @@
         },
         {
           "dynamic": false,
-          "id": "src/main.tsx:f_521"
+          "id": "src/main.tsx:f_877"
         },
         {
           "bindings": [
@@ -183,7 +285,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/App.tsx:App"
+          "id": "src/app.tsx:App"
         },
         {
           "bindings": [],
@@ -203,7 +305,7 @@
       "mode": "entry",
       "usageCount": 0
     },
-    "src/main.tsx:f_521": {
+    "src/main.tsx:f_877": {
       "activeLocales": "all",
       "deps": [
         {
@@ -225,7 +327,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/App.tsx:App"
+          "id": "src/app.tsx:App"
         },
         {
           "bindings": [],
@@ -241,7 +343,7 @@
         }
       ],
       "filePath": "src/main.tsx",
-      "id": "src/main.tsx:f_521",
+      "id": "src/main.tsx:f_877",
       "mode": "entry",
       "usageCount": 0
     },

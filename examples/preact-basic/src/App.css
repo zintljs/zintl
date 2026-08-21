@@ -54,6 +54,18 @@
   }
 }
 
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 #center {
   display: flex;
   flex-direction: column;
@@ -61,7 +73,6 @@
   place-content: center;
   place-items: center;
   flex-grow: 1;
-  border-top: 1px solid var(--border);
 
   @media (max-width: 1024px) {
     padding: 32px 20px 24px;
@@ -72,7 +83,7 @@
 #next-steps {
   display: flex;
   border-top: 1px solid var(--border);
-  text-align: start;
+  text-align: left;
 
   & > div {
     flex: 1 1 0;
@@ -158,20 +169,4 @@
   @media (max-width: 1024px) {
     height: 48px;
   }
-}
-
-.icon,
-.button-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
-.button-icon {
-  margin-inline-end: 8px;
-}
-
-[dir="rtl"] .switcher {
-  padding: 0 2px;
 }

@@ -1,8 +1,9 @@
 const catalog = {
-    "b_src_App_tsx_App": {
+    "b_src_app_tsx_App": {
+      "Preact logo": "Logotipo de Preact",
       "Vite logo": "Logotipo de Vite",
       "Get started": "Empezar",
-      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+      "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/app.tsx</code> y guarda para probar <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `El recuento es ${params['count']}`;
@@ -10,7 +11,9 @@ const catalog = {
       "Documentation": "Documentación",
       "Your questions, answered": "Tus preguntas, respondidas",
       "<img/> Explore Vite": "<img/> Explorar Vite",
-      "Learn more": "Aprender más",
+      "<img/> Learn more": "<img/> Aprender más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
     },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {

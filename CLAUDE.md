@@ -26,7 +26,7 @@ Type-aware lint resolves workspace imports through each package's `dist/*.d.mts`
 
 ```bash
 vpr verify         # build:examples → lint → knip → unit tests → format check   (~1 min)
-vpr ready:examples # build 30 example packages → 309 contract e2e tests        (~2-5 min)
+vpr ready:examples # build 30 example packages → 364 contract e2e tests        (~2-5 min)
 vpr ready           # verify + bench, local pre-handoff check
 vpr ci              # ready + ready:examples, what CI runs
 ```

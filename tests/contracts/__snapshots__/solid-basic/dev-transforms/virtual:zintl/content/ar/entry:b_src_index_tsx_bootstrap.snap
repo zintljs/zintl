@@ -1,5 +1,6 @@
 const catalog = {
-    "b_src_App_tsx_default": {
+    "b_src_App_tsx_App": {
+      "Solid logo": "شعار سوليد",
       "Vite logo": "شعار فيت",
       "Get started": "البدء",
       "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
@@ -10,7 +11,9 @@ const catalog = {
       "Documentation": "التوثيق",
       "Your questions, answered": "تمت الإجابة على أسئلتك",
       "<img/> Explore Vite": "<img/> استكشف فيت",
-      "Learn more": "تعلم المزيد",
+      "<img/> Learn more": "<img/> تعلم المزيد",
+      "Connect with us": "تواصل معنا",
+      "Join the Vite community": "انضم إلى مجتمع فيت",
     },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {

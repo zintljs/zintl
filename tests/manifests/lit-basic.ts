@@ -15,8 +15,13 @@ const zintlOptions: ZintlPluginOptions = {
  *
  * The project that exercises the extractor's `tag:` descriptor end to end —
  * markup inside a tagged template literal, stitched into keys with its tag map.
- * `headingFile` is the component rather than the entry, because in Lit those are
- * the same kind of file and the component is where the strings are.
+ * `headingFile` is **`index.html`**, which is the surprising part and worth
+ * knowing before reading a failure here. The lit-ts template renders
+ * `<slot></slot>` and puts `<h1>Get started</h1>` in the document, inside
+ * `<my-element>`. So the heading is light-DOM content projected through a slot —
+ * extracted by the HTML facet, not from the component's `html` template — and
+ * `document.querySelector("h1")` still finds it, because slotted content stays
+ * in the light tree.
  *
  * The capability list is deliberately shorter than `react-basic`'s. Every
  * capability here has been run; the ones that are absent — `chaos`,
@@ -50,7 +55,7 @@ export const litBasic: ProjectManifest = {
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
-    headingFile: "src/my-element.ts",
+    headingFile: "index.html",
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/`);
     },

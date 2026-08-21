@@ -1,45 +1,44 @@
 import { createSignal } from "solid-js";
+import solidLogo from "./assets/solid.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
+import { zintl } from "zintljs/macro";
 import LocaleSwitcher from "./components/LocaleSwitcher";
 
 /**
- * `create-vite`'s **solid-ts** starter, localized.
+ * Solid is the framework that shows why subscribing a component is not always
+ * how translations become reactive. A Solid component runs **once** — its JSX
+ * compiles into fine-grained effects — so there is no second render to trigger.
  *
- * Solid is the case that shows why `clientReactivityImports` is not the only
- * reactivity mechanism a facet can declare. A Solid component runs **once**:
- * its JSX compiles into fine-grained effects, and an effect re-runs only when a
- * signal it read during its last run changes. Subscribing the component would
- * therefore change nothing — there is no second render to trigger.
- *
- * So `solidCodegenFacet` contributes a `reactiveBridge` instead: a module-level
- * signal mirroring the store, spliced into every generated `_t` call. Rendering
- * a translation *is* reading that signal, so each sink takes the dependency by
- * construction — which is why nothing below re-mounts on a locale change and
- * every string still updates.
- *
- * Note what is *not* here as a result: no `key={lang}` remount wrapper. React,
- * Preact, Vue and Svelte all use one; Solid does not need it, and adding one
- * would throw away the fine-grained updates that are the point of the framework.
+ * `solidCodegenFacet` contributes a `reactiveBridge` instead: a module-level
+ * signal mirroring the store, spliced into every generated `_t` call, so
+ * rendering a translation *is* reading that signal. Note what is absent as a
+ * result — no `key={lang}` remount wrapper, which React, Preact, Vue and Svelte
+ * all need here. Solid updates the text nodes in place.
  */
-interface AppProps {
-  lang: string;
-  onSwitch: (lang: string) => void;
-}
-
-export default function App(props: AppProps) {
+function App() {
   const [count, setCount] = createSignal(0);
+  const [lang, setLang] = createSignal(
+    new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await zintl(newLang);
+    setLang(newLang);
+  };
 
   return (
     <>
-      {/* `props.lang`, never destructured — Solid compiles props into getters,
-          so pulling `lang` out of them takes a snapshot that never updates. */}
-      <LocaleSwitcher lang={props.lang} onSwitch={props.onSwitch} />
+      <LocaleSwitcher lang={lang()} onSwitch={handleSwitch} />
 
       <section id="center">
         <div class="hero">
           <img src={heroImg} class="base" width="170" height="179" alt="" />
+          <img src={solidLogo} class="framework" alt="Solid logo" />
           <img src={viteLogo} class="vite" alt="Vite logo" />
         </div>
         <div>
@@ -48,7 +47,7 @@ export default function App(props: AppProps) {
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
         </div>
-        <button type="button" class="counter" onClick={() => setCount(count() + 1)}>
+        <button type="button" class="counter" onClick={() => setCount((count) => count + 1)}>
           Count is {count()}
         </button>
       </section>
@@ -71,7 +70,50 @@ export default function App(props: AppProps) {
             </li>
             <li>
               <a href="https://solidjs.com/" target="_blank">
+                <img class="button-icon" src={solidLogo} alt="" />
                 Learn more
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>Connect with us</h2>
+          <p>Join the Vite community</p>
+          {/* @zintl-ignore */}
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
               </a>
             </li>
           </ul>
@@ -83,3 +125,5 @@ export default function App(props: AppProps) {
     </>
   );
 }
+
+export default App;

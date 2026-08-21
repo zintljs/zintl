@@ -1,11 +1,14 @@
 {
   "$schema": "../.schemas/src/App.tsx.App.schema.json",
   "<img/> Explore Vite": "<img/> Explorar Vite",
+  "<img/> Learn more": "<img/> Aprender más",
+  "Connect with us": "Conéctate con nosotros",
   "Count is {count}": "El recuento es {count}",
   "Documentation": "Documentación",
-  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+  "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/app.tsx</code> y guarda para probar <code>HMR</code>",
   "Get started": "Empezar",
-  "Learn more": "Aprender más",
+  "Join the Vite community": "Únete a la comunidad de Vite",
+  "Preact logo": "Logotipo de Preact",
   "Vite logo": "Logotipo de Vite",
   "Your questions, answered": "Tus preguntas, respondidas"
 }

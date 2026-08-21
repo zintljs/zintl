@@ -10,51 +10,57 @@ extractor capability rather than only a facet.
 
 ```bash
 pnpm dev      # vp dev
-pnpm build    # tsc -b && vp build
+pnpm build    # tsc && vp build
 pnpm preview  # vp preview
 ```
 
-## Why Lit needed `tag:`
+**`src/my-element.ts` is the template's own file** — shadow DOM, the
+`static styles = css` block, the `<slot>`, all of it. Diffed against a fresh
+`create-vite --template lit-ts`, it differs in exactly two ways: this repo's
+formatter has been run over it (quotes, semicolons, line wrapping), and one
+`<!-- @zintl-ignore -->` line marks the social list, which `examples/react-basic`
+marks too because brand names are not translatable. No logic, no structure and no
+markup changed.
 
-Lit has no file format. A component is an ordinary `.ts` module and its markup
-lives in `` html`…` `` — a tagged template literal inside a method. Neither
-existing seam fits: an `sfcRules` entry splits a file by regex, so declaring one
-for `.ts` would either hijack every module in the project or leave the code
-_around_ the template unextracted, taking the `zintl()` anchor with it.
+That is the strongest claim this example makes: Zintl reads the real starter, and
+the component did not have to move an inch to accommodate it.
 
-So the extractor gained a `` tag:`<name>` `` target: "the contents of a template
-literal tagged with this identifier are markup". That is a fact about syntax
-rather than about Lit — htm and uhtml get it from the same declaration — and it
-routes into the same stitcher that reads `el.innerHTML = ` in a vanilla app. A
-sentence broken across `<code>` stays one key; `${this.name}` normalizes to
-`{name}`.
+The localization layer is three additions beside it: `src/main.ts` (which the
+template does not have), `src/components/locale-bar.ts`, and two lines in
+`index.html`.
 
-## Two things Lit does that nothing else did
+## What Lit needed
 
-- **Rich text needs an import.** React's `dangerouslySetInnerHTML` and Svelte's
-  `{@html}` are syntax; Lit's `unsafeHTML` is a directive you import, because Lit
-  escapes interpolated strings on purpose. That is what `codegenImports` and
-  `wrapTemplateFragment` exist for, and the facet pays for the directive only on
-  sinks that actually carry markup.
-- **The light DOM, deliberately.** Both elements return `this` from
-  `createRenderRoot`, so they share the page's stylesheet. Shadow styling would
-  work fine for the app — it would just make this the one example whose chrome
-  could not be the shared one.
+Lit has no file format of its own. A component is an ordinary module and its
+markup lives in an `` html`…` `` tagged template literal, which fits neither
+existing extraction seam — an `sfcRules` entry for `.ts` would either hijack every
+module in the project or leave the JavaScript around the template unextracted,
+taking `zintl()` anchors with it.
 
-## Known limits, stated rather than hidden
+So the extractor gained a `` tag:`<name>` `` target: _the contents of a template
+literal tagged with this identifier are markup_. That is a fact about syntax, not
+about Lit — htm and uhtml get it from the same declaration — and the facet names
+`html`, which is where framework knowledge belongs. Note that `static styles =
+css\`…\``is left alone, because`css` is not a declared tag.
 
-- **Attributes inside the template are not extracted.** `<button title="Close">`
-  is invisible to the stitcher, which reads text and tags. This is not a Lit
-  limitation — a vanilla `el.innerHTML = ` template behaves identically — so Lit
-  has exactly vanilla's coverage. The fix belongs in the stitcher, for both.
-- **A delivered catalog does not repaint a live element.** Lit redraws on a
-  reactive property change or an explicit `requestUpdate()`, and a module-level
-  store can reach neither without a registry of connected components — which is
-  what `@lit/localize` maintains through a mixin, and a mixin is application
-  code. `litRuntimeFacet` leaves `repaintsOnCatalogUpdate` undeclared rather than
-  claiming a repaint it cannot deliver, so the host reloads instead. Switching
-  locale from the bar works, because this app listens for it and sets state.
+## Two things this example does that the others do not
 
-## What is not vendored
+**The elements are defined after the catalog.** `@customElement` calls
+`customElements.define` at module scope, so importing the component upgrades it
+immediately — before `zintl()` has resolved, which paints the source locale
+first. `src/main.ts` therefore imports both elements **dynamically, after
+awaiting the anchor**. That is the Lit-shaped answer to the problem every other
+example solves by deferring `render()`.
 
-The Lit logo — see [`../preact-basic/README.md`](../preact-basic/README.md).
+**The app repaints itself on a locale change.** A Lit element redraws when a
+reactive property changes or when something calls `requestUpdate()` on that
+instance, and a module-level store can reach neither. `litRuntimeFacet` leaves
+`repaintsOnCatalogUpdate` undeclared rather than claiming a repaint it cannot
+deliver, and the listener in `src/main.ts` is what an application writes instead.
+Closing that properly needs a registry of connected elements — which is what
+`@lit/localize` maintains through a mixin, and a mixin is application code.
+
+The bar renders into the **light** DOM (`createRenderRoot` returns `this`) while
+`my-element` keeps its shadow root. That contrast is deliberate: the bar's
+styling comes from the page stylesheet like every other example's, and a shadow
+root would seal it off.

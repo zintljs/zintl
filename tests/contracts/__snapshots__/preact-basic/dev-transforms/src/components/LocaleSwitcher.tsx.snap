@@ -3,9 +3,13 @@
  *
  * Same markup, same class names and same behaviour on every framework and both
  * hosts, so a difference you notice between two examples is a difference in
- * *Zintl* rather than in their chrome. The vanilla, React, Vue and Svelte examples
- * render this exact DOM from their own dialect; see
- * `docs/examples-locale-bar.md`.
+ * *Zintl* rather than in their chrome. See `docs/examples-locale-bar.md`.
+ *
+ * Written in Preact's idiom rather than React's — `class`, not `className` —
+ * because that is what the preact-ts template writes. Zintl reads both: the
+ * shared `convertToHtmlTemplate` maps `className=` to `class=` and leaves an
+ * already-correct `class=` alone, which is why one helper serves React, Preact
+ * and Solid.
  */
 interface Props {
   lang: string;
@@ -27,20 +31,22 @@ const locales = [
 ];
 
 /**
- * The Zintl mark, inline rather than fetched.
- *
- * Inline is the only form that is identical on both hosts: it needs no `public/`
- * directory (the Rsbuild starters have none) and no second request. It is drawn
- * in `currentColor`, so it follows the bar's own colour into light or dark
- * without a filter, and it is `aria-hidden` — labelling it would put the brand
- * name into every catalog in every locale, which is precisely what it is not.
+ * The Zintl mark, inline rather than fetched — drawn in `currentColor`, so it
+ * follows the bar into light or dark without a filter, and `aria-hidden`, since
+ * labelling it would put the brand name into every catalog in every locale.
  */
 function ZintlMark() {
   return (
-    <svg className="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
+    <svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
       <mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
         <rect width="100" height="100" />
-        <g stroke="#fff" strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        <g
+          stroke="#fff"
+          stroke-width="13"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"
+        >
           <path d="M16 45V84" />
           <path d="M16 24v1" />
           <path d="M62 84V50" />
@@ -63,13 +69,13 @@ export default function LocaleSwitcher({ lang, onSwitch }: Props) {
     <>
       {/* @zintl-ignore */}
       <section id="header">
-        <div id="switcher" className="switcher">
+        <div id="switcher" class="switcher">
           {locales.map((l) => (
             <button
               key={l.id}
               type="button"
               data-lang={l.id}
-              className={lang === l.id ? "active" : ""}
+              class={lang === l.id ? "active" : ""}
               aria-current={lang === l.id ? "true" : undefined}
               onClick={() => onSwitch(l.id)}
             >
@@ -77,12 +83,12 @@ export default function LocaleSwitcher({ lang, onSwitch }: Props) {
             </button>
           ))}
         </div>
-        <div className="vertical-ticks"></div>
-        <div className="icon-border">
+        <div class="vertical-ticks"></div>
+        <div class="icon-border">
           <ZintlMark />
         </div>
       </section>
-      <div className="ticks"></div>
+      <div class="ticks"></div>
     </>
   );
 }

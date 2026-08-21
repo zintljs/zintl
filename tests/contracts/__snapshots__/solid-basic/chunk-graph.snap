@@ -1,24 +1,27 @@
 {
   "boundaryToOwner": {
-    "src/App.tsx:default": "src/index.tsx:bootstrap",
-    "src/components/LocaleSwitcher.tsx:default": "src/index.tsx:bootstrap",
-    "src/index.tsx:bootstrap": "src/index.tsx:bootstrap",
-    "src/index.tsx:f_970": "src/index.tsx:f_970"
+    "src/App.tsx:App": "src/index.tsx:bootstrap",
+    "src/App.tsx:f_1298": "src/App.tsx:f_1298",
+    "src/components/LocaleSwitcher.tsx:default": "src/App.tsx:f_1298",
+    "src/index.tsx:bootstrap": "src/index.tsx:bootstrap"
   },
   "chunks": {
-    "entry_b_2cdb61148e16": {
+    "entry_b_002350c13580": {
       "boundaries": [
-        "src/index.tsx:f_970"
+        "src/App.tsx:f_1298"
       ],
       "colonies": [],
       "entrySources": [
-        "src/index.tsx:f_970"
+        "src/App.tsx:f_1298"
       ],
-      "id": "entry_b_2cdb61148e16",
+      "id": "entry_b_002350c13580",
       "type": "entry"
     },
     "entry_b_f1bc61690f0b": {
       "boundaries": [
+        "solid-js/web",
+        "src/App.tsx:App",
+        "src/index.css",
         "src/index.tsx:bootstrap"
       ],
       "colonies": [],
@@ -35,15 +38,6 @@
       "colonies": [],
       "entrySources": [],
       "id": "shared_b_006866fb4e10",
-      "type": "shared"
-    },
-    "shared_b_147a3a1c1a40": {
-      "boundaries": [
-        "src/App.tsx:default"
-      ],
-      "colonies": [],
-      "entrySources": [],
-      "id": "shared_b_147a3a1c1a40",
       "type": "shared"
     },
     "shared_b_56d18dcbbde5": {
@@ -91,39 +85,28 @@
       "id": "shared_b_aa7165aefcf8",
       "type": "shared"
     },
-    "shared_b_c5d38a62d1fa": {
+    "shared_b_d18d870d4691": {
       "boundaries": [
-        "src/index.css"
+        "src/assets/solid.svg"
       ],
       "colonies": [],
       "entrySources": [],
-      "id": "shared_b_c5d38a62d1fa",
-      "type": "shared"
-    },
-    "shared_b_db7b45910a1d": {
-      "boundaries": [
-        "solid-js/web"
-      ],
-      "colonies": [],
-      "entrySources": [],
-      "id": "shared_b_db7b45910a1d",
+      "id": "shared_b_d18d870d4691",
       "type": "shared"
     }
   },
   "entryChunks": {
-    "src/index.tsx:bootstrap": "entry_b_f1bc61690f0b",
-    "src/index.tsx:f_970": "entry_b_2cdb61148e16"
+    "src/App.tsx:f_1298": "entry_b_002350c13580",
+    "src/index.tsx:bootstrap": "entry_b_f1bc61690f0b"
   },
   "lazyChunks": [],
   "sharedChunks": [
     "shared_b_006866fb4e10",
-    "shared_b_147a3a1c1a40",
     "shared_b_56d18dcbbde5",
     "shared_b_6c46df482996",
     "shared_b_7c1737176de1",
     "shared_b_8413c2e4a806",
     "shared_b_aa7165aefcf8",
-    "shared_b_c5d38a62d1fa",
-    "shared_b_db7b45910a1d"
+    "shared_b_d18d870d4691"
   ]
 }

@@ -1,7 +1,6 @@
 //#region \0virtual:zintl/content/es/entry:b_aafcf9c6fe16
 var catalog = { "b_d602f1d7fa4a": {
-	"90e40d50": "Empezar",
-	"567850fd": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
+	"da6822c3": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
 	"aa624128": (params) => {
 		const { count } = params;
 		return `El recuento es ${params["count"]}`;
@@ -9,7 +8,9 @@ var catalog = { "b_d602f1d7fa4a": {
 	"9e9cf322": "Documentación",
 	"d0f7666b": "Tus preguntas, respondidas",
 	"e49cb0ee": "Explorar Vite",
-	"824d76b1": "Aprender más"
+	"824d76b1": "Aprender más",
+	"65ac13a7": "Conéctate con nosotros",
+	"15545bc4": "Únete a la comunidad de Vite"
 } };
 //#endregion
 export { catalog as default };

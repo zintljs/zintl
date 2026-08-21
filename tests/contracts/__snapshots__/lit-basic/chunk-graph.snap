@@ -1,38 +1,63 @@
 {
   "boundaryToOwner": {
-    "src/components/locale-bar": "src/main:bootstrap",
-    "src/components/locale-bar:f_1868": "src/components/locale-bar:f_1868",
+    "src/components/locale-bar": "src/components/locale-bar",
+    "src/components/locale-bar:f_1694": "src/components/locale-bar:f_1694",
     "src/main:bootstrap": "src/main:bootstrap",
-    "src/my-element": "src/main:bootstrap"
+    "src/my-element": "src/my-element"
   },
   "chunks": {
-    "entry_b_1cbe9446f360": {
+    "entry_b_a525f2c547de": {
       "boundaries": [
-        "src/components/locale-bar:f_1868"
+        "src/components/locale-bar:f_1694"
       ],
       "colonies": [],
       "entrySources": [
-        "src/components/locale-bar:f_1868"
+        "src/components/locale-bar:f_1694"
       ],
-      "id": "entry_b_1cbe9446f360",
+      "id": "entry_b_a525f2c547de",
       "type": "entry"
     },
     "entry_b_aafcf9c6fe16": {
       "boundaries": [
-        "src/App.css",
+        "src/main:bootstrap"
+      ],
+      "colonies": [
         "src/assets/hero.png",
+        "src/assets/lit.svg",
         "src/assets/vite.svg",
         "src/components/locale-bar",
-        "src/index.css",
-        "src/main:bootstrap",
         "src/my-element"
       ],
-      "colonies": [],
       "entrySources": [
         "src/main:bootstrap"
       ],
       "id": "entry_b_aafcf9c6fe16",
       "type": "entry"
+    },
+    "lazy_b_d602f1d7fa4a": {
+      "boundaries": [
+        "src/assets/hero.png",
+        "src/assets/lit.svg",
+        "src/assets/vite.svg",
+        "src/my-element"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/my-element"
+      ],
+      "id": "lazy_b_d602f1d7fa4a",
+      "type": "lazy"
+    },
+    "lazy_b_db8e4e2d0ccd": {
+      "boundaries": [
+        "src/components/locale-bar"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/locale-bar"
+      ],
+      "id": "lazy_b_db8e4e2d0ccd",
+      "type": "lazy"
     },
     "shared_b_006866fb4e10": {
       "boundaries": [
@@ -63,10 +88,13 @@
     }
   },
   "entryChunks": {
-    "src/components/locale-bar:f_1868": "entry_b_1cbe9446f360",
+    "src/components/locale-bar:f_1694": "entry_b_a525f2c547de",
     "src/main:bootstrap": "entry_b_aafcf9c6fe16"
   },
-  "lazyChunks": [],
+  "lazyChunks": [
+    "lazy_b_d602f1d7fa4a",
+    "lazy_b_db8e4e2d0ccd"
+  ],
   "sharedChunks": [
     "shared_b_006866fb4e10",
     "shared_b_c3648b855299",

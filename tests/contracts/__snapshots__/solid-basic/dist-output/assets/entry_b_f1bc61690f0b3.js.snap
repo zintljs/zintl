@@ -1,5 +1,6 @@
 //#region \0virtual:zintl/content/zh/entry:b_f1bc61690f0b
-var catalog = { "b_147a3a1c1a40": {
+var catalog = { "b_46b46a617b3e": {
+	"9a8dcdda": "Solid 图标",
 	"3473a536": "Vite 图标",
 	"90e40d50": "开始",
 	"9fd2f187": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
@@ -10,7 +11,9 @@ var catalog = { "b_147a3a1c1a40": {
 	"9e9cf322": "文档",
 	"d0f7666b": "您的问题，已有解答",
 	"924cea3c": "<img/> 探索 Vite",
-	"824d76b1": "了解更多"
+	"8cc85295": "<img/> 了解更多",
+	"65ac13a7": "与我们联系",
+	"15545bc4": "加入 Vite 社区"
 } };
 //#endregion
 export { catalog as default };

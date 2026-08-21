@@ -1,8 +1,9 @@
 const catalog = {
-    "b_src_App_tsx_App": {
+    "b_src_app_tsx_App": {
+      "Preact logo": "Preact 图标",
       "Vite logo": "Vite 图标",
       "Get started": "开始",
-      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
+      "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": "编辑 <code>src/app.tsx</code> 并保存以测试 <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `计数为 ${params['count']}`;
@@ -10,7 +11,9 @@ const catalog = {
       "Documentation": "文档",
       "Your questions, answered": "您的问题，已有解答",
       "<img/> Explore Vite": "<img/> 探索 Vite",
-      "Learn more": "了解更多",
+      "<img/> Learn more": "<img/> 了解更多",
+      "Connect with us": "与我们联系",
+      "Join the Vite community": "加入 Vite 社区",
     },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {

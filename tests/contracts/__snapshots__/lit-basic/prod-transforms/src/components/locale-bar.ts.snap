@@ -1,5 +1,4 @@
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
-import _zintl_mgr_b_aafcf9c6fe16 from "virtual:zintl/manager/none/entry:b_aafcf9c6fe16";
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
@@ -8,27 +7,26 @@ import { customElement, property } from "lit/decorators.js";
  * The Zintl locale bar — the one piece of UI every example shares.
  *
  * Same markup, same class names and same behaviour on every framework and both
- * hosts, so a difference you notice between two examples is a difference in
- * *Zintl* rather than in their chrome. The vanilla, React, Preact, Solid, Vue
- * and Svelte examples render this exact DOM from their own dialect; see
- * `docs/examples-locale-bar.md`.
+ * hosts. See `docs/examples-locale-bar.md`.
  *
- * **`createRenderRoot` returns `this`**, so the element renders into the light
- * DOM rather than a shadow root. That is what lets the bar's CSS — which lives
- * in the app's stylesheet like every other example's — reach it. A shadow root
- * would encapsulate the styling away and the bar would be the one piece of UI
- * that did *not* look like the others.
+ * **`createRenderRoot` returns `this`**, so this element renders into the light
+ * DOM. `my-element` beside it keeps the template's shadow root, and that
+ * contrast is the point: the bar's styling lives in the page's stylesheet like
+ * every other example's, and a shadow root would seal it off — making this the
+ * one bar in the suite that could not share the others' chrome.
+ *
+ * It also sits in `index.html` as a sibling of `<my-element>` rather than inside
+ * it, for the same reason.
  */
 @customElement("locale-bar")
 export class LocaleBar extends LitElement {
-  /** The active locale. Reflected so the bar can be styled on it if needed. */
-  @property({ type: String }) lang = "en";
+  @property({ type: String }) lang =
+    new URLSearchParams(window.location.search).get("lang") || "en";
 
   /**
-   * Locale names live in a JS array rather than in the template on purpose: a
+   * Locale names live in a field rather than in the template on purpose: a
    * locale name must never be translated, and an array is out of extraction's
-   * reach to begin with. Everything the template *does* hold is translatable,
-   * which is why nothing here needs `@zintl-ignore`.
+   * reach to begin with — which is why nothing here needs `@zintl-ignore`.
    */
   private readonly locales = [
     { id: "en", name: "English" },
@@ -37,7 +35,7 @@ export class LocaleBar extends LitElement {
     { id: "zh", name: "中文" },
   ];
 
-  protected createRenderRoot(): HTMLElement {
+  protected createRenderRoot() {
     return this;
   }
 
@@ -45,7 +43,8 @@ export class LocaleBar extends LitElement {
     const url = new URL(window.location.href);
     url.searchParams.set("lang", next);
     window.history.pushState({}, "", url.pathname + url.search);
-    await (globalThis.__zintl_inst = loadI18nInstance({ locale: next, loaders: { ["b_aafcf9c6fe16"]: _zintl_mgr_b_aafcf9c6fe16.loader } }));
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: next, loaders: {  } }));
+    this.lang = next;
     this.dispatchEvent(new CustomEvent("locale-change", { detail: next, bubbles: true }));
   }
 

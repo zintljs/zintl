@@ -4,8 +4,7 @@ export default (() => {
         case "en":
           return {
     "b_src_my_element": {
-      "Get started": "Get started",
-      "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>",
+      "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `Count is ${params['count']}`;
@@ -14,6 +13,8 @@ export default (() => {
       "Your questions, answered": "Your questions, answered",
       "Explore Vite": "Explore Vite",
       "Learn more": "Learn more",
+      "Connect with us": "Connect with us",
+      "Join the Vite community": "Join the Vite community",
     },
   };
                 case "ar":

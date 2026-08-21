@@ -1,21 +1,40 @@
 import { loadI18nInstance } from "virtual:zintl/runtime/internal";
 import _zintl_mgr_b_src_main_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_bootstrap";
 
-import "./index.css";
-import "./my-element.ts";
 
+/**
+ * The localization layer for `create-vite`'s lit-ts template.
+ *
+ * The template has no entry of its own — `index.html` loads `/src/my-element.ts`
+ * directly, and the element upgrades the moment that module evaluates, because
+ * `@customElement` calls `customElements.define` at module scope. That is the
+ * one thing localization cannot live with: an element that upgrades before the
+ * catalog exists paints the source locale first.
+ *
+ * So the imports are **dynamic and awaited**, which is the whole trick. Nothing
+ * defines a custom element until `zintl(lang)` has resolved, and the first paint
+ * is already translated. Everything else in `index.html` is the template's.
+ */
 async function bootstrap() {
-  // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
   const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader, ["b_src_my_element"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
 
-  // 2. Await Zintl catalog loading and hydration
-  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_bootstrap"]: _zintl_mgr_b_src_main_bootstrap.loader } }));
+  await Promise.all([import("./components/locale-bar.ts"), import("./my-element.ts")]);
 
-  // 3. Upgrade the element only when translations are ready. `<my-element>` is
-  //    created here rather than written into `index.html` so that its first
-  //    render already has a catalog — a custom element in the document would
-  //    upgrade the moment its module is imported, which is before this resolves.
-  document.getElementById("app")!.appendChild(document.createElement("my-element"));
+  /**
+   * Repaint on a locale change — done by the application, not by Zintl.
+   *
+   * A Lit element redraws when a reactive property changes or when something
+   * calls `requestUpdate()` on that instance, and a module-level store can reach
+   * neither. `litRuntimeFacet` leaves `repaintsOnCatalogUpdate` undeclared for
+   * exactly this reason rather than claiming a repaint it cannot deliver, and
+   * this listener is what an application writes instead.
+   */
+  document.addEventListener("locale-change", () => {
+    for (const el of document.querySelectorAll("my-element, locale-bar")) {
+      (el as HTMLElement & { requestUpdate?: () => void }).requestUpdate?.();
+    }
+  });
 }
 
 void bootstrap();

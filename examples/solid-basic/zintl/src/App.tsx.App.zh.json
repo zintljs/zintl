@@ -1,0 +1,14 @@
+{
+  "$schema": "../.schemas/src/App.tsx.App.schema.json",
+  "<img/> Explore Vite": "<img/> 探索 Vite",
+  "<img/> Learn more": "<img/> 了解更多",
+  "Connect with us": "与我们联系",
+  "Count is {input}": "计数为 {input}",
+  "Documentation": "文档",
+  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
+  "Get started": "开始",
+  "Join the Vite community": "加入 Vite 社区",
+  "Solid logo": "Solid 图标",
+  "Vite logo": "Vite 图标",
+  "Your questions, answered": "您的问题，已有解答"
+}

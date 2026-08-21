@@ -5,6 +5,9 @@
     "$schema": {
       "type": "string"
     },
+    "Get started": {
+      "type": "string"
+    },
     "dir": {
       "default": "",
       "enum": ["ltr", "rtl", "auto", ""],

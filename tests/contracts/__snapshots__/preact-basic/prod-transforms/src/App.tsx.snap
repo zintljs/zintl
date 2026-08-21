@@ -2,9 +2,10 @@ import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 import { useSyncExternalStore } from "preact/compat";
 import _zintl_mgr_b_89ad0a7bfa7f from "virtual:zintl/manager/none/entry:b_89ad0a7bfa7f";
 import { useState } from "preact/hooks";
+import preactLogo from "./assets/preact.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
-import "./App.css";
+import "./app.css";
 import LocaleSwitcher from "./components/LocaleSwitcher";
 
 interface AppProps {
@@ -12,17 +13,6 @@ interface AppProps {
   onSwitch: (newLang: string) => void;
 }
 
-/**
- * `create-vite`'s **preact-ts** starter, localized.
- *
- * Preact writes the same JSX React does, and Zintl reads it with the same
- * extraction — `preactExtractionFacet` and `reactExtractionFacet` share their
- * target list rather than each carrying a copy. What differs is one import and
- * one declaration: the subscription hook comes from `preact/compat`, not
- * `preact/hooks`, and re-running this entry is *safe* here where it is not in
- * React, because `render()` diffs against the container's existing tree instead
- * of mounting a second root over it.
- */
 export function App({ lang, onSwitch }: AppProps) {
   useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
 
@@ -33,38 +23,81 @@ export function App({ lang, onSwitch }: AppProps) {
       <LocaleSwitcher lang={lang} onSwitch={onSwitch} />
 
       <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={viteLogo} className="vite" alt={_t("3473a536", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })} />
+        <div class="hero">
+          <img src={heroImg} class="base" width="170" height="179" alt="" />
+          <img src={preactLogo} class="framework" alt={_t("3509f03d", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })} />
+          <img src={viteLogo} class="vite" alt={_t("3473a536", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })} />
         </div>
         <div>
-          <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</h1>
-          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("9fd2f187", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
+          <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</h1>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("1ae47bb6", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
         </div>
-        <button type="button" className="counter" onClick={() => setCount((c) => c + 1)}>{_t("aa624128", { count: count }, { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</button>
+        <button type="button" class="counter" onClick={() => setCount((count) => count + 1)}>{_t("aa624128", { count: count }, { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</button>
       </section>
 
-      <div className="ticks"></div>
+      <div class="ticks"></div>
 
       <section id="next-steps">
         <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
+          <svg class="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("9e9cf322", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</h2>
-          <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</p>
+          <h2>{_t("9e9cf322", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</h2>
+          <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("924cea3c", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://preactjs.com/" target="_blank">{_t("824d76b1", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_46b46a617b3e" })}</a>
+              <a href="https://preactjs.com/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("8cc85295", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca", _tags: [{ alias: "img", originalOpen: `<img class="button-icon" src="${preactLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>{_t("65ac13a7", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</h2>
+          <p>{_t("15545bc4", { _mgr: _zintl_mgr_b_89ad0a7bfa7f, _bId: "b_2f98939c81ca" })}</p>
+          {/* @zintl-ignore */}
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
             </li>
           </ul>
         </div>
       </section>
 
-      <div className="ticks"></div>
+      <div class="ticks"></div>
       <section id="spacer"></section>
     </div>
   );

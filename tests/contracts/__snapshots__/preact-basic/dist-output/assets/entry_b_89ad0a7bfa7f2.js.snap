@@ -1,8 +1,9 @@
 //#region \0virtual:zintl/content/es/entry:b_89ad0a7bfa7f
-var catalog = { "b_46b46a617b3e": {
+var catalog = { "b_2f98939c81ca": {
+	"3509f03d": "Logotipo de Preact",
 	"3473a536": "Logotipo de Vite",
 	"90e40d50": "Empezar",
-	"9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+	"1ae47bb6": "Edita <code>src/app.tsx</code> y guarda para probar <code>HMR</code>",
 	"aa624128": (params) => {
 		const { count } = params;
 		return `El recuento es ${params["count"]}`;
@@ -10,7 +11,9 @@ var catalog = { "b_46b46a617b3e": {
 	"9e9cf322": "Documentación",
 	"d0f7666b": "Tus preguntas, respondidas",
 	"924cea3c": "<img/> Explorar Vite",
-	"824d76b1": "Aprender más"
+	"8cc85295": "<img/> Aprender más",
+	"65ac13a7": "Conéctate con nosotros",
+	"15545bc4": "Únete a la comunidad de Vite"
 } };
 //#endregion
 export { catalog as default };

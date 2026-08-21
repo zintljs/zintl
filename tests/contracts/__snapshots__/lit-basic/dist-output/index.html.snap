@@ -6,17 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite with Lit — Zintl example</title>
     <script type="module" crossorigin src="/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DNuG6EV4.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-BeHQtzFX.css">
   
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"Vite مع Lit — مثال زينتل"},"es":{"title":"Vite con Lit — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 Lit — Zintl 示例"}};
+        const deltas = {"ar":{"z_0":{"type":"text","name":"","val":"البدء"},"title":"Vite مع Lit — مثال زينتل"},"es":{"z_0":{"type":"text","name":"","val":"Empezar"},"title":"Vite con Lit — Ejemplo de Zintl"},"zh":{"z_0":{"type":"text","name":"","val":"开始"},"title":"Vite 搭配 Lit — Zintl 示例"}};
         const originals = {
-        title: document.title,
-      };
+        title: document.title,"z_0":{"type":"text","name":"","val":"Get started"}};
         const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
       function preload(locale) {
         const urls = preloads[locale] || [];
@@ -39,6 +38,20 @@
           } else {
             document.title = originals.title;
           }
+          for (const [id, original] of Object.entries(originals)) {
+            const el = document.querySelector(`[data-zintl-id="${id}"]`);
+            if (!el) continue;
+            const target = delta && delta[id] ? delta[id] : original;
+            if (target.type === "text") {
+              el.textContent = hasText(target.val) ? target.val : original.val;
+            } else if (target.type === "attr") {
+              if (hasText(target.val)) {
+                el.setAttribute(target.name, target.val);
+              } else {
+                el.removeAttribute(target.name);
+              }
+            }
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {
@@ -49,6 +62,9 @@
     </script>
   </head>
   <body>
-    <div id="app"></div>
+    <locale-bar></locale-bar>
+    <my-element>
+      <h1 data-zintl-id="z_0" data-zintl-id="z_0">Get started</h1>
+    </my-element>
   </body>
 </html>

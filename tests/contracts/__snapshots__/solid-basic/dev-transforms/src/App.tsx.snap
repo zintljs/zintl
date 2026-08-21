@@ -1,57 +1,56 @@
-import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
 import { createSignal as __zintl_createSignal } from "solid-js";
 const [__zintl_v, __zintl_set_v] = __zintl_createSignal(getStoreVersion());
 subscribe(() => __zintl_set_v(getStoreVersion()));
 import _zintl_mgr_b_src_index_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_tsx_bootstrap";
 import { createSignal } from "solid-js";
+import solidLogo from "./assets/solid.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
+
 import LocaleSwitcher from "./components/LocaleSwitcher";
 
 /**
- * `create-vite`'s **solid-ts** starter, localized.
+ * Solid is the framework that shows why subscribing a component is not always
+ * how translations become reactive. A Solid component runs **once** — its JSX
+ * compiles into fine-grained effects — so there is no second render to trigger.
  *
- * Solid is the case that shows why `clientReactivityImports` is not the only
- * reactivity mechanism a facet can declare. A Solid component runs **once**:
- * its JSX compiles into fine-grained effects, and an effect re-runs only when a
- * signal it read during its last run changes. Subscribing the component would
- * therefore change nothing — there is no second render to trigger.
- *
- * So `solidCodegenFacet` contributes a `reactiveBridge` instead: a module-level
- * signal mirroring the store, spliced into every generated `_t` call. Rendering
- * a translation *is* reading that signal, so each sink takes the dependency by
- * construction — which is why nothing below re-mounts on a locale change and
- * every string still updates.
- *
- * Note what is *not* here as a result: no `key={lang}` remount wrapper. React,
- * Preact, Vue and Svelte all use one; Solid does not need it, and adding one
- * would throw away the fine-grained updates that are the point of the framework.
+ * `solidCodegenFacet` contributes a `reactiveBridge` instead: a module-level
+ * signal mirroring the store, spliced into every generated `_t` call, so
+ * rendering a translation *is* reading that signal. Note what is absent as a
+ * result — no `key={lang}` remount wrapper, which React, Preact, Vue and Svelte
+ * all need here. Solid updates the text nodes in place.
  */
-interface AppProps {
-  lang: string;
-  onSwitch: (lang: string) => void;
-}
-
-export default function App(props: AppProps) {
+function App() {
   const [count, setCount] = createSignal(0);
+  const [lang, setLang] = createSignal(
+    new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_index_tsx_bootstrap"]: _zintl_mgr_b_src_index_tsx_bootstrap.loader } }));
+    setLang(newLang);
+  };
 
   return (
     <>
-      {/* `props.lang`, never destructured — Solid compiles props into getters,
-          so pulling `lang` out of them takes a snapshot that never updates. */}
-      <LocaleSwitcher lang={props.lang} onSwitch={props.onSwitch} />
+      <LocaleSwitcher lang={lang()} onSwitch={handleSwitch} />
 
       <section id="center">
         <div class="hero">
           <img src={heroImg} class="base" width="170" height="179" alt="" />
-          <img src={viteLogo} class="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })} />
+          <img src={solidLogo} class="framework" alt={_t("Solid logo", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })} />
+          <img src={viteLogo} class="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })} />
         </div>
         <div>
-          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })}</h1>
-          <p>{<span style={{ display: "contents" }} innerHTML={_t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }], _v: __zintl_v() })} />}</p>
+          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</h1>
+          <p>{<span style={{ display: "contents" }} innerHTML={_t("Edit <code>src/App.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }], _v: __zintl_v() })} />}</p>
         </div>
-        <button type="button" class="counter" onClick={() => setCount(count() + 1)}>{_t("Count is {input}", { input: count() }, { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })}</button>
+        <button type="button" class="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {input}", { input: count() }, { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</button>
       </section>
 
       <div class="ticks"></div>
@@ -61,14 +60,56 @@ export default function App(props: AppProps) {
           <svg class="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })}</h2>
-          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })}</p>
+          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</h2>
+          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} innerHTML={_t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }], _v: __zintl_v() })} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} innerHTML={_t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }], _v: __zintl_v() })} />}</a>
             </li>
             <li>
-              <a href="https://solidjs.com/" target="_blank">{_t("Learn more", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_default", _v: __zintl_v() })}</a>
+              <a href="https://solidjs.com/" target="_blank">{<span style={{ display: "contents" }} innerHTML={_t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="button-icon" src="${solidLogo}" alt="" />`, tagName: "img" }], _v: __zintl_v() })} />}</a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</h2>
+          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_App_tsx_App", _v: __zintl_v() })}</p>
+          {/* @zintl-ignore */}
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
             </li>
           </ul>
         </div>
@@ -78,4 +119,15 @@ export default function App(props: AppProps) {
       <section id="spacer"></section>
     </>
   );
+}
+
+export default App;
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    // src/App.tsx declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
+  });
 }

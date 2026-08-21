@@ -5,14 +5,12 @@ import { For } from "solid-js";
  *
  * Same markup, same class names and same behaviour on every framework and both
  * hosts, so a difference you notice between two examples is a difference in
- * *Zintl* rather than in their chrome. The vanilla, React, Preact, Vue, Svelte
- * and Lit examples render this exact DOM from their own dialect; see
- * `docs/examples-locale-bar.md`.
+ * *Zintl* rather than in their chrome. See `docs/examples-locale-bar.md`.
  *
  * **`props` is read, never destructured.** Solid compiles JSX props into
- * getters, so `props.lang` is a tracked read and `const { lang } = props` is a
- * one-time snapshot that never updates again. That is the single Solid-specific
- * thing in this file, and it is why the bar repaints when the locale changes.
+ * getters, so `props.lang` is a tracked read while `const { lang } = props` is a
+ * one-time snapshot that never updates again. That is the only Solid-specific
+ * thing in this file, and it is what makes the active locale follow the switch.
  */
 interface Props {
   lang: string;

@@ -74,7 +74,7 @@ target — and a brand name is the one string that must not be translated.
 ## Nothing in the bar is extracted
 
 Locale names live in a JS array, out of extraction's reach to begin with. Where
-one reaches markup — the vanilla template literals, the React and Svelte
+one reaches markup — the vanilla template literals, the React, Preact, Solid and Svelte
 templates — the block carries `@zintl-ignore`. The Vue switchers need no marker
 for exactly this reason, and say so in a comment.
 
@@ -153,6 +153,8 @@ Three dialects have a wrinkle worth knowing before you copy:
   returns `this`. Rendering into the light DOM is what lets the shared CSS reach
   it; a shadow root would make this the one bar that could not look like the
   others.
-- **Preact** — identical to React's, `dangerouslySetInnerHTML` included. Then give the
-  manifest `switchLocale: (lab, locale) => clickLocaleBar(lab, locale)` and let the
-  contract tell you whether you got it right.
+- **Preact** — identical to React's, `dangerouslySetInnerHTML` included, except
+  that the template writes `class` rather than `className`. Zintl reads both.
+
+Then give the manifest `switchLocale: (lab, locale) => clickLocaleBar(lab, locale)`
+and let the contract tell you whether you got it right.

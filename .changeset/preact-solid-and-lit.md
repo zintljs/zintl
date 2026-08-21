@@ -24,7 +24,14 @@ JSX compiles to fine-grained effects, so subscribing it has nothing to act on. I
 `reactiveBridge` seam Vue already had, mirroring the store into a signal whose read is spliced into
 every `_t` call — so rendering a translation _is_ taking the dependency, and no sink can be missed.
 The observable result is the nicest in the suite: switching locale remounts nothing, and a counter
-keeps its value across two switches where every other framework example throws it away.
+keeps its value across two switches where every other framework example throws it away. Verified in a
+browser by marking DOM nodes before a switch and finding the same nodes carrying the new text.
+
+Solid's limit is on the other side, and is a property of Solid rather than a gap here: a component
+does not self-accept a catalog invalidation, so it propagates to the entry, and re-running a Solid
+entry is unsafe — `render(code, el)` called twice on one element leaves **two** children, measured.
+So a _translation-file edit_ arrives by reload and `solid-basic` claims no `hmr`. The template's
+`/* @refresh reload */` was the obvious suspect and was ruled out: removing it changes nothing.
 
 The defect it exposed: the compiler injected `useSyncExternalStore(...)` into any file with component
 functions, gated only on server components. Vue and Svelte escaped because their SFCs have no
@@ -51,7 +58,16 @@ application code — and `lit-basic` claims no `hmr` capability as a result.
 
 Coverage is a real example app per framework on Vite plus an inline Rsbuild fixture, following
 `tests/manifests/index.ts`'s own guidance that cost is roughly (projects × matching contracts). The
-contract suite goes from 309 to 371.
+contract suite goes from 309 to 364.
+
+The three apps are scaffolded from `create-vite` — `preact-ts`, `solid-ts`, `lit-ts` — not
+approximated from a sibling example, which matters because the templates differ in ways that would
+otherwise have gone untested. `lit-ts` renders into a **shadow root**, keeps its whole stylesheet in
+a `css` tagged template, and slots its `<h1>` from `index.html`; `preact-ts` names its component
+`app.tsx` and writes `class` rather than `className`. `examples/lit-basic/src/my-element.ts` is the
+template's own file — diffed against a fresh scaffold, it differs only by this repo's formatter and
+one `@zintl-ignore` line, with no change to logic, structure or markup. That is the strongest form of
+the claim this change makes.
 
 Detection prefers Preact over React and resolves it after both scans, because `@preact/preset-vite`
 aliases `react` — a project resolving as both would activate two codegen facets claiming `.tsx`,

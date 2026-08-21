@@ -1,7 +1,6 @@
 const catalog = {
     "b_d602f1d7fa4a": {
-      "90e40d50": "البدء",
-      "567850fd": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
+      "da6822c3": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
       "aa624128": (params) => {
     const { count } = params;
     return `العدد هو ${params['count']}`;
@@ -10,6 +9,8 @@ const catalog = {
       "d0f7666b": "تمت الإجابة على أسئلتك",
       "e49cb0ee": "استكشف فيت",
       "824d76b1": "تعلم المزيد",
+      "65ac13a7": "تواصل معنا",
+      "15545bc4": "انضم إلى مجتمع فيت",
     },
   };
 export default catalog;

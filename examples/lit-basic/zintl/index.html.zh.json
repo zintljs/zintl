@@ -1,5 +1,6 @@
 {
   "$schema": ".schemas/index.html.schema.json",
+  "Get started": "开始",
   "dir": "ltr",
   "title": "Vite 搭配 Lit — Zintl 示例"
 }

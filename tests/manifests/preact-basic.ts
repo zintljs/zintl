@@ -44,7 +44,7 @@ export const preactBasic: ProjectManifest = {
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
-    headingFile: "src/App.tsx",
+    headingFile: "src/app.tsx",
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/`);
     },

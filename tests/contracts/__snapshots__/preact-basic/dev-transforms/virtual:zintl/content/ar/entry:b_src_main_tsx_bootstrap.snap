@@ -1,8 +1,9 @@
 const catalog = {
-    "b_src_App_tsx_App": {
+    "b_src_app_tsx_App": {
+      "Preact logo": "شعار بريأكت",
       "Vite logo": "شعار فيت",
       "Get started": "البدء",
-      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
+      "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": "عدل <code>src/app.tsx</code> واحفظه لاختبار <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `العدد هو ${params['count']}`;
@@ -10,7 +11,9 @@ const catalog = {
       "Documentation": "التوثيق",
       "Your questions, answered": "تمت الإجابة على أسئلتك",
       "<img/> Explore Vite": "<img/> استكشف فيت",
-      "Learn more": "تعلم المزيد",
+      "<img/> Learn more": "<img/> تعلم المزيد",
+      "Connect with us": "تواصل معنا",
+      "Join the Vite community": "انضم إلى مجتمع فيت",
     },
   };
 if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {

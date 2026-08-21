@@ -1,7 +1,7 @@
 # `solid-basic`
 
 `create-vite`'s **solid-ts** starter, localized. The example that shows why
-subscribing a component is not always the way to make translations reactive.
+subscribing a component is not always how translations become reactive.
 
 > The locale switcher is the shared **Zintl locale bar** — the same markup,
 > class names and behaviour every example renders, documented in
@@ -14,33 +14,27 @@ pnpm build    # tsc -b && vp build
 pnpm preview  # vp preview
 ```
 
-## Why Solid needs a reactive bridge
+Read it as "I ran `pnpm create vite --template solid-ts`, then added
+localization". The page, the CSS, the `solid.svg` hero and the `#root` mount
+point are the template's.
+
+## Why Solid needed a different mechanism
 
 A Solid component runs **once**. Its JSX compiles into fine-grained effects, and
-an effect re-runs only when a signal it read during its last run changes. So the
-React mechanism — inject `useSyncExternalStore` into the component and let the
-framework re-render it — has nothing to act on here: there is no second render.
+an effect re-runs only when a signal it read during its last run changes.
+`_t('…')` is an ordinary call to an ordinary function, so a Solid component can
+be perfectly subscribed to the store and still never update — there is no second
+render to trigger.
 
-`solidCodegenFacet` therefore declares a `reactiveBridge` instead. A module-level
-signal mirrors the store, and its read is spliced into **every** generated `_t`
-call, so rendering a translation _is_ taking the dependency. No sink can be
-missed, because the codegen never had to go looking for them.
+So `solidCodegenFacet` contributes a `reactiveBridge` rather than
+`clientReactivityImports`: a module-level signal mirroring the store, spliced
+into every generated `_t` call as `_v`. Rendering a translation _is_ reading that
+signal, so each sink takes the dependency by construction, without the codegen
+having to find them. Vue reached the same seam from the opposite direction —
+its templates compile to render functions that must read something reactive —
+which is the clearest evidence in the repo that the abstraction is load-bearing.
 
-The observable consequence is the nicest one in the suite: switching locale here
-**does not remount anything**. Click the counter a few times, switch to Español,
-and the count is still there — every other framework example wraps its tree in a
-`key`/`{#key}` and throws that state away. It is worth doing once by hand.
-
-## What this exposed
-
-Solid was the first JSX dialect _without_ a hook, and it found a real defect:
-the compiler injected `useSyncExternalStore(...)` into any file with component
-functions, gated only on server components. Vue and Svelte escaped because their
-SFCs have no component functions to find — a property of their file format
-rather than a decision. Solid did not, and got a call to an undefined name.
-The injection is now gated on the framework having declared a hook to call.
-
-## What is not vendored
-
-The Solid logo — see [`../preact-basic/README.md`](../preact-basic/README.md) for
-why the hero carries the neutral shape and the Vite logo only.
+The visible consequence: **there is no `key={lang}` remount wrapper here.** React,
+Preact, Vue and Svelte all use one. Solid updates the text nodes in place, and
+adding a remount would throw away the fine-grained updates that are the point of
+the framework.

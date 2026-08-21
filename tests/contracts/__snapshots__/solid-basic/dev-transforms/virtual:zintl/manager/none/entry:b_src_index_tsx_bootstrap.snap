@@ -3,7 +3,8 @@ export default (() => {
       switch(locale) { 
         case "en":
           return {
-    "b_src_App_tsx_default": {
+    "b_src_App_tsx_App": {
+      "Solid logo": "Solid logo",
       "Vite logo": "Vite logo",
       "Get started": "Get started",
       "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
@@ -14,7 +15,9 @@ export default (() => {
       "Documentation": "Documentation",
       "Your questions, answered": "Your questions, answered",
       "<img/> Explore Vite": "<img/> Explore Vite",
-      "Learn more": "Learn more",
+      "<img/> Learn more": "<img/> Learn more",
+      "Connect with us": "Connect with us",
+      "Join the Vite community": "Join the Vite community",
     },
   };
                 case "ar":

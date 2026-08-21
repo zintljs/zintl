@@ -1,5 +1,6 @@
 const catalog = {
-    "b_147a3a1c1a40": {
+    "b_46b46a617b3e": {
+      "9a8dcdda": "Logotipo de Solid",
       "3473a536": "Logotipo de Vite",
       "90e40d50": "Empezar",
       "9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
@@ -10,7 +11,9 @@ const catalog = {
       "9e9cf322": "Documentación",
       "d0f7666b": "Tus preguntas, respondidas",
       "924cea3c": "<img/> Explorar Vite",
-      "824d76b1": "Aprender más",
+      "8cc85295": "<img/> Aprender más",
+      "65ac13a7": "Conéctate con nosotros",
+      "15545bc4": "Únete a la comunidad de Vite",
     },
   };
 export default catalog;

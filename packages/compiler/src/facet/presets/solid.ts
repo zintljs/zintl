@@ -101,9 +101,19 @@ export function solidCodegenFacet(options: SolidFacetOptions = {}): CodegenFacet
  * `render(code, element)` appends its result and hands back a dispose function;
  * calling it again on the same element renders the application a second time
  * beside the first rather than replacing it. That is the same shape as Svelte's
- * `mount()`, and it gets the same declaration — a full page reload on exactly
- * the updates that re-execute the entry, which for a Solid app is rare, since
- * its strings live in components.
+ * `mount()`, and it gets the same declaration.
+ *
+ * Measured rather than reasoned: called twice on one element in a browser,
+ * `render` leaves **two** children, not one. Worth having as a number, because
+ * Preact's `render` — the same word, the same shape of call — replaces, and this
+ * facet would be wrong if it had inherited that assumption.
+ *
+ * The cost is larger here than the phrase "rare" would suggest, and
+ * `tests/manifests/solid-basic.ts` records it: a Solid component does not
+ * self-accept a catalog invalidation, so the invalidation reaches the entry and
+ * a catalog edit arrives by reload. Switching locale does not go through that
+ * path — the reactive bridge handles it in place — so what a user notices is
+ * confined to editing translation files during development.
  */
 export function solidRuntimeFacet(): ZintlFacet {
   return {

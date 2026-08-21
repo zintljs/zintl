@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "tsc -b && vp build",
+    "build": "tsc && vp build",
     "preview": "vp preview"
   },
   "dependencies": {
     "lit": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",

@@ -29,17 +29,29 @@ export const solidBasic: ProjectManifest = {
   name: "solid-basic",
   source: copiedExampleSource("solid-basic"),
   zintlOptions,
-  capabilities: [
-    "spa",
-    "hmr",
-    "hmr-warm",
-    "locale-switch",
-    "rtl",
-    "boundary-graph",
-    "transform",
-    "build",
-    "graph",
-  ],
+  /**
+   * No `hmr` claim, and it is a measured property of Solid rather than a gap in
+   * Zintl.
+   *
+   * A catalog edit invalidates the component that reads it. A Solid component
+   * does not self-accept that invalidation, so it propagates to its importer —
+   * which is the entry — and re-running a Solid entry is not safe: measured in a
+   * browser, `render(code, el)` called twice on the same element leaves **two**
+   * children, not one. It appends. So `solidRuntimeFacet` declares
+   * `entryReexecutionSafe: false` and the host correctly reloads instead.
+   *
+   * Ruled out on the way: the template's `index.tsx` opens with
+   * `/* @refresh reload *\/`, which was the obvious suspect. Removing it changes
+   * nothing — still `update, update, full-reload` — so the directive is not the
+   * cause and stays, because it is the template's.
+   *
+   * `catalog-edit` and `hmr-first-tick` both require `hmr` and both are asking
+   * for Fast Replacement (ZHMR §4.1), which a reload is not. Claiming it anyway
+   * would turn a known property into two red contracts that say nothing new.
+   * Switching locale from the bar is covered and works — that path goes through
+   * the app's own signal, not through catalog delivery.
+   */
+  capabilities: ["spa", "locale-switch", "rtl", "boundary-graph", "transform", "build", "graph"],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",
