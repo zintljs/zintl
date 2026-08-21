@@ -1684,7 +1684,7 @@ var entry_b_89ad0a7bfa7f_default = {
 	id: "b_89ad0a7bfa7f",
 	loader: (locale) => {
 		switch (locale) {
-			case "en": return { "b_2f98939c81ca": {
+			case "en": return { "b_46b46a617b3e": {
 				"3509f03d": "Preact logo",
 				"3473a536": "Vite logo",
 				"90e40d50": "Get started",
@@ -1967,8 +1967,8 @@ function LocaleSwitcher({ lang, onSwitch }) {
 	}, this);
 }
 //#endregion
-//#region examples/preact-basic/src/app.tsx
-var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/preact-basic/src/app.tsx";
+//#region examples/preact-basic/src/App.tsx
+var _jsxFileName$1 = "<MONOREPO_ROOT>/examples/preact-basic/src/App.tsx";
 function App({ lang, onSwitch }) {
 	C(subscribe, getStoreVersion, getStoreVersion);
 	const [count, setCount] = t$2(d(0), "count");
@@ -2005,7 +2005,7 @@ function App({ lang, onSwitch }) {
 								class: "framework",
 								alt: _t("3509f03d", {
 									_mgr: entry_b_89ad0a7bfa7f_default,
-									_bId: "b_2f98939c81ca"
+									_bId: "b_46b46a617b3e"
 								})
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
@@ -2017,7 +2017,7 @@ function App({ lang, onSwitch }) {
 								class: "vite",
 								alt: _t("3473a536", {
 									_mgr: entry_b_89ad0a7bfa7f_default,
-									_bId: "b_2f98939c81ca"
+									_bId: "b_46b46a617b3e"
 								})
 							}, void 0, false, {
 								fileName: _jsxFileName$1,
@@ -2032,7 +2032,7 @@ function App({ lang, onSwitch }) {
 					}, this),
 					/* @__PURE__ */ u("div", { children: [/* @__PURE__ */ u("h1", { children: _t("90e40d50", {
 						_mgr: entry_b_89ad0a7bfa7f_default,
-						_bId: "b_2f98939c81ca"
+						_bId: "b_46b46a617b3e"
 					}) }, void 0, false, {
 						fileName: _jsxFileName$1,
 						lineNumber: 32,
@@ -2041,7 +2041,7 @@ function App({ lang, onSwitch }) {
 						style: { display: "contents" },
 						dangerouslySetInnerHTML: { __html: _t("1ae47bb6", {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca",
+							_bId: "b_46b46a617b3e",
 							_tags: [{
 								alias: "code",
 								originalOpen: `<code>`,
@@ -2071,7 +2071,7 @@ function App({ lang, onSwitch }) {
 						onClick: () => setCount((count) => count + 1),
 						children: _t("aa624128", { count }, {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca"
+							_bId: "b_46b46a617b3e"
 						})
 					}, void 0, false, {
 						fileName: _jsxFileName$1,
@@ -2110,7 +2110,7 @@ function App({ lang, onSwitch }) {
 						}, this),
 						/* @__PURE__ */ u("h2", { children: _t("9e9cf322", {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca"
+							_bId: "b_46b46a617b3e"
 						}) }, void 0, false, {
 							fileName: _jsxFileName$1,
 							lineNumber: 45,
@@ -2118,7 +2118,7 @@ function App({ lang, onSwitch }) {
 						}, this),
 						/* @__PURE__ */ u("p", { children: _t("d0f7666b", {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca"
+							_bId: "b_46b46a617b3e"
 						}) }, void 0, false, {
 							fileName: _jsxFileName$1,
 							lineNumber: 46,
@@ -2131,7 +2131,7 @@ function App({ lang, onSwitch }) {
 								style: { display: "contents" },
 								dangerouslySetInnerHTML: { __html: _t("924cea3c", {
 									_mgr: entry_b_89ad0a7bfa7f_default,
-									_bId: "b_2f98939c81ca",
+									_bId: "b_46b46a617b3e",
 									_tags: [{
 										alias: "img",
 										originalOpen: `<img class="logo" src="${vite_default}" alt="" />`,
@@ -2158,7 +2158,7 @@ function App({ lang, onSwitch }) {
 								style: { display: "contents" },
 								dangerouslySetInnerHTML: { __html: _t("8cc85295", {
 									_mgr: entry_b_89ad0a7bfa7f_default,
-									_bId: "b_2f98939c81ca",
+									_bId: "b_46b46a617b3e",
 									_tags: [{
 										alias: "img",
 										originalOpen: `<img class="button-icon" src="${preact_default}" alt="" />`,
@@ -2207,7 +2207,7 @@ function App({ lang, onSwitch }) {
 						}, this),
 						/* @__PURE__ */ u("h2", { children: _t("65ac13a7", {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca"
+							_bId: "b_46b46a617b3e"
 						}) }, void 0, false, {
 							fileName: _jsxFileName$1,
 							lineNumber: 60,
@@ -2215,7 +2215,7 @@ function App({ lang, onSwitch }) {
 						}, this),
 						/* @__PURE__ */ u("p", { children: _t("15545bc4", {
 							_mgr: entry_b_89ad0a7bfa7f_default,
-							_bId: "b_2f98939c81ca"
+							_bId: "b_46b46a617b3e"
 						}) }, void 0, false, {
 							fileName: _jsxFileName$1,
 							lineNumber: 61,

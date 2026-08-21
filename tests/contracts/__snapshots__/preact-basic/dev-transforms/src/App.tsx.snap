@@ -25,14 +25,14 @@ export function App({ lang, onSwitch }: AppProps) {
       <section id="center">
         <div class="hero">
           <img src={heroImg} class="base" width="170" height="179" alt="" />
-          <img src={preactLogo} class="framework" alt={_t("Preact logo", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })} />
-          <img src={viteLogo} class="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })} />
+          <img src={preactLogo} class="framework" alt={_t("Preact logo", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })} />
+          <img src={viteLogo} class="vite" alt={_t("Vite logo", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })} />
         </div>
         <div>
-          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</h1>
-          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/app.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
+          <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h1>
+          <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/app.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
         </div>
-        <button type="button" class="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</button>
+        <button type="button" class="counter" onClick={() => setCount((count) => count + 1)}>{_t("Count is {count}", { count: count }, { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</button>
       </section>
 
       <div class="ticks"></div>
@@ -42,14 +42,14 @@ export function App({ lang, onSwitch }: AppProps) {
           <svg class="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#documentation-icon"></use>
           </svg>
-          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</h2>
-          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</p>
+          <h2>{_t("Documentation", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h2>
+          <p>{_t("Your questions, answered", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</p>
           <ul>
             <li>
-              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Explore Vite", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
             </li>
             <li>
-              <a href="https://preactjs.com/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="button-icon" src="${preactLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
+              <a href="https://preactjs.com/" target="_blank">{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("<img/> Learn more", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App", _tags: [{ alias: "img", originalOpen: `<img class="button-icon" src="${preactLogo}" alt="" />`, tagName: "img" }] }) }} />}</a>
             </li>
           </ul>
         </div>
@@ -57,8 +57,8 @@ export function App({ lang, onSwitch }: AppProps) {
           <svg class="icon" role="presentation" aria-hidden="true">
             <use href="/icons.svg#social-icon"></use>
           </svg>
-          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</h2>
-          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</p>
+          <h2>{_t("Connect with us", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</h2>
+          <p>{_t("Join the Vite community", { _mgr: _zintl_mgr_b_src_main_tsx_bootstrap, _bId: "b_src_App_tsx_App" })}</p>
           {/* @zintl-ignore */}
           <ul>
             <li>

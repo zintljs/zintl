@@ -3,7 +3,7 @@ export default (() => {
       switch(locale) { 
         case "en":
           return {
-    "b_src_app_tsx_App": {
+    "b_src_App_tsx_App": {
       "Preact logo": "Preact logo",
       "Vite logo": "Vite logo",
       "Get started": "Get started",

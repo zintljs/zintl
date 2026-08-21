@@ -58,6 +58,13 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",
@@ -100,112 +107,17 @@
           ],
           "dynamic": false,
           "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
         }
       ],
       "filePath": "src/App.tsx",
       "id": "src/App.tsx:App",
-      "mode": "boundary",
-      "usageCount": 0
-    },
-    "src/app.tsx": {
-      "activeLocales": "all",
-      "deps": [
-        {
-          "bindings": [
-            "useState"
-          ],
-          "dynamic": false,
-          "id": "preact/hooks"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/app.css"
-        },
-        {
-          "dynamic": false,
-          "id": "src/app.tsx:App"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/preact.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/components/LocaleSwitcher.tsx:default"
-        }
-      ],
-      "filePath": "src/app.tsx",
-      "id": "src/app.tsx",
-      "mode": "boundary",
-      "usageCount": 0
-    },
-    "src/app.tsx:App": {
-      "activeLocales": "all",
-      "deps": [
-        {
-          "bindings": [
-            "useState"
-          ],
-          "dynamic": false,
-          "id": "preact/hooks"
-        },
-        {
-          "bindings": [],
-          "dynamic": false,
-          "id": "src/app.css"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/hero.png"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/preact.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/assets/vite.svg"
-        },
-        {
-          "bindings": [
-            "default"
-          ],
-          "dynamic": false,
-          "id": "src/components/LocaleSwitcher.tsx:default"
-        }
-      ],
-      "filePath": "src/app.tsx",
-      "id": "src/app.tsx:App",
       "mode": "boundary",
       "usageCount": 0
     },
@@ -231,7 +143,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/app.tsx:App"
+          "id": "src/App.tsx:App"
         },
         {
           "bindings": [],
@@ -285,7 +197,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/app.tsx:App"
+          "id": "src/App.tsx:App"
         },
         {
           "bindings": [],
@@ -327,7 +239,7 @@
             "App"
           ],
           "dynamic": false,
-          "id": "src/app.tsx:App"
+          "id": "src/App.tsx:App"
         },
         {
           "bindings": [],

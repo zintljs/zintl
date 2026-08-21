@@ -139,6 +139,62 @@
       "mode": "boundary",
       "usageCount": 0
     },
+    "src/App.tsx:default": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/solid.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:default",
+      "mode": "boundary",
+      "usageCount": 0
+    },
     "src/App.tsx:f_1298": {
       "activeLocales": "all",
       "deps": [

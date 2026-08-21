@@ -1,6 +1,6 @@
 {
   "boundaryToOwner": {
-    "src/app.tsx:App": "src/main.tsx:bootstrap",
+    "src/App.tsx:App": "src/main.tsx:bootstrap",
     "src/main.tsx:bootstrap": "src/main.tsx:bootstrap",
     "src/main.tsx:f_877": "src/main.tsx:f_877"
   },
@@ -45,15 +45,6 @@
       "id": "shared_b_247712a5c937",
       "type": "shared"
     },
-    "shared_b_2f98939c81ca": {
-      "boundaries": [
-        "src/app.tsx:App"
-      ],
-      "colonies": [],
-      "entrySources": [],
-      "id": "shared_b_2f98939c81ca",
-      "type": "shared"
-    },
     "shared_b_4119b9019178": {
       "boundaries": [
         "preact"
@@ -61,6 +52,15 @@
       "colonies": [],
       "entrySources": [],
       "id": "shared_b_4119b9019178",
+      "type": "shared"
+    },
+    "shared_b_46b46a617b3e": {
+      "boundaries": [
+        "src/App.tsx:App"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_46b46a617b3e",
       "type": "shared"
     },
     "shared_b_56d18dcbbde5": {
@@ -126,8 +126,8 @@
   "sharedChunks": [
     "shared_b_006866fb4e10",
     "shared_b_247712a5c937",
-    "shared_b_2f98939c81ca",
     "shared_b_4119b9019178",
+    "shared_b_46b46a617b3e",
     "shared_b_56d18dcbbde5",
     "shared_b_7c1737176de1",
     "shared_b_8413c2e4a806",

@@ -2,7 +2,7 @@ export default { id: "b_89ad0a7bfa7f", loader: (locale) => {
       switch(locale) { 
         case "en":
           return {
-    "b_2f98939c81ca": {
+    "b_46b46a617b3e": {
       "3509f03d": "Preact logo",
       "3473a536": "Vite logo",
       "90e40d50": "Get started",
