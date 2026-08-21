@@ -9,6 +9,7 @@
   },
   "changesets": [
     "adapter-architecture-and-runtime-splitting",
+    "anchors-move-and-the-graph-followed",
     "artifact-lifetime",
     "asset-hot-updates-reach-the-page",
     "assets-contract-describes-a-capability",
@@ -72,6 +73,7 @@
     "mid-flush-boundary-overwrite",
     "modular-adapter-decoupling-and-custom-formats",
     "non-reactive-entry-declines",
+    "one-locale-bar-across-the-examples",
     "parallel-contracts-via-copied-examples",
     "parse-failure-leaves-state-alone",
     "performance-hmr-measures-a-ratio",
@@ -85,6 +87,7 @@
     "react-jsx-self-closing-tags",
     "rebrand-to-zintl",
     "reconciliation-hardening",
+    "reloading-the-browser-for-nothing",
     "rename-main-package-to-zintljs",
     "rsbuild-dev-detection",
     "rsbuild-driver-free-port",
