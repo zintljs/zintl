@@ -428,6 +428,27 @@ export class ZintlCompiler {
     return this.io.writingFiles.has(path);
   }
   /**
+   * Does this path already hold the content the compiler has?
+   *
+   * The question {@link isWritingFile} was standing in for. That one answers "am
+   * I writing this *right now*", which is a 500 ms window, and ZDB Corollary D1a
+   * says a window is never a guard. Content identity does not expire, and it
+   * covers the case the window never could: a watcher report for a file **nobody
+   * changed**, which the compiler otherwise treats as an edit and — for an HTML
+   * boundary — answers with a full page reload.
+   *
+   * `content` is the text the host already read for this event, where it has
+   * one; otherwise the file is re-read. See {@link IOManager.knownContent}.
+   */
+  public async isUnchangedContent(path: string, content?: string): Promise<boolean> {
+    if (this.isWritingFile(path)) return true;
+    return this.io.isUnchangedContent(path, content);
+  }
+  /** Accept a path's next event as genuine. See {@link IOManager.forgetWrite}. */
+  public forgetKnownContent(path: string) {
+    this.io.forgetWrite(path);
+  }
+  /**
    * Whether a running page could redraw itself from a newly delivered catalog.
    *
    * True when some framework runtime facet declares `repaintsOnCatalogUpdate`.
@@ -729,16 +750,19 @@ export class ZintlCompiler {
      */
     content?: string,
   ): Promise<string[]> {
-    if (!force && this.io.writingFiles.has(filePath)) {
+    if (!force && (await this.io.isUnchangedContent(filePath, content))) {
       /**
        * A write this compiler made is echoing back through the watcher.
        *
-       * Named rather than dropped (Axiom D2), because the guard is a time window
-       * and a genuine edit landing inside it is silently discarded. That window
-       * is a known weakness — Corollary D1a says a timing window is never a
-       * guard — but narrowing it needs a content-identity check that survives
-       * the formatter rewriting the file after the write, which is Phase 4 work.
-       * Until then the loss is at least visible.
+       * Asked by content identity — {@link IOManager.isUnchangedContent} — rather than
+       * by the clock this used to read. Corollary D1a says a timing window is
+       * never a guard, and the window was being used as one; what it needed was
+       * a check that survives the formatter rewriting the file after the write.
+       *
+       * Named rather than dropped (Axiom D2), because a window is still
+       * consulted for the instant inside `writeFile` itself, where the bytes on
+       * disk match no signature at all — so a genuine edit colliding with a
+       * write is still discarded, and the loss stays visible.
        */
       this.bus.settle(
         this.bus.mint("io/write", this.io.getNormalizedId(filePath)),

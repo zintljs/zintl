@@ -26,6 +26,8 @@ describe("HMR Integration", () => {
       ),
       getNormalizedId: (p: string) => p.replace("/root/", ""),
       isWritingFile: () => false,
+      isUnchangedContent: async () => false,
+      forgetKnownContent: () => {},
       assets: {
         registerAsset: vi.fn(),
       },
@@ -173,6 +175,71 @@ describe("HMR Integration", () => {
     expect((result as any[]).map((m) => m.id)).toContain(appPath);
 
     mockCtx.compiler.graph.boundaryGraph.nodes.delete("b_app");
+  });
+
+  /**
+   * The other half of L-023, and the one the ledger left as a hypothesis.
+   *
+   * `getNormalizedId` strips `.ts`/`.js` from a boundary id, so the boundary for
+   * `src/main.ts` is `src/main` and `absFileId` is `<root>/src/main` — a path no
+   * file has. Repointing the module there moves it off its real path in Vite's
+   * `fileToModulesMap`, and the *next* edit to that file then reaches the hook
+   * with `modules: []`: Vite's own `onFileChange` finds nothing, so it never
+   * drops its transform cache for `/src/main.ts`.
+   *
+   * Measured on `syntax-recovery` / `vanilla-spa-basic`, breaking edit then
+   * recovery edit on the same file:
+   *
+   * ```
+   * enter src/main.ts seq=…181002 modules=1 bytes=3526
+   * repoint "src/main.ts" src/main.ts → src/main (boundary=src/main:render)
+   * enter src/main.ts seq=…187589 modules=0 bytes=3498
+   * ```
+   *
+   * The recovery is then served the broken module (500) and the page ends up
+   * empty with no Zintl runtime — a stall the contract cannot come back from,
+   * because nothing in the page is left to accept a hot update.
+   */
+  it("should not repoint a source module onto its own path with the extension stripped", async () => {
+    const mainPath = "/root/src/main.ts";
+    const mainMod = { id: mainPath, file: mainPath, importers: new Set() };
+    mockServer.moduleGraph.idToModuleMap.set(mainPath, mainMod);
+
+    /**
+     * The real `getNormalizedId` strips `.ts`/`.js`, and that is the whole
+     * mechanism — the default double in this file does not, which is enough to
+     * hide the defect: the plan then also carries the *extension-ful* boundary
+     * `src/main.ts`, whose own pass repoints `mod.file` straight back.
+     */
+    const normalizedId = mockCtx.compiler.getNormalizedId;
+    mockCtx.compiler.getNormalizedId = (p: string) =>
+      p.replace("/root/", "").replace(/\.(ts|js)$/, "");
+
+    // The shape `getNormalizedId` produces for an anchor nested in a function.
+    mockCtx.compiler.graph.boundaryGraph.nodes.set("src/main:render", {
+      id: "src/main:render",
+      mode: "entry",
+      filePath: "src/main",
+    });
+    mockCtx.compiler.invalidateFile.mockReturnValue(["src/main:render"]);
+
+    try {
+      const hook = handleHotUpdateHook(mockCtx);
+      await hook({
+        file: mainPath,
+        timestamp: Date.now(),
+        modules: [mainMod] as any,
+        read: async () => "",
+        server: mockServer,
+      });
+
+      // Still reachable by the path Vite will report on the next edit.
+      expect(mainMod.file).toBe(mainPath);
+      expect(mockServer.moduleGraph.getModulesByFile(mainPath)).toContain(mainMod);
+    } finally {
+      mockCtx.compiler.getNormalizedId = normalizedId;
+      mockCtx.compiler.graph.boundaryGraph.nodes.delete("src/main:render");
+    }
   });
 
   it("should handle localized asset changes by invalidating entries", async () => {

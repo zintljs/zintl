@@ -48,15 +48,47 @@ export async function computeHotUpdatePlan(
   const { file, seq, kind } = event;
 
   /**
-   * A write Zintl is performing is not a user edit.
+   * An event that changes nothing is not an update.
    *
-   * Without this, `flush()` writing a scaffolded catalog re-enters as an update
-   * and the compiler chases its own tail.
+   * The obvious half is Zintl's own writes: without this, `flush()` writing a
+   * scaffolded catalog re-enters as an update and the compiler chases its own
+   * tail. That was guarded by `isWritingFile` — a 500 ms window, and ZDB
+   * Corollary D1a says a window is never a guard.
+   *
+   * The half that actually mattered is broader. A watcher can report a file
+   * **nobody changed** — a worker copy settling, an initial scan draining — and
+   * `src/i18n/index.html.translations.json` maps back to the `index.html`
+   * boundary, so `.html` sets `fullReload` below and Zintl reloads the browser
+   * for a file whose contents it already had.
+   *
+   * Measured, on a `syntax-recovery` failure, from the trace this hook writes:
+   *
+   * ```
+   * enter src/main.ts seq=…850541 bytes=3526          ← the deliberate error
+   * enter src/i18n/index.html.translations.json seq=…853509
+   * reload → requested by Zintl (plan.fullReload)     ← inside the 800 ms window
+   * enter src/main.ts seq=…857415 bytes=3498          ← the recovery
+   * ```
+   *
+   * The reload lands while the entry does not compile, so the page comes back
+   * with no runtime and no module registered for `/src/main.ts` — and the
+   * recovery arrives as a hot `update` that nothing left in the page can accept.
+   * `vanilla-spa-basic` alone, because it is the only project whose edited file
+   * *is* the client entry.
+   *
+   * So the question asked here is content, not authorship and not a clock.
    */
-  if (ctx.compiler.isWritingFile(file)) {
+  if (await ctx.compiler.isUnchangedContent(file, event.content)) {
     ctx.hmrTrace.push({ ts: Date.now(), kind: "skip-writing", file });
     return null;
   }
+
+  /**
+   * Taken as genuine — so the compiler's baseline for this path is spent. Kept
+   * any longer, a hand-edit that restored exactly that content would read as
+   * "nothing changed" forever.
+   */
+  ctx.compiler.forgetKnownContent(file);
 
   ctx.hmrTrace.push({
     ts: Date.now(),

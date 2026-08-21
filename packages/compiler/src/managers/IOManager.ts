@@ -2,7 +2,8 @@ import { existsSync } from "node:fs";
 import { mkdir, writeFile, readFile, rm, stat, readdir } from "node:fs/promises";
 import { join, dirname, relative, isAbsolute } from "node:path";
 import { spawn } from "node:child_process";
-import { calculateBoundaryId, calculateSafeBoundaryId } from "../utils/hashing.js";
+
+import { calculateBoundaryId, calculateSafeBoundaryId, sha1 } from "../utils/hashing.js";
 import { toPosixPath } from "../utils/paths.js";
 import {
   COMPILER_METADATA_DIR,
@@ -25,6 +26,44 @@ export class IOManager {
   public manifestPath: string;
   public hivePath: string;
   public readonly writingFiles = new Set<string>();
+  /**
+   * What the compiler believes is at a path, as content signatures.
+   *
+   * The companion to {@link writingFiles}, and the half that does not expire.
+   * `writingFiles` is a {@link WRITE_GUARD_DELAY_MS} window, and Corollary D1a
+   * (`docs/spec/ZDB.md`) says a window is never a guard. Used as one it fails in
+   * both directions, and the interesting one is measurable: instrumenting a
+   * single *passing* `syntax-recovery` run caught ten echoes of Zintl's own
+   * writes arriving with the guard already shut, at ages of 118–209 ms against a
+   * nominal 500 — because the timer is armed per write, so an early write's
+   * timer closes the guard on a later one.
+   *
+   * But a write of Zintl's own is only half of what has to be recognised, and
+   * the smaller half. The event that actually strands `syntax-recovery` is a
+   * watcher report for a catalog **nobody changed** — the harness's worker copy
+   * settling, chokidar's initial scan draining — arriving seconds into the test.
+   * The compiler cannot tell that from a translator's edit, so it marks the
+   * boundary dirty, and for `index.html.<locale>.json` that means the
+   * `index.html` boundary, which `computeHotUpdatePlan` answers with a full page
+   * reload.
+   *
+   * Land that reload during a compile error and the page cannot come back: the
+   * entry fails to load, so there is no runtime and no module registered for it,
+   * and the recovery edit that follows arrives as a hot `update` with nothing
+   * left in the page able to accept it.
+   *
+   * So the question is not "did I write this" but "is this already what I have",
+   * which is answered the same way whoever touched the file. The baseline is set
+   * by the first {@link readFile} of a path and moved only by
+   * {@link safeWriteFile}; {@link forgetWrite} drops it once an event has been
+   * taken as genuine, so this can never be stickier than the window it replaces.
+   *
+   * Two signatures per write, because one write is two states on disk — the
+   * bytes `writeFile` put there, and whatever {@link formatFile} rewrote them
+   * into. Hashes rather than the content: the `memory-leak` contract measures
+   * retained heap, and a catalog is not a thing to hold twice.
+   */
+  private readonly knownContent = new Map<string, Set<string>>();
   private detectedFormatter: { bin: string; args: string[] } | null = null;
   private readonly boundaryIdCache = new Map<string, string>();
   private readonly normalizedIdCache = new Map<string, string>();
@@ -265,16 +304,105 @@ export class IOManager {
       const dir = dirname(path);
       await mkdir(dir, { recursive: true });
       await writeFile(path, finalContent, "utf-8");
+      this.rememberWrite(path, finalContent);
       await this.formatFile(path);
+      /**
+       * Re-read rather than assume. The formatter is an external process that
+       * rewrites the file, so what is on disk once it has run is a third string
+       * neither the caller nor this method composed — and it is the one the
+       * watcher will hand back.
+       */
+      this.rememberWrite(path, finalContent, await this.readFile(path).catch(() => finalContent));
       this.settleWrite(path, "applied", cause);
     } catch (err) {
       this.settleWrite(path, "failed", String(err));
       throw err;
     } finally {
+      /**
+       * Each write closes its **own** window, not whichever one is open.
+       *
+       * This used to be a bare `delete`, so for a path written more than once an
+       * early write's timer shut the guard on a later write that was still in
+       * flight. Measured on one passing `syntax-recovery` run: echoes arriving
+       * with the guard already closed at 118–209 ms against a nominal 500, on a
+       * catalog rewritten four times in that run.
+       *
+       * That mattered more before content identity, but it still does: the
+       * window's remaining job is to cover the instant *inside* `writeFile`, and
+       * a guard another write can close is not covering it.
+       */
+      const token = ++this.writeTicket;
+      this.writeTickets.set(path, token);
       setTimeout(() => {
+        if (this.writeTickets.get(path) !== token) return;
+        this.writeTickets.delete(path);
         this.writingFiles.delete(path);
       }, WRITE_GUARD_DELAY_MS);
     }
+  }
+
+  /** Monotonic id per write, so a guard is only closed by the write that opened it. */
+  private writeTicket = 0;
+  private readonly writeTickets = new Map<string, number>();
+
+  /**
+   * Content reduced to what a comparison should care about.
+   *
+   * The same normalisation {@link safeWriteFile} already uses to decide a write
+   * would be a no-op: trailing whitespace and line endings differ between what
+   * we write, what a formatter leaves, and what a watcher hands back.
+   */
+  private static signature(content: string): string {
+    return sha1(content.trim().replace(/\r\n/g, "\n"));
+  }
+
+  /** Replace what is remembered for a path with the states this write left. */
+  private rememberWrite(path: string, ...contents: string[]) {
+    this.knownContent.set(path, new Set(contents.map((c) => IOManager.signature(c))));
+  }
+
+  /**
+   * Does this path already hold the content the compiler has?
+   *
+   * Asked of the file's **current** contents, not of a clock. `content` is the
+   * text the host already read for this event where it has one; everything else
+   * is re-read here, because "what is on disk now" is the only question whose
+   * answer stays true however late the event arrived.
+   *
+   * {@link writingFiles} is still consulted first — it is cheaper, and it covers
+   * the instant between `writeFile` and the formatter when the bytes on disk are
+   * neither state cleanly.
+   */
+  public async isUnchangedContent(path: string, content?: string): Promise<boolean> {
+    if (this.writingFiles.has(path)) return true;
+    const known = this.knownContent.get(path);
+    if (!known || known.size === 0) return false;
+
+    let text = content;
+    if (text === undefined) {
+      try {
+        text = await this.readFile(path);
+      } catch {
+        /**
+         * Gone, or being replaced this instant. Neither is an echo this can
+         * confirm, and a deletion is a real event the caller still has to see.
+         */
+        return false;
+      }
+    }
+    return known.has(IOManager.signature(text));
+  }
+
+  /**
+   * Stop treating a path's last written content as ours.
+   *
+   * Called once an event for that path has been accepted as a genuine change.
+   * Without it, a hand-edit that happened to restore exactly what the compiler
+   * last wrote would read as an echo for the life of the process — the one way
+   * content identity could be *stickier* than the window it replaces.
+   */
+  public forgetWrite(path: string) {
+    this.knownContent.delete(path);
   }
 
   public async formatFile(path: string) {
@@ -294,8 +422,25 @@ export class IOManager {
 
   public async readFile(path: string): Promise<string> {
     this.logger.debug(`Reading file: ${relative(this.root, path)}`);
-    const content = await readFile(path, "utf-8");
-    return content.replace(/\r\n/g, "\n");
+    const raw = await readFile(path, "utf-8");
+    const content = raw.replace(/\r\n/g, "\n");
+
+    /**
+     * The first read of a path establishes what the compiler believes is there.
+     *
+     * Only the first: after that, a write is the only thing allowed to move the
+     * baseline. Reading again must not, or a hand-edited catalog the compiler
+     * happens to re-read before the watcher event arrives would have that event
+     * dismissed as "nothing changed" — and the edit would never reach the page.
+     *
+     * With that restriction the rule suppresses exactly one thing: an event for
+     * a file that still holds the content the compiler started from. Which is
+     * the case that reloads the browser for nothing — see {@link knownContent}.
+     */
+    if (!this.knownContent.has(path)) {
+      this.knownContent.set(path, new Set([IOManager.signature(content)]));
+    }
+    return content;
   }
 
   public async readBuffer(path: string): Promise<Buffer> {
@@ -348,6 +493,9 @@ export class IOManager {
     // them, which is the whole of "artifacts outliving their source" in reverse.
     try {
       await rm(path, { recursive: true, force: true });
+      // Nothing of ours is on disk here any more, so nothing of ours is worth
+      // recognising: a file that reappears at this path came from elsewhere.
+      this.forgetWrite(path);
       this.settleWrite(path, "applied", "reclaimed");
     } catch (err) {
       this.settleWrite(path, "failed", `could not reclaim: ${String(err)}`);
