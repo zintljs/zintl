@@ -83,13 +83,13 @@ export const resolve: ResolveFn = (
   const requiresClientDirective = config.system?.serverComponents === true;
   const hasClientReactivityHook =
     Object.keys(config.system?.clientReactivityImports ?? {}).length > 0;
-  if (
+  const componentFunctions = observation.componentFunctions ?? [];
+  const subscribesComponents =
     hasClientReactivityHook &&
     (observation.isClientComponent || !requiresClientDirective) &&
-    observation.componentFunctions &&
-    observation.componentFunctions.length > 0
-  ) {
-    for (const pos of observation.componentFunctions) {
+    componentFunctions.length > 0;
+  if (subscribesComponents) {
+    for (const pos of componentFunctions) {
       rewrites.push({
         start: pos,
         end: pos,
@@ -99,6 +99,15 @@ export const resolve: ResolveFn = (
       });
     }
   }
+
+  /**
+   * Either mechanism means the same thing downstream: rendering a translation in
+   * this file reads the store, so a delivered catalog reaches the page without
+   * the module being executed again. Neither implies the other — React subscribes
+   * components and declares no bridge; Vue and Solid declare a bridge and
+   * subscribe nothing.
+   */
+  const repaintsWithoutReexecution = needsReactiveBridge || subscribesComponents;
 
   const finalRewrites = resolveConflicts(rewrites, diagnostics);
 
@@ -114,5 +123,6 @@ export const resolve: ResolveFn = (
     prepends,
     rewrites: finalRewrites,
     diagnostics,
+    repaintsWithoutReexecution,
   };
 };

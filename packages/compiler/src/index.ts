@@ -466,6 +466,49 @@ export class ZintlCompiler {
    * itself, it does not, and re-executing an anchor file there is what turns a
    * hot update into a reload.
    */
+  /**
+   * Files whose translations redraw without the module executing again.
+   *
+   * Written on every transform from the plan's own answer, so it cannot drift
+   * from what was actually injected into the file.
+   */
+  private readonly _repaintingFiles = new Set<string>();
+
+  /**
+   * Whether a catalog edit can reach `fileId` without re-executing it.
+   *
+   * Both halves are required and neither is sufficient. `canRepaint` says the
+   * framework has a mechanism at all; this says *this file* was given one. A
+   * project can be React and still hold a module with a bare `t()` and no
+   * component — nothing there observes the store, and skipping its invalidation
+   * drops the translator's edit with no error.
+   */
+  public fileRepaintsWithoutReexecution(fileId: string): boolean {
+    return this._repaintingFiles.has(this.repaintKey(fileId));
+  }
+
+  /**
+   * One key for a file however the caller spells it.
+   *
+   * Callers arrive with three spellings of the same file: the absolute path the
+   * transform saw, the root-relative `fileId` a boundary carries, and the
+   * extension-stripped form `getNormalizedId` produces (`src/main`, ledger
+   * L-026). Normalising to root-relative-without-extension is what lets the
+   * applier ask about a boundary whose id lost its extension two layers ago.
+   *
+   * Stripping the extension is safe *here* specifically: the only ids ever added
+   * are files that produced a transform plan, so the `src/App.css` /
+   * `src/App.tsx` collision that bit ledger L-023 cannot arise — a stylesheet
+   * never enters this set.
+   */
+  private repaintKey(fileId: string): string {
+    const rel = isAbsolute(fileId) ? fileId.slice(this.rootDir.length) : fileId;
+    return rel
+      .replace(/\\/g, "/")
+      .replace(/^\//, "")
+      .replace(/\.[a-z0-9]+$/i, "");
+  }
+
   public get canRepaint(): boolean {
     return this._resolved.flags.repaintsOnCatalogUpdate === true;
   }
@@ -1837,6 +1880,14 @@ export class ZintlCompiler {
       this.logger.withPrefix("Pipeline"),
       effectiveCleanId,
     );
+    /**
+     * Recorded per file so a host's update applier can ask about *this* module
+     * rather than about the project. See `ResolvedPlan.repaintsWithoutReexecution`.
+     */
+    const repaintKey = this.repaintKey(effectiveCleanId);
+    if (plan.repaintsWithoutReexecution) this._repaintingFiles.add(repaintKey);
+    else this._repaintingFiles.delete(repaintKey);
+
     const result = apply(code, plan, this.logger.withPrefix("Pipeline"), id, world.config);
     if (this.isDev) {
       /**
