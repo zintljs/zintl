@@ -188,6 +188,90 @@ describe("GraphManager", () => {
     expect(devGraph.nodes.has("b_assets")).toBe(true);
   });
 
+  it("does not build a node from a manifest key whose anchor has since moved", () => {
+    /**
+     * `f_<offset>` renames itself whenever anything above the call is edited,
+     * so a persisted manifest accumulates keys for anchors that no longer
+     * exist. The file still imports the macro, so the pass-through rule keeps
+     * such a key alive unless the seeding loop rejects it first.
+     */
+    const persistedManifest = {
+      "src/Switcher:f_700": [],
+      "src/Switcher:f_846": [],
+    };
+    const persistedMetadata: Record<string, BoundaryMetadata> = {
+      "src/Switcher": {
+        hasZintlMacro: true,
+        hasZintlMarker: false,
+        isEntry: false,
+        anchorSites: [
+          {
+            boundaryId: "src/Switcher:f_846",
+            locale: { type: "expression", source: "lang" },
+            isTopLevel: false,
+            location: ZERO_LOCATION,
+            scope: "function",
+            originalName: "src/Switcher:f_846",
+          },
+        ],
+        needsLoader: false,
+        exportedBoundaries: {},
+        internalDependencies: {},
+      },
+    };
+    const dependencyGraph: Record<string, ObservedDependency[]> = {
+      "src/Switcher": [{ id: "zintljs/macro", dynamic: false, bindings: ["zintl"] }],
+    };
+
+    const graphMgr = new GraphManager(
+      new IOManager("/root", false, logger, {}, [], []),
+      false,
+      logger,
+      ["en", "ar"],
+    );
+    const graph = graphMgr.buildBoundaryGraph(
+      persistedManifest,
+      persistedMetadata,
+      dependencyGraph,
+    );
+
+    expect(graph.nodes.has("src/Switcher:f_700")).toBe(false);
+    expect(graph.nodes.has("src/Switcher:f_846")).toBe(true);
+  });
+
+  it("keeps an unattested nested boundary that still carries translations", () => {
+    /**
+     * The counterpart to the test above: a partial rebuild re-extracts one
+     * file, so metadata attests nothing about the rest. A key holding real
+     * strings is a boundary whose file was not read this pass, not a ghost —
+     * dropping it would drop translations.
+     */
+    const persistedManifest = {
+      "src/Legacy:helper": [entry("key1", "src/Legacy:helper")],
+    };
+    const persistedMetadata: Record<string, BoundaryMetadata> = {
+      "src/Legacy": {
+        hasZintlMacro: false,
+        hasZintlMarker: false,
+        isEntry: false,
+        anchorSites: [],
+        needsLoader: false,
+        exportedBoundaries: {},
+        internalDependencies: {},
+      },
+    };
+
+    const graphMgr = new GraphManager(
+      new IOManager("/root", false, logger, {}, [], []),
+      false,
+      logger,
+      ["en", "ar"],
+    );
+    const graph = graphMgr.buildBoundaryGraph(persistedManifest, persistedMetadata, {});
+
+    expect(graph.nodes.has("src/Legacy:helper")).toBe(true);
+  });
+
   it("should cover leadsToBoundary branches: sovereign/contextual anchors and early returns", () => {
     const io = new IOManager("/root", false, logger, {}, [], []);
     const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);

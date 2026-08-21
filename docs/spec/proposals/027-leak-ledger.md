@@ -3173,6 +3173,11 @@ its own shape, which the new unit test pins from both sides so the two cannot qu
 — the two states that previously disagreed. That is the property worth having: the graph is a function
 of the source, not of what ran before it.
 
+> **Narrowed by [L-082](#l-082).** The fix is sound and the closing sentence was too broad: it was
+> proved for `b_assets` and asserted for the graph. The same seeding loop admits a _non_-virtual key
+> whose anchor has since moved, by the same route, and that took another seventy-odd entries to
+> surface.
+
 ## Phase 9 — the HMR capability, and a contract that described a chunking
 
 ### L-056 — a capability that was earned and administratively unclaimable
@@ -5218,3 +5223,60 @@ matcher had become a `RegExp` and `JSON.stringify` renders those as an empty obj
 cannot name what it was looking for is the shape this proposal keeps paying for.
 
 **Measured 0 failures in 10 under the CPU contention that produced the original failure.**
+
+### L-082 — the graph read a boundary whose anchor had moved, and only CI could see it
+
+|                             |                                                                           |
+| :-------------------------- | :------------------------------------------------------------------------ |
+| **Status**                  | **Fixed** — six goldens re-recorded, 309/309 examples                     |
+| **Bucket**                  | **3 — delete the guess** (stop trusting persisted state about the source) |
+| **Facet contract changed?** | No                                                                        |
+
+Reported as the sharpest possible form of the question: six `[Serialized Graphs Snapshot]` contracts
+red on CI, all sixteen green locally, "same setup and same snapshots".
+
+**What failed.** Each diff was one node, present in the golden and absent from the run:
+`src/components/LocaleSwitcher.vue:f_700`, with `usageCount: 0` and a single dep on `zintljs/macro`.
+
+**What `f_700` is.** Nested anchors are named for where they sit —
+[`f_${anchorNode.start}`](../../../packages/extractor/src/visitors/program.ts), the UTF-16 offset of
+the `zintl()` call inside the `<script>` block. So the id renames itself when anything _above_ the
+call is edited, and the locale-bar commit did precisely that: it put a doc comment above
+`<script setup>`, moving the call from 700 to 846. Measured on both revisions of the file, and the
+same arithmetic accounts for every ghost — `svelte` at 525 → 712, and `vue-basic` still carrying 459,
+two revisions stale.
+
+**Why an empty key became a node.** `buildBoundaryGraph` seeds candidates from the keys of
+`internalManifest`, and `.zintl` keeps `…:f_700 → []` long after the anchor is gone. The skip-empty
+guard below it should have caught that and could not: it reads `normalizedDeps[fileId]` — the
+**file's** dependencies, not the boundary's — and the file still imports the macro, so a dead boundary
+inherited the pass-through rule written for intermediate modules. **The node's shape says so again**:
+`usageCount: 0`, `filePath` the real file, one dep on `zintljs/macro`. As in L-055, a golden recording
+a shape neither code path intends was the tell.
+
+**Why every machine agreed with itself and disagreed with CI.** `prepareWorkerCopy` **copies**
+`.zintl` into each worker, deliberately and for good reasons documented at the call site. Every
+checkout that had built these examples before the locale-bar commit therefore held a manifest that
+predated it; CI builds one from `HEAD` and holds nothing. L-055's goldens were a function of test
+ordering — this one is the same dependence with a far longer period, a function of when the developer
+last built. The goldens were re-recorded warm in the locale-bar commit, which is how six ghosts landed
+in the tree at once.
+
+**Measured, in both directions.** Removing `examples/rsbuild-vue-mpa/node_modules/.zintl` reproduced
+CI's diff byte-for-byte; restoring it made the contract pass again, on the same commit and the same
+machine, one command apart.
+
+**The fix.** Seeding now requires the _current_ extraction to attest a nested id — metadata is
+rewritten per file as that file is read, so it describes the source as it is; the manifest beside it
+does not. **Content is the deferral valve**: an unattested key that still holds strings is kept,
+because a partial rebuild re-extracts one file and attests nothing about the rest, and dropping such a
+key would drop real translations. A dead _empty_ key never reaches the graph. Both directions are
+pinned by unit tests, as L-055's were.
+
+**Why re-recording alone would have re-armed it**, which is L-055's lesson arriving a second time: the
+goldens would be correct on the day and wrong again on the next edit above any `zintl()` call
+recorded from a warm cache. The trap is the seeding loop, not the six files.
+
+**Verified.** The re-recorded goldens pass against a manifest built from `HEAD` **and** against the
+ghost-bearing one restored from backup — the two states that previously disagreed — plus 309/309
+examples and 826 unit tests. Six goldens, 96 lines, every one a deletion.

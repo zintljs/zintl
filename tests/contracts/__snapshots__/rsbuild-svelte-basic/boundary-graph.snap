@@ -152,22 +152,6 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/lib/LocaleSwitcher.svelte:f_525": {
-      "activeLocales": "all",
-      "deps": [
-        {
-          "bindings": [
-            "zintl"
-          ],
-          "dynamic": false,
-          "id": "zintljs/macro"
-        }
-      ],
-      "filePath": "src/lib/LocaleSwitcher.svelte",
-      "id": "src/lib/LocaleSwitcher.svelte:f_525",
-      "mode": "boundary",
-      "usageCount": 0
-    },
     "src/lib/LocaleSwitcher.svelte:f_712": {
       "activeLocales": "all",
       "deps": [

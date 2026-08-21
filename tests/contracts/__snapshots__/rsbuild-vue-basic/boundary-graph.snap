@@ -88,22 +88,6 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/components/LocaleSwitcher.vue:f_700": {
-      "activeLocales": "all",
-      "deps": [
-        {
-          "bindings": [
-            "zintl"
-          ],
-          "dynamic": false,
-          "id": "zintljs/macro"
-        }
-      ],
-      "filePath": "src/components/LocaleSwitcher.vue",
-      "id": "src/components/LocaleSwitcher.vue:f_700",
-      "mode": "boundary",
-      "usageCount": 0
-    },
     "src/components/LocaleSwitcher.vue:f_846": {
       "activeLocales": "all",
       "deps": [
