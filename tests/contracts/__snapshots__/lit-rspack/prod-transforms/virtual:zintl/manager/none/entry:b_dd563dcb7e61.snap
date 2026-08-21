@@ -1,0 +1,18 @@
+export default { id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_9d91c6c73007": {
+      "90e40d50": "Get started",
+      "822f0fb2": "Edit <code>src/index.ts</code> and save to test <code>HMR</code>",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_dd563dcb7e61").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_dd563dcb7e61").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_dd563dcb7e61").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

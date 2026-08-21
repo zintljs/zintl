@@ -1,0 +1,19 @@
+const catalog = {
+    "b_src_my_element": {
+      "Get started": "Empezar",
+      "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `El recuento es ${params['count']}`;
+  },
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "Explore Vite": "Explorar Vite",
+      "Learn more": "Aprender más",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

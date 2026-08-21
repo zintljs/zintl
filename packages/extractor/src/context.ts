@@ -400,6 +400,10 @@ export class ExtractionContext {
   public readonly fastPathRegex: RegExp;
   /** True when at least one dom:prop target is configured (e.g. innerHTML). */
   public readonly hasDomSinks: boolean;
+  /** Identifiers whose tagged template literals hold markup — see `tag:`. */
+  public readonly taggedTemplates: Set<string>;
+  /** True when at least one `tag:` target is configured. */
+  public readonly hasTaggedTemplateSinks: boolean;
   /** True when at least one jsx: target is configured. */
   public readonly hasJsxSinks: boolean;
   public readonly sfcRules: SfcRule[];
@@ -439,6 +443,8 @@ export class ExtractionContext {
     this.htmlAttributes = compiledState.htmlAttributes;
     this.targetPlugins = compiledState.plugins;
     this.hasDomSinks = compiledState.hasDomSinks;
+    this.taggedTemplates = compiledState.taggedTemplates ?? new Set();
+    this.hasTaggedTemplateSinks = compiledState.hasTaggedTemplateSinks ?? false;
     this.hasJsxSinks = compiledState.hasJsxSinks;
     this.sfcRules = [...compiledState.sfcRules, ...(options.sfcRules || [])];
     this.suppressionRules = [

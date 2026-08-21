@@ -43,10 +43,10 @@ language. `ar` is not optional: it is what makes an RTL regression visible.
 
 The element follows the behaviour, and both are correct:
 
-| Element    | When                                                            | Examples                                                           |
-| :--------- | :-------------------------------------------------------------- | :----------------------------------------------------------------- |
-| `<button>` | The app switches at runtime — `await zintl(lang)`, then repaint | `react-basic`, `vue-basic`, every `rsbuild-*`, …                   |
-| `<a>`      | Locales are baked into separate documents under `/<locale>/`    | `vanilla-spa-i18n-baked`, `vanilla-mpa-baked-i18n`, `vinext-basic` |
+| Element    | When                                                            | Examples                                                                                     |
+| :--------- | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| `<button>` | The app switches at runtime — `await zintl(lang)`, then repaint | `react-basic`, `preact-basic`, `solid-basic`, `lit-basic`, `vue-basic`, every `rsbuild-*`, … |
+| `<a>`      | Locales are baked into separate documents under `/<locale>/`    | `vanilla-spa-i18n-baked`, `vanilla-mpa-baked-i18n`, `vinext-basic`                           |
 
 A baked switch really is a navigation, and deserves an element you can
 middle-click. Everything else about the two is identical, which is why the CSS
@@ -140,7 +140,19 @@ thirty-odd titles consistent across four locales.
 ## Adding an example
 
 Copy the bar from the nearest example in the same dialect — `src/switcher.ts` for
-vanilla, `src/components/LocaleSwitcher.tsx|vue` or `src/lib/LocaleSwitcher.svelte`
-otherwise — and append the CSS block to the new app's stylesheet. Then give the
-manifest `switchLocale: (lab, locale) => clickLocaleBar(lab, locale)` and let the
-contract tell you whether you got it right.
+vanilla, `src/components/LocaleSwitcher.tsx|vue`, `src/lib/LocaleSwitcher.svelte`
+or `src/components/locale-bar.ts` for Lit — and append the CSS block to the new
+app's stylesheet.
+
+Three dialects have a wrinkle worth knowing before you copy:
+
+- **Solid** — read `props.lang`, never destructure it. Solid compiles props into
+  getters, so `const { lang } = props` is a one-time snapshot and the bar stops
+  updating.
+- **Lit** — the bar is a `<locale-bar>` custom element whose `createRenderRoot`
+  returns `this`. Rendering into the light DOM is what lets the shared CSS reach
+  it; a shadow root would make this the one bar that could not look like the
+  others.
+- **Preact** — identical to React's, `dangerouslySetInnerHTML` included. Then give the
+  manifest `switchLocale: (lab, locale) => clickLocaleBar(lab, locale)` and let the
+  contract tell you whether you got it right.

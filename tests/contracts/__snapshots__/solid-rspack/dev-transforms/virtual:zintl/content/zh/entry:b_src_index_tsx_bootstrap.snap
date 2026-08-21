@@ -1,0 +1,11 @@
+const catalog = {
+    "b_src_app_tsx_App": {
+      "Get started": "开始",
+      "Edit <code>src/index.tsx</code> and save to test <code>HMR</code>": "编辑 <code>src/index.tsx</code> 并保存以测试 <code>HMR</code>",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.webpackHot) { import.meta.webpackHot.accept(); }

@@ -79,7 +79,31 @@ const config: KnipConfig = {
    * resolves both unaided now, and keeping them here would hide a real unused
    * dependency later.
    */
-  ignoreDependencies: ["vite", "@vitest/coverage-v8"],
+  /**
+   * Resolved at fixture-materialization time, which knip cannot observe.
+   *
+   * `tests/fixtures/{preact,solid,lit}-rspack.ts` write a project under
+   * `.tmp/fixtures/` and let a real Rsbuild build it. Node resolves bare
+   * specifiers by walking parents, so the frameworks and their Rsbuild plugins
+   * have to exist in the *root* `node_modules` — nothing imports them from any
+   * source file here, and nothing should.
+   *
+   * This is the same need the entry above records for `zintljs` and
+   * `@rsbuild/core`; those two came off the list once `zintljs` declared
+   * `@rsbuild/core` as an optional peer and knip could resolve them unaided.
+   * These have no such route, because a fixture's `package.json` is a string in
+   * a test file rather than a manifest knip reads.
+   */
+  ignoreDependencies: [
+    "vite",
+    "@vitest/coverage-v8",
+    "preact",
+    "solid-js",
+    "lit",
+    "@rsbuild/plugin-preact",
+    "@rsbuild/plugin-solid",
+    "@rsbuild/plugin-babel",
+  ],
   exclude: ["catalog"],
   vitest: true,
   vite: true,

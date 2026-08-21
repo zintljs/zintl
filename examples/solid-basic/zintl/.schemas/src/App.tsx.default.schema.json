@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "<img/> Explore Vite": {
+      "type": "string"
+    },
+    "Count is {input}": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {input}"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Get started": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "<img/> Explore Vite",
+    "Count is {input}",
+    "Documentation",
+    "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
+    "Get started",
+    "Learn more",
+    "Vite logo",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,7 @@
+const catalog = {
+    "b_2f98939c81ca": {
+      "90e40d50": "Empezar",
+      "b5323d23": "Edita <code>src/index.tsx</code> y guarda para probar <code>HMR</code>",
+    },
+  };
+export default catalog;

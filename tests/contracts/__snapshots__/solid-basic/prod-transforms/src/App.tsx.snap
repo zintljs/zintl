@@ -1,0 +1,81 @@
+import { _t, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { createSignal as __zintl_createSignal } from "solid-js";
+const [__zintl_v, __zintl_set_v] = __zintl_createSignal(getStoreVersion());
+subscribe(() => __zintl_set_v(getStoreVersion()));
+import _zintl_mgr_b_f1bc61690f0b from "virtual:zintl/manager/none/entry:b_f1bc61690f0b";
+import { createSignal } from "solid-js";
+import viteLogo from "./assets/vite.svg";
+import heroImg from "./assets/hero.png";
+import "./App.css";
+import LocaleSwitcher from "./components/LocaleSwitcher";
+
+/**
+ * `create-vite`'s **solid-ts** starter, localized.
+ *
+ * Solid is the case that shows why `clientReactivityImports` is not the only
+ * reactivity mechanism a facet can declare. A Solid component runs **once**:
+ * its JSX compiles into fine-grained effects, and an effect re-runs only when a
+ * signal it read during its last run changes. Subscribing the component would
+ * therefore change nothing — there is no second render to trigger.
+ *
+ * So `solidCodegenFacet` contributes a `reactiveBridge` instead: a module-level
+ * signal mirroring the store, spliced into every generated `_t` call. Rendering
+ * a translation *is* reading that signal, so each sink takes the dependency by
+ * construction — which is why nothing below re-mounts on a locale change and
+ * every string still updates.
+ *
+ * Note what is *not* here as a result: no `key={lang}` remount wrapper. React,
+ * Preact, Vue and Svelte all use one; Solid does not need it, and adding one
+ * would throw away the fine-grained updates that are the point of the framework.
+ */
+interface AppProps {
+  lang: string;
+  onSwitch: (lang: string) => void;
+}
+
+export default function App(props: AppProps) {
+  const [count, setCount] = createSignal(0);
+
+  return (
+    <>
+      {/* `props.lang`, never destructured — Solid compiles props into getters,
+          so pulling `lang` out of them takes a snapshot that never updates. */}
+      <LocaleSwitcher lang={props.lang} onSwitch={props.onSwitch} />
+
+      <section id="center">
+        <div class="hero">
+          <img src={heroImg} class="base" width="170" height="179" alt="" />
+          <img src={viteLogo} class="vite" alt={_t("3473a536", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })} />
+        </div>
+        <div>
+          <h1>{_t("90e40d50", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })}</h1>
+          <p>{<span style={{ display: "contents" }} innerHTML={_t("9fd2f187", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }], _v: __zintl_v() })} />}</p>
+        </div>
+        <button type="button" class="counter" onClick={() => setCount(count() + 1)}>{_t("92d1c86a", { input: count() }, { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })}</button>
+      </section>
+
+      <div class="ticks"></div>
+
+      <section id="next-steps">
+        <div id="docs">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>{_t("9e9cf322", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })}</h2>
+          <p>{_t("d0f7666b", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })}</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">{<span style={{ display: "contents" }} innerHTML={_t("924cea3c", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _tags: [{ alias: "img", originalOpen: `<img class="logo" src="${viteLogo}" alt="" />`, tagName: "img" }], _v: __zintl_v() })} />}</a>
+            </li>
+            <li>
+              <a href="https://solidjs.com/" target="_blank">{_t("824d76b1", { _mgr: _zintl_mgr_b_f1bc61690f0b, _bId: "b_147a3a1c1a40", _v: __zintl_v() })}</a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="ticks"></div>
+      <section id="spacer"></section>
+    </>
+  );
+}

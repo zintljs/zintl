@@ -1,0 +1,16 @@
+//#region \0virtual:zintl/content/es/entry:b_89ad0a7bfa7f
+var catalog = { "b_46b46a617b3e": {
+	"3473a536": "Logotipo de Vite",
+	"90e40d50": "Empezar",
+	"9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+	"aa624128": (params) => {
+		const { count } = params;
+		return `El recuento es ${params["count"]}`;
+	},
+	"9e9cf322": "Documentación",
+	"d0f7666b": "Tus preguntas, respondidas",
+	"924cea3c": "<img/> Explorar Vite",
+	"824d76b1": "Aprender más"
+} };
+//#endregion
+export { catalog as default };

@@ -3,7 +3,7 @@
  * structures the visitors execute against.
  *
  * This module is deliberately framework-blind. It understands the structural
- * descriptor DSL (`jsx:`, `dom:prop:`, `dom:attr:`, `obj:field:`, `html:attr:`)
+ * descriptor DSL (`jsx:`, `tag:`, `dom:prop:`, `dom:attr:`, `obj:field:`, `html:attr:`)
  * and target plugins, and nothing else. It does not know what React, Vue,
  * Svelte or Next.js are, and it holds no preset lists, SFC block rules,
  * mustache patterns or suppression rules of its own.
@@ -53,6 +53,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
   const jsxAttributes = new Set<string>();
   const jsxElementAttributes = new Map<string, Set<string>>();
   const domProperties = new Set<string>();
+  const taggedTemplates = new Set<string>();
   const objectFields = new Set<string>();
   const htmlAttributes = new Set<string>();
   const plugins: TargetPlugin[] = [];
@@ -77,6 +78,10 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
           }
           fastPathHints.push(attr);
         }
+      } else if (item.startsWith("tag:")) {
+        const tag = item.substring("tag:".length);
+        taggedTemplates.add(tag);
+        fastPathHints.push(tag);
       } else if (item.startsWith("dom:prop:")) {
         const prop = item.substring("dom:prop:".length);
         domProperties.add(prop);
@@ -111,6 +116,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
   // Derive fast-path capabilities from what has been configured.
   // This regex is built once per unique target combination and cached.
   const hasDomSinks = domProperties.size > 0;
+  const hasTaggedTemplateSinks = taggedTemplates.size > 0;
   const hasJsxSinks = jsxAttributes.size > 0 || jsxElementAttributes.size > 0;
   const hasHtmlSinks = htmlAttributes.size > 0;
 
@@ -123,7 +129,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
     ...uniqueHints.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
   ];
   // Only include '<' when JSX or HTML templates are a configured target
-  if (hasJsxSinks || hasHtmlSinks) patternParts.push("<");
+  if (hasJsxSinks || hasHtmlSinks || hasTaggedTemplateSinks) patternParts.push("<");
 
   const fastPathRegex = new RegExp(patternParts.join("|"));
 
@@ -131,6 +137,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
     jsxAttributes,
     jsxElementAttributes,
     domProperties,
+    taggedTemplates,
     objectFields,
     htmlAttributes,
     plugins,
@@ -138,6 +145,7 @@ export function resolveTargets(targets: TargetDescriptor[]): ResolvedTargets {
     uniqueHints,
     fastPathRegex,
     hasDomSinks,
+    hasTaggedTemplateSinks,
     hasJsxSinks,
     // Framework rules are supplied by the caller, never invented here.
     sfcRules: [],

@@ -1,0 +1,10 @@
+{
+  "$schema": "../.schemas/src/my-element.schema.json",
+  "Count is {count}": "العدد هو {count}",
+  "Documentation": "التوثيق",
+  "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
+  "Explore Vite": "استكشف فيت",
+  "Get started": "البدء",
+  "Learn more": "تعلم المزيد",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

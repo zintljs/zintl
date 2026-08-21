@@ -1,0 +1,227 @@
+{
+  "entries": [
+    "index.html",
+    "src/components/locale-bar:f_1868",
+    "src/main:bootstrap"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/main"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/components/locale-bar": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "LitElement",
+            "html"
+          ],
+          "dynamic": false,
+          "id": "lit"
+        },
+        {
+          "bindings": [
+            "customElement",
+            "property"
+          ],
+          "dynamic": false,
+          "id": "lit/decorators"
+        },
+        {
+          "dynamic": false,
+          "id": "src/components/locale-bar:f_1868"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/locale-bar",
+      "id": "src/components/locale-bar",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/locale-bar:f_1868": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "LitElement",
+            "html"
+          ],
+          "dynamic": false,
+          "id": "lit"
+        },
+        {
+          "bindings": [
+            "customElement",
+            "property"
+          ],
+          "dynamic": false,
+          "id": "lit/decorators"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/components/locale-bar",
+      "id": "src/components/locale-bar:f_1868",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/main": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main:bootstrap"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/my-element"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/my-element"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main",
+      "id": "src/main:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/my-element": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "LitElement",
+            "html"
+          ],
+          "dynamic": false,
+          "id": "lit"
+        },
+        {
+          "bindings": [
+            "customElement",
+            "state"
+          ],
+          "dynamic": false,
+          "id": "lit/decorators"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/components/locale-bar"
+        }
+      ],
+      "filePath": "src/my-element",
+      "id": "src/my-element",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/vite"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

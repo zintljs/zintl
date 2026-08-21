@@ -1,0 +1,5 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "dir": "ltr",
+  "title": "Vite 搭配 Lit — Zintl 示例"
+}

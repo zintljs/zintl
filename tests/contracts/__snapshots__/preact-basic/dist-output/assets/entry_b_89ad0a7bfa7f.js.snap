@@ -1,0 +1,16 @@
+//#region \0virtual:zintl/content/ar/entry:b_89ad0a7bfa7f
+var catalog = { "b_46b46a617b3e": {
+	"3473a536": "شعار فيت",
+	"90e40d50": "البدء",
+	"9fd2f187": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
+	"aa624128": (params) => {
+		const { count } = params;
+		return `العدد هو ${params["count"]}`;
+	},
+	"9e9cf322": "التوثيق",
+	"d0f7666b": "تمت الإجابة على أسئلتك",
+	"924cea3c": "<img/> استكشف فيت",
+	"824d76b1": "تعلم المزيد"
+} };
+//#endregion
+export { catalog as default };

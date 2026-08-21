@@ -1,0 +1,75 @@
+{
+  "boundaryToOwner": {
+    "src/components/locale-bar": "src/main:bootstrap",
+    "src/components/locale-bar:f_1868": "src/components/locale-bar:f_1868",
+    "src/main:bootstrap": "src/main:bootstrap",
+    "src/my-element": "src/main:bootstrap"
+  },
+  "chunks": {
+    "entry_b_1cbe9446f360": {
+      "boundaries": [
+        "src/components/locale-bar:f_1868"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/locale-bar:f_1868"
+      ],
+      "id": "entry_b_1cbe9446f360",
+      "type": "entry"
+    },
+    "entry_b_aafcf9c6fe16": {
+      "boundaries": [
+        "src/App.css",
+        "src/assets/hero.png",
+        "src/assets/vite.svg",
+        "src/components/locale-bar",
+        "src/index.css",
+        "src/main:bootstrap",
+        "src/my-element"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/main:bootstrap"
+      ],
+      "id": "entry_b_aafcf9c6fe16",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_c3648b855299": {
+      "boundaries": [
+        "lit/decorators"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_c3648b855299",
+      "type": "shared"
+    },
+    "shared_b_f12ecf748ae9": {
+      "boundaries": [
+        "lit"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_f12ecf748ae9",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/components/locale-bar:f_1868": "entry_b_1cbe9446f360",
+    "src/main:bootstrap": "entry_b_aafcf9c6fe16"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_c3648b855299",
+    "shared_b_f12ecf748ae9"
+  ]
+}

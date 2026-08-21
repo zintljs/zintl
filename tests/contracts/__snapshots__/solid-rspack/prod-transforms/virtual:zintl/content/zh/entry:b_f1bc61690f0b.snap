@@ -1,0 +1,7 @@
+const catalog = {
+    "b_2f98939c81ca": {
+      "90e40d50": "开始",
+      "b5323d23": "编辑 <code>src/index.tsx</code> 并保存以测试 <code>HMR</code>",
+    },
+  };
+export default catalog;

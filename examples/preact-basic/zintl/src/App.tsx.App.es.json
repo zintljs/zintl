@@ -1,0 +1,11 @@
+{
+  "$schema": "../.schemas/src/App.tsx.App.schema.json",
+  "<img/> Explore Vite": "<img/> Explorar Vite",
+  "Count is {count}": "El recuento es {count}",
+  "Documentation": "Documentación",
+  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+  "Get started": "Empezar",
+  "Learn more": "Aprender más",
+  "Vite logo": "Logotipo de Vite",
+  "Your questions, answered": "Tus preguntas, respondidas"
+}

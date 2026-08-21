@@ -1,0 +1,319 @@
+{
+  "entries": [
+    "index.html",
+    "src/index.tsx:bootstrap",
+    "src/index.tsx:f_970"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.tsx"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/App.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/App.tsx:default": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/App.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/App.tsx",
+      "id": "src/App.tsx:default",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "For"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.tsx",
+      "id": "src/components/LocaleSwitcher.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/components/LocaleSwitcher.tsx:default": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "For"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        }
+      ],
+      "filePath": "src/components/LocaleSwitcher.tsx",
+      "id": "src/components/LocaleSwitcher.tsx:default",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "solid-js/web"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/index.tsx:f_970"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/index.tsx:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "solid-js/web"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/index.tsx:f_970": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "createSignal"
+          ],
+          "dynamic": false,
+          "id": "solid-js"
+        },
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "solid-js/web"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/App.tsx:default"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/index.tsx",
+      "id": "src/index.tsx:f_970",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "vite-plugin-solid"
+        },
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/vite"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

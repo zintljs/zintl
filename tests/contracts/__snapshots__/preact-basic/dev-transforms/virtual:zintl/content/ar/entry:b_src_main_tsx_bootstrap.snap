@@ -1,0 +1,20 @@
+const catalog = {
+    "b_src_App_tsx_App": {
+      "Vite logo": "شعار فيت",
+      "Get started": "البدء",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `العدد هو ${params['count']}`;
+  },
+      "Documentation": "التوثيق",
+      "Your questions, answered": "تمت الإجابة على أسئلتك",
+      "<img/> Explore Vite": "<img/> استكشف فيت",
+      "Learn more": "تعلم المزيد",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

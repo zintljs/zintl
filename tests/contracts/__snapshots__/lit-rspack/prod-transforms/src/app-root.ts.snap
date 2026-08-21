@@ -1,0 +1,89 @@
+import { _t, loadI18nInstance } from "virtual:zintl/runtime/internal";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
+import { LitElement, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+
+
+const locales = [
+  {
+    "id": "en",
+    "name": "English"
+  },
+  {
+    "id": "ar",
+    "name": "العربية"
+  },
+  {
+    "id": "es",
+    "name": "Español"
+  },
+  {
+    "id": "zh",
+    "name": "中文"
+  }
+];
+
+@customElement("app-root")
+export class AppRoot extends LitElement {
+  // `accessor`, where `examples/lit-basic` writes a plain field. Rsbuild
+  // compiles with SWC, which applies **standard** decorators and ignores
+  // tsconfig's `experimentalDecorators` entirely — a decorated plain field
+  // then fails at class-init time with "Unsupported decorator location:
+  // field". A host difference rather than a Zintl one, and the kind only a
+  // second host reveals.
+  @state() accessor locale =
+    new URLSearchParams(window.location.search).get("lang") || "en";
+
+  protected createRenderRoot(): HTMLElement {
+    return this;
+  }
+
+  private async switchTo(next: string) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: next, loaders: { ["b_dd563dcb7e61"]: _zintl_mgr_b_dd563dcb7e61.loader } }));
+    this.locale = next;
+  }
+
+  render() {
+    return html`
+      <section id="header">
+        <div id="switcher" class="switcher">
+          ${locales.map(
+            (l) => html`<button
+              type="button"
+              data-lang=${l.id}
+              class=${this.locale === l.id ? "active" : ""}
+              aria-current=${this.locale === l.id ? "true" : "false"}
+              @click=${() => this.switchTo(l.id)}
+            >
+              ${l.name}
+            </button>`,
+          )}
+        </div>
+        <div class="vertical-ticks"></div>
+        <div class="icon-border">
+            <svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
+              <mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                <rect width="100" height="100" />
+                <g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                  <path d="M16 45V84" /><path d="M16 24v1" />
+                  <path d="M62 84V50" /><path d="M62 60a14 14 0 0 1 28 0v24" />
+                </g>
+                <circle cx="39" cy="52" r="21.5" /><circle cx="39" cy="74" r="23" />
+                <circle cx="39" cy="52" r="17.5" fill="#fff" /><circle cx="39" cy="73" r="19" fill="#fff" />
+                <circle cx="39" cy="52" r="5" /><circle cx="39" cy="74" r="6.5" />
+              </mask>
+              <rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)" />
+            </svg>
+        </div>
+      </section>
+      <div class="ticks"></div>
+
+      <h1>${_t("90e40d50", { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: "b_9d91c6c73007" })}</h1>
+      <p>${unsafeHTML(_t("822f0fb2", { _mgr: _zintl_mgr_b_dd563dcb7e61, _bId: "b_9d91c6c73007", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] }))}</p>
+    `;
+  }
+}

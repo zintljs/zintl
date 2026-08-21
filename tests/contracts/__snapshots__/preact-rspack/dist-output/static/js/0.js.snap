@@ -1,0 +1,1170 @@
+"use strict";
+(self["rspackChunkpreact_rspack"] = self["rspackChunkpreact_rspack"] || []).push([[0], {
+1(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Fragment: () => (/* reexport safe */ preact__rspack_import_0.Fragment),
+  jsx: () => (u),
+  jsxAttr: () => (l),
+  jsxDEV: () => (u),
+  jsxEscape: () => (s),
+  jsxTemplate: () => (a),
+  jsxs: () => (u)
+});
+/* import */ var preact__rspack_import_0 = __webpack_require__(2);
+var t=/["&<]/;function n(r){if(0===r.length||!1===t.test(r))return r;for(var e=0,n=0,o="",f="";n<r.length;n++){switch(r.charCodeAt(n)){case 34:f="&quot;";break;case 38:f="&amp;";break;case 60:f="&lt;";break;default:continue}n!==e&&(o+=r.slice(e,n)),o+=f,e=n+1}return n!==e&&(o+=r.slice(e,n)),o}var o=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i,f=0,i=Array.isArray;function u(e,t,n,o,i,u){t||(t={});var a,c,p=t;if("ref"in p)for(c in p={},t)"ref"==c?a=t[c]:p[c]=t[c];var l={type:e,props:p,key:n,ref:a,__k:null,__:null,__b:0,__e:null,__c:null,constructor:void 0,__v:--f,__i:-1,__u:0,__source:i,__self:u};if("function"==typeof e&&(a=e.defaultProps))for(c in a)void 0===p[c]&&(p[c]=a[c]);return preact__rspack_import_0.options.vnode&&preact__rspack_import_0.options.vnode(l),l}function a(r){var t=u(preact__rspack_import_0.Fragment,{tpl:r,exprs:[].slice.call(arguments,1)});return t.key=t.__v,t}var c={},p=/[A-Z]/g;function l(e,t){if(preact__rspack_import_0.options.attr){var f=preact__rspack_import_0.options.attr(e,t);if("string"==typeof f)return f}if(t=function(r){return null!==r&&"object"==typeof r&&"function"==typeof r.valueOf?r.valueOf():r}(t),"ref"===e||"key"===e)return"";if("style"===e&&"object"==typeof t){var i="";for(var u in t){var a=t[u];if(null!=a&&""!==a){var l="-"==u[0]?u:c[u]||(c[u]=u.replace(p,"-$&").toLowerCase()),s=";";"number"!=typeof a||l.startsWith("--")||o.test(l)||(s="px;"),i=i+l+":"+a+s}}return e+'="'+n(i)+'"'}return null==t||!1===t||"function"==typeof t||"object"==typeof t?"":!0===t?e:e+'="'+n(""+t)+'"'}function s(r){if(null==r||"boolean"==typeof r||"function"==typeof r)return null;if("object"==typeof r){if(void 0===r.constructor)return r;if(i(r)){for(var e=0;e<r.length;e++)r[e]=s(r[e]);return r}}return n(""+r)}
+//# sourceMappingURL=jsxRuntime.module.js.map
+
+
+},
+2(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Component: () => (C),
+  Fragment: () => (S),
+  cloneElement: () => (W),
+  createContext: () => (X),
+  createElement: () => (k),
+  createRef: () => (M),
+  h: () => (k),
+  hydrate: () => (U),
+  isValidElement: () => (t),
+  options: () => (l),
+  render: () => (R),
+  toChildArray: () => (F)
+});
+var n,l,u,t,i,r,o,e,f,c,a,s,h,p,v,y,d={},w=[],_=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i,g=Array.isArray;function m(n,l){for(var u in l)n[u]=l[u];return n}function b(n){n&&n.parentNode&&n.parentNode.removeChild(n)}function k(l,u,t){var i,r,o,e={};for(o in u)"key"==o?i=u[o]:"ref"==o?r=u[o]:e[o]=u[o];if(arguments.length>2&&(e.children=arguments.length>3?n.call(arguments,2):t),"function"==typeof l&&null!=l.defaultProps)for(o in l.defaultProps)void 0===e[o]&&(e[o]=l.defaultProps[o]);return x(l,e,i,r,null)}function x(n,t,i,r,o){var e={type:n,props:t,key:i,ref:r,__k:null,__:null,__b:0,__e:null,__c:null,constructor:void 0,__v:null==o?++u:o,__i:-1,__u:0};return null==o&&null!=l.vnode&&l.vnode(e),e}function M(){return{current:null}}function S(n){return n.children}function C(n,l){this.props=n,this.context=l}function $(n,l){if(null==l)return n.__?$(n.__,n.__i+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return"function"==typeof n.type?$(n):null}function I(n){if(n.__P&&n.__d){var u=n.__v,t=u.__e,i=[],r=[],o=m({},u);o.__v=u.__v+1,l.vnode&&l.vnode(o),q(n.__P,o,u,n.__n,n.__P.namespaceURI,32&u.__u?[t]:null,i,null==t?$(u):t,!!(32&u.__u),r),o.__v=u.__v,o.__.__k[o.__i]=o,D(i,o,r),u.__e=u.__=null,o.__e!=t&&P(o)}}function P(n){if(null!=(n=n.__)&&null!=n.__c)return n.__e=n.__c.base=null,n.__k.some(function(l){if(null!=l&&null!=l.__e)return n.__e=n.__c.base=l.__e}),P(n)}function A(n){(!n.__d&&(n.__d=!0)&&i.push(n)&&!H.__r++||r!=l.debounceRendering)&&((r=l.debounceRendering)||o)(H)}function H(){try{for(var n,l=1;i.length;)i.length>l&&i.sort(e),n=i.shift(),l=i.length,I(n)}finally{i.length=H.__r=0}}function L(n,l,u,t,i,r,o,e,f,c,a){var s,h,p,v,y,_,g=t&&t.__k||w,m=l.length;for(f=T(u,l,g,f,m),s=0;s<m;s++)null!=(p=u.__k[s])&&(h=-1!=p.__i&&g[p.__i]||d,p.__i=s,_=q(n,p,h,i,r,o,e,f,c,a),v=p.__e,p.ref&&h.ref!=p.ref&&(h.ref&&J(h.ref,null,p),a.push(p.ref,p.__c||v,p)),null==y&&null!=v&&(y=v),4&p.__u?(f=j(p,f,n),h.__e&&(h.__e=null)):"function"==typeof p.type&&void 0!==_?f=_:v&&(f=v.nextSibling),p.__u&=-7);return u.__e=y,f}function T(n,l,u,t,i){var r,o,e,f,c,a=u.length,s=a,h=0;for(n.__k=new Array(i),r=0;r<i;r++)null!=(o=l[r])&&"boolean"!=typeof o&&"function"!=typeof o?("string"==typeof o||"number"==typeof o||"bigint"==typeof o||o.constructor==String?o=n.__k[r]=x(null,o,null,null,null):g(o)?o=n.__k[r]=x(S,{children:o},null,null,null):void 0===o.constructor&&o.__b>0?o=n.__k[r]=x(o.type,o.props,o.key,o.ref?o.ref:null,o.__v):n.__k[r]=o,f=r+h,o.__=n,o.__b=n.__b+1,e=null,-1!=(c=o.__i=O(o,u,f,s))&&(s--,(e=u[c])&&(e.__u|=2)),null==e||null==e.__v?(-1==c&&(i>a?h--:i<a&&h++),"function"!=typeof o.type&&(o.__u|=4)):c!=f&&(c==f-1?h--:c==f+1?h++:(c>f?h--:h++,o.__u|=4))):n.__k[r]=null;if(s)for(r=0;r<a;r++)null!=(e=u[r])&&0==(2&e.__u)&&(e.__e==t&&(t=$(e)),K(e,e));return t}function j(n,l,u){var t,i;if("function"==typeof n.type){for(t=n.__k,i=0;t&&i<t.length;i++)t[i]&&(t[i].__=n,l=j(t[i],l,u));return l}n.__e!=l&&(l&&n.type&&!l.parentNode&&(l=$(n)),l=u.insertBefore(n.__e,l||null));do{l=l&&l.nextSibling}while(null!=l&&8==l.nodeType);return l}function F(n,l){return l=l||[],null==n||"boolean"==typeof n||(g(n)?n.some(function(n){F(n,l)}):l.push(n)),l}function O(n,l,u,t){var i,r,o,e=n.key,f=n.type,c=l[u],a=null!=c&&0==(2&c.__u);if(null===c&&null==e||a&&e==c.key&&f==c.type)return u;if(t>(a?1:0))for(i=u-1,r=u+1;i>=0||r<l.length;)if(null!=(c=l[o=i>=0?i--:r++])&&0==(2&c.__u)&&e==c.key&&f==c.type)return o;return-1}function z(n,l,u){"-"==l[0]?n.setProperty(l,null==u?"":u):n[l]=null==u?"":"number"!=typeof u||_.test(l)?u:u+"px"}function N(n,l,u,t,i){var r,o;n:if("style"==l)if("string"==typeof u)n.style.cssText=u;else{if("string"==typeof t&&(n.style.cssText=t=""),t)for(l in t)u&&l in u||z(n.style,l,"");if(u)for(l in u)t&&u[l]==t[l]||z(n.style,l,u[l])}else if("o"==l[0]&&"n"==l[1])r=l!=(l=l.replace(s,"$1")),o=l.toLowerCase(),l=o in n||"onFocusOut"==l||"onFocusIn"==l?o.slice(2):l.slice(2),n.l||(n.l={}),n.l[l+r]=u,u?t?u[a]=t[a]:(u[a]=h,n.addEventListener(l,r?v:p,r)):n.removeEventListener(l,r?v:p,r);else{if("http://www.w3.org/2000/svg"==i)l=l.replace(/xlink(H|:h)/,"h").replace(/sName$/,"s");else if("width"!=l&&"height"!=l&&"href"!=l&&"list"!=l&&"form"!=l&&"tabIndex"!=l&&"download"!=l&&"rowSpan"!=l&&"colSpan"!=l&&"role"!=l&&"popover"!=l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null==u||!1===u&&"-"!=l[4]?n.removeAttribute(l):n.setAttribute(l,"popover"==l&&1==u?"":u))}}function V(n){return function(u){if(this.l){var t=this.l[u.type+n];if(null==u[c])u[c]=h++;else if(u[c]<t[a])return;return t(l.event?l.event(u):u)}}}function q(n,u,t,i,r,o,e,f,c,a){var s,h,p,v,y,d,_,k,x,M,I,P,A,H,T,j,F=u.type;if(void 0!==u.constructor)return null;128&t.__u&&(c=!!(32&t.__u),o=[f=u.__e=t.__e]),(s=l.__b)&&s(u);n:if("function"==typeof F){h=e.length;try{if(x=u.props,M=F.prototype&&F.prototype.render,I=(s=F.contextType)&&i[s.__c],P=s?I?I.props.value:s.__:i,t.__c?k=(p=u.__c=t.__c).__=p.__E:(M?u.__c=p=new F(x,P):(u.__c=p=new C(x,P),p.constructor=F,p.render=Q),I&&I.sub(p),p.state||(p.state={}),p.__n=i,v=p.__d=!0,p.__h=[],p._sb=[]),M&&null==p.__s&&(p.__s=p.state),M&&null!=F.getDerivedStateFromProps&&(p.__s==p.state&&(p.__s=m({},p.__s)),m(p.__s,F.getDerivedStateFromProps(x,p.__s))),y=p.props,d=p.state,p.__v=u,v)M&&null==F.getDerivedStateFromProps&&null!=p.componentWillMount&&p.componentWillMount(),M&&null!=p.componentDidMount&&p.__h.push(p.componentDidMount);else{if(M&&null==F.getDerivedStateFromProps&&x!==y&&null!=p.componentWillReceiveProps&&p.componentWillReceiveProps(x,P),u.__v==t.__v||!p.__e&&null!=p.shouldComponentUpdate&&!1===p.shouldComponentUpdate(x,p.__s,P)){u.__v!=t.__v&&(p.props=x,p.state=p.__s,p.__d=!1),u.__e=t.__e,u.__k=t.__k,u.__k.some(function(n){n&&(n.__=u)}),w.push.apply(p.__h,p._sb),p._sb=[],p.__h.length&&e.push(p),f=$(t);break n}null!=p.componentWillUpdate&&p.componentWillUpdate(x,p.__s,P),M&&null!=p.componentDidUpdate&&p.__h.push(function(){p.componentDidUpdate(y,d,_)})}if(p.context=P,p.props=x,p.__P=n,p.__e=!1,A=l.__r,H=0,M)p.state=p.__s,p.__d=!1,A&&A(u),s=p.render(p.props,p.state,p.context),w.push.apply(p.__h,p._sb),p._sb=[];else do{p.__d=!1,A&&A(u),s=p.render(p.props,p.state,p.context),p.state=p.__s}while(p.__d&&++H<25);p.state=p.__s,null!=p.getChildContext&&(i=m(m({},i),p.getChildContext())),M&&!v&&null!=p.getSnapshotBeforeUpdate&&(_=p.getSnapshotBeforeUpdate(y,d)),T=null!=s&&s.type===S&&null==s.key?E(s.props.children):s,f=L(n,g(T)?T:[T],u,t,i,r,o,e,f,c,a),p.base=u.__e,u.__u&=-161,p.__h.length&&e.push(p),k&&(p.__E=p.__=null)}catch(n){if(e.length=h,u.__v=null,c||null!=o){if(n.then){for(u.__u|=c?160:128;f&&8==f.nodeType&&f.nextSibling;)f=f.nextSibling;null!=o&&(o[o.indexOf(f)]=null),u.__e=f}else if(null!=o)for(j=o.length;j--;)b(o[j])}else u.__e=t.__e;null==u.__k&&(u.__k=t.__k||[]),n.then||B(u),l.__e(n,u,t)}}else null==o&&u.__v==t.__v?(u.__k=t.__k,u.__e=t.__e):f=u.__e=G(t.__e,u,t,i,r,o,e,c,a);return(s=l.diffed)&&s(u),128&u.__u?void 0:f}function B(n){n&&(n.__c&&(n.__c.__e=!0),n.__k&&n.__k.some(B))}function D(n,u,t){for(var i=0;i<t.length;i++)J(t[i],t[++i],t[++i]);l.__c&&l.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u)})}catch(n){l.__e(n,u.__v)}})}function E(n){return"object"!=typeof n||null==n||n.__b>0?n:g(n)?n.map(E):void 0!==n.constructor?null:m({},n)}function G(u,t,i,r,o,e,f,c,a){var s,h,p,v,y,w,_,m=i.props||d,k=t.props,x=t.type;if("svg"==x?o="http://www.w3.org/2000/svg":"math"==x?o="http://www.w3.org/1998/Math/MathML":o||(o="http://www.w3.org/1999/xhtml"),null!=e)for(s=0;s<e.length;s++)if((y=e[s])&&"setAttribute"in y==!!x&&(x?y.localName==x:3==y.nodeType)){u=y,e[s]=null;break}if(null==u){if(null==x)return document.createTextNode(k);u=document.createElementNS(o,x,k.is&&k),c&&(l.__m&&l.__m(t,e),c=!1),e=null}if(null==x)m===k||c&&u.data==k||(u.data=k);else{if(e="textarea"==x&&null!=k.defaultValue?null:e&&n.call(u.childNodes),!c&&null!=e)for(m={},s=0;s<u.attributes.length;s++)m[(y=u.attributes[s]).name]=y.value;for(s in m)y=m[s],"dangerouslySetInnerHTML"==s?p=y:"children"==s||s in k||"value"==s&&"defaultValue"in k||"checked"==s&&"defaultChecked"in k||N(u,s,null,y,o);for(s in k)y=k[s],"children"==s?v=y:"dangerouslySetInnerHTML"==s?h=y:"value"==s?w=y:"checked"==s?_=y:c&&"function"!=typeof y||m[s]===y||N(u,s,y,m[s],o);if(h)c||p&&(h.__html==p.__html||h.__html==u.innerHTML)||(u.innerHTML=h.__html),t.__k=[];else if(p&&(u.innerHTML=""),L("template"==t.type?u.content:u,g(v)?v:[v],t,i,r,"foreignObject"==x?"http://www.w3.org/1999/xhtml":o,e,f,e?e[0]:i.__k&&$(i,0),c,a),null!=e)for(s=e.length;s--;)b(e[s]);c&&"textarea"!=x||(s="value","progress"==x&&null==w?u.removeAttribute("value"):null!=w&&(w!==u[s]||"progress"==x&&!w||"option"==x&&w!=m[s])&&N(u,s,w,m[s],o),s="checked",null!=_&&_!=u[s]&&N(u,s,_,m[s],o))}return u}function J(n,u,t){try{if("function"==typeof n){var i="function"==typeof n.__u;i&&n.__u(),i&&null==u||(n.__u=n(u))}else n.current=u}catch(n){l.__e(n,t)}}function K(n,u,t){var i,r;if(l.unmount&&l.unmount(n),(i=n.ref)&&(i.current&&i.current!=n.__e||J(i,null,u)),null!=(i=n.__c)){if(i.componentWillUnmount)try{i.componentWillUnmount()}catch(n){l.__e(n,u)}i.base=i.__P=i.__n=null}if(i=n.__k)for(r=0;r<i.length;r++)i[r]&&K(i[r],u,t||"function"!=typeof n.type);t||b(n.__e),n.__c=n.__=n.__e=void 0}function Q(n,l,u){return this.constructor(n,u)}function R(u,t,i){var r,o,e,f;t==document&&(t=document.documentElement),l.__&&l.__(u,t),o=(r="function"==typeof i)?null:i&&i.__k||t.__k,e=[],f=[],q(t,u=(!r&&i||t).__k=k(S,null,[u]),o||d,d,t.namespaceURI,!r&&i?[i]:o?null:t.firstChild?n.call(t.childNodes):null,e,!r&&i?i:o?o.__e:t.firstChild,r,f),D(e,u,f),u.props.children=null}function U(n,l){R(n,l,U)}function W(l,u,t){var i,r,o,e,f=m({},l.props);for(o in l.type&&l.type.defaultProps&&(e=l.type.defaultProps),u)"key"==o?i=u[o]:"ref"==o?r=u[o]:f[o]=void 0===u[o]&&null!=e?e[o]:u[o];return arguments.length>2&&(f.children=arguments.length>3?n.call(arguments,2):t),x(l.type,f,i||l.key,r||l.ref,null)}function X(n){function l(n){var u,t;return this.getChildContext||(u=new Set,(t={})[l.__c]=this,this.getChildContext=function(){return t},this.componentWillUnmount=function(){u=null},this.shouldComponentUpdate=function(n){this.props.value!=n.value&&u.forEach(function(n){n.__e=!0,A(n)})},this.sub=function(n){u.add(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u&&u.delete(n),l&&l.call(n)}}),n.children}return l.__c="__cC"+y++,l.__=n,l.Provider=l.__l=(l.Consumer=function(n,l){return n.children(l)}).contextType=l,l}n=w.slice,l={__e:function(n,l,u,t){for(var i,r,o;l=l.__;)if((i=l.__c)&&!i.__)try{if((r=i.constructor)&&null!=r.getDerivedStateFromError&&(i.setState(r.getDerivedStateFromError(n)),o=i.__d),null!=i.componentDidCatch&&(i.componentDidCatch(n,t||{}),o=i.__d),o)return i.__E=i}catch(l){n=l}throw n}},u=0,t=function(n){return null!=n&&void 0===n.constructor},C.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!=this.state?this.__s:this.__s=m({},this.state),"function"==typeof n&&(n=n(m({},u),this.props)),n&&m(u,n),null!=n&&this.__v&&(l&&this._sb.push(l),A(this))},C.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),A(this))},C.prototype.render=S,i=[],o="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,e=function(n,l){return n.__v.__b-l.__v.__b},H.__r=0,f=Math.random().toString(8),c="__d"+f,a="__a"+f,s=/(PointerCapture)$|Capture$/i,h=0,p=V(!1),v=V(!0),y=0;
+//# sourceMappingURL=preact.module.js.map
+
+
+},
+3(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  addCatalogs: () => (/* reexport safe */ _store_js__rspack_import_0.addCatalogs),
+  getLocale: () => (/* reexport safe */ _store_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_js__rspack_import_0.getStoreVersion),
+  loadI18nInstance: () => (loadI18nInstance),
+  registerLoader: () => (/* reexport safe */ _store_js__rspack_import_0.registerLoader),
+  registerZintlLoader: () => (/* reexport safe */ _registry_js__rspack_import_2.registerZintlLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_js__rspack_import_0.runInRequestScope),
+  setLocale: () => (/* reexport safe */ _store_js__rspack_import_0.setLocale),
+  subscribe: () => (/* reexport safe */ _store_js__rspack_import_0.subscribe),
+  t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  unregisterZintlLoader: () => (/* reexport safe */ _store_js__rspack_import_0.unregisterLoader),
+  zintl: () => (zintl)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+/* import */ var _resolver_js__rspack_import_1 = __webpack_require__(7);
+/* import */ var _registry_js__rspack_import_2 = __webpack_require__(8);
+
+
+
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+	if (activeLocale) await (0,_store_js__rspack_import_0.setLocale)(activeLocale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new _store_js__rspack_import_0.I18nStore();
+	(0,_store_js__rspack_import_0.setActiveInstance)(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = (0,_store_js__rspack_import_0.getActiveInstance)();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = (0,_store_js__rspack_import_0.getActiveInstance)();
+			(0,_store_js__rspack_import_0.setActiveInstance)(store);
+			try {
+				return (0,_resolver_js__rspack_import_1._t)(key, params);
+			} finally {
+				(0,_store_js__rspack_import_0.setActiveInstance)(prev);
+			}
+		}
+	};
+}
+//#endregion
+
+
+
+},
+4(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (/* reexport safe */ _store_core_js__rspack_import_0.I18nStore),
+  addCatalogs: () => (/* reexport safe */ _store_core_js__rspack_import_0.addCatalogs),
+  defaultInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.defaultInstance),
+  getActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.getActiveInstance),
+  getLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_core_js__rspack_import_0.getStoreVersion),
+  globalRegistry: () => (/* reexport safe */ _store_core_js__rspack_import_0.globalRegistry),
+  isThenable: () => (/* reexport safe */ _store_core_js__rspack_import_0.isThenable),
+  registerLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.registerLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.runInRequestScope),
+  setActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.setActiveInstance),
+  setLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.setLocale),
+  setRunInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.setRunInRequestScope),
+  setStoreStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.setStoreStorage),
+  storeStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.storeStorage),
+  subscribe: () => (/* reexport safe */ _store_core_js__rspack_import_0.subscribe),
+  unregisterLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.unregisterLoader)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(5);
+/* import */ var _store_client_js__rspack_import_1 = __webpack_require__(6);
+
+
+
+
+},
+5(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (I18nStore),
+  addCatalogs: () => (addCatalogs),
+  defaultInstance: () => (defaultInstance),
+  getActiveInstance: () => (getActiveInstance),
+  getLocale: () => (getLocale),
+  getStoreVersion: () => (getStoreVersion),
+  globalRegistry: () => (globalRegistry),
+  isThenable: () => (isThenable),
+  registerLoader: () => (registerLoader),
+  runInRequestScope: () => (runInRequestScope),
+  setActiveInstance: () => (setActiveInstance),
+  setLocale: () => (setLocale),
+  setRunInRequestScope: () => (setRunInRequestScope),
+  setStoreStorage: () => (setStoreStorage),
+  storeStorage: () => (storeStorage),
+  subscribe: () => (subscribe),
+  unregisterLoader: () => (unregisterLoader)
+});
+//#region src/runtime/store-core.ts
+let storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+let runInRequestScope = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope = fn;
+}
+/**
+* Entries retained in the development ledger.
+*
+* Bounded is normative, not an optimization: the `memory-leak` contract measures
+* retained heap across twenty consecutive hot updates against a budget with only
+* a few hundred kilobytes of headroom.
+*/
+const LEDGER_LIMIT = 128;
+/**
+* Publish the settle beacon's zero on runtime startup.
+*
+* So that "the counter is absent" unambiguously means "no Zintl runtime on this
+* page", rather than the ambiguous "runtime present but nothing has settled
+* yet". A harness cannot act on a signal it cannot distinguish from silence.
+*/
+function publishBeaconZero() {
+	if (true) return;
+	// removed by dead control flow
+{}
+}
+/**
+* Record a settled envelope, and advance the settle beacon.
+*
+* The beacon is now derived from delivery outcomes rather than from `notify()`,
+* and that is the substantive change. It used to advance only when a catalog
+* value actually differed, so a redelivery carrying identical content advanced
+* nothing — making "applied, unchanged" indistinguishable from "lost", which is
+* exactly what a harness must be able to tell apart (Corollary D2a).
+*
+* Counting every terminal outcome, not just `applied`, is the point: a harness
+* asks "has the store finished with my change?", and `superseded` is a finished
+* answer. Listeners are a separate concern and still fire only on real change.
+*
+* Process-global rather than request-scoped, which is safe precisely because
+* nothing reads it except a harness driving a single page. The *ordering* state
+* that must not leak across requests lives on the store instance instead.
+*/
+function recordSettle(envelope) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+const DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) {
+			if (false) {}
+			return false;
+		}
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {
+		if (true) return;
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+	}
+};
+/**
+* Report an abandoned catalog delivery.
+*
+* Every abandonment path needs the same three things — a named outcome, the
+* subject it belongs to, and a development log — and having them in one place is
+* what stops the next one being added without them.
+*
+* A free function rather than a method on purpose. Both are development-only,
+* but once every call site folds away a free function is unreferenced and goes
+* with them, whereas a method stays on the prototype forever. The earlier
+* version was worse still: a closure allocated per load that, in production,
+* compiled to `(reason, err) => {}`.
+*/
+function reportDeliveryFailure(delivery, target, boundaryId, reason, err) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug =  false && (0);
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	/**
+	* Boundaries whose catalog has already been chased for a missing key.
+	*
+	* `_t` triggers a hydration load when it cannot find a key, and re-reads
+	* immediately so a synchronous loader satisfies the very first render. That
+	* is right once and catastrophic on repeat: when the key is genuinely absent
+	* — a deleted catalog, a key that never existed — every render triggers
+	* another load, every load can `addCatalogs`, and every `addCatalogs`
+	* notifies. With anything subscribed, that closes into a render loop.
+	*
+	* It is not hypothetical in either direction. React hit it at
+	* ~700 messages in twelve seconds (see {@link notify}, which deferred the
+	* announcement to stop the synchronous half), and Vue reproduced the
+	* steady-state half the moment its templates gained a reactive dependency:
+	* **167,280 console messages** in one `chaos-catalog` run, which deletes the
+	* catalog on purpose.
+	*
+	* One attempt per **key**, and deliberately never cleared. Clearing on
+	* catalog change was tried first and re-armed the loop precisely: the load
+	* *does* deliver the boundary — it simply does not contain this key — so
+	* `changed` is true, the set empties, and the next render claims again.
+	*
+	* Keying on the key rather than the boundary is what makes "never cleared"
+	* safe. The guard gates only the *miss* path, and a key that later arrives is
+	* no longer a miss: `_t` finds it before reaching here, so the claim it
+	* already spent is never consulted again.
+	*/
+	hydrationAttempts = /* @__PURE__ */ new Set();
+	/**
+	* Claim the single hydration attempt for one missing key.
+	*
+	* Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+	* caller loads only when it wins the claim.
+	*/
+	claimHydrationAttempt(locale, boundaryId, messageKey) {
+		const claim = locale + "/" + boundaryId + "/" + messageKey;
+		if (this.hydrationAttempts.has(claim)) return false;
+		this.hydrationAttempts.add(claim);
+		return true;
+	}
+	/** Whether an announcement is already queued for this turn — see {@link notify}. */
+	notifyScheduled = false;
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		publishBeaconZero();
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Take over the subscribers of the store this one is replacing.
+	*
+	* `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+	* module-level `defaultInstance` until something calls `setActiveInstance`.
+	* A component that renders before the entry's `zintl()` resolves therefore
+	* subscribes to *that* store, and the swap left its listener behind on an
+	* object nothing would ever notify again — measured as `listeners: 0` on the
+	* live store while React's `useSyncExternalStore` was demonstrably mounted
+	* (ledger L-068).
+	*
+	* The consequence is invisible until something arrives that only a subscriber
+	* could act on. A hot catalog update is exactly that: the store takes the new
+	* translation, `notify()` runs, and there is nobody in the set. On Vite the
+	* defect is masked because the applier re-runs the entry, which remounts the
+	* components against the current store; on Rspack nothing re-runs and the
+	* page keeps its first paint.
+	*
+	* Listeners are *moved*, not copied — the old store is being retired, and a
+	* subscriber notified twice for one change is a second bug. They are then
+	* notified once, because their snapshot has just changed underneath them by
+	* definition: they were reading a different store a moment ago.
+	*/
+	adoptListeners(previous) {
+		if (previous === this || previous.listeners.size === 0) return;
+		for (const listener of previous.listeners) this.listeners.add(listener);
+		previous.listeners.clear();
+		this.notify();
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	/**
+	* Announce that the catalogs changed — on a microtask, never in the caller's
+	* turn, and coalesced so a burst announces once.
+	*
+	* **Applying is synchronous; announcing is not, and the split is the fix for
+	* ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+	* load and re-reading it in the same expression, because a hot update
+	* registers a new loader whose catalog is available on that very tick — the
+	* manager inlines the anchor's locale, so `loadLazyBoundary` completes
+	* synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+	* it to work.
+	*
+	* What must not happen is the announcement travelling with it. `_t` runs
+	* *during render*, so a synchronous `notify()` reached
+	* `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+	* React reported the first as "Cannot update a component while rendering a
+	* different component" and then, because each re-render ran `_t` again and
+	* each `_t` announced again, "Maximum update depth exceeded" out of every
+	* subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
+	* with the renderer pinned hard enough that the page could not be evaluated
+	* at all, which is why this read as a stall rather than a loop.
+	*
+	* `version` is bumped inside the microtask rather than beside the data on
+	* purpose. It is React's snapshot, and a snapshot that moves *during* render
+	* makes React re-render to reconcile it — so bumping it synchronously would
+	* re-arm the same loop without the warning that names it. Deferring both
+	* together keeps the pair that `useSyncExternalStore` requires: when the
+	* subscriber fires, the snapshot has already moved.
+	*/
+	notify() {
+		if (this.notifyScheduled) return;
+		this.notifyScheduled = true;
+		queueMicrotask(() => {
+			this.notifyScheduled = false;
+			this.version++;
+			for (const listener of this.listeners) try {
+				listener();
+			} catch (err) {
+				if (false) {}
+			}
+		});
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		/**
+		* Corollary D2a — every boundary this call described gets an outcome, even
+		* when its content was already identical.
+		*
+		* The old code advanced nothing unless a value differed, so an idempotent
+		* redelivery and a lost one looked the same from outside. Listeners still
+		* only run on real change: a subscriber has nothing to do when nothing
+		* moved, but an observer still needs to know the store finished.
+		*
+		* Development-only (Axiom D5). These envelopes are pure observation — no
+		* ordering decision hangs on them, because nothing upstream yet stamps a
+		* catalog with a sequence to compare. Minting one per boundary on every
+		* application would be allocation in a hot path bought for nothing.
+		*/
+		if (false) {}
+		if (changed) {
+			if (false) {}
+			this.notify();
+		}
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		/**
+		* The store owns the document's locale attributes; the projection owns
+		* everything document-specific. Both run, in that order.
+		*
+		* This used to be an either/or — call `__zintlApplyHtml` if installed,
+		* otherwise set `lang` — and the branch was the bug. The projection installs
+		* itself unconditionally but only writes `dir` when the project has an RTL
+		* locale, so on every other project it took ownership of the document and
+		* then declined to finish the job, silently suppressing the fallback that
+		* would have (ledger L-019). Sequencing them removes the question: the store
+		* always says what locale it adopted, and the projection still applies the
+		* title, description and body deltas only it knows about.
+		*
+		* `dir` is set only when the project actually has direction data. Empty
+		* means "this project never spoke about direction", and asserting `"ltr"`
+		* there would start writing an attribute onto documents that never had one.
+		*/
+		if (typeof document !== "undefined" && document.documentElement) {
+			document.documentElement.lang = locale;
+			if (["ar"].length > 0) document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
+		}
+		window.__zintlApplyHtml?.(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			if (false) {}
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		if (false) {}
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) {
+			if (false) {}
+			return;
+		}
+		if (false) {}
+		if (false) {}
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) {
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				/**
+				* Publish this load so {@link loadLazyBoundary} can join it.
+				*
+				* This path used to record itself only in `pendingBoundaries`, which
+				* nothing consults before serving a catalog — so an in-flight load
+				* started *here* was invisible to a caller asking for the same boundary
+				* *there*, and that caller was handed whatever was already present.
+				*
+				* Harmless when the catalogs are empty, which is the only case that
+				* existed before hot updates reached a host that re-executes the
+				* manager and the entry independently. On such a host it is the
+				* empty-render defect: the manager re-registers, this load goes out for
+				* the new catalog, the entry re-executes and reads the old one, and
+				* every key that exists only in the new one resolves to "" — because
+				* Zintl has no source-locale fallback, by design.
+				*/
+				const subject = target + "/" + boundaryId;
+				const inFlight = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+					if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
+				});
+				this.inFlight.set(subject, inFlight);
+				return inFlight;
+			}
+			processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*
+		* Checked **before** the already-loaded test below, and the order is the
+		* fix rather than a tidy-up. A load is in flight precisely because
+		* something decided the present catalog needs replacing; serving the
+		* present one instead is choosing the older of two known states, which is
+		* the inverse of Axiom D1. The two tests only disagree while a refresh is
+		* outstanding, and that is exactly the window the empty-render defect lived
+		* in: the entry re-executed, found a stale-but-present catalog, returned in
+		* zero milliseconds, and rendered "" for every key the incoming catalog was
+		* about to supply.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		if (this.catalogs[target]?.[boundaryId]) {
+			/**
+			* Already loaded, and nothing better on the way. Named rather than
+			* returned silently (Axiom D2), so a skipped load appears in the ledger
+			* instead of looking like nothing happened.
+			*
+			* Still skips a *refresh* nobody has started — a catalog that is present
+			* and stale, with no load outstanding, cannot be re-fetched through this
+			* path. That remains true and is not a live problem: every refresh in
+			* development arrives as a load somebody did start, which the check above
+			* now joins.
+			*/
+			if (false) {}
+			return;
+		}
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) {
+				/**
+				* An empty result abandons the boundary: nothing is applied and `_t`
+				* keeps returning "" for every key bound to it, permanently, because
+				* nothing schedules a retry (ZDB §6 — retry cannot fix ordering, and
+				* would turn a loud failure into a slow one).
+				*
+				* The compiler's integrity check guarantees catalogs are complete, so
+				* reaching here means *delivery* failed, not content.
+				*/
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+			if (false) {}
+		}
+	}
+};
+let globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+let defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+let currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	const previous = currentInstance;
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+	/**
+	* Subscribers follow the active store rather than the object they happened to
+	* reach first. Without this, anything that rendered before `zintl()` resolved
+	* is subscribed to a store nothing will ever notify again — see
+	* {@link I18nStore.adoptListeners} and ledger L-068.
+	*/
+	if (previous) instance.adoptListeners(previous);
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {
+				if (false) {}
+			});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {
+		if (false) {}
+	}
+}
+function unregisterLoader(boundaryId) {
+	globalRegistry.delete(boundaryId);
+}
+function setLocale(locale) {
+	return getActiveInstance().setLocale(locale);
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function addCatalogs(catalogs, seq) {
+	return getActiveInstance().addCatalogs(catalogs, seq);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+
+
+
+},
+6(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  syncLocale: () => (syncLocale)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(5);
+
+//#region src/runtime/store-client.ts
+const syncLocale = () => {
+	const inst = (0,_store_core_js__rspack_import_0.getActiveInstance)();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+
+
+
+},
+7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (_t)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+
+//#region src/runtime/resolver.ts
+function _t(key, params = {}, options) {
+	const instance = (0,_store_js__rspack_import_0.getActiveInstance)();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			/**
+			* One attempt per boundary between catalog changes.
+			*
+			* Re-reading immediately is what lets a synchronous loader satisfy
+			* the first render tick, and that is worth keeping. Re-*triggering*
+			* on every render is not: when the key is genuinely absent the load
+			* can never satisfy it, and each attempt announces a change that
+			* renders again. See `I18nStore.hydrationAttempts` — with a
+			* reactive framework subscribed this closes into a loop measured at
+			* six figures of console output.
+			*/
+			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) {
+			if (false) {}
+			return ``;
+		}
+	} else {
+		if (false) {}
+		return ``;
+	}
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+
+
+
+},
+8(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  registerZintlLoader: () => (registerZintlLoader)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+
+//#region src/runtime/registry.ts
+/**
+* A helper for the Zintl compiler to register a boundary loader.
+* This is designed to be called with a minimal footprint in the transformed source.
+*/
+function registerZintlLoader(boundaryId, loader) {
+	return (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+}
+//#endregion
+
+
+
+},
+9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ({ id: "b_f1bc61690f0b", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_2f98939c81ca": {
+      "90e40d50": "Get started",
+      "b5323d23": "Edit <code>src/index.tsx</code> and save to test <code>HMR</code>",
+    },
+  };
+                case "ar":
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 14)).then(m => m.default);
+        case "es":
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 15)).then(m => m.default);
+        case "zh":
+          return __webpack_require__.e(/* import() */ 3).then(__webpack_require__.bind(__webpack_require__, 16)).then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] });
+
+},
+11(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Children: () => (L),
+  Component: () => (/* reexport safe */ preact__rspack_import_0.Component),
+  Fragment: () => (/* reexport safe */ preact__rspack_import_0.Fragment),
+  PureComponent: () => (M),
+  StrictMode: () => (/* reexport safe */ preact__rspack_import_0.Fragment),
+  Suspense: () => (P),
+  SuspenseList: () => (B),
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: () => (an),
+  cloneElement: () => (mn),
+  createContext: () => (/* reexport safe */ preact__rspack_import_0.createContext),
+  createElement: () => (/* reexport safe */ preact__rspack_import_0.createElement),
+  createFactory: () => (sn),
+  createPortal: () => ($),
+  createRef: () => (/* reexport safe */ preact__rspack_import_0.createRef),
+  "default": () => (gn),
+  findDOMNode: () => (yn),
+  flushSync: () => (bn),
+  forwardRef: () => (D),
+  hydrate: () => (tn),
+  isElement: () => (Sn),
+  isFragment: () => (vn),
+  isMemo: () => (dn),
+  isValidElement: () => (hn),
+  lazy: () => (z),
+  memo: () => (N),
+  render: () => (nn),
+  startTransition: () => (x),
+  unmountComponentAtNode: () => (pn),
+  unstable_batchedUpdates: () => (_n),
+  useCallback: () => (/* reexport safe */ preact_hooks__rspack_import_1.useCallback),
+  useContext: () => (/* reexport safe */ preact_hooks__rspack_import_1.useContext),
+  useDebugValue: () => (/* reexport safe */ preact_hooks__rspack_import_1.useDebugValue),
+  useDeferredValue: () => (w),
+  useEffect: () => (/* reexport safe */ preact_hooks__rspack_import_1.useEffect),
+  useErrorBoundary: () => (/* reexport safe */ preact_hooks__rspack_import_1.useErrorBoundary),
+  useId: () => (/* reexport safe */ preact_hooks__rspack_import_1.useId),
+  useImperativeHandle: () => (/* reexport safe */ preact_hooks__rspack_import_1.useImperativeHandle),
+  useInsertionEffect: () => (I),
+  useLayoutEffect: () => (/* reexport safe */ preact_hooks__rspack_import_1.useLayoutEffect),
+  useMemo: () => (/* reexport safe */ preact_hooks__rspack_import_1.useMemo),
+  useReducer: () => (/* reexport safe */ preact_hooks__rspack_import_1.useReducer),
+  useRef: () => (/* reexport safe */ preact_hooks__rspack_import_1.useRef),
+  useState: () => (/* reexport safe */ preact_hooks__rspack_import_1.useState),
+  useSyncExternalStore: () => (C),
+  useTransition: () => (k),
+  version: () => (cn)
+});
+/* import */ var preact__rspack_import_0 = __webpack_require__(2);
+/* import */ var preact_hooks__rspack_import_1 = __webpack_require__(12);
+function g(n,t){for(var e in t)n[e]=t[e];return n}function E(n,t){for(var e in n)if("__source"!==e&&!(e in t))return!0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return!0;return!1}function C(n,t){var e=t(),r=(0,preact_hooks__rspack_import_1.useState)({t:{__:e,u:t}}),u=r[0].t,o=r[1];return (0,preact_hooks__rspack_import_1.useLayoutEffect)(function(){u.__=e,u.u=t,R(u)&&o({t:u})},[n,e,t]),(0,preact_hooks__rspack_import_1.useEffect)(function(){return R(u)&&o({t:u}),n(function(){R(u)&&o({t:u})})},[n]),e}function R(n){try{return!((t=n.__)===(e=n.u())&&(0!==t||1/t==1/e)||t!=t&&e!=e)}catch(n){return!0}// removed by dead control flow
+{ var e, t }}function x(n){n()}function w(n){return n}function k(){return[!1,x]}var I=preact_hooks__rspack_import_1.useLayoutEffect;function M(n,t){this.props=n,this.context=t}function N(n,e){function r(n){var t=this.props.ref;return t!=n.ref&&t&&("function"==typeof t?t(null):t.current=null),e?!e(this.props,n)||t!=n.ref:E(this.props,n)}function u(e){return this.shouldComponentUpdate=r,(0,preact__rspack_import_0.createElement)(n,e)}return u.displayName="Memo("+(n.displayName||n.name)+")",u.__f=u.prototype.isReactComponent=!0,u.type=n,u}(M.prototype=new preact__rspack_import_0.Component).isPureReactComponent=!0,M.prototype.shouldComponentUpdate=function(n,t){return E(this.props,n)||E(this.state,t)};var T=preact__rspack_import_0.options.__b;preact__rspack_import_0.options.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),T&&T(n)};var A="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.forward_ref")||3911;function D(n){function t(t){var e=g({},t);return delete e.ref,n(e,t.ref||null)}return t.$$typeof=A,t.render=n,t.prototype.isReactComponent=t.__f=!0,t.displayName="ForwardRef("+(n.displayName||n.name)+")",t}var F=function(n,t){return null==n?null:(0,preact__rspack_import_0.toChildArray)((0,preact__rspack_import_0.toChildArray)(n).map(t))},L={map:F,forEach:F,count:function(n){return n?(0,preact__rspack_import_0.toChildArray)(n).length:0},only:function(n){var t=(0,preact__rspack_import_0.toChildArray)(n);if(1!==t.length)throw"Children.only";return t[0]},toArray:preact__rspack_import_0.toChildArray},O=preact__rspack_import_0.options.__e;preact__rspack_import_0.options.__e=function(n,t,e,r){if(n.then)for(var u,o=t;o=o.__;)if((u=o.__c)&&u.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k||[]),u.__c(n,t);O(n,t,e,r)};var U=preact__rspack_import_0.options.unmount;function V(n,t,e){return n&&(n.__c&&n.__c.__H&&(n.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c()}),n.__c.__H=null),null!=(n=g({},n)).__c&&(n.__c.__P===e&&(n.__c.__P=t),n.__c.__e=!0,n.__c=null),n.__k=n.__k&&n.__k.map(function(n){return V(n,t,e)})),n}function W(n,t,e){return n&&e&&(n.__v=null,n.__k=n.__k&&n.__k.map(function(n){return W(n,t,e)}),n.__c&&n.__c.__P===t&&(n.__e&&e.appendChild(n.__e),n.__c.__e=!0,n.__c.__P=e)),n}function P(){this.__u=0,this.o=null,this.__b=null}function j(n){var t=n.__&&n.__.__c;return t&&t.__a&&t.__a(n)}function z(n){var e,r,u,o=null;function i(i){if(e||(e=n()).then(function(n){n&&(o=n.default||n),u=!0},function(n){r=n,u=!0}),r)throw r;if(!u)throw e;return o?(0,preact__rspack_import_0.createElement)(o,i):null}return i.displayName="Lazy",i.__f=!0,i}function B(){this.i=null,this.l=null}preact__rspack_import_0.options.unmount=function(n){var t=n.__c;t&&(t.__z=!0),t&&t.__R&&t.__R(),t&&32&n.__u&&(n.type=null),U&&U(n)},(P.prototype=new preact__rspack_import_0.Component).__c=function(n,t){var e=t.__c,r=this;null==r.o&&(r.o=[]),r.o.push(e);var u=j(r.__v),o=!1,i=function(){o||r.__z||(o=!0,e.__R=null,u?u(f):f())};e.__R=i;var l=e.__P;e.__P=null;var f=function(){if(!--r.__u){if(r.state.__a){var n=r.state.__a;r.__v.__k[0]=W(n,n.__c.__P,n.__c.__O)}var t;for(r.setState({__a:r.__b=null});t=r.o.pop();)t.__P=l,t.forceUpdate()}};r.__u++||32&t.__u||r.setState({__a:r.__b=r.__v.__k[0]}),n.then(i,i)},P.prototype.componentWillUnmount=function(){this.o=[]},P.prototype.render=function(n,e){if(this.__b){if(this.__v.__k){var r=document.createElement("div"),o=this.__v.__k[0].__c;this.__v.__k[0]=V(this.__b,r,o.__O=o.__P)}this.__b=null}var i=e.__a&&(0,preact__rspack_import_0.createElement)(preact__rspack_import_0.Fragment,null,n.fallback);return i&&(i.__u&=-33),[(0,preact__rspack_import_0.createElement)(preact__rspack_import_0.Fragment,null,e.__a?null:n.children),i]};var H=function(n,t,e){if(++e[1]===e[0]&&n.l.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.l.size))for(e=n.i;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.i=e=e[2]}};function Z(n){return this.getChildContext=function(){return n.context},n.children}function Y(n){var e=this,r=n.h;if(e.componentWillUnmount=function(){(0,preact__rspack_import_0.render)(null,e.v),e.v=null,e.h=null},e.h&&e.h!==r&&e.componentWillUnmount(),!e.v){for(var u=e.__v;null!==u&&!u.__m&&null!==u.__;)u=u.__;e.h=r,e.v={nodeType:1,parentNode:r,childNodes:[],__k:{__m:u.__m},contains:function(){return!0},namespaceURI:r.namespaceURI,insertBefore:function(n,t){this.childNodes.push(n),e.h.insertBefore(n,t)},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),e.h.removeChild(n)}}}(0,preact__rspack_import_0.render)((0,preact__rspack_import_0.createElement)(Z,{context:e.context},n.__v),e.v)}function $(n,e){var r=(0,preact__rspack_import_0.createElement)(Y,{__v:n,h:e});return r.containerInfo=e,r}(B.prototype=new preact__rspack_import_0.Component).__a=function(n){var t=this,e=j(t.__v),r=t.l.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),H(t,n,r)):u()};e?e(o):o()}},B.prototype.render=function(n){this.i=null,this.l=new Map;var t=(0,preact__rspack_import_0.toChildArray)(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.l.set(t[e],this.i=[1,0,this.i]);return n.children},B.prototype.componentDidUpdate=B.prototype.componentDidMount=function(){var n=this;this.l.forEach(function(t,e){H(n,e,t)})};var q="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,G=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image(!S)|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,J=/^on(Ani|Tra|Tou|BeforeInp|Compo)/,K=/[A-Z0-9]/g,Q="undefined"!=typeof document,X=function(n){return("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/:/fil|che|ra/).test(n)};function nn(n,t,e){return null==t.__k&&(t.textContent=""),(0,preact__rspack_import_0.render)(n,t),"function"==typeof e&&e(),n?n.__c:null}function tn(n,t,e){return (0,preact__rspack_import_0.hydrate)(n,t),"function"==typeof e&&e(),n?n.__c:null}preact__rspack_import_0.Component.prototype.isReactComponent=!0,["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(t){Object.defineProperty(preact__rspack_import_0.Component.prototype,t,{configurable:!0,get:function(){return this["UNSAFE_"+t]},set:function(n){Object.defineProperty(this,t,{configurable:!0,writable:!0,value:n})}})});var en=preact__rspack_import_0.options.event;preact__rspack_import_0.options.event=function(n){return en&&(n=en(n)),n.persist=function(){},n.isPropagationStopped=function(){return this.cancelBubble},n.isDefaultPrevented=function(){return this.defaultPrevented},n.nativeEvent=n};var rn,un={configurable:!0,get:function(){return this.class}},on=preact__rspack_import_0.options.vnode;preact__rspack_import_0.options.vnode=function(n){"string"==typeof n.type&&function(n){var t=n.props,e=n.type,u={},o=-1==e.indexOf("-");for(var i in t){var l=t[i];if(!("value"===i&&"defaultValue"in t&&null==l||Q&&"children"===i&&"noscript"===e||"class"===i||"className"===i)){var f=i.toLowerCase();"defaultValue"===i&&"value"in t&&null==t.value?i="value":"download"===i&&!0===l?l="":"translate"===f&&"no"===l?l=!1:"o"===f[0]&&"n"===f[1]?"ondoubleclick"===f?i="ondblclick":"onchange"!==f||"input"!==e&&"textarea"!==e||X(t.type)?"onfocus"===f?i="onfocusin":"onblur"===f?i="onfocusout":J.test(i)&&(i=f):f=i="oninput":o&&G.test(i)?i=i.replace(K,"-$&").toLowerCase():null===l&&(l=void 0),"oninput"===f&&u[i=f]&&(i="oninputCapture"),u[i]=l}}"select"==e&&(u.multiple&&Array.isArray(u.value)&&(u.value=(0,preact__rspack_import_0.toChildArray)(t.children).forEach(function(n){n.props.selected=-1!=u.value.indexOf(n.props.value)})),null!=u.defaultValue&&(u.value=(0,preact__rspack_import_0.toChildArray)(t.children).forEach(function(n){n.props.selected=u.multiple?-1!=u.defaultValue.indexOf(n.props.value):u.defaultValue==n.props.value}))),t.class&&!t.className?(u.class=t.class,Object.defineProperty(u,"className",un)):t.className&&(u.class=u.className=t.className),n.props=u}(n),n.$$typeof=q,on&&on(n)};var ln=preact__rspack_import_0.options.__r;preact__rspack_import_0.options.__r=function(n){ln&&ln(n),rn=n.__c};var fn=preact__rspack_import_0.options.diffed;preact__rspack_import_0.options.diffed=function(n){fn&&fn(n);var t=n.props,e=n.__e;null!=e&&"textarea"===n.type&&"value"in t&&t.value!==e.value&&(e.value=null==t.value?"":t.value),rn=null};var an={ReactCurrentDispatcher:{current:{readContext:function(n){return rn.__n[n.__c].props.value},useCallback:preact_hooks__rspack_import_1.useCallback,useContext:preact_hooks__rspack_import_1.useContext,useDebugValue:preact_hooks__rspack_import_1.useDebugValue,useDeferredValue:w,useEffect:preact_hooks__rspack_import_1.useEffect,useId:preact_hooks__rspack_import_1.useId,useImperativeHandle:preact_hooks__rspack_import_1.useImperativeHandle,useInsertionEffect:I,useLayoutEffect:preact_hooks__rspack_import_1.useLayoutEffect,useMemo:preact_hooks__rspack_import_1.useMemo,useReducer:preact_hooks__rspack_import_1.useReducer,useRef:preact_hooks__rspack_import_1.useRef,useState:preact_hooks__rspack_import_1.useState,useSyncExternalStore:C,useTransition:k}}},cn="18.3.1";function sn(n){return preact__rspack_import_0.createElement.bind(null,n)}function hn(n){return!!n&&n.$$typeof===q}function vn(n){return hn(n)&&n.type===preact__rspack_import_0.Fragment}function dn(n){return!!n&&"string"==typeof n.displayName&&0==n.displayName.indexOf("Memo(")}function mn(n){return hn(n)?preact__rspack_import_0.cloneElement.apply(null,arguments):n}function pn(n){return!!n.__k&&((0,preact__rspack_import_0.render)(null,n),!0)}function yn(n){return n&&(n.base||1===n.nodeType&&n)||null}var _n=function(n,t){return n(t)},bn=function(n,t){var r,u=preact__rspack_import_0.options.debounceRendering;preact__rspack_import_0.options.debounceRendering=function(n){r=n};try{var o=n(t);return r&&r(),o}finally{preact__rspack_import_0.options.debounceRendering=u}},Sn=hn,gn={useState:preact_hooks__rspack_import_1.useState,useId:preact_hooks__rspack_import_1.useId,useReducer:preact_hooks__rspack_import_1.useReducer,useEffect:preact_hooks__rspack_import_1.useEffect,useLayoutEffect:preact_hooks__rspack_import_1.useLayoutEffect,useInsertionEffect:I,useTransition:k,useDeferredValue:w,useSyncExternalStore:C,startTransition:x,useRef:preact_hooks__rspack_import_1.useRef,useImperativeHandle:preact_hooks__rspack_import_1.useImperativeHandle,useMemo:preact_hooks__rspack_import_1.useMemo,useCallback:preact_hooks__rspack_import_1.useCallback,useContext:preact_hooks__rspack_import_1.useContext,useDebugValue:preact_hooks__rspack_import_1.useDebugValue,version:"18.3.1",Children:L,render:nn,hydrate:tn,unmountComponentAtNode:pn,createPortal:$,createElement:preact__rspack_import_0.createElement,createContext:preact__rspack_import_0.createContext,createFactory:sn,cloneElement:mn,createRef:preact__rspack_import_0.createRef,Fragment:preact__rspack_import_0.Fragment,isValidElement:hn,isElement:Sn,isFragment:vn,isMemo:dn,findDOMNode:yn,Component:preact__rspack_import_0.Component,PureComponent:M,memo:N,forwardRef:D,flushSync:bn,unstable_batchedUpdates:_n,StrictMode:preact__rspack_import_0.Fragment,Suspense:P,SuspenseList:B,lazy:z,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:an};
+//# sourceMappingURL=compat.module.js.map
+
+
+},
+12(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  useCallback: () => (q),
+  useContext: () => (x),
+  useDebugValue: () => (P),
+  useEffect: () => (h),
+  useErrorBoundary: () => (b),
+  useId: () => (g),
+  useImperativeHandle: () => (F),
+  useLayoutEffect: () => (_),
+  useMemo: () => (T),
+  useReducer: () => (y),
+  useRef: () => (A),
+  useState: () => (d)
+});
+/* import */ var preact__rspack_import_0 = __webpack_require__(2);
+var t,r,u,i,o=0,f=[],c=preact__rspack_import_0.options,e=c.__b,a=c.__r,v=c.diffed,l=c.__c,m=c.unmount,p=c.__;function s(n,t){c.__h&&c.__h(r,n,o||t),o=0;var u=r.__H||(r.__H={__:[],__h:[]});return n>=u.__.length&&u.__.push({}),u.__[n]}function d(n){return o=1,y(D,n)}function y(n,u,i){var o=s(t++,2);if(o.t=n,!o.__c&&(o.__=[i?i(u):D(void 0,u),function(n){var t=o.__N?o.__N[0]:o.__[0],r=o.t(t,n);t!==r&&(o.__N=[r,o.__[1]],o.__c.setState({}))}],o.__c=r,!r.__f)){var f=function(n,t,r){if(!o.__c.__H)return!0;var u=!1,i=o.__c.props!==n;if(o.__c.__H.__.some(function(n){if(n.__N){u=!0;var t=n.__[0];n.__=n.__N,n.__N=void 0,t!==n.__[0]&&(i=!0)}}),c){var f=c.call(this,n,t,r);return u?f||i:f}return!u||i};r.__f=!0;var c=r.shouldComponentUpdate,e=r.componentWillUpdate;r.componentWillUpdate=function(n,t,r){if(this.__e){var u=c;c=void 0,f(n,t,r),c=u}e&&e.call(this,n,t,r)},r.shouldComponentUpdate=f}return o.__N||o.__}function h(n,u){var i=s(t++,3);!c.__s&&C(i.__H,u)&&(i.__=n,i.u=u,r.__H.__h.push(i))}function _(n,u){var i=s(t++,4);!c.__s&&C(i.__H,u)&&(i.__=n,i.u=u,r.__h.push(i))}function A(n){return o=5,T(function(){return{current:n}},[])}function F(n,t,r){o=6,_(function(){if("function"==typeof n){var r=n(t());return function(){n(null),r&&"function"==typeof r&&r()}}if(n)return n.current=t(),function(){return n.current=null}},null==r?r:r.concat(n))}function T(n,r){var u=s(t++,7);return C(u.__H,r)&&(u.__=n(),u.__H=r,u.__h=n),u.__}function q(n,t){return o=8,T(function(){return n},t)}function x(n){var u=r.context[n.__c],i=s(t++,9);return i.c=n,u?(null==i.__&&(i.__=!0,u.sub(r)),u.props.value):n.__}function P(n,t){c.useDebugValue&&c.useDebugValue(t?t(n):n)}function b(n){var u=s(t++,10),i=d();return u.__=n,r.componentDidCatch||(r.componentDidCatch=function(n,t){u.__&&u.__(n,t),i[1](n)}),[i[0],function(){i[1](void 0)}]}function g(){var n=s(t++,11);if(!n.__){for(var u=r.__v;null!==u&&!u.__m&&null!==u.__;)u=u.__;var i=u.__m||(u.__m=[0,0]);n.__="P"+i[0]+"-"+i[1]++}return n.__}function j(){for(var n;n=f.shift();){var t=n.__H;if(n.__P&&t)try{t.__h.some(z),t.__h.some(B),t.__h=[]}catch(r){t.__h=[],c.__e(r,n.__v)}}}c.__b=function(n){r=null,e&&e(n)},c.__=function(n,t){n&&t.__k&&t.__k.__m&&(n.__m=t.__k.__m),p&&p(n,t)},c.__r=function(n){a&&a(n),t=0;var i=(r=n.__c).__H;i&&(u===r?(i.__h=[],r.__h=[],i.__.some(function(n){n.__N&&(n.__=n.__N),n.u=n.__N=void 0})):(i.__h.some(z),i.__h.some(B),i.__h=[],t=0)),u=r},c.diffed=function(n){v&&v(n);var t=n.__c;t&&t.__H&&(t.__H.__h.length&&(1!==f.push(t)&&i===c.requestAnimationFrame||((i=c.requestAnimationFrame)||w)(j)),t.__H.__.some(function(n){n.u&&(n.__H=n.u,n.u=void 0)})),u=r=null},c.__c=function(n,t){t.some(function(n){try{n.__h.some(z),n.__h=n.__h.filter(function(n){return!n.__||B(n)})}catch(r){t.some(function(n){n.__h&&(n.__h=[])}),t=[],c.__e(r,n.__v)}}),l&&l(n,t)},c.unmount=function(n){m&&m(n);var t,r=n.__c;r&&r.__H&&(r.__H.__.some(function(n){try{z(n)}catch(n){t=n}}),r.__H=void 0,t&&c.__e(t,r.__v))};var k="function"==typeof requestAnimationFrame;function w(n){var t,r=function(){clearTimeout(u),k&&cancelAnimationFrame(t),setTimeout(n)},u=setTimeout(r,35);k&&(t=requestAnimationFrame(r))}function z(n){var t=r,u=n.__c;"function"==typeof u&&(n.__c=void 0,u()),r=t}function B(n){var t=r;n.__c=n.__(),r=t}function C(n,t){return!n||n.length!==t.length||t.some(function(t,r){return t!==n[r]})}function D(n,t){return"function"==typeof t?t(n):t}
+//# sourceMappingURL=hooks.module.js.map
+
+
+},
+
+}]);

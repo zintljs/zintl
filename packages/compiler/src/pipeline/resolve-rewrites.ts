@@ -370,7 +370,14 @@ function generateSinkWrapRewrite(
    */
   const reactiveRead = adapter?.reactiveBridge ? `, _v: ${adapter.reactiveBridge.read}` : "";
   let replacement = `_t(${quoteFn(keyIdentifier)}${paramsObj}, { _mgr: ${mgrRef}, _bId: ${quoteFn(intent.boundaryId)}${tagsPart}${reactiveRead} })`;
-  if (intent.sink.isFragment) replacement = `\${${replacement}}`;
+  if (intent.sink.isFragment) {
+    // How a `_t` call is interpolated into the surrounding template literal is
+    // the dialect's business — `${…}` for everyone whose template is a plain
+    // string, something else for Lit. See `CodegenFacet.wrapTemplateFragment`.
+    replacement = adapter?.wrapTemplateFragment
+      ? adapter.wrapTemplateFragment(replacement, hasTags)
+      : `\${${replacement}}`;
+  }
 
   // Custom HTML_TEXT and html:attr: wrapping for Vue / Svelte template syntax
   if (intent.sink.sinkType === "HTML_TEXT") {

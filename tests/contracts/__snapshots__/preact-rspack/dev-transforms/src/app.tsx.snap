@@ -1,0 +1,35 @@
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { useSyncExternalStore } from "preact/compat";
+import _zintl_mgr_b_src_index_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_tsx_bootstrap";
+import { useState } from "preact/hooks";
+
+import { LocaleBar } from "./locale-bar.tsx";
+
+export function App() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
+  const [lang, setLang] = useState(
+    () => new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const onSwitch = async (next: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: next, loaders: { ["b_src_index_tsx_bootstrap"]: _zintl_mgr_b_src_index_tsx_bootstrap.loader } }));
+    setLang(next);
+  };
+
+  return (
+    <div key={lang}>
+      <LocaleBar lang={lang} onSwitch={onSwitch} />
+      <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_app_tsx_App" })}</h1>
+      <p>{<span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: _t("Edit <code>src/index.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_app_tsx_App", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }] }) }} />}</p>
+    </div>
+  );
+}
+
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept();
+}

@@ -1,0 +1,128 @@
+{
+  "boundaryToOwner": {
+    "src/App.tsx:App": "src/main.tsx:bootstrap",
+    "src/main.tsx:bootstrap": "src/main.tsx:bootstrap",
+    "src/main.tsx:f_521": "src/main.tsx:f_521"
+  },
+  "chunks": {
+    "entry_b_6e5dc0b3288d": {
+      "boundaries": [
+        "src/main.tsx:f_521"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/main.tsx:f_521"
+      ],
+      "id": "entry_b_6e5dc0b3288d",
+      "type": "entry"
+    },
+    "entry_b_89ad0a7bfa7f": {
+      "boundaries": [
+        "src/main.tsx:bootstrap"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/main.tsx:bootstrap"
+      ],
+      "id": "entry_b_89ad0a7bfa7f",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_4119b9019178": {
+      "boundaries": [
+        "preact"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_4119b9019178",
+      "type": "shared"
+    },
+    "shared_b_46b46a617b3e": {
+      "boundaries": [
+        "src/App.tsx:App"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_46b46a617b3e",
+      "type": "shared"
+    },
+    "shared_b_56d18dcbbde5": {
+      "boundaries": [
+        "src/components/LocaleSwitcher.tsx:default"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_56d18dcbbde5",
+      "type": "shared"
+    },
+    "shared_b_7c1737176de1": {
+      "boundaries": [
+        "src/assets/vite.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_7c1737176de1",
+      "type": "shared"
+    },
+    "shared_b_8413c2e4a806": {
+      "boundaries": [
+        "src/assets/hero.png"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_8413c2e4a806",
+      "type": "shared"
+    },
+    "shared_b_aa0c37eae646": {
+      "boundaries": [
+        "preact/hooks"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_aa0c37eae646",
+      "type": "shared"
+    },
+    "shared_b_aa7165aefcf8": {
+      "boundaries": [
+        "src/App.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_aa7165aefcf8",
+      "type": "shared"
+    },
+    "shared_b_c5d38a62d1fa": {
+      "boundaries": [
+        "src/index.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_c5d38a62d1fa",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/main.tsx:bootstrap": "entry_b_89ad0a7bfa7f",
+    "src/main.tsx:f_521": "entry_b_6e5dc0b3288d"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_4119b9019178",
+    "shared_b_46b46a617b3e",
+    "shared_b_56d18dcbbde5",
+    "shared_b_7c1737176de1",
+    "shared_b_8413c2e4a806",
+    "shared_b_aa0c37eae646",
+    "shared_b_aa7165aefcf8",
+    "shared_b_c5d38a62d1fa"
+  ]
+}

@@ -1,0 +1,15 @@
+"use strict";
+(self["rspackChunklit_rspack"] = self["rspackChunklit_rspack"] || []).push([[0], {
+30(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+const catalog = {
+    "b_9d91c6c73007": {
+      "90e40d50": "البدء",
+      "822f0fb2": "عدل <code>src/index.ts</code> واحفظه لاختبار <code>HMR</code>",
+    },
+  };
+/* export default */ __webpack_exports__["default"] = (catalog);
+
+},
+
+}]);

@@ -1,0 +1,26 @@
+export default { id: "b_aafcf9c6fe16", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_d602f1d7fa4a": {
+      "90e40d50": "Get started",
+      "567850fd": "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>",
+      "aa624128": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+      "9e9cf322": "Documentation",
+      "d0f7666b": "Your questions, answered",
+      "e49cb0ee": "Explore Vite",
+      "824d76b1": "Learn more",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_aafcf9c6fe16").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_aafcf9c6fe16").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

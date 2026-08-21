@@ -1,0 +1,129 @@
+{
+  "boundaryToOwner": {
+    "src/App.tsx:default": "src/index.tsx:bootstrap",
+    "src/components/LocaleSwitcher.tsx:default": "src/index.tsx:bootstrap",
+    "src/index.tsx:bootstrap": "src/index.tsx:bootstrap",
+    "src/index.tsx:f_970": "src/index.tsx:f_970"
+  },
+  "chunks": {
+    "entry_b_2cdb61148e16": {
+      "boundaries": [
+        "src/index.tsx:f_970"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index.tsx:f_970"
+      ],
+      "id": "entry_b_2cdb61148e16",
+      "type": "entry"
+    },
+    "entry_b_f1bc61690f0b": {
+      "boundaries": [
+        "src/index.tsx:bootstrap"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/index.tsx:bootstrap"
+      ],
+      "id": "entry_b_f1bc61690f0b",
+      "type": "entry"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_147a3a1c1a40": {
+      "boundaries": [
+        "src/App.tsx:default"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_147a3a1c1a40",
+      "type": "shared"
+    },
+    "shared_b_56d18dcbbde5": {
+      "boundaries": [
+        "src/components/LocaleSwitcher.tsx:default"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_56d18dcbbde5",
+      "type": "shared"
+    },
+    "shared_b_6c46df482996": {
+      "boundaries": [
+        "solid-js"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_6c46df482996",
+      "type": "shared"
+    },
+    "shared_b_7c1737176de1": {
+      "boundaries": [
+        "src/assets/vite.svg"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_7c1737176de1",
+      "type": "shared"
+    },
+    "shared_b_8413c2e4a806": {
+      "boundaries": [
+        "src/assets/hero.png"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_8413c2e4a806",
+      "type": "shared"
+    },
+    "shared_b_aa7165aefcf8": {
+      "boundaries": [
+        "src/App.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_aa7165aefcf8",
+      "type": "shared"
+    },
+    "shared_b_c5d38a62d1fa": {
+      "boundaries": [
+        "src/index.css"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_c5d38a62d1fa",
+      "type": "shared"
+    },
+    "shared_b_db7b45910a1d": {
+      "boundaries": [
+        "solid-js/web"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_db7b45910a1d",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/index.tsx:bootstrap": "entry_b_f1bc61690f0b",
+    "src/index.tsx:f_970": "entry_b_2cdb61148e16"
+  },
+  "lazyChunks": [],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_147a3a1c1a40",
+    "shared_b_56d18dcbbde5",
+    "shared_b_6c46df482996",
+    "shared_b_7c1737176de1",
+    "shared_b_8413c2e4a806",
+    "shared_b_aa7165aefcf8",
+    "shared_b_c5d38a62d1fa",
+    "shared_b_db7b45910a1d"
+  ]
+}

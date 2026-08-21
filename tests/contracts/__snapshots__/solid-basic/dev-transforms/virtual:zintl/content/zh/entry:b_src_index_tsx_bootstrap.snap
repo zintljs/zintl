@@ -1,0 +1,20 @@
+const catalog = {
+    "b_src_App_tsx_default": {
+      "Vite logo": "Vite 图标",
+      "Get started": "开始",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "编辑 <code>src/App.tsx</code> 并保存以测试 <code>HMR</code>",
+      "Count is {input}": (params) => {
+    const { input } = params;
+    return `计数为 ${params['input']}`;
+  },
+      "Documentation": "文档",
+      "Your questions, answered": "您的问题，已有解答",
+      "<img/> Explore Vite": "<img/> 探索 Vite",
+      "Learn more": "了解更多",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

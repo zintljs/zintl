@@ -287,6 +287,24 @@ export interface CodegenFacet extends BaseFacet {
    */
   wrapJsxRichText?: (replacement: string) => string;
   /**
+   * Interpolate a generated `_t` call into a surrounding template literal.
+   *
+   * The default is `${…}`, which is what a vanilla `el.innerHTML = ` template
+   * needs: the result is assigned as HTML, so markup in the translation renders
+   * as markup and nothing has to be said.
+   *
+   * Lit is where that stops being true. Its markup is also a template literal,
+   * but an interpolated *string* is deliberately rendered as text — the escaping
+   * is the security property — so a translation carrying `<code>` arrives on the
+   * page with its tags visible. Opting out is the `unsafeHTML` directive, which
+   * only this dialect can name.
+   *
+   * `hasTags` says whether the translation actually carries markup, so a dialect
+   * can pay for the directive only where it is needed rather than on every
+   * string.
+   */
+  wrapTemplateFragment?: (call: string, hasTags: boolean) => string;
+  /**
    * Serialize a tag map for use in runtime _t() calls.
    * React needs template-literal tag open syntax; others use JSON.
    */
@@ -309,6 +327,24 @@ export interface CodegenFacet extends BaseFacet {
    * know that, so the framework declares it here.
    */
   clientReactivityImports?: Record<string, string[]>;
+  /**
+   * Extra imports this dialect's *generated code* needs, keyed by module
+   * specifier. Added whenever the file gets a `_t` — that is, whenever anything
+   * this facet wrote is actually in it.
+   *
+   * Symmetric with {@link clientReactivityImports}, and separate from it for the
+   * reason the two differ: that one is about *subscribing*, and is gated on
+   * reactivity being injected. This is about what the emitted markup references,
+   * which is a property of `wrapHtmlText` and friends.
+   *
+   * Lit is what made it necessary. Its rich-text form is
+   * `${unsafeHTML(_t(…))}`, and `unsafeHTML` is an ordinary import from
+   * `lit/directives/unsafe-html.js` — where React's `dangerouslySetInnerHTML`
+   * and Svelte's `{@html}` are syntax and need nothing. Without this the facet
+   * would have had to smuggle the import through `reactiveBridge.setup`, using a
+   * reactivity seam to carry something that has nothing to do with reactivity.
+   */
+  codegenImports?: Record<string, string[]>;
 }
 
 /**

@@ -1,0 +1,46 @@
+import { loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { useSyncExternalStore } from "preact/compat";
+import _zintl_mgr_b_src_main_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_tsx_bootstrap";
+import { render } from "preact";
+import { useState } from "preact/hooks";
+
+import "./index.css";
+import { App } from "./App.tsx";
+
+function Main() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
+  const [lang, setLang] = useState(
+    () => new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_main_tsx_bootstrap"]: _zintl_mgr_b_src_main_tsx_bootstrap.loader } }));
+    setLang(newLang);
+  };
+
+  return <App lang={lang} onSwitch={handleSwitch} />;
+}
+
+async function bootstrap() {
+  // 1. Determine the target locale (e.g., from URL, storage, or browser preferences)
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+
+  // 2. Await Zintl catalog loading and hydration
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_tsx_bootstrap"]: _zintl_mgr_b_src_main_tsx_bootstrap.loader } }));
+
+  // 3. Render the Preact tree only when translations are ready
+  render(<Main />, document.getElementById("app")!);
+}
+
+void bootstrap();
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/main.tsx");
+  });
+}
