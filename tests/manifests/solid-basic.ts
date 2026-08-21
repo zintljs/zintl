@@ -30,28 +30,46 @@ export const solidBasic: ProjectManifest = {
   source: copiedExampleSource("solid-basic"),
   zintlOptions,
   /**
-   * No `hmr` claim, and it is a measured property of Solid rather than a gap in
-   * Zintl.
+   * `solid-basic` is the suite's reproduction for a sharp edge that is **not**
+   * about Solid, and this comment replaces one that said it was.
    *
-   * A catalog edit invalidates the component that reads it. A Solid component
-   * does not self-accept that invalidation, so it propagates to its importer —
-   * which is the entry — and re-running a Solid entry is not safe: measured in a
-   * browser, `render(code, el)` called twice on the same element leaves **two**
-   * children, not one. It appends. So `solidRuntimeFacet` declares
-   * `entryReexecutionSafe: false` and the host correctly reloads instead.
+   * The earlier claim here — "a Solid component does not self-accept a catalog
+   * invalidation, so it propagates to the entry" — was wrong. What actually
+   * happens is that the applier invalidates the *boundary's own source module*
+   * on a catalog update, and in this app the edited string's boundary is
+   * `src/App.tsx`, which is also the file that calls `zintl()`. Zintl's injected
+   * handler on an anchor file declines when the framework's mount is not
+   * replayable, and declining bubbles to a reload.
    *
-   * Ruled out on the way: the template's `index.tsx` opens with
-   * `/* @refresh reload *\/`, which was the obvious suspect. Removing it changes
-   * nothing — still `update, update, full-reload` — so the directive is not the
-   * cause and stays, because it is the template's.
+   * Every other example escapes by accident rather than by design: React, Preact,
+   * Vue and Svelte keep the anchor in a different file from their strings, and
+   * `vanilla-spa-basic` has both in one file but vanilla's
+   * `entryReexecutionSafe` defaults to `true`. So the edge belongs to any
+   * non-replayable framework — Solid, Svelte, Lit — whenever a translatable
+   * string sits in a file that calls `zintl()`.
    *
-   * `catalog-edit` and `hmr-first-tick` both require `hmr` and both are asking
-   * for Fast Replacement (ZHMR §4.1), which a reload is not. Claiming it anyway
-   * would turn a known property into two red contracts that say nothing new.
-   * Switching locale from the bar is covered and works — that path goes through
-   * the app's own signal, not through catalog delivery.
+   * The anchor stays in `src/App.tsx` deliberately. Moving it would make the
+   * symptom disappear without fixing anything and would cost the suite its only
+   * reproduction.
+   *
+   * What was measured and remains true: `render(code, el)` called twice on the
+   * same element leaves **two** children, not one. It appends. That is why
+   * `solidRuntimeFacet` declares `entryReexecutionSafe: false`, and it is
+   * correct — the fix is that a *catalog* update no longer needs the mount to
+   * re-run at all. Also ruled out: the template's `/* @refresh reload *\/`,
+   * which changes nothing when removed and stays because it is the template's.
    */
-  capabilities: ["spa", "locale-switch", "rtl", "boundary-graph", "transform", "build", "graph"],
+  capabilities: [
+    "spa",
+    "hmr",
+    "hmr-warm",
+    "locale-switch",
+    "rtl",
+    "boundary-graph",
+    "transform",
+    "build",
+    "graph",
+  ],
   adapter: {
     headingSelector: "h1",
     initialHeadingText: "Get started",

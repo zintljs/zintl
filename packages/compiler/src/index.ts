@@ -459,8 +459,14 @@ export class ZintlCompiler {
    * reactivity and declares nothing there, so that predicate called Vue
    * unable to repaint and forced it into reloads it did not need — measured, on
    * a project that had been applying catalog edits warm all along.
+   *
+   * Public because the *host* asks it too, not only `generatedModulesSelfAccept`
+   * below. A host's update applier uses it to decide whether a catalog edit needs
+   * the boundary's own source module to re-execute: where the page can repaint
+   * itself, it does not, and re-executing an anchor file there is what turns a
+   * hot update into a reload.
    */
-  private get canRepaint(): boolean {
+  public get canRepaint(): boolean {
     return this._resolved.flags.repaintsOnCatalogUpdate === true;
   }
 

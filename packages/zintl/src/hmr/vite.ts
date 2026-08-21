@@ -93,6 +93,36 @@ export class ViteUpdateApplier implements HostUpdateApplier {
     const { event } = plan;
     const isSource = event.kind === "source";
 
+    /**
+     * Whether a catalog edit can skip re-executing the boundary's own source.
+     *
+     * Re-executing it is one way to get a new catalog onto the page; for a
+     * framework that declares `repaintsOnCatalogUpdate` it is not the only one,
+     * and not the cheap one. The reactive bridge or the injected hook repaints
+     * from the store with no mount running again.
+     *
+     * It matters because of what re-execution costs on a file that also declares
+     * a trust anchor: `hmrInjectionCode` makes such a file decline the update
+     * when the framework's mount is not replayable, and declining bubbles to a
+     * full page reload. Measured on `examples/solid-basic`, whose heading lives
+     * in `src/App.tsx` alongside its `zintl()` call — `catalog-edit` failed 20
+     * runs out of 20 before this, and the failure is the reload, not the text.
+     *
+     * Every other example avoided it only by keeping strings out of anchor
+     * files; the edge is real for any non-replayable framework — Solid, Svelte,
+     * Lit — the moment a user does the ordinary thing.
+     *
+     * Deliberately `"json"` and not `!isSource`: an **asset** update also is not
+     * a source edit, and there the source module genuinely must re-run, because
+     * the resolved URL is embedded in it.
+     *
+     * When the framework cannot repaint this stays `false` and the previous
+     * behaviour is untouched — Svelte, Lit and vanilla still re-execute and
+     * still reload where they must, which is what `viteFacet`'s
+     * `hmrSelfAcceptCode` docblock describes.
+     */
+    const catalogRepaintsInPlace = event.kind === "json" && this.ctx.compiler.canRepaint;
+
     const invalidated = new Set<ModuleNode>();
     const invalidate = (mod: ModuleNode) => {
       mg.invalidateModule(mod);
@@ -201,7 +231,7 @@ export class ViteUpdateApplier implements HostUpdateApplier {
       const { fileId, absFileId } = boundary;
       if (!fileId || !absFileId) continue;
 
-      if (typeof mg.getModulesByFile === "function") {
+      if (!catalogRepaintsInPlace && typeof mg.getModulesByFile === "function") {
         const sourceMods = mg.getModulesByFile(absFileId);
         if (
           sourceMods &&
@@ -364,7 +394,16 @@ export class ViteUpdateApplier implements HostUpdateApplier {
             }
             mod.file = absFileId;
           }
-          invalidate(mod);
+          /**
+           * The repoint above runs either way, and only the invalidation is
+           * gated. Repairing `mod.file` and `fileToModulesMap` is what keeps a
+           * *later* genuine source edit reachable by its real path — skip it and
+           * ledger L-023 comes back, with the recovery edit handing the hook
+           * `modules: []`. Whether this catalog update needs the module to
+           * re-execute is a different question from whether the graph is
+           * pointing at the right file.
+           */
+          if (!catalogRepaintsInPlace) invalidate(mod);
         }
       }
     }
