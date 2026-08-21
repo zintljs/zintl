@@ -34,7 +34,7 @@ const handleSwitch = (lang: string) => {
  * counter and the inline `<code>` need. */
 .content {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100svh - 56px);
   line-height: 1.1;
   text-align: center;
   flex-direction: column;

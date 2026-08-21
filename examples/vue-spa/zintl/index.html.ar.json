@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "rtl",
-  "title": "مثال Zintl Vue SPA"
+  "title": "Vite مع Vue — مثال زينتل مع التوجيه"
 }

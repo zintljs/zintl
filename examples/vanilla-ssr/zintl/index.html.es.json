@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "dir": "",
-  "title": "Zintl | ejemplo básico de aplicación de página única"
+  "dir": "ltr",
+  "title": "Vite con TypeScript — Ejemplo con renderizado en servidor de Zintl"
 }

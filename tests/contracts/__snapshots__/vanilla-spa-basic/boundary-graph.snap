@@ -79,6 +79,13 @@
         },
         {
           "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
+        },
+        {
+          "bindings": [
             "setupSwitcher"
           ],
           "dynamic": false,
@@ -139,6 +146,13 @@
           "bindings": [],
           "dynamic": false,
           "id": "src/style.css"
+        },
+        {
+          "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
         },
         {
           "bindings": [

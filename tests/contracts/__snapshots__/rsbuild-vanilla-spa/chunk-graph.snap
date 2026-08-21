@@ -11,6 +11,7 @@
         "src/index:render",
         "src/pages/Home:Home",
         "src/router",
+        "src/switcher:localeBar",
         "src/switcher:setupSwitcher",
         "zintljs/macro"
       ],

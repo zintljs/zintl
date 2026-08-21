@@ -14,7 +14,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Zintl Custom Adapters Demo",
+      "description": "Original: Zintl custom facets demo",
       "type": "string"
     }
   },

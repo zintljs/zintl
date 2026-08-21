@@ -1,10 +1,22 @@
+<!--
+  The Zintl locale bar — the one piece of UI every example shares.
+
+  Same markup, same class names and same behaviour on every framework and both
+  hosts, so a difference you notice between two examples is a difference in
+  *Zintl* rather than in their chrome. The vanilla, React and Svelte examples
+  render this exact DOM from their own dialect; see
+  `docs/examples-locale-bar.md`.
+-->
 <script setup lang="ts">
 import { zintl } from "zintljs/macro";
 
-const props = defineProps<{
-  lang: string;
-}>();
+defineProps<{ lang: string }>();
 
+/**
+ * No `@zintl-ignore` needed here, unlike the React, Svelte and vanilla
+ * switchers: the locale names live in a JS array rather than in the template, so
+ * they are never in extraction's reach in the first place.
+ */
 const locales = [
   { id: "en", name: "English" },
   { id: "ar", name: "العربية" },
@@ -14,6 +26,10 @@ const locales = [
 
 const emit = defineEmits(["switch"]);
 
+/**
+ * A runtime switch: the catalog is swapped in place and the page repaints, with
+ * nothing navigating. `vue-ssr` is multiplexed and does the opposite.
+ */
 const handleSwitch = async (lang: string) => {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", lang);
@@ -29,7 +45,10 @@ const handleSwitch = async (lang: string) => {
       <button
         v-for="l in locales"
         :key="l.id"
-        :class="{ active: props.lang === l.id }"
+        type="button"
+        :data-lang="l.id"
+        :class="{ active: lang === l.id }"
+        :aria-current="lang === l.id ? 'true' : undefined"
         @click="handleSwitch(l.id)"
       >
         {{ l.name }}
@@ -37,8 +56,37 @@ const handleSwitch = async (lang: string) => {
     </div>
     <div class="vertical-ticks"></div>
     <div class="icon-border">
-      <svg class="icon" role="img" aria-hidden="true">
-        <use href="/icons.svg#translate-icon"></use>
+      <!--
+        The Zintl mark, inline rather than fetched. Inline is the only form that
+        is identical on both hosts: it needs no `public/` directory (the Rsbuild
+        starters have none) and no second request. It is drawn in `currentColor`
+        so it follows the bar into light or dark without a filter, and it is
+        `aria-hidden` — labelling it would put the brand name into every catalog
+        in every locale, which is precisely what it is not.
+      -->
+      <svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true">
+        <mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+          <rect width="100" height="100" />
+          <g
+            stroke="#fff"
+            stroke-width="13"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+          >
+            <path d="M16 45V84" />
+            <path d="M16 24v1" />
+            <path d="M62 84V50" />
+            <path d="M62 60a14 14 0 0 1 28 0v24" />
+          </g>
+          <circle cx="39" cy="52" r="21.5" />
+          <circle cx="39" cy="74" r="23" />
+          <circle cx="39" cy="52" r="17.5" fill="#fff" />
+          <circle cx="39" cy="73" r="19" fill="#fff" />
+          <circle cx="39" cy="52" r="5" />
+          <circle cx="39" cy="74" r="6.5" />
+        </mask>
+        <rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)" />
       </svg>
     </div>
   </section>

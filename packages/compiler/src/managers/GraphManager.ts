@@ -119,20 +119,60 @@ export class GraphManager {
     const leakedVirtual = this.isDev ? new Set<string>() : new Set(vbList);
 
     const allKnownBoundaries = new Set<string>();
-    for (const k of Object.keys(internalManifest)) {
-      if (leakedVirtual.has(k)) continue;
-      allKnownBoundaries.add(k);
-    }
+
+    /**
+     * Nested ids the *current* extraction vouches for. Metadata is rewritten
+     * per file as that file is read, so it describes the source as it is now;
+     * the manifest beside it does not.
+     */
+    const attestedNested = new Set<string>();
     for (const k of Object.keys(metadataGraph)) {
       const nId = k;
       if (leakedVirtual.has(nId)) continue;
       allKnownBoundaries.add(nId);
       for (const site of metadataGraph[k].anchorSites || []) {
-        allKnownBoundaries.add(this.io.getNormalizedId(site.boundaryId));
+        const sId = this.io.getNormalizedId(site.boundaryId);
+        allKnownBoundaries.add(sId);
+        attestedNested.add(sId);
       }
       for (const bId of Object.values(metadataGraph[k].exportedBoundaries || {})) {
-        allKnownBoundaries.add(this.io.getNormalizedId(bId));
+        const eId = this.io.getNormalizedId(bId);
+        allKnownBoundaries.add(eId);
+        attestedNested.add(eId);
       }
+      for (const bId of Object.keys(metadataGraph[k].internalDependencies || {})) {
+        attestedNested.add(this.io.getNormalizedId(bId));
+      }
+    }
+
+    /**
+     * A nested boundary is keyed by the offset of its anchor
+     * (`LocaleSwitcher.vue:f_700`), so editing anything *above* that call
+     * renames it. The old key survives in `.zintl`'s persisted manifest with an
+     * empty string list, and the seeding loop below could not tell it from a
+     * live one — its skip-empty guard reads the **file's** dependencies, and
+     * the file still imports `zintljs/macro`, so the dead key became a node
+     * with `usageCount: 0` and a single dep on the macro.
+     *
+     * Measured: adding a doc comment above `<script setup>` in the shared
+     * locale bar moved the anchor from 700 to 846 and left six such ghosts in
+     * committed graph snapshots. They appeared only where a manifest predated
+     * the edit, so every developer's checkout agreed with itself and disagreed
+     * with CI — the same warm-vs-cold divergence as `leakedVirtual` above, one
+     * layer down.
+     *
+     * A nested id this extraction does not attest therefore stays only while it
+     * still carries content: that keeps a boundary whose file was not
+     * re-extracted in a partial rebuild, where dropping it would drop real
+     * translations, while a dead empty key never reaches the graph.
+     */
+    for (const k of Object.keys(internalManifest)) {
+      if (leakedVirtual.has(k)) continue;
+      const nId = this.io.getNormalizedId(k);
+      const entry = internalManifest[k];
+      const carriesContent = Array.isArray(entry) && entry.length > 0;
+      if (nId.includes(":") && !carriesContent && !attestedNested.has(nId)) continue;
+      allKnownBoundaries.add(k);
     }
 
     this.logger.debug(`Found ${allKnownBoundaries.size} unique boundary candidates`);

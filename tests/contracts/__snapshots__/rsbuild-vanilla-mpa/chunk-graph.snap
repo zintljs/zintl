@@ -56,6 +56,15 @@
       "id": "shared_b_4d1f28ea17cb",
       "type": "shared"
     },
+    "shared_b_5b23e5a993db": {
+      "boundaries": [
+        "src/switcher:localeBar"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_5b23e5a993db",
+      "type": "shared"
+    },
     "shared_b_c5d38a62d1fa": {
       "boundaries": [
         "src/index.css"
@@ -75,6 +84,7 @@
   "sharedChunks": [
     "shared_b_006866fb4e10",
     "shared_b_4d1f28ea17cb",
+    "shared_b_5b23e5a993db",
     "shared_b_c5d38a62d1fa"
   ]
 }

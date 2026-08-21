@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: vanilla-ssr",
+      "description": "Original: Vite with TypeScript — Zintl server-rendered example",
       "type": "string"
     }
   },

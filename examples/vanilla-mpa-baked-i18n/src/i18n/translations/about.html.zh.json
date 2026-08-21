@@ -1,5 +1,5 @@
 {
   "$schema": "../.schemas/about.html.schema.json",
-  "dir": "",
-  "title": "关于 - Zintl MPA Baked 示例"
+  "dir": "ltr",
+  "title": "关于 — Vite 搭配 TypeScript — Zintl 多页面语言内嵌示例"
 }

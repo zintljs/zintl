@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Zintl Vue SPA Example",
+      "description": "Original: Vite with Vue — Zintl routed example",
       "type": "string"
     }
   },

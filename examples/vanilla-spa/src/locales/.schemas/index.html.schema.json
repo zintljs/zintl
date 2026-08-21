@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Zintl | Vanilla SPA Example",
+      "description": "Original: Vite with TypeScript — Zintl routed example",
       "type": "string"
     }
   },

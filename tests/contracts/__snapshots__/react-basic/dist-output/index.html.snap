@@ -4,15 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>react-basic</title>
+    <title>Vite with React — Zintl example</title>
     <script type="module" crossorigin src="/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CrkWZCnn.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-DdYFE2qW.css">
   
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
+        const deltas = {"ar":{"title":"Vite مع React — مثال زينتل"},"es":{"title":"Vite con React — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 React — Zintl 示例"}};
         const originals = {
         title: document.title,
       };
@@ -29,6 +30,15 @@
         function apply(locale) {
           document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
           document.documentElement.lang = locale;
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
         }
         window.__zintlApplyHtml = apply;
         if (l !== 'en') {

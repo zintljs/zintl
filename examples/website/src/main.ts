@@ -4,6 +4,7 @@ import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import { zintl } from "zintljs/macro";
 import { setupCounter } from "./counter";
+import { localeBar, setupSwitcher } from "./switcher";
 import aboutTxt from "./assets/about.txt?raw";
 
 // export function setupCounter(element: HTMLButtonElement) {
@@ -27,6 +28,8 @@ async function render() {
 
   const app = document.querySelector<HTMLDivElement>("#app")!;
   app.innerHTML = `
+    ${localeBar()}
+
     <div>
       <a href="https://vite.dev" target="_blank">
         <img src="${viteLogo}" class="logo" alt="Vite logo" />
@@ -49,31 +52,16 @@ async function render() {
         ${aboutTxt}
       </div>
 
-      <div class="language-switcher">
-        <!-- @zintl-ignore -->
-        <button id="set-ar">العربية</button>
-        <!-- @zintl-ignore -->
-        <button id="set-en">English</button>
-        <!-- @zintl-ignore -->
-        <button id="set-es">Español</button>
-      </div>
-
     </div>
   `;
 
   setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
 
-  // 2. Logic to toggle language using the unified API
-  document.querySelector("#set-en")?.addEventListener("click", async () => {
-    history.pushState({}, "", "?lang=en");
-    await render();
-  });
-  document.querySelector("#set-ar")?.addEventListener("click", async () => {
-    window.history.pushState({}, "", `?lang=ar`);
-    await render();
-  });
-  document.querySelector("#set-es")?.addEventListener("click", async () => {
-    window.history.pushState({}, "", `?lang=es`);
+  // Switching is the shared bar's business; this app only has to repaint.
+  setupSwitcher(app.querySelector<HTMLDivElement>("#switcher")!, async (lang) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", lang);
+    window.history.pushState({}, "", url.pathname + url.search);
     await render();
   });
 }

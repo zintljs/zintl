@@ -72,13 +72,121 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var react__rspack_import_3 = __webpack_require__(4);
 /* import */ var react__rspack_import_3_default = /*#__PURE__*/__webpack_require__.n(react__rspack_import_3);
 /* import */ var _App_css__rspack_import_4 = __webpack_require__(24);
+/* import */ var _components_LocaleSwitcher__rspack_import_5 = __webpack_require__(25);
 
 
 
 
 
 
-const locales = [
+
+/**
+ * `create-rsbuild`'s React starter, plus the shared Zintl locale bar.
+ *
+ * The heading lives here, in a component, and that is the point of this example.
+ * On `examples/rsbuild-vanilla-basic` the heading is written by the entry
+ * itself, so the only way to repaint it is to re-run the entry — which re-runs
+ * `zintl()` and rebuilds the store. Here a repaint is an ordinary React render
+ * that merely re-reads the catalog, which is why this app hot-updates on Rspack
+ * where the vanilla one reloads (ledger L-032, L-035).
+ */ function App(param) {
+    let { lang, onSwitch } = param;
+    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
+    const [count, setCount] = (0,react__rspack_import_3.useState)(0);
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)(react_jsx_runtime__rspack_import_0.Fragment, {
+        children: [
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(_components_LocaleSwitcher__rspack_import_5["default"], {
+                lang: lang,
+                onSwitch: onSwitch
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("div", {
+                className: "content",
+                children: [
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("h1", {
+                        children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("e33ef204", {
+                            _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
+                            _bId: "b_147a3a1c1a40"
+                        })
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
+                        children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9724cf0a", {
+                            _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
+                            _bId: "b_147a3a1c1a40"
+                        })
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
+                        children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("span", {
+                            style: {
+                                display: "contents"
+                            },
+                            dangerouslySetInnerHTML: {
+                                __html: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9fd2f187", {
+                                    _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
+                                    _bId: "b_147a3a1c1a40",
+                                    _tags: [
+                                        {
+                                            alias: "code",
+                                            originalOpen: `<code>`,
+                                            tagName: "code"
+                                        },
+                                        {
+                                            alias: "code",
+                                            originalOpen: `<code>`,
+                                            tagName: "code"
+                                        }
+                                    ]
+                                })
+                            }
+                        })
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
+                        id: "counter",
+                        type: "button",
+                        className: "counter",
+                        onClick: ()=>setCount((c)=>c + 1),
+                        children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("aa624128", {
+                            count: count
+                        }, {
+                            _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
+                            _bId: "b_147a3a1c1a40"
+                        })
+                    })
+                ]
+            }, lang)
+        ]
+    });
+}
+
+
+},
+24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+// extracted by css-extract-rspack-plugin
+
+
+},
+25(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  "default": () => (LocaleSwitcher)
+});
+/* import */ var react_jsx_runtime__rspack_import_0 = __webpack_require__(1);
+/**
+ * The Zintl locale bar — the one piece of UI every example shares.
+ *
+ * Same markup, same class names and same behaviour on every framework and both
+ * hosts, so a difference you notice between two examples is a difference in
+ * *Zintl* rather than in their chrome. The vanilla, Vue and Svelte examples
+ * render this exact DOM from their own dialect; see
+ * `docs/examples-locale-bar.md`.
+ */ 
+/**
+ * The locales every example offers, each written in its own language.
+ *
+ * An array rather than markup, on purpose: a locale name must never be
+ * translated, and a JS array is out of extraction's reach to begin with. The
+ * `@zintl-ignore` below covers the JSX that renders them.
+ */ const locales = [
     {
         id: "en",
         name: "English"
@@ -97,89 +205,130 @@ const locales = [
     }
 ];
 /**
- * `create-rsbuild`'s React starter, with a locale switcher bolted on.
+ * The Zintl mark, inline rather than fetched.
  *
- * The heading lives here, in a component, and that is the point of this example.
- * On `examples/rsbuild-vanilla-basic` the heading is written by the entry
- * itself, so the only way to repaint it is to re-run the entry — which re-runs
- * `zintl()` and rebuilds the store. Here a repaint is an ordinary React render
- * that merely re-reads the catalog, which is why this app hot-updates on Rspack
- * where the vanilla one reloads (ledger L-032, L-035).
- */ function App(param) {
-    let { lang, onSwitch } = param;
-    (0,react__rspack_import_3.useSyncExternalStore)(virtual_zintl_runtime_internal__rspack_import_1.subscribe, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion, virtual_zintl_runtime_internal__rspack_import_1.getStoreVersion);
-    const [count, setCount] = (0,react__rspack_import_3.useState)(0);
-    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("div", {
-        className: "content",
+ * Inline is the only form that is identical on both hosts: it needs no `public/`
+ * directory (the Rsbuild starters have none) and no second request. It is drawn
+ * in `currentColor`, so it follows the bar's own colour into light or dark
+ * without a filter, and it is `aria-hidden` — labelling it would put the brand
+ * name into every catalog in every locale, which is precisely what it is not.
+ */ function ZintlMark() {
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("svg", {
+        className: "icon zintl-mark",
+        viewBox: "0 0 100 100",
+        role: "img",
+        "aria-hidden": "true",
         children: [
-            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
-                id: "switcher",
-                className: "switcher",
-                children: locales.map((l)=>/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
-                        type: "button",
-                        className: lang === l.id ? "active" : "",
-                        onClick: ()=>onSwitch(l.id),
-                        children: l.name
-                    }, l.id))
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("mask", {
+                id: "zintl-mark-mask",
+                maskUnits: "userSpaceOnUse",
+                x: "0",
+                y: "0",
+                width: "100",
+                height: "100",
+                children: [
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("rect", {
+                        width: "100",
+                        height: "100"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("g", {
+                        stroke: "#fff",
+                        strokeWidth: "13",
+                        strokeLinecap: "round",
+                        strokeLinejoin: "round",
+                        fill: "none",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("path", {
+                                d: "M16 45V84"
+                            }),
+                            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("path", {
+                                d: "M16 24v1"
+                            }),
+                            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("path", {
+                                d: "M62 84V50"
+                            }),
+                            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("path", {
+                                d: "M62 60a14 14 0 0 1 28 0v24"
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "52",
+                        r: "21.5"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "74",
+                        r: "23"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "52",
+                        r: "17.5",
+                        fill: "#fff"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "73",
+                        r: "19",
+                        fill: "#fff"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "52",
+                        r: "5"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("circle", {
+                        cx: "39",
+                        cy: "74",
+                        r: "6.5"
+                    })
+                ]
             }),
-            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("h1", {
-                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("e33ef204", {
-                    _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
-                    _bId: "b_147a3a1c1a40"
-                })
-            }),
-            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
-                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9724cf0a", {
-                    _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
-                    _bId: "b_147a3a1c1a40"
-                })
-            }),
-            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("p", {
-                children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("span", {
-                    style: {
-                        display: "contents"
-                    },
-                    dangerouslySetInnerHTML: {
-                        __html: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("9fd2f187", {
-                            _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
-                            _bId: "b_147a3a1c1a40",
-                            _tags: [
-                                {
-                                    alias: "code",
-                                    originalOpen: `<code>`,
-                                    tagName: "code"
-                                },
-                                {
-                                    alias: "code",
-                                    originalOpen: `<code>`,
-                                    tagName: "code"
-                                }
-                            ]
-                        })
-                    }
-                })
-            }),
-            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
-                id: "counter",
-                type: "button",
-                className: "counter",
-                onClick: ()=>setCount((c)=>c + 1),
-                children: (0,virtual_zintl_runtime_internal__rspack_import_1._t)("aa624128", {
-                    count: count
-                }, {
-                    _mgr: virtual_zintl_manager_none_entry_b_f1bc61690f0b__rspack_import_2["default"],
-                    _bId: "b_147a3a1c1a40"
-                })
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("rect", {
+                width: "100",
+                height: "100",
+                fill: "currentColor",
+                mask: "url(#zintl-mark-mask)"
             })
         ]
-    }, lang);
+    });
 }
-
-
-},
-24(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
-__webpack_require__.r(__webpack_exports__);
-// extracted by css-extract-rspack-plugin
+function LocaleSwitcher(param) {
+    let { lang, onSwitch } = param;
+    return /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)(react_jsx_runtime__rspack_import_0.Fragment, {
+        children: [
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsxs)("section", {
+                id: "header",
+                children: [
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
+                        id: "switcher",
+                        className: "switcher",
+                        children: locales.map((l)=>/*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("button", {
+                                type: "button",
+                                "data-lang": l.id,
+                                className: lang === l.id ? "active" : "",
+                                "aria-current": lang === l.id ? "true" : undefined,
+                                onClick: ()=>onSwitch(l.id),
+                                children: l.name
+                            }, l.id))
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
+                        className: "vertical-ticks"
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
+                        className: "icon-border",
+                        children: /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)(ZintlMark, {})
+                    })
+                ]
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__rspack_import_0.jsx)("div", {
+                className: "ticks"
+            })
+        ]
+    });
+}
 
 
 },

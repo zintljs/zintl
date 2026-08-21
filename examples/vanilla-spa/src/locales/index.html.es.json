@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "dir": "",
-  "title": "Zintl | Ejemplo de SPA Vanilla"
+  "dir": "ltr",
+  "title": "Vite con TypeScript — Ejemplo con enrutado de Zintl"
 }

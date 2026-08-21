@@ -2,12 +2,12 @@
   "$schema": ".schemas/index.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "",
-    "zh": ""
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "فانيلا تي إس - مثال SPA مع زينتل",
-    "es": "Vanilla TS - Ejemplo de SPA con Zintl",
-    "zh": "Vanilla TS - 带有 Zintl 的 SPA 示例"
+    "ar": "Vite مع TypeScript — مثال زينتل",
+    "es": "Vite con TypeScript — Ejemplo de Zintl",
+    "zh": "Vite 搭配 TypeScript — Zintl 示例"
   }
 }

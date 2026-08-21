@@ -1,17 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Zintl">
  <defs>
-  <linearGradient id="g" x1="10" y1="92" x2="92" y2="16" gradientUnits="userSpaceOnUse">
+  <linearGradient id="g" x1="6" y1="96" x2="96" y2="10" gradientUnits="userSpaceOnUse">
    <stop offset="0" stop-color="#F4795E"></stop><stop offset=".55" stop-color="#E8309C"></stop><stop offset="1" stop-color="#B44BE0"></stop>
   </linearGradient>
-  <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-   <rect width="100" height="100" fill="#000"></rect>
-   <g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M16 45V84"></path><path d="M16 24v1"></path><path d="M62 84V50"></path><path d="M62 60a14 14 0 0 1 28 0v24"></path>
-   </g>
-   <circle cx="39" cy="52" r="21.5" fill="#000"></circle><circle cx="39" cy="74" r="23" fill="#000"></circle>
-   <circle cx="39" cy="52" r="17.5" fill="#fff"></circle><circle cx="39" cy="73" r="19" fill="#fff"></circle>
-   <circle cx="39" cy="52" r="5" fill="#000"></circle><circle cx="39" cy="74" r="6.5" fill="#000"></circle>
-  </mask>
  </defs>
- <rect width="100" height="100" fill="url(#g)" mask="url(#m)"></rect>
+ <rect width="100" height="100" rx="22" fill="url(#g)"></rect>
+ <g transform="translate(14 8) scale(0.72)" fill="none">
+  <g stroke="#0C0A0C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M16 45V84"></path><path d="M16 24v1"></path><path d="M62 84V50"></path><path d="M62 60a14 14 0 0 1 28 0v24"></path>
+  </g>
+  <circle cx="39" cy="52" r="22.5" fill="#0C0A0C"></circle><circle cx="39" cy="74" r="24" fill="#0C0A0C"></circle>
+  <circle cx="39" cy="52" r="17.5" fill="url(#g)"></circle><circle cx="39" cy="73" r="19" fill="url(#g)"></circle>
+  <circle cx="39" cy="52" r="5.5" fill="#0C0A0C"></circle><circle cx="39" cy="74" r="7" fill="#0C0A0C"></circle>
+ </g>
 </svg>

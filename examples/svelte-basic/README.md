@@ -39,6 +39,11 @@ HMR state preservation comes with a number of gotchas! It has been disabled by d
 
 If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```ts
 // store.ts
 // An extremely simple external store

@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: vue-basic",
+      "description": "Original: Vite with Vue — Zintl example",
       "type": "string"
     }
   },

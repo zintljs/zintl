@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Rsbuild with React - Zintl example",
+          "description": "Original: Rsbuild with React — Zintl example",
           "type": "string"
         },
         "es": {
-          "description": "Original: Rsbuild with React - Zintl example",
+          "description": "Original: Rsbuild with React — Zintl example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: Rsbuild with React - Zintl example",
+          "description": "Original: Rsbuild with React — Zintl example",
           "type": "string"
         }
       },

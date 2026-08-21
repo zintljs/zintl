@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vanilla-ssr</title>
+    <title>Vite with TypeScript — Zintl server-rendered example</title>
     <!--app-head-->
     <script type="module" crossorigin src="/assets/en/index.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/style.js">
-    <link rel="stylesheet" crossorigin href="/assets/style-CUFt-qr9.css">
+    <link rel="stylesheet" crossorigin href="/assets/style-DrER1qNV.css">
   </head>
   <body>
     <div id="app"><!--app-html--></div>

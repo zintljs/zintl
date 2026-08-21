@@ -1,0 +1,6 @@
+{
+  "$schema": "../../.schemas/src/components/Header.Header.schema.json",
+  "About": "关于",
+  "Home": "首页",
+  "Zintl": "Zintl"
+}

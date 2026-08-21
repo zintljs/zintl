@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "ltr",
-  "title": "Zintl Vue SPA 示例"
+  "title": "Vite 搭配 Vue — Zintl 路由示例"
 }

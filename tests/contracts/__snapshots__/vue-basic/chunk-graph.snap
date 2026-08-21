@@ -3,20 +3,20 @@
     "src/App.vue": "src/main:bootstrap",
     "src/components/HelloWorld.vue": "src/main:bootstrap",
     "src/components/LocaleSwitcher.vue": "src/main:bootstrap",
-    "src/components/LocaleSwitcher.vue:f_459": "src/components/LocaleSwitcher.vue:f_459",
+    "src/components/LocaleSwitcher.vue:f_846": "src/components/LocaleSwitcher.vue:f_846",
     "src/components/OptionsNote.vue": "src/main:bootstrap",
     "src/main:bootstrap": "src/main:bootstrap"
   },
   "chunks": {
-    "entry_b_381483fd6e80": {
+    "entry_b_7ed7f9183f38": {
       "boundaries": [
-        "src/components/LocaleSwitcher.vue:f_459"
+        "src/components/LocaleSwitcher.vue:f_846"
       ],
       "colonies": [],
       "entrySources": [
-        "src/components/LocaleSwitcher.vue:f_459"
+        "src/components/LocaleSwitcher.vue:f_846"
       ],
-      "id": "entry_b_381483fd6e80",
+      "id": "entry_b_7ed7f9183f38",
       "type": "entry"
     },
     "entry_b_aafcf9c6fe16": {
@@ -50,7 +50,7 @@
     }
   },
   "entryChunks": {
-    "src/components/LocaleSwitcher.vue:f_459": "entry_b_381483fd6e80",
+    "src/components/LocaleSwitcher.vue:f_846": "entry_b_7ed7f9183f38",
     "src/main:bootstrap": "entry_b_aafcf9c6fe16"
   },
   "lazyChunks": [],

@@ -1,7 +1,7 @@
 {
   "entries": [
     "index.html",
-    "src/lib/LocaleSwitcher.svelte:f_525",
+    "src/lib/LocaleSwitcher.svelte:f_712",
     "src/main:bootstrap"
   ],
   "nodes": {
@@ -76,7 +76,7 @@
       "deps": [
         {
           "dynamic": false,
-          "id": "src/lib/LocaleSwitcher.svelte:f_525"
+          "id": "src/lib/LocaleSwitcher.svelte:f_712"
         },
         {
           "bindings": [
@@ -91,7 +91,7 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/lib/LocaleSwitcher.svelte:f_525": {
+    "src/lib/LocaleSwitcher.svelte:f_712": {
       "activeLocales": "all",
       "deps": [
         {
@@ -103,7 +103,7 @@
         }
       ],
       "filePath": "src/lib/LocaleSwitcher.svelte",
-      "id": "src/lib/LocaleSwitcher.svelte:f_525",
+      "id": "src/lib/LocaleSwitcher.svelte:f_712",
       "mode": "entry",
       "usageCount": 0
     },

@@ -48,11 +48,11 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 
-var root = svelte_internal_client__rspack_import_1.from_html(`<main><div class="content svelte-18cqzv2"><h1 class="svelte-18cqzv2"> </h1> <p class="svelte-18cqzv2"> </p> <p class="svelte-18cqzv2"></p> <button id="counter" type="button" class="counter svelte-18cqzv2"> </button></div></main>`);
+var root = svelte_internal_client__rspack_import_1.from_html(`<main><div class="content svelte-4u0v2c"><h1 class="svelte-4u0v2c"> </h1> <p class="svelte-4u0v2c"> </p> <p class="svelte-4u0v2c"></p> <button id="counter" type="button" class="counter svelte-4u0v2c"> </button></div></main>`);
 var root_1 = svelte_internal_client__rspack_import_1.from_html(`<!> <!>`, 1);
 const $$css = {
-    hash: 'svelte-18cqzv2',
-    code: '\n  /* `create-rsbuild`\'s `template-svelte-ts/src/App.svelte` styles, plus what the\n   * counter and the inline `<code>` need. */.content.svelte-18cqzv2 {display:flex;box-sizing:border-box;min-height:100vh;padding-block:5rem 2rem;line-height:1.1;text-align:center;flex-direction:column;justify-content:center;}.content.svelte-18cqzv2 h1:where(.svelte-18cqzv2) {font-size:3.6rem;font-weight:700;}.content.svelte-18cqzv2 p:where(.svelte-18cqzv2) {font-size:1.2rem;font-weight:400;opacity:0.5;}\n\n  /* `:global`, and this is the one Svelte-specific thing in the whole example.\n   * A sentence with an inline tag is stitched into a single key, so the\n   * `<code>` elements are rendered from the catalog through `{@html}` rather\n   * than written in this template. Svelte\'s scoped-CSS pass only sees the\n   * markup it can statically attribute to this component, so a plain\n   * `.content code` is reported as `css_unused_selector` and pruned. */.content.svelte-18cqzv2 code {padding:0.1em 0.35em;border-radius:4px;background:rgb(255 255 255 / 10%);font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:0.9em;}.counter.svelte-18cqzv2 {font:inherit;font-size:1rem;color:#fff;cursor:pointer;align-self:center;margin-block-start:1.5rem;padding:0.55rem 1.4rem;border:1px solid rgb(255 255 255 / 15%);border-radius:8px;background:rgb(255 255 255 / 6%);}.counter.svelte-18cqzv2:hover {background:rgb(255 255 255 / 12%);}'
+    hash: 'svelte-4u0v2c',
+    code: '\n  /* `create-rsbuild`\'s `template-svelte-ts/src/App.svelte` styles, plus what the\n   * counter and the inline `<code>` need. */.content.svelte-4u0v2c {display:flex;box-sizing:border-box;min-height:calc(100svh - 56px);padding-block:2rem;line-height:1.1;text-align:center;flex-direction:column;justify-content:center;}.content.svelte-4u0v2c h1:where(.svelte-4u0v2c) {font-size:3.6rem;font-weight:700;}.content.svelte-4u0v2c p:where(.svelte-4u0v2c) {font-size:1.2rem;font-weight:400;opacity:0.5;}\n\n  /* `:global`, and this is the one Svelte-specific thing in the whole example.\n   * A sentence with an inline tag is stitched into a single key, so the\n   * `<code>` elements are rendered from the catalog through `{@html}` rather\n   * than written in this template. Svelte\'s scoped-CSS pass only sees the\n   * markup it can statically attribute to this component, so a plain\n   * `.content code` is reported as `css_unused_selector` and pruned. */.content.svelte-4u0v2c code {padding:0.1em 0.35em;border-radius:4px;background:rgb(255 255 255 / 10%);font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:0.9em;}.counter.svelte-4u0v2c {font:inherit;font-size:1rem;color:#fff;cursor:pointer;align-self:center;margin-block-start:1.5rem;padding:0.55rem 1.4rem;border:1px solid rgb(255 255 255 / 15%);border-radius:8px;background:rgb(255 255 255 / 6%);}.counter.svelte-4u0v2c:hover {background:rgb(255 255 255 / 12%);}'
 };
 function App($$anchor, $$props) {
     svelte_internal_client__rspack_import_1.push($$props, true);
@@ -152,14 +152,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 var root = svelte_internal_client__rspack_import_1.from_html(`<button type="button"> </button>`);
-var root_1 = svelte_internal_client__rspack_import_1.from_html(`<div id="switcher" class="switcher svelte-cocv1f"></div>`);
-const $$css = {
-    hash: 'svelte-cocv1f',
-    code: '\n  /* Logical properties throughout, because `<html dir>` is what Zintl projects\n   * per locale: the Arabic build flips the document and nothing here should need\n   * a second rule to follow it. */.switcher.svelte-cocv1f {position:fixed;inset-block-start:0;inset-inline:0;display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;padding:1rem;}.switcher.svelte-cocv1f button:where(.svelte-cocv1f) {font:inherit;font-size:0.95rem;line-height:1.2;color:#fff;cursor:pointer;padding:0.4rem 0.9rem;border:1px solid rgb(255 255 255 / 15%);border-radius:999px;background:rgb(255 255 255 / 6%);}.switcher.svelte-cocv1f button:where(.svelte-cocv1f):hover {background:rgb(255 255 255 / 12%);}.switcher.svelte-cocv1f button.active:where(.svelte-cocv1f) {border-color:rgb(255 255 255 / 45%);background:rgb(255 255 255 / 18%);}'
-};
+var root_1 = svelte_internal_client__rspack_import_1.from_html(`<section id="header"><div id="switcher" class="switcher"></div> <div class="vertical-ticks"></div> <div class="icon-border"><svg class="icon zintl-mark" viewBox="0 0 100 100" role="img" aria-hidden="true"><mask id="zintl-mark-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100"></rect><g stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M16 45V84"></path><path d="M16 24v1"></path><path d="M62 84V50"></path><path d="M62 60a14 14 0 0 1 28 0v24"></path></g><circle cx="39" cy="52" r="21.5"></circle><circle cx="39" cy="74" r="23"></circle><circle cx="39" cy="52" r="17.5" fill="#fff"></circle><circle cx="39" cy="73" r="19" fill="#fff"></circle><circle cx="39" cy="52" r="5"></circle><circle cx="39" cy="74" r="6.5"></circle></mask><rect width="100" height="100" fill="currentColor" mask="url(#zintl-mark-mask)"></rect></svg></div></section> <div class="ticks"></div>`, 1);
 function LocaleSwitcher($$anchor, $$props) {
     svelte_internal_client__rspack_import_1.push($$props, true);
-    svelte_internal_client__rspack_import_1.append_styles($$anchor, $$css);
     const locales = [
         {
             id: "en",
@@ -178,32 +173,42 @@ function LocaleSwitcher($$anchor, $$props) {
             name: "中文"
         }
     ];
-    const handleSwitch = async (newLang)=>{
+    /**
+	 * A runtime switch: the catalog is swapped in place and the page repaints,
+	 * with nothing navigating. `svelte-ssr` is multiplexed and does the opposite.
+	 */ const handleSwitch = async (next)=>{
         const url = new URL(window.location.href);
-        url.searchParams.set("lang", newLang);
-        window.history.pushState({}, "", url);
+        url.searchParams.set("lang", next);
+        window.history.pushState({}, "", url.pathname + url.search);
         await (globalThis.__zintl_inst = (0,virtual_zintl_runtime_internal__rspack_import_3.loadI18nInstance)({
-            locale: newLang,
+            locale: next,
             loaders: {
                 ["b_dd563dcb7e61"]: virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2["default"].loader
             }
         }));
-        $$props.onswitch(newLang);
+        $$props.onswitch(next);
     };
-    var div = root_1();
+    var fragment = root_1();
+    var section = svelte_internal_client__rspack_import_1.first_child(fragment);
+    var div = svelte_internal_client__rspack_import_1.child(section);
     svelte_internal_client__rspack_import_1.each(div, 21, ()=>locales, (l)=>l.id, ($$anchor, l)=>{
         var button = root();
         var text = svelte_internal_client__rspack_import_1.child(button, true);
         svelte_internal_client__rspack_import_1.reset(button);
         svelte_internal_client__rspack_import_1.template_effect(()=>{
-            svelte_internal_client__rspack_import_1.set_class(button, 1, svelte_internal_client__rspack_import_1.clsx($$props.lang === svelte_internal_client__rspack_import_1.get(l).id ? "active" : ""), 'svelte-cocv1f');
+            svelte_internal_client__rspack_import_1.set_attribute(button, 'data-lang', svelte_internal_client__rspack_import_1.get(l).id);
+            svelte_internal_client__rspack_import_1.set_class(button, 1, svelte_internal_client__rspack_import_1.clsx($$props.lang === svelte_internal_client__rspack_import_1.get(l).id ? "active" : ""));
+            svelte_internal_client__rspack_import_1.set_attribute(button, 'aria-current', $$props.lang === svelte_internal_client__rspack_import_1.get(l).id ? "true" : undefined);
             svelte_internal_client__rspack_import_1.set_text(text, svelte_internal_client__rspack_import_1.get(l).name);
         });
         svelte_internal_client__rspack_import_1.delegated('click', button, ()=>handleSwitch(svelte_internal_client__rspack_import_1.get(l).id));
         svelte_internal_client__rspack_import_1.append($$anchor, button);
     });
     svelte_internal_client__rspack_import_1.reset(div);
-    svelte_internal_client__rspack_import_1.append($$anchor, div);
+    svelte_internal_client__rspack_import_1.next(4);
+    svelte_internal_client__rspack_import_1.reset(section);
+    svelte_internal_client__rspack_import_1.next(2);
+    svelte_internal_client__rspack_import_1.append($$anchor, fragment);
     svelte_internal_client__rspack_import_1.pop();
 }
 svelte_internal_client__rspack_import_1.delegate([

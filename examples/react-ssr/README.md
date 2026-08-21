@@ -15,6 +15,11 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```js
 export default defineConfig([
   globalIgnores(["dist"]),

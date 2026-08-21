@@ -3,6 +3,11 @@
 `create-rsbuild`'s **react-ts** starter, localized. React on Rspack — the first
 **framework** app Zintl had on a non-Rollup host.
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```bash
 pnpm dev      # rsbuild dev     — string edits apply in place, no reload
 pnpm build    # tsc && rsbuild build
@@ -11,7 +16,8 @@ pnpm preview  # rsbuild preview
 
 Read it as "I ran `pnpm create rsbuild`, then added localization". The page, the
 CSS and the `#root` mount point are the template's; what was added is the
-localization layer — the switcher in `src/App.tsx`, the `?lang=` query parameter,
+localization layer — the locale bar in `src/components/LocaleSwitcher.tsx`, the
+`?lang=` query parameter,
 `await zintl(lang)` in `src/index.tsx`, the catalogs under `src/i18n/`, and the
 `index.html` template that Zintl needs in order to localize `<title>` and
 `<html dir>`.

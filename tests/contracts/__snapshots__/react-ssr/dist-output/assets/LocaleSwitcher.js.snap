@@ -10648,9 +10648,6 @@ function getActiveInstance() {
 	}
 	return currentInstance;
 }
-function getLocale() {
-	return getActiveInstance().locale;
-}
 function subscribe(listener) {
 	return getActiveInstance().subscribe(listener);
 }
@@ -10712,6 +10709,19 @@ var vite_default = "/assets/vite-BF8QNONU.svg";
 //#region examples/react-ssr/src/assets/hero.png
 var hero_default = "/assets/hero-CLDdwZDr.png";
 //#endregion
+//#region packages/zintl/dist/macro.mjs
+/**
+* The locale currently active.
+*
+* The plugin rewrites this import to the real runtime binding, so it reflects
+* the live store — including a locale set after the anchor resolved. Returns
+* `""` when no boundary has been established yet.
+*/
+function getLocale() {
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active.locale;
+	return "";
+}
+//#endregion
 //#region node_modules/.pnpm/react@19.2.8/node_modules/react/cjs/react-jsx-dev-runtime.production.js
 /**
 * @license React
@@ -10732,4 +10742,252 @@ var require_jsx_dev_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) =
 	module.exports = require_react_jsx_dev_runtime_production();
 }));
 //#endregion
-export { getLocale as a, require_client as c, react_default as i, require_react as l, hero_default as n, getStoreVersion as o, vite_default as r, subscribe as s, require_jsx_dev_runtime as t };
+//#region examples/react-ssr/src/components/LocaleSwitcher.tsx
+/**
+* The Zintl locale bar — the one piece of UI every example shares.
+*
+* Same markup, same class names and same behaviour on every framework and both
+* hosts, so a difference you notice between two examples is a difference in
+* *Zintl* rather than in their chrome. The vanilla, Vue and Svelte examples
+* render this exact DOM from their own dialect; see
+* `docs/examples-locale-bar.md`.
+*/
+var import_jsx_dev_runtime = require_jsx_dev_runtime();
+var _jsxFileName = "<MONOREPO_ROOT>/examples/react-ssr/src/components/LocaleSwitcher.tsx";
+/**
+* The locales every example offers, each written in its own language.
+*
+* An array rather than markup, on purpose: a locale name must never be
+* translated, and a JS array is out of extraction's reach to begin with. The
+* `@zintl-ignore` below covers the JSX that renders them.
+*/
+var locales = [
+	{
+		id: "en",
+		name: "English"
+	},
+	{
+		id: "ar",
+		name: "العربية"
+	},
+	{
+		id: "es",
+		name: "Español"
+	},
+	{
+		id: "zh",
+		name: "中文"
+	}
+];
+/**
+* The Zintl mark, inline rather than fetched.
+*
+* Inline is the only form that is identical on both hosts: it needs no `public/`
+* directory (the Rsbuild starters have none) and no second request. It is drawn
+* in `currentColor`, so it follows the bar's own colour into light or dark
+* without a filter, and it is `aria-hidden` — labelling it would put the brand
+* name into every catalog in every locale, which is precisely what it is not.
+*/
+function ZintlMark() {
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("svg", {
+		className: "icon zintl-mark",
+		viewBox: "0 0 100 100",
+		role: "img",
+		"aria-hidden": "true",
+		children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("mask", {
+			id: "zintl-mark-mask",
+			maskUnits: "userSpaceOnUse",
+			x: "0",
+			y: "0",
+			width: "100",
+			height: "100",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("rect", {
+					width: "100",
+					height: "100"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 39,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("g", {
+					stroke: "#fff",
+					strokeWidth: "13",
+					strokeLinecap: "round",
+					strokeLinejoin: "round",
+					fill: "none",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("path", { d: "M16 45V84" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 41,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("path", { d: "M16 24v1" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 42,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("path", { d: "M62 84V50" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 43,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("path", { d: "M62 60a14 14 0 0 1 28 0v24" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 44,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 40,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "52",
+					r: "21.5"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 46,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "74",
+					r: "23"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 47,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "52",
+					r: "17.5",
+					fill: "#fff"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 48,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "73",
+					r: "19",
+					fill: "#fff"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 49,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "52",
+					r: "5"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 50,
+					columnNumber: 9
+				}, this),
+				/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("circle", {
+					cx: "39",
+					cy: "74",
+					r: "6.5"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 51,
+					columnNumber: 9
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 38,
+			columnNumber: 7
+		}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("rect", {
+			width: "100",
+			height: "100",
+			fill: "currentColor",
+			mask: "url(#zintl-mark-mask)"
+		}, void 0, false, {
+			fileName: _jsxFileName,
+			lineNumber: 53,
+			columnNumber: 7
+		}, this)]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 37,
+		columnNumber: 5
+	}, this);
+}
+function LocaleSwitcher() {
+	const lang = getLocale() || "en";
+	/**
+	* A switch here is a navigation, not a catalog swap: this app is multiplexed,
+	* so every locale is served as its own document under `/<locale>/`. The
+	* runtime-switching examples call `zintl(lang)` instead and repaint in place.
+	*/
+	const onSwitch = (next) => {
+		const url = new URL(window.location.href);
+		const path = url.pathname.replace(/^\/(?:en|ar|es|zh)/, "") || "/";
+		url.pathname = `/${next}${path === "/" ? "/" : path}`;
+		window.history.pushState({}, "", url.pathname + url.search);
+		location.reload();
+	};
+	return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("section", {
+		id: "header",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				id: "switcher",
+				className: "switcher",
+				children: locales.map((l) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", {
+					type: "button",
+					"data-lang": l.id,
+					className: lang === l.id ? "active" : "",
+					"aria-current": lang === l.id ? "true" : void 0,
+					onClick: () => onSwitch(l.id),
+					children: l.name
+				}, l.id, false, {
+					fileName: _jsxFileName,
+					lineNumber: 80,
+					columnNumber: 13
+				}, this))
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 78,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "vertical-ticks" }, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 92,
+				columnNumber: 9
+			}, this),
+			/* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", {
+				className: "icon-border",
+				children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(ZintlMark, {}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 94,
+					columnNumber: 11
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 93,
+				columnNumber: 9
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 77,
+		columnNumber: 7
+	}, this), /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "ticks" }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 97,
+		columnNumber: 7
+	}, this)] }, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 75,
+		columnNumber: 5
+	}, this);
+}
+//#endregion
+export { react_default as a, require_client as c, vite_default as i, require_react as l, require_jsx_dev_runtime as n, getStoreVersion as o, hero_default as r, subscribe as s, LocaleSwitcher as t };

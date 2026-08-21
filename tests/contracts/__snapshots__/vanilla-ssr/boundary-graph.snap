@@ -135,10 +135,17 @@
         },
         {
           "bindings": [
-            "LocaleSwitcher"
+            "currentRoute"
           ],
           "dynamic": false,
-          "id": "src/switcher:LocaleSwitcher"
+          "id": "src/switcher:currentRoute"
+        },
+        {
+          "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
         },
         {
           "bindings": [
@@ -179,10 +186,17 @@
         },
         {
           "bindings": [
-            "LocaleSwitcher"
+            "currentRoute"
           ],
           "dynamic": false,
-          "id": "src/switcher:LocaleSwitcher"
+          "id": "src/switcher:currentRoute"
+        },
+        {
+          "bindings": [
+            "localeBar"
+          ],
+          "dynamic": false,
+          "id": "src/switcher:localeBar"
         },
         {
           "bindings": [

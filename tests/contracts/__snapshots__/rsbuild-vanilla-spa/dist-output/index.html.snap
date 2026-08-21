@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla Rsbuild router - Zintl example</title>
-  <script defer src="/static/js/4.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
+    <title>Rsbuild with TypeScript — Zintl routed example</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><script defer src="/static/js/4.js"></script><script defer src="/static/js/index.js"></script><link href="/static/css/index.css" rel="stylesheet"><!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
         const l = localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
-        const deltas = {"ar":{"title":"موجّه Vanilla Rsbuild - مثال زينتل"},"es":{"title":"Enrutador Vanilla Rsbuild - Ejemplo de Zintl"},"zh":{"title":"Vanilla Rsbuild 路由 - Zintl 示例"}};
+        const deltas = {"ar":{"title":"Rsbuild مع TypeScript — مثال زينتل مع التوجيه"},"es":{"title":"Rsbuild con TypeScript — Ejemplo con enrutado de Zintl"},"zh":{"title":"Rsbuild 搭配 TypeScript — Zintl 路由示例"}};
         const originals = {
         title: document.title,
       };

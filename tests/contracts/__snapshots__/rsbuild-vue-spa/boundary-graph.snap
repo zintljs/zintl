@@ -1,6 +1,6 @@
 {
   "entries": [
-    "src/components/LocaleSwitcher.vue:f_700",
+    "src/components/LocaleSwitcher.vue:f_846",
     "src/index:bootstrap"
   ],
   "nodes": {
@@ -99,7 +99,7 @@
       "deps": [
         {
           "dynamic": false,
-          "id": "src/components/LocaleSwitcher.vue:f_700"
+          "id": "src/components/LocaleSwitcher.vue:f_846"
         },
         {
           "bindings": [
@@ -114,7 +114,7 @@
       "mode": "boundary",
       "usageCount": 0
     },
-    "src/components/LocaleSwitcher.vue:f_700": {
+    "src/components/LocaleSwitcher.vue:f_846": {
       "activeLocales": "all",
       "deps": [
         {
@@ -126,7 +126,7 @@
         }
       ],
       "filePath": "src/components/LocaleSwitcher.vue",
-      "id": "src/components/LocaleSwitcher.vue:f_700",
+      "id": "src/components/LocaleSwitcher.vue:f_846",
       "mode": "entry",
       "usageCount": 0
     },

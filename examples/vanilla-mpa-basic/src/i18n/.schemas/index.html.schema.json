@@ -30,15 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Home - Zintl MPA Example",
+          "description": "Original: Vite with TypeScript — Zintl multi-page example",
           "type": "string"
         },
         "es": {
-          "description": "Original: Home - Zintl MPA Example",
+          "description": "Original: Vite with TypeScript — Zintl multi-page example",
           "type": "string"
         },
         "zh": {
-          "description": "Original: Home - Zintl MPA Example",
+          "description": "Original: Vite with TypeScript — Zintl multi-page example",
           "type": "string"
         }
       },

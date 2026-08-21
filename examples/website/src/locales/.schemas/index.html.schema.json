@@ -17,6 +17,11 @@
           "default": "",
           "enum": ["ltr", "rtl", "auto", ""],
           "type": "string"
+        },
+        "zh": {
+          "default": "",
+          "enum": ["ltr", "rtl", "auto", ""],
+          "type": "string"
         }
       },
       "type": "object"
@@ -25,11 +30,15 @@
       "additionalProperties": false,
       "properties": {
         "ar": {
-          "description": "Original: Website",
+          "description": "Original: Zintl — compile-time internationalization",
           "type": "string"
         },
         "es": {
-          "description": "Original: Website",
+          "description": "Original: Zintl — compile-time internationalization",
+          "type": "string"
+        },
+        "zh": {
+          "description": "Original: Zintl — compile-time internationalization",
           "type": "string"
         }
       },

@@ -13,6 +13,7 @@
         "src/counter:setupCounter",
         "src/main:render",
         "src/style.css",
+        "src/switcher:localeBar",
         "src/switcher:setupSwitcher",
         "zintljs/macro"
       ],

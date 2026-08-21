@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
-  "dir": "",
-  "title": "Enrutador Vanilla Rsbuild - Ejemplo de Zintl"
+  "dir": "ltr",
+  "title": "Rsbuild con TypeScript — Ejemplo con enrutado de Zintl"
 }

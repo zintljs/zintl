@@ -5,7 +5,7 @@ import _zintl_mgr_b_c087d0722440 from "virtual:zintl/manager/none/entry:b_c087d0
 import "./index.css";
 
 import { Header } from "./components/Header.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 
 /**
  * The home page's entry — one of two, each with its own HTML document.
@@ -26,15 +26,15 @@ async function render() {
   const page = document.createElement("div");
   page.className = "content";
   page.innerHTML = `
-    <div id="switcher" class="switcher"></div>
     <h1>${_t("3de7e774", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</h1>
     <p>${_t("9724cf0a", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</p>
     <p>${_t("bce1bd28", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</p>
   `;
 
-  rootEl.replaceChildren(await Header(lang), page);
+  rootEl.innerHTML = localeBar();
+  rootEl.append(await Header(lang), page);
 
-  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+  setupSwitcher(rootEl.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);

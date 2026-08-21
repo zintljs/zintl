@@ -2,12 +2,12 @@
   "$schema": ".schemas/index.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "",
-    "zh": ""
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "Vanilla Rsbuild - مثال زينتل",
-    "es": "Vanilla Rsbuild - Ejemplo de Zintl",
-    "zh": "Vanilla Rsbuild - Zintl 示例"
+    "ar": "Rsbuild مع TypeScript — مثال زينتل",
+    "es": "Rsbuild con TypeScript — Ejemplo de Zintl",
+    "zh": "Rsbuild 搭配 TypeScript — Zintl 示例"
   }
 }

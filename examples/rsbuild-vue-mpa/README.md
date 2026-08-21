@@ -3,6 +3,11 @@
 Two documents, two Vue roots, one shared self-anchoring header — the multi-page
 case with a framework on it.
 
+> The locale switcher is the shared **Zintl locale bar** — the same markup,
+> class names and behaviour every example renders, documented in
+> [`docs/examples-locale-bar.md`](../../docs/examples-locale-bar.md). It is part of
+> the localization layer, not of the starter.
+
 ```bash
 pnpm dev      # rsbuild dev
 pnpm build    # rsbuild build

@@ -1,7 +1,7 @@
 import "./index.css";
 import { zintl } from "zintljs/macro";
 import { Header } from "./components/Header.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 
 /**
  * The second page's entry, with its own document and its own trust anchor.
@@ -20,15 +20,15 @@ async function render() {
   const page = document.createElement("div");
   page.className = "content";
   page.innerHTML = `
-    <div id="switcher" class="switcher"></div>
     <h1>Everything is a plain string</h1>
     <p>This document has its own entry, and its own catalog chunk.</p>
     <p>The header above is shared, and anchors itself.</p>
   `;
 
-  rootEl.replaceChildren(await Header(lang), page);
+  rootEl.innerHTML = localeBar();
+  rootEl.append(await Header(lang), page);
 
-  setupSwitcher(page.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
+  setupSwitcher(rootEl.querySelector<HTMLDivElement>("#switcher")!, (newLang) => {
     const url = new URL(window.location.href);
     url.searchParams.set("lang", newLang);
     window.history.pushState({}, "", url);

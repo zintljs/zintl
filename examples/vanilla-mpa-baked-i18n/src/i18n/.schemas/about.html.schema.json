@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: About - Zintl MPA Baked Example",
+      "description": "Original: About — Vite with TypeScript — Zintl baked-locale multi-page example",
       "type": "string"
     }
   },

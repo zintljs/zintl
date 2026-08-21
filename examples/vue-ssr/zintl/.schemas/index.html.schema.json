@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: vue-ssr",
+      "description": "Original: Vite with Vue — Zintl server-rendered example",
       "type": "string"
     }
   },

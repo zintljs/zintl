@@ -1,5 +1,5 @@
 {
   "$schema": "../.schemas/about.html.schema.json",
-  "dir": "",
-  "title": "Acerca de - Ejemplo de Zintl MPA Baked"
+  "dir": "ltr",
+  "title": "Acerca de — Vite con TypeScript — Ejemplo multipágina con locales integrados de Zintl"
 }

@@ -3,11 +3,11 @@ import _zintl_mgr_b_4f8017c0589a from "virtual:zintl/manager/none/entry:b_4f8017
 import "./index.css";
 
 import { setupCounter } from "./counter.ts";
-import { setupSwitcher } from "./switcher.ts";
+import { localeBar, setupSwitcher } from "./switcher.ts";
 import aboutText from "./about.txt?raw";
 
 /**
- * `create-rsbuild`'s vanilla starter, with a locale switcher bolted on.
+ * `create-rsbuild`'s vanilla starter, plus the shared Zintl locale bar.
  *
  * The strings are ordinary literals in an ordinary template string — there is no
  * `t()` wrapper and no key dictionary. `zintl(lang)` is the trust anchor, and
@@ -26,8 +26,9 @@ async function render() {
   if (!rootEl) return;
 
   rootEl.innerHTML = `
+    ${localeBar()}
+
   <div class="content">
-    <div id="switcher" class="switcher"></div>
     <h1>${_t("3de7e774", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</h1>
     <p>${_t("9724cf0a", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a" })}</p>
     <p>${_t("822f0fb2", { _mgr: _zintl_mgr_b_4f8017c0589a, _bId: "b_4f8017c0589a", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] })}</p>

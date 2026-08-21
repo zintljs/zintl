@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: svelte-ssr",
+      "description": "Original: Vite with Svelte — Zintl server-rendered example",
       "type": "string"
     }
   },

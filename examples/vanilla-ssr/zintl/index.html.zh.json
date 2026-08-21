@@ -1,5 +1,5 @@
 {
   "$schema": ".schemas/index.html.schema.json",
   "dir": "ltr",
-  "title": "Zintl | 基础单页应用多语言示例"
+  "title": "Vite 搭配 TypeScript — Zintl 服务端渲染示例"
 }

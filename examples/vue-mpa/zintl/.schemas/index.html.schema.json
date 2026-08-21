@@ -11,7 +11,7 @@
       "type": "string"
     },
     "title": {
-      "description": "Original: Home - Zintl Vue MPA Example",
+      "description": "Original: Vite with Vue — Zintl multi-page example",
       "type": "string"
     }
   },

@@ -5,13 +5,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
-
-const locales = [
-  { id: "en", name: "English" },
-  { id: "ar", name: "العربية" },
-  { id: "es", name: "Español" },
-  { id: "zh", name: "中文" },
-];
+import LocaleSwitcher from "./components/LocaleSwitcher";
 
 interface AppProps {
   lang: string;
@@ -25,28 +19,7 @@ function App({ lang, onSwitch }: AppProps) {
 
   return (
     <div key={lang} style={{ display: "contents" }}>
-      {/* @zintl-ignore */}
-      <section id="header">
-        <div id="switcher" className="switcher">
-          {locales.map((l) => (
-            <button
-              key={l.id}
-              className={lang === l.id ? "active" : ""}
-              onClick={() => onSwitch(l.id)}
-            >
-              {l.name}
-            </button>
-          ))}
-        </div>
-        <div className="vertical-ticks"></div>
-        <div className="icon-border">
-          <svg className="icon" role="img" aria-hidden="true">
-            <use href="/icons.svg#translate-icon"></use>
-          </svg>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
+      <LocaleSwitcher lang={lang} onSwitch={onSwitch} />
 
       <section id="center">
         <div className="hero">

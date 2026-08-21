@@ -1,0 +1,13 @@
+{
+  "$schema": "../../.schemas/src/pages/Home.Home.schema.json",
+  "Enjoy full TypeScript support with automatically generated translation schemas.": "享受完整的 TypeScript 支持，翻译结构由编译器自动生成。",
+  "Get Started": "开始使用",
+  "Just call zintl() and let the compiler do the rest of the heavy lifting for you.": "只需调用 zintl()，其余的重活都交给编译器。",
+  "Learn More": "了解更多",
+  "Only load what you need, when you need it. Smallest runtime footprint in the industry.": "按需加载，用到才载入。业界最小的运行时体积。",
+  "Optimized": "已优化",
+  "Powerful I18n for Modern Apps": "为现代应用打造的强大国际化方案",
+  "Type Safe": "类型安全",
+  "Zero Config": "零配置",
+  "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!": "Zintl 会把你的静态字符串编译成优化过、感知分块的翻译目录。\n          今天就来体验国际化的未来！"
+}

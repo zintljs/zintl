@@ -1,6 +1,6 @@
 "use strict";
 (self["rspackChunkrsbuild_vue_spa"] = self["rspackChunkrsbuild_vue_spa"] || []).push([[6], {
-30(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+28(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   A: () => (PLUS_RE),
@@ -41,7 +41,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _useApi_CROJJdhE_js__rspack_import_1 = __webpack_require__(18);
 /* import */ var vue__rspack_import_0 = __webpack_require__(8);
-/* import */ var _vue_devtools_api__rspack_import_2 = __webpack_require__(31);
+/* import */ var _vue_devtools_api__rspack_import_2 = __webpack_require__(29);
 /*!
 * vue-router v5.2.0
 * (c) 2026 Eduardo San Martin Morote
@@ -1565,7 +1565,7 @@ function useRoute(_name) {
 
 
 },
-29(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+27(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   NavigationFailureType: () => (/* reexport safe */ _useApi_CROJJdhE_js__rspack_import_1.l),
@@ -1586,7 +1586,7 @@ __webpack_require__.d(__webpack_exports__, {
   useRouter: () => (/* reexport safe */ _useApi_CROJJdhE_js__rspack_import_1.n),
   viewDepthKey: () => (/* reexport safe */ _useApi_CROJJdhE_js__rspack_import_1.s)
 });
-/* import */ var _devtools_Bpr7ZAVB_js__rspack_import_2 = __webpack_require__(30);
+/* import */ var _devtools_Bpr7ZAVB_js__rspack_import_2 = __webpack_require__(28);
 /* import */ var _useApi_CROJJdhE_js__rspack_import_1 = __webpack_require__(18);
 /* import */ var vue__rspack_import_0 = __webpack_require__(8);
 /*!

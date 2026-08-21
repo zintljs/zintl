@@ -2,10 +2,12 @@
   "$schema": ".schemas/index.html.schema.json",
   "dir": {
     "ar": "rtl",
-    "es": "ltr"
+    "es": "ltr",
+    "zh": "ltr"
   },
   "title": {
-    "ar": "موقع الويب!",
-    "es": "Website"
+    "ar": "زينتل — التدويل في وقت الترجمة",
+    "es": "Zintl — internacionalización en tiempo de compilación",
+    "zh": "Zintl — 编译时国际化"
   }
 }

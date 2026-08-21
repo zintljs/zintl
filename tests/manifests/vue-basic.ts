@@ -1,4 +1,5 @@
 import {
+  clickLocaleBar,
   copiedExampleSource,
   type ProjectManifest,
   type ZintlPluginOptions,
@@ -102,16 +103,6 @@ export const vueBasic: ProjectManifest = {
     navigateHome: async (lab) => {
       await lab.page.goto(`${lab.url}/`);
     },
-    switchLocale: async (lab, locale) => {
-      if (locale === "ar") {
-        await lab.page.click("button:has-text('العربية')");
-      } else if (locale === "en") {
-        await lab.page.click("button:has-text('English')");
-      } else if (locale === "es") {
-        await lab.page.click("button:has-text('Español')");
-      } else if (locale === "zh") {
-        await lab.page.click("button:has-text('中文')");
-      }
-    },
+    switchLocale: (lab, locale) => clickLocaleBar(lab, locale),
   },
 };

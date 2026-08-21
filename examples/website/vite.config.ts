@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     zintl({
       sourceLocale: "en",
-      locales: ["en", "ar", "es"],
+      locales: ["en", "ar", "es", "zh"],
       outputDir: "./src/locales",
       catalogFormat: "i18n.json",
       similarityThreshold: 0.01,
