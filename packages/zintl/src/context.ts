@@ -66,7 +66,7 @@ class Ring<T> {
  */
 export interface HmrTraceEntry {
   ts: number;
-  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return" | "watch";
+  kind: "skip-writing" | "skip-ineligible" | "enter" | "repoint" | "return" | "watch" | "reload";
   file: string;
   seq?: number;
   modulesLength?: number;

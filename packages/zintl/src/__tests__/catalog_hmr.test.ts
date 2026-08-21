@@ -1,6 +1,24 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vite-plus/test";
 import { createZintlContext } from "./helpers/harness.ts";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+
+/**
+ * A translator editing a catalog — which is what every test here is about.
+ *
+ * These used to fire the hot-update hook without touching the file, after
+ * clearing `writingFiles` by hand. What reached the hook was then the
+ * compiler's *own* flush coming back, and the invalidations they assert were
+ * the compiler chasing its own write. The hook now recognises that by content
+ * and declines it, so the edit has to be real.
+ */
+async function handEdit(compiler: any, catalogPath: string) {
+  const current = JSON.parse(await readFile(catalogPath, "utf-8"));
+  const [key] = Object.keys(current);
+  if (key) current[key] = `${String(current[key] ?? "")} (edited)`;
+  await writeFile(catalogPath, JSON.stringify(current, null, 2), "utf-8");
+  compiler.io.writingFiles.clear();
+}
 
 describe("Catalog HMR Integration", () => {
   let ctx: Awaited<ReturnType<typeof createZintlContext>>;
@@ -32,10 +50,10 @@ describe("Catalog HMR Integration", () => {
     const filePath = join(root, "src/main.ts");
     await compiler.transform(code, filePath);
     await compiler.flush();
-    compiler.io.writingFiles.clear();
 
     const catalogPath = compiler.catalog.getCatalogPath("src/main", "ar");
     expect(await compiler.io.exists(catalogPath)).toBe(true);
+    await handEdit(compiler, catalogPath);
 
     // 2. Setup mock module graph with multiplexed variant
     const mockModule = { id: "/src/main.ts?zintl-multiplex=ar", file: filePath };
@@ -96,10 +114,10 @@ describe("Catalog HMR Integration", () => {
     const filePath = join(root, "src/main.ts");
     await compiler.transform(code, filePath);
     await compiler.flush();
-    compiler.io.writingFiles.clear();
 
     const catalogPath = compiler.catalog.getCatalogPath("src/main", "ar");
     expect(await compiler.io.exists(catalogPath)).toBe(true);
+    await handEdit(compiler, catalogPath);
 
     // 2. Setup mock module graph
     const mockModule = { id: "/src/main.ts?zintl-multiplex=ar", file: filePath };
@@ -176,10 +194,10 @@ describe("Catalog HMR Integration", () => {
     await compiler.transform(mainCode, mainPath);
     await compiler.transform(appCode, appPath);
     await compiler.flush();
-    compiler.io.writingFiles.clear();
 
     const catalogPath = compiler.catalog.getCatalogPath("src/App.tsx:App", "ar");
     expect(await compiler.io.exists(catalogPath)).toBe(true);
+    await handEdit(compiler, catalogPath);
 
     // 2. Setup mock module graph
     const mockAppMod = { id: "/src/App.tsx", file: appPath };

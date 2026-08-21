@@ -34,7 +34,25 @@ export class ViteUpdateApplier implements HostUpdateApplier {
     private readonly server: ViteDevServer,
   ) {}
 
+  /**
+   * Recorded, because "who reloaded the page" is a question the diagnosis could
+   * not answer.
+   *
+   * A `full-reload` packet in the ledger might be Zintl's — `plan.fullReload` —
+   * or Vite's own, sent when an update propagates to a module with no accepting
+   * boundary. Those call for opposite fixes, and telling them apart used to mean
+   * reasoning from packet counts. It matters most in exactly the case that is
+   * hardest to read: a reload issued while the app does not compile leaves a
+   * page with no runtime and no module registered for the entry, so the next hot
+   * update has nothing left to accept it.
+   */
   sendFullReload(): void {
+    this.ctx.hmrTrace.push({
+      ts: Date.now(),
+      kind: "reload",
+      file: "(full-reload)",
+      reason: "requested by Zintl (plan.fullReload)",
+    });
     this.server.ws.send({ type: "full-reload", path: "*" });
   }
 
@@ -256,8 +274,40 @@ export class ViteUpdateApplier implements HostUpdateApplier {
               normalizedIdNoExt === relPathNoExt ||
               normalizedIdNoExt.endsWith(fileIdNoExt)));
 
+        /**
+         * A repoint that only strips an extension is not a repair.
+         *
+         * `fileId` comes from the boundary graph, and `getNormalizedId` strips
+         * `.ts`/`.js` from a boundary id — so the boundary for `src/main.ts` is
+         * `src/main`, and `absFileId` is `<root>/src/main`, a path no file has.
+         * Repointing the module there moves it off its real path in
+         * `fileToModulesMap`, and Vite can no longer reach it from the file that
+         * changed.
+         *
+         * Which is ledger L-023's unexamined hypothesis, and the trace says it
+         * plainly. `syntax-recovery` on `vanilla-spa-basic`, breaking edit then
+         * recovery edit, same file:
+         *
+         * ```
+         * enter src/main.ts seq=…181002 modules=1 bytes=3526
+         * repoint "src/main.ts" src/main.ts → src/main (boundary=src/main:render)
+         * enter src/main.ts seq=…187589 modules=0 bytes=3498
+         * ```
+         *
+         * `modules=0` on the recovery is the whole failure: Vite's own
+         * `onFileChange` finds nothing for the path, so its transform cache for
+         * `/src/main.ts` is never dropped, the browser is served the broken
+         * module (500), and the page ends up empty with no Zintl runtime.
+         *
+         * Compared without I/O rather than with `existsSync`: this runs inside a
+         * scan over the whole module graph, and "the two differ only by the
+         * extension the module already has" is the exact case, not a proxy for
+         * it.
+         */
+        const stripsOwnExtension = !!mod.file && mod.file.replace(/\.[^/.]+$/, "") === absFileId;
+
         if (isMatch && !id.includes("virtual:zintl")) {
-          if (mod.file !== absFileId) {
+          if (mod.file !== absFileId && !stripsOwnExtension) {
             /**
              * The load-bearing entry for 027 §2.4 / ledger L-023's unexamined
              * hypothesis: this repoints `mod.file` (and Vite's own

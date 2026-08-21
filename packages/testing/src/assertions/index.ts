@@ -251,6 +251,8 @@ export class LabAssertions {
                     return `    skip-ineligible ${e.file}`;
                   case "watch":
                     return `    watch ${e.file} → ${e.reason ?? "(no reason recorded)"}`;
+                  case "reload":
+                    return `    reload → ${e.reason ?? "(no reason recorded)"}`;
                   case "enter":
                     /**
                      * `modules` is Vite-shaped — its hook hands over a module
@@ -305,13 +307,32 @@ export class LabAssertions {
         if (!closed && all.length > 0) {
           lines.push(
             `last console lines:\n${all
-              .slice(-4)
+              .slice(-40)
               .map((m: { type: string; text: string }) => `    [${m.type}] ${m.text.slice(0, 120)}`)
               .join("\n")}`,
           );
         }
       } catch {
         lines.push("page liveness: unavailable");
+      }
+
+      try {
+        const reqs: ReadonlyArray<{ url: string; status?: number }> =
+          this.lab.network?.requests ?? [];
+        const notable = reqs.filter((r) => r.status === undefined || r.status >= 400);
+        lines.push(
+          notable.length === 0
+            ? "network: no failed or unanswered requests"
+            : `network (failed/unanswered), last 15:\n` +
+                notable
+                  .slice(-15)
+                  .map((r) => `    ${r.status ?? "PENDING"} ${r.url}`)
+                  .join("\n"),
+        );
+        const tail = reqs.slice(-12).map((r) => `    ${r.status ?? "PENDING"} ${r.url}`);
+        lines.push(`network tail:\n${tail.join("\n")}`);
+      } catch {
+        lines.push("network: unavailable");
       }
 
       try {
