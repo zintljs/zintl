@@ -1,6 +1,8 @@
 //#region \0virtual:zintl/content/zh/entry:b_ae1e7cbb2f74
 var catalog = {
 	"b_ae1e7cbb2f74": {
+		"ccbc33a4": "TypeScript 图标",
+		"3473a536": "Vite 图标",
 		"90e40d50": "开始使用",
 		"e2aae512": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
 		"9e9cf322": "文档",

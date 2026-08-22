@@ -34,6 +34,19 @@ export {
 } from "./presets/react.js";
 export { vueExtractionFacet, vueCodegenFacet, vueFacet } from "./presets/vue.js";
 export {
+  preactExtractionFacet,
+  preactCodegenFacet,
+  preactRuntimeFacet,
+  preactFacet,
+} from "./presets/preact.js";
+export {
+  solidExtractionFacet,
+  solidCodegenFacet,
+  solidRuntimeFacet,
+  solidFacet,
+} from "./presets/solid.js";
+export { litExtractionFacet, litCodegenFacet, litRuntimeFacet, litFacet } from "./presets/lit.js";
+export {
   svelteExtractionFacet,
   svelteCodegenFacet,
   svelteRuntimeFacet,
@@ -57,6 +70,9 @@ export { assetsFacet } from "./presets/assets.js";
 // problem described above — that applies only to the core capability types.
 export type { VanillaFacetOptions } from "./presets/vanilla.js";
 export type { ReactFacetOptions } from "./presets/react.js";
+export type { PreactFacetOptions } from "./presets/preact.js";
+export type { SolidFacetOptions } from "./presets/solid.js";
+export type { LitFacetOptions } from "./presets/lit.js";
 export type { VueFacetOptions } from "./presets/vue.js";
 export type { SvelteFacetOptions } from "./presets/svelte.js";
 export type { HtmlExtractionOptions, HtmlFacetOptions, HtmlManager } from "./presets/html.js";

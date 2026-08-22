@@ -1,0 +1,22 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_f1bc61690f0b from "virtual:zintl/manager/none/entry:b_f1bc61690f0b";
+/* @refresh reload */
+import { render } from "solid-js/web";
+
+import "./index.css";
+import App from "./App.tsx";
+
+/**
+ * The solid-ts template renders immediately. The only addition is the trust
+ * anchor: `zintl(lang)` is awaited first, so the tree is never painted
+ * untranslated.
+ */
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_f1bc61690f0b"]: _zintl_mgr_b_f1bc61690f0b.loader } }));
+
+  const root = document.getElementById("root");
+  render(() => <App />, root!);
+}
+
+void bootstrap();

@@ -914,6 +914,8 @@ var entry_b_f0c6267f2b46_default = {
 	loader: (locale) => {
 		switch (locale) {
 			case "en": return { "b_f0c6267f2b46": {
+				"ccbc33a4": "TypeScript logo",
+				"3473a536": "Vite logo",
 				"90e40d50": "Get started",
 				"e2aae512": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
 				"9e9cf322": "Documentation",
@@ -1084,8 +1086,14 @@ async function _zintl_raw_render(_url) {
     <section id="center">
       <div class="hero">
         <img src="${hero_default}" class="base" width="170" height="179" />
-        <img src="${typescript_default}" class="framework" alt="TypeScript logo" />
-        <img src="${vite_default}" class="vite" alt="Vite logo" />
+        <img src="${typescript_default}" class="framework" alt="${_t("ccbc33a4", {
+		_mgr: entry_b_f0c6267f2b46_default,
+		_bId: "b_f0c6267f2b46"
+	})}" />
+        <img src="${vite_default}" class="vite" alt="${_t("3473a536", {
+		_mgr: entry_b_f0c6267f2b46_default,
+		_bId: "b_f0c6267f2b46"
+	})}" />
       </div>
       <div>
         <h1>${_t("90e40d50", {

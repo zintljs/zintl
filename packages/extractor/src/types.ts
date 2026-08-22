@@ -217,6 +217,16 @@ export interface Transform {
 export type TargetDescriptor =
   | `jsx:*:${string}`
   | `jsx:${string}:${string}`
+  /**
+   * The contents of a template literal tagged with this identifier are markup.
+   *
+   * `tag:html` reads Lit's ``html`<p>Hello</p>` ``, but nothing here is Lit:
+   * "a tagged template holds markup" is a structural fact about the syntax, and
+   * htm, uhtml and any other tagged-template library get it for the same
+   * declaration. What makes it *Lit* support is a facet naming the tag, which is
+   * where framework knowledge belongs.
+   */
+  | `tag:${string}`
   | `dom:prop:${string}`
   | `dom:attr:${string}`
   | `obj:field:${string}`
@@ -265,6 +275,8 @@ export interface CompiledExtractionState {
   jsxAttributes: Set<string>;
   jsxElementAttributes: Map<string, Set<string>>;
   domProperties: Set<string>;
+  /** Identifiers whose tagged template literals hold markup — see `tag:`. */
+  taggedTemplates: Set<string>;
   objectFields: Set<string>;
   htmlAttributes: Set<string>;
   plugins: TargetPlugin[];
@@ -272,6 +284,7 @@ export interface CompiledExtractionState {
   uniqueHints: string[];
   fastPathRegex: RegExp;
   hasDomSinks: boolean;
+  hasTaggedTemplateSinks: boolean;
   hasJsxSinks: boolean;
   sfcRules: SfcRule[];
   suppressionRules: SuppressionRule[];

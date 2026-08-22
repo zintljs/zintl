@@ -1,0 +1,550 @@
+import { r as _t, t as entry_b_aafcf9c6fe16_default } from "./index.js";
+import { a as html, c as css, i as LitElement, n as property, o as noChange, r as customElement, s as nothing, t as __decorate } from "./decorate.js";
+//#region node_modules/.pnpm/lit-html@3.3.3/node_modules/lit-html/development/directive.js
+/**
+* @license
+* Copyright 2017 Google LLC
+* SPDX-License-Identifier: BSD-3-Clause
+*/
+var PartType = {
+	ATTRIBUTE: 1,
+	CHILD: 2,
+	PROPERTY: 3,
+	BOOLEAN_ATTRIBUTE: 4,
+	EVENT: 5,
+	ELEMENT: 6
+};
+/**
+* Creates a user-facing directive function from a Directive class. This
+* function has the same parameters as the directive's render() method.
+*/
+var directive = (c) => (...values) => ({
+	["_$litDirective$"]: c,
+	values
+});
+/**
+* Base class for creating custom directives. Users should extend this class,
+* implement `render` and/or `update`, and then pass their subclass to
+* `directive`.
+*/
+var Directive = class {
+	constructor(_partInfo) {}
+	get _$isConnected() {
+		return this._$parent._$isConnected;
+	}
+	/** @internal */
+	_$initialize(part, parent, attributeIndex) {
+		this.__part = part;
+		this._$parent = parent;
+		this.__attributeIndex = attributeIndex;
+	}
+	/** @internal */
+	_$resolve(part, props) {
+		return this.update(part, props);
+	}
+	update(_part, props) {
+		return this.render(...props);
+	}
+};
+//#endregion
+//#region node_modules/.pnpm/lit-html@3.3.3/node_modules/lit-html/development/directives/unsafe-html.js
+/**
+* @license
+* Copyright 2017 Google LLC
+* SPDX-License-Identifier: BSD-3-Clause
+*/
+var HTML_RESULT = 1;
+var UnsafeHTMLDirective = class extends Directive {
+	constructor(partInfo) {
+		super(partInfo);
+		this._value = nothing;
+		if (partInfo.type !== PartType.CHILD) throw new Error(`${this.constructor.directiveName}() can only be used in child bindings`);
+	}
+	render(value) {
+		if (value === nothing || value == null) {
+			this._templateResult = void 0;
+			return this._value = value;
+		}
+		if (value === noChange) return value;
+		if (typeof value != "string") throw new Error(`${this.constructor.directiveName}() called with a non-string value`);
+		if (value === this._value) return this._templateResult;
+		this._value = value;
+		const strings = [value];
+		strings.raw = strings;
+		return this._templateResult = {
+			["_$litType$"]: this.constructor.resultType,
+			strings,
+			values: []
+		};
+	}
+};
+UnsafeHTMLDirective.directiveName = "unsafeHTML";
+UnsafeHTMLDirective.resultType = HTML_RESULT;
+/**
+* Renders the result as HTML, rather than text.
+*
+* The values `undefined`, `null`, and `nothing`, will all result in no content
+* (empty string) being rendered.
+*
+* Note, this is unsafe to use with any user-provided input that hasn't been
+* sanitized or escaped, as it may lead to cross-site-scripting
+* vulnerabilities.
+*/
+var unsafeHTML = directive(UnsafeHTMLDirective);
+//#endregion
+//#region examples/lit-basic/src/assets/lit.svg
+var lit_default = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20aria-hidden='true'%20role='img'%20class='iconify%20iconify--logos'%20width='25.6'%20height='32'%20preserveAspectRatio='xMidYMid%20meet'%20viewBox='0%200%20256%20320'%3e%3cpath%20fill='%2300E8FF'%20d='m64%20192l25.926-44.727l38.233-19.114l63.974%2063.974l10.833%2061.754L192%20320l-64-64l-38.074-25.615z'%3e%3c/path%3e%3cpath%20fill='%23283198'%20d='M128%20256V128l64-64v128l-64%2064ZM0%20256l64%2064l9.202-60.602L64%20192l-37.542%2023.71L0%20256Z'%3e%3c/path%3e%3cpath%20fill='%23324FFF'%20d='M64%20192V64l64-64v128l-64%2064Zm128%20128V192l64-64v128l-64%2064ZM0%20256V128l64%2064l-64%2064Z'%3e%3c/path%3e%3cpath%20fill='%230FF'%20d='M64%20320V192l64%2064z'%3e%3c/path%3e%3c/svg%3e";
+//#endregion
+//#region examples/lit-basic/src/assets/vite.svg
+var vite_default = "/assets/vite-BF8QNONU.svg";
+//#endregion
+//#region examples/lit-basic/src/assets/hero.png
+var hero_default = "/assets/hero-CLDdwZDr.png";
+//#endregion
+//#region examples/lit-basic/src/my-element.ts
+var MyElement = class MyElement extends LitElement {
+	constructor(..._args) {
+		super(..._args);
+		this.count = 0;
+	}
+	render() {
+		return html`
+      <section id="center">
+        <div class="hero">
+          <img src=${hero_default} class="base" width="170" height="179" alt="" />
+          <img src=${lit_default} class="framework" alt="${_t("cadb7719", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}" />
+          <img src=${vite_default} class="vite" alt="${_t("3473a536", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}" />
+        </div>
+        <div>
+          <slot></slot>
+          <p>
+            ${unsafeHTML(_t("da6822c3", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a",
+			_tags: [{
+				"alias": "code",
+				"originalOpen": "<code>",
+				"tagName": "code"
+			}]
+		}))}
+          </p>
+        </div>
+        <button type="button" class="counter" @click=${this._onClick} part="button">
+          ${_t("aa624128", { count: this.count }, {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}
+        </button>
+      </section>
+
+      <div class="ticks"></div>
+
+      <section id="next-steps">
+        <div id="docs">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>${_t("9e9cf322", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}</h2>
+          <p>${_t("d0f7666b", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">
+                <img class="logo" src=${vite_default} alt="" />
+                ${_t("e49cb0ee", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}
+              </a>
+            </li>
+            <li>
+              <a href="https://lit.dev/" target="_blank">
+                <img class="button-icon" src=${lit_default} alt="" />
+                ${_t("824d76b1", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg class="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>${_t("65ac13a7", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}</h2>
+          <p>${_t("15545bc4", {
+			_mgr: entry_b_aafcf9c6fe16_default,
+			_bId: "b_d602f1d7fa4a"
+		})}</p>
+          <!-- @zintl-ignore -->
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg class="button-icon" role="presentation" aria-hidden="true">
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="ticks"></div>
+      <section id="spacer"></section>
+    `;
+	}
+	_onClick() {
+		this.count++;
+	}
+	static {
+		this.styles = css`
+    :host {
+      --text: #6b6375;
+      --text-h: #08060d;
+      --bg: #fff;
+      --border: #e5e4e7;
+      --code-bg: #f4f3ec;
+      --accent: #aa3bff;
+      --accent-bg: rgba(170, 59, 255, 0.1);
+      --accent-border: rgba(170, 59, 255, 0.5);
+      --social-bg: rgba(244, 243, 236, 0.5);
+      --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+      --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+      --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+      --mono: ui-monospace, Consolas, monospace;
+
+      font: 18px/145% var(--sans);
+      letter-spacing: 0.18px;
+
+      width: 1126px;
+      max-width: 100%;
+      margin: 0 auto;
+      text-align: center;
+      border-inline: 1px solid var(--border);
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      color: var(--text);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        --text: #9ca3af;
+        --text-h: #f3f4f6;
+        --bg: #16171d;
+        --border: #2e303a;
+        --code-bg: #1f2028;
+        --accent: #c084fc;
+        --accent-bg: rgba(192, 132, 252, 0.15);
+        --accent-border: rgba(192, 132, 252, 0.5);
+        --social-bg: rgba(47, 48, 58, 0.5);
+        --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+      }
+
+      #social .button-icon {
+        filter: invert(1) brightness(2);
+      }
+    }
+
+    h1,
+    h2,
+    ::slotted(h1),
+    ::slotted(h2) {
+      font-family: var(--heading);
+      font-weight: 500;
+      color: var(--text-h);
+    }
+
+    h1,
+    ::slotted(h1) {
+      font-size: 56px;
+      letter-spacing: -1.68px;
+      margin: 32px 0;
+    }
+
+    h2 {
+      font-size: 24px;
+      line-height: 118%;
+      letter-spacing: -0.24px;
+      margin: 0 0 8px;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 15px;
+      line-height: 135%;
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--text-h);
+      background: var(--code-bg);
+    }
+
+    .counter {
+      font-family: var(--mono);
+      font-size: 16px;
+      display: inline-flex;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: var(--accent);
+      background: var(--accent-bg);
+      border: 2px solid transparent;
+      transition: border-color 0.3s;
+      margin-bottom: 24px;
+      cursor: pointer;
+    }
+
+    .counter:hover {
+      border-color: var(--accent-border);
+    }
+
+    .counter:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .hero {
+      position: relative;
+    }
+
+    .hero .base,
+    .hero .framework,
+    .hero .vite {
+      inset-inline: 0;
+      margin: 0 auto;
+    }
+
+    .hero .base {
+      width: 170px;
+      position: relative;
+      z-index: 0;
+    }
+
+    .hero .framework,
+    .hero .vite {
+      position: absolute;
+    }
+
+    .hero .framework {
+      z-index: 1;
+      top: 34px;
+      height: 28px;
+      transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
+    }
+
+    .hero .vite {
+      z-index: 0;
+      top: 107px;
+      height: 26px;
+      width: auto;
+      color: var(--vite-logo);
+      transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
+    }
+
+    #center {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      place-content: center;
+      place-items: center;
+      flex-grow: 1;
+    }
+
+    #next-steps {
+      display: flex;
+      border-top: 1px solid var(--border);
+      text-align: left;
+    }
+
+    #next-steps > div {
+      flex: 1 1 0;
+      padding: 32px;
+    }
+
+    #next-steps .icon {
+      margin-bottom: 16px;
+      width: 22px;
+      height: 22px;
+    }
+
+    #docs {
+      border-right: 1px solid var(--border);
+    }
+
+    #next-steps ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      gap: 8px;
+      margin: 32px 0 0;
+    }
+
+    #next-steps ul .logo {
+      height: 18px;
+    }
+
+    #next-steps ul .logo svg {
+      height: 100%;
+      width: auto;
+    }
+
+    #next-steps ul a {
+      color: var(--text-h);
+      font-size: 16px;
+      border-radius: 6px;
+      background: var(--social-bg);
+      display: flex;
+      padding: 6px 12px;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: box-shadow 0.3s;
+    }
+
+    #next-steps ul a:hover {
+      box-shadow: var(--shadow);
+    }
+
+    #next-steps ul .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+
+    #spacer {
+      height: 88px;
+      border-top: 1px solid var(--border);
+    }
+
+    .ticks {
+      position: relative;
+      width: 100%;
+    }
+
+    .ticks::before,
+    .ticks::after {
+      content: "";
+      position: absolute;
+      top: -4.5px;
+      border: 5px solid transparent;
+    }
+
+    .ticks::before {
+      left: 0;
+      border-left-color: var(--border);
+    }
+
+    .ticks::after {
+      right: 0;
+      border-right-color: var(--border);
+    }
+
+    @media (max-width: 1024px) {
+      :host {
+        font-size: 16px;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      h1,
+      ::slotted(h1) {
+        font-size: 36px;
+        margin: 20px 0;
+      }
+
+      h2,
+      ::slotted(h2) {
+        font-size: 20px;
+      }
+
+      #center {
+        padding: 32px 20px 24px;
+        gap: 18px;
+      }
+
+      #next-steps {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      #next-steps > div {
+        padding: 24px 20px;
+      }
+
+      #docs {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #next-steps ul {
+        margin-top: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      #next-steps ul li {
+        flex: 1 1 calc(50% - 8px);
+      }
+
+      #next-steps ul a {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+
+      #spacer {
+        height: 48px;
+      }
+    }
+  `;
+	}
+};
+__decorate([property({ type: Number })], MyElement.prototype, "count", void 0);
+MyElement = __decorate([customElement("my-element")], MyElement);
+//#endregion
+export { MyElement };

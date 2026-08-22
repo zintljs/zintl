@@ -1,0 +1,10 @@
+const catalog = {
+    "b_src_app_root": {
+      "Get started": "البدء",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "عدل <code>src/index.ts</code> واحفظه لاختبار <code>HMR</code>",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["ar"]: catalog }, 0);
+}
+export default catalog;

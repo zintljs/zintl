@@ -1,5 +1,7 @@
 const catalog = {
     "b_src_main_render": {
+      "TypeScript logo": "TypeScript 图标",
+      "Vite logo": "Vite 图标",
       "Get started": "开始使用",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/main.ts</code> 并保存以测试 <code>HMR</code>",
       "Documentation": "文档",

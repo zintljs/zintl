@@ -65,12 +65,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -152,12 +161,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -237,12 +255,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -324,16 +351,417 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
+`;
+
+exports[`resolved facet composition per example > lit-basic (client) 1`] = `
+"frameworks: lit
+bundler: vite
+ssr: false
+
+facets (resolution order):
+  lit-extraction  [extraction]  priority=100
+  lit-codegen  [codegen]  priority=100
+  lit-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  repaintsOnCatalogUpdate: false
+  serverRequestScope: false
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 25
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: lit-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: lit)
+  ✗ react-codegen                when.framework=react ✗ (detected: lit)
+  ✗ react-runtime                when.framework=react ✗ (detected: lit)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: lit)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: lit)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: lit)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: lit)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: lit)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: lit)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: lit)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: lit)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: lit)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: lit)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: lit)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: lit)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: lit)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: lit)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: lit)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ lit-extraction               framework=lit ✓
+  ✓ lit-codegen                  framework=lit ✓
+  ✓ lit-runtime                  framework=lit ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
+`;
+
+exports[`resolved facet composition per example > lit-basic (ssr) 1`] = `
+"frameworks: lit
+bundler: vite
+ssr: true
+
+facets (resolution order):
+  lit-extraction  [extraction]  priority=100
+  lit-codegen  [codegen]  priority=100
+  lit-runtime  [runtime]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: false
+  jsxRichText: false
+  localeRouting: true
+  repaintsOnCatalogUpdate: false
+  serverRequestScope: true
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .mjs, .mts, .ts
+  targets: 25
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: lit-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: lit)
+  ✗ react-codegen                when.framework=react ✗ (detected: lit)
+  ✗ react-runtime                when.framework=react ✗ (detected: lit)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: lit)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: lit)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: lit)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: lit)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: lit)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: lit)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: lit)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: lit)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: lit)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: lit)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: lit)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: lit)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: lit)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: lit)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: lit)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ lit-extraction               framework=lit ✓
+  ✓ lit-codegen                  framework=lit ✓
+  ✓ lit-runtime                  framework=lit ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
+`;
+
+exports[`resolved facet composition per example > preact-basic (client) 1`] = `
+"frameworks: preact
+bundler: vite
+ssr: false
+
+facets (resolution order):
+  preact-extraction  [extraction]  priority=100
+  preact-codegen  [codegen]  priority=100
+  preact-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  repaintsOnCatalogUpdate: true
+  serverRequestScope: false
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: preact-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: preact)
+  ✗ react-codegen                when.framework=react ✗ (detected: preact)
+  ✗ react-runtime                when.framework=react ✗ (detected: preact)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: preact)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: preact)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: preact)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: preact)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: preact)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: preact)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: preact)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: preact)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: preact)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: preact)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: preact)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: preact)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: preact)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: preact)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: preact)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ preact-extraction            framework=preact ✓
+  ✓ preact-codegen               framework=preact ✓
+  ✓ preact-runtime               framework=preact ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
+`;
+
+exports[`resolved facet composition per example > preact-basic (ssr) 1`] = `
+"frameworks: preact
+bundler: vite
+ssr: true
+
+facets (resolution order):
+  preact-extraction  [extraction]  priority=100
+  preact-codegen  [codegen]  priority=100
+  preact-runtime  [runtime]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: true
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  repaintsOnCatalogUpdate: true
+  serverRequestScope: true
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: preact-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: preact)
+  ✗ react-codegen                when.framework=react ✗ (detected: preact)
+  ✗ react-runtime                when.framework=react ✗ (detected: preact)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: preact)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: preact)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: preact)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: preact)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: preact)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: preact)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: preact)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: preact)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: preact)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: preact)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: preact)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: preact)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: preact)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: preact)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: preact)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ preact-extraction            framework=preact ✓
+  ✓ preact-codegen               framework=preact ✓
+  ✓ preact-runtime               framework=preact ✓
   ✓ ssr-wrapping                 ssr=true ✓
   ✓ ssr-runtime                  ssr=true ✓
   ✓ client-spa                   unconditional
@@ -409,12 +837,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -499,12 +936,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -587,12 +1033,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -677,12 +1132,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -765,12 +1229,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -855,12 +1328,21 @@ ssr:
   wrapDefault: undefined
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: react)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: react)
@@ -946,9 +1428,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -1036,9 +1527,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -1121,12 +1621,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1208,12 +1717,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1293,12 +1811,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1380,12 +1907,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1465,12 +2001,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1552,12 +2097,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -1640,9 +2194,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -1730,9 +2293,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -1818,9 +2390,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -1908,9 +2489,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -1996,9 +2586,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -2086,9 +2685,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -2104,6 +2712,202 @@ activation trace:
   ✓ system-html-projection       unconditional
   ✓ system-static-assets         unconditional
   ✓ rspack                       bundler=rspack ✓"
+`;
+
+exports[`resolved facet composition per example > solid-basic (client) 1`] = `
+"frameworks: solid
+bundler: vite
+ssr: false
+
+facets (resolution order):
+  solid-extraction  [extraction]  priority=100
+  solid-codegen  [codegen]  priority=100
+  solid-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  repaintsOnCatalogUpdate: true
+  serverRequestScope: false
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: false
+  streaming: false
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: solid-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: (none)
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: absent
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: solid)
+  ✗ react-codegen                when.framework=react ✗ (detected: solid)
+  ✗ react-runtime                when.framework=react ✗ (detected: solid)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: solid)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: solid)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: solid)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: solid)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: solid)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: solid)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: solid)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: solid)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: solid)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: solid)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: solid)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: solid)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: solid)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: solid)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: solid)
+  ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
+  ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ solid-extraction             framework=solid ✓
+  ✓ solid-codegen                framework=solid ✓
+  ✓ solid-runtime                framework=solid ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
+`;
+
+exports[`resolved facet composition per example > solid-basic (ssr) 1`] = `
+"frameworks: solid
+bundler: vite
+ssr: true
+
+facets (resolution order):
+  solid-extraction  [extraction]  priority=100
+  solid-codegen  [codegen]  priority=100
+  solid-runtime  [runtime]  priority=100
+  ssr-wrapping  [ssr]  priority=100
+  ssr-runtime  [runtime]  priority=100
+  client-spa  [runtime]  priority=100
+  vanilla-extraction  [extraction]  priority=100
+  html-extraction  [extraction]  priority=100
+  system-html-projection  [content]  priority=100
+  system-static-assets  [content]  priority=100
+  vite  [bundler]  priority=100
+
+flags:
+  absorbsStructuralChange: true
+  clientLocaleSync: true
+  dependencyInvalidation: false
+  entryReexecutionSafe: false
+  hmr: true
+  hotUpdate: true
+  htmlFanOut: true
+  jsx: true
+  jsxRichText: true
+  localeRouting: true
+  repaintsOnCatalogUpdate: true
+  serverRequestScope: true
+  sfc: false
+  sfcBlockRequestsCarryWholeFile: false
+  ssr: true
+  streaming: true
+
+extraction:
+  extensions: .html, .js, .jsx, .mjs, .mts, .ts, .tsx
+  targets: 33
+  sfcRules: 0
+  suppressionRules: 0
+  mustacheRules: 0
+  codegenFacets: solid-codegen
+
+single-provider hooks — declared by (winner first):
+  wrapCode: ssr-wrapping
+  resolveVirtualPath: vite
+  isVirtualId: vite
+  dynamicImportTemplate: vite
+  hmrInjectionCode: vite
+  hmrSelfAcceptCode: vite
+  detectLocale: (none)
+
+single-provider hooks — resolved on the system view:
+  ssrWrapCode: present
+  resolveVirtualPath: present
+  isVirtualId: present
+  dynamicImportTemplate: present
+  hmrInjectionCode: present
+  hmrSelfAcceptCode: present
+
+ssr:
+  entryTargets: 0
+  wrapExports: (none)
+  wrapDefault: undefined
+
+activation trace:
+  ✗ react-extraction             when.framework=react ✗ (detected: solid)
+  ✗ react-codegen                when.framework=react ✗ (detected: solid)
+  ✗ react-runtime                when.framework=react ✗ (detected: solid)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: solid)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: solid)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: solid)
+  ✗ vue-extraction               when.framework=vue ✗ (detected: solid)
+  ✗ vue-codegen                  when.framework=vue ✗ (detected: solid)
+  ✗ vue-runtime                  when.framework=vue ✗ (detected: solid)
+  ✗ svelte-extraction            when.framework=svelte ✗ (detected: solid)
+  ✗ svelte-codegen               when.framework=svelte ✗ (detected: solid)
+  ✗ svelte-runtime               when.framework=svelte ✗ (detected: solid)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: solid)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: solid)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: solid)
+  ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: solid)
+  ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: solid)
+  ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: solid)
+  ✗ rspack                       when.bundler=rspack ✗ (host: vite)
+  ✓ solid-extraction             framework=solid ✓
+  ✓ solid-codegen                framework=solid ✓
+  ✓ solid-runtime                framework=solid ✓
+  ✓ ssr-wrapping                 ssr=true ✓
+  ✓ ssr-runtime                  ssr=true ✓
+  ✓ client-spa                   unconditional
+  ✓ vanilla-extraction           unconditional
+  ✓ html-extraction              unconditional
+  ✓ system-html-projection       unconditional
+  ✓ system-static-assets         unconditional
+  ✓ vite                         bundler=vite ✓"
 `;
 
 exports[`resolved facet composition per example > svelte-basic (client) 1`] = `
@@ -2174,9 +2978,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2264,9 +3077,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2352,9 +3174,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2442,9 +3273,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: svelte)
   ✗ react-codegen                when.framework=react ✗ (detected: svelte)
   ✗ react-runtime                when.framework=react ✗ (detected: svelte)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: svelte)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: svelte)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: svelte)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: svelte)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: svelte)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: svelte)
   ✗ vue-extraction               when.framework=vue ✗ (detected: svelte)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: svelte)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: svelte)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: svelte)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: svelte)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: svelte)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: svelte)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: svelte)
@@ -2527,12 +3367,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -2614,12 +3463,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -2699,12 +3557,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -2786,12 +3653,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -2871,12 +3747,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -2958,12 +3843,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3043,12 +3937,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3130,12 +4033,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3215,12 +4127,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3302,12 +4223,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3387,12 +4317,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3474,12 +4413,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3559,12 +4507,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3646,12 +4603,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -3733,12 +4699,21 @@ ssr:
   wrapDefault: fetch
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react, nextjs)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react, nextjs)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react, nextjs)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react, nextjs)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react, nextjs)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react, nextjs)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react, nextjs)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react, nextjs)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react, nextjs)
   ✗ ssr-wrapping                 when.ssr=true ✗ (project: false)
   ✗ ssr-runtime                  when.ssr=true ✗ (project: false)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
@@ -3823,12 +4798,21 @@ ssr:
   wrapDefault: fetch
 
 activation trace:
+  ✗ preact-extraction            when.framework=preact ✗ (detected: react, nextjs)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: react, nextjs)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: react, nextjs)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: react, nextjs)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: react, nextjs)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: react, nextjs)
   ✗ vue-extraction               when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: react, nextjs)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: react, nextjs)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: react, nextjs)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: react, nextjs)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: react, nextjs)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: react, nextjs)
   ✗ rspack                       when.bundler=rspack ✗ (host: vite)
   ✓ react-extraction             framework=react ✓
   ✓ react-codegen                framework=react ✓
@@ -3914,9 +4898,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4004,9 +4997,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4092,9 +5094,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4182,9 +5193,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4270,9 +5290,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4360,9 +5389,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4448,9 +5486,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4538,9 +5585,18 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: vue)
   ✗ react-codegen                when.framework=react ✗ (detected: vue)
   ✗ react-runtime                when.framework=react ✗ (detected: vue)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: vue)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: vue)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: vue)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: vue)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: vue)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: vue)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: vue)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: vue)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: vue)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: vue)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: vue)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: vue)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: vue)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: vue)
@@ -4623,12 +5679,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)
@@ -4710,12 +5775,21 @@ activation trace:
   ✗ react-extraction             when.framework=react ✗ (detected: none)
   ✗ react-codegen                when.framework=react ✗ (detected: none)
   ✗ react-runtime                when.framework=react ✗ (detected: none)
+  ✗ preact-extraction            when.framework=preact ✗ (detected: none)
+  ✗ preact-codegen               when.framework=preact ✗ (detected: none)
+  ✗ preact-runtime               when.framework=preact ✗ (detected: none)
+  ✗ solid-extraction             when.framework=solid ✗ (detected: none)
+  ✗ solid-codegen                when.framework=solid ✗ (detected: none)
+  ✗ solid-runtime                when.framework=solid ✗ (detected: none)
   ✗ vue-extraction               when.framework=vue ✗ (detected: none)
   ✗ vue-codegen                  when.framework=vue ✗ (detected: none)
   ✗ vue-runtime                  when.framework=vue ✗ (detected: none)
   ✗ svelte-extraction            when.framework=svelte ✗ (detected: none)
   ✗ svelte-codegen               when.framework=svelte ✗ (detected: none)
   ✗ svelte-runtime               when.framework=svelte ✗ (detected: none)
+  ✗ lit-extraction               when.framework=lit ✗ (detected: none)
+  ✗ lit-codegen                  when.framework=lit ✗ (detected: none)
+  ✗ lit-runtime                  when.framework=lit ✗ (detected: none)
   ✗ nextjs-extraction            when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-ssr-wrapping          when.framework=nextjs ✗ (detected: none)
   ✗ nextjs-runtime               when.framework=nextjs ✗ (detected: none)

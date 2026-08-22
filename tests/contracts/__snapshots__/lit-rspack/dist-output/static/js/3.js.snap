@@ -1,0 +1,1785 @@
+"use strict";
+(self["rspackChunklit_rspack"] = self["rspackChunklit_rspack"] || []).push([[3], {
+1(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  addCatalogs: () => (/* reexport safe */ _store_js__rspack_import_0.addCatalogs),
+  getLocale: () => (/* reexport safe */ _store_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_js__rspack_import_0.getStoreVersion),
+  loadI18nInstance: () => (loadI18nInstance),
+  registerLoader: () => (/* reexport safe */ _store_js__rspack_import_0.registerLoader),
+  registerZintlLoader: () => (/* reexport safe */ _registry_js__rspack_import_2.registerZintlLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_js__rspack_import_0.runInRequestScope),
+  setLocale: () => (/* reexport safe */ _store_js__rspack_import_0.setLocale),
+  subscribe: () => (/* reexport safe */ _store_js__rspack_import_0.subscribe),
+  t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  unregisterZintlLoader: () => (/* reexport safe */ _store_js__rspack_import_0.unregisterLoader),
+  zintl: () => (zintl)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+/* import */ var _resolver_js__rspack_import_1 = __webpack_require__(5);
+/* import */ var _registry_js__rspack_import_2 = __webpack_require__(6);
+
+
+
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+	if (activeLocale) await (0,_store_js__rspack_import_0.setLocale)(activeLocale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new _store_js__rspack_import_0.I18nStore();
+	(0,_store_js__rspack_import_0.setActiveInstance)(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = (0,_store_js__rspack_import_0.getActiveInstance)();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = (0,_store_js__rspack_import_0.getActiveInstance)();
+			(0,_store_js__rspack_import_0.setActiveInstance)(store);
+			try {
+				return (0,_resolver_js__rspack_import_1._t)(key, params);
+			} finally {
+				(0,_store_js__rspack_import_0.setActiveInstance)(prev);
+			}
+		}
+	};
+}
+//#endregion
+
+
+
+},
+2(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (/* reexport safe */ _store_core_js__rspack_import_0.I18nStore),
+  addCatalogs: () => (/* reexport safe */ _store_core_js__rspack_import_0.addCatalogs),
+  defaultInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.defaultInstance),
+  getActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.getActiveInstance),
+  getLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_core_js__rspack_import_0.getStoreVersion),
+  globalRegistry: () => (/* reexport safe */ _store_core_js__rspack_import_0.globalRegistry),
+  isThenable: () => (/* reexport safe */ _store_core_js__rspack_import_0.isThenable),
+  registerLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.registerLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.runInRequestScope),
+  setActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.setActiveInstance),
+  setLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.setLocale),
+  setRunInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.setRunInRequestScope),
+  setStoreStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.setStoreStorage),
+  storeStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.storeStorage),
+  subscribe: () => (/* reexport safe */ _store_core_js__rspack_import_0.subscribe),
+  unregisterLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.unregisterLoader)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(3);
+/* import */ var _store_client_js__rspack_import_1 = __webpack_require__(4);
+
+
+
+
+},
+3(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (I18nStore),
+  addCatalogs: () => (addCatalogs),
+  defaultInstance: () => (defaultInstance),
+  getActiveInstance: () => (getActiveInstance),
+  getLocale: () => (getLocale),
+  getStoreVersion: () => (getStoreVersion),
+  globalRegistry: () => (globalRegistry),
+  isThenable: () => (isThenable),
+  registerLoader: () => (registerLoader),
+  runInRequestScope: () => (runInRequestScope),
+  setActiveInstance: () => (setActiveInstance),
+  setLocale: () => (setLocale),
+  setRunInRequestScope: () => (setRunInRequestScope),
+  setStoreStorage: () => (setStoreStorage),
+  storeStorage: () => (storeStorage),
+  subscribe: () => (subscribe),
+  unregisterLoader: () => (unregisterLoader)
+});
+//#region src/runtime/store-core.ts
+let storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+let runInRequestScope = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope = fn;
+}
+/**
+* Entries retained in the development ledger.
+*
+* Bounded is normative, not an optimization: the `memory-leak` contract measures
+* retained heap across twenty consecutive hot updates against a budget with only
+* a few hundred kilobytes of headroom.
+*/
+const LEDGER_LIMIT = 128;
+/**
+* Publish the settle beacon's zero on runtime startup.
+*
+* So that "the counter is absent" unambiguously means "no Zintl runtime on this
+* page", rather than the ambiguous "runtime present but nothing has settled
+* yet". A harness cannot act on a signal it cannot distinguish from silence.
+*/
+function publishBeaconZero() {
+	if (true) return;
+	// removed by dead control flow
+{}
+}
+/**
+* Record a settled envelope, and advance the settle beacon.
+*
+* The beacon is now derived from delivery outcomes rather than from `notify()`,
+* and that is the substantive change. It used to advance only when a catalog
+* value actually differed, so a redelivery carrying identical content advanced
+* nothing — making "applied, unchanged" indistinguishable from "lost", which is
+* exactly what a harness must be able to tell apart (Corollary D2a).
+*
+* Counting every terminal outcome, not just `applied`, is the point: a harness
+* asks "has the store finished with my change?", and `superseded` is a finished
+* answer. Listeners are a separate concern and still fire only on real change.
+*
+* Process-global rather than request-scoped, which is safe precisely because
+* nothing reads it except a harness driving a single page. The *ordering* state
+* that must not leak across requests lives on the store instance instead.
+*/
+function recordSettle(envelope) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+const DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) {
+			if (false) {}
+			return false;
+		}
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {
+		if (true) return;
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+	}
+};
+/**
+* Report an abandoned catalog delivery.
+*
+* Every abandonment path needs the same three things — a named outcome, the
+* subject it belongs to, and a development log — and having them in one place is
+* what stops the next one being added without them.
+*
+* A free function rather than a method on purpose. Both are development-only,
+* but once every call site folds away a free function is unreferenced and goes
+* with them, whereas a method stays on the prototype forever. The earlier
+* version was worse still: a closure allocated per load that, in production,
+* compiled to `(reason, err) => {}`.
+*/
+function reportDeliveryFailure(delivery, target, boundaryId, reason, err) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug =  false && (0);
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	/**
+	* Boundaries whose catalog has already been chased for a missing key.
+	*
+	* `_t` triggers a hydration load when it cannot find a key, and re-reads
+	* immediately so a synchronous loader satisfies the very first render. That
+	* is right once and catastrophic on repeat: when the key is genuinely absent
+	* — a deleted catalog, a key that never existed — every render triggers
+	* another load, every load can `addCatalogs`, and every `addCatalogs`
+	* notifies. With anything subscribed, that closes into a render loop.
+	*
+	* It is not hypothetical in either direction. React hit it at
+	* ~700 messages in twelve seconds (see {@link notify}, which deferred the
+	* announcement to stop the synchronous half), and Vue reproduced the
+	* steady-state half the moment its templates gained a reactive dependency:
+	* **167,280 console messages** in one `chaos-catalog` run, which deletes the
+	* catalog on purpose.
+	*
+	* One attempt per **key**, and deliberately never cleared. Clearing on
+	* catalog change was tried first and re-armed the loop precisely: the load
+	* *does* deliver the boundary — it simply does not contain this key — so
+	* `changed` is true, the set empties, and the next render claims again.
+	*
+	* Keying on the key rather than the boundary is what makes "never cleared"
+	* safe. The guard gates only the *miss* path, and a key that later arrives is
+	* no longer a miss: `_t` finds it before reaching here, so the claim it
+	* already spent is never consulted again.
+	*/
+	hydrationAttempts = /* @__PURE__ */ new Set();
+	/**
+	* Claim the single hydration attempt for one missing key.
+	*
+	* Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+	* caller loads only when it wins the claim.
+	*/
+	claimHydrationAttempt(locale, boundaryId, messageKey) {
+		const claim = locale + "/" + boundaryId + "/" + messageKey;
+		if (this.hydrationAttempts.has(claim)) return false;
+		this.hydrationAttempts.add(claim);
+		return true;
+	}
+	/** Whether an announcement is already queued for this turn — see {@link notify}. */
+	notifyScheduled = false;
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		publishBeaconZero();
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Take over the subscribers of the store this one is replacing.
+	*
+	* `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+	* module-level `defaultInstance` until something calls `setActiveInstance`.
+	* A component that renders before the entry's `zintl()` resolves therefore
+	* subscribes to *that* store, and the swap left its listener behind on an
+	* object nothing would ever notify again — measured as `listeners: 0` on the
+	* live store while React's `useSyncExternalStore` was demonstrably mounted
+	* (ledger L-068).
+	*
+	* The consequence is invisible until something arrives that only a subscriber
+	* could act on. A hot catalog update is exactly that: the store takes the new
+	* translation, `notify()` runs, and there is nobody in the set. On Vite the
+	* defect is masked because the applier re-runs the entry, which remounts the
+	* components against the current store; on Rspack nothing re-runs and the
+	* page keeps its first paint.
+	*
+	* Listeners are *moved*, not copied — the old store is being retired, and a
+	* subscriber notified twice for one change is a second bug. They are then
+	* notified once, because their snapshot has just changed underneath them by
+	* definition: they were reading a different store a moment ago.
+	*/
+	adoptListeners(previous) {
+		if (previous === this || previous.listeners.size === 0) return;
+		for (const listener of previous.listeners) this.listeners.add(listener);
+		previous.listeners.clear();
+		this.notify();
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	/**
+	* Announce that the catalogs changed — on a microtask, never in the caller's
+	* turn, and coalesced so a burst announces once.
+	*
+	* **Applying is synchronous; announcing is not, and the split is the fix for
+	* ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+	* load and re-reading it in the same expression, because a hot update
+	* registers a new loader whose catalog is available on that very tick — the
+	* manager inlines the anchor's locale, so `loadLazyBoundary` completes
+	* synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+	* it to work.
+	*
+	* What must not happen is the announcement travelling with it. `_t` runs
+	* *during render*, so a synchronous `notify()` reached
+	* `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+	* React reported the first as "Cannot update a component while rendering a
+	* different component" and then, because each re-render ran `_t` again and
+	* each `_t` announced again, "Maximum update depth exceeded" out of every
+	* subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
+	* with the renderer pinned hard enough that the page could not be evaluated
+	* at all, which is why this read as a stall rather than a loop.
+	*
+	* `version` is bumped inside the microtask rather than beside the data on
+	* purpose. It is React's snapshot, and a snapshot that moves *during* render
+	* makes React re-render to reconcile it — so bumping it synchronously would
+	* re-arm the same loop without the warning that names it. Deferring both
+	* together keeps the pair that `useSyncExternalStore` requires: when the
+	* subscriber fires, the snapshot has already moved.
+	*/
+	notify() {
+		if (this.notifyScheduled) return;
+		this.notifyScheduled = true;
+		queueMicrotask(() => {
+			this.notifyScheduled = false;
+			this.version++;
+			for (const listener of this.listeners) try {
+				listener();
+			} catch (err) {
+				if (false) {}
+			}
+		});
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		/**
+		* Corollary D2a — every boundary this call described gets an outcome, even
+		* when its content was already identical.
+		*
+		* The old code advanced nothing unless a value differed, so an idempotent
+		* redelivery and a lost one looked the same from outside. Listeners still
+		* only run on real change: a subscriber has nothing to do when nothing
+		* moved, but an observer still needs to know the store finished.
+		*
+		* Development-only (Axiom D5). These envelopes are pure observation — no
+		* ordering decision hangs on them, because nothing upstream yet stamps a
+		* catalog with a sequence to compare. Minting one per boundary on every
+		* application would be allocation in a hot path bought for nothing.
+		*/
+		if (false) {}
+		if (changed) {
+			if (false) {}
+			this.notify();
+		}
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		/**
+		* The store owns the document's locale attributes; the projection owns
+		* everything document-specific. Both run, in that order.
+		*
+		* This used to be an either/or — call `__zintlApplyHtml` if installed,
+		* otherwise set `lang` — and the branch was the bug. The projection installs
+		* itself unconditionally but only writes `dir` when the project has an RTL
+		* locale, so on every other project it took ownership of the document and
+		* then declined to finish the job, silently suppressing the fallback that
+		* would have (ledger L-019). Sequencing them removes the question: the store
+		* always says what locale it adopted, and the projection still applies the
+		* title, description and body deltas only it knows about.
+		*
+		* `dir` is set only when the project actually has direction data. Empty
+		* means "this project never spoke about direction", and asserting `"ltr"`
+		* there would start writing an attribute onto documents that never had one.
+		*/
+		if (typeof document !== "undefined" && document.documentElement) {
+			document.documentElement.lang = locale;
+			if (["ar"].length > 0) document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
+		}
+		window.__zintlApplyHtml?.(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			if (false) {}
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		if (false) {}
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) {
+			if (false) {}
+			return;
+		}
+		if (false) {}
+		if (false) {}
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) {
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				/**
+				* Publish this load so {@link loadLazyBoundary} can join it.
+				*
+				* This path used to record itself only in `pendingBoundaries`, which
+				* nothing consults before serving a catalog — so an in-flight load
+				* started *here* was invisible to a caller asking for the same boundary
+				* *there*, and that caller was handed whatever was already present.
+				*
+				* Harmless when the catalogs are empty, which is the only case that
+				* existed before hot updates reached a host that re-executes the
+				* manager and the entry independently. On such a host it is the
+				* empty-render defect: the manager re-registers, this load goes out for
+				* the new catalog, the entry re-executes and reads the old one, and
+				* every key that exists only in the new one resolves to "" — because
+				* Zintl has no source-locale fallback, by design.
+				*/
+				const subject = target + "/" + boundaryId;
+				const inFlight = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+					if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
+				});
+				this.inFlight.set(subject, inFlight);
+				return inFlight;
+			}
+			processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*
+		* Checked **before** the already-loaded test below, and the order is the
+		* fix rather than a tidy-up. A load is in flight precisely because
+		* something decided the present catalog needs replacing; serving the
+		* present one instead is choosing the older of two known states, which is
+		* the inverse of Axiom D1. The two tests only disagree while a refresh is
+		* outstanding, and that is exactly the window the empty-render defect lived
+		* in: the entry re-executed, found a stale-but-present catalog, returned in
+		* zero milliseconds, and rendered "" for every key the incoming catalog was
+		* about to supply.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		if (this.catalogs[target]?.[boundaryId]) {
+			/**
+			* Already loaded, and nothing better on the way. Named rather than
+			* returned silently (Axiom D2), so a skipped load appears in the ledger
+			* instead of looking like nothing happened.
+			*
+			* Still skips a *refresh* nobody has started — a catalog that is present
+			* and stale, with no load outstanding, cannot be re-fetched through this
+			* path. That remains true and is not a live problem: every refresh in
+			* development arrives as a load somebody did start, which the check above
+			* now joins.
+			*/
+			if (false) {}
+			return;
+		}
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) {
+				/**
+				* An empty result abandons the boundary: nothing is applied and `_t`
+				* keeps returning "" for every key bound to it, permanently, because
+				* nothing schedules a retry (ZDB §6 — retry cannot fix ordering, and
+				* would turn a loud failure into a slow one).
+				*
+				* The compiler's integrity check guarantees catalogs are complete, so
+				* reaching here means *delivery* failed, not content.
+				*/
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+			if (false) {}
+		}
+	}
+};
+let globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+let defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+let currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	const previous = currentInstance;
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+	/**
+	* Subscribers follow the active store rather than the object they happened to
+	* reach first. Without this, anything that rendered before `zintl()` resolved
+	* is subscribed to a store nothing will ever notify again — see
+	* {@link I18nStore.adoptListeners} and ledger L-068.
+	*/
+	if (previous) instance.adoptListeners(previous);
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {
+				if (false) {}
+			});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {
+		if (false) {}
+	}
+}
+function unregisterLoader(boundaryId) {
+	globalRegistry.delete(boundaryId);
+}
+function setLocale(locale) {
+	return getActiveInstance().setLocale(locale);
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function addCatalogs(catalogs, seq) {
+	return getActiveInstance().addCatalogs(catalogs, seq);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+
+
+
+},
+4(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  syncLocale: () => (syncLocale)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(3);
+
+//#region src/runtime/store-client.ts
+const syncLocale = () => {
+	const inst = (0,_store_core_js__rspack_import_0.getActiveInstance)();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+
+
+
+},
+5(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (_t)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+
+//#region src/runtime/resolver.ts
+function _t(key, params = {}, options) {
+	const instance = (0,_store_js__rspack_import_0.getActiveInstance)();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			/**
+			* One attempt per boundary between catalog changes.
+			*
+			* Re-reading immediately is what lets a synchronous loader satisfy
+			* the first render tick, and that is worth keeping. Re-*triggering*
+			* on every render is not: when the key is genuinely absent the load
+			* can never satisfy it, and each attempt announces a change that
+			* renders again. See `I18nStore.hydrationAttempts` — with a
+			* reactive framework subscribed this closes into a loop measured at
+			* six figures of console output.
+			*/
+			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) {
+			if (false) {}
+			return ``;
+		}
+	} else {
+		if (false) {}
+		return ``;
+	}
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+
+
+
+},
+6(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  registerZintlLoader: () => (registerZintlLoader)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
+
+//#region src/runtime/registry.ts
+/**
+* A helper for the Zintl compiler to register a boundary loader.
+* This is designed to be called with a minimal footprint in the transformed source.
+*/
+function registerZintlLoader(boundaryId, loader) {
+	return (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+}
+//#endregion
+
+
+
+},
+7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ({ id: "b_dd563dcb7e61", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_9d91c6c73007": {
+      "90e40d50": "Get started",
+      "822f0fb2": "Edit <code>src/index.ts</code> and save to test <code>HMR</code>",
+    },
+  };
+                case "ar":
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 30)).then(m => m.default);
+        case "es":
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 31)).then(m => m.default);
+        case "zh":
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 32)).then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] });
+
+},
+16(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  CSSResult: () => (n),
+  adoptStyles: () => (S),
+  css: () => (i),
+  getCompatibleStyle: () => (c),
+  supportsAdoptingStyleSheets: () => (e),
+  unsafeCSS: () => (r)
+});
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s=Symbol(),o=new WeakMap;class n{constructor(t,e,o){if(this._$cssResult$=!0,o!==s)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const s=this.t;if(e&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=o.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&o.set(s,t))}return t}toString(){return this.cssText}}const r=t=>new n("string"==typeof t?t:t+"",void 0,s),i=(t,...e)=>{const o=1===t.length?t[0]:e.reduce((e,s,o)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[o+1],t[0]);return new n(o,t,s)},S=(s,o)=>{if(e)s.adoptedStyleSheets=o.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of o){const o=document.createElement("style"),n=t.litNonce;void 0!==n&&o.setAttribute("nonce",n),o.textContent=e.cssText,s.appendChild(o)}},c=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r(e)})(t):t;
+//# sourceMappingURL=css-tag.js.map
+
+
+},
+25(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  desc: () => (e)
+});
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const e=(e,t,c)=>(c.configurable=!0,c.enumerable=!0,Reflect.decorate&&"object"!=typeof t&&Object.defineProperty(e,t,c),c);
+//# sourceMappingURL=base.js.map
+
+
+},
+20(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  customElement: () => (t)
+});
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t=t=>(e,o)=>{void 0!==o?o.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)};
+//# sourceMappingURL=custom-element.js.map
+
+
+},
+23(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  eventOptions: () => (t)
+});
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+function t(t){return(n,o)=>{const c="function"==typeof n?n:n[o];Object.assign(c,t)}}
+//# sourceMappingURL=event-options.js.map
+
+
+},
+21(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  property: () => (n),
+  standardProperty: () => (r)
+});
+/* import */ var _reactive_element_js__rspack_import_0 = __webpack_require__(15);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const o={attribute:!0,type:String,converter:_reactive_element_js__rspack_import_0.defaultConverter,reflect:!1,hasChanged:_reactive_element_js__rspack_import_0.notEqual},r=(t=o,e,r)=>{const{kind:n,metadata:i}=r;let s=globalThis.litPropertyMetadata.get(i);if(void 0===s&&globalThis.litPropertyMetadata.set(i,s=new Map),"setter"===n&&((t=Object.create(t)).wrapped=!0),s.set(r.name,t),"accessor"===n){const{name:o}=r;return{set(r){const n=e.get.call(this);e.set.call(this,r),this.requestUpdate(o,n,t,!0,r)},init(e){return void 0!==e&&this.C(o,void 0,t,e),e}}}if("setter"===n){const{name:o}=r;return function(r){const n=this[o];e.call(this,r),this.requestUpdate(o,n,t,!0,r)}}throw Error("Unsupported decorator location: "+n)};function n(t){return(e,o)=>"object"==typeof o?r(t,e,o):((t,e,o)=>{const r=e.hasOwnProperty(o);return e.constructor.createProperty(o,t),r?Object.getOwnPropertyDescriptor(e,o):void 0})(t,e,o)}
+//# sourceMappingURL=property.js.map
+
+
+},
+26(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  queryAll: () => (r)
+});
+/* import */ var _base_js__rspack_import_0 = __webpack_require__(25);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+let e;function r(r){return(n,o)=>(0,_base_js__rspack_import_0.desc)(n,o,{get(){return(this.renderRoot??(e??=document.createDocumentFragment())).querySelectorAll(r)}})}
+//# sourceMappingURL=query-all.js.map
+
+
+},
+28(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  queryAssignedElements: () => (o)
+});
+/* import */ var _base_js__rspack_import_0 = __webpack_require__(25);
+
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */function o(o){return(e,n)=>{const{slot:r,selector:s}=o??{},c="slot"+(r?`[name=${r}]`:":not([name])");return (0,_base_js__rspack_import_0.desc)(e,n,{get(){const t=this.renderRoot?.querySelector(c),e=t?.assignedElements(o)??[];return void 0===s?e:e.filter(t=>t.matches(s))}})}}
+//# sourceMappingURL=query-assigned-elements.js.map
+
+
+},
+29(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  queryAssignedNodes: () => (n)
+});
+/* import */ var _base_js__rspack_import_0 = __webpack_require__(25);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */function n(n){return(o,r)=>{const{slot:e}=n??{},s="slot"+(e?`[name=${e}]`:":not([name])");return (0,_base_js__rspack_import_0.desc)(o,r,{get(){const t=this.renderRoot?.querySelector(s);return t?.assignedNodes(n)??[]}})}}
+//# sourceMappingURL=query-assigned-nodes.js.map
+
+
+},
+27(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  queryAsync: () => (r)
+});
+/* import */ var _base_js__rspack_import_0 = __webpack_require__(25);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+function r(r){return(n,e)=>(0,_base_js__rspack_import_0.desc)(n,e,{async get(){return await this.updateComplete,this.renderRoot?.querySelector(r)??null}})}
+//# sourceMappingURL=query-async.js.map
+
+
+},
+24(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  query: () => (e)
+});
+/* import */ var _base_js__rspack_import_0 = __webpack_require__(25);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */function e(e,r){return(n,s,i)=>{const o=t=>t.renderRoot?.querySelector(e)??null;if(r){const{get:e,set:r}="object"==typeof s?n:i??(()=>{const t=Symbol();return{get(){return this[t]},set(e){this[t]=e}}})();return (0,_base_js__rspack_import_0.desc)(n,s,{get(){let t=e.call(this);return void 0===t&&(t=o(this),(null!==t||this.hasUpdated)&&r.call(this,t)),t}})}return (0,_base_js__rspack_import_0.desc)(n,s,{get(){return o(this)}})}}
+//# sourceMappingURL=query.js.map
+
+
+},
+22(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  state: () => (r)
+});
+/* import */ var _property_js__rspack_import_0 = __webpack_require__(21);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */function r(r){return (0,_property_js__rspack_import_0.property)({...r,state:!0,attribute:!1})}
+//# sourceMappingURL=state.js.map
+
+
+},
+15(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  CSSResult: () => (/* reexport safe */ _css_tag_js__rspack_import_0.CSSResult),
+  ReactiveElement: () => (y),
+  adoptStyles: () => (/* reexport safe */ _css_tag_js__rspack_import_0.adoptStyles),
+  css: () => (/* reexport safe */ _css_tag_js__rspack_import_0.css),
+  defaultConverter: () => (u),
+  getCompatibleStyle: () => (/* reexport safe */ _css_tag_js__rspack_import_0.getCompatibleStyle),
+  notEqual: () => (f),
+  supportsAdoptingStyleSheets: () => (/* reexport safe */ _css_tag_js__rspack_import_0.supportsAdoptingStyleSheets),
+  unsafeCSS: () => (/* reexport safe */ _css_tag_js__rspack_import_0.unsafeCSS)
+});
+/* import */ var _css_tag_js__rspack_import_0 = __webpack_require__(16);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const{is:i,defineProperty:e,getOwnPropertyDescriptor:h,getOwnPropertyNames:r,getOwnPropertySymbols:o,getPrototypeOf:n}=Object,a=globalThis,c=a.trustedTypes,l=c?c.emptyScript:"",p=a.reactiveElementPolyfillSupport,d=(t,s)=>t,u={toAttribute(t,s){switch(s){case Boolean:t=t?l:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},f=(t,s)=>!i(t,s),b={attribute:!0,type:String,converter:u,reflect:!1,useDefault:!1,hasChanged:f};Symbol.metadata??=Symbol("metadata"),a.litPropertyMetadata??=new WeakMap;class y extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=b){if(s.state&&(s.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((s=Object.create(s)).wrapped=!0),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),h=this.getPropertyDescriptor(t,i,s);void 0!==h&&e(this.prototype,t,h)}}static getPropertyDescriptor(t,s,i){const{get:e,set:r}=h(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t}};return{get:e,set(s){const h=e?.call(this);r?.call(this,s),this.requestUpdate(t,h,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??b}static _$Ei(){if(this.hasOwnProperty(d("elementProperties")))return;const t=n(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(d("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d("properties"))){const t=this.properties,s=[...r(t),...o(t)];for(const i of s)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift((0,_css_tag_js__rspack_import_0.getCompatibleStyle)(s))}else void 0!==s&&i.push((0,_css_tag_js__rspack_import_0.getCompatibleStyle)(s));return i}static _$Eu(t,s){const i=s.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return (0,_css_tag_js__rspack_import_0.adoptStyles)(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,s,i){this._$AK(t,i)}_$ET(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&!0===i.reflect){const h=(void 0!==i.converter?.toAttribute?i.converter:u).toAttribute(s,i.type);this._$Em=t,null==h?this.removeAttribute(e):this.setAttribute(e,h),this._$Em=null}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u;this._$Em=e;const r=h.fromAttribute(s,t.type);this[e]=r??this._$Ej?.get(e)??r,this._$Em=null}}requestUpdate(t,s,i,e=!1,h){if(void 0!==t){const r=this.constructor;if(!1===e&&(h=this[t]),i??=r.getPropertyOptions(t),!((i.hasChanged??f)(h,s)||i.useDefault&&i.reflect&&h===this._$Ej?.get(t)&&!this.hasAttribute(r._$Eu(t,i))))return;this.C(t,s,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,s,{useDefault:i,reflect:e,wrapped:h},r){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,r??s??this[t]),!0!==h||void 0!==r)||(this._$AL.has(t)||(this.hasUpdated||i||(s=void 0),this._$AL.set(t,s)),!0===e&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t){const{wrapped:t}=i,e=this[s];!0!==t||this._$AL.has(s)||void 0===e||this.C(s,void 0,i,e)}}let t=!1;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(s)):this._$EM()}catch(s){throw t=!1,this._$EM(),s}t&&this._$AE(s)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}}y.elementStyles=[],y.shadowRootOptions={mode:"open"},y[d("elementProperties")]=new Map,y[d("finalized")]=new Map,p?.({ReactiveElement:y}),(a.reactiveElementVersions??=[]).push("2.1.2");
+//# sourceMappingURL=reactive-element.js.map
+
+
+},
+9(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _: () => (_apply_decs_2311)
+});
+/* @minVersion 7.24.0 */
+
+function toPrimitive(input, hint) {
+    if (typeof input !== "object" || input === null) {
+        return input;
+    }
+
+    var prim = input[Symbol.toPrimitive];
+    if (prim !== undefined) {
+        var res = prim.call(input, hint || "default");
+        if (typeof res !== "object") {
+            return res;
+        }
+        throw new TypeError("@@toPrimitive must return a primitive value.");
+    }
+
+    return (hint === "string" ? String : Number)(input);
+}
+
+function toPropertyKey(arg) {
+    var key = toPrimitive(arg, "string");
+    return typeof key === "symbol" ? key : String(key);
+}
+
+function checkInRHS(value) {
+    if (Object(value) !== value) {
+        throw TypeError("right-hand side of 'in' should be an object, got " + (value !== null ? typeof value : "null"));
+    }
+
+    return value;
+}
+
+function setFunctionName(fn, name, prefix) {
+    if (typeof name === "symbol") {
+        name = name.description;
+        name = name ? "[" + name + "]" : "";
+    }
+
+    try {
+        Object.defineProperty(fn, "name", { configurable: true, value: prefix ? prefix + " " + name : name });
+    } catch (_) {}
+
+    return fn;
+}
+
+/**
+  kind bit layout
+
+  FIELD = 0
+  ACCESSOR = 1
+  METHOD = 2
+  GETTER = 3
+  SETTER = 4
+  CLASS = 5
+
+  STATIC = 8
+  DECORATORS_HAVE_THIS = 16
+*/
+function _apply_decs_2311(targetClass, classDecs, memberDecs, classDecsHaveThis, instanceBrand, parentClass) {
+    var symbolMetadata = Symbol.metadata || Symbol.for("Symbol.metadata");
+    var defineProperty = Object.defineProperty;
+    var create = Object.create;
+    var metadata;
+    var existingNonFields = [create(null), create(null)];
+    var hasClassDecs = classDecs.length;
+    var _;
+
+    function createRunInitializers(initializers, useStaticThis, hasValue) {
+        return function(thisArg, value) {
+            if (useStaticThis) {
+                value = thisArg;
+                thisArg = targetClass;
+            }
+
+            for (var i = 0; i < initializers.length; i++) value = initializers[i].apply(thisArg, hasValue ? [value] : []);
+
+            return hasValue ? value : thisArg;
+        };
+    }
+
+    function assertCallable(fn, hint1, hint2, throwUndefined) {
+        if (typeof fn !== "function") {
+            if (throwUndefined || fn !== void 0) {
+                throw new TypeError(hint1 + " must " + (hint2 || "be") + " a function" + (throwUndefined ? "" : " or undefined"));
+            }
+        }
+
+        return fn;
+    }
+
+    function applyDec(Class, decInfo, decoratorsHaveThis, name, kind, initializers, ret, isStatic, isPrivate, isField, hasPrivateBrand) {
+        function assertInstanceIfPrivate(target) {
+            if (!hasPrivateBrand(target)) {
+                throw new TypeError("Attempted to access private element on non-instance");
+            }
+        }
+
+        var decs = [].concat(decInfo[0]);
+        var decVal = decInfo[3];
+        var isClass = !ret;
+
+        var isAccessor = kind === 1;
+        var isGetter = kind === 3;
+        var isSetter = kind === 4;
+        var isMethod = kind === 2;
+
+        function bindPropCall(name, useStaticThis, before) {
+            return function(_this, value) {
+                if (useStaticThis) {
+                    value = _this;
+                    _this = Class;
+                }
+
+                if (before) {
+                    before(_this);
+                }
+
+                return desc[name].call(_this, value);
+            };
+        }
+
+        var desc = {};
+        var init = [];
+        var key = isGetter ? "get" : isSetter || isAccessor ? "set" : "value";
+
+        if (!isClass) {
+            if (isPrivate) {
+                if (isField || isAccessor) {
+                    desc = {
+                        get: setFunctionName(
+                            function() {
+                                return decVal(this);
+                            },
+                            name,
+                            "get"
+                        ),
+                        set: function(value) {
+                            decInfo[4](this, value);
+                        }
+                    };
+                } else {
+                    desc[key] = decVal;
+                }
+
+                if (!isField) {
+                    setFunctionName(desc[key], name, isMethod ? "" : key);
+                }
+            } else if (!isField) {
+                desc = Object.getOwnPropertyDescriptor(Class, name);
+            }
+
+            if (!isField && !isPrivate) {
+                _ = existingNonFields[+isStatic][name];
+                if (_ && (_ ^ kind) !== 7) {
+                    throw new Error("Decorating two elements with the same name (" + desc[key].name + ") is not supported yet");
+                }
+
+                existingNonFields[+isStatic][name] = kind < 3 ? 1 : kind;
+            }
+        }
+
+        var newValue = Class;
+
+        for (var i = decs.length - 1; i >= 0; i -= decoratorsHaveThis ? 2 : 1) {
+            var dec = assertCallable(decs[i], "A decorator", "be", true);
+            var decThis = decoratorsHaveThis ? decs[i - 1] : void 0;
+
+            var decoratorFinishedRef = {};
+            var ctx = {
+                kind: ["field", "accessor", "method", "getter", "setter", "class"][kind],
+                name: name,
+                metadata: metadata,
+                addInitializer: function(decoratorFinishedRef, initializer) {
+                    if (decoratorFinishedRef.v) {
+                        throw new TypeError("attempted to call addInitializer after decoration was finished");
+                    }
+                    assertCallable(initializer, "An initializer", "be", true);
+                    initializers.push(initializer);
+                }
+                    .bind(null, decoratorFinishedRef)
+            };
+
+            if (isClass) {
+                _ = dec.call(decThis, newValue, ctx);
+                decoratorFinishedRef.v = 1;
+
+                if (assertCallable(_, "class decorators", "return")) {
+                    newValue = _;
+                }
+                continue;
+            }
+
+            ctx.static = isStatic;
+            ctx.private = isPrivate;
+            _ = ctx.access = {
+                has: isPrivate ? hasPrivateBrand.bind() : function(target) {
+                    return name in target;
+                }
+            };
+
+            if (!isSetter) {
+                _.get = isPrivate
+                    ? isMethod
+                        ? function(_this) {
+                            assertInstanceIfPrivate(_this);
+                            return desc.value;
+                        }
+                        : bindPropCall("get", 0, assertInstanceIfPrivate)
+                    : function(target) {
+                        return target[name];
+                    };
+            }
+
+            if (!isMethod && !isGetter) {
+                _.set = isPrivate ? bindPropCall("set", 0, assertInstanceIfPrivate) : function(target, value) {
+                    target[name] = value;
+                };
+            }
+
+            newValue = dec.call(decThis, isAccessor ? { get: desc.get, set: desc.set } : desc[key], ctx);
+
+            decoratorFinishedRef.v = 1;
+
+            if (isAccessor) {
+                if (typeof newValue === "object" && newValue) {
+                    if ((_ = assertCallable(newValue.get, "accessor.get"))) {
+                        desc.get = _;
+                    }
+                    if ((_ = assertCallable(newValue.set, "accessor.set"))) {
+                        desc.set = _;
+                    }
+                    if ((_ = assertCallable(newValue.init, "accessor.init"))) {
+                        init.unshift(_);
+                    }
+                } else if (newValue !== void 0) {
+                    throw new TypeError("accessor decorators must return an object with get, set, or init properties or undefined");
+                }
+            } else if (assertCallable(newValue, (isField ? "field" : "method") + " decorators", "return")) {
+                if (isField) {
+                    init.unshift(newValue);
+                } else {
+                    desc[key] = newValue;
+                }
+            }
+        }
+
+        if (kind < 2) {
+            ret.push(createRunInitializers(init, isStatic, 1), createRunInitializers(initializers, isStatic, 0));
+        }
+
+        if (!isField && !isClass) {
+            if (isPrivate) {
+                if (isAccessor) {
+                    ret.splice(-1, 0, bindPropCall("get", isStatic), bindPropCall("set", isStatic));
+                } else {
+                    ret.push(isMethod ? desc[key] : assertCallable.call.bind(desc[key]));
+                }
+            } else {
+                defineProperty(Class, name, desc);
+            }
+        }
+
+        return newValue;
+    }
+
+    function applyMemberDecs() {
+        var ret = [];
+        var protoInitializers;
+        var staticInitializers;
+
+        var pushInitializers = function(initializers) {
+            if (initializers) {
+                ret.push(createRunInitializers(initializers));
+            }
+        };
+
+        var applyMemberDecsOfKind = function(isStatic, isField) {
+            for (var i = 0; i < memberDecs.length; i++) {
+                var decInfo = memberDecs[i];
+                var kind = decInfo[1];
+                var kindOnly = kind & 7;
+
+                if ((kind & 8) == isStatic && !kindOnly == isField) {
+                    var name = decInfo[2];
+                    var isPrivate = !!decInfo[3];
+                    var decoratorsHaveThis = kind & 16;
+
+                    applyDec(
+                        isStatic ? targetClass : targetClass.prototype,
+                        decInfo,
+                        decoratorsHaveThis,
+                        isPrivate ? "#" + name : toPropertyKey(name),
+                        kindOnly,
+                        kindOnly < 2 ? [] : isStatic ? (staticInitializers = staticInitializers || []) : (protoInitializers = protoInitializers || []),
+                        ret,
+                        !!isStatic,
+                        isPrivate,
+                        isField,
+                        isStatic && isPrivate
+                            ? function(_) {
+                                return checkInRHS(_) === targetClass;
+                            }
+                            : instanceBrand
+                    );
+                }
+            }
+        };
+
+        applyMemberDecsOfKind(8, 0);
+        applyMemberDecsOfKind(0, 0);
+        applyMemberDecsOfKind(8, 1);
+        applyMemberDecsOfKind(0, 1);
+
+        pushInitializers(protoInitializers);
+        pushInitializers(staticInitializers);
+
+        return ret;
+    }
+
+    function defineMetadata(Class) {
+        return defineProperty(Class, symbolMetadata, { configurable: true, enumerable: true, value: metadata });
+    }
+
+    if (parentClass !== undefined) {
+        metadata = parentClass[symbolMetadata];
+    }
+    metadata = create(metadata == null ? null : metadata);
+
+    _ = applyMemberDecs();
+
+    if (!hasClassDecs) {
+        defineMetadata(targetClass);
+    }
+
+    return {
+        e: _,
+        get c() {
+            var initializers = [];
+            return (hasClassDecs && [defineMetadata(targetClass = applyDec(targetClass, [classDecs], classDecsHaveThis, targetClass.name, 5, initializers)), createRunInitializers(initializers, 1)]);
+        }
+    };
+}
+
+
+
+
+},
+17(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  CSSResult: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.CSSResult),
+  LitElement: () => (i),
+  ReactiveElement: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.ReactiveElement),
+  _$LE: () => (n),
+  _$LH: () => (/* reexport safe */ lit_html__rspack_import_1._$LH),
+  adoptStyles: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.adoptStyles),
+  css: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.css),
+  defaultConverter: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.defaultConverter),
+  getCompatibleStyle: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.getCompatibleStyle),
+  html: () => (/* reexport safe */ lit_html__rspack_import_1.html),
+  mathml: () => (/* reexport safe */ lit_html__rspack_import_1.mathml),
+  noChange: () => (/* reexport safe */ lit_html__rspack_import_1.noChange),
+  notEqual: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.notEqual),
+  nothing: () => (/* reexport safe */ lit_html__rspack_import_1.nothing),
+  render: () => (/* reexport safe */ lit_html__rspack_import_1.render),
+  supportsAdoptingStyleSheets: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.supportsAdoptingStyleSheets),
+  svg: () => (/* reexport safe */ lit_html__rspack_import_1.svg),
+  unsafeCSS: () => (/* reexport safe */ _lit_reactive_element__rspack_import_0.unsafeCSS)
+});
+/* import */ var _lit_reactive_element__rspack_import_0 = __webpack_require__(15);
+/* import */ var lit_html__rspack_import_1 = __webpack_require__(12);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const s=globalThis;class i extends _lit_reactive_element__rspack_import_0.ReactiveElement{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=(0,lit_html__rspack_import_1.render)(r,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return lit_html__rspack_import_1.noChange}}i._$litElement$=!0,i["finalized"]=!0,s.litElementHydrateSupport?.({LitElement:i});const o=s.litElementPolyfillSupport;o?.({LitElement:i});const n={_$AK:(t,e,r)=>{t._$AK(e,r)},_$AL:t=>t._$AL};(s.litElementVersions??=[]).push("4.2.2");
+//# sourceMappingURL=lit-element.js.map
+
+
+},
+13(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Directive: () => (i),
+  PartType: () => (t),
+  directive: () => (e)
+});
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e=t=>(...e)=>({_$litDirective$:t,values:e});class i{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}
+//# sourceMappingURL=directive.js.map
+
+
+},
+11(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  UnsafeHTMLDirective: () => (e),
+  unsafeHTML: () => (o)
+});
+/* import */ var _lit_html_js__rspack_import_0 = __webpack_require__(12);
+/* import */ var _directive_js__rspack_import_1 = __webpack_require__(13);
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */class e extends _directive_js__rspack_import_1.Directive{constructor(i){if(super(i),this.it=_lit_html_js__rspack_import_0.nothing,i.type!==_directive_js__rspack_import_1.PartType.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(r){if(r===_lit_html_js__rspack_import_0.nothing||null==r)return this._t=void 0,this.it=r;if(r===_lit_html_js__rspack_import_0.noChange)return r;if("string"!=typeof r)throw Error(this.constructor.directiveName+"() called with a non-string value");if(r===this.it)return this._t;this.it=r;const s=[r];return s.raw=s,this._t={_$litType$:this.constructor.resultType,strings:s,values:[]}}}e.directiveName="unsafeHTML",e.resultType=1;const o=(0,_directive_js__rspack_import_1.directive)(e);
+//# sourceMappingURL=unsafe-html.js.map
+
+
+},
+18(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  isServer: () => (o)
+});
+/**
+ * @license
+ * Copyright 2022 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const o=!1;
+//# sourceMappingURL=is-server.js.map
+
+
+},
+12(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _$LH: () => (j),
+  html: () => (b),
+  mathml: () => (T),
+  noChange: () => (E),
+  nothing: () => (A),
+  render: () => (D),
+  svg: () => (w)
+});
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t=globalThis,i=t=>t,s=t.trustedTypes,e=s?s.createPolicy("lit-html",{createHTML:t=>t}):void 0,h="$lit$",o=`lit$${Math.random().toFixed(9).slice(2)}$`,n="?"+o,r=`<${n}>`,l=document,c=()=>l.createComment(""),a=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,d=t=>u(t)||"function"==typeof t?.[Symbol.iterator],f="[ \t\n\f\r]",v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,x=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),b=x(1),w=x(2),T=x(3),E=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),C=new WeakMap,P=l.createTreeWalker(l,129);function V(t,i){if(!u(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e?e.createHTML(i):i}const N=(t,i)=>{const s=t.length-1,e=[];let n,l=2===i?"<svg>":3===i?"<math>":"",c=v;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,f=0;for(;f<s.length&&(c.lastIndex=f,u=c.exec(s),null!==u);)f=c.lastIndex,c===v?"!--"===u[1]?c=_:void 0!==u[1]?c=m:void 0!==u[2]?(y.test(u[2])&&(n=RegExp("</"+u[2],"g")),c=p):void 0!==u[3]&&(c=p):c===p?">"===u[0]?(c=n??v,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?p:'"'===u[3]?$:g):c===$||c===g?c=p:c===_||c===m?c=v:(c=p,n=void 0);const x=c===p&&t[i+1].startsWith("/>")?" ":"";l+=c===v?s+r:d>=0?(e.push(a),s.slice(0,d)+h+s.slice(d)+o+x):s+o+(-2===d?i:x)}return[V(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),e]};class S{constructor({strings:t,_$litType$:i},e){let r;this.parts=[];let l=0,a=0;const u=t.length-1,d=this.parts,[f,v]=N(t,i);if(this.el=S.createElement(f,e),P.currentNode=this.el.content,2===i||3===i){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(r=P.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(h)){const i=v[a++],s=r.getAttribute(t).split(o),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:l,name:e[2],strings:s,ctor:"."===e[1]?I:"?"===e[1]?L:"@"===e[1]?z:H}),r.removeAttribute(t)}else t.startsWith(o)&&(d.push({type:6,index:l}),r.removeAttribute(t));if(y.test(r.tagName)){const t=r.textContent.split(o),i=t.length-1;if(i>0){r.textContent=s?s.emptyScript:"";for(let s=0;s<i;s++)r.append(t[s],c()),P.nextNode(),d.push({type:2,index:++l});r.append(t[i],c())}}}else if(8===r.nodeType)if(r.data===n)d.push({type:2,index:l});else{let t=-1;for(;-1!==(t=r.data.indexOf(o,t+1));)d.push({type:7,index:l}),t+=o.length-1}l++}}static createElement(t,i){const s=l.createElement("template");return s.innerHTML=t,s}}function M(t,i,s=t,e){if(i===E)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=a(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=M(t,h._$AS(t,i.values),h,e)),i}class R{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??l).importNode(i,!0);P.currentNode=e;let h=P.nextNode(),o=0,n=0,r=s[0];for(;void 0!==r;){if(o===r.index){let i;2===r.type?i=new k(h,h.nextSibling,this,t):1===r.type?i=new r.ctor(h,r.name,r.strings,this,t):6===r.type&&(i=new Z(h,this,t)),this._$AV.push(i),r=s[++n]}o!==r?.index&&(h=P.nextNode(),o++)}return P.currentNode=l,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++}}class k{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=M(this,t,i),a(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==E&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):d(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==A&&a(this._$AH)?this._$AA.nextSibling.data=t:this.T(l.createTextNode(t)),this._$AH=t}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=S.createElement(V(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else{const t=new R(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t}}_$AC(t){let i=C.get(t.strings);return void 0===i&&C.set(t.strings,i=new S(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new k(this.O(c()),this.O(c()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e)}_$AR(t=this._$AA.nextSibling,s){for(this._$AP?.(!1,!0,s);t!==this._$AB;){const s=i(t).nextSibling;i(t).remove(),t=s}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class H{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=M(this,t,i,0),o=!a(t)||t!==this._$AH&&t!==E,o&&(this._$AH=t);else{const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=M(this,e[s+n],i,n),r===E&&(r=this._$AH[n]),o||=!a(r)||r!==this._$AH[n],r===A?t=A:t!==A&&(t+=(r??"")+h[n+1]),this._$AH[n]=r}o&&!e&&this.j(t)}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class I extends H{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===A?void 0:t}}class L extends H{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==A)}}class z extends H{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5}_$AI(t,i=this){if((t=M(this,t,i,0)??A)===E)return;const s=this._$AH,e=t===A&&s!==A||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==A&&(s===A||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t)}}const j={M:h,P:o,A:n,C:1,L:N,R,D:d,V:M,I:k,H,N:L,U:z,B:I,F:Z},B=t.litHtmlPolyfillSupport;B?.(S,k),(t.litHtmlVersions??=[]).push("3.3.3");const D=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new k(i.insertBefore(c(),t),t,void 0,s??{})}return h._$AI(t),h};
+//# sourceMappingURL=lit-html.js.map
+
+
+},
+19(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  customElement: () => (/* reexport safe */ _lit_reactive_element_decorators_custom_element_js__rspack_import_0.customElement),
+  eventOptions: () => (/* reexport safe */ _lit_reactive_element_decorators_event_options_js__rspack_import_3.eventOptions),
+  property: () => (/* reexport safe */ _lit_reactive_element_decorators_property_js__rspack_import_1.property),
+  query: () => (/* reexport safe */ _lit_reactive_element_decorators_query_js__rspack_import_4.query),
+  queryAll: () => (/* reexport safe */ _lit_reactive_element_decorators_query_all_js__rspack_import_5.queryAll),
+  queryAssignedElements: () => (/* reexport safe */ _lit_reactive_element_decorators_query_assigned_elements_js__rspack_import_7.queryAssignedElements),
+  queryAssignedNodes: () => (/* reexport safe */ _lit_reactive_element_decorators_query_assigned_nodes_js__rspack_import_8.queryAssignedNodes),
+  queryAsync: () => (/* reexport safe */ _lit_reactive_element_decorators_query_async_js__rspack_import_6.queryAsync),
+  standardProperty: () => (/* reexport safe */ _lit_reactive_element_decorators_property_js__rspack_import_1.standardProperty),
+  state: () => (/* reexport safe */ _lit_reactive_element_decorators_state_js__rspack_import_2.state)
+});
+/* import */ var _lit_reactive_element_decorators_custom_element_js__rspack_import_0 = __webpack_require__(20);
+/* import */ var _lit_reactive_element_decorators_property_js__rspack_import_1 = __webpack_require__(21);
+/* import */ var _lit_reactive_element_decorators_state_js__rspack_import_2 = __webpack_require__(22);
+/* import */ var _lit_reactive_element_decorators_event_options_js__rspack_import_3 = __webpack_require__(23);
+/* import */ var _lit_reactive_element_decorators_query_js__rspack_import_4 = __webpack_require__(24);
+/* import */ var _lit_reactive_element_decorators_query_all_js__rspack_import_5 = __webpack_require__(26);
+/* import */ var _lit_reactive_element_decorators_query_async_js__rspack_import_6 = __webpack_require__(27);
+/* import */ var _lit_reactive_element_decorators_query_assigned_elements_js__rspack_import_7 = __webpack_require__(28);
+/* import */ var _lit_reactive_element_decorators_query_assigned_nodes_js__rspack_import_8 = __webpack_require__(29);
+
+//# sourceMappingURL=decorators.js.map
+
+
+},
+10(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  UnsafeHTMLDirective: () => (/* reexport safe */ lit_html_directives_unsafe_html_js__rspack_import_0.UnsafeHTMLDirective),
+  unsafeHTML: () => (/* reexport safe */ lit_html_directives_unsafe_html_js__rspack_import_0.unsafeHTML)
+});
+/* import */ var lit_html_directives_unsafe_html_js__rspack_import_0 = __webpack_require__(11);
+
+//# sourceMappingURL=unsafe-html.js.map
+
+
+},
+14(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  CSSResult: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.CSSResult),
+  LitElement: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.LitElement),
+  ReactiveElement: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.ReactiveElement),
+  _$LE: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2._$LE),
+  _$LH: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2._$LH),
+  adoptStyles: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.adoptStyles),
+  css: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.css),
+  defaultConverter: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.defaultConverter),
+  getCompatibleStyle: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.getCompatibleStyle),
+  html: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.html),
+  isServer: () => (/* reexport safe */ lit_html_is_server_js__rspack_import_3.isServer),
+  mathml: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.mathml),
+  noChange: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.noChange),
+  notEqual: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.notEqual),
+  nothing: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.nothing),
+  render: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.render),
+  supportsAdoptingStyleSheets: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.supportsAdoptingStyleSheets),
+  svg: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.svg),
+  unsafeCSS: () => (/* reexport safe */ lit_element_lit_element_js__rspack_import_2.unsafeCSS)
+});
+/* import */ var _lit_reactive_element__rspack_import_0 = __webpack_require__(15);
+/* import */ var lit_html__rspack_import_1 = __webpack_require__(12);
+/* import */ var lit_element_lit_element_js__rspack_import_2 = __webpack_require__(17);
+/* import */ var lit_html_is_server_js__rspack_import_3 = __webpack_require__(18);
+
+//# sourceMappingURL=index.js.map
+
+
+},
+
+}]);

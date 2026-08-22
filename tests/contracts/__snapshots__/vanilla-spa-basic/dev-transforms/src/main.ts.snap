@@ -26,8 +26,8 @@ async function render() {
 <section id="center">
   <div class="hero">
     <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
+    <img src="${typescriptLogo}" class="framework" alt="${_t("TypeScript logo", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}"/>
+    <img src="${viteLogo}" class="vite" alt="${_t("Vite logo", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}" />
   </div>
   <div>
     <h1>${_t("Get started", { _mgr: _zintl_mgr_b_src_main_render, _bId: "b_src_main_render" })}</h1>

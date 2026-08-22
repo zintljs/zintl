@@ -19,6 +19,7 @@ export function resolveImports(
   clientReactivityImports: Record<string, string[]> = {},
   serverComponents = false,
   reactiveBridge?: { setup: string; read: string },
+  codegenImports: Record<string, string[]> = {},
 ): ResolvedImport[] {
   const specifiersBySource: Record<string, Set<string>> = {};
 
@@ -31,6 +32,7 @@ export function resolveImports(
    * directive is no longer the condition.
    */
   const autoClientReactivity =
+    Object.keys(clientReactivityImports).length > 0 &&
     (observation.isClientComponent || !serverComponents) &&
     observation.componentFunctions &&
     observation.componentFunctions.length > 0;
@@ -39,7 +41,14 @@ export function resolveImports(
     if (!specifiersBySource[RUNTIME_INTERNAL_PACKAGE]) {
       specifiersBySource[RUNTIME_INTERNAL_PACKAGE] = new Set();
     }
-    if (needsT) specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("_t");
+    if (needsT) {
+      specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("_t");
+      // What the generated markup references. See `CodegenFacet.codegenImports`.
+      for (const [source, specifiers] of Object.entries(codegenImports)) {
+        if (!specifiersBySource[source]) specifiersBySource[source] = new Set();
+        for (const spec of specifiers) specifiersBySource[source].add(spec);
+      }
+    }
     if (needsLoader) specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("loadI18nInstance");
     if (autoClientReactivity) {
       specifiersBySource[RUNTIME_INTERNAL_PACKAGE].add("subscribe");

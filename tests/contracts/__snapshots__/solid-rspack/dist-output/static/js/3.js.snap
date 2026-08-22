@@ -1,0 +1,4054 @@
+"use strict";
+(self["rspackChunksolid_rspack"] = self["rspackChunksolid_rspack"] || []).push([[3], {
+3(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  addCatalogs: () => (/* reexport safe */ _store_js__rspack_import_0.addCatalogs),
+  getLocale: () => (/* reexport safe */ _store_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_js__rspack_import_0.getStoreVersion),
+  loadI18nInstance: () => (loadI18nInstance),
+  registerLoader: () => (/* reexport safe */ _store_js__rspack_import_0.registerLoader),
+  registerZintlLoader: () => (/* reexport safe */ _registry_js__rspack_import_2.registerZintlLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_js__rspack_import_0.runInRequestScope),
+  setLocale: () => (/* reexport safe */ _store_js__rspack_import_0.setLocale),
+  subscribe: () => (/* reexport safe */ _store_js__rspack_import_0.subscribe),
+  t: () => (/* reexport safe */ _resolver_js__rspack_import_1._t),
+  unregisterZintlLoader: () => (/* reexport safe */ _store_js__rspack_import_0.unregisterLoader),
+  zintl: () => (zintl)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+/* import */ var _resolver_js__rspack_import_1 = __webpack_require__(7);
+/* import */ var _registry_js__rspack_import_2 = __webpack_require__(8);
+
+
+
+//#region src/runtime/internal.ts
+async function zintl(locale) {
+	const activeLocale = locale || (typeof document !== "undefined" ? document.documentElement.lang : "");
+	if (activeLocale) await (0,_store_js__rspack_import_0.setLocale)(activeLocale);
+}
+/**
+* Loads and configures the i18n instance for a boundary.
+* Registers loaders and merges new catalogs into the existing state.
+*
+* INTERNAL: Targeted by the compiler after zintl() macro expansion.
+*/
+async function loadI18nInstance(config = {}) {
+	const store = new _store_js__rspack_import_0.I18nStore();
+	(0,_store_js__rspack_import_0.setActiveInstance)(store);
+	if (typeof globalThis !== "undefined") globalThis.__zintl_active = store;
+	try {
+		if (config.debug !== void 0) store.debug = config.debug;
+		if (config.locale) store.locale = config.locale;
+		if (config.catalogs) {
+			store.addCatalogs(config.catalogs);
+			const active = (0,_store_js__rspack_import_0.getActiveInstance)();
+			if (active && active !== store) active.addCatalogs(config.catalogs);
+		}
+		const promises = [];
+		if (config.loaders) for (const [boundaryId, loader] of Object.entries(config.loaders)) {
+			const res = (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+			if (res && typeof res.then === "function") promises.push(res);
+		}
+		if (config.locale) promises.push(store.setLocale(config.locale));
+		if (promises.length > 0) await Promise.all(promises);
+	} finally {}
+	return {
+		locale: store.locale,
+		get debug() {
+			return store.debug;
+		},
+		set debug(value) {
+			store.debug = value;
+		},
+		setLocale: (l) => store.setLocale(l),
+		subscribe: (cb) => store.subscribe(cb),
+		t: (key, params) => {
+			const prev = (0,_store_js__rspack_import_0.getActiveInstance)();
+			(0,_store_js__rspack_import_0.setActiveInstance)(store);
+			try {
+				return (0,_resolver_js__rspack_import_1._t)(key, params);
+			} finally {
+				(0,_store_js__rspack_import_0.setActiveInstance)(prev);
+			}
+		}
+	};
+}
+//#endregion
+
+
+
+},
+4(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (/* reexport safe */ _store_core_js__rspack_import_0.I18nStore),
+  addCatalogs: () => (/* reexport safe */ _store_core_js__rspack_import_0.addCatalogs),
+  defaultInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.defaultInstance),
+  getActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.getActiveInstance),
+  getLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.getLocale),
+  getStoreVersion: () => (/* reexport safe */ _store_core_js__rspack_import_0.getStoreVersion),
+  globalRegistry: () => (/* reexport safe */ _store_core_js__rspack_import_0.globalRegistry),
+  isThenable: () => (/* reexport safe */ _store_core_js__rspack_import_0.isThenable),
+  registerLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.registerLoader),
+  runInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.runInRequestScope),
+  setActiveInstance: () => (/* reexport safe */ _store_core_js__rspack_import_0.setActiveInstance),
+  setLocale: () => (/* reexport safe */ _store_core_js__rspack_import_0.setLocale),
+  setRunInRequestScope: () => (/* reexport safe */ _store_core_js__rspack_import_0.setRunInRequestScope),
+  setStoreStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.setStoreStorage),
+  storeStorage: () => (/* reexport safe */ _store_core_js__rspack_import_0.storeStorage),
+  subscribe: () => (/* reexport safe */ _store_core_js__rspack_import_0.subscribe),
+  unregisterLoader: () => (/* reexport safe */ _store_core_js__rspack_import_0.unregisterLoader)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(5);
+/* import */ var _store_client_js__rspack_import_1 = __webpack_require__(6);
+
+
+
+
+},
+5(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  I18nStore: () => (I18nStore),
+  addCatalogs: () => (addCatalogs),
+  defaultInstance: () => (defaultInstance),
+  getActiveInstance: () => (getActiveInstance),
+  getLocale: () => (getLocale),
+  getStoreVersion: () => (getStoreVersion),
+  globalRegistry: () => (globalRegistry),
+  isThenable: () => (isThenable),
+  registerLoader: () => (registerLoader),
+  runInRequestScope: () => (runInRequestScope),
+  setActiveInstance: () => (setActiveInstance),
+  setLocale: () => (setLocale),
+  setRunInRequestScope: () => (setRunInRequestScope),
+  setStoreStorage: () => (setStoreStorage),
+  storeStorage: () => (storeStorage),
+  subscribe: () => (subscribe),
+  unregisterLoader: () => (unregisterLoader)
+});
+//#region src/runtime/store-core.ts
+let storeStorage = null;
+function setStoreStorage(storage) {
+	storeStorage = storage;
+}
+let runInRequestScope = (_urlOrReq, _locales, _defaultLocale, callback) => {
+	return callback();
+};
+function setRunInRequestScope(fn) {
+	runInRequestScope = fn;
+}
+/**
+* Entries retained in the development ledger.
+*
+* Bounded is normative, not an optimization: the `memory-leak` contract measures
+* retained heap across twenty consecutive hot updates against a budget with only
+* a few hundred kilobytes of headroom.
+*/
+const LEDGER_LIMIT = 128;
+/**
+* Publish the settle beacon's zero on runtime startup.
+*
+* So that "the counter is absent" unambiguously means "no Zintl runtime on this
+* page", rather than the ambiguous "runtime present but nothing has settled
+* yet". A harness cannot act on a signal it cannot distinguish from silence.
+*/
+function publishBeaconZero() {
+	if (true) return;
+	// removed by dead control flow
+{}
+}
+/**
+* Record a settled envelope, and advance the settle beacon.
+*
+* The beacon is now derived from delivery outcomes rather than from `notify()`,
+* and that is the substantive change. It used to advance only when a catalog
+* value actually differed, so a redelivery carrying identical content advanced
+* nothing — making "applied, unchanged" indistinguishable from "lost", which is
+* exactly what a harness must be able to tell apart (Corollary D2a).
+*
+* Counting every terminal outcome, not just `applied`, is the point: a harness
+* asks "has the store finished with my change?", and `superseded` is a finished
+* answer. Listeners are a separate concern and still fire only on real change.
+*
+* Process-global rather than request-scoped, which is safe precisely because
+* nothing reads it except a harness driving a single page. The *ordering* state
+* that must not leak across requests lives on the store instance instead.
+*/
+function recordSettle(envelope) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+const DELIVERY_KEY_SEP = "\n";
+/**
+* Per-store delivery ledger.
+*
+* Lives on the instance, never in module scope: the store is request-scoped
+* under SSR, and a process-global sequence would let one request's ordering
+* state decide another's — the classic shape of cross-request contamination.
+*/
+var Delivery = class {
+	minted = /* @__PURE__ */ new Map();
+	applied = /* @__PURE__ */ new Map();
+	/**
+	* `seq` is supplied wherever an upstream monotonic counter already exists —
+	* the compiler stamps generated catalogs with the generation that produced
+	* them. Minting a parallel clock beside one the producer already has would
+	* only create a second thing to keep in step.
+	*/
+	mint(channel, subject, seq) {
+		const key = channel + DELIVERY_KEY_SEP + subject;
+		const prior = this.minted.get(key) ?? 0;
+		const next = seq ?? prior + 1;
+		if (next > prior) this.minted.set(key, next);
+		return {
+			channel,
+			subject,
+			seq: next,
+			outcome: "pending"
+		};
+	}
+	/**
+	* Axiom D1 — claim this subject, unless something newer already holds it.
+	*
+	* `<=` rather than `<`: a redelivery at the same sequence carries no new
+	* information, and letting it read as progress would make a duplicate
+	* indistinguishable from an advance.
+	*/
+	accept(envelope) {
+		const key = envelope.channel + DELIVERY_KEY_SEP + envelope.subject;
+		const prior = this.applied.get(key);
+		if (prior !== void 0 && envelope.seq <= prior) {
+			if (false) {}
+			return false;
+		}
+		this.applied.set(key, envelope.seq);
+		return true;
+	}
+	/**
+	* Whether this envelope still holds its subject.
+	*
+	* Asked *after* an await, by work that claimed the subject before one. It is
+	* what stops a slow locale switch from writing over a faster one that started
+	* later — the defect where the DOM settles on an intermediate value.
+	*/
+	holds(envelope) {
+		return this.applied.get(envelope.channel + DELIVERY_KEY_SEP + envelope.subject) === envelope.seq;
+	}
+	/**
+	* Axiom D2 — drive an envelope to a terminal outcome.
+	*
+	* Entirely development-only, and every caller guards the call as well as this
+	* body. `mint`, `accept` and `holds` are the ordering machinery and ship;
+	* `settle` only ever labels what already happened, and nothing in production
+	* reads a label. Guarding here alone would still leave the reason strings in
+	* the bundle as evaluated arguments — a guard the bundler can fold has to
+	* enclose the *call*, not just the callee.
+	*/
+	settle(envelope, outcome, reason) {
+		if (true) return;
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+		// removed by dead control flow
+{}
+	}
+};
+/**
+* Report an abandoned catalog delivery.
+*
+* Every abandonment path needs the same three things — a named outcome, the
+* subject it belongs to, and a development log — and having them in one place is
+* what stops the next one being added without them.
+*
+* A free function rather than a method on purpose. Both are development-only,
+* but once every call site folds away a free function is unreferenced and goes
+* with them, whereas a method stays on the prototype forever. The earlier
+* version was worse still: a closure allocated per load that, in production,
+* compiled to `(reason, err) => {}`.
+*/
+function reportDeliveryFailure(delivery, target, boundaryId, reason, err) {
+	if (true) return;
+	// removed by dead control flow
+{}
+	// removed by dead control flow
+{}
+}
+var I18nStore = class {
+	locale = "";
+	catalogs = {};
+	locales = [];
+	/**
+	* Enabled by `ZINTL_DEBUG=true` on the server, or `globalThis.__ZINTL_DEBUG`
+	* in a browser. The browser path exists because the env-var check alone is
+	* unreachable client-side, which is why client debug logging never appeared.
+	*/
+	debug =  false && (0);
+	pendingBoundaries = /* @__PURE__ */ new Set();
+	pendingPromises = [];
+	version = 0;
+	listeners = /* @__PURE__ */ new Set();
+	/**
+	* Boundaries whose catalog has already been chased for a missing key.
+	*
+	* `_t` triggers a hydration load when it cannot find a key, and re-reads
+	* immediately so a synchronous loader satisfies the very first render. That
+	* is right once and catastrophic on repeat: when the key is genuinely absent
+	* — a deleted catalog, a key that never existed — every render triggers
+	* another load, every load can `addCatalogs`, and every `addCatalogs`
+	* notifies. With anything subscribed, that closes into a render loop.
+	*
+	* It is not hypothetical in either direction. React hit it at
+	* ~700 messages in twelve seconds (see {@link notify}, which deferred the
+	* announcement to stop the synchronous half), and Vue reproduced the
+	* steady-state half the moment its templates gained a reactive dependency:
+	* **167,280 console messages** in one `chaos-catalog` run, which deletes the
+	* catalog on purpose.
+	*
+	* One attempt per **key**, and deliberately never cleared. Clearing on
+	* catalog change was tried first and re-armed the loop precisely: the load
+	* *does* deliver the boundary — it simply does not contain this key — so
+	* `changed` is true, the set empties, and the next render claims again.
+	*
+	* Keying on the key rather than the boundary is what makes "never cleared"
+	* safe. The guard gates only the *miss* path, and a key that later arrives is
+	* no longer a miss: `_t` finds it before reaching here, so the claim it
+	* already spent is never consulted again.
+	*/
+	hydrationAttempts = /* @__PURE__ */ new Set();
+	/**
+	* Claim the single hydration attempt for one missing key.
+	*
+	* Returns `true` at most once per `locale`/`boundaryId`/`messageKey`; the
+	* caller loads only when it wins the claim.
+	*/
+	claimHydrationAttempt(locale, boundaryId, messageKey) {
+		const claim = locale + "/" + boundaryId + "/" + messageKey;
+		if (this.hydrationAttempts.has(claim)) return false;
+		this.hydrationAttempts.add(claim);
+		return true;
+	}
+	/** Whether an announcement is already queued for this turn — see {@link notify}. */
+	notifyScheduled = false;
+	delivery = new Delivery();
+	/**
+	* In-flight lazy loads, by `<locale>/<boundaryId>`.
+	*
+	* A concurrent request for a boundary already loading used to be dropped and
+	* handed back `undefined` — no promise to await, no queue, nothing to
+	* supersede. Keeping the promise lets a second caller join instead of vanish.
+	*/
+	inFlight = /* @__PURE__ */ new Map();
+	constructor() {
+		publishBeaconZero();
+		if (typeof document !== "undefined" && document.documentElement) this.locale = document.documentElement.lang || "";
+		if (!this.locale && typeof window !== "undefined") try {
+			this.locale = localStorage.getItem("zintl-locale") || "";
+		} catch {}
+		if (!this.locale) try {
+			if (storeStorage) {
+				const active = storeStorage.getStore();
+				if (active && active !== this) this.locale = active.locale;
+			}
+		} catch {}
+		if (typeof window !== "undefined" && window.__zintl_baked_catalogs) this.addCatalogs(window.__zintl_baked_catalogs);
+	}
+	getLocales() {
+		if (this.locales.length === 0 && typeof window !== "undefined" && window.__zintl_locales) this.locales = window.__zintl_locales;
+		return this.locales;
+	}
+	subscribe(listener) {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+	/**
+	* Take over the subscribers of the store this one is replacing.
+	*
+	* `subscribe()` resolves through `getActiveInstance()`, which falls back to a
+	* module-level `defaultInstance` until something calls `setActiveInstance`.
+	* A component that renders before the entry's `zintl()` resolves therefore
+	* subscribes to *that* store, and the swap left its listener behind on an
+	* object nothing would ever notify again — measured as `listeners: 0` on the
+	* live store while React's `useSyncExternalStore` was demonstrably mounted
+	* (ledger L-068).
+	*
+	* The consequence is invisible until something arrives that only a subscriber
+	* could act on. A hot catalog update is exactly that: the store takes the new
+	* translation, `notify()` runs, and there is nobody in the set. On Vite the
+	* defect is masked because the applier re-runs the entry, which remounts the
+	* components against the current store; on Rspack nothing re-runs and the
+	* page keeps its first paint.
+	*
+	* Listeners are *moved*, not copied — the old store is being retired, and a
+	* subscriber notified twice for one change is a second bug. They are then
+	* notified once, because their snapshot has just changed underneath them by
+	* definition: they were reading a different store a moment ago.
+	*/
+	adoptListeners(previous) {
+		if (previous === this || previous.listeners.size === 0) return;
+		for (const listener of previous.listeners) this.listeners.add(listener);
+		previous.listeners.clear();
+		this.notify();
+	}
+	/**
+	* Tell subscribers something changed.
+	*
+	* `version` is bumped here rather than by each caller, so it cannot drift out
+	* of step with what listeners have been told. The settle beacon is no longer
+	* bumped here at all — it follows delivery outcomes now, which is what lets a
+	* no-op update still register as having been processed.
+	*
+	* Listeners are isolated from one another: `forEach` over a raw set meant one
+	* throwing subscriber silently cancelled every subscriber after it.
+	*/
+	/**
+	* Announce that the catalogs changed — on a microtask, never in the caller's
+	* turn, and coalesced so a burst announces once.
+	*
+	* **Applying is synchronous; announcing is not, and the split is the fix for
+	* ledger L-039.** `_t` resolves a missing key by triggering the boundary's
+	* load and re-reading it in the same expression, because a hot update
+	* registers a new loader whose catalog is available on that very tick — the
+	* manager inlines the anchor's locale, so `loadLazyBoundary` completes
+	* synchronously. That is wanted, and `addCatalogs` must stay synchronous for
+	* it to work.
+	*
+	* What must not happen is the announcement travelling with it. `_t` runs
+	* *during render*, so a synchronous `notify()` reached
+	* `useSyncExternalStore`'s subscriber mid-render — a `setState` during render.
+	* React reported the first as "Cannot update a component while rendering a
+	* different component" and then, because each re-render ran `_t` again and
+	* each `_t` announced again, "Maximum update depth exceeded" out of every
+	* subscriber after it. Measured on `rsbuild-react-basic`: ~700 in twelve seconds,
+	* with the renderer pinned hard enough that the page could not be evaluated
+	* at all, which is why this read as a stall rather than a loop.
+	*
+	* `version` is bumped inside the microtask rather than beside the data on
+	* purpose. It is React's snapshot, and a snapshot that moves *during* render
+	* makes React re-render to reconcile it — so bumping it synchronously would
+	* re-arm the same loop without the warning that names it. Deferring both
+	* together keeps the pair that `useSyncExternalStore` requires: when the
+	* subscriber fires, the snapshot has already moved.
+	*/
+	notify() {
+		if (this.notifyScheduled) return;
+		this.notifyScheduled = true;
+		queueMicrotask(() => {
+			this.notifyScheduled = false;
+			this.version++;
+			for (const listener of this.listeners) try {
+				listener();
+			} catch (err) {
+				if (false) {}
+			}
+		});
+	}
+	/**
+	* @param seq The generation that produced this catalog, when the producer has
+	* one. Supplied by compiler-generated content modules; absent when a loader
+	* hands back a catalog, where there is nothing to order against.
+	*/
+	addCatalogs(newCatalogs, seq) {
+		let changed = false;
+		const delivered = [];
+		for (const [locale, boundaries] of Object.entries(newCatalogs)) {
+			if (!this.catalogs[locale]) this.catalogs[locale] = {};
+			for (const [boundaryId, messages] of Object.entries(boundaries)) {
+				const subject = locale + "/" + boundaryId;
+				/**
+				* Axiom D1 — a catalog carrying a sequence can be overtaken.
+				*
+				* The compiler stamps each generated catalog module with the generation
+				* that produced it, so a module arriving after a newer one has already
+				* been applied is discarded *by number* rather than by luck. This is
+				* what makes a burst of rapid edits settle on the last one by
+				* construction: an out-of-order arrival cannot win, however the network
+				* happens to order the fetches.
+				*/
+				if (seq !== void 0) {
+					const envelope = this.delivery.mint("runtime/catalog", subject, seq);
+					if (!this.delivery.accept(envelope)) continue;
+				}
+				delivered.push(subject);
+				if (!this.catalogs[locale][boundaryId]) this.catalogs[locale][boundaryId] = {};
+				for (const [key, value] of Object.entries(messages)) if (this.catalogs[locale][boundaryId][key] !== value) {
+					this.catalogs[locale][boundaryId][key] = value;
+					changed = true;
+				}
+			}
+		}
+		/**
+		* Corollary D2a — every boundary this call described gets an outcome, even
+		* when its content was already identical.
+		*
+		* The old code advanced nothing unless a value differed, so an idempotent
+		* redelivery and a lost one looked the same from outside. Listeners still
+		* only run on real change: a subscriber has nothing to do when nothing
+		* moved, but an observer still needs to know the store finished.
+		*
+		* Development-only (Axiom D5). These envelopes are pure observation — no
+		* ordering decision hangs on them, because nothing upstream yet stamps a
+		* catalog with a sequence to compare. Minting one per boundary on every
+		* application would be allocation in a hot path bought for nothing.
+		*/
+		if (false) {}
+		if (changed) {
+			if (false) {}
+			this.notify();
+		}
+	}
+	/**
+	* Publish the switch to the document and to storage.
+	*
+	* Deliberately **not** called before the slot is claimed. These are the only
+	* externally visible effects of a locale change that are not routed through
+	* the store, so a switch that is about to be superseded must not perform
+	* them: it would leave `documentElement.lang` describing a language the store
+	* never adopted, and the page rendering one locale while announcing another.
+	*/
+	publishLocale(locale) {
+		if (typeof window === "undefined") return;
+		/**
+		* The store owns the document's locale attributes; the projection owns
+		* everything document-specific. Both run, in that order.
+		*
+		* This used to be an either/or — call `__zintlApplyHtml` if installed,
+		* otherwise set `lang` — and the branch was the bug. The projection installs
+		* itself unconditionally but only writes `dir` when the project has an RTL
+		* locale, so on every other project it took ownership of the document and
+		* then declined to finish the job, silently suppressing the fallback that
+		* would have (ledger L-019). Sequencing them removes the question: the store
+		* always says what locale it adopted, and the projection still applies the
+		* title, description and body deltas only it knows about.
+		*
+		* `dir` is set only when the project actually has direction data. Empty
+		* means "this project never spoke about direction", and asserting `"ltr"`
+		* there would start writing an attribute onto documents that never had one.
+		*/
+		if (typeof document !== "undefined" && document.documentElement) {
+			document.documentElement.lang = locale;
+			if (["ar"].length > 0) document.documentElement.dir = ["ar"].includes(locale) ? "rtl" : "ltr";
+		}
+		window.__zintlApplyHtml?.(locale);
+		try {
+			localStorage.setItem("zintl-locale", locale);
+		} catch {}
+	}
+	async setLocale(locale) {
+		if (!locale) return;
+		if (this.locale === locale && Object.keys(this.catalogs[locale] || {}).length > 0) {
+			/**
+			* Already there — but still an outcome, never a silent return (Axiom D2),
+			* so anything waiting on this switch learns it finished instead of
+			* waiting out a timeout.
+			*
+			* Settled deliberately *without* claiming the slot. A no-op that took the
+			* slot would supersede a real switch already in flight and then do no work
+			* itself, leaving nothing to notify and the UI waiting on an update that a
+			* call changing nothing had quietly cancelled. `getActiveInstance` fires
+			* `setLocale` from a getter, so overlapping switches to the same locale
+			* are routine rather than exotic.
+			*/
+			this.publishLocale(locale);
+			if (false) {}
+			return;
+		}
+		/**
+		* One envelope per switch, on a single subject.
+		*
+		* The subject is the store's *active-locale slot*, not the target locale —
+		* there is only one active locale, so a switch to "fr" and a switch to "ar"
+		* compete for the same thing and must be able to supersede each other.
+		* Keying by target locale would let them run as unrelated deliveries, which
+		* is precisely the interleaving this is here to stop.
+		*/
+		const envelope = this.delivery.mint("runtime/locale", "active");
+		this.delivery.accept(envelope);
+		/**
+		* Claim, then publish — in one synchronous block, with no await between.
+		*
+		* Claims are ordered, so whichever switch claims last also publishes last
+		* and the document ends up describing the locale the store actually
+		* adopted. Publishing *before* the claim let a switch that was then
+		* superseded rewrite `documentElement.lang` anyway, leaving Arabic content
+		* on a page announcing itself as English.
+		*/
+		this.publishLocale(locale);
+		if (false) {}
+		this.locale = locale;
+		const activePromises = [];
+		for (const [boundaryId, loader] of globalRegistry.entries()) try {
+			const result = loader(locale);
+			const processResult = (res) => {
+				if (!res) return;
+				this.addCatalogs({ [locale]: res });
+			};
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				activePromises.push(result.then((res) => {
+					processResult(res);
+					this.pendingBoundaries.delete(boundaryId);
+				}));
+			} else processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+		if (activePromises.length > 0) await Promise.all(activePromises);
+		/**
+		* Axiom D1, applied where it matters: a newer switch may have started and
+		* finished while this one was loading. Whoever claimed the slot last wins,
+		* by sequence — not by whose promises happened to settle last.
+		*
+		* Without this, two overlapping switches each wrote `this.locale` and each
+		* notified, and the final state was decided by network timing.
+		*/
+		if (!this.delivery.holds(envelope)) {
+			if (false) {}
+			return;
+		}
+		if (false) {}
+		if (false) {}
+		this.notify();
+	}
+	registerLoader(boundaryId, loader) {
+		globalRegistry.set(boundaryId, loader);
+		/**
+		* Capture the locale before calling the loader, and file the result under
+		* the captured value.
+		*
+		* Reading `this.locale` *again* after the await filed the catalog under
+		* whatever locale happened to be active when the promise resolved — so a
+		* switch landing mid-load stored one language's strings under another's key.
+		*/
+		const target = this.locale;
+		const processResult = (res) => {
+			if (!res) {
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				this.pendingBoundaries.add(boundaryId);
+				/**
+				* Publish this load so {@link loadLazyBoundary} can join it.
+				*
+				* This path used to record itself only in `pendingBoundaries`, which
+				* nothing consults before serving a catalog — so an in-flight load
+				* started *here* was invisible to a caller asking for the same boundary
+				* *there*, and that caller was handed whatever was already present.
+				*
+				* Harmless when the catalogs are empty, which is the only case that
+				* existed before hot updates reached a host that re-executes the
+				* manager and the entry independently. On such a host it is the
+				* empty-render defect: the manager re-registers, this load goes out for
+				* the new catalog, the entry re-executes and reads the old one, and
+				* every key that exists only in the new one resolves to "" — because
+				* Zintl has no source-locale fallback, by design.
+				*/
+				const subject = target + "/" + boundaryId;
+				const inFlight = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(() => {
+					this.pendingBoundaries.delete(boundaryId);
+					if (this.inFlight.get(subject) === inFlight) this.inFlight.delete(subject);
+				});
+				this.inFlight.set(subject, inFlight);
+				return inFlight;
+			}
+			processResult(result);
+		} catch (err) {
+			if (false) {}
+		}
+	}
+	loadLazyBoundary(boundaryId, loader) {
+		const target = this.locale;
+		const subject = target + "/" + boundaryId;
+		/**
+		* A concurrent request for a boundary already loading used to be dropped
+		* and handed back `undefined` — no promise to await, nothing to supersede,
+		* and a caller that believed it had triggered a load when it had not.
+		*
+		* Checked **before** the already-loaded test below, and the order is the
+		* fix rather than a tidy-up. A load is in flight precisely because
+		* something decided the present catalog needs replacing; serving the
+		* present one instead is choosing the older of two known states, which is
+		* the inverse of Axiom D1. The two tests only disagree while a refresh is
+		* outstanding, and that is exactly the window the empty-render defect lived
+		* in: the entry re-executed, found a stale-but-present catalog, returned in
+		* zero milliseconds, and rendered "" for every key the incoming catalog was
+		* about to supply.
+		*/
+		const joined = this.inFlight.get(subject);
+		if (joined) return joined;
+		if (this.catalogs[target]?.[boundaryId]) {
+			/**
+			* Already loaded, and nothing better on the way. Named rather than
+			* returned silently (Axiom D2), so a skipped load appears in the ledger
+			* instead of looking like nothing happened.
+			*
+			* Still skips a *refresh* nobody has started — a catalog that is present
+			* and stale, with no load outstanding, cannot be re-fetched through this
+			* path. That remains true and is not a live problem: every refresh in
+			* development arrives as a load somebody did start, which the check above
+			* now joins.
+			*/
+			if (false) {}
+			return;
+		}
+		this.pendingBoundaries.add(boundaryId);
+		const release = () => {
+			this.pendingBoundaries.delete(boundaryId);
+			this.inFlight.delete(subject);
+		};
+		const processResult = (res) => {
+			if (!res) {
+				/**
+				* An empty result abandons the boundary: nothing is applied and `_t`
+				* keeps returning "" for every key bound to it, permanently, because
+				* nothing schedules a retry (ZDB §6 — retry cannot fix ordering, and
+				* would turn a loud failure into a slow one).
+				*
+				* The compiler's integrity check guarantees catalogs are complete, so
+				* reaching here means *delivery* failed, not content.
+				*/
+				if (false) {}
+				return;
+			}
+			this.addCatalogs({ [target]: res });
+		};
+		try {
+			const result = loader(target);
+			if (isThenable(result)) {
+				const p = result.then(processResult).catch((err) => {
+					if (false) {}
+				}).finally(release);
+				this.inFlight.set(subject, p);
+				this.pendingPromises.push(p);
+				/**
+				* Drop the promise once it settles.
+				*
+				* `pendingPromises` gates stream injection on the server, which drains
+				* it — but nothing drained it in a browser, so every lazy load a
+				* long-lived page performed was retained for the life of the page.
+				*/
+				p.then(() => {
+					const at = this.pendingPromises.indexOf(p);
+					if (at !== -1) this.pendingPromises.splice(at, 1);
+				});
+				return p;
+			}
+			processResult(result);
+			release();
+		} catch (err) {
+			release();
+			if (false) {}
+		}
+	}
+};
+let globalRegistry;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_registry) globalThis.__zintl_registry = /* @__PURE__ */ new Map();
+	globalRegistry = globalThis.__zintl_registry;
+} else globalRegistry = /* @__PURE__ */ new Map();
+let defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_default_instance) globalThis.__zintl_default_instance = new I18nStore();
+	defaultInstance = globalThis.__zintl_default_instance;
+} else defaultInstance = new I18nStore();
+let currentInstance = defaultInstance;
+if (typeof globalThis !== "undefined") {
+	if (!globalThis.__zintl_current_instance) globalThis.__zintl_current_instance = defaultInstance;
+	currentInstance = globalThis.__zintl_current_instance;
+}
+function getActiveInstance() {
+	if (storeStorage) {
+		const store = storeStorage.getStore();
+		if (store) return store;
+	}
+	if (typeof window === "undefined" && typeof globalThis !== "undefined" && globalThis.__zintl_active) return globalThis.__zintl_active;
+	if (typeof globalThis !== "undefined" && globalThis.__zintl_current_instance) return globalThis.__zintl_current_instance;
+	if (typeof window !== "undefined") {
+		const inst = currentInstance;
+		const locales = inst.getLocales();
+		const docLang = typeof document !== "undefined" && document.documentElement ? document.documentElement.lang : "";
+		let targetLocale = "";
+		const pathname = window.location ? window.location.pathname : "";
+		if (pathname && locales.length > 0) {
+			const parts = pathname.split("/").filter(Boolean);
+			if (parts.length > 0 && locales.includes(parts[0])) targetLocale = parts[0];
+		}
+		if (!targetLocale && docLang && locales.includes(docLang)) targetLocale = docLang;
+		if (targetLocale && targetLocale !== inst.locale) inst.setLocale(targetLocale);
+	}
+	return currentInstance;
+}
+function setActiveInstance(instance) {
+	const previous = currentInstance;
+	currentInstance = instance;
+	if (typeof globalThis !== "undefined") globalThis.__zintl_current_instance = instance;
+	/**
+	* Subscribers follow the active store rather than the object they happened to
+	* reach first. Without this, anything that rendered before `zintl()` resolved
+	* is subscribed to a store nothing will ever notify again — see
+	* {@link I18nStore.adoptListeners} and ledger L-068.
+	*/
+	if (previous) instance.adoptListeners(previous);
+}
+function registerLoader(boundaryId, loader) {
+	globalRegistry.set(boundaryId, loader);
+	const instance = getActiveInstance();
+	/**
+	* Capture once, and file the result under the captured value — reading
+	* `instance.locale` again after the await stored the catalog under whatever
+	* locale happened to be active when the promise resolved.
+	*/
+	const target = instance.locale;
+	if (instance.catalogs[target]?.[boundaryId]) return;
+	try {
+		const result = loader(target);
+		const processResult = (res) => {
+			if (!res) return;
+			instance.addCatalogs({ [target]: res });
+		};
+		if (isThenable(result)) {
+			const p = result.then(processResult).catch((err) => {
+				if (false) {}
+			});
+			if (instance.pendingPromises) instance.pendingPromises.push(p);
+			return p;
+		} else processResult(result);
+	} catch (err) {
+		if (false) {}
+	}
+}
+function unregisterLoader(boundaryId) {
+	globalRegistry.delete(boundaryId);
+}
+function setLocale(locale) {
+	return getActiveInstance().setLocale(locale);
+}
+function getLocale() {
+	return getActiveInstance().locale;
+}
+function subscribe(listener) {
+	return getActiveInstance().subscribe(listener);
+}
+function addCatalogs(catalogs, seq) {
+	return getActiveInstance().addCatalogs(catalogs, seq);
+}
+function getStoreVersion() {
+	return getActiveInstance().version;
+}
+function isThenable(obj) {
+	return obj && typeof obj.then === "function";
+}
+//#endregion
+
+
+
+},
+6(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  syncLocale: () => (syncLocale)
+});
+/* import */ var _store_core_js__rspack_import_0 = __webpack_require__(5);
+
+//#region src/runtime/store-client.ts
+const syncLocale = () => {
+	const inst = (0,_store_core_js__rspack_import_0.getActiveInstance)();
+	const locales = inst.getLocales();
+	if (locales.length === 0) return;
+	const pathname = window.location.pathname;
+	if (pathname) {
+		const parts = pathname.split("/").filter(Boolean);
+		if (parts.length > 0 && locales.includes(parts[0])) {
+			if (inst.locale !== parts[0]) {
+				inst.setLocale(parts[0]);
+				return;
+			}
+		}
+	}
+	if (typeof document !== "undefined" && document.documentElement) {
+		const docLang = document.documentElement.lang;
+		if (docLang && locales.includes(docLang) && inst.locale !== docLang) inst.setLocale(docLang);
+	}
+};
+if (typeof window !== "undefined") {
+	window.addEventListener("popstate", syncLocale);
+	const origPush = window.history.pushState;
+	if (origPush) window.history.pushState = function(...args) {
+		origPush.apply(this, args);
+		syncLocale();
+	};
+	const origReplace = window.history.replaceState;
+	if (origReplace) window.history.replaceState = function(...args) {
+		origReplace.apply(this, args);
+		syncLocale();
+	};
+	if (typeof MutationObserver !== "undefined" && typeof document !== "undefined" && document.documentElement) new MutationObserver((mutations) => {
+		for (const mutation of mutations) if (mutation.type === "attributes" && mutation.attributeName === "lang") syncLocale();
+	}).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"]
+	});
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncLocale);
+	else syncLocale();
+}
+//#endregion
+
+
+
+},
+7(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  _t: () => (_t)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+
+//#region src/runtime/resolver.ts
+function _t(key, params = {}, options) {
+	const instance = (0,_store_js__rspack_import_0.getActiveInstance)();
+	const catalogs = instance.catalogs;
+	const locale = instance.locale;
+	const effectiveParams = options ? {
+		...params,
+		...options
+	} : params;
+	const mgr = effectiveParams._mgr;
+	const boundaryId = mgr?.id;
+	const targetBId = effectiveParams._bId || boundaryId;
+	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
+	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
+	if (message === void 0) if (mgr) {
+		if (typeof window === "undefined") {
+			if (mgr.loader) try {
+				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+				if (result && typeof result.then !== "function") {
+					instance.addCatalogs({ [locale]: result });
+					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+			} catch {}
+		} else if (mgr.loader)
+ /**
+		* Trigger the load now, then re-read — the same shape the server
+		* branch above already uses.
+		*
+		* Deferring into a microtask meant a *synchronous* loader could not
+		* satisfy this call, so the first render tick after a hot update
+		* registered a new loader always returned "" even though the strings
+		* were available on that very tick. `loadLazyBoundary` handles the
+		* async case internally, so nothing is lost by calling it inline.
+		*/
+		try {
+			/**
+			* One attempt per boundary between catalog changes.
+			*
+			* Re-reading immediately is what lets a synchronous loader satisfy
+			* the first render tick, and that is worth keeping. Re-*triggering*
+			* on every render is not: when the key is genuinely absent the load
+			* can never satisfy it, and each attempt announces a change that
+			* renders again. See `I18nStore.hydrationAttempts` — with a
+			* reactive framework subscribed this closes into a loop measured at
+			* six figures of console output.
+			*/
+			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+		} catch {}
+		if (message === void 0) {
+			if (false) {}
+			return ``;
+		}
+	} else {
+		if (false) {}
+		return ``;
+	}
+	if (typeof message === "function") return message(params);
+	if (typeof message !== "string") return "";
+	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
+	let interpolated = interpolate(message, restParams);
+	if (_tags && Array.isArray(_tags)) for (const entry of _tags) {
+		interpolated = interpolated.replaceAll(`<${entry.alias}/>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias} />`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`<${entry.alias}>`, entry.originalOpen);
+		interpolated = interpolated.replaceAll(`</${entry.alias}>`, `</${entry.tagName}>`);
+	}
+	return interpolated;
+}
+function interpolate(message, params) {
+	if (message === null || message === void 0) return "";
+	return String(message).replace(/\{(\w+)\}/g, (match, key) => {
+		return params[key]?.toString() ?? match;
+	});
+}
+//#endregion
+
+
+
+},
+8(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  registerZintlLoader: () => (registerZintlLoader)
+});
+/* import */ var _store_js__rspack_import_0 = __webpack_require__(4);
+
+//#region src/runtime/registry.ts
+/**
+* A helper for the Zintl compiler to register a boundary loader.
+* This is designed to be called with a minimal footprint in the transformed source.
+*/
+function registerZintlLoader(boundaryId, loader) {
+	return (0,_store_js__rspack_import_0.registerLoader)(boundaryId, loader);
+}
+//#endregion
+
+
+
+},
+9(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+/* export default */ __webpack_exports__["default"] = ({ id: "b_f1bc61690f0b", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_2f98939c81ca": {
+      "90e40d50": "Get started",
+      "b5323d23": "Edit <code>src/index.tsx</code> and save to test <code>HMR</code>",
+    },
+  };
+                case "ar":
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 13)).then(m => m.default);
+        case "es":
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 14)).then(m => m.default);
+        case "zh":
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 15)).then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] });
+
+},
+2(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  $DEVCOMP: () => ($DEVCOMP),
+  $PROXY: () => ($PROXY),
+  $TRACK: () => ($TRACK),
+  DEV: () => (DEV),
+  ErrorBoundary: () => (ErrorBoundary),
+  For: () => (For),
+  Index: () => (Index),
+  Match: () => (Match),
+  Show: () => (Show),
+  Suspense: () => (Suspense),
+  SuspenseList: () => (SuspenseList),
+  Switch: () => (Switch),
+  batch: () => (batch),
+  cancelCallback: () => (cancelCallback),
+  catchError: () => (catchError),
+  children: () => (children),
+  createComponent: () => (createComponent),
+  createComputed: () => (createComputed),
+  createContext: () => (createContext),
+  createDeferred: () => (createDeferred),
+  createEffect: () => (createEffect),
+  createMemo: () => (createMemo),
+  createReaction: () => (createReaction),
+  createRenderEffect: () => (createRenderEffect),
+  createResource: () => (createResource),
+  createRoot: () => (createRoot),
+  createSelector: () => (createSelector),
+  createSignal: () => (createSignal),
+  createUniqueId: () => (createUniqueId),
+  enableExternalSource: () => (enableExternalSource),
+  enableHydration: () => (enableHydration),
+  enableScheduling: () => (enableScheduling),
+  equalFn: () => (equalFn),
+  from: () => (from),
+  getListener: () => (getListener),
+  getOwner: () => (getOwner),
+  indexArray: () => (indexArray),
+  lazy: () => (lazy),
+  mapArray: () => (mapArray),
+  mergeProps: () => (mergeProps),
+  observable: () => (observable),
+  on: () => (on),
+  onCleanup: () => (onCleanup),
+  onError: () => (onError),
+  onMount: () => (onMount),
+  requestCallback: () => (requestCallback),
+  resetErrorBoundaries: () => (resetErrorBoundaries),
+  runWithOwner: () => (runWithOwner),
+  sharedConfig: () => (sharedConfig),
+  splitProps: () => (splitProps),
+  startTransition: () => (startTransition),
+  untrack: () => (untrack),
+  useContext: () => (useContext),
+  useTransition: () => (useTransition)
+});
+let taskIdCounter = 1,
+  isCallbackScheduled = false,
+  isPerformingWork = false,
+  taskQueue = [],
+  currentTask = null,
+  shouldYieldToHost = null,
+  yieldInterval = 5,
+  deadline = 0,
+  maxYieldInterval = 300,
+  maxDeadline = 0,
+  scheduleCallback = null,
+  scheduledCallback = null;
+const maxSigned31BitInt = 1073741823;
+function setupScheduler() {
+  const channel = new MessageChannel(),
+    port1 = channel.port1,
+    port = channel.port2;
+  if (typeof port1.unref === "function") port1.unref();
+  if (typeof port.unref === "function") port.unref();
+  scheduleCallback = () => port.postMessage(null);
+  port1.onmessage = () => {
+    if (scheduledCallback !== null) {
+      const currentTime = performance.now();
+      deadline = currentTime + yieldInterval;
+      maxDeadline = currentTime + maxYieldInterval;
+      try {
+        const hasMoreWork = scheduledCallback(currentTime);
+        if (!hasMoreWork) {
+          scheduledCallback = null;
+        } else port.postMessage(null);
+      } catch (error) {
+        port.postMessage(null);
+        throw error;
+      }
+    }
+  };
+  if (navigator && navigator.scheduling && navigator.scheduling.isInputPending) {
+    const scheduling = navigator.scheduling;
+    shouldYieldToHost = () => {
+      const currentTime = performance.now();
+      if (currentTime >= deadline) {
+        if (scheduling.isInputPending()) {
+          return true;
+        }
+        return currentTime >= maxDeadline;
+      } else {
+        return false;
+      }
+    };
+  } else {
+    shouldYieldToHost = () => performance.now() >= deadline;
+  }
+}
+function enqueue(taskQueue, task) {
+  function findIndex() {
+    let m = 0;
+    let n = taskQueue.length - 1;
+    while (m <= n) {
+      const k = n + m >> 1;
+      const cmp = task.expirationTime - taskQueue[k].expirationTime;
+      if (cmp > 0) m = k + 1;else if (cmp < 0) n = k - 1;else return k;
+    }
+    return m;
+  }
+  taskQueue.splice(findIndex(), 0, task);
+}
+function requestCallback(fn, options) {
+  if (!scheduleCallback) setupScheduler();
+  let startTime = performance.now(),
+    timeout = maxSigned31BitInt;
+  if (options && options.timeout) timeout = options.timeout;
+  const newTask = {
+    id: taskIdCounter++,
+    fn,
+    startTime,
+    expirationTime: startTime + timeout
+  };
+  enqueue(taskQueue, newTask);
+  if (!isCallbackScheduled && !isPerformingWork) {
+    isCallbackScheduled = true;
+    scheduledCallback = flushWork;
+    scheduleCallback();
+  }
+  return newTask;
+}
+function cancelCallback(task) {
+  task.fn = null;
+}
+function flushWork(initialTime) {
+  isCallbackScheduled = false;
+  isPerformingWork = true;
+  try {
+    return workLoop(initialTime);
+  } finally {
+    currentTask = null;
+    isPerformingWork = false;
+  }
+}
+function workLoop(initialTime) {
+  let currentTime = initialTime;
+  currentTask = taskQueue[0] || null;
+  while (currentTask !== null) {
+    if (currentTask.expirationTime > currentTime && shouldYieldToHost()) {
+      break;
+    }
+    const callback = currentTask.fn;
+    if (callback !== null) {
+      currentTask.fn = null;
+      const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
+      callback(didUserCallbackTimeout);
+      currentTime = performance.now();
+      if (currentTask === taskQueue[0]) {
+        taskQueue.shift();
+      }
+    } else taskQueue.shift();
+    currentTask = taskQueue[0] || null;
+  }
+  return currentTask !== null;
+}
+
+const sharedConfig = {
+  context: undefined,
+  registry: undefined,
+  effects: undefined,
+  done: false,
+  getContextId() {
+    return getContextId(this.context.count);
+  },
+  getNextContextId() {
+    return getContextId(this.context.count++);
+  }
+};
+function getContextId(count) {
+  const num = String(count),
+    len = num.length - 1;
+  return sharedConfig.context.id + (len ? String.fromCharCode(96 + len) : "") + num;
+}
+function setHydrateContext(context) {
+  sharedConfig.context = context;
+}
+function nextHydrateContext() {
+  return {
+    ...sharedConfig.context,
+    id: sharedConfig.getNextContextId(),
+    count: 0
+  };
+}
+
+const IS_DEV = false;
+const equalFn = (a, b) => a === b;
+const $PROXY = Symbol("solid-proxy");
+const SUPPORTS_PROXY = typeof Proxy === "function";
+const $TRACK = Symbol("solid-track");
+const $DEVCOMP = Symbol("solid-dev-component");
+const signalOptions = {
+  equals: equalFn
+};
+let ERROR = null;
+let runEffects = runQueue;
+const STALE = 1;
+const PENDING = 2;
+const UNOWNED = {
+  owned: null,
+  cleanups: null,
+  context: null,
+  owner: null
+};
+const NO_INIT = {};
+var Owner = null;
+let Transition = null;
+let Scheduler = null;
+let ExternalSourceConfig = null;
+let Listener = null;
+let Updates = null;
+let Effects = null;
+let ExecCount = 0;
+function createRoot(fn, detachedOwner) {
+  const listener = Listener,
+    owner = Owner,
+    unowned = fn.length === 0,
+    current = detachedOwner === undefined ? owner : detachedOwner,
+    root = unowned ? UNOWNED : {
+      owned: null,
+      cleanups: null,
+      context: current ? current.context : null,
+      owner: current
+    },
+    updateFn = unowned ? fn : () => fn(() => untrack(() => cleanNode(root)));
+  Owner = root;
+  Listener = null;
+  try {
+    return runUpdates(updateFn, true);
+  } finally {
+    Listener = listener;
+    Owner = owner;
+  }
+}
+function createSignal(value, options) {
+  options = options ? Object.assign({}, signalOptions, options) : signalOptions;
+  const s = {
+    value,
+    observers: null,
+    observerSlots: null,
+    comparator: options.equals || undefined
+  };
+  const setter = value => {
+    if (typeof value === "function") {
+      if (Transition && Transition.running && Transition.sources.has(s)) value = value(s.tValue);else value = value(s.value);
+    }
+    return writeSignal(s, value);
+  };
+  return [readSignal.bind(s), setter];
+}
+function createComputed(fn, value, options) {
+  const c = createComputation(fn, value, true, STALE);
+  if (Scheduler && Transition && Transition.running) Updates.push(c);else updateComputation(c);
+}
+function createRenderEffect(fn, value, options) {
+  const c = createComputation(fn, value, false, STALE);
+  if (Scheduler && Transition && Transition.running) Updates.push(c);else updateComputation(c);
+}
+function createEffect(fn, value, options) {
+  runEffects = runUserEffects;
+  const c = createComputation(fn, value, false, STALE),
+    s = SuspenseContext && useContext(SuspenseContext);
+  if (s) c.suspense = s;
+  if (!options || !options.render) c.user = true;
+  Effects ? Effects.push(c) : updateComputation(c);
+}
+function createReaction(onInvalidate, options) {
+  let fn;
+  const c = createComputation(() => {
+      fn ? fn() : untrack(onInvalidate);
+      fn = undefined;
+    }, undefined, false, 0),
+    s = SuspenseContext && useContext(SuspenseContext);
+  if (s) c.suspense = s;
+  c.user = true;
+  return tracking => {
+    fn = tracking;
+    updateComputation(c);
+  };
+}
+function createMemo(fn, value, options) {
+  options = options ? Object.assign({}, signalOptions, options) : signalOptions;
+  const c = createComputation(fn, value, true, 0);
+  c.observers = null;
+  c.observerSlots = null;
+  c.comparator = options.equals || undefined;
+  if (Scheduler && Transition && Transition.running) {
+    c.tState = STALE;
+    Updates.push(c);
+  } else updateComputation(c);
+  return readSignal.bind(c);
+}
+function isPromise(v) {
+  return v && typeof v === "object" && "then" in v;
+}
+function createResource(pSource, pFetcher, pOptions) {
+  let source;
+  let fetcher;
+  let options;
+  if (typeof pFetcher === "function") {
+    source = pSource;
+    fetcher = pFetcher;
+    options = pOptions || {};
+  } else {
+    source = true;
+    fetcher = pSource;
+    options = pFetcher || {};
+  }
+  let pr = null,
+    initP = NO_INIT,
+    id = null,
+    loadedUnderTransition = false,
+    scheduled = false,
+    resolved = "initialValue" in options,
+    dynamic = typeof source === "function" && createMemo(source);
+  const contexts = new Set(),
+    [value, setValue] = (options.storage || createSignal)(options.initialValue),
+    [error, setError] = createSignal(undefined),
+    [track, trigger] = createSignal(undefined, {
+      equals: false
+    }),
+    [state, setState] = createSignal(resolved ? "ready" : "unresolved");
+  if (Owner) onCleanup(() => {
+    for (const c of contexts.keys()) c.decrement();
+    contexts.clear();
+    if (Transition && pr) Transition.promises.delete(pr);
+    pr = null;
+  });
+  if (sharedConfig.context) {
+    id = sharedConfig.getNextContextId();
+    if (options.ssrLoadFrom === "initial") initP = options.initialValue;else if (sharedConfig.load && sharedConfig.has(id)) initP = sharedConfig.load(id);
+  }
+  function loadEnd(p, v, error, key) {
+    if (pr === p) {
+      pr = null;
+      key !== undefined && (resolved = true);
+      if ((p === initP || v === initP) && options.onHydrated) queueMicrotask(() => options.onHydrated(key, {
+        value: v
+      }));
+      initP = NO_INIT;
+      if (Transition && p && loadedUnderTransition) {
+        Transition.promises.delete(p);
+        loadedUnderTransition = false;
+        runUpdates(() => {
+          Transition.running = true;
+          completeLoad(v, error);
+        }, false);
+      } else completeLoad(v, error);
+    }
+    return v;
+  }
+  function completeLoad(v, err) {
+    runUpdates(() => {
+      if (err === undefined) setValue(() => v);
+      setState(err !== undefined ? "errored" : resolved ? "ready" : "unresolved");
+      setError(err);
+      for (const c of contexts.keys()) c.decrement();
+      contexts.clear();
+    }, false);
+  }
+  function read() {
+    const c = SuspenseContext && useContext(SuspenseContext),
+      v = value(),
+      err = error();
+    if (err !== undefined && !pr) throw err;
+    if (Listener && !Listener.user && c) {
+      createComputed(() => {
+        track();
+        if (pr) {
+          if (c.resolved && Transition && loadedUnderTransition) Transition.promises.add(pr);else if (!contexts.has(c)) {
+            c.increment();
+            contexts.add(c);
+          }
+        }
+      });
+    }
+    return v;
+  }
+  function load(refetching = true) {
+    if (refetching !== false && scheduled) return;
+    scheduled = false;
+    const lookup = dynamic ? dynamic() : source;
+    loadedUnderTransition = Transition && Transition.running;
+    if (lookup == null || lookup === false) {
+      loadEnd(pr, untrack(value));
+      return;
+    }
+    if (Transition && pr) Transition.promises.delete(pr);
+    let error;
+    const p = initP !== NO_INIT ? initP : untrack(() => {
+      try {
+        return fetcher(lookup, {
+          value: value(),
+          refetching
+        });
+      } catch (fetcherError) {
+        error = fetcherError;
+      }
+    });
+    if (error !== undefined) {
+      loadEnd(pr, undefined, castError(error), lookup);
+      return;
+    } else if (!isPromise(p)) {
+      loadEnd(pr, p, undefined, lookup);
+      return p;
+    }
+    pr = p;
+    if ("v" in p) {
+      if (p.s === 1) loadEnd(pr, p.v, undefined, lookup);else loadEnd(pr, undefined, castError(p.v), lookup);
+      return p;
+    }
+    scheduled = true;
+    queueMicrotask(() => scheduled = false);
+    runUpdates(() => {
+      setState(resolved ? "refreshing" : "pending");
+      trigger();
+    }, false);
+    return p.then(v => loadEnd(p, v, undefined, lookup), e => loadEnd(p, undefined, castError(e), lookup));
+  }
+  Object.defineProperties(read, {
+    state: {
+      get: () => state()
+    },
+    error: {
+      get: () => error()
+    },
+    loading: {
+      get() {
+        const s = state();
+        return s === "pending" || s === "refreshing";
+      }
+    },
+    latest: {
+      get() {
+        if (!resolved) return read();
+        const err = error();
+        if (err && !pr) throw err;
+        return value();
+      }
+    }
+  });
+  let owner = Owner;
+  if (dynamic) createComputed(() => (owner = Owner, load(false)));else load(false);
+  return [read, {
+    refetch: info => runWithOwner(owner, () => load(info)),
+    mutate: setValue
+  }];
+}
+function createDeferred(source, options) {
+  let t,
+    timeout = options ? options.timeoutMs : undefined;
+  const node = createComputation(() => {
+    if (!t || !t.fn) t = requestCallback(() => setDeferred(() => node.value), timeout !== undefined ? {
+      timeout
+    } : undefined);
+    return source();
+  }, undefined, true);
+  const [deferred, setDeferred] = createSignal(Transition && Transition.running && Transition.sources.has(node) ? node.tValue : node.value, options);
+  updateComputation(node);
+  setDeferred(() => Transition && Transition.running && Transition.sources.has(node) ? node.tValue : node.value);
+  return deferred;
+}
+function createSelector(source, fn = equalFn, options) {
+  const subs = new Map();
+  const node = createComputation(p => {
+    const v = source();
+    for (const [key, val] of subs.entries()) if (fn(key, v) !== fn(key, p)) {
+      for (const c of val.values()) {
+        if (Transition && Transition.running) c.tState = STALE;else c.state = STALE;
+        if (c.pure) Updates.push(c);else Effects.push(c);
+      }
+    }
+    return v;
+  }, undefined, true, STALE);
+  updateComputation(node);
+  return key => {
+    const listener = Listener;
+    if (listener) {
+      let l;
+      if (l = subs.get(key)) l.add(listener);else subs.set(key, l = new Set([listener]));
+      onCleanup(() => {
+        l.delete(listener);
+        !l.size && subs.delete(key);
+      });
+    }
+    return fn(key, Transition && Transition.running && Transition.sources.has(node) ? node.tValue : node.value);
+  };
+}
+function batch(fn) {
+  return runUpdates(fn, false);
+}
+function untrack(fn) {
+  if (!ExternalSourceConfig && Listener === null) return fn();
+  const listener = Listener;
+  Listener = null;
+  try {
+    if (ExternalSourceConfig) return ExternalSourceConfig.untrack(fn);
+    return fn();
+  } finally {
+    Listener = listener;
+  }
+}
+function on(deps, fn, options) {
+  const isArray = Array.isArray(deps);
+  let prevInput;
+  let defer = options && options.defer;
+  return prevValue => {
+    let input;
+    if (isArray) {
+      input = Array(deps.length);
+      for (let i = 0; i < deps.length; i++) input[i] = deps[i]();
+    } else input = deps();
+    if (defer) {
+      defer = false;
+      return prevValue;
+    }
+    const result = untrack(() => fn(input, prevInput, prevValue));
+    prevInput = input;
+    return result;
+  };
+}
+function onMount(fn) {
+  createEffect(() => untrack(fn));
+}
+function onCleanup(fn) {
+  if (Owner === null) ;else if (Owner.cleanups === null) Owner.cleanups = [fn];else Owner.cleanups.push(fn);
+  return fn;
+}
+function catchError(fn, handler) {
+  ERROR || (ERROR = Symbol("error"));
+  Owner = createComputation(undefined, undefined, true);
+  Owner.context = {
+    ...Owner.context,
+    [ERROR]: [handler]
+  };
+  if (Transition && Transition.running) Transition.sources.add(Owner);
+  try {
+    return fn();
+  } catch (err) {
+    handleError(err);
+  } finally {
+    Owner = Owner.owner;
+  }
+}
+function getListener() {
+  return Listener;
+}
+function getOwner() {
+  return Owner;
+}
+function runWithOwner(o, fn) {
+  const prev = Owner;
+  const prevListener = Listener;
+  Owner = o;
+  Listener = null;
+  try {
+    return runUpdates(fn, true);
+  } catch (err) {
+    handleError(err);
+  } finally {
+    Owner = prev;
+    Listener = prevListener;
+  }
+}
+function enableScheduling(scheduler = requestCallback) {
+  Scheduler = scheduler;
+}
+function startTransition(fn) {
+  if (Transition && Transition.running) {
+    fn();
+    return Transition.done;
+  }
+  const l = Listener;
+  const o = Owner;
+  return Promise.resolve().then(() => {
+    Listener = l;
+    Owner = o;
+    let t;
+    if (Scheduler || SuspenseContext) {
+      t = Transition || (Transition = {
+        sources: new Set(),
+        effects: [],
+        promises: new Set(),
+        disposed: new Set(),
+        queue: new Set(),
+        running: true
+      });
+      t.done || (t.done = new Promise(res => t.resolve = res));
+      t.running = true;
+    }
+    runUpdates(fn, false);
+    Listener = Owner = null;
+    return t ? t.done : undefined;
+  });
+}
+const [transPending, setTransPending] = /*@__PURE__*/createSignal(false);
+function useTransition() {
+  return [transPending, startTransition];
+}
+function resumeEffects(e) {
+  Effects.push.apply(Effects, e);
+  e.length = 0;
+}
+function createContext(defaultValue, options) {
+  const id = Symbol("context");
+  return {
+    id,
+    Provider: createProvider(id),
+    defaultValue
+  };
+}
+function useContext(context) {
+  let value;
+  return Owner && Owner.context && (value = Owner.context[context.id]) !== undefined ? value : context.defaultValue;
+}
+function children(fn) {
+  const children = createMemo(fn);
+  const memo = createMemo(() => resolveChildren(children()));
+  memo.toArray = () => {
+    const c = memo();
+    return Array.isArray(c) ? c : c != null ? [c] : [];
+  };
+  return memo;
+}
+let SuspenseContext;
+function getSuspenseContext() {
+  return SuspenseContext || (SuspenseContext = createContext());
+}
+function enableExternalSource(factory, untrack = fn => fn()) {
+  if (ExternalSourceConfig) {
+    const {
+      factory: oldFactory,
+      untrack: oldUntrack
+    } = ExternalSourceConfig;
+    ExternalSourceConfig = {
+      factory: (fn, trigger) => {
+        const oldSource = oldFactory(fn, trigger);
+        const source = factory(x => oldSource.track(x), trigger);
+        return {
+          track: x => source.track(x),
+          dispose() {
+            source.dispose();
+            oldSource.dispose();
+          }
+        };
+      },
+      untrack: fn => oldUntrack(() => untrack(fn))
+    };
+  } else {
+    ExternalSourceConfig = {
+      factory,
+      untrack
+    };
+  }
+}
+function readSignal() {
+  const runningTransition = Transition && Transition.running;
+  if (this.sources && (runningTransition ? this.tState : this.state)) {
+    if ((runningTransition ? this.tState : this.state) === STALE) updateComputation(this);else {
+      const updates = Updates;
+      Updates = null;
+      runUpdates(() => lookUpstream(this), false);
+      Updates = updates;
+    }
+  }
+  if (Listener) {
+    const observers = this.observers;
+    if (!observers || observers[observers.length - 1] !== Listener) {
+      const sSlot = observers ? observers.length : 0;
+      if (!Listener.sources) {
+        Listener.sources = [this];
+        Listener.sourceSlots = [sSlot];
+      } else {
+        Listener.sources.push(this);
+        Listener.sourceSlots.push(sSlot);
+      }
+      if (!observers) {
+        this.observers = [Listener];
+        this.observerSlots = [Listener.sources.length - 1];
+      } else {
+        observers.push(Listener);
+        this.observerSlots.push(Listener.sources.length - 1);
+      }
+    }
+  }
+  if (runningTransition && Transition.sources.has(this)) return this.tValue;
+  return this.value;
+}
+function writeSignal(node, value, isComp) {
+  let current = Transition && Transition.running && Transition.sources.has(node) ? node.tValue : node.value;
+  if (!node.comparator || !node.comparator(current, value)) {
+    if (Transition) {
+      const TransitionRunning = Transition.running;
+      if (TransitionRunning || !isComp && Transition.sources.has(node)) {
+        Transition.sources.add(node);
+        node.tValue = value;
+      }
+      if (!TransitionRunning) node.value = value;
+    } else node.value = value;
+    if (node.observers && node.observers.length) {
+      runUpdates(() => {
+        for (let i = 0; i < node.observers.length; i += 1) {
+          const o = node.observers[i];
+          const TransitionRunning = Transition && Transition.running;
+          if (TransitionRunning && Transition.disposed.has(o)) continue;
+          if (TransitionRunning ? !o.tState : !o.state) {
+            if (o.pure) Updates.push(o);else Effects.push(o);
+            if (o.observers) markDownstream(o);
+          }
+          if (!TransitionRunning) o.state = STALE;else o.tState = STALE;
+        }
+        if (Updates.length > 10e5) {
+          Updates = [];
+          if (IS_DEV) ;
+          throw new Error();
+        }
+      }, false);
+    }
+  }
+  return value;
+}
+function updateComputation(node) {
+  if (!node.fn) return;
+  cleanNode(node);
+  const time = ExecCount;
+  runComputation(node, Transition && Transition.running && Transition.sources.has(node) ? node.tValue : node.value, time);
+  if (Transition && !Transition.running && Transition.sources.has(node)) {
+    queueMicrotask(() => {
+      runUpdates(() => {
+        Transition && (Transition.running = true);
+        Listener = Owner = node;
+        runComputation(node, node.tValue, time);
+        Listener = Owner = null;
+      }, false);
+    });
+  }
+}
+function runComputation(node, value, time) {
+  let nextValue;
+  const owner = Owner,
+    listener = Listener;
+  Listener = Owner = node;
+  try {
+    nextValue = node.fn(value);
+  } catch (err) {
+    if (node.pure) {
+      if (Transition && Transition.running) {
+        node.tState = STALE;
+        node.tOwned && node.tOwned.forEach(cleanNode);
+        node.tOwned = undefined;
+      } else {
+        node.state = STALE;
+        node.owned && node.owned.forEach(cleanNode);
+        node.owned = null;
+      }
+    }
+    node.updatedAt = time + 1;
+    return handleError(err);
+  } finally {
+    Listener = listener;
+    Owner = owner;
+  }
+  if (!node.updatedAt || node.updatedAt <= time) {
+    if (node.updatedAt != null && "observers" in node) {
+      writeSignal(node, nextValue, true);
+    } else if (Transition && Transition.running && node.pure) {
+      if (!Transition.sources.has(node)) node.value = nextValue;
+      Transition.sources.add(node);
+      node.tValue = nextValue;
+    } else node.value = nextValue;
+    node.updatedAt = time;
+  }
+}
+function createComputation(fn, init, pure, state = STALE, options) {
+  const c = {
+    fn,
+    state: state,
+    updatedAt: null,
+    owned: null,
+    sources: null,
+    sourceSlots: null,
+    cleanups: null,
+    value: init,
+    owner: Owner,
+    context: Owner ? Owner.context : null,
+    pure
+  };
+  if (Transition && Transition.running) {
+    c.state = 0;
+    c.tState = state;
+  }
+  if (Owner === null) ;else if (Owner !== UNOWNED) {
+    if (Transition && Transition.running && Owner.pure) {
+      if (!Owner.tOwned) Owner.tOwned = [c];else Owner.tOwned.push(c);
+    } else {
+      if (!Owner.owned) Owner.owned = [c];else Owner.owned.push(c);
+    }
+  }
+  if (ExternalSourceConfig && c.fn) {
+    const sourceFn = c.fn;
+    const [track, trigger] = createSignal(undefined, {
+      equals: false
+    });
+    const ordinary = ExternalSourceConfig.factory(sourceFn, trigger);
+    onCleanup(() => ordinary.dispose());
+    let inTransition;
+    let trackedOrdinary = false;
+    const triggerInTransition = () => startTransition(trigger).then(() => {
+      if (inTransition) {
+        inTransition.dispose();
+        inTransition = undefined;
+        if (!trackedOrdinary) trigger();
+      }
+    });
+    c.fn = x => {
+      track();
+      if (Transition && Transition.running) {
+        if (!inTransition) inTransition = ExternalSourceConfig.factory(sourceFn, triggerInTransition);
+        return inTransition.track(x);
+      }
+      trackedOrdinary = true;
+      return ordinary.track(x);
+    };
+  }
+  return c;
+}
+function runTop(node) {
+  const runningTransition = Transition && Transition.running;
+  if ((runningTransition ? node.tState : node.state) === 0) return;
+  if ((runningTransition ? node.tState : node.state) === PENDING) return lookUpstream(node);
+  if (node.suspense && untrack(node.suspense.inFallback)) return node.suspense.effects.push(node);
+  const ancestors = [node];
+  while ((node = node.owner) && (!node.updatedAt || node.updatedAt < ExecCount)) {
+    if (runningTransition && Transition.disposed.has(node)) return;
+    if (runningTransition ? node.tState : node.state) ancestors.push(node);
+  }
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    node = ancestors[i];
+    if (runningTransition) {
+      let top = node,
+        prev = ancestors[i + 1];
+      while ((top = top.owner) && top !== prev) {
+        if (Transition.disposed.has(top)) return;
+      }
+    }
+    if ((runningTransition ? node.tState : node.state) === STALE) {
+      updateComputation(node);
+    } else if ((runningTransition ? node.tState : node.state) === PENDING) {
+      const updates = Updates;
+      Updates = null;
+      runUpdates(() => lookUpstream(node, ancestors[0]), false);
+      Updates = updates;
+    }
+  }
+}
+function runUpdates(fn, init) {
+  if (Updates) return fn();
+  let wait = false;
+  if (!init) Updates = [];
+  if (Effects) wait = true;else Effects = [];
+  ExecCount++;
+  try {
+    const res = fn();
+    completeUpdates(wait);
+    return res;
+  } catch (err) {
+    if (!wait) Effects = null;
+    Updates = null;
+    handleError(err);
+  }
+}
+function completeUpdates(wait) {
+  if (Updates) {
+    if (Scheduler && Transition && Transition.running) scheduleQueue(Updates);else runQueue(Updates);
+    Updates = null;
+  }
+  if (wait) return;
+  let res;
+  if (Transition) {
+    if (!Transition.promises.size && !Transition.queue.size) {
+      const sources = Transition.sources;
+      const disposed = Transition.disposed;
+      Effects.push.apply(Effects, Transition.effects);
+      res = Transition.resolve;
+      for (const e of Effects) {
+        "tState" in e && (e.state = e.tState);
+        delete e.tState;
+      }
+      Transition = null;
+      runUpdates(() => {
+        for (const d of disposed) cleanNode(d);
+        for (const v of sources) {
+          v.value = v.tValue;
+          if (v.owned) {
+            for (let i = 0, len = v.owned.length; i < len; i++) cleanNode(v.owned[i]);
+          }
+          if (v.tOwned) v.owned = v.tOwned;
+          delete v.tValue;
+          delete v.tOwned;
+          v.tState = 0;
+        }
+        setTransPending(false);
+      }, false);
+    } else if (Transition.running) {
+      Transition.running = false;
+      Transition.effects.push.apply(Transition.effects, Effects);
+      Effects = null;
+      setTransPending(true);
+      return;
+    }
+  }
+  const e = Effects;
+  Effects = null;
+  if (e.length) runUpdates(() => runEffects(e), false);
+  if (res) res();
+}
+function runQueue(queue) {
+  for (let i = 0; i < queue.length; i++) runTop(queue[i]);
+}
+function scheduleQueue(queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const item = queue[i];
+    const tasks = Transition.queue;
+    if (!tasks.has(item)) {
+      tasks.add(item);
+      Scheduler(() => {
+        tasks.delete(item);
+        runUpdates(() => {
+          Transition.running = true;
+          runTop(item);
+        }, false);
+        Transition && (Transition.running = false);
+      });
+    }
+  }
+}
+function runUserEffects(queue) {
+  let i,
+    userLength = 0;
+  for (i = 0; i < queue.length; i++) {
+    const e = queue[i];
+    if (!e.user) runTop(e);else queue[userLength++] = e;
+  }
+  if (sharedConfig.context) {
+    if (sharedConfig.count) {
+      sharedConfig.effects || (sharedConfig.effects = []);
+      sharedConfig.effects.push(...queue.slice(0, userLength));
+      return;
+    }
+    setHydrateContext();
+  }
+  if (sharedConfig.effects && (sharedConfig.done || !sharedConfig.count)) {
+    queue = [...sharedConfig.effects, ...queue];
+    userLength += sharedConfig.effects.length;
+    delete sharedConfig.effects;
+  }
+  for (i = 0; i < userLength; i++) runTop(queue[i]);
+}
+function lookUpstream(node, ignore) {
+  const runningTransition = Transition && Transition.running;
+  if (runningTransition) node.tState = 0;else node.state = 0;
+  for (let i = 0; i < node.sources.length; i += 1) {
+    const source = node.sources[i];
+    if (source.sources) {
+      const state = runningTransition ? source.tState : source.state;
+      if (state === STALE) {
+        if (source !== ignore && (!source.updatedAt || source.updatedAt < ExecCount)) runTop(source);
+      } else if (state === PENDING) lookUpstream(source, ignore);
+    }
+  }
+}
+function markDownstream(node) {
+  const runningTransition = Transition && Transition.running;
+  for (let i = 0; i < node.observers.length; i += 1) {
+    const o = node.observers[i];
+    if (runningTransition ? !o.tState : !o.state) {
+      if (runningTransition) o.tState = PENDING;else o.state = PENDING;
+      if (o.pure) Updates.push(o);else Effects.push(o);
+      o.observers && markDownstream(o);
+    }
+  }
+}
+function cleanNode(node) {
+  let i;
+  if (node.sources) {
+    while (node.sources.length) {
+      const source = node.sources.pop(),
+        index = node.sourceSlots.pop(),
+        obs = source.observers;
+      if (obs && obs.length) {
+        const n = obs.pop(),
+          s = source.observerSlots.pop();
+        if (index < obs.length) {
+          n.sourceSlots[s] = index;
+          obs[index] = n;
+          source.observerSlots[index] = s;
+        }
+      }
+    }
+  }
+  if (node.tOwned) {
+    for (i = node.tOwned.length - 1; i >= 0; i--) cleanNode(node.tOwned[i]);
+    delete node.tOwned;
+  }
+  if (Transition && Transition.running && node.pure) {
+    reset(node, true);
+  } else if (node.owned) {
+    for (i = node.owned.length - 1; i >= 0; i--) cleanNode(node.owned[i]);
+    node.owned = null;
+  }
+  if (node.cleanups) {
+    for (i = node.cleanups.length - 1; i >= 0; i--) node.cleanups[i]();
+    node.cleanups = null;
+  }
+  if (Transition && Transition.running) node.tState = 0;else node.state = 0;
+}
+function reset(node, top) {
+  if (!top) {
+    node.tState = 0;
+    Transition.disposed.add(node);
+  }
+  if (node.owned) {
+    for (let i = 0; i < node.owned.length; i++) reset(node.owned[i]);
+  }
+}
+function castError(err) {
+  if (err instanceof Error) return err;
+  return new Error(typeof err === "string" ? err : "Unknown error", {
+    cause: err
+  });
+}
+function runErrors(err, fns, owner) {
+  try {
+    for (const f of fns) f(err);
+  } catch (e) {
+    handleError(e, owner && owner.owner || null);
+  }
+}
+function handleError(err, owner = Owner) {
+  const fns = ERROR && owner && owner.context && owner.context[ERROR];
+  const error = castError(err);
+  if (!fns) throw error;
+  if (Effects) Effects.push({
+    fn() {
+      runErrors(error, fns, owner);
+    },
+    state: STALE
+  });else runErrors(error, fns, owner);
+}
+function resolveChildren(children) {
+  if (typeof children === "function" && !children.length) return resolveChildren(children());
+  if (Array.isArray(children)) {
+    const results = [];
+    for (let i = 0; i < children.length; i++) {
+      const result = resolveChildren(children[i]);
+      if (Array.isArray(result)) {
+        if (result.length < 32768) results.push.apply(results, result);else for (let j = 0; j < result.length; j++) results.push(result[j]);
+      } else {
+        results.push(result);
+      }
+    }
+    return results;
+  }
+  return children;
+}
+function createProvider(id, options) {
+  return function provider(props) {
+    let res;
+    createRenderEffect(() => res = untrack(() => {
+      Owner.context = {
+        ...Owner.context,
+        [id]: props.value
+      };
+      return children(() => props.children);
+    }), undefined);
+    return res;
+  };
+}
+function onError(fn) {
+  ERROR || (ERROR = Symbol("error"));
+  if (Owner === null) ;else if (Owner.context === null || !Owner.context[ERROR]) {
+    Owner.context = {
+      ...Owner.context,
+      [ERROR]: [fn]
+    };
+    mutateContext(Owner, ERROR, [fn]);
+  } else Owner.context[ERROR].push(fn);
+}
+function mutateContext(o, key, value) {
+  if (o.owned) {
+    for (let i = 0; i < o.owned.length; i++) {
+      if (o.owned[i].context === o.context) mutateContext(o.owned[i], key, value);
+      if (!o.owned[i].context) {
+        o.owned[i].context = o.context;
+        mutateContext(o.owned[i], key, value);
+      } else if (!o.owned[i].context[key]) {
+        o.owned[i].context[key] = value;
+        mutateContext(o.owned[i], key, value);
+      }
+    }
+  }
+}
+
+function observable(input) {
+  return {
+    subscribe(observer) {
+      if (!(observer instanceof Object) || observer == null) {
+        throw new TypeError("Expected the observer to be an object.");
+      }
+      const handler = typeof observer === "function" ? observer : observer.next && observer.next.bind(observer);
+      if (!handler) {
+        return {
+          unsubscribe() {}
+        };
+      }
+      const dispose = createRoot(disposer => {
+        createEffect(() => {
+          const v = input();
+          untrack(() => handler(v));
+        });
+        return disposer;
+      });
+      if (getOwner()) onCleanup(dispose);
+      return {
+        unsubscribe() {
+          dispose();
+        }
+      };
+    },
+    [Symbol.observable || "@@observable"]() {
+      return this;
+    }
+  };
+}
+function from(producer, initalValue = undefined) {
+  const [s, set] = createSignal(initalValue, {
+    equals: false
+  });
+  if ("subscribe" in producer) {
+    const unsub = producer.subscribe(v => set(() => v));
+    onCleanup(() => "unsubscribe" in unsub ? unsub.unsubscribe() : unsub());
+  } else {
+    const clean = producer(set);
+    onCleanup(clean);
+  }
+  return s;
+}
+
+const FALLBACK = Symbol("fallback");
+function dispose(d) {
+  for (let i = 0; i < d.length; i++) d[i]();
+}
+function mapArray(list, mapFn, options = {}) {
+  let items = [],
+    mapped = [],
+    disposers = [],
+    len = 0,
+    indexes = mapFn.length > 1 ? [] : null;
+  onCleanup(() => dispose(disposers));
+  return () => {
+    let newItems = list() || [],
+      newLen = newItems.length,
+      i,
+      j;
+    newItems[$TRACK];
+    return untrack(() => {
+      let newIndices, newIndicesNext, temp, tempdisposers, tempIndexes, start, end, newEnd, item;
+      if (newLen === 0) {
+        if (len !== 0) {
+          dispose(disposers);
+          disposers = [];
+          items = [];
+          mapped = [];
+          len = 0;
+          indexes && (indexes = []);
+        }
+        if (options.fallback) {
+          items = [FALLBACK];
+          mapped[0] = createRoot(disposer => {
+            disposers[0] = disposer;
+            return options.fallback();
+          });
+          len = 1;
+        }
+      }
+      else if (len === 0) {
+        mapped = new Array(newLen);
+        for (j = 0; j < newLen; j++) {
+          items[j] = newItems[j];
+          mapped[j] = createRoot(mapper);
+        }
+        len = newLen;
+      } else {
+        temp = new Array(newLen);
+        tempdisposers = new Array(newLen);
+        indexes && (tempIndexes = new Array(newLen));
+        for (start = 0, end = Math.min(len, newLen); start < end && items[start] === newItems[start]; start++);
+        for (end = len - 1, newEnd = newLen - 1; end >= start && newEnd >= start && items[end] === newItems[newEnd]; end--, newEnd--) {
+          temp[newEnd] = mapped[end];
+          tempdisposers[newEnd] = disposers[end];
+          indexes && (tempIndexes[newEnd] = indexes[end]);
+        }
+        newIndices = new Map();
+        newIndicesNext = new Array(newEnd + 1);
+        for (j = newEnd; j >= start; j--) {
+          item = newItems[j];
+          i = newIndices.get(item);
+          newIndicesNext[j] = i === undefined ? -1 : i;
+          newIndices.set(item, j);
+        }
+        for (i = start; i <= end; i++) {
+          item = items[i];
+          j = newIndices.get(item);
+          if (j !== undefined && j !== -1) {
+            temp[j] = mapped[i];
+            tempdisposers[j] = disposers[i];
+            indexes && (tempIndexes[j] = indexes[i]);
+            j = newIndicesNext[j];
+            newIndices.set(item, j);
+          } else disposers[i]();
+        }
+        for (j = start; j < newLen; j++) {
+          if (j in temp) {
+            mapped[j] = temp[j];
+            disposers[j] = tempdisposers[j];
+            if (indexes) {
+              indexes[j] = tempIndexes[j];
+              indexes[j](j);
+            }
+          } else mapped[j] = createRoot(mapper);
+        }
+        mapped = mapped.slice(0, len = newLen);
+        items = newItems.slice(0);
+      }
+      return mapped;
+    });
+    function mapper(disposer) {
+      disposers[j] = disposer;
+      if (indexes) {
+        const [s, set] = createSignal(j);
+        indexes[j] = set;
+        return mapFn(newItems[j], s);
+      }
+      return mapFn(newItems[j]);
+    }
+  };
+}
+function indexArray(list, mapFn, options = {}) {
+  let items = [],
+    mapped = [],
+    disposers = [],
+    signals = [],
+    len = 0,
+    i;
+  onCleanup(() => dispose(disposers));
+  return () => {
+    const newItems = list() || [],
+      newLen = newItems.length;
+    newItems[$TRACK];
+    return untrack(() => {
+      if (newLen === 0) {
+        if (len !== 0) {
+          dispose(disposers);
+          disposers = [];
+          items = [];
+          mapped = [];
+          len = 0;
+          signals = [];
+        }
+        if (options.fallback) {
+          items = [FALLBACK];
+          mapped[0] = createRoot(disposer => {
+            disposers[0] = disposer;
+            return options.fallback();
+          });
+          len = 1;
+        }
+        return mapped;
+      }
+      if (items[0] === FALLBACK) {
+        disposers[0]();
+        disposers = [];
+        items = [];
+        mapped = [];
+        len = 0;
+      }
+      for (i = 0; i < newLen; i++) {
+        if (i < items.length && items[i] !== newItems[i]) {
+          signals[i](() => newItems[i]);
+        } else if (i >= items.length) {
+          mapped[i] = createRoot(mapper);
+        }
+      }
+      for (; i < items.length; i++) {
+        disposers[i]();
+      }
+      len = signals.length = disposers.length = newLen;
+      items = newItems.slice(0);
+      return mapped = mapped.slice(0, len);
+    });
+    function mapper(disposer) {
+      disposers[i] = disposer;
+      const [s, set] = createSignal(newItems[i]);
+      signals[i] = set;
+      return mapFn(s, i);
+    }
+  };
+}
+
+let hydrationEnabled = false;
+function enableHydration() {
+  hydrationEnabled = true;
+}
+function createComponent(Comp, props) {
+  if (hydrationEnabled) {
+    if (sharedConfig.context) {
+      const c = sharedConfig.context;
+      setHydrateContext(nextHydrateContext());
+      const r = untrack(() => Comp(props || {}));
+      setHydrateContext(c);
+      return r;
+    }
+  }
+  return untrack(() => Comp(props || {}));
+}
+function trueFn() {
+  return true;
+}
+const propTraps = {
+  get(_, property, receiver) {
+    if (property === $PROXY) return receiver;
+    return _.get(property);
+  },
+  has(_, property) {
+    if (property === $PROXY) return true;
+    return _.has(property);
+  },
+  set: trueFn,
+  deleteProperty: trueFn,
+  getOwnPropertyDescriptor(_, property) {
+    return {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return _.get(property);
+      },
+      set: trueFn,
+      deleteProperty: trueFn
+    };
+  },
+  ownKeys(_) {
+    return _.keys();
+  }
+};
+function resolveSource(s) {
+  return !(s = typeof s === "function" ? s() : s) ? {} : s;
+}
+function resolveSources() {
+  for (let i = 0, length = this.length; i < length; ++i) {
+    const v = this[i]();
+    if (v !== undefined) return v;
+  }
+}
+function mergeProps(...sources) {
+  let proxy = false;
+  for (let i = 0; i < sources.length; i++) {
+    const s = sources[i];
+    proxy = proxy || !!s && $PROXY in s;
+    sources[i] = typeof s === "function" ? (proxy = true, createMemo(s)) : s;
+  }
+  if (SUPPORTS_PROXY && proxy) {
+    return new Proxy({
+      get(property) {
+        for (let i = sources.length - 1; i >= 0; i--) {
+          const v = resolveSource(sources[i])[property];
+          if (v !== undefined) return v;
+        }
+      },
+      has(property) {
+        for (let i = sources.length - 1; i >= 0; i--) {
+          if (property in resolveSource(sources[i])) return true;
+        }
+        return false;
+      },
+      keys() {
+        const keys = [];
+        for (let i = 0; i < sources.length; i++) keys.push(...Object.keys(resolveSource(sources[i])));
+        return [...new Set(keys)];
+      }
+    }, propTraps);
+  }
+  const sourcesMap = {};
+  const defined = Object.create(null);
+  for (let i = sources.length - 1; i >= 0; i--) {
+    const source = sources[i];
+    if (!source) continue;
+    const sourceKeys = Object.getOwnPropertyNames(source);
+    for (let i = sourceKeys.length - 1; i >= 0; i--) {
+      const key = sourceKeys[i];
+      if (key === "__proto__" || key === "constructor") continue;
+      const desc = Object.getOwnPropertyDescriptor(source, key);
+      if (!defined[key]) {
+        defined[key] = desc.get ? {
+          enumerable: true,
+          configurable: true,
+          get: resolveSources.bind(sourcesMap[key] = [desc.get.bind(source)])
+        } : desc.value !== undefined ? desc : undefined;
+      } else {
+        const sources = sourcesMap[key];
+        if (sources) {
+          if (desc.get) sources.push(desc.get.bind(source));else if (desc.value !== undefined) sources.push(() => desc.value);
+        }
+      }
+    }
+  }
+  const target = {};
+  const definedKeys = Object.keys(defined);
+  for (let i = definedKeys.length - 1; i >= 0; i--) {
+    const key = definedKeys[i],
+      desc = defined[key];
+    if (desc && desc.get) Object.defineProperty(target, key, desc);else target[key] = desc ? desc.value : undefined;
+  }
+  return target;
+}
+function splitProps(props, ...keys) {
+  const len = keys.length;
+  if (SUPPORTS_PROXY && $PROXY in props) {
+    const blocked = len > 1 ? keys.flat() : keys[0];
+    const claimed = new Set();
+    const res = keys.map(k => {
+      const owned = k.filter(property => !claimed.has(property) && (claimed.add(property), true));
+      return new Proxy({
+        get(property) {
+          return owned.includes(property) ? props[property] : undefined;
+        },
+        has(property) {
+          return owned.includes(property) && property in props;
+        },
+        keys() {
+          return owned.filter(property => property in props);
+        }
+      }, propTraps);
+    });
+    res.push(new Proxy({
+      get(property) {
+        return blocked.includes(property) ? undefined : props[property];
+      },
+      has(property) {
+        return blocked.includes(property) ? false : property in props;
+      },
+      keys() {
+        return Object.keys(props).filter(k => !blocked.includes(k));
+      }
+    }, propTraps));
+    return res;
+  }
+  const objects = [];
+  for (let i = 0; i <= len; i++) {
+    objects[i] = {};
+  }
+  for (const propName of Object.getOwnPropertyNames(props)) {
+    let keyIndex = len;
+    for (let i = 0; i < keys.length; i++) {
+      if (keys[i].includes(propName)) {
+        keyIndex = i;
+        break;
+      }
+    }
+    const desc = Object.getOwnPropertyDescriptor(props, propName);
+    const isDefaultDesc = !desc.get && !desc.set && desc.enumerable && desc.writable && desc.configurable;
+    isDefaultDesc ? objects[keyIndex][propName] = desc.value : Object.defineProperty(objects[keyIndex], propName, desc);
+  }
+  return objects;
+}
+function lazy(fn) {
+  let comp;
+  let p;
+  const load = () => {
+    if (!p) {
+      const cur = p = fn();
+      cur.then(mod => {
+        comp = () => mod.default;
+      }, () => {
+        if (p === cur) p = undefined;
+      });
+    }
+    return p;
+  };
+  const wrap = props => {
+    const ctx = sharedConfig.context;
+    if (ctx) {
+      const [s, set] = createSignal();
+      sharedConfig.count || (sharedConfig.count = 0);
+      sharedConfig.count++;
+      load().then(mod => {
+        !sharedConfig.done && setHydrateContext(ctx);
+        sharedConfig.count--;
+        set(() => mod.default);
+        setHydrateContext();
+      }, err => {
+        !sharedConfig.done && setHydrateContext(ctx);
+        sharedConfig.count--;
+        set(() => () => {
+          throw err;
+        });
+        setHydrateContext();
+      });
+      comp = s;
+    } else if (!comp) {
+      const [s] = createResource(() => load().then(mod => mod.default));
+      comp = s;
+      onCleanup(() => comp = undefined);
+    }
+    let Comp;
+    return createMemo(() => (Comp = comp?.()) ? untrack(() => {
+      if (IS_DEV) ;
+      if (!ctx || sharedConfig.done) return Comp(props);
+      const c = sharedConfig.context;
+      setHydrateContext(ctx);
+      const r = Comp(props);
+      setHydrateContext(c);
+      return r;
+    }) : "");
+  };
+  wrap.preload = () => load();
+  return wrap;
+}
+let counter = 0;
+function createUniqueId() {
+  const ctx = sharedConfig.context;
+  return ctx ? sharedConfig.getNextContextId() : `cl-${counter++}`;
+}
+
+const narrowedError = name => `Stale read from <${name}>.`;
+function For(props) {
+  const fallback = "fallback" in props && {
+    fallback: () => props.fallback
+  };
+  return createMemo(mapArray(() => props.each, props.children, fallback || undefined));
+}
+function Index(props) {
+  const fallback = "fallback" in props && {
+    fallback: () => props.fallback
+  };
+  return createMemo(indexArray(() => props.each, props.children, fallback || undefined));
+}
+function Show(props) {
+  const keyed = props.keyed;
+  const conditionValue = createMemo(() => props.when, undefined, undefined);
+  const condition = keyed ? conditionValue : createMemo(conditionValue, undefined, {
+    equals: (a, b) => !a === !b
+  });
+  return createMemo(() => {
+    const c = condition();
+    if (c) {
+      const child = props.children;
+      const fn = typeof child === "function" && child.length > 0;
+      return fn ? untrack(() => child(keyed ? c : () => {
+        if (!untrack(condition)) throw narrowedError("Show");
+        return conditionValue();
+      })) : child;
+    }
+    return props.fallback;
+  }, undefined, undefined);
+}
+function Switch(props) {
+  const chs = children(() => props.children);
+  const switchFunc = createMemo(() => {
+    const ch = chs();
+    const mps = Array.isArray(ch) ? ch : [ch];
+    let func = () => undefined;
+    for (let i = 0; i < mps.length; i++) {
+      const index = i;
+      const mp = mps[i];
+      const prevFunc = func;
+      const conditionValue = createMemo(() => prevFunc() ? undefined : mp.when, undefined, undefined);
+      const condition = mp.keyed ? conditionValue : createMemo(conditionValue, undefined, {
+        equals: (a, b) => !a === !b
+      });
+      func = () => prevFunc() || (condition() ? [index, conditionValue, mp] : undefined);
+    }
+    return func;
+  });
+  return createMemo(() => {
+    const sel = switchFunc()();
+    if (!sel) return props.fallback;
+    const [index, conditionValue, mp] = sel;
+    const child = mp.children;
+    const fn = typeof child === "function" && child.length > 0;
+    return fn ? untrack(() => child(mp.keyed ? conditionValue() : () => {
+      if (untrack(switchFunc)()?.[0] !== index) throw narrowedError("Match");
+      return conditionValue();
+    })) : child;
+  }, undefined, undefined);
+}
+function Match(props) {
+  return props;
+}
+let Errors;
+function resetErrorBoundaries() {
+  Errors && [...Errors].forEach(fn => fn());
+}
+function ErrorBoundary(props) {
+  let err;
+  if (sharedConfig.context && sharedConfig.load) err = sharedConfig.load(sharedConfig.getContextId());
+  const [errored, setErrored] = createSignal(err, undefined);
+  Errors || (Errors = new Set());
+  Errors.add(setErrored);
+  onCleanup(() => Errors.delete(setErrored));
+  return createMemo(() => {
+    let e;
+    if (e = errored()) {
+      const f = props.fallback;
+      return typeof f === "function" && f.length ? untrack(() => f(e, () => setErrored())) : f;
+    }
+    return catchError(() => props.children, setErrored);
+  }, undefined, undefined);
+}
+
+const suspenseListEquals = (a, b) => a.showContent === b.showContent && a.showFallback === b.showFallback;
+const SuspenseListContext = /* #__PURE__ */createContext();
+function SuspenseList(props) {
+  let [wrapper, setWrapper] = createSignal(() => ({
+      inFallback: false
+    })),
+    show;
+  const listContext = useContext(SuspenseListContext);
+  const [registry, setRegistry] = createSignal([]);
+  if (listContext) {
+    show = listContext.register(createMemo(() => wrapper()().inFallback));
+  }
+  const resolved = createMemo(prev => {
+    const reveal = props.revealOrder,
+      tail = props.tail,
+      {
+        showContent = true,
+        showFallback = true
+      } = show ? show() : {},
+      reg = registry(),
+      reverse = reveal === "backwards";
+    if (reveal === "together") {
+      const all = reg.every(inFallback => !inFallback());
+      const res = reg.map(() => ({
+        showContent: all && showContent,
+        showFallback
+      }));
+      res.inFallback = !all;
+      return res;
+    }
+    let stop = false;
+    let inFallback = prev.inFallback;
+    const res = [];
+    for (let i = 0, len = reg.length; i < len; i++) {
+      const n = reverse ? len - i - 1 : i,
+        s = reg[n]();
+      if (!stop && !s) {
+        res[n] = {
+          showContent,
+          showFallback
+        };
+      } else {
+        const next = !stop;
+        if (next) inFallback = true;
+        res[n] = {
+          showContent: next,
+          showFallback: !tail || next && tail === "collapsed" ? showFallback : false
+        };
+        stop = true;
+      }
+    }
+    if (!stop) inFallback = false;
+    res.inFallback = inFallback;
+    return res;
+  }, {
+    inFallback: false
+  });
+  setWrapper(() => resolved);
+  return createComponent(SuspenseListContext.Provider, {
+    value: {
+      register: inFallback => {
+        let index;
+        setRegistry(registry => {
+          index = registry.length;
+          return [...registry, inFallback];
+        });
+        return createMemo(() => resolved()[index], undefined, {
+          equals: suspenseListEquals
+        });
+      }
+    },
+    get children() {
+      return props.children;
+    }
+  });
+}
+function Suspense(props) {
+  let counter = 0,
+    show,
+    ctx,
+    p,
+    flicker,
+    error;
+  const [inFallback, setFallback] = createSignal(false),
+    SuspenseContext = getSuspenseContext(),
+    store = {
+      increment: () => {
+        if (++counter === 1) setFallback(true);
+      },
+      decrement: () => {
+        if (--counter === 0) setFallback(false);
+      },
+      inFallback,
+      effects: [],
+      resolved: false
+    },
+    owner = getOwner();
+  if (sharedConfig.context && sharedConfig.load) {
+    const key = sharedConfig.getContextId();
+    let ref = sharedConfig.load(key);
+    if (ref) {
+      if (typeof ref !== "object" || ref.s !== 1) p = ref;else sharedConfig.gather(key);
+    }
+    if (p && p !== "$$f") {
+      const [s, set] = createSignal(undefined, {
+        equals: false
+      });
+      flicker = s;
+      p.then(() => {
+        if (sharedConfig.done) return set();
+        sharedConfig.gather(key);
+        setHydrateContext(ctx);
+        set();
+        setHydrateContext();
+      }, err => {
+        error = err;
+        set();
+      });
+    }
+  }
+  const listContext = useContext(SuspenseListContext);
+  if (listContext) show = listContext.register(store.inFallback);
+  let dispose;
+  onCleanup(() => dispose && dispose());
+  return createComponent(SuspenseContext.Provider, {
+    value: store,
+    get children() {
+      return createMemo(() => {
+        if (error) throw error;
+        ctx = sharedConfig.context;
+        if (flicker) {
+          flicker();
+          return flicker = undefined;
+        }
+        if (ctx && p === "$$f") setHydrateContext();
+        const rendered = createMemo(() => props.children);
+        return createMemo(prev => {
+          const inFallback = store.inFallback(),
+            {
+              showContent = true,
+              showFallback = true
+            } = show ? show() : {};
+          if ((!inFallback || p && p !== "$$f") && showContent) {
+            store.resolved = true;
+            dispose && dispose();
+            dispose = ctx = p = undefined;
+            resumeEffects(store.effects);
+            return rendered();
+          }
+          if (!showFallback) return;
+          if (dispose) return prev;
+          return createRoot(disposer => {
+            dispose = disposer;
+            if (ctx) {
+              setHydrateContext({
+                id: ctx.id + "F",
+                count: 0
+              });
+              ctx = undefined;
+            }
+            return props.fallback;
+          }, owner);
+        });
+      });
+    }
+  });
+}
+
+const DEV = undefined;
+
+
+
+
+},
+1(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  Aliases: () => (Aliases),
+  Assets: () => (voidFn),
+  ChildProperties: () => (ChildProperties),
+  DOMElements: () => (DOMElements),
+  DelegatedEvents: () => (DelegatedEvents),
+  Dynamic: () => (Dynamic),
+  ErrorBoundary: () => (/* reexport safe */ solid_js__rspack_import_0.ErrorBoundary),
+  For: () => (/* reexport safe */ solid_js__rspack_import_0.For),
+  Hydration: () => (Hydration),
+  HydrationScript: () => (voidFn),
+  Index: () => (/* reexport safe */ solid_js__rspack_import_0.Index),
+  Match: () => (/* reexport safe */ solid_js__rspack_import_0.Match),
+  NoHydration: () => (NoHydration),
+  Portal: () => (Portal),
+  Properties: () => (Properties),
+  RequestContext: () => (RequestContext),
+  SVGElements: () => (SVGElements),
+  SVGNamespace: () => (SVGNamespace),
+  Show: () => (/* reexport safe */ solid_js__rspack_import_0.Show),
+  Suspense: () => (/* reexport safe */ solid_js__rspack_import_0.Suspense),
+  SuspenseList: () => (/* reexport safe */ solid_js__rspack_import_0.SuspenseList),
+  Switch: () => (/* reexport safe */ solid_js__rspack_import_0.Switch),
+  addEventListener: () => (addEventListener),
+  assign: () => (assign),
+  classList: () => (classList),
+  className: () => (className),
+  clearDelegatedEvents: () => (clearDelegatedEvents),
+  createComponent: () => (/* reexport safe */ solid_js__rspack_import_0.createComponent),
+  createDynamic: () => (createDynamic),
+  delegateEvents: () => (delegateEvents),
+  dynamicProperty: () => (dynamicProperty),
+  effect: () => (/* reexport safe */ solid_js__rspack_import_0.createRenderEffect),
+  escape: () => (escape),
+  generateHydrationScript: () => (voidFn),
+  getAssets: () => (voidFn),
+  getHydrationKey: () => (getHydrationKey),
+  getNextElement: () => (getNextElement),
+  getNextMarker: () => (getNextMarker),
+  getNextMatch: () => (getNextMatch),
+  getOwner: () => (/* reexport safe */ solid_js__rspack_import_0.getOwner),
+  getPropAlias: () => (getPropAlias),
+  getRequestEvent: () => (voidFn),
+  hydrate: () => (hydrate),
+  innerHTML: () => (innerHTML),
+  insert: () => (insert),
+  isDev: () => (isDev),
+  isServer: () => (isServer),
+  memo: () => (memo),
+  mergeProps: () => (/* reexport safe */ solid_js__rspack_import_0.mergeProps),
+  render: () => (render),
+  renderToStream: () => (renderToStream),
+  renderToString: () => (renderToString),
+  renderToStringAsync: () => (renderToStringAsync),
+  resolveSSRNode: () => (resolveSSRNode),
+  runHydrationEvents: () => (runHydrationEvents),
+  setAttribute: () => (setAttribute),
+  setAttributeNS: () => (setAttributeNS),
+  setBoolAttribute: () => (setBoolAttribute),
+  setProperty: () => (setProperty),
+  setStyleProperty: () => (setStyleProperty),
+  spread: () => (spread),
+  ssr: () => (ssr),
+  ssrAttribute: () => (ssrAttribute),
+  ssrClassList: () => (ssrClassList),
+  ssrElement: () => (ssrElement),
+  ssrHydrationKey: () => (ssrHydrationKey),
+  ssrSpread: () => (ssrSpread),
+  ssrStyle: () => (ssrStyle),
+  style: () => (style),
+  template: () => (template),
+  untrack: () => (/* reexport safe */ solid_js__rspack_import_0.untrack),
+  use: () => (use),
+  useAssets: () => (voidFn)
+});
+/* import */ var solid_js__rspack_import_0 = __webpack_require__(2);
+
+
+
+const booleans = ["allowfullscreen", "async", "alpha",
+"autofocus",
+"autoplay", "checked", "controls", "default", "disabled", "formnovalidate", "hidden",
+"indeterminate", "inert",
+"ismap", "loop", "multiple", "muted", "nomodule", "novalidate", "open", "playsinline", "readonly", "required", "reversed", "seamless",
+"selected", "adauctionheaders",
+"browsingtopics",
+"credentialless",
+"defaultchecked", "defaultmuted", "defaultselected", "defer", "disablepictureinpicture", "disableremoteplayback", "preservespitch",
+"shadowrootclonable", "shadowrootcustomelementregistry",
+"shadowrootdelegatesfocus", "shadowrootserializable",
+"sharedstoragewritable"
+];
+const Properties = /*#__PURE__*/new Set([
+"className", "value",
+"readOnly", "noValidate", "formNoValidate", "isMap", "noModule", "playsInline", "adAuctionHeaders",
+"allowFullscreen", "browsingTopics",
+"defaultChecked", "defaultMuted", "defaultSelected", "disablePictureInPicture", "disableRemotePlayback", "preservesPitch", "shadowRootClonable", "shadowRootCustomElementRegistry",
+"shadowRootDelegatesFocus", "shadowRootSerializable",
+"sharedStorageWritable",
+...booleans]);
+const ChildProperties = /*#__PURE__*/new Set(["innerHTML", "textContent", "innerText", "children"]);
+const Aliases = /*#__PURE__*/Object.assign(Object.create(null), {
+  className: "class",
+  htmlFor: "for"
+});
+const PropAliases = /*#__PURE__*/Object.assign(Object.create(null), {
+  class: "className",
+  novalidate: {
+    $: "noValidate",
+    FORM: 1
+  },
+  formnovalidate: {
+    $: "formNoValidate",
+    BUTTON: 1,
+    INPUT: 1
+  },
+  ismap: {
+    $: "isMap",
+    IMG: 1
+  },
+  nomodule: {
+    $: "noModule",
+    SCRIPT: 1
+  },
+  playsinline: {
+    $: "playsInline",
+    VIDEO: 1
+  },
+  readonly: {
+    $: "readOnly",
+    INPUT: 1,
+    TEXTAREA: 1
+  },
+  adauctionheaders: {
+    $: "adAuctionHeaders",
+    IFRAME: 1
+  },
+  allowfullscreen: {
+    $: "allowFullscreen",
+    IFRAME: 1
+  },
+  browsingtopics: {
+    $: "browsingTopics",
+    IMG: 1
+  },
+  defaultchecked: {
+    $: "defaultChecked",
+    INPUT: 1
+  },
+  defaultmuted: {
+    $: "defaultMuted",
+    AUDIO: 1,
+    VIDEO: 1
+  },
+  defaultselected: {
+    $: "defaultSelected",
+    OPTION: 1
+  },
+  disablepictureinpicture: {
+    $: "disablePictureInPicture",
+    VIDEO: 1
+  },
+  disableremoteplayback: {
+    $: "disableRemotePlayback",
+    AUDIO: 1,
+    VIDEO: 1
+  },
+  preservespitch: {
+    $: "preservesPitch",
+    AUDIO: 1,
+    VIDEO: 1
+  },
+  shadowrootclonable: {
+    $: "shadowRootClonable",
+    TEMPLATE: 1
+  },
+  shadowrootdelegatesfocus: {
+    $: "shadowRootDelegatesFocus",
+    TEMPLATE: 1
+  },
+  shadowrootserializable: {
+    $: "shadowRootSerializable",
+    TEMPLATE: 1
+  },
+  sharedstoragewritable: {
+    $: "sharedStorageWritable",
+    IFRAME: 1,
+    IMG: 1
+  }
+});
+function getPropAlias(prop, tagName) {
+  const a = PropAliases[prop];
+  return typeof a === "object" ? a[tagName] ? a["$"] : undefined : a;
+}
+const DelegatedEvents = /*#__PURE__*/new Set(["beforeinput", "click", "dblclick", "contextmenu", "focusin", "focusout", "input", "keydown", "keyup", "mousedown", "mousemove", "mouseout", "mouseover", "mouseup", "pointerdown", "pointermove", "pointerout", "pointerover", "pointerup", "touchend", "touchmove", "touchstart"]);
+const SVGElements = /*#__PURE__*/new Set([
+"altGlyph", "altGlyphDef", "altGlyphItem", "animate", "animateColor", "animateMotion", "animateTransform", "circle", "clipPath", "color-profile", "cursor", "defs", "desc", "ellipse", "feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feDistantLight", "feDropShadow", "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR", "feGaussianBlur", "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight", "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence", "filter", "font", "font-face", "font-face-format", "font-face-name", "font-face-src", "font-face-uri", "foreignObject", "g", "glyph", "glyphRef", "hkern", "image", "line", "linearGradient", "marker", "mask", "metadata", "missing-glyph", "mpath", "path", "pattern", "polygon", "polyline", "radialGradient", "rect",
+"set", "stop",
+"svg", "switch", "symbol", "text", "textPath",
+"tref", "tspan", "use", "view", "vkern"]);
+const SVGNamespace = {
+  xlink: "http://www.w3.org/1999/xlink",
+  xml: "http://www.w3.org/XML/1998/namespace"
+};
+const DOMElements = /*#__PURE__*/new Set(["html", "base", "head", "link", "meta", "style", "title", "body", "address", "article", "aside", "footer", "header", "main", "nav", "section", "body", "blockquote", "dd", "div", "dl", "dt", "figcaption", "figure", "hr", "li", "ol", "p", "pre", "ul", "a", "abbr", "b", "bdi", "bdo", "br", "cite", "code", "data", "dfn", "em", "i", "kbd", "mark", "q", "rp", "rt", "ruby", "s", "samp", "small", "span", "strong", "sub", "sup", "time", "u", "var", "wbr", "area", "audio", "img", "map", "track", "video", "embed", "iframe", "object", "param", "picture", "portal", "source", "svg", "math", "canvas", "noscript", "script", "del", "ins", "caption", "col", "colgroup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "button", "datalist", "fieldset", "form", "input", "label", "legend", "meter", "optgroup", "option", "output", "progress", "select", "textarea", "details", "dialog", "menu", "summary", "details", "slot", "template", "acronym", "applet", "basefont", "bgsound", "big", "blink", "center", "content", "dir", "font", "frame", "frameset", "hgroup", "image", "keygen", "marquee", "menuitem", "nobr", "noembed", "noframes", "plaintext", "rb", "rtc", "shadow", "spacer", "strike", "tt", "xmp", "a", "abbr", "acronym", "address", "applet", "area", "article", "aside", "audio", "b", "base", "basefont", "bdi", "bdo", "bgsound", "big", "blink", "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", "colgroup", "content", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "font", "footer", "form", "frame", "frameset", "head", "header", "hgroup", "hr", "html", "i", "iframe", "image", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "marquee", "menu", "menuitem", "meta", "meter", "nav", "nobr", "noembed", "noframes", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "picture", "plaintext", "portal", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "shadow", "slot", "small", "source", "spacer", "span", "strike", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "tt", "u", "ul", "var", "video", "wbr", "xmp", "input", "h1", "h2", "h3", "h4", "h5", "h6",
+"webview",
+"isindex", "listing", "multicol", "nextid", "noindex", "search"]);
+
+const memo = fn => (0,solid_js__rspack_import_0.createMemo)(() => fn());
+
+function reconcileArrays(parentNode, a, b) {
+  let bLength = b.length,
+    aEnd = a.length,
+    bEnd = bLength,
+    aStart = 0,
+    bStart = 0,
+    after = a[aEnd - 1].nextSibling,
+    map = null;
+  while (aStart < aEnd || bStart < bEnd) {
+    if (a[aStart] === b[bStart]) {
+      aStart++;
+      bStart++;
+      continue;
+    }
+    while (a[aEnd - 1] === b[bEnd - 1]) {
+      aEnd--;
+      bEnd--;
+    }
+    if (aEnd === aStart) {
+      const node = bEnd < bLength ? bStart ? b[bStart - 1].nextSibling : b[bEnd - bStart] : after;
+      while (bStart < bEnd) parentNode.insertBefore(b[bStart++], node);
+    } else if (bEnd === bStart) {
+      while (aStart < aEnd) {
+        if (!map || !map.has(a[aStart])) a[aStart].remove();
+        aStart++;
+      }
+    } else if (a[aStart] === b[bEnd - 1] && b[bStart] === a[aEnd - 1]) {
+      const node = a[--aEnd].nextSibling;
+      parentNode.insertBefore(b[bStart++], a[aStart++].nextSibling);
+      parentNode.insertBefore(b[--bEnd], node);
+      a[aEnd] = b[bEnd];
+    } else {
+      if (!map) {
+        map = new Map();
+        let i = bStart;
+        while (i < bEnd) map.set(b[i], i++);
+      }
+      const index = map.get(a[aStart]);
+      if (index != null) {
+        if (bStart < index && index < bEnd) {
+          let i = aStart,
+            sequence = 1,
+            t;
+          while (++i < aEnd && i < bEnd) {
+            if ((t = map.get(a[i])) == null || t !== index + sequence) break;
+            sequence++;
+          }
+          if (sequence > index - bStart) {
+            const node = a[aStart];
+            while (bStart < index) parentNode.insertBefore(b[bStart++], node);
+          } else parentNode.replaceChild(b[bStart++], a[aStart++]);
+        } else aStart++;
+      } else a[aStart++].remove();
+    }
+  }
+}
+
+const $$EVENTS = "_$DX_DELEGATE";
+function render(code, element, init, options = {}) {
+  let disposer;
+  (0,solid_js__rspack_import_0.createRoot)(dispose => {
+    disposer = dispose;
+    element === document ? code() : insert(element, code(), element.firstChild ? null : undefined, init);
+  }, options.owner);
+  return () => {
+    disposer();
+    element.textContent = "";
+  };
+}
+function template(html, isImportNode, isSVG, isMathML) {
+  let node;
+  const create = () => {
+    const t = isMathML ? document.createElementNS("http://www.w3.org/1998/Math/MathML", "template") : document.createElement("template");
+    t.innerHTML = html;
+    return isSVG ? t.content.firstChild.firstChild : isMathML ? t.firstChild : t.content.firstChild;
+  };
+  const fn = isImportNode ? () => (0,solid_js__rspack_import_0.untrack)(() => document.importNode(node || (node = create()), true)) : () => (node || (node = create())).cloneNode(true);
+  fn.cloneNode = fn;
+  return fn;
+}
+function delegateEvents(eventNames, document = window.document) {
+  const e = document[$$EVENTS] || (document[$$EVENTS] = new Set());
+  for (let i = 0, l = eventNames.length; i < l; i++) {
+    const name = eventNames[i];
+    if (!e.has(name)) {
+      e.add(name);
+      document.addEventListener(name, eventHandler);
+    }
+  }
+}
+function clearDelegatedEvents(document = window.document) {
+  if (document[$$EVENTS]) {
+    for (let name of document[$$EVENTS].keys()) document.removeEventListener(name, eventHandler);
+    delete document[$$EVENTS];
+  }
+}
+function setProperty(node, name, value) {
+  if (isHydrating(node)) return;
+  if ((name === "value" || name === "defaultValue") && (node.nodeName === "INPUT" || node.nodeName === "TEXTAREA")) node[name] = value ?? "";else node[name] = value;
+}
+function setAttribute(node, name, value) {
+  if (isHydrating(node)) return;
+  if (value == null) node.removeAttribute(name);else node.setAttribute(name, value);
+}
+function setAttributeNS(node, namespace, name, value) {
+  if (isHydrating(node)) return;
+  if (value == null) node.removeAttributeNS(namespace, name);else node.setAttributeNS(namespace, name, value);
+}
+function setBoolAttribute(node, name, value) {
+  if (isHydrating(node)) return;
+  value ? node.setAttribute(name, "") : node.removeAttribute(name);
+}
+function className(node, value) {
+  if (isHydrating(node)) return;
+  if (value == null) node.removeAttribute("class");else node.className = value;
+}
+function addEventListener(node, name, handler, delegate) {
+  if (delegate) {
+    if (Array.isArray(handler)) {
+      node[`$$${name}`] = handler[0];
+      node[`$$${name}Data`] = handler[1];
+    } else node[`$$${name}`] = handler;
+  } else if (Array.isArray(handler)) {
+    const handlerFn = handler[0];
+    node.addEventListener(name, handler[0] = e => handlerFn.call(node, handler[1], e));
+  } else node.addEventListener(name, handler, typeof handler !== "function" && handler);
+}
+function classList(node, value, prev = {}) {
+  const classKeys = Object.keys(value || {}),
+    prevKeys = Object.keys(prev);
+  let i, len;
+  for (i = 0, len = prevKeys.length; i < len; i++) {
+    const key = prevKeys[i];
+    if (!key || key === "undefined" || value[key]) continue;
+    toggleClassKey(node, key, false);
+    delete prev[key];
+  }
+  for (i = 0, len = classKeys.length; i < len; i++) {
+    const key = classKeys[i],
+      classValue = !!value[key];
+    if (!key || key === "undefined" || prev[key] === classValue || !classValue) continue;
+    toggleClassKey(node, key, true);
+    prev[key] = classValue;
+  }
+  return prev;
+}
+function style(node, value, prev) {
+  if (!value) return prev ? setAttribute(node, "style") : value;
+  const nodeStyle = node.style;
+  if (typeof value === "string") return nodeStyle.cssText = value;
+  typeof prev === "string" && (nodeStyle.cssText = prev = undefined);
+  prev || (prev = {});
+  value || (value = {});
+  let v, s;
+  for (s in prev) {
+    value[s] == null && nodeStyle.removeProperty(s);
+    delete prev[s];
+  }
+  for (s in value) {
+    v = value[s];
+    if (v !== prev[s]) {
+      nodeStyle.setProperty(s, v);
+      prev[s] = v;
+    }
+  }
+  return prev;
+}
+function setStyleProperty(node, name, value) {
+  value != null ? node.style.setProperty(name, value) : node.style.removeProperty(name);
+}
+function spread(node, props = {}, isSVG, skipChildren) {
+  const prevProps = {};
+  if (!skipChildren) {
+    (0,solid_js__rspack_import_0.createRenderEffect)(() => prevProps.children = insertExpression(node, props.children, prevProps.children));
+  }
+  (0,solid_js__rspack_import_0.createRenderEffect)(() => typeof props.ref === "function" && use(props.ref, node));
+  (0,solid_js__rspack_import_0.createRenderEffect)(() => assign(node, props, isSVG, true, prevProps, true));
+  return prevProps;
+}
+function dynamicProperty(props, key) {
+  const src = props[key];
+  Object.defineProperty(props, key, {
+    get() {
+      return src();
+    },
+    enumerable: true
+  });
+  return props;
+}
+function use(fn, element, arg) {
+  return (0,solid_js__rspack_import_0.untrack)(() => fn(element, arg));
+}
+function insert(parent, accessor, marker, initial) {
+  if (marker !== undefined && !initial) initial = [];
+  if (typeof accessor !== "function") return insertExpression(parent, accessor, initial, marker);
+  (0,solid_js__rspack_import_0.createRenderEffect)(current => insertExpression(parent, accessor(), current, marker), initial);
+}
+function assign(node, props, isSVG, skipChildren, prevProps = {}, skipRef = false) {
+  props || (props = {});
+  for (const prop in prevProps) {
+    if (!(prop in props)) {
+      if (prop === "children") continue;
+      prevProps[prop] = assignProp(node, prop, null, prevProps[prop], isSVG, skipRef, props);
+    }
+  }
+  for (const prop in props) {
+    if (prop === "children") {
+      if (!skipChildren) insertExpression(node, props.children);
+      continue;
+    }
+    const value = props[prop];
+    prevProps[prop] = assignProp(node, prop, value, prevProps[prop], isSVG, skipRef, props);
+  }
+}
+function hydrate$1(code, element, options = {}) {
+  if (globalThis._$HY.done) return render(code, element, [...element.childNodes], options);
+  solid_js__rspack_import_0.sharedConfig.completed = globalThis._$HY.completed;
+  solid_js__rspack_import_0.sharedConfig.events = globalThis._$HY.events;
+  solid_js__rspack_import_0.sharedConfig.load = id => globalThis._$HY.r[id];
+  solid_js__rspack_import_0.sharedConfig.has = id => id in globalThis._$HY.r;
+  solid_js__rspack_import_0.sharedConfig.gather = root => gatherHydratable(element, root);
+  solid_js__rspack_import_0.sharedConfig.registry = new Map();
+  solid_js__rspack_import_0.sharedConfig.context = {
+    id: options.renderId || "",
+    count: 0
+  };
+  try {
+    gatherHydratable(element, options.renderId);
+    return render(code, element, [...element.childNodes], options);
+  } finally {
+    solid_js__rspack_import_0.sharedConfig.context = null;
+  }
+}
+function getNextElement(template) {
+  let node,
+    key,
+    hydrating = isHydrating();
+  if (!hydrating || !(node = solid_js__rspack_import_0.sharedConfig.registry.get(key = getHydrationKey()))) {
+    return template();
+  }
+  if (solid_js__rspack_import_0.sharedConfig.completed) solid_js__rspack_import_0.sharedConfig.completed.add(node);
+  solid_js__rspack_import_0.sharedConfig.registry["delete"](key);
+  return node;
+}
+function getNextMatch(el, nodeName) {
+  while (el && el.localName !== nodeName) el = el.nextSibling;
+  return el;
+}
+function getNextMarker(start) {
+  let end = start,
+    count = 0,
+    current = [];
+  if (isHydrating(start)) {
+    while (end) {
+      if (end.nodeType === 8) {
+        const v = end.nodeValue;
+        if (v === "$") count++;else if (v === "/") {
+          if (count === 0) return [end, current];
+          count--;
+        }
+      }
+      current.push(end);
+      end = end.nextSibling;
+    }
+  }
+  return [end, current];
+}
+function runHydrationEvents() {
+  if (solid_js__rspack_import_0.sharedConfig.events && !solid_js__rspack_import_0.sharedConfig.events.queued) {
+    queueMicrotask(() => {
+      const {
+        completed,
+        events
+      } = solid_js__rspack_import_0.sharedConfig;
+      if (!events) return;
+      events.queued = false;
+      while (events.length) {
+        const [el, e] = events[0];
+        if (!completed.has(el)) return;
+        events.shift();
+        eventHandler(e);
+      }
+      if (solid_js__rspack_import_0.sharedConfig.done) {
+        solid_js__rspack_import_0.sharedConfig.events = _$HY.events = null;
+        solid_js__rspack_import_0.sharedConfig.completed = _$HY.completed = null;
+      }
+    });
+    solid_js__rspack_import_0.sharedConfig.events.queued = true;
+  }
+}
+function isHydrating(node) {
+  return !!solid_js__rspack_import_0.sharedConfig.context && !solid_js__rspack_import_0.sharedConfig.done && (!node || node.isConnected);
+}
+function toPropertyName(name) {
+  return name.toLowerCase().replace(/-([a-z])/g, (_, w) => w.toUpperCase());
+}
+function toggleClassKey(node, key, value) {
+  const classNames = key.trim().split(/\s+/);
+  for (let i = 0, nameLen = classNames.length; i < nameLen; i++) node.classList.toggle(classNames[i], value);
+}
+function assignProp(node, prop, value, prev, isSVG, skipRef, props) {
+  let isCE, isProp, isChildProp, propAlias, forceProp;
+  if (prop === "style") return style(node, value, prev);
+  if (prop === "classList") return classList(node, value, prev);
+  if (value === prev) return prev;
+  if (prop === "ref") {
+    if (!skipRef) value(node);
+  } else if (prop.slice(0, 3) === "on:") {
+    const e = prop.slice(3);
+    prev && node.removeEventListener(e, prev, typeof prev !== "function" && prev);
+    value && node.addEventListener(e, value, typeof value !== "function" && value);
+  } else if (prop.slice(0, 10) === "oncapture:") {
+    const e = prop.slice(10);
+    prev && node.removeEventListener(e, prev, true);
+    value && node.addEventListener(e, value, true);
+  } else if (prop.slice(0, 2) === "on") {
+    const name = prop.slice(2).toLowerCase();
+    const delegate = DelegatedEvents.has(name);
+    if (!delegate && prev) {
+      const h = Array.isArray(prev) ? prev[0] : prev;
+      node.removeEventListener(name, h);
+    }
+    if (delegate || value) {
+      addEventListener(node, name, value, delegate);
+      delegate && delegateEvents([name]);
+    }
+  } else if (prop.slice(0, 5) === "attr:") {
+    setAttribute(node, prop.slice(5), value);
+  } else if (prop.slice(0, 5) === "bool:") {
+    setBoolAttribute(node, prop.slice(5), value);
+  } else if ((forceProp = prop.slice(0, 5) === "prop:") || (isChildProp = ChildProperties.has(prop)) || !isSVG && ((propAlias = getPropAlias(prop, node.tagName)) || (isProp = Properties.has(prop))) || (isCE = node.nodeName.includes("-") || "is" in props)) {
+    if (forceProp) {
+      prop = prop.slice(5);
+      isProp = true;
+    } else if (isHydrating(node)) return value;
+    if (prop === "class" || prop === "className") className(node, value);else if (isCE && !isProp && !isChildProp) node[toPropertyName(prop)] = value;else if ((prop === "value" || prop === "defaultValue") && (node.nodeName === "INPUT" || node.nodeName === "TEXTAREA"))
+      node[propAlias || prop] = value ?? "";else node[propAlias || prop] = value;
+  } else {
+    const ns = isSVG && prop.indexOf(":") > -1 && SVGNamespace[prop.split(":")[0]];
+    if (ns) setAttributeNS(node, ns, prop, value);else setAttribute(node, Aliases[prop] || prop, value);
+  }
+  return value;
+}
+function eventHandler(e) {
+  if (solid_js__rspack_import_0.sharedConfig.registry && solid_js__rspack_import_0.sharedConfig.events) {
+    if (solid_js__rspack_import_0.sharedConfig.events.find(([el, ev]) => ev === e)) return;
+  }
+  let node = e.target;
+  const key = `$$${e.type}`;
+  const oriTarget = e.target;
+  const oriCurrentTarget = e.currentTarget;
+  const retarget = value => Object.defineProperty(e, "target", {
+    configurable: true,
+    value
+  });
+  const handleNode = () => {
+    const handler = node[key];
+    if (handler && !node.disabled) {
+      const data = node[`${key}Data`];
+      data !== undefined ? handler.call(node, data, e) : handler.call(node, e);
+      if (e.cancelBubble) return;
+    }
+    node.host && typeof node.host !== "string" && !node.host._$host && node.contains(e.target) && retarget(node.host);
+    return true;
+  };
+  const walkUpTree = () => {
+    while (handleNode() && (node = node._$host || node.parentNode || node.host));
+  };
+  Object.defineProperty(e, "currentTarget", {
+    configurable: true,
+    get() {
+      return node || document;
+    }
+  });
+  if (solid_js__rspack_import_0.sharedConfig.registry && !solid_js__rspack_import_0.sharedConfig.done) solid_js__rspack_import_0.sharedConfig.done = _$HY.done = true;
+  if (e.composedPath) {
+    const path = e.composedPath();
+    retarget(path[0]);
+    for (let i = 0; i < path.length - 2; i++) {
+      node = path[i];
+      if (!handleNode()) break;
+      if (node._$host) {
+        node = node._$host;
+        walkUpTree();
+        break;
+      }
+      if (node.parentNode === oriCurrentTarget) {
+        break;
+      }
+    }
+  }
+  else walkUpTree();
+  retarget(oriTarget);
+}
+function insertExpression(parent, value, current, marker, unwrapArray) {
+  const hydrating = isHydrating(parent);
+  if (hydrating) {
+    !current && (current = [...parent.childNodes]);
+    let cleaned = [];
+    for (let i = 0; i < current.length; i++) {
+      const node = current[i];
+      if (node.nodeType === 8 && node.data.slice(0, 2) === "!$") node.remove();else cleaned.push(node);
+    }
+    current = cleaned;
+  }
+  while (typeof current === "function") current = current();
+  if (value === current) return current;
+  const t = typeof value,
+    multi = marker !== undefined;
+  parent = multi && current[0] && current[0].parentNode || parent;
+  if (t === "string" || t === "number") {
+    if (hydrating) return current;
+    if (t === "number") {
+      value = value.toString();
+      if (value === current) return current;
+    }
+    if (multi) {
+      let node = current[0];
+      if (node && node.nodeType === 3) {
+        node.data !== value && (node.data = value);
+      } else node = document.createTextNode(value);
+      current = cleanChildren(parent, current, marker, node);
+    } else {
+      if (current !== "" && typeof current === "string") {
+        current = parent.firstChild.data = value;
+      } else current = parent.textContent = value;
+    }
+  } else if (value == null || t === "boolean") {
+    if (hydrating) return current;
+    current = cleanChildren(parent, current, marker);
+  } else if (t === "function") {
+    (0,solid_js__rspack_import_0.createRenderEffect)(() => {
+      let v = value();
+      while (typeof v === "function") v = v();
+      current = insertExpression(parent, v, current, marker);
+    });
+    return () => current;
+  } else if (Array.isArray(value)) {
+    const array = [];
+    const currentArray = current && Array.isArray(current);
+    if (normalizeIncomingArray(array, value, current, unwrapArray)) {
+      (0,solid_js__rspack_import_0.createRenderEffect)(() => current = insertExpression(parent, array, current, marker, true));
+      return () => current;
+    }
+    if (hydrating) {
+      if (!array.length) return current;
+      if (marker === undefined) return current = [...parent.childNodes];
+      let node = array[0];
+      if (node.parentNode !== parent) return current;
+      const nodes = [node];
+      while ((node = node.nextSibling) !== marker) nodes.push(node);
+      return current = nodes;
+    }
+    if (array.length === 0) {
+      current = cleanChildren(parent, current, marker);
+      if (multi) return current;
+    } else if (currentArray) {
+      if (current.length === 0) {
+        appendNodes(parent, array, marker);
+      } else reconcileArrays(parent, current, array);
+    } else {
+      current && cleanChildren(parent);
+      appendNodes(parent, array);
+    }
+    current = array;
+  } else if (value.nodeType) {
+    if (hydrating && value.parentNode) return current = multi ? [value] : value;
+    if (Array.isArray(current)) {
+      if (multi) return current = cleanChildren(parent, current, marker, value);
+      cleanChildren(parent, current, null, value);
+    } else if (current == null || current === "" || !parent.firstChild) {
+      parent.appendChild(value);
+    } else parent.replaceChild(value, parent.firstChild);
+    current = value;
+  } else ;
+  return current;
+}
+function normalizeIncomingArray(normalized, array, current, unwrap) {
+  let dynamic = false;
+  for (let i = 0, len = array.length; i < len; i++) {
+    let item = array[i],
+      prev = current && current[normalized.length],
+      t;
+    if (item == null || item === true || item === false) ; else if ((t = typeof item) === "object" && item.nodeType) {
+      normalized.push(item);
+    } else if (Array.isArray(item)) {
+      dynamic = normalizeIncomingArray(normalized, item, prev) || dynamic;
+    } else if (t === "function") {
+      if (unwrap) {
+        while (typeof item === "function") item = item();
+        dynamic = normalizeIncomingArray(normalized, Array.isArray(item) ? item : [item], Array.isArray(prev) ? prev : [prev]) || dynamic;
+      } else {
+        normalized.push(item);
+        dynamic = true;
+      }
+    } else {
+      const value = String(item);
+      if (prev && prev.nodeType === 3 && prev.data === value) normalized.push(prev);else normalized.push(document.createTextNode(value));
+    }
+  }
+  return dynamic;
+}
+function appendNodes(parent, array, marker = null) {
+  for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
+}
+function cleanChildren(parent, current, marker, replacement) {
+  if (marker === undefined) return parent.textContent = "";
+  const node = replacement || document.createTextNode("");
+  if (current.length) {
+    let inserted = false;
+    for (let i = current.length - 1; i >= 0; i--) {
+      const el = current[i];
+      if (node !== el) {
+        const isParent = el.parentNode === parent;
+        if (!inserted && !i) isParent ? parent.replaceChild(node, el) : parent.insertBefore(node, marker);else isParent && el.remove();
+      } else inserted = true;
+    }
+  } else parent.insertBefore(node, marker);
+  return [node];
+}
+function gatherHydratable(element, root) {
+  const templates = element.querySelectorAll(`*[data-hk]`);
+  for (let i = 0; i < templates.length; i++) {
+    const node = templates[i];
+    const key = node.getAttribute("data-hk");
+    if ((!root || key.startsWith(root)) && !solid_js__rspack_import_0.sharedConfig.registry.has(key)) solid_js__rspack_import_0.sharedConfig.registry.set(key, node);
+  }
+}
+function getHydrationKey() {
+  return solid_js__rspack_import_0.sharedConfig.getNextContextId();
+}
+function NoHydration(props) {
+  return solid_js__rspack_import_0.sharedConfig.context ? undefined : props.children;
+}
+function Hydration(props) {
+  return props.children;
+}
+const voidFn = () => undefined;
+const RequestContext = Symbol();
+function innerHTML(parent, content) {
+  !solid_js__rspack_import_0.sharedConfig.context && (parent.innerHTML = content);
+}
+
+function throwInBrowser(func) {
+  const err = new Error(`${func.name} is not supported in the browser, returning undefined`);
+  console.error(err);
+}
+function renderToString(fn, options) {
+  throwInBrowser(renderToString);
+}
+function renderToStringAsync(fn, options) {
+  throwInBrowser(renderToStringAsync);
+}
+function renderToStream(fn, options) {
+  throwInBrowser(renderToStream);
+}
+function ssr(template, ...nodes) {}
+function ssrElement(name, props, children, needsId) {}
+function ssrClassList(value) {}
+function ssrStyle(value) {}
+function ssrAttribute(key, value) {}
+function ssrHydrationKey() {}
+function resolveSSRNode(node) {}
+function escape(html) {}
+function ssrSpread(props, isSVG, skipChildren) {}
+
+const isServer = false;
+const isDev = false;
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+function createElement(tagName, isSVG = false, is = undefined) {
+  return isSVG ? document.createElementNS(SVG_NAMESPACE, tagName) : document.createElement(tagName, {
+    is
+  });
+}
+const hydrate = (...args) => {
+  (0,solid_js__rspack_import_0.enableHydration)();
+  return hydrate$1(...args);
+};
+function Portal(props) {
+  const {
+      useShadow
+    } = props,
+    marker = document.createTextNode(""),
+    mount = () => props.mount || document.body,
+    owner = (0,solid_js__rspack_import_0.getOwner)();
+  let content;
+  let hydrating = !!solid_js__rspack_import_0.sharedConfig.context;
+  (0,solid_js__rspack_import_0.createEffect)(() => {
+    if (hydrating) (0,solid_js__rspack_import_0.getOwner)().user = hydrating = false;
+    content || (content = (0,solid_js__rspack_import_0.runWithOwner)(owner, () => (0,solid_js__rspack_import_0.createMemo)(() => props.children)));
+    const el = mount();
+    if (el instanceof HTMLHeadElement) {
+      const [clean, setClean] = (0,solid_js__rspack_import_0.createSignal)(false);
+      const cleanup = () => setClean(true);
+      (0,solid_js__rspack_import_0.createRoot)(dispose => insert(el, () => !clean() ? content() : dispose(), null));
+      (0,solid_js__rspack_import_0.onCleanup)(cleanup);
+    } else {
+      const container = createElement(props.isSVG ? "g" : "div", props.isSVG),
+        renderRoot = useShadow && container.attachShadow ? container.attachShadow({
+          mode: "open"
+        }) : container;
+      Object.defineProperty(container, "_$host", {
+        get() {
+          return marker.parentNode;
+        },
+        configurable: true
+      });
+      insert(renderRoot, content);
+      el.appendChild(container);
+      props.ref && props.ref(container);
+      (0,solid_js__rspack_import_0.onCleanup)(() => el.contains(container) && el.removeChild(container));
+    }
+  }, undefined, {
+    render: !hydrating
+  });
+  return marker;
+}
+function createDynamic(component, props) {
+  const cached = (0,solid_js__rspack_import_0.createMemo)(component);
+  return (0,solid_js__rspack_import_0.createMemo)(() => {
+    const component = cached();
+    switch (typeof component) {
+      case "function":
+        return (0,solid_js__rspack_import_0.untrack)(() => component(props));
+      case "string":
+        const isSvg = SVGElements.has(component);
+        const el = solid_js__rspack_import_0.sharedConfig.context ? getNextElement() : createElement(component, isSvg, (0,solid_js__rspack_import_0.untrack)(() => props.is));
+        spread(el, props, isSvg);
+        return el;
+    }
+  });
+}
+function Dynamic(props) {
+  const [, others] = (0,solid_js__rspack_import_0.splitProps)(props, ["component"]);
+  return createDynamic(() => props.component, others);
+}
+
+
+
+
+},
+11(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  $$component: () => ($$component),
+  $$context: () => ($$context),
+  $$decline: () => ($$decline),
+  $$refresh: () => ($$refresh),
+  $$registry: () => ($$registry)
+});
+/* import */ var solid_js__rspack_import_0 = __webpack_require__(2);
+
+
+function setComponentProperty(component, key, value) {
+    const descriptor = Object.getOwnPropertyDescriptor(component, key);
+    if (descriptor) {
+        Object.defineProperty(component, key, Object.assign(Object.assign({}, descriptor), { value }));
+    }
+    else {
+        Object.defineProperty(component, key, {
+            value,
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        });
+    }
+}
+function createProxy(source, name, location) {
+    const refreshName = `[solid-refresh]${name}`;
+    function HMRComp(props) {
+        const s = source();
+        if (!s || solid_js__rspack_import_0.$DEVCOMP in s) {
+            return (0,solid_js__rspack_import_0.createMemo)(() => {
+                const c = source();
+                if (c) {
+                    return (0,solid_js__rspack_import_0.untrack)(() => c(props));
+                }
+                return undefined;
+            }, {
+                name: refreshName,
+            });
+        }
+        // no $DEVCOMP means it did not go through devComponent so source() is a regular function, not a component
+        return s(props);
+    }
+    setComponentProperty(HMRComp, 'name', refreshName);
+    if (location) {
+        setComponentProperty(HMRComp, 'location', location);
+    }
+    return new Proxy(HMRComp, {
+        get(_, property) {
+            if (property === 'location' || property === 'name') {
+                return HMRComp[property];
+            }
+            return source()[property];
+        },
+        set(_, property, value) {
+            source()[property] = value;
+            return true;
+        },
+    });
+}
+
+function isListUpdatedInternal(a, b) {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    // Check if both objects has the same amount of keys
+    if (aKeys.length !== bKeys.length) {
+        return true;
+    }
+    // Merge keys
+    const keys = new Set([...aKeys, ...bKeys]);
+    // Now check if merged keys has the same amount of keys as the other two
+    // for example: { a, b } and { a, c } produces { a, b, c }
+    if (keys.size !== aKeys.length) {
+        return true;
+    }
+    // Now compare each items
+    for (const key of keys) {
+        // This covers NaN. No need for Object.is since it's extreme for -0
+        if (a[key] !== b[key] || (a[key] !== a[key] && b[key] !== b[key])) {
+            return true;
+        }
+    }
+    return false;
+}
+function isListUpdated(a, b) {
+    if (a && b) {
+        return isListUpdatedInternal(a, b);
+    }
+    if (a == null && b != null) {
+        return true;
+    }
+    if (a != null && b == null) {
+        return true;
+    }
+    return false;
+}
+
+function $$registry() {
+    return {
+        components: new Map(),
+        contexts: new Map(),
+    };
+}
+function $$component(registry, id, component, options = {}) {
+    const [comp, setComp] = (0,solid_js__rspack_import_0.createSignal)(component, { internal: true });
+    const proxy = createProxy(comp, id, options.location);
+    registry.components.set(id, Object.assign({ id,
+        component,
+        proxy, update: setComp }, options));
+    return proxy;
+}
+function $$context(registry, id, context) {
+    registry.contexts.set(id, {
+        id,
+        context,
+    });
+    return context;
+}
+function patchComponent(oldData, newData) {
+    var _a, _b;
+    // Check if incoming module has signature
+    if (newData.signature) {
+        // Compare signatures
+        const oldDeps = (_a = oldData.dependencies) === null || _a === void 0 ? void 0 : _a.call(oldData);
+        const newDeps = (_b = newData.dependencies) === null || _b === void 0 ? void 0 : _b.call(newData);
+        if (newData.signature !== oldData.signature ||
+            isListUpdated(newDeps, oldDeps)) {
+            // Replace signatures and dependencies
+            oldData.dependencies = newDeps ? () => newDeps : undefined;
+            oldData.signature = newData.signature;
+            // Remount
+            oldData.update(() => newData.component);
+        }
+    }
+    else {
+        // No granular update, remount
+        oldData.update(() => newData.component);
+    }
+    // Always rely on the first proxy
+    // This is to allow modules newly importing
+    // the updated version to still be able
+    // to render the latest version despite
+    // not receiving the first proxy
+    newData.update(() => oldData.proxy);
+}
+function patchComponents(oldData, newData) {
+    const components = new Set([
+        ...oldData.components.keys(),
+        ...newData.components.keys(),
+    ]);
+    for (const key of components) {
+        const oldComponent = oldData.components.get(key);
+        const newComponent = newData.components.get(key);
+        if (oldComponent) {
+            if (newComponent) {
+                patchComponent(oldComponent, newComponent);
+            }
+            else {
+                // We need to invalidate
+                return true;
+            }
+        }
+        else if (newComponent) {
+            oldData.components.set(key, newComponent);
+        }
+    }
+    return false;
+}
+function patchContext(oldData, newData) {
+    oldData.context.defaultValue = newData.context.defaultValue;
+    newData.context.id = oldData.context.id;
+    newData.context.Provider = oldData.context.Provider;
+}
+function patchContexts(oldData, newData) {
+    const contexts = new Set([
+        ...oldData.contexts.keys(),
+        ...newData.contexts.keys(),
+    ]);
+    for (const key of contexts) {
+        const oldContext = oldData.contexts.get(key);
+        const newContext = newData.contexts.get(key);
+        if (oldContext) {
+            if (newContext) {
+                patchContext(oldContext, newContext);
+            }
+            else {
+                // We need to invalidate
+                return true;
+            }
+        }
+        else if (newContext) {
+            oldData.contexts.set(key, newContext);
+        }
+    }
+    return false;
+}
+function patchRegistry(oldRegistry, newRegistry) {
+    const shouldInvalidateByContext = patchContexts(oldRegistry, newRegistry);
+    const shouldInvalidateByComponents = patchComponents(oldRegistry, newRegistry);
+    // In the future we may add other HMR features here
+    return shouldInvalidateByComponents || shouldInvalidateByContext;
+}
+const SOLID_REFRESH = 'solid-refresh';
+const SOLID_REFRESH_PREV = 'solid-refresh-prev';
+function $$decline(...[type, hot, inline]) {
+    switch (type) {
+        case 'esm': {
+            // Snowpack's ESM assumes invalidate as a normal page reload
+            // decline should be better
+            if (inline) {
+                hot.invalidate();
+            }
+            else {
+                hot.decline();
+            }
+            break;
+        }
+        case 'vite': {
+            // Vite is no-op on decline, just call invalidate
+            if (inline) {
+                hot.invalidate();
+            }
+            else {
+                hot.accept(() => {
+                    hot.invalidate();
+                });
+            }
+            break;
+        }
+        case 'rspack-esm':
+        case 'webpack5': {
+            if (inline) {
+                hot.invalidate();
+            }
+            else {
+                hot.decline();
+            }
+            break;
+        }
+        case 'standard': {
+            // Some implementations do not have decline/invalidate
+            if (inline) {
+                if (hot.invalidate) {
+                    hot.invalidate();
+                }
+                else {
+                    window.location.reload();
+                }
+            }
+            else if (hot.decline) {
+                hot.decline();
+            }
+            else {
+                hot.accept(() => {
+                    if (hot.invalidate) {
+                        hot.invalidate();
+                    }
+                    else {
+                        window.location.reload();
+                    }
+                });
+            }
+            break;
+        }
+    }
+}
+let warned = false;
+function shouldWarnAndDecline() {
+    const result = solid_js__rspack_import_0.DEV && Object.keys(solid_js__rspack_import_0.DEV).length;
+    if (result) {
+        return false;
+    }
+    if (!warned) {
+        console.warn("To use solid-refresh, you need to use the dev build of SolidJS. Make sure your build system supports package.json conditional exports and has the 'development' condition turned on.");
+        warned = true;
+    }
+    return true;
+}
+function $$refreshESM(type, hot, registry) {
+    if (shouldWarnAndDecline()) {
+        $$decline(type, hot);
+    }
+    else if (hot.data) {
+        hot.data[SOLID_REFRESH] = hot.data[SOLID_REFRESH] || registry;
+        hot.data[SOLID_REFRESH_PREV] = registry;
+        hot.accept(mod => {
+            if (mod == null ||
+                patchRegistry(hot.data[SOLID_REFRESH], hot.data[SOLID_REFRESH_PREV])) {
+                hot.invalidate();
+            }
+        });
+    }
+    else {
+        // I guess just decline if hot.data doesn't exist
+        $$decline(type, hot);
+    }
+}
+function $$refreshStandard(type, hot, registry) {
+    if (shouldWarnAndDecline()) {
+        $$decline(type, hot);
+    }
+    else {
+        const current = hot.data;
+        if (current && current[SOLID_REFRESH]) {
+            if (patchRegistry(current[SOLID_REFRESH], registry)) {
+                $$decline(type, hot, true);
+            }
+        }
+        hot.dispose((data) => {
+            data[SOLID_REFRESH] = current ? current[SOLID_REFRESH] : registry;
+        });
+        hot.accept();
+    }
+}
+function $$refresh(...[type, hot, registry]) {
+    switch (type) {
+        case 'esm':
+        case 'vite': {
+            $$refreshESM(type, hot, registry);
+            break;
+        }
+        case 'standard':
+        case 'webpack5':
+        case 'rspack-esm': {
+            $$refreshStandard(type, hot, registry);
+            break;
+        }
+    }
+}
+
+
+
+
+},
+
+}]);

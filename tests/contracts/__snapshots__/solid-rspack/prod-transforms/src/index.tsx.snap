@@ -1,0 +1,13 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_f1bc61690f0b from "virtual:zintl/manager/none/entry:b_f1bc61690f0b";
+import { render } from "solid-js/web";
+
+import { App } from "./app.tsx";
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_f1bc61690f0b"]: _zintl_mgr_b_f1bc61690f0b.loader } }));
+  render(() => <App />, document.getElementById("root")!);
+}
+
+void bootstrap();

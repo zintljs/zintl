@@ -1,0 +1,18 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_src_index_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_tsx_bootstrap";
+import { render } from "preact";
+
+import { App } from "./app.tsx";
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_index_tsx_bootstrap"]: _zintl_mgr_b_src_index_tsx_bootstrap.loader } }));
+  render(<App />, document.getElementById("root")!);
+}
+
+void bootstrap();
+
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept();
+}

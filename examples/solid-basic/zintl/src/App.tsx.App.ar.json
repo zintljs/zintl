@@ -1,0 +1,14 @@
+{
+  "$schema": "../.schemas/src/App.tsx.App.schema.json",
+  "<img/> Explore Vite": "<img/> استكشف فيت",
+  "<img/> Learn more": "<img/> تعلم المزيد",
+  "Connect with us": "تواصل معنا",
+  "Count is {input}": "العدد هو {input}",
+  "Documentation": "التوثيق",
+  "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "عدل <code>src/App.tsx</code> واحفظه لاختبار <code>HMR</code>",
+  "Get started": "البدء",
+  "Join the Vite community": "انضم إلى مجتمع فيت",
+  "Solid logo": "شعار سوليد",
+  "Vite logo": "شعار فيت",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

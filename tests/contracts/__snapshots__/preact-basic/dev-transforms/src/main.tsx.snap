@@ -1,0 +1,52 @@
+import { loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { useSyncExternalStore } from "preact/compat";
+import _zintl_mgr_b_src_main_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_main_tsx_bootstrap";
+import { render } from "preact";
+import { useState } from "preact/hooks";
+
+import "./index.css";
+import { App } from "./app.tsx";
+
+/**
+ * `create-vite`'s **preact-ts** starter renders in five lines:
+ *
+ * ```tsx
+ * render(<App />, document.getElementById("app")!)
+ * ```
+ *
+ * Everything below is the localization layer. `zintl(lang)` is the trust anchor,
+ * awaited before the first render so the tree is never painted untranslated, and
+ * `Main` holds the locale the bar switches.
+ */
+function Main() {
+  useSyncExternalStore(subscribe, getStoreVersion, getStoreVersion);
+
+  const [lang, setLang] = useState(
+    () => new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const handleSwitch = async (newLang: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", newLang);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: newLang, loaders: { ["b_src_main_tsx_bootstrap"]: _zintl_mgr_b_src_main_tsx_bootstrap.loader } }));
+    setLang(newLang);
+  };
+
+  return <App lang={lang} onSwitch={handleSwitch} />;
+}
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_src_main_tsx_bootstrap"]: _zintl_mgr_b_src_main_tsx_bootstrap.loader } }));
+  render(<Main />, document.getElementById("app")!);
+}
+
+void bootstrap();
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    console.debug("[Zintl] HMR update accepted for: src/main.tsx");
+  });
+}

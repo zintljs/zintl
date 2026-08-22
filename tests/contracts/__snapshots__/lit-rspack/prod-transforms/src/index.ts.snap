@@ -1,0 +1,12 @@
+import { loadI18nInstance } from "virtual:zintl/runtime/internal";
+import _zintl_mgr_b_dd563dcb7e61 from "virtual:zintl/manager/none/entry:b_dd563dcb7e61";
+
+import "./app-root.ts";
+
+async function bootstrap() {
+  const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+  await (globalThis.__zintl_inst = loadI18nInstance({ locale: lang, loaders: { ["b_dd563dcb7e61"]: _zintl_mgr_b_dd563dcb7e61.loader } }));
+  document.getElementById("root")!.appendChild(document.createElement("app-root"));
+}
+
+void bootstrap();

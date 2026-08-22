@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/src/my-element.schema.json",
+  "Connect with us": "与我们联系",
+  "Count is {count}": "计数为 {count}",
+  "Documentation": "文档",
+  "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "编辑 <code>src/my-element.ts</code> 并保存以测试 <code>HMR</code>",
+  "Explore Vite": "探索 Vite",
+  "Join the Vite community": "加入 Vite 社区",
+  "Learn more": "了解更多",
+  "Lit logo": "Lit 图标",
+  "Vite logo": "Vite 图标",
+  "Your questions, answered": "您的问题，已有解答"
+}

@@ -1,0 +1,297 @@
+{
+  "entries": [
+    "index.html",
+    "src/main.tsx:bootstrap",
+    "src/main.tsx:f_877"
+  ],
+  "nodes": {
+    "index.html": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/main.tsx"
+        }
+      ],
+      "filePath": "index.html",
+      "id": "index.html",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/app.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/app.tsx:App"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/preact.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/app.tsx",
+      "id": "src/app.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/app.tsx:App": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/app.css"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/hero.png"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/preact.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/assets/vite.svg"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "src/components/LocaleSwitcher.tsx:default"
+        }
+      ],
+      "filePath": "src/app.tsx",
+      "id": "src/app.tsx:App",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main.tsx": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "preact"
+        },
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [
+            "App"
+          ],
+          "dynamic": false,
+          "id": "src/app.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:bootstrap"
+        },
+        {
+          "dynamic": false,
+          "id": "src/main.tsx:f_877"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx",
+      "mode": "boundary",
+      "usageCount": 0
+    },
+    "src/main.tsx:bootstrap": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "preact"
+        },
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [
+            "App"
+          ],
+          "dynamic": false,
+          "id": "src/app.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx:bootstrap",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "src/main.tsx:f_877": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "render"
+          ],
+          "dynamic": false,
+          "id": "preact"
+        },
+        {
+          "bindings": [
+            "useState"
+          ],
+          "dynamic": false,
+          "id": "preact/hooks"
+        },
+        {
+          "bindings": [
+            "App"
+          ],
+          "dynamic": false,
+          "id": "src/app.tsx:App"
+        },
+        {
+          "bindings": [],
+          "dynamic": false,
+          "id": "src/index.css"
+        },
+        {
+          "bindings": [
+            "zintl"
+          ],
+          "dynamic": false,
+          "id": "zintljs/macro"
+        }
+      ],
+      "filePath": "src/main.tsx",
+      "id": "src/main.tsx:f_877",
+      "mode": "entry",
+      "usageCount": 0
+    },
+    "vite.config": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "@preact/preset-vite"
+        },
+        {
+          "bindings": [
+            "defineConfig"
+          ],
+          "dynamic": false,
+          "id": "vite-plus"
+        },
+        {
+          "dynamic": false,
+          "id": "vite.config"
+        },
+        {
+          "bindings": [
+            "default"
+          ],
+          "dynamic": false,
+          "id": "zintljs/vite"
+        }
+      ],
+      "filePath": "vite.config",
+      "id": "vite.config",
+      "mode": "boundary",
+      "usageCount": 0
+    }
+  }
+}

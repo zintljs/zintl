@@ -1,0 +1,6 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "Get started": "Empezar",
+  "dir": "ltr",
+  "title": "Vite con Lit — Ejemplo de Zintl"
+}

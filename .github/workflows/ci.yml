@@ -149,11 +149,34 @@ jobs:
   # PR-only, and never on a changesets version PR: that PR changes versions and
   # changelogs, nothing a browser could observe, and the tree inside it already
   # passed contracts on the feature PR.
+  #
+  # SHARDED, and deliberately NOT `needs: verify`. Both come from profiling the
+  # suite (370 s locally at `maxWorkers: 4`), which found no configuration inside
+  # Vitest that makes it faster — `isolate: false` cost 24% and broke 23
+  # snapshots, `maxWorkers: 8` changed nothing because the runner has 4 vCPUs.
+  # The only lever that moves the number is more machines:
+  #
+  #   * Three shards took the suite from 370 s to 149 s. THREE, not more: a test
+  #     file is indivisible, one worker runs it start to finish, and
+  #     `hmr.contract.spec.ts` alone is 110 s. A fourth shard buys nothing and
+  #     pays for another `build:examples`.
+  #   * `needs: verify` bought ordering and nothing else — no step here consumes
+  #     a verify output, and this job builds what it needs itself. Serialised, a
+  #     PR waited 102 s and then 392 s; in parallel it waits for the longer of
+  #     the two. The cost is contract minutes on PRs whose verify would have
+  #     failed, which on a public repo's standard runners are not billed.
+  #
+  # `gate` needs no change: GitHub folds a matrix into one `needs.contracts.result`.
   contracts:
-    name: Contracts (e2e)
-    needs: verify
+    name: Contracts (e2e) ${{ matrix.shard }}/3
     if: github.event_name != 'push' && !startsWith(github.head_ref, 'changeset-release/')
     runs-on: ubuntu-latest
+    strategy:
+      # A red shard must not cancel its siblings. Without this you see whichever
+      # third of the failures happened to land first, and re-run to find the rest.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -175,10 +198,15 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: vp run browsers
 
-      # `ready:examples` -> `build:examples` -> `vpr build` + example builds,
-      # so packages are built as part of this; no separate build step needed.
-      - name: Build Examples and Run Contracts
-        run: vp run ready:examples
+      # `build:examples` -> `vpr build` + example builds, so packages are built
+      # as part of this; no separate build step needed. Split out of
+      # `ready:examples` because every shard needs the build but each needs only
+      # its own third of the contracts.
+      - name: Build Examples
+        run: vp run build:examples
+
+      - name: Run Contracts
+        run: vp run test:contracts --shard=${{ matrix.shard }}/3
 
   # Outside-in publish gate: packs the real tarballs, installs them with npm into
   # a throwaway project outside the repo, and builds against stock Vite — using

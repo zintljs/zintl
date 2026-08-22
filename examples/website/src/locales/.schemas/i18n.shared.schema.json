@@ -21,6 +21,54 @@
       },
       "type": "object"
     },
+    "TypeScript logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Vite logo": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Zintl Hero": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "ar": {
+          "type": "string"
+        },
+        "es": {
+          "type": "string"
+        },
+        "zh": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Zintl I18n": {
       "additionalProperties": false,
       "description": "Note: This is a note for the compiler",
@@ -57,6 +105,9 @@
   "required": [
     "{counter, plural, =0 {Start Counting Now!} one {Count is One.} =2 {Count is Two} other {Count is #}}",
     "Compiler-driven internationalization for the modern web.",
+    "TypeScript logo",
+    "Vite logo",
+    "Zintl Hero",
     "Zintl I18n"
   ],
   "additionalProperties": false

@@ -42,6 +42,7 @@ export const resolve: ResolveFn = (
     config.system?.clientReactivityImports,
     config.system?.serverComponents === true,
     needsReactiveBridge ? codegen!.reactiveBridge : undefined,
+    codegen?.codegenImports,
   );
   const prepends = resolvePrepends(intents, observation, logger);
   if (needsReactiveBridge) {
@@ -64,14 +65,31 @@ export const resolve: ResolveFn = (
    * The directive is only meaningful where server components exist, so that is
    * now what gates it — declared by the framework's own facet rather than
    * inferred from a string in the file.
+   *
+   * **And only for a dialect that has a hook to call.** The emitted call is
+   * React's `useSyncExternalStore` — Preact's `preact/compat` shim matches its
+   * signature exactly, which is why one line serves both — but Solid has no such
+   * hook at all. It writes JSX, so `componentFunctions` is non-empty and this
+   * fired for it too, emitting a call to an undefined name that nothing imported:
+   * a `ReferenceError` on first render. Vue and Svelte only escaped because their
+   * SFCs have no component *functions* for the scan to find, which is a property
+   * of their file format rather than a decision anyone made.
+   *
+   * So the condition is what it should always have been: inject the subscription
+   * if the framework declared a hook to subscribe with. A dialect that declares
+   * `reactiveBridge` instead — Vue, Solid — takes its dependency there, and
+   * declares no `clientReactivityImports` precisely because it needs none.
    */
   const requiresClientDirective = config.system?.serverComponents === true;
-  if (
+  const hasClientReactivityHook =
+    Object.keys(config.system?.clientReactivityImports ?? {}).length > 0;
+  const componentFunctions = observation.componentFunctions ?? [];
+  const subscribesComponents =
+    hasClientReactivityHook &&
     (observation.isClientComponent || !requiresClientDirective) &&
-    observation.componentFunctions &&
-    observation.componentFunctions.length > 0
-  ) {
-    for (const pos of observation.componentFunctions) {
+    componentFunctions.length > 0;
+  if (subscribesComponents) {
+    for (const pos of componentFunctions) {
       rewrites.push({
         start: pos,
         end: pos,
@@ -81,6 +99,15 @@ export const resolve: ResolveFn = (
       });
     }
   }
+
+  /**
+   * Either mechanism means the same thing downstream: rendering a translation in
+   * this file reads the store, so a delivered catalog reaches the page without
+   * the module being executed again. Neither implies the other — React subscribes
+   * components and declares no bridge; Vue and Solid declare a bridge and
+   * subscribe nothing.
+   */
+  const repaintsWithoutReexecution = needsReactiveBridge || subscribesComponents;
 
   const finalRewrites = resolveConflicts(rewrites, diagnostics);
 
@@ -96,5 +123,6 @@ export const resolve: ResolveFn = (
     prepends,
     rewrites: finalRewrites,
     diagnostics,
+    repaintsWithoutReexecution,
   };
 };

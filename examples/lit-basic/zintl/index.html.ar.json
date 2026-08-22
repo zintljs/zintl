@@ -1,0 +1,6 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "Get started": "البدء",
+  "dir": "rtl",
+  "title": "Vite مع Lit — مثال زينتل"
+}

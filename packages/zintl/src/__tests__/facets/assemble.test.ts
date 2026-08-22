@@ -203,4 +203,39 @@ describe("detectFrameworks", () => {
   it("returns empty when nothing matches", () => {
     expect(detectFrameworks({ pluginNames: ["some-unrelated-plugin"] })).toEqual([]);
   });
+
+  it("reads the JSX dialects that are not React", () => {
+    expect(detectFrameworks({ pluginNames: ["@preact/preset-vite"] })).toEqual(["preact"]);
+    expect(detectFrameworks({ pluginNames: ["vite-plugin-solid"] })).toEqual(["solid"]);
+    expect(detectFrameworks({ pluginNames: ["rsbuild:solid"] })).toEqual(["solid"]);
+  });
+
+  /**
+   * A Preact project is not a React project that also uses Preact.
+   *
+   * `@preact/preset-vite` aliases `react` and `react-dom` to `preact/compat`, so
+   * both names are genuinely present — in the dependency graph and, depending on
+   * the plugin, in the plugin list. Resolving as both is not a cosmetic problem:
+   * `preact-codegen` and `react-codegen` each claim `.tsx` at priority 100, and
+   * `mergeCodegenFacets` throws on exactly that.
+   */
+  it("prefers Preact over React when a project has both", () => {
+    expect(detectFrameworks({ pluginNames: ["@preact/preset-vite", "vite:react-babel"] })).toEqual([
+      "preact",
+    ]);
+  });
+
+  /**
+   * Solid is matched on separator boundaries, not as a substring.
+   *
+   * `splitVendorChunk` contains "solid" the way `spl` + `it` does — and a
+   * substring test would have activated Solid's facet, including its reactive
+   * bridge, for a project that never mentioned the framework. Lit gets no
+   * plugin-name rule at all for the same reason: it has no plugin on either
+   * host, so every match would have been a false one.
+   */
+  it("does not read a framework out of an unrelated plugin name", () => {
+    expect(detectFrameworks({ pluginNames: ["splitVendorChunk"] })).toEqual([]);
+    expect(detectFrameworks({ pluginNames: ["vite:build-import-analysis"] })).toEqual([]);
+  });
 });

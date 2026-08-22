@@ -304,10 +304,23 @@ export default class Context {
   }
 
   getMultiplexLocale(id: string): string | undefined {
-    const matchSuffix = id.match(/\.zintl-([a-zA-Z0-9_-]+)\.(vue|svelte)/);
-    if (matchSuffix) return matchSuffix[1];
-    if (!id.includes("zintl-multiplex=")) return undefined;
-    const match = id.match(/zintl-multiplex=([^&]+)/);
-    return match ? match[1] : undefined;
+    return multiplexLocaleOf(id);
   }
+}
+
+/**
+ * The locale baked into a multiplexed module id, if it is one.
+ *
+ * A free function rather than only a method because two callers need it and one
+ * of them — `ViteUpdateApplier` — is handed a `Context` that tests routinely
+ * mock. Depending on the method there meant a `TypeError` under a partial mock,
+ * and guarding the call would have silently disabled a correctness check exactly
+ * where it is hardest to notice. One definition, no drift.
+ */
+export function multiplexLocaleOf(id: string): string | undefined {
+  const matchSuffix = id.match(/\.zintl-([a-zA-Z0-9_-]+)\.(vue|svelte)/);
+  if (matchSuffix) return matchSuffix[1];
+  if (!id.includes("zintl-multiplex=")) return undefined;
+  const match = id.match(/zintl-multiplex=([^&]+)/);
+  return match ? match[1] : undefined;
 }

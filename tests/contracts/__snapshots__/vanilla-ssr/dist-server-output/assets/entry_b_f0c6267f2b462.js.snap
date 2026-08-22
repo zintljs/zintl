@@ -1,5 +1,7 @@
 //#region \0virtual:zintl/content/es/entry:b_f0c6267f2b46
 var catalog = { "b_f0c6267f2b46": {
+	"ccbc33a4": "Logotipo de TypeScript",
+	"3473a536": "Logotipo de Vite",
 	"90e40d50": "Empezar",
 	"e2aae512": "Editar <code>src/main.ts</code> y guardar para probar <code>HMR</code>",
 	"9e9cf322": "Documentación",

@@ -51,6 +51,23 @@ catalog:
   "@sveltejs/vite-plugin-svelte": ^7.2.0
   "@tsconfig/svelte": ^5.0.8
 
+  # The frameworks `create-vite` and `create-rsbuild` scaffold that Zintl did not
+  # cover. Preact and Solid write JSX, so their facets share React's extraction;
+  # Lit does not, and is what the extractor's `tag:` descriptor was added for.
+  #
+  # Lit has no plugin on either host — it is plain TypeScript with decorators —
+  # which is why only two of the three appear here twice.
+  preact: ^10.29.8
+  "@preact/preset-vite": ^2.10.6
+  "@rsbuild/plugin-preact": ^2.0.0
+  "solid-js": ^1.9.15
+  "vite-plugin-solid": ^2.11.14
+  "@rsbuild/plugin-solid": ^1.2.2
+  # `@rsbuild/plugin-solid` runs Solid's JSX transform through Babel, so the
+  # Babel plugin is a required companion rather than an optional extra.
+  "@rsbuild/plugin-babel": ^2.1.0
+  lit: ^3.3.3
+
   react: ^19.2.8
   react-dom: ^19.2.8
   "@types/react": ^19.2.18

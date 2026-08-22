@@ -4,6 +4,7 @@ import type { Node, Expression } from "@oxc-project/types";
 import type { Comment } from "oxc-parser";
 import { RUNTIME_PACKAGE } from "./constants.js";
 import { resolveTargets } from "./targets.js";
+import { scanTranslatableAttributes } from "./attributes.js";
 
 import {
   ExtractedMessage,
@@ -400,6 +401,10 @@ export class ExtractionContext {
   public readonly fastPathRegex: RegExp;
   /** True when at least one dom:prop target is configured (e.g. innerHTML). */
   public readonly hasDomSinks: boolean;
+  /** Identifiers whose tagged template literals hold markup — see `tag:`. */
+  public readonly taggedTemplates: Set<string>;
+  /** True when at least one `tag:` target is configured. */
+  public readonly hasTaggedTemplateSinks: boolean;
   /** True when at least one jsx: target is configured. */
   public readonly hasJsxSinks: boolean;
   public readonly sfcRules: SfcRule[];
@@ -439,6 +444,8 @@ export class ExtractionContext {
     this.htmlAttributes = compiledState.htmlAttributes;
     this.targetPlugins = compiledState.plugins;
     this.hasDomSinks = compiledState.hasDomSinks;
+    this.taggedTemplates = compiledState.taggedTemplates ?? new Set();
+    this.hasTaggedTemplateSinks = compiledState.hasTaggedTemplateSinks ?? false;
     this.hasJsxSinks = compiledState.hasJsxSinks;
     this.sfcRules = [...compiledState.sfcRules, ...(options.sfcRules || [])];
     this.suppressionRules = [
@@ -836,6 +843,30 @@ export class ExtractionContext {
           comments.contextVars,
           (s, e) => ({ start: (node as any).start + 1 + s, end: (node as any).start + 1 + e }),
         );
+        /**
+         * Attributes, which `stitchHTML` does not read — it walks text nodes and
+         * steps over tags. Registering them here is what makes an `alt` inside
+         * `el.innerHTML = "…"` reach a catalog, the way the same `alt` in an HTML
+         * document always has.
+         *
+         * The host is a plain string, so a `${…}` cannot be spliced into it until
+         * the quotes become backticks — which is what `requiresQuoteConversion`
+         * asks the pipeline to do.
+         */
+        scanTranslatableAttributes(
+          text,
+          this,
+          this.getActiveBoundary().id,
+          (i) => (node as any).start + 1 + i,
+          {
+            asFragment: true,
+            host: {
+              start: (node as any).start,
+              end: (node as any).end,
+              requiresQuoteConversion: true,
+            },
+          },
+        );
       } else if ((node as any).value) {
         this.pushNormalizedSource(
           {
@@ -939,6 +970,18 @@ export class ExtractionContext {
           comments.contextVars,
           (s, e) => ({ start: getSourceIndex(s), end: getSourceIndex(e) }),
         );
+        /**
+         * The same for a template literal, and the reason `getSourceIndex` is
+         * handed over rather than a constant offset: it maps an index in the
+         * stitched text back through the quasis, and *throws* for a range that
+         * crosses an interpolation. The scanner reads that refusal as "skip this
+         * one", which is how `src=${logo}` stays an expression rather than
+         * becoming a translatable string.
+         */
+        scanTranslatableAttributes(text, this, this.getActiveBoundary().id, getSourceIndex, {
+          asFragment: true,
+          host: { start: (node as any).start, end: (node as any).end },
+        });
       } else {
         const trimmed = text.trim();
         if (

@@ -35,6 +35,12 @@
     "Learn more": {
       "type": "string"
     },
+    "TypeScript logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
     "X.com": {
       "type": "string"
     },
@@ -53,6 +59,8 @@
     "GitHub",
     "Join the Vite community",
     "Learn more",
+    "TypeScript logo",
+    "Vite logo",
     "X.com",
     "Your questions, answered"
   ],

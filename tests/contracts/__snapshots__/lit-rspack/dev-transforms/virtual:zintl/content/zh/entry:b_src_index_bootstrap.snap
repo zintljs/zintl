@@ -1,0 +1,10 @@
+const catalog = {
+    "b_src_app_root": {
+      "Get started": "开始",
+      "Edit <code>src/index.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/index.ts</code> 并保存以测试 <code>HMR</code>",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["zh"]: catalog }, 0);
+}
+export default catalog;

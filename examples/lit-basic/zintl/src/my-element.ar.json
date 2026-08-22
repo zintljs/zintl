@@ -1,0 +1,13 @@
+{
+  "$schema": "../.schemas/src/my-element.schema.json",
+  "Connect with us": "تواصل معنا",
+  "Count is {count}": "العدد هو {count}",
+  "Documentation": "التوثيق",
+  "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
+  "Explore Vite": "استكشف فيت",
+  "Join the Vite community": "انضم إلى مجتمع فيت",
+  "Learn more": "تعلم المزيد",
+  "Lit logo": "شعار ليت",
+  "Vite logo": "شعار فيت",
+  "Your questions, answered": "تمت الإجابة على أسئلتك"
+}

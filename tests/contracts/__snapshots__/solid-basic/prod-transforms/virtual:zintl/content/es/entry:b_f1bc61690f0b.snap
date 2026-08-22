@@ -1,0 +1,19 @@
+const catalog = {
+    "b_46b46a617b3e": {
+      "9a8dcdda": "Logotipo de Solid",
+      "3473a536": "Logotipo de Vite",
+      "90e40d50": "Empezar",
+      "9fd2f187": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+      "92d1c86a": (params) => {
+    const { input } = params;
+    return `El recuento es ${params['input']}`;
+  },
+      "9e9cf322": "Documentación",
+      "d0f7666b": "Tus preguntas, respondidas",
+      "924cea3c": "<img/> Explorar Vite",
+      "8cc85295": "<img/> Aprender más",
+      "65ac13a7": "Conéctate con nosotros",
+      "15545bc4": "Únete a la comunidad de Vite",
+    },
+  };
+export default catalog;

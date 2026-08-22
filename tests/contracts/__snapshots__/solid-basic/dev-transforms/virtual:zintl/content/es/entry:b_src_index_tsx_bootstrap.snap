@@ -1,0 +1,23 @@
+const catalog = {
+    "b_src_App_tsx_App": {
+      "Solid logo": "Logotipo de Solid",
+      "Vite logo": "Logotipo de Vite",
+      "Get started": "Empezar",
+      "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>": "Edita <code>src/App.tsx</code> y guarda para probar <code>HMR</code>",
+      "Count is {input}": (params) => {
+    const { input } = params;
+    return `El recuento es ${params['input']}`;
+  },
+      "Documentation": "Documentación",
+      "Your questions, answered": "Tus preguntas, respondidas",
+      "<img/> Explore Vite": "<img/> Explorar Vite",
+      "<img/> Learn more": "<img/> Aprender más",
+      "Connect with us": "Conéctate con nosotros",
+      "Join the Vite community": "Únete a la comunidad de Vite",
+    },
+  };
+if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+  globalThis.__zintl_active.addCatalogs({ ["es"]: catalog }, 0);
+}
+export default catalog;
+if (import.meta.hot) { import.meta.hot.accept(); }

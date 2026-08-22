@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite with Preact — Zintl example</title>
+    <script type="module" crossorigin src="/assets/index.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DiE22pJL.css">
+  
+  <!--zintl-bootstrap-->
+    <script id="zintl-projection">
+      (function() {
+        const l = localStorage.getItem('zintl-locale') || 'en';
+        const rtl = ["ar"];
+        const deltas = {"ar":{"title":"Vite مع Preact — مثال زينتل"},"es":{"title":"Vite con Preact — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 Preact — Zintl 示例"}};
+        const originals = {
+        title: document.title,
+      };
+        const preloads = {"ar":["assets/entry_b_89ad0a7bfa7f.js"],"es":["assets/entry_b_89ad0a7bfa7f2.js"],"zh":["assets/entry_b_89ad0a7bfa7f3.js"]};
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
+        }
+      }
+        function apply(locale) {
+          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
+          document.documentElement.lang = locale;
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
+        }
+        window.__zintlApplyHtml = apply;
+        if (l !== 'en') {
+          apply(l);
+          preload(l);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

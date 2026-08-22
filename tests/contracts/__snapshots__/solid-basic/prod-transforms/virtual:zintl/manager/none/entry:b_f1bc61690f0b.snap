@@ -1,0 +1,30 @@
+export default { id: "b_f1bc61690f0b", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_46b46a617b3e": {
+      "9a8dcdda": "Solid logo",
+      "3473a536": "Vite logo",
+      "90e40d50": "Get started",
+      "9fd2f187": "Edit <code>src/App.tsx</code> and save to test <code>HMR</code>",
+      "92d1c86a": (params) => {
+    const { input } = params;
+    return `Count is ${params['input']}`;
+  },
+      "9e9cf322": "Documentation",
+      "d0f7666b": "Your questions, answered",
+      "924cea3c": "<img/> Explore Vite",
+      "8cc85295": "<img/> Learn more",
+      "65ac13a7": "Connect with us",
+      "15545bc4": "Join the Vite community",
+    },
+  };
+                case "ar":
+          return import("virtual:zintl/content/ar/entry:b_f1bc61690f0b").then(m => m.default);
+        case "es":
+          return import("virtual:zintl/content/es/entry:b_f1bc61690f0b").then(m => m.default);
+        case "zh":
+          return import("virtual:zintl/content/zh/entry:b_f1bc61690f0b").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };

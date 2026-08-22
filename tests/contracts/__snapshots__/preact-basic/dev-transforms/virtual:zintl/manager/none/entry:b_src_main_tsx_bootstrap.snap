@@ -1,0 +1,43 @@
+export default (() => {
+  const manager = { id: "b_src_main_tsx_bootstrap", loader: (locale) => {
+      switch(locale) { 
+        case "en":
+          return {
+    "b_src_app_tsx_App": {
+      "Preact logo": "Preact logo",
+      "Vite logo": "Vite logo",
+      "Get started": "Get started",
+      "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>",
+      "Count is {count}": (params) => {
+    const { count } = params;
+    return `Count is ${params['count']}`;
+  },
+      "Documentation": "Documentation",
+      "Your questions, answered": "Your questions, answered",
+      "<img/> Explore Vite": "<img/> Explore Vite",
+      "<img/> Learn more": "<img/> Learn more",
+      "Connect with us": "Connect with us",
+      "Join the Vite community": "Join the Vite community",
+    },
+  };
+                case "ar":
+          return import(/* @vite-ignore */ "virtual:zintl/content/ar/entry:b_src_main_tsx_bootstrap").then(m => m.default);
+        case "es":
+          return import(/* @vite-ignore */ "virtual:zintl/content/es/entry:b_src_main_tsx_bootstrap").then(m => m.default);
+        case "zh":
+          return import(/* @vite-ignore */ "virtual:zintl/content/zh/entry:b_src_main_tsx_bootstrap").then(m => m.default);
+        default: return {};
+      }
+    }, manifest: [] };
+  if (typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+    globalThis.__zintl_active.registerLoader(manager.id, manager.loader);
+  }
+  return manager;
+})();
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (newModule?.default && typeof globalThis !== "undefined" && globalThis.__zintl_active) {
+      globalThis.__zintl_active.registerLoader(newModule.default.id, newModule.default.loader);
+    }
+  });
+}

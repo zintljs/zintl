@@ -229,6 +229,46 @@ export function createBindingVisitor(ctx: ExtractionContext) {
     };
   }
 
+  if (ctx.hasTaggedTemplateSinks) {
+    /**
+     * A tagged template literal whose tag is a configured `tag:` target.
+     *
+     * The body is handed to the same `findLiteralsInExpression` that reads an
+     * `innerHTML =` assignment, and for the same reason: a template literal is a
+     * template literal, and HTML stitching is decided by the *content* — whether
+     * it contains tags — not by how the string was reached. So markup inside
+     * ``html`<p>Hello <b>you</b></p>` `` stitches into one key with its tag map,
+     * and `${expr}` interpolations normalize to `{expr}` placeholders, exactly as
+     * they do in a vanilla `el.innerHTML = ` template.
+     *
+     * Only a bare identifier tag is matched. `lit.html`…`` and other member
+     * expressions are deliberately not: the tag would have to be resolved
+     * through imports and aliases to say what it actually is, and guessing from
+     * the last property name would claim any `x.html` in the file.
+     */
+    visitor.TaggedTemplateExpression = function (
+      node: any,
+      ctx: ExtractionContext,
+      parents: Node[],
+    ) {
+      if (ctx.suppressionLevel > 0) return;
+      const { id: boundaryId, active } = ctx.getActiveBoundary();
+      if (!active) return;
+      if (node.tag?.type !== "Identifier") return;
+
+      const tagName = node.tag.name as string;
+      if (!ctx.taggedTemplates.has(tagName)) return;
+
+      const stmtComments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
+      if (stmtComments.ignore) return;
+
+      const sources = ctx.findLiteralsInExpression(node.quasi as Node, stmtComments, tagName);
+      sources.forEach((source) =>
+        processSinkSource(source, tagName, boundaryId, parents[0]?.start ?? node.start, ctx),
+      );
+    };
+  }
+
   if (ctx.uiObjectFields.size > 0) {
     visitor.Property = function (node: Property, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0) return;

@@ -20,6 +20,12 @@
     "This page demonstrates clean MPA routing and fully isolated hydration cycles.": {
       "type": "string"
     },
+    "TypeScript logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
     "Welcome to Zintl MPA Home!": {
       "type": "string"
     }
@@ -30,6 +36,8 @@
     "Go to About Page",
     "This is the homepage of our multi-page application example.",
     "This page demonstrates clean MPA routing and fully isolated hydration cycles.",
+    "TypeScript logo",
+    "Vite logo",
     "Welcome to Zintl MPA Home!"
   ],
   "additionalProperties": false

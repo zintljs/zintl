@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "<img/> Explore Vite": {
+      "type": "string"
+    },
+    "<img/> Learn more": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Count is {count}": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {count}"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>": {
+      "type": "string"
+    },
+    "Get started": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Preact logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "<img/> Explore Vite",
+    "<img/> Learn more",
+    "Connect with us",
+    "Count is {count}",
+    "Documentation",
+    "Edit <code>src/app.tsx</code> and save to test <code>HMR</code>",
+    "Get started",
+    "Join the Vite community",
+    "Preact logo",
+    "Vite logo",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

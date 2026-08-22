@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Connect with us": {
+      "type": "string"
+    },
+    "Count is {count}": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {count}"
+    },
+    "Documentation": {
+      "type": "string"
+    },
+    "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": {
+      "type": "string"
+    },
+    "Explore Vite": {
+      "type": "string"
+    },
+    "Join the Vite community": {
+      "type": "string"
+    },
+    "Learn more": {
+      "type": "string"
+    },
+    "Lit logo": {
+      "type": "string"
+    },
+    "Vite logo": {
+      "type": "string"
+    },
+    "Your questions, answered": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Connect with us",
+    "Count is {count}",
+    "Documentation",
+    "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>",
+    "Explore Vite",
+    "Join the Vite community",
+    "Learn more",
+    "Lit logo",
+    "Vite logo",
+    "Your questions, answered"
+  ],
+  "additionalProperties": false
+}

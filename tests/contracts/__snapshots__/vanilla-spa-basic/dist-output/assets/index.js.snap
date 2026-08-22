@@ -817,6 +817,8 @@ var entry_b_ae1e7cbb2f74_default = {
 		switch (locale) {
 			case "en": return {
 				"b_ae1e7cbb2f74": {
+					"ccbc33a4": "TypeScript logo",
+					"3473a536": "Vite logo",
 					"90e40d50": "Get started",
 					"e2aae512": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
 					"9e9cf322": "Documentation",
@@ -993,8 +995,14 @@ async function render() {
 <section id="center">
   <div class="hero">
     <img src="${hero_default}" class="base" width="170" height="179">
-    <img src="${typescript_default}" class="framework" alt="TypeScript logo"/>
-    <img src="${vite_default}" class="vite" alt="Vite logo" />
+    <img src="${typescript_default}" class="framework" alt="${_t("ccbc33a4", {
+		_mgr: entry_b_ae1e7cbb2f74_default,
+		_bId: "b_ae1e7cbb2f74"
+	})}"/>
+    <img src="${vite_default}" class="vite" alt="${_t("3473a536", {
+		_mgr: entry_b_ae1e7cbb2f74_default,
+		_bId: "b_ae1e7cbb2f74"
+	})}" />
   </div>
   <div>
     <h1>${_t("90e40d50", {

@@ -1,0 +1,33 @@
+import { _t, loadI18nInstance, subscribe, getStoreVersion } from "virtual:zintl/runtime/internal";
+import { createSignal as __zintl_createSignal } from "solid-js";
+const [__zintl_v, __zintl_set_v] = __zintl_createSignal(getStoreVersion());
+subscribe(() => __zintl_set_v(getStoreVersion()));
+import _zintl_mgr_b_src_index_tsx_bootstrap from "virtual:zintl/manager/none/entry:b_src_index_tsx_bootstrap";
+import { createSignal } from "solid-js";
+
+import { LocaleBar } from "./locale-bar.tsx";
+
+export function App() {
+  const [lang, setLang] = createSignal(
+    new URLSearchParams(window.location.search).get("lang") || "en",
+  );
+
+  const onSwitch = async (next: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.pushState({}, "", url.pathname + url.search);
+    await (globalThis.__zintl_inst = loadI18nInstance({ locale: next, loaders: { ["b_src_index_tsx_bootstrap"]: _zintl_mgr_b_src_index_tsx_bootstrap.loader } }));
+    setLang(next);
+  };
+
+  /* No remount wrapper, deliberately: if the reactive bridge works these
+     strings update in place, and if it does not this fixture fails —
+     which is the whole reason it exists. */
+  return (
+    <div>
+      <LocaleBar lang={lang()} onSwitch={onSwitch} />
+      <h1>{_t("Get started", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_app_tsx_App", _v: __zintl_v() })}</h1>
+      <p>{<span style={{ display: "contents" }} innerHTML={_t("Edit <code>src/index.tsx</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_index_tsx_bootstrap, _bId: "b_src_app_tsx_App", _tags: [{ alias: "code", originalOpen: `<code>`, tagName: "code" }, { alias: "code", originalOpen: `<code>`, tagName: "code" }], _v: __zintl_v() })} />}</p>
+    </div>
+  );
+}

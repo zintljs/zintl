@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lit on Rspack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><!--zintl-bootstrap-->
+    <script id="zintl-projection">
+      (function() {
+        const l = localStorage.getItem('zintl-locale') || 'en';
+        const rtl = ["ar"];
+        const deltas = {"ar":{"title":"Lit على Rspack"},"es":{"title":"Lit en Rspack"},"zh":{"title":"Rspack 上的 Lit"}};
+        const originals = {
+        title: document.title,
+      };
+        function apply(locale) {
+          document.documentElement.dir = rtl.includes(locale) ? 'rtl' : 'ltr';
+          document.documentElement.lang = locale;
+          const hasText = v => typeof v === "string" && v.trim();
+          const delta = deltas[locale];
+          if (delta) {
+            document.title = hasText(delta.title)
+              ? delta.title
+              : originals.title;
+          } else {
+            document.title = originals.title;
+          }
+        }
+        window.__zintlApplyHtml = apply;
+        if (l !== 'en') {
+          apply(l);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -4,6 +4,8 @@ export default (() => {
         case "en":
           return {
     "b_src_main_render": {
+      "TypeScript logo": "TypeScript logo",
+      "Vite logo": "Vite logo",
       "Get started": "Get started",
       "Edit <code>src/main.ts</code> and save to test <code>HMR</code>": "Edit <code>src/main.ts</code> and save to test <code>HMR</code>",
       "Documentation": "Documentation",

@@ -1,23 +1,5 @@
-import type { CodegenFacet, ZintlFacet, TagMapEntry, TargetDescriptor } from "@zintljs/compiler";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function convertToHtmlTemplate(tagOpen: string): string {
-  let html = tagOpen.replace(/\bclassName=/g, "class=");
-  html = html.replace(/([a-zA-Z0-9_-]+)=\{([^}]+)\}/g, (_match, attrName, expr) => {
-    return `${attrName}="\${${expr.trim()}}"`;
-  });
-  return html;
-}
-
-function serializeTags(tags: TagMapEntry[]): string {
-  const items = tags.map((entry) => {
-    const htmlTemplate = convertToHtmlTemplate(entry.originalOpen);
-    const escapedHtml = htmlTemplate.replace(/`/g, "\\`").replace(/\bclassName=/g, "class=");
-    return `{ alias: ${JSON.stringify(entry.alias)}, originalOpen: \`${escapedHtml}\`, tagName: ${JSON.stringify(entry.tagName)} }`;
-  });
-  return `[${items.join(", ")}]`;
-}
+import type { CodegenFacet, ZintlFacet, TargetDescriptor } from "@zintljs/compiler";
+import { convertToHtmlTemplate, JSX_TARGETS, serializeTags } from "./jsx.js";
 
 // ── Facets ───────────────────────────────────────────────────────────────────
 
@@ -51,23 +33,7 @@ export function reactExtractionFacet(options: ReactFacetOptions = {}): ZintlFace
     when: { framework: "react" },
     concern: "extraction",
     priority: 100,
-    targets: (options.targets || [
-      "jsx:*:aria-label",
-      "jsx:*:alt",
-      "jsx:*:title",
-      "jsx:*:placeholder",
-      "jsx:*:aria-description",
-      "jsx:*:label",
-      "jsx:*:description",
-      "jsx:*:tooltip",
-      "jsx:html:dir",
-      "obj:field:label",
-      "obj:field:title",
-      "obj:field:description",
-      "obj:field:text",
-      "obj:field:tooltip",
-      "obj:field:placeholder",
-    ]) as TargetDescriptor[],
+    targets: (options.targets || [...JSX_TARGETS]) as TargetDescriptor[],
     extensions: options.extensions || [".tsx", ".jsx"],
   };
 }

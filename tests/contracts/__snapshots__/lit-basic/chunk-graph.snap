@@ -1,0 +1,103 @@
+{
+  "boundaryToOwner": {
+    "src/components/locale-bar": "src/components/locale-bar",
+    "src/components/locale-bar:f_1694": "src/components/locale-bar:f_1694",
+    "src/main:bootstrap": "src/main:bootstrap",
+    "src/my-element": "src/my-element"
+  },
+  "chunks": {
+    "entry_b_a525f2c547de": {
+      "boundaries": [
+        "src/components/locale-bar:f_1694"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/locale-bar:f_1694"
+      ],
+      "id": "entry_b_a525f2c547de",
+      "type": "entry"
+    },
+    "entry_b_aafcf9c6fe16": {
+      "boundaries": [
+        "src/main:bootstrap"
+      ],
+      "colonies": [
+        "src/assets/hero.png",
+        "src/assets/lit.svg",
+        "src/assets/vite.svg",
+        "src/components/locale-bar",
+        "src/my-element"
+      ],
+      "entrySources": [
+        "src/main:bootstrap"
+      ],
+      "id": "entry_b_aafcf9c6fe16",
+      "type": "entry"
+    },
+    "lazy_b_d602f1d7fa4a": {
+      "boundaries": [
+        "src/assets/hero.png",
+        "src/assets/lit.svg",
+        "src/assets/vite.svg",
+        "src/my-element"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/my-element"
+      ],
+      "id": "lazy_b_d602f1d7fa4a",
+      "type": "lazy"
+    },
+    "lazy_b_db8e4e2d0ccd": {
+      "boundaries": [
+        "src/components/locale-bar"
+      ],
+      "colonies": [],
+      "entrySources": [
+        "src/components/locale-bar"
+      ],
+      "id": "lazy_b_db8e4e2d0ccd",
+      "type": "lazy"
+    },
+    "shared_b_006866fb4e10": {
+      "boundaries": [
+        "zintljs/macro"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_006866fb4e10",
+      "type": "shared"
+    },
+    "shared_b_c3648b855299": {
+      "boundaries": [
+        "lit/decorators"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_c3648b855299",
+      "type": "shared"
+    },
+    "shared_b_f12ecf748ae9": {
+      "boundaries": [
+        "lit"
+      ],
+      "colonies": [],
+      "entrySources": [],
+      "id": "shared_b_f12ecf748ae9",
+      "type": "shared"
+    }
+  },
+  "entryChunks": {
+    "src/components/locale-bar:f_1694": "entry_b_a525f2c547de",
+    "src/main:bootstrap": "entry_b_aafcf9c6fe16"
+  },
+  "lazyChunks": [
+    "lazy_b_d602f1d7fa4a",
+    "lazy_b_db8e4e2d0ccd"
+  ],
+  "sharedChunks": [
+    "shared_b_006866fb4e10",
+    "shared_b_c3648b855299",
+    "shared_b_f12ecf748ae9"
+  ]
+}

@@ -1,5 +1,8 @@
 import { reactBasic } from "./react-basic.js";
 import { reactSsr } from "./react-ssr.js";
+import { preactBasic } from "./preact-basic.js";
+import { solidBasic } from "./solid-basic.js";
+import { litBasic } from "./lit-basic.js";
 import { vueBasic } from "./vue-basic.js";
 import { vueSsr } from "./vue-ssr.js";
 import { svelteBasic } from "./svelte-basic.js";
@@ -19,6 +22,9 @@ import { rsbuildVueSpa } from "./rsbuild-vue-spa.js";
 import { rsbuildVueMpa } from "./rsbuild-vue-mpa.js";
 import { multiplexAssets } from "../fixtures/multiplex-assets.js";
 import { multiplexRsbuildFence } from "../fixtures/multiplex-rsbuild-fence.js";
+import { preactRspack } from "../fixtures/preact-rspack.js";
+import { solidRspack } from "../fixtures/solid-rspack.js";
+import { litRspack } from "../fixtures/lit-rspack.js";
 import type { ProjectManifest } from "@zintljs/testing";
 
 /**
@@ -36,6 +42,9 @@ import type { ProjectManifest } from "@zintljs/testing";
 export const allManifests: ProjectManifest[] = [
   reactBasic,
   reactSsr,
+  preactBasic,
+  solidBasic,
+  litBasic,
   vueBasic,
   vueSsr,
   svelteBasic,
@@ -55,4 +64,7 @@ export const allManifests: ProjectManifest[] = [
   rsbuildVueMpa,
   multiplexAssets,
   multiplexRsbuildFence,
+  preactRspack,
+  solidRspack,
+  litRspack,
 ];
