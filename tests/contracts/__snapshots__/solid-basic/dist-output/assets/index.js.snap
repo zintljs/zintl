@@ -118,8 +118,10 @@ function createSignal(value, options) {
 		if (DevHooks.afterCreateSignal) DevHooks.afterCreateSignal(s);
 	}
 	const setter = (value) => {
-		if (typeof value === "function") if (Transition && Transition.running && Transition.sources.has(s)) value = value(s.tValue);
-		else value = value(s.value);
+		if (typeof value === "function") {
+			if (Transition && Transition.running && Transition.sources.has(s)) value = value(s.tValue);
+			else value = value(s.value);
+		}
 		return writeSignal(s, value);
 	};
 	return [readSignal.bind(s), setter];
@@ -211,12 +213,14 @@ function registerGraph(value) {
 var SuspenseContext;
 function readSignal() {
 	const runningTransition = Transition && Transition.running;
-	if (this.sources && (runningTransition ? this.tState : this.state)) if ((runningTransition ? this.tState : this.state) === STALE) updateComputation(this);
-	else {
-		const updates = Updates;
-		Updates = null;
-		runUpdates(() => lookUpstream(this), false);
-		Updates = updates;
+	if (this.sources && (runningTransition ? this.tState : this.state)) {
+		if ((runningTransition ? this.tState : this.state) === STALE) updateComputation(this);
+		else {
+			const updates = Updates;
+			Updates = null;
+			runUpdates(() => lookUpstream(this), false);
+			Updates = updates;
+		}
 	}
 	if (Listener) {
 		const observers = this.observers;
@@ -294,14 +298,16 @@ function runComputation(node, value, time) {
 	try {
 		nextValue = node.fn(value);
 	} catch (err) {
-		if (node.pure) if (Transition && Transition.running) {
-			node.tState = STALE;
-			node.tOwned && node.tOwned.forEach(cleanNode);
-			node.tOwned = void 0;
-		} else {
-			node.state = STALE;
-			node.owned && node.owned.forEach(cleanNode);
-			node.owned = null;
+		if (node.pure) {
+			if (Transition && Transition.running) {
+				node.tState = STALE;
+				node.tOwned && node.tOwned.forEach(cleanNode);
+				node.tOwned = void 0;
+			} else {
+				node.state = STALE;
+				node.owned && node.owned.forEach(cleanNode);
+				node.owned = null;
+			}
 		}
 		node.updatedAt = time + 1;
 		return handleError(err);
@@ -338,10 +344,13 @@ function createComputation(fn, init, pure, state = STALE, options) {
 		c.tState = state;
 	}
 	if (Owner === null) console.warn("computations created outside a `createRoot` or `render` will never be disposed");
-	else if (Owner !== UNOWNED) if (Transition && Transition.running && Owner.pure) if (!Owner.tOwned) Owner.tOwned = [c];
-	else Owner.tOwned.push(c);
-	else if (!Owner.owned) Owner.owned = [c];
-	else Owner.owned.push(c);
+	else if (Owner !== UNOWNED) {
+		if (Transition && Transition.running && Owner.pure) {
+			if (!Owner.tOwned) Owner.tOwned = [c];
+			else Owner.tOwned.push(c);
+		} else if (!Owner.owned) Owner.owned = [c];
+		else Owner.owned.push(c);
+	}
 	if (options && options.name) c.name = options.name;
 	if (ExternalSourceConfig && c.fn) {
 		const sourceFn = c.fn;
@@ -670,8 +679,10 @@ function For(props) {
 	const fallback = "fallback" in props && { fallback: () => props.fallback };
 	return createMemo(mapArray(() => props.each, props.children, fallback || void 0), void 0, { name: "value" });
 }
-if (globalThis) if (!globalThis.Solid$$) globalThis.Solid$$ = true;
-else console.warn("You appear to have multiple instances of Solid. This can lead to unexpected behavior.");
+if (globalThis) {
+	if (!globalThis.Solid$$) globalThis.Solid$$ = true;
+	else console.warn("You appear to have multiple instances of Solid. This can lead to unexpected behavior.");
+}
 //#endregion
 //#region node_modules/.pnpm/solid-js@1.9.15/node_modules/solid-js/web/dist/dev.js
 function reconcileArrays(parentNode, a, b) {
@@ -705,18 +716,19 @@ function reconcileArrays(parentNode, a, b) {
 				while (i < bEnd) map.set(b[i], i++);
 			}
 			const index = map.get(a[aStart]);
-			if (index != null) if (bStart < index && index < bEnd) {
-				let i = aStart, sequence = 1, t;
-				while (++i < aEnd && i < bEnd) {
-					if ((t = map.get(a[i])) == null || t !== index + sequence) break;
-					sequence++;
-				}
-				if (sequence > index - bStart) {
-					const node = a[aStart];
-					while (bStart < index) parentNode.insertBefore(b[bStart++], node);
-				} else parentNode.replaceChild(b[bStart++], a[aStart++]);
-			} else aStart++;
-			else a[aStart++].remove();
+			if (index != null) {
+				if (bStart < index && index < bEnd) {
+					let i = aStart, sequence = 1, t;
+					while (++i < aEnd && i < bEnd) {
+						if ((t = map.get(a[i])) == null || t !== index + sequence) break;
+						sequence++;
+					}
+					if (sequence > index - bStart) {
+						const node = a[aStart];
+						while (bStart < index) parentNode.insertBefore(b[bStart++], node);
+					} else parentNode.replaceChild(b[bStart++], a[aStart++]);
+				} else aStart++;
+			} else a[aStart++].remove();
 		}
 	}
 }
@@ -879,9 +891,10 @@ function insertExpression(parent, value, current, marker, unwrapArray) {
 		if (array.length === 0) {
 			current = cleanChildren(parent, current, marker);
 			if (multi) return current;
-		} else if (currentArray) if (current.length === 0) appendNodes(parent, array, marker);
-		else reconcileArrays(parent, current, array);
-		else {
+		} else if (currentArray) {
+			if (current.length === 0) appendNodes(parent, array, marker);
+			else reconcileArrays(parent, current, array);
+		} else {
 			current && cleanChildren(parent);
 			appendNodes(parent, array);
 		}
@@ -904,14 +917,15 @@ function normalizeIncomingArray(normalized, array, current, unwrap) {
 		if (item == null || item === true || item === false);
 		else if ((t = typeof item) === "object" && item.nodeType) normalized.push(item);
 		else if (Array.isArray(item)) dynamic = normalizeIncomingArray(normalized, item, prev) || dynamic;
-		else if (t === "function") if (unwrap) {
-			while (typeof item === "function") item = item();
-			dynamic = normalizeIncomingArray(normalized, Array.isArray(item) ? item : [item], Array.isArray(prev) ? prev : [prev]) || dynamic;
+		else if (t === "function") {
+			if (unwrap) {
+				while (typeof item === "function") item = item();
+				dynamic = normalizeIncomingArray(normalized, Array.isArray(item) ? item : [item], Array.isArray(prev) ? prev : [prev]) || dynamic;
+			} else {
+				normalized.push(item);
+				dynamic = true;
+			}
 		} else {
-			normalized.push(item);
-			dynamic = true;
-		}
-		else {
 			const value = String(item);
 			if (prev && prev.nodeType === 3 && prev.data === value) normalized.push(prev);
 			else normalized.push(document.createTextNode(value));
@@ -1552,45 +1566,47 @@ function _t(key, params = {}, options) {
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
 	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader)
+	if (message === void 0) {
+		if (mgr) {
+			if (typeof window === "undefined") {
+				if (mgr.loader) try {
+					const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+					if (result && typeof result.then !== "function") {
+						instance.addCatalogs({ [locale]: result });
+						const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+						message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+					} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+				} catch {}
+			} else if (mgr.loader)
  /**
-		* Trigger the load now, then re-read — the same shape the server
-		* branch above already uses.
-		*
-		* Deferring into a microtask meant a *synchronous* loader could not
-		* satisfy this call, so the first render tick after a hot update
-		* registered a new loader always returned "" even though the strings
-		* were available on that very tick. `loadLazyBoundary` handles the
-		* async case internally, so nothing is lost by calling it inline.
-		*/
-		try {
-			/**
-			* One attempt per boundary between catalog changes.
+			* Trigger the load now, then re-read — the same shape the server
+			* branch above already uses.
 			*
-			* Re-reading immediately is what lets a synchronous loader satisfy
-			* the first render tick, and that is worth keeping. Re-*triggering*
-			* on every render is not: when the key is genuinely absent the load
-			* can never satisfy it, and each attempt announces a change that
-			* renders again. See `I18nStore.hydrationAttempts` — with a
-			* reactive framework subscribed this closes into a loop measured at
-			* six figures of console output.
+			* Deferring into a microtask meant a *synchronous* loader could not
+			* satisfy this call, so the first render tick after a hot update
+			* registered a new loader always returned "" even though the strings
+			* were available on that very tick. `loadLazyBoundary` handles the
+			* async case internally, so nothing is lost by calling it inline.
 			*/
-			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
-			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
-		} catch {}
-		if (message === void 0) return ``;
-	} else return ``;
+			try {
+				/**
+				* One attempt per boundary between catalog changes.
+				*
+				* Re-reading immediately is what lets a synchronous loader satisfy
+				* the first render tick, and that is worth keeping. Re-*triggering*
+				* on every render is not: when the key is genuinely absent the load
+				* can never satisfy it, and each attempt announces a change that
+				* renders again. See `I18nStore.hydrationAttempts` — with a
+				* reactive framework subscribed this closes into a loop measured at
+				* six figures of console output.
+				*/
+				if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+				const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+				if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+			} catch {}
+			if (message === void 0) return ``;
+		} else return ``;
+	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;

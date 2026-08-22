@@ -118,8 +118,12 @@ export interface LocaleSwitchAdapter extends BaseAdapter {
    * read one already inlined" — is host-neutral. Only the spelling of the answer
    * is not, which is exactly the kind of per-project quirk an adapter exists to
    * hold.
+   *
+   * Declared as a property with an explicit `this: void` rather than a method:
+   * contracts read it off the adapter and fall back to a default, so it travels
+   * as a bare function and never as a receiver-bound call.
    */
-  isCatalogRequest?(url: string, locale: string): boolean;
+  isCatalogRequest?: (this: void, url: string, locale: string) => boolean;
 }
 
 /**

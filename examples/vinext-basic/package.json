@@ -22,7 +22,7 @@
     "@vitejs/plugin-react": "catalog:",
     "@vitejs/plugin-rsc": "catalog:",
     "babel-plugin-react-compiler": "1.0.0",
-    "ipaddr.js": "^2.4.0",
+    "ipaddr.js": "^2.5.0",
     "react-server-dom-webpack": "catalog:",
     "tailwindcss": "^4.3.3",
     "typescript": "catalog:",

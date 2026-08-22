@@ -111,9 +111,12 @@ export class MyElement extends LitElement {
     `;
   }
 
-  private _onClick() {
+  // An arrow field rather than a method: Lit already calls listeners with `this`
+  // set to the host, so both forms work, but only this one carries the binding
+  // with the reference the template hands over.
+  private _onClick = () => {
     this.count++;
-  }
+  };
 
   static styles = css`
     :host {

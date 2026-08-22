@@ -178,7 +178,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _vue_runtime_dom__rspack_import_1 = __webpack_require__(10);
 /* import */ var _vue_runtime_dom__rspack_import_0 = __webpack_require__(9);
 /**
-* vue v3.5.40
+* vue v3.5.41
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -384,7 +384,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _vue_shared__rspack_import_1 = __webpack_require__(12);
 /* import */ var _vue_runtime_core__rspack_import_2 = __webpack_require__(11);
 /**
-* @vue/runtime-dom v3.5.40
+* @vue/runtime-dom v3.5.41
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -1340,7 +1340,9 @@ class VueElement extends BaseClass {
         if (parent && parent._pendingResolve) {
           this._pendingResolve = parent._pendingResolve.then(() => {
             this._pendingResolve = void 0;
-            this._resolveDef();
+            if (this.isConnected) {
+              return this._resolveDef();
+            }
           });
         } else {
           this._resolveDef();
@@ -1390,7 +1392,7 @@ class VueElement extends BaseClass {
    */
   _resolveDef() {
     if (this._pendingResolve) {
-      return;
+      return this._pendingResolve;
     }
     for (let i = 0; i < this.attributes.length; i++) {
       this._setAttr(this.attributes[i].name);
@@ -1430,6 +1432,7 @@ class VueElement extends BaseClass {
         def.configureApp = this._def.configureApp;
         resolve(this._def = def, true);
       });
+      return this._pendingResolve;
     } else {
       resolve(this._def);
     }
@@ -1467,6 +1470,11 @@ class VueElement extends BaseClass {
       }
     }
     for (const key of declaredPropKeys.map(_vue_shared__rspack_import_1.camelize)) {
+      if (!!(process.env.NODE_ENV !== "production") && key in Object.getPrototypeOf(this)) {
+        (0,_vue_runtime_core__rspack_import_0.warn)(
+          `Custom element prop "${key}" conflicts with an existing property on the element and will overwrite it.`
+        );
+      }
       Object.defineProperty(this, key, {
         get() {
           return this._getProp(key);
@@ -1951,6 +1959,7 @@ function onCompositionEnd(e) {
   }
 }
 const assignKey = /* @__PURE__ */ Symbol("_assign");
+const initialValueKey = /* @__PURE__ */ Symbol("_initialValue");
 function castValue(value, trim, number) {
   if (trim) value = value.trim();
   if (number) value = (0,_vue_shared__rspack_import_1.looseToNumber)(value);
@@ -1958,6 +1967,13 @@ function castValue(value, trim, number) {
 }
 const vModelText = {
   created(el, { modifiers: { lazy, trim, number } }, vnode) {
+    if (el.parentNode) {
+      if (el.type === "text") {
+        el[initialValueKey] = el.defaultValue.replace(/[\r\n]/g, "");
+      } else if (el.type === "textarea") {
+        el[initialValueKey] = el.defaultValue.replace(/\r\n?/g, "\n");
+      }
+    }
     el[assignKey] = getModelAssigner(vnode);
     const castToNumber = number || vnode.props && vnode.props.type === "number";
     addEventListener(el, lazy ? "change" : "input", (e) => {
@@ -1976,8 +1992,15 @@ const vModelText = {
     }
   },
   // set value on mounted so it's after min/max for type="range"
-  mounted(el, { value }) {
-    el.value = value == null ? "" : value;
+  mounted(el, { value, modifiers: { trim, number } }) {
+    const newValue = value == null ? "" : value;
+    const initialValue = el[initialValueKey];
+    delete el[initialValueKey];
+    if (initialValue !== void 0 && (el.type === "text" || el.type === "textarea") && el.value !== initialValue) {
+      el[assignKey](castValue(el.value, trim, number));
+    } else {
+      el.value = newValue;
+    }
   },
   beforeUpdate(el, { value, oldValue, modifiers: { lazy, trim, number } }, vnode) {
     el[assignKey] = getModelAssigner(vnode);
@@ -2551,7 +2574,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _vue_reactivity__rspack_import_0 = __webpack_require__(11);
 /* import */ var _vue_shared__rspack_import_1 = __webpack_require__(12);
 /**
-* @vue/runtime-core v3.5.40
+* @vue/runtime-core v3.5.41
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -2883,7 +2906,9 @@ function queuePostFlushCb(cb) {
       cb.flags |= 1;
     }
   } else {
-    pendingPostFlushCbs.push(...cb);
+    for (let i = 0; i < cb.length; i++) {
+      pendingPostFlushCbs.push(cb[i]);
+    }
   }
   queueFlush();
 }
@@ -2919,7 +2944,9 @@ function flushPostFlushCbs(seen) {
     );
     pendingPostFlushCbs.length = 0;
     if (activePostFlushCbs) {
-      activePostFlushCbs.push(...deduped);
+      for (let i = 0; i < deduped.length; i++) {
+        activePostFlushCbs.push(deduped[i]);
+      }
       return;
     }
     activePostFlushCbs = deduped;
@@ -4209,7 +4236,11 @@ function getInnerChild$1(vnode) {
 function setTransitionHooks(vnode, hooks) {
   if (vnode.shapeFlag & 6 && vnode.component) {
     vnode.transition = hooks;
-    setTransitionHooks(vnode.component.subTree, hooks);
+    const subTree = vnode.component.subTree;
+    setTransitionHooks(
+      isTeleport(subTree.type) ? getInnerChild$1(subTree) || subTree : subTree,
+      hooks
+    );
   } else if (vnode.shapeFlag & 128) {
     vnode.ssContent.transition = hooks.clone(vnode.ssContent);
     vnode.ssFallback.transition = hooks.clone(vnode.ssFallback);
@@ -4750,6 +4781,9 @@ Server rendered element contains more child nodes than client vdom.`
             }
             if (forcePatch && (key.endsWith("value") || key === "indeterminate") || (0,_vue_shared__rspack_import_1.isOn)(key) && !(0,_vue_shared__rspack_import_1.isReservedProp)(key) || // force hydrate v-bind with .prop modifiers
             key[0] === "." || isCustomElement && !(0,_vue_shared__rspack_import_1.isReservedProp)(key) || dynamicProps && dynamicProps.includes(key)) {
+              if (isUnchangedResourceProp(el, key, props[key])) {
+                continue;
+              }
               patchProp(el, key, null, props[key], namespace, parentComponent);
             }
           }
@@ -4943,6 +4977,13 @@ Server rendered element contains fewer child nodes than client vdom.`
   };
   return [hydrate, hydrateNode];
 }
+const resourceProps = /* @__PURE__ */ new Set(["src", "srcset", "href", "poster"]);
+function isUnchangedResourceProp(el, key, clientValue) {
+  if (!resourceProps.has(key)) {
+    return false;
+  }
+  return el.getAttribute(key) === (clientValue == null ? null : `${clientValue}`);
+}
 function propHasMismatch(el, key, clientValue, vnode, instance) {
   let mismatchType;
   let mismatchKey;
@@ -4980,7 +5021,10 @@ function propHasMismatch(el, key, clientValue, vnode, instance) {
       mismatchKey = "style";
     }
   } else if (el instanceof SVGElement && (0,_vue_shared__rspack_import_1.isKnownSvgAttr)(key) || el instanceof HTMLElement && ((0,_vue_shared__rspack_import_1.isBooleanAttr)(key) || (0,_vue_shared__rspack_import_1.isKnownHtmlAttr)(key))) {
-    if ((0,_vue_shared__rspack_import_1.isBooleanAttr)(key)) {
+    if (key === "hidden") {
+      actual = normalizeHiddenValue(el.getAttribute(key));
+      expected = normalizeHiddenValue(clientValue);
+    } else if ((0,_vue_shared__rspack_import_1.isBooleanAttr)(key)) {
       actual = el.hasAttribute(key);
       expected = (0,_vue_shared__rspack_import_1.includeBooleanAttr)(clientValue);
     } else if (clientValue == null) {
@@ -5015,6 +5059,15 @@ function propHasMismatch(el, key, clientValue, vnode, instance) {
     return true;
   }
   return false;
+}
+function normalizeHiddenValue(value) {
+  if (!(0,_vue_shared__rspack_import_1.isRenderableAttrValue)(value)) {
+    return false;
+  }
+  if ((0,_vue_shared__rspack_import_1.isString)(value)) {
+    return value.toLowerCase() === "until-found" ? "until-found" : "";
+  }
+  return (0,_vue_shared__rspack_import_1.includeBooleanAttr)(value) ? "" : false;
 }
 function toClassSet(str) {
   return new Set(str.trim().split(/\s+/));
@@ -5835,7 +5888,8 @@ function createSlots(slots, dynamicSlots) {
   return slots;
 }
 
-function renderSlot(slots, name, props = {}, fallback, noSlotted, branchKey) {
+function renderSlot(slots, name, props, fallback, noSlotted, branchKey) {
+  if (props == null) props = {};
   if (currentRenderingInstance.ce || currentRenderingInstance.parent && isAsyncWrapper(currentRenderingInstance.parent) && currentRenderingInstance.parent.ce) {
     const slotProps = branchKey != null && props.key == null ? (0,_vue_shared__rspack_import_1.extend)({}, props, { key: branchKey }) : props;
     const hasProps = Object.keys(slotProps).length > 0;
@@ -7261,12 +7315,13 @@ function renderComponentRoot(instance) {
     root.dirs = root.dirs ? root.dirs.concat(vnode.dirs) : vnode.dirs;
   }
   if (vnode.transition) {
-    if (!!(process.env.NODE_ENV !== "production") && !isElementRoot(root)) {
+    const child = isTeleport(root.type) ? getInnerChild$1(root) || root : root;
+    if (!!(process.env.NODE_ENV !== "production") && !isElementRoot(child)) {
       warn$1(
         `Component inside <Transition> renders non-element root node that cannot be animated.`
       );
     }
-    setTransitionHooks(root, vnode.transition);
+    setTransitionHooks(child, vnode.transition);
   }
   if (!!(process.env.NODE_ENV !== "production") && setRoot) {
     setRoot(root);
@@ -9943,7 +9998,9 @@ function createSuspenseBoundary(vnode, parentSuspense, parentComponent, containe
       let hasUnresolvedAncestor = false;
       while (parent) {
         if (parent.pendingBranch) {
-          parent.effects.push(...effects);
+          for (let i = 0; i < effects.length; i++) {
+            parent.effects.push(effects[i]);
+          }
           hasUnresolvedAncestor = true;
           break;
         }
@@ -10308,6 +10365,14 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
   if (!!(process.env.NODE_ENV !== "production") && vnode.key !== vnode.key) {
     warn$1(`VNode created with invalid key (NaN). VNode type:`, vnode.type);
   }
+  if (!!(process.env.NODE_ENV !== "production") && props && vnode.shapeFlag & 1) {
+    const overwritingProp = props.innerHTML != null ? "innerHTML" : props.textContent != null ? "textContent" : null;
+    if (overwritingProp && hasContentChildren(vnode.children)) {
+      warn$1(
+        `The \`${overwritingProp}\` prop on <${vnode.type}> will override its children. Remove either the \`${overwritingProp}\` prop or the children.`
+      );
+    }
+  }
   if (isBlockTreeEnabled > 0 && // avoid a block node from tracking itself
   !isBlockNode && // has current parent block
   currentBlock && // presence of a patch flag indicates this node needs patching on updates.
@@ -10320,6 +10385,11 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
     currentBlock.push(vnode);
   }
   return vnode;
+}
+function hasContentChildren(children) {
+  if ((0,_vue_shared__rspack_import_1.isString)(children)) return children !== "";
+  if ((0,_vue_shared__rspack_import_1.isArray)(children)) return children.length > 0;
+  return false;
 }
 const createVNode = !!(process.env.NODE_ENV !== "production") ? createVNodeWithArgsTransform : _createVNode;
 function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
@@ -10771,7 +10841,12 @@ function setupStatefulComponent(instance, isSSR) {
       setupResult.then(unsetCurrentInstance, unsetCurrentInstance);
       if (isSSR) {
         return setupResult.then((resolvedResult) => {
-          handleSetupResult(instance, resolvedResult, isSSR);
+          setInSSRSetupState(true);
+          try {
+            handleSetupResult(instance, resolvedResult, isSSR);
+          } finally {
+            setInSSRSetupState(false);
+          }
         }).catch((e) => {
           handleError(e, instance, 0);
         });
@@ -11249,7 +11324,7 @@ function isMemoSame(cached, memo) {
   return true;
 }
 
-const version = "3.5.40";
+const version = "3.5.41";
 const warn = !!(process.env.NODE_ENV !== "production") ? warn$1 : _vue_shared__rspack_import_1.NOOP;
 const ErrorTypeStrings = ErrorTypeStrings$1 ;
 const devtools = !!(process.env.NODE_ENV !== "production") || true ? devtools$1 : 0;
@@ -11331,7 +11406,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _vue_shared__rspack_import_0 = __webpack_require__(12);
 /**
-* @vue/reactivity v3.5.40
+* @vue/reactivity v3.5.41
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -13427,7 +13502,7 @@ __webpack_require__.d(__webpack_exports__, {
   toTypeString: () => (toTypeString)
 });
 /**
-* @vue/shared v3.5.40
+* @vue/shared v3.5.41
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -13763,7 +13838,7 @@ const isVoidTag = /* @__PURE__ */ makeMap(VOID_TAGS);
 const specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
 const isSpecialBooleanAttr = /* @__PURE__ */ makeMap(specialBooleanAttrs);
 const isBooleanAttr = /* @__PURE__ */ makeMap(
-  specialBooleanAttrs + `,async,autofocus,autoplay,controls,default,defer,disabled,hidden,inert,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected`
+  specialBooleanAttrs + `,async,autofocus,autoplay,controls,default,defer,disabled,inert,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected`
 );
 function includeBooleanAttr(value) {
   return !!value || value === "";
