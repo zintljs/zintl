@@ -107,20 +107,29 @@ jobs:
         run: |
           pending=$(node -e "
             const fs = require('node:fs');
-            const files = fs.readdirSync('.changeset')
-              .filter((f) => f.endsWith('.md') && f !== 'README.md')
-              .map((f) => f.slice(0, -3));
-            // Counting files is NOT enough. In prerelease mode changeset files
-            // survive versioning — pre.json records which ones have been applied
-            // and the files stay on disk so an eventual stable release can
-            // aggregate them into one entry. On this repo that is 66 applied
-            // files sitting next to the unapplied ones, so a file count would
-            // report 'pending' forever and re-open a version PR on every push.
+            const md = (dir) =>
+              fs.existsSync(dir)
+                ? fs.readdirSync(dir).filter((f) => f.endsWith('.md') && f !== 'README.md')
+                : [];
+            // A consumed changeset is deleted by a normal release but only
+            // MOVED into .changeset/pre/ by a prerelease one, because the
+            // eventual stable release still owes its description to whoever
+            // never installed an alpha. So 'unconsumed' is simply 'still
+            // sitting in .changeset/' — the directory split does the work that
+            // pre.json's applied-list used to (changesets v3 dropped that
+            // field; reading it here returned undefined and counted nothing).
+            //
+            // Mode 'exit' is the exception that matters: the whole prerelease
+            // backlog becomes relevant again, and .changeset/ is normally empty
+            // by then. Without the second clause the stable release is never
+            // cut — the push after 'pre exit' opens no version PR at all.
             const pre = fs.existsSync('.changeset/pre.json')
               ? JSON.parse(fs.readFileSync('.changeset/pre.json', 'utf8'))
               : {};
-            const applied = new Set(pre.changesets ?? []);
-            console.log(files.some((f) => !applied.has(f)));
+            console.log(
+              md('.changeset').length > 0 ||
+                (pre.mode === 'exit' && md('.changeset/pre').length > 0)
+            );
           ")
           echo "pending=$pending" >> "$GITHUB_OUTPUT"
           echo "Unconsumed changesets present: $pending"
