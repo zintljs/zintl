@@ -1,5 +1,6 @@
 import { defineConfig } from "vite-plus/test/config";
 import { configDefaults } from "vite-plus/test/config";
+import ContractSequencer from "./sequencer.js";
 // import { playwright } from "vite-plus/test/browser-playwright";
 
 export default defineConfig({
@@ -55,6 +56,19 @@ export default defineConfig({
      * corrupted the working tree. Measured: 338s serial → 124s at 4 workers.
      */
     maxWorkers: 4,
+    /**
+     * Cost-aware **sharding**, and nothing else.
+     *
+     * `shard()` is hash-based in every Vitest configuration — it slices a SHA1
+     * ordering of the file paths — so `--shard=N/3` split this suite
+     * 149 s / 65 s / 119 s, and a matrix costs its slowest leg. Bin-packing by
+     * measured cost evens that to 147 s / 117 s / 99 s.
+     *
+     * It subclasses `BaseSequencer` and overrides only `shard`, so the order
+     * files run in on any one machine is untouched. Overriding `sort` as well
+     * was tried and reverted — see `./sequencer.ts`.
+     */
+    sequence: { sequencer: ContractSequencer },
     env: {
       /**
        * Declares that tests share a machine with sibling workers, so wall-clock
