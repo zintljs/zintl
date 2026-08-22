@@ -35,7 +35,8 @@
     "prepare": "vp config",
     "change": "changeset",
     "change:deps": "node scripts/auto-changeset.js",
-    "version-packages": "changeset version",
+    "//version-packages": "Formats after versioning because the two tools disagree about Markdown. Changesets writes CHANGELOG entries with trailing spaces on the blank lines inside a list item; oxfmt strips them. Nobody edits those files by hand, so the disagreement only ever surfaces as `vp fmt --check` failing on the version PR — a red gate on a PR whose whole content is generated. Formatting here means the PR is born passing.",
+    "version-packages": "changeset version && vp fmt",
     "release": "changeset publish"
   },
   "devDependencies": {
