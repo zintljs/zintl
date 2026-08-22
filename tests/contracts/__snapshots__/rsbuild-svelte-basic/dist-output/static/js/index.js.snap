@@ -6,8 +6,8 @@ __webpack_require__.r(__webpack_exports__);
 /* import */ var virtual_zintl_runtime_internal__rspack_import_0 = __webpack_require__(1);
 /* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_1 = __webpack_require__(7);
 /* import */ var svelte__rspack_import_2 = __webpack_require__(8);
-/* import */ var _App_svelte__rspack_import_3 = __webpack_require__(109);
-/* import */ var _index_css__rspack_import_4 = __webpack_require__(113);
+/* import */ var _App_svelte__rspack_import_3 = __webpack_require__(110);
+/* import */ var _index_css__rspack_import_4 = __webpack_require__(114);
 
 
 
@@ -33,16 +33,16 @@ void bootstrap();
 
 
 },
-109(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+110(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   "default": () => (App)
 });
-/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(110);
-/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(48);
+/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(111);
+/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(49);
 /* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2 = __webpack_require__(7);
 /* import */ var virtual_zintl_runtime_internal__rspack_import_3 = __webpack_require__(1);
-/* import */ var _lib_LocaleSwitcher_svelte__rspack_import_4 = __webpack_require__(112);
+/* import */ var _lib_LocaleSwitcher_svelte__rspack_import_4 = __webpack_require__(113);
 
 
 
@@ -138,13 +138,13 @@ svelte_internal_client__rspack_import_1.delegate([
 
 
 },
-112(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+113(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   "default": () => (LocaleSwitcher)
 });
-/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(110);
-/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(48);
+/* import */ var svelte_internal_disclose_version__rspack_import_0 = __webpack_require__(111);
+/* import */ var svelte_internal_client__rspack_import_1 = __webpack_require__(49);
 /* import */ var virtual_zintl_manager_none_entry_b_dd563dcb7e61__rspack_import_2 = __webpack_require__(7);
 /* import */ var virtual_zintl_runtime_internal__rspack_import_3 = __webpack_require__(1);
 
@@ -217,7 +217,7 @@ svelte_internal_client__rspack_import_1.delegate([
 
 
 },
-113(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+114(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 // extracted by css-extract-rspack-plugin
 

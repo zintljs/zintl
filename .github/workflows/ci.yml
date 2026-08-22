@@ -52,7 +52,8 @@ jobs:
   verify:
     name: Verify
     # Drafts are an explicit "not ready" signal; CI starts when it is marked ready.
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft ==
+      false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -178,7 +179,8 @@ jobs:
   # `gate` needs no change: GitHub folds a matrix into one `needs.contracts.result`.
   contracts:
     name: Contracts (e2e) ${{ matrix.shard }}/3
-    if: github.event_name != 'push' && !startsWith(github.head_ref, 'changeset-release/')
+    if: github.event_name != 'push' && !startsWith(github.head_ref,
+      'changeset-release/')
     runs-on: ubuntu-latest
     strategy:
       # A red shard must not cancel its siblings. Without this you see whichever
@@ -228,7 +230,8 @@ jobs:
   smoke:
     name: Publish Smoke
     needs: verify
-    if: needs.verify.outputs.packaging == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.verify.outputs.packaging == 'true' || github.event_name ==
+      'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -307,7 +310,7 @@ jobs:
       # the `github-token` input, which already defaults to `${{ github.token }}`.
       # Do not re-add the env block; it would look like auth while doing nothing.
       - name: Create or Update the Version PR
-        uses: changesets/action@v2
+        uses: changesets/action@v2.1.1
         with:
           version-script: vp run version-packages
           commit-message: "chore: version packages"
@@ -364,7 +367,7 @@ jobs:
       # ever does not, the symptom is quiet — packages publish, and tags and
       # releases are skipped with a warning.
       - name: Publish
-        uses: changesets/action@v2
+        uses: changesets/action@v2.1.1
         with:
           publish-script: vp run release
 

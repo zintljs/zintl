@@ -641,20 +641,21 @@ function injectIntoStream(stream, store) {
 				let chunkText = "";
 				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
 				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
-					chunkText = chunkText.replace("</body>", `${script}</body>`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
-					chunkText = chunkText.replace("</html>", `${script}</html>`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
+				if (!injected) {
+					if (chunkText.includes("</body>")) {
+						const catalogs = store.catalogs;
+						const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+						chunkText = chunkText.replace("</body>", `${script}</body>`);
+						injected = true;
+						controller.enqueue(encoder.encode(chunkText));
+					} else if (chunkText.includes("</html>")) {
+						const catalogs = store.catalogs;
+						const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+						chunkText = chunkText.replace("</html>", `${script}</html>`);
+						injected = true;
+						controller.enqueue(encoder.encode(chunkText));
+					} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
 				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
 			} catch (err) {
 				controller.error(err);
 			}
@@ -804,45 +805,47 @@ function _t(key, params = {}, options) {
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
 	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader)
+	if (message === void 0) {
+		if (mgr) {
+			if (typeof window === "undefined") {
+				if (mgr.loader) try {
+					const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+					if (result && typeof result.then !== "function") {
+						instance.addCatalogs({ [locale]: result });
+						const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+						message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+					} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+				} catch {}
+			} else if (mgr.loader)
  /**
-		* Trigger the load now, then re-read — the same shape the server
-		* branch above already uses.
-		*
-		* Deferring into a microtask meant a *synchronous* loader could not
-		* satisfy this call, so the first render tick after a hot update
-		* registered a new loader always returned "" even though the strings
-		* were available on that very tick. `loadLazyBoundary` handles the
-		* async case internally, so nothing is lost by calling it inline.
-		*/
-		try {
-			/**
-			* One attempt per boundary between catalog changes.
+			* Trigger the load now, then re-read — the same shape the server
+			* branch above already uses.
 			*
-			* Re-reading immediately is what lets a synchronous loader satisfy
-			* the first render tick, and that is worth keeping. Re-*triggering*
-			* on every render is not: when the key is genuinely absent the load
-			* can never satisfy it, and each attempt announces a change that
-			* renders again. See `I18nStore.hydrationAttempts` — with a
-			* reactive framework subscribed this closes into a loop measured at
-			* six figures of console output.
+			* Deferring into a microtask meant a *synchronous* loader could not
+			* satisfy this call, so the first render tick after a hot update
+			* registered a new loader always returned "" even though the strings
+			* were available on that very tick. `loadLazyBoundary` handles the
+			* async case internally, so nothing is lost by calling it inline.
 			*/
-			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
-			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
-		} catch {}
-		if (message === void 0) return ``;
-	} else return ``;
+			try {
+				/**
+				* One attempt per boundary between catalog changes.
+				*
+				* Re-reading immediately is what lets a synchronous loader satisfy
+				* the first render tick, and that is worth keeping. Re-*triggering*
+				* on every render is not: when the key is genuinely absent the load
+				* can never satisfy it, and each attempt announces a change that
+				* renders again. See `I18nStore.hydrationAttempts` — with a
+				* reactive framework subscribed this closes into a loop measured at
+				* six figures of console output.
+				*/
+				if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+				const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+				if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+			} catch {}
+			if (message === void 0) return ``;
+		} else return ``;
+	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
@@ -943,10 +946,10 @@ var entry_b_429b1674e079_default = {
 	manifest: []
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/constants.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/constants.js
 var FILENAME = Symbol("filename");
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/escaping.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/escaping.js
 var ATTR_REGEX = /[&"<]/g;
 var CONTENT_REGEX = /[&<]/g;
 /**
@@ -1009,7 +1012,7 @@ function deferred() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/shared/attributes.js
 /**
 * `<div translate={false}>` should be rendered as `<div translate="no">` and _not_
 * `<div translate="false">`, which is equivalent to `<div translate="yes">`. There
@@ -1102,7 +1105,7 @@ function to_style(value, styles) {
 			important_styles = styles[1];
 		} else normal_styles = styles;
 		if (value) {
-			value = String(value).replaceAll(/\s*\/\*.*?\*\/\s*/g, "").trim();
+			value = String(value).replaceAll(/\/\*.*?\*\//g, "").trim();
 			/** @type {boolean | '"' | "'"} */
 			var in_str = false;
 			var in_apo = 0;
@@ -1148,7 +1151,7 @@ function to_style(value, styles) {
 	return value == null ? null : String(value);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/constants.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/constants.js
 var CLEAN = 1024;
 var DIRTY = 2048;
 var MAYBE_DIRTY = 4096;
@@ -1165,17 +1168,17 @@ var STALE_REACTION = new class StaleReactionError extends Error {
 }();
 globalThis.document?.contentType;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/flags/index.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/flags/index.js
 /** True if experimental.async=true */
 var async_mode_flag = false;
 ~(DIRTY | MAYBE_DIRTY | CLEAN);
 EFFECT_TRANSPARENT | EFFECT_PRESERVED;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/hydration.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/hydration.js
 var BLOCK_OPEN = `<!--[-->`;
 var BLOCK_CLOSE = `<!--]-->`;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/utils.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/utils.js
 var regex_return_characters = /\r/g;
 /**
 * @param {string} str
@@ -1230,7 +1233,7 @@ function is_boolean_attribute(name) {
 }
 [...DOM_BOOLEAN_ATTRIBUTES];
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/abort-signal.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/abort-signal.js
 /** @type {AbortController | null} */
 var controller = null;
 function abort() {
@@ -1238,7 +1241,31 @@ function abort() {
 	controller = null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/errors.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/context.js
+/** @import { SSRContext } from '#server' */
+/** @type {SSRContext | null} */
+var ssr_context = null;
+/** @param {SSRContext | null} v */
+function set_ssr_context(v) {
+	ssr_context = v;
+}
+/**
+* @param {Function} [fn]
+*/
+function push(fn) {
+	ssr_context = {
+		p: ssr_context,
+		c: null,
+		r: null
+	};
+	ssr_context.function = fn;
+	ssr_context.element = ssr_context.p?.element;
+}
+function pop() {
+	ssr_context = ssr_context.p;
+}
+//#endregion
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/errors.js
 /**
 * The node API `AsyncLocalStorage` is not available, but is required to use async server rendering.
 * @returns {never}
@@ -1294,31 +1321,7 @@ function server_context_required() {
 	throw error;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/context.js
-/** @import { SSRContext } from '#server' */
-/** @type {SSRContext | null} */
-var ssr_context = null;
-/** @param {SSRContext | null} v */
-function set_ssr_context(v) {
-	ssr_context = v;
-}
-/**
-* @param {Function} [fn]
-*/
-function push(fn) {
-	ssr_context = {
-		p: ssr_context,
-		c: null,
-		r: null
-	};
-	ssr_context.function = fn;
-	ssr_context.element = ssr_context.p?.element;
-}
-function pop() {
-	ssr_context = ssr_context.p;
-}
-//#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/warnings.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/warnings.js
 var bold = "font-weight: bold";
 var normal = "font-weight: normal";
 /**
@@ -1336,7 +1339,7 @@ The \`hydratable\` was initialized in:
 ${stack}\nhttps://svelte.dev/e/unresolved_hydratable`, bold, normal);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/render-context.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/render-context.js
 /** @import { AsyncLocalStorage } from 'node:async_hooks' */
 /** @import { RenderContext } from '#server' */
 /** @type {Promise<void> | null} */
@@ -1392,7 +1395,7 @@ function in_webcontainer() {
 	return !!globalThis.process?.versions?.webcontainer;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/crypto.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/crypto.js
 var text_encoder;
 var crypto;
 /** @param {string} module_name */
@@ -1418,7 +1421,7 @@ function base64_encode(bytes) {
 }
 var MAX_ARRAY_INDEX = 2 ** 32 - 1 - 1;
 //#endregion
-//#region node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/src/utils.js
+//#region node_modules/.pnpm/devalue@5.9.1/node_modules/devalue/src/utils.js
 /** @type {Record<string, string>} */
 var escaped = {
 	"<": "\\u003C",
@@ -1518,17 +1521,24 @@ function is_valid_array_index_string(s) {
 	return is_valid_array_index(+s);
 }
 /**
+* Returns the length of the leading run of valid array indices in `keys`.
+* @param {readonly string[]} keys
+*/
+function array_index_cut(keys) {
+	for (var i = keys.length - 1; i >= 0; i--) if (is_valid_array_index_string(keys[i])) break;
+	return i + 1;
+}
+/**
 * Finds the populated indices of an array.
 * @param {unknown[]} array
 */
 function valid_array_indices(array) {
 	const keys = Object.keys(array);
-	for (var i = keys.length - 1; i >= 0; i--) if (is_valid_array_index_string(keys[i])) break;
-	keys.length = i + 1;
+	keys.length = array_index_cut(keys);
 	return keys;
 }
 //#endregion
-//#region node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/src/uneval.js
+//#region node_modules/.pnpm/devalue@5.9.1/node_modules/devalue/src/uneval.js
 var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 var unsafe_chars = /[<\b\f\n\r\t\0\u2028\u2029]/g;
 var reserved = /^(?:do|if|in|for|int|let|new|try|var|byte|case|char|else|enum|goto|long|this|void|with|await|break|catch|class|const|final|float|short|super|throw|while|yield|delete|double|export|import|native|return|switch|throws|typeof|boolean|default|extends|finally|package|private|abstract|continue|debugger|function|volatile|interface|protected|transient|implements|instanceof|synchronized)$/;
@@ -1580,6 +1590,7 @@ function uneval(value, replacer) {
 				case "Map":
 					for (const [key, value] of thing) {
 						keys.push(`.get(${is_primitive(key) ? stringify_primitive(key) : "..."})`);
+						walk(key);
 						walk(value);
 						keys.pop();
 					}
@@ -1660,7 +1671,6 @@ function uneval(value, replacer) {
 							return `Object.assign(Array(${thing.length}),{${entries}})`;
 						}
 						has_holes = true;
-						i -= 1;
 					}
 				}
 				const tail = thing.length === 0 || thing.length - 1 in thing ? "" : ",";
@@ -1681,10 +1691,8 @@ function uneval(value, replacer) {
 			case "BigInt64Array":
 			case "BigUint64Array": {
 				let str = `new ${type}`;
-				if (!names.has(thing.buffer)) {
-					const array = new thing.constructor(thing.buffer);
-					str += `([${array}])`;
-				} else str += `(${stringify(thing.buffer)})`;
+				if (!names.has(thing.buffer)) str += `([${stringify_typed_array_elements(type, thing.buffer)}])`;
+				else str += `(${stringify(thing.buffer)})`;
 				if (thing.byteLength !== thing.buffer.byteLength) {
 					const start = thing.byteOffset / thing.BYTES_PER_ELEMENT;
 					const end = start + thing.length;
@@ -1696,7 +1704,7 @@ function uneval(value, replacer) {
 				let str = `new DataView`;
 				if (!names.has(thing.buffer)) str += `(new Uint8Array([${new Uint8Array(thing.buffer)}]).buffer`;
 				else str += `(${stringify(thing.buffer)}`;
-				if (thing.byteLength !== thing.buffer.byteLength) str += `,${thing.startOffset},${thing.byteLength}`;
+				if (thing.byteLength !== thing.buffer.byteLength) str += `,${thing.byteOffset},${thing.byteLength}`;
 				return str + ")";
 			}
 			case "ArrayBuffer": return `new Uint8Array([${new Uint8Array(thing).toString()}]).buffer`;
@@ -1723,6 +1731,8 @@ function uneval(value, replacer) {
 		const statements = [];
 		/** @type {string[]} */
 		const values = [];
+		/** @type {string[]} */
+		const reconstructions = [];
 		names.forEach((name, thing) => {
 			params.push(name);
 			if (custom.has(thing)) {
@@ -1761,14 +1771,18 @@ function uneval(value, replacer) {
 						statements.push(`${name}[${i}]=${stringify(v)}`);
 					});
 					break;
-				case "Set":
+				case "Set": {
 					values.push(`new Set`);
-					statements.push(`${name}.${Array.from(thing).map((v) => `add(${stringify(v)})`).join(".")}`);
+					const adds = Array.from(thing).map((v) => `.add(${stringify(v)})`);
+					if (adds.length > 0) statements.push(name + adds.join(""));
 					break;
-				case "Map":
+				}
+				case "Map": {
 					values.push(`new Map`);
-					statements.push(`${name}.${Array.from(thing).map(([k, v]) => `set(${stringify(k)}, ${stringify(v)})`).join(".")}`);
+					const sets = Array.from(thing).map(([k, v]) => `.set(${stringify(k)}, ${stringify(v)})`);
+					if (sets.length > 0) statements.push(name + sets.join(""));
 					break;
+				}
 				case "Int8Array":
 				case "Uint8Array":
 				case "Uint8ClampedArray":
@@ -1782,17 +1796,15 @@ function uneval(value, replacer) {
 				case "BigInt64Array":
 				case "BigUint64Array": {
 					let str = `new ${type}`;
-					if (!names.has(thing.buffer)) {
-						const array = new thing.constructor(thing.buffer);
-						str += `([${array}])`;
-					} else str += `(${stringify(thing.buffer)})`;
+					if (!names.has(thing.buffer)) str += `([${stringify_typed_array_elements(type, thing.buffer)}])`;
+					else str += `(${stringify(thing.buffer)})`;
 					if (thing.byteLength !== thing.buffer.byteLength) {
 						const start = thing.byteOffset / thing.BYTES_PER_ELEMENT;
 						const end = start + thing.length;
 						str += `.subarray(${start},${end})`;
 					}
 					values.push(`{}`);
-					statements.push(`${name}=${str}`);
+					reconstructions.push(`${name}=${str}`);
 					break;
 				}
 				case "DataView": {
@@ -1802,11 +1814,21 @@ function uneval(value, replacer) {
 					if (thing.byteLength !== thing.buffer.byteLength) str += `,${thing.byteOffset},${thing.byteLength}`;
 					str += ")";
 					values.push(`{}`);
-					statements.push(`${name}=${str}`);
+					reconstructions.push(`${name}=${str}`);
 					break;
 				}
 				case "ArrayBuffer":
 					values.push(`new Uint8Array([${new Uint8Array(thing)}]).buffer`);
+					break;
+				case "Temporal.Duration":
+				case "Temporal.Instant":
+				case "Temporal.PlainDate":
+				case "Temporal.PlainTime":
+				case "Temporal.PlainDateTime":
+				case "Temporal.PlainMonthDay":
+				case "Temporal.PlainYearMonth":
+				case "Temporal.ZonedDateTime":
+					values.push(`${type}.from(${stringify_string(thing.toString())})`);
 					break;
 				default:
 					values.push(Object.getPrototypeOf(thing) === null ? "Object.create(null)" : "{}");
@@ -1816,8 +1838,26 @@ function uneval(value, replacer) {
 			}
 		});
 		statements.push(`return ${str}`);
-		return `(function(${params.join(",")}){${statements.join(";")}}(${values.join(",")}))`;
+		const body = [...reconstructions, ...statements].join(";");
+		if (params.length > 65534) return `(function(){var[${params.join(",")}]=arguments[0];${body}}([${values.join(",")}]))`;
+		return `(function(${params.join(",")}){${body}}(${values.join(",")}))`;
 	} else return str;
+}
+/**
+* Serialize the elements of `buffer`, read as `type`, as a comma-separated list.
+* The view is created from `type` rather than from the serialized value's own
+* constructor, which may be a subclass like Node's `Buffer` whose `toString`
+* decodes the bytes instead of listing them.
+* `BigInt64Array`/`BigUint64Array` elements are bigints and must be written
+* with an `n` suffix, otherwise the emitted `new BigInt64Array([...])` throws.
+* @param {string} type
+* @param {ArrayBufferLike} buffer
+*/
+function stringify_typed_array_elements(type, buffer) {
+	const array = new globalThis[type](buffer);
+	if (type === "BigInt64Array" || type === "BigUint64Array") return Array.from(array, (element) => `${element}n`).join(",");
+	if (array instanceof Float32Array || array instanceof Float64Array || typeof Float16Array !== "undefined" && array instanceof Float16Array) return Array.from(array, (element) => Object.is(element, -0) ? "-0" : `${element}`).join(",");
+	return array.toString();
 }
 /** @param {number} num */
 function get_name(num) {
@@ -1856,7 +1896,7 @@ function stringify_primitive(thing) {
 	return str;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/renderer.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/renderer.js
 /** @import { Component } from 'svelte' */
 /** @import { Csp, HydratableContext, RenderOutput, SSRContext, SyncRenderOutput, Sha256Source } from './types.js' */
 /** @import { MaybePromise } from '#shared' */
@@ -2198,6 +2238,7 @@ var Renderer = class Renderer {
 	*/
 	copy() {
 		const copy = new Renderer(this.global, this.#parent);
+		copy.type = this.type;
 		copy.#out = this.#out.map((item) => item instanceof Renderer ? item.copy() : item);
 		copy.promise = this.promise;
 		return copy;
@@ -2260,7 +2301,16 @@ var Renderer = class Renderer {
 				return (sync ??= Renderer.#render(component, options)).body;
 			} },
 			hashes: { value: { script: "" } },
-			then: { value: (onfulfilled, onrejected) => {
+			then: { value: 
+			/**
+			* this is not type-safe, but honestly it's the best I can do right now, and it's a straightforward function.
+			*
+			* @template TResult1
+			* @template [TResult2=never]
+			* @param { (value: SyncRenderOutput) => TResult1 } onfulfilled
+			* @param { (reason: unknown) => TResult2 } onrejected
+			*/
+			(onfulfilled, onrejected) => {
 				if (!async_mode_flag) {
 					const result = sync ??= Renderer.#render(component, options);
 					const user_result = onfulfilled({
@@ -2372,31 +2422,33 @@ var Renderer = class Renderer {
 	}) {
 		await this.promise;
 		for (const item of this.#out) if (typeof item === "string") content[this.type] += item;
-		else if (item instanceof Renderer) if (item.#boundary) {
-			/** @type {AccumulatedContent} */
-			const boundary_content = {
-				head: "",
-				body: ""
-			};
-			try {
-				await item.#collect_content_async(boundary_content);
-				content.head += boundary_content.head;
-				content.body += boundary_content.body;
-			} catch (error) {
-				const { context, failed, transformError } = item.#boundary;
-				set_ssr_context(context);
-				let promise = transformError(error);
-				set_ssr_context(null);
-				let transformed = await promise;
-				set_ssr_context(context);
-				const failed_renderer = new Renderer(item.global, item);
-				failed_renderer.type = item.type;
-				failed_renderer.#out.push(Renderer.#serialize_failed_boundary(transformed));
-				failed(failed_renderer, transformed, noop);
-				failed_renderer.#out.push(BLOCK_CLOSE);
-				await failed_renderer.#collect_content_async(content);
-			}
-		} else await item.#collect_content_async(content);
+		else if (item instanceof Renderer) {
+			if (item.#boundary) {
+				/** @type {AccumulatedContent} */
+				const boundary_content = {
+					head: "",
+					body: ""
+				};
+				try {
+					await item.#collect_content_async(boundary_content);
+					content.head += boundary_content.head;
+					content.body += boundary_content.body;
+				} catch (error) {
+					const { context, failed, transformError } = item.#boundary;
+					set_ssr_context(context);
+					let promise = transformError(error);
+					set_ssr_context(null);
+					let transformed = await promise;
+					set_ssr_context(context);
+					const failed_renderer = new Renderer(item.global, item);
+					failed_renderer.type = item.type;
+					failed_renderer.#out.push(Renderer.#serialize_failed_boundary(transformed));
+					failed(failed_renderer, transformed, noop);
+					failed_renderer.#out.push(BLOCK_CLOSE);
+					await failed_renderer.#collect_content_async(content);
+				}
+			} else await item.#collect_content_async(content);
+		}
 		return content;
 	}
 	async #collect_hydratables() {
@@ -2543,7 +2595,7 @@ var SSRState = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/blocks/html.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/blocks/html.js
 /**
 * @param {string} value
 */
@@ -2760,8 +2812,10 @@ function is_tag_valid_with_parent(child_tag, parent_tag, child_loc, parent_loc) 
 	if (disallowed) {
 		if ("direct" in disallowed && disallowed.direct.includes(child_tag)) return `${child} cannot be a direct child of ${parent}`;
 		if ("descendant" in disallowed && disallowed.descendant.includes(child_tag)) return `${child} cannot be a child of ${parent}`;
-		if ("only" in disallowed && disallowed.only) if (disallowed.only.includes(child_tag)) return null;
-		else return `${child} cannot be a child of ${parent}. \`<${parent_tag}>\` only allows these children: ${disallowed.only.map((d) => `\`<${d}>\``).join(", ")}`;
+		if ("only" in disallowed && disallowed.only) {
+			if (disallowed.only.includes(child_tag)) return null;
+			else return `${child} cannot be a child of ${parent}. \`<${parent_tag}>\` only allows these children: ${disallowed.only.map((d) => `\`<${d}>\``).join(", ")}`;
+		}
 	}
 	switch (child_tag) {
 		case "body":
@@ -2782,7 +2836,7 @@ function is_tag_valid_with_parent(child_tag, parent_tag, child_loc, parent_loc) 
 	return null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/dev.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/dev.js
 /** @import { SSRContext } from '#server' */
 /**
 * @typedef {{
@@ -2853,7 +2907,7 @@ function pop_element() {
 	);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/server/index.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/server/index.js
 var INVALID_ATTR_NAME_CHAR_REGEX = /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
 /**
 * Only available on the server and when compiling with the `server` option.

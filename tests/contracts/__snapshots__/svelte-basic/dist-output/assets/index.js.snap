@@ -636,45 +636,47 @@ function _t(key, params = {}, options) {
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
 	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader)
+	if (message === void 0) {
+		if (mgr) {
+			if (typeof window === "undefined") {
+				if (mgr.loader) try {
+					const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+					if (result && typeof result.then !== "function") {
+						instance.addCatalogs({ [locale]: result });
+						const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+						message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+					} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+				} catch {}
+			} else if (mgr.loader)
  /**
-		* Trigger the load now, then re-read — the same shape the server
-		* branch above already uses.
-		*
-		* Deferring into a microtask meant a *synchronous* loader could not
-		* satisfy this call, so the first render tick after a hot update
-		* registered a new loader always returned "" even though the strings
-		* were available on that very tick. `loadLazyBoundary` handles the
-		* async case internally, so nothing is lost by calling it inline.
-		*/
-		try {
-			/**
-			* One attempt per boundary between catalog changes.
+			* Trigger the load now, then re-read — the same shape the server
+			* branch above already uses.
 			*
-			* Re-reading immediately is what lets a synchronous loader satisfy
-			* the first render tick, and that is worth keeping. Re-*triggering*
-			* on every render is not: when the key is genuinely absent the load
-			* can never satisfy it, and each attempt announces a change that
-			* renders again. See `I18nStore.hydrationAttempts` — with a
-			* reactive framework subscribed this closes into a loop measured at
-			* six figures of console output.
+			* Deferring into a microtask meant a *synchronous* loader could not
+			* satisfy this call, so the first render tick after a hot update
+			* registered a new loader always returned "" even though the strings
+			* were available on that very tick. `loadLazyBoundary` handles the
+			* async case internally, so nothing is lost by calling it inline.
 			*/
-			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
-			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
-		} catch {}
-		if (message === void 0) return ``;
-	} else return ``;
+			try {
+				/**
+				* One attempt per boundary between catalog changes.
+				*
+				* Re-reading immediately is what lets a synchronous loader satisfy
+				* the first render tick, and that is worth keeping. Re-*triggering*
+				* on every render is not: when the key is genuinely absent the load
+				* can never satisfy it, and each attempt announces a change that
+				* renders again. See `I18nStore.hydrationAttempts` — with a
+				* reactive framework subscribed this closes into a loop measured at
+				* six figures of console output.
+				*/
+				if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+				const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+				if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+			} catch {}
+			if (message === void 0) return ``;
+		} else return ``;
+	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;
@@ -842,7 +844,7 @@ var entry_b_aafcf9c6fe16_default = {
 	manifest: []
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/utils.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/shared/utils.js
 var is_array = Array.isArray;
 var index_of = Array.prototype.indexOf;
 var includes = Array.prototype.includes;
@@ -920,7 +922,7 @@ var STALE_REACTION = new class StaleReactionError extends Error {
 }();
 var IS_XHTML = !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml");
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/errors.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/shared/errors.js
 /**
 * An invariant violation occurred, meaning Svelte's internal assumptions were flawed. This is a bug in Svelte, not your app — please open an issue at https://github.com/sveltejs/svelte, citing the following message: "%message%"
 * @param {string} message
@@ -934,7 +936,7 @@ function invariant_violation(message) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/errors.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/errors.js
 /**
 * Cannot create a `$derived(...)` with an `await` expression outside of an effect tree
 * @returns {never}
@@ -1079,7 +1081,7 @@ function svelte_boundary_reset_onerror() {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/constants.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
 var UNINITIALIZED = Symbol("uninitialized");
 var FILENAME = Symbol("filename");
@@ -1087,7 +1089,7 @@ var NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
 var NAMESPACE_SVG = "http://www.w3.org/2000/svg";
 var NAMESPACE_MATHML = "http://www.w3.org/1998/Math/MathML";
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/warnings.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/warnings.js
 var bold = "font-weight: bold";
 var normal = "font-weight: normal";
 /**
@@ -1148,7 +1150,7 @@ function svelte_boundary_reset_noop() {
 	console.warn(`%c[svelte] svelte_boundary_reset_noop\n%cA \`<svelte:boundary>\` \`reset\` function only resets the boundary the first time it is called\nhttps://svelte.dev/e/svelte_boundary_reset_noop`, bold, normal);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/hydration.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/hydration.js
 /** @import { TemplateNode } from '#client' */
 /**
 * Use this variable to guard everything related to hydration code so it can be treeshaken out
@@ -1227,7 +1229,7 @@ function read_hydration_instruction(node) {
 	return node.data;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/equality.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/equality.js
 /** @import { Equals } from '#client' */
 /** @type {Equals} */
 function equals(value) {
@@ -1246,7 +1248,7 @@ function safe_equals(value) {
 	return !safe_not_equal(value, this.v);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/flags/index.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/flags/index.js
 /** True if experimental.async=true */
 var async_mode_flag = false;
 /** True if we're not certain that we only have Svelte 5 code in the compilation */
@@ -1254,7 +1256,7 @@ var legacy_mode_flag = false;
 /** True if $inspect.trace is used */
 var tracing_mode_flag = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/tracing.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dev/tracing.js
 /**
 * @typedef {{
 *   traces: Error[];
@@ -1280,7 +1282,7 @@ function tag_proxy(value, label) {
 	return value;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/dev.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/shared/dev.js
 /**
 * @param {string} label
 * @returns {Error & { stack: string } | null}
@@ -1323,7 +1325,7 @@ function invariant(condition, message) {
 	if (!condition) invariant_violation(message);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/context.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/context.js
 /** @import { ComponentContext, DevStackEntry, Effect } from '#client' */
 /** @type {ComponentContext | null} */
 var component_context = null;
@@ -1425,7 +1427,7 @@ function is_runes() {
 	return !legacy_mode_flag || component_context !== null && component_context.l === null;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/task.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/task.js
 /** @type {Array<() => void>} */
 var micro_tasks = [];
 function run_micro_tasks() {
@@ -1446,7 +1448,7 @@ function queue_micro_task(fn) {
 	micro_tasks.push(fn);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/error-handling.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/error-handling.js
 /** @import { Derived, Effect } from '#client' */
 /** @import { Boundary } from './dom/blocks/boundary.js' */
 var adjustments = /* @__PURE__ */ new WeakMap();
@@ -1518,7 +1520,7 @@ function apply_adjustments(error) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/status.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/status.js
 /** @import { Derived, Signal } from '#client' */
 var STATUS_MASK = ~(DIRTY | MAYBE_DIRTY | CLEAN);
 /**
@@ -1537,7 +1539,7 @@ function update_derived_status(derived) {
 	else set_signal_status(derived, MAYBE_DIRTY);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/utils.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/utils.js
 /** @import { Derived, Effect, Value } from '#client' */
 /**
 * @param {Value[] | null} deps
@@ -1565,14 +1567,14 @@ function defer_effect(effect, dirty_effects, maybe_dirty_effects) {
 	set_signal_status(effect, CLEAN);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/store.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/store.js
 /**
 * We set this to `true` when updating a store so that we correctly
 * schedule effects if the update takes place inside a `$:` effect
 */
 var legacy_is_updating_store = false;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
 /**
 * @template T
 * @param {() => T} fn
@@ -1590,7 +1592,7 @@ function without_reactive_context(fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/reactivity/create-subscriber.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/reactivity/create-subscriber.js
 /**
 * Returns a `subscribe` function that integrates external event-based systems with Svelte's reactivity.
 * It's particularly useful for integrating with web APIs like `MediaQuery`, `IntersectionObserver`, or `WebSocket`.
@@ -1664,7 +1666,7 @@ function createSubscriber(start) {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
 /** @import { Effect, Source, TemplateNode, } from '#client' */
 /**
 * @typedef {{
@@ -2024,7 +2026,7 @@ var Boundary = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/async.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/async.js
 /** @import { Blocker, Effect, Source, Value } from '#client' */
 /**
 * @param {Blocker[]} blockers
@@ -2142,7 +2144,7 @@ function increment_pending() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/deriveds.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/deriveds.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @import { Batch } from './batch.js'; */
 /** @import { Boundary } from '../dom/blocks/boundary.js'; */
@@ -2386,7 +2388,7 @@ function unfreeze_derived_effects(derived) {
 	for (const e of derived.effects) if (e.teardown && e.fn !== null) update_effect(e);
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/batch.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/batch.js
 /** @import { Fork } from 'svelte' */
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /** @type {Batch | null} */
@@ -2645,11 +2647,16 @@ var Batch = class Batch {
 				current_batch = next_batch;
 			}
 		}
-		if (this.#roots.length > 0) if (next_batch !== null) {
-			const batch = next_batch;
-			batch.#roots.push(...this.#roots.filter((r) => !batch.#roots.includes(r)));
-		} else next_batch = this;
-		if (next_batch !== null) next_batch.#process();
+		if (this.#roots.length > 0) {
+			if (next_batch !== null) {
+				const batch = next_batch;
+				batch.#roots.push(...this.#roots.filter((r) => !batch.#roots.includes(r)));
+			} else next_batch = this;
+		}
+		if (next_batch !== null) {
+			old_values.clear();
+			next_batch.#process();
+		}
 	}
 	/**
 	* Traverse the effect tree, executing effects or stashing
@@ -2843,10 +2850,12 @@ var Batch = class Batch {
 					return v2[0] !== v1[0] || v2[1] !== v1[1];
 				}).map(([c]) => c);
 				if (current_unequal.length > 0) {
-					for (const effect of this.#new_effects) if ((effect.f & 155648) === 0 && depends_on(effect, current_unequal, checked)) if ((effect.f & 4194320) !== 0) {
-						set_signal_status(effect, DIRTY);
-						batch.schedule(effect);
-					} else batch.#dirty_effects.add(effect);
+					for (const effect of this.#new_effects) if ((effect.f & 155648) === 0 && depends_on(effect, current_unequal, checked)) {
+						if ((effect.f & 4194320) !== 0) {
+							set_signal_status(effect, DIRTY);
+							batch.schedule(effect);
+						} else batch.#dirty_effects.add(effect);
+					}
 				}
 				if (batch.#roots.length > 0 && !batch.#decrement_queued) {
 					batch.apply();
@@ -3114,7 +3123,7 @@ function reset_all(effect) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/sources.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/sources.js
 /** @import { Derived, Effect, Source, Value } from '#client' */
 /** @type {Set<Effect>} */
 var eager_effects = /* @__PURE__ */ new Set();
@@ -3200,7 +3209,8 @@ function set(source, value, should_proxy = false) {
 */
 function internal_set(source, value, updated_during_traversal = null) {
 	if (!source.equals(value)) {
-		old_values.set(source, is_destroying_effect ? value : source.v);
+		if (is_destroying_effect) old_values.set(source, value);
+		else if (!old_values.has(source)) old_values.set(source, source.v);
 		var batch = Batch.ensure();
 		batch.capture(source, value);
 		if (tracing_mode_flag || active_effect !== null) {
@@ -3233,8 +3243,10 @@ function internal_set(source, value, updated_during_traversal = null) {
 		}
 		source.wv = increment_write_version();
 		mark_reactions(source, DIRTY, updated_during_traversal);
-		if (is_runes() && active_effect !== null && (active_effect.f & 1024) !== 0 && (active_effect.f & 96) === 0) if (untracked_writes === null) set_untracked_writes([source]);
-		else untracked_writes.push(source);
+		if (is_runes() && active_effect !== null && (active_effect.f & 1024) !== 0 && (active_effect.f & 96) === 0) {
+			if (untracked_writes === null) set_untracked_writes([source]);
+			else untracked_writes.push(source);
+		}
 		if (!batch.is_fork && eager_effects.size > 0 && !eager_effects_deferred) flush_eager_effects();
 	}
 	return value;
@@ -3294,7 +3306,7 @@ function mark_reactions(signal, status, updated_during_traversal) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/proxy.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/proxy.js
 /** @import { Source } from '#client' */
 var regex_is_valid_identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 /**
@@ -3530,7 +3542,7 @@ function inspectable_array(array) {
 	} });
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/equality.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dev/equality.js
 function init_array_prototype_warnings() {
 	const array_prototype = Array.prototype;
 	const cleanup = Array.__svelte_cleanup;
@@ -3585,7 +3597,7 @@ function strict_equals(a, b, equal = true) {
 	return a === b === equal;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/operations.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/operations.js
 /** @import { Effect, TemplateNode } from '#client' */
 /** @type {Window} */
 var $window;
@@ -3765,7 +3777,7 @@ function merge_text_nodes(text) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/reactivity/effects.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/reactivity/effects.js
 /** @import { Blocker, ComponentContext, ComponentContextLegacy, Derived, Effect, TemplateNode, TransitionManager } from '#client' */
 /**
 * @param {Effect} effect
@@ -3810,9 +3822,10 @@ function create_effect(type, fn) {
 	current_batch?.register_created_effect(effect);
 	/** @type {Effect | null} */
 	var e = effect;
-	if ((type & 4) !== 0) if (collected_effects !== null) collected_effects.push(effect);
-	else Batch.ensure().schedule(effect);
-	else if (fn !== null) {
+	if ((type & 4) !== 0) {
+		if (collected_effects !== null) collected_effects.push(effect);
+		else Batch.ensure().schedule(effect);
+	} else if (fn !== null) {
 		try {
 			update_effect(effect);
 		} catch (e) {
@@ -4115,14 +4128,14 @@ function move_effect(effect, fragment) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/legacy.js
 /**
 * @type {Set<Value> | null}
 * @deprecated
 */
 var captured_signals = null;
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/runtime.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/runtime.js
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
 /**
 * True if updating in an effect context that is reactive (i.e. not branch/root effects)
@@ -4279,8 +4292,10 @@ function update_reaction(reaction) {
 			read_version++;
 			if (previous_reaction.deps !== null) for (let i = 0; i < previous_skipped_deps; i += 1) previous_reaction.deps[i].rv = read_version;
 			if (previous_deps !== null) for (const dep of previous_deps) dep.rv = read_version;
-			if (untracked_writes !== null) if (previous_untracked_writes === null) previous_untracked_writes = untracked_writes;
-			else previous_untracked_writes.push(...untracked_writes);
+			if (untracked_writes !== null) {
+				if (previous_untracked_writes === null) previous_untracked_writes = untracked_writes;
+				else previous_untracked_writes.push(...untracked_writes);
+			}
 		}
 		if ((reaction.f & 8388608) !== 0) reaction.f ^= ERROR_VALUE;
 		return result;
@@ -4413,17 +4428,19 @@ function get(signal) {
 		if (trace) console.warn(trace);
 	}
 	recent_async_deriveds.delete(signal);
-	if (tracing_mode_flag && !untracking && tracing_expressions !== null && active_reaction !== null && tracing_expressions.reaction === active_reaction) if (signal.trace) signal.trace();
-	else {
-		trace = get_error("traced at");
-		if (trace) {
-			var entry = tracing_expressions.entries.get(signal);
-			if (entry === void 0) {
-				entry = { traces: [] };
-				tracing_expressions.entries.set(signal, entry);
+	if (tracing_mode_flag && !untracking && tracing_expressions !== null && active_reaction !== null && tracing_expressions.reaction === active_reaction) {
+		if (signal.trace) signal.trace();
+		else {
+			trace = get_error("traced at");
+			if (trace) {
+				var entry = tracing_expressions.entries.get(signal);
+				if (entry === void 0) {
+					entry = { traces: [] };
+					tracing_expressions.entries.set(signal, entry);
+				}
+				var last = entry.traces[entry.traces.length - 1];
+				if (trace.stack !== last?.stack) entry.traces.push(trace);
 			}
-			var last = entry.traces[entry.traces.length - 1];
-			if (trace.stack !== last?.stack) entry.traces.push(trace);
 		}
 	}
 	if (is_destroying_effect && old_values.has(signal)) return old_values.get(signal);
@@ -4502,7 +4519,7 @@ function untrack(fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/utils.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/utils.js
 var regex_return_characters = /\r/g;
 /**
 * @param {string} str
@@ -4542,7 +4559,7 @@ function sanitize_location(location) {
 	return location?.replace(/\//g, "/​");
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/elements.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dev/elements.js
 /** @import { SourceLocation } from '#client' */
 /**
 * @param {any} fn
@@ -4592,7 +4609,7 @@ function assign_locations(node, filename, locations) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/events.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/elements/events.js
 /**
 * Used on elements, as a map of event type -> event handler,
 * and on events themselves to track which element handled an event
@@ -4620,6 +4637,7 @@ function delegate(events) {
 	for (var fn of root_event_handles) fn(events);
 }
 var last_propagated_event = null;
+var last_propagated_event_clear_scheduled = false;
 /**
 * @this {EventTarget}
 * @param {Event} event
@@ -4632,6 +4650,13 @@ function handle_event_propagation(event) {
 	var path = event.composedPath?.() || [];
 	var current_target = path[0] || event.target;
 	last_propagated_event = event;
+	if (!last_propagated_event_clear_scheduled) {
+		last_propagated_event_clear_scheduled = true;
+		setTimeout(() => {
+			last_propagated_event_clear_scheduled = false;
+			last_propagated_event = null;
+		});
+	}
 	var path_idx = 0;
 	var handled_at = last_propagated_event === event && event[event_symbol];
 	if (handled_at) {
@@ -4692,7 +4717,7 @@ function handle_event_propagation(event) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/reconciler.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/reconciler.js
 var policy = globalThis?.window?.trustedTypes && /* @__PURE__ */ globalThis.window.trustedTypes.createPolicy("svelte-trusted-html", { 
 /** @param {string} html */
 createHTML: (html) => {
@@ -4711,7 +4736,7 @@ function create_fragment_from_html(html) {
 	return elem.content;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/template.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/template.js
 /** @import { Effect, EffectNodes, TemplateNode } from '#client' */
 /** @import { TemplateStructure } from './types' */
 /**
@@ -4881,7 +4906,7 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
 */
 var mounted_components = /* @__PURE__ */ new WeakMap();
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dev/legacy.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dev/legacy.js
 /** @param {Function & { [FILENAME]: string }} target */
 function check_target(target) {
 	if (target) component_api_invalid_new(target[FILENAME] ?? "a component", target.name);
@@ -4899,7 +4924,7 @@ function legacy_api() {
 	};
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/branches.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/blocks/branches.js
 /** @import { Effect, TemplateNode } from '#client' */
 /**
 * @typedef {{ effect: Effect, fragment: DocumentFragment }} Branch
@@ -5022,15 +5047,17 @@ var BranchManager = class {
 	ensure(key, fn) {
 		var batch = current_batch;
 		var defer = should_defer_append();
-		if (fn && !this.#onscreen.has(key) && !this.#offscreen.has(key)) if (defer) {
-			var fragment = document.createDocumentFragment();
-			var target = create_text();
-			fragment.append(target);
-			this.#offscreen.set(key, {
-				effect: branch(() => fn(target)),
-				fragment
-			});
-		} else this.#onscreen.set(key, branch(() => fn(this.anchor)));
+		if (fn && !this.#onscreen.has(key) && !this.#offscreen.has(key)) {
+			if (defer) {
+				var fragment = document.createDocumentFragment();
+				var target = create_text();
+				fragment.append(target);
+				this.#offscreen.set(key, {
+					effect: branch(() => fn(target)),
+					fragment
+				});
+			} else this.#onscreen.set(key, branch(() => fn(this.anchor)));
+		}
 		this.#batches.set(batch, key);
 		if (defer) {
 			for (const [k, effect] of this.#onscreen) if (k === key) batch.unskip_effect(effect);
@@ -5046,7 +5073,7 @@ var BranchManager = class {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/key.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/blocks/key.js
 /** @import { TemplateNode } from '#client' */
 var NAN = Symbol("NaN");
 /**
@@ -5068,7 +5095,7 @@ function key(node, get_key, render_fn) {
 	});
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/each.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/blocks/each.js
 /** @import { EachItem, EachOutroGroup, EachState, Effect, EffectNodes, MaybeSource, Source, TemplateNode, TransitionManager, Value } from '#client' */
 /** @import { Batch } from '../../reactivity/batch.js'; */
 /**
@@ -5101,7 +5128,7 @@ function pause_effects(state, to_destroy, controlled_anchor) {
 		}, false);
 	}
 	if (remaining === 0) {
-		var fast_path = transitions.length === 0 && controlled_anchor !== null;
+		var fast_path = transitions.length === 0 && controlled_anchor !== null && state.pending.size === 0;
 		if (fast_path) {
 			var anchor = controlled_anchor;
 			var parent_node = anchor.parentNode;
@@ -5182,14 +5209,17 @@ function each(node, flags, get_collection, get_key, render_fn, fallback_fn = nul
 		state.pending.delete(batch);
 		state.fallback = fallback;
 		reconcile(state, array, anchor, flags, get_key);
-		if (fallback !== null) if (array.length === 0) if ((fallback.f & 33554432) === 0) resume_effect(fallback);
-		else {
-			fallback.f ^= EFFECT_OFFSCREEN;
-			move(fallback, null, anchor);
+		if (fallback !== null) {
+			if (array.length === 0) {
+				if ((fallback.f & 33554432) === 0) resume_effect(fallback);
+				else {
+					fallback.f ^= EFFECT_OFFSCREEN;
+					move(fallback, null, anchor);
+				}
+			} else pause_effect(fallback, () => {
+				fallback = null;
+			});
 		}
-		else pause_effect(fallback, () => {
-			fallback = null;
-		});
 	}
 	/**
 	* @param {Batch} batch
@@ -5237,10 +5267,12 @@ function each(node, flags, get_collection, get_key, render_fn, fallback_fn = nul
 				}
 				keys.add(key);
 			}
-			if (length === 0 && fallback_fn && !fallback) if (first_run) fallback = branch(() => fallback_fn(anchor));
-			else {
-				fallback = branch(() => fallback_fn(offscreen_anchor ??= create_text()));
-				fallback.f |= EFFECT_OFFSCREEN;
+			if (length === 0 && fallback_fn && !fallback) {
+				if (first_run) fallback = branch(() => fallback_fn(anchor));
+				else {
+					fallback = branch(() => fallback_fn(offscreen_anchor ??= create_text()));
+					fallback.f |= EFFECT_OFFSCREEN;
+				}
 			}
 			if (length > keys.size) validate_each_keys(array, get_key);
 			if (hydrating && length > 0) set_hydrate_node(skip_nodes());
@@ -5500,7 +5532,7 @@ function validate_each_keys(array, key_fn) {
 	}
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/blocks/html.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/blocks/html.js
 /** @import { Effect, TemplateNode } from '#client' */
 /** @import {} from 'trusted-types' */
 /**
@@ -5571,7 +5603,7 @@ function html(node, get_value, is_controlled = false, svg = false, mathml = fals
 		var wrapper = create_element(svg ? "svg" : mathml ? "math" : "template", svg ? NAMESPACE_SVG : mathml ? NAMESPACE_MATHML : void 0);
 		wrapper.innerHTML = value;
 		/** @type {DocumentFragment | Element} */
-		var node = svg || mathml ? wrapper : 		/** @type {HTMLTemplateElement} */ wrapper.content;
+		var node = svg || mathml ? wrapper : /** @type {HTMLTemplateElement} */ wrapper.content;
 		assign_nodes(/* @__PURE__ */ get_first_child(node), node.lastChild);
 		if (svg || mathml) while (/* @__PURE__ */ get_first_child(node)) anchor.before(/* @__PURE__ */ get_first_child(node));
 		else anchor.before(node);
@@ -5593,7 +5625,7 @@ function clsx$1() {
 	return n;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/shared/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/shared/attributes.js
 /**
 * Small wrapper around clsx to preserve Svelte's (weird) handling of falsy values.
 * TODO Svelte 6 revisit this, and likely turn all falsy values into the empty string (what clsx also does)
@@ -5628,7 +5660,7 @@ function to_class(value, hash, directives) {
 	return classname === "" ? null : classname;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/class.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/elements/class.js
 /**
 * @param {Element} dom
 * @param {boolean | number} is_html
@@ -5642,9 +5674,11 @@ function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
 	var prev = dom[CLASS_CACHE];
 	if (hydrating || prev !== value || prev === void 0) {
 		var next_class_name = to_class(value, hash, next_classes);
-		if (!hydrating || next_class_name !== dom.getAttribute("class")) if (next_class_name == null) dom.removeAttribute("class");
-		else if (is_html) dom.className = next_class_name;
-		else dom.setAttribute("class", next_class_name);
+		if (!hydrating || next_class_name !== dom.getAttribute("class")) {
+			if (next_class_name == null) dom.removeAttribute("class");
+			else if (is_html) dom.className = next_class_name;
+			else dom.setAttribute("class", next_class_name);
+		}
 		/** @type {any} */ dom[CLASS_CACHE] = value;
 	} else if (next_classes && prev_classes !== next_classes) for (var key in next_classes) {
 		var is_present = !!next_classes[key];
@@ -5653,7 +5687,7 @@ function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
 	return next_classes;
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/client/dom/elements/attributes.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/client/dom/elements/attributes.js
 /** @import { Blocker, Effect } from '#client' */
 var IS_CUSTOM_ELEMENT = Symbol("is custom element");
 var IS_HTML = Symbol("is html");
@@ -5769,7 +5803,7 @@ if (typeof HTMLElement === "function");
 	throw_rune_error("$bindable");
 }
 //#endregion
-//#region node_modules/.pnpm/svelte@5.56.8/node_modules/svelte/src/internal/disclose-version.js
+//#region node_modules/.pnpm/svelte@5.56.10/node_modules/svelte/src/internal/disclose-version.js
 if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 //#endregion
 //#region examples/svelte-basic/src/assets/svelte.svg

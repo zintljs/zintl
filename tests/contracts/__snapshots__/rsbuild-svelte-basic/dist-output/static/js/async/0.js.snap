@@ -1,6 +1,6 @@
 "use strict";
 (self["rspackChunkrsbuild_svelte_basic"] = self["rspackChunkrsbuild_svelte_basic"] || []).push([[0], {
-114(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+115(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 const catalog = {
     "b_b071a5cc9dda": {
