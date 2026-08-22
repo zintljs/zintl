@@ -106,6 +106,9 @@ var MyElement = class MyElement extends LitElement {
 	constructor(..._args) {
 		super(..._args);
 		this.count = 0;
+		this._onClick = () => {
+			this.count++;
+		};
 	}
 	render() {
 		return html`
@@ -232,9 +235,6 @@ var MyElement = class MyElement extends LitElement {
       <div class="ticks"></div>
       <section id="spacer"></section>
     `;
-	}
-	_onClick() {
-		this.count++;
 	}
 	static {
 		this.styles = css`

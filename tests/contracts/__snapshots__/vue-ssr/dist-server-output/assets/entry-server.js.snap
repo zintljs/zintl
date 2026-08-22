@@ -646,20 +646,21 @@ function injectIntoStream(stream, store) {
 				let chunkText = "";
 				if (value instanceof Uint8Array) chunkText = decoder.decode(value, { stream: true });
 				else if (typeof value === "string") chunkText = value;
-				if (!injected) if (chunkText.includes("</body>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
-					chunkText = chunkText.replace("</body>", `${script}</body>`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
-				} else if (chunkText.includes("</html>")) {
-					const catalogs = store.catalogs;
-					const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
-					chunkText = chunkText.replace("</html>", `${script}</html>`);
-					injected = true;
-					controller.enqueue(encoder.encode(chunkText));
+				if (!injected) {
+					if (chunkText.includes("</body>")) {
+						const catalogs = store.catalogs;
+						const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+						chunkText = chunkText.replace("</body>", `${script}</body>`);
+						injected = true;
+						controller.enqueue(encoder.encode(chunkText));
+					} else if (chunkText.includes("</html>")) {
+						const catalogs = store.catalogs;
+						const script = Object.keys(catalogs).length > 0 ? `<script id="zintl-baked-catalogs">window.__zintl_baked_catalogs = ${serializeValue(catalogs)};window.__zintl_locales = ${JSON.stringify(store.locales)};<\/script>` : "";
+						chunkText = chunkText.replace("</html>", `${script}</html>`);
+						injected = true;
+						controller.enqueue(encoder.encode(chunkText));
+					} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
 				} else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
-				else controller.enqueue(value instanceof Uint8Array ? value : encoder.encode(chunkText));
 			} catch (err) {
 				controller.error(err);
 			}
@@ -809,45 +810,47 @@ function _t(key, params = {}, options) {
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
 	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader)
+	if (message === void 0) {
+		if (mgr) {
+			if (typeof window === "undefined") {
+				if (mgr.loader) try {
+					const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+					if (result && typeof result.then !== "function") {
+						instance.addCatalogs({ [locale]: result });
+						const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+						message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+					} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+				} catch {}
+			} else if (mgr.loader)
  /**
-		* Trigger the load now, then re-read — the same shape the server
-		* branch above already uses.
-		*
-		* Deferring into a microtask meant a *synchronous* loader could not
-		* satisfy this call, so the first render tick after a hot update
-		* registered a new loader always returned "" even though the strings
-		* were available on that very tick. `loadLazyBoundary` handles the
-		* async case internally, so nothing is lost by calling it inline.
-		*/
-		try {
-			/**
-			* One attempt per boundary between catalog changes.
+			* Trigger the load now, then re-read — the same shape the server
+			* branch above already uses.
 			*
-			* Re-reading immediately is what lets a synchronous loader satisfy
-			* the first render tick, and that is worth keeping. Re-*triggering*
-			* on every render is not: when the key is genuinely absent the load
-			* can never satisfy it, and each attempt announces a change that
-			* renders again. See `I18nStore.hydrationAttempts` — with a
-			* reactive framework subscribed this closes into a loop measured at
-			* six figures of console output.
+			* Deferring into a microtask meant a *synchronous* loader could not
+			* satisfy this call, so the first render tick after a hot update
+			* registered a new loader always returned "" even though the strings
+			* were available on that very tick. `loadLazyBoundary` handles the
+			* async case internally, so nothing is lost by calling it inline.
 			*/
-			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
-			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
-		} catch {}
-		if (message === void 0) return ``;
-	} else return ``;
+			try {
+				/**
+				* One attempt per boundary between catalog changes.
+				*
+				* Re-reading immediately is what lets a synchronous loader satisfy
+				* the first render tick, and that is worth keeping. Re-*triggering*
+				* on every render is not: when the key is genuinely absent the load
+				* can never satisfy it, and each attempt announces a change that
+				* renders again. See `I18nStore.hydrationAttempts` — with a
+				* reactive framework subscribed this closes into a loop measured at
+				* six figures of console output.
+				*/
+				if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+				const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+				if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+			} catch {}
+			if (message === void 0) return ``;
+		} else return ``;
+	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
 	const { _mgr, _bId, _tags, ...restParams } = effectiveParams;

@@ -938,50 +938,52 @@ function _t(key, params = {}, options) {
 	const targetBId = effectiveParams._bId || boundaryId;
 	const boundaryCatalog = targetBId ? catalogs[locale]?.[targetBId] : void 0;
 	let message = boundaryCatalog ? boundaryCatalog[key] : void 0;
-	if (message === void 0) if (mgr) {
-		if (typeof window === "undefined") {
-			if (mgr.loader) try {
-				const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
-				if (result && typeof result.then !== "function") {
-					instance.addCatalogs({ [locale]: result });
-					const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-					message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
-				} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
-			} catch {}
-		} else if (mgr.loader)
+	if (message === void 0) {
+		if (mgr) {
+			if (typeof window === "undefined") {
+				if (mgr.loader) try {
+					const result = instance.claimHydrationAttempt(locale, targetBId || boundaryId, key) ? mgr.loader(locale) : void 0;
+					if (result && typeof result.then !== "function") {
+						instance.addCatalogs({ [locale]: result });
+						const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+						message = boundaryCatalogAfter ? boundaryCatalogAfter[key] : void 0;
+					} else if (result && typeof result.then === "function") instance.loadLazyBoundary(mgr.id, mgr.loader);
+				} catch {}
+			} else if (mgr.loader)
  /**
-		* Trigger the load now, then re-read — the same shape the server
-		* branch above already uses.
-		*
-		* Deferring into a microtask meant a *synchronous* loader could not
-		* satisfy this call, so the first render tick after a hot update
-		* registered a new loader always returned "" even though the strings
-		* were available on that very tick. `loadLazyBoundary` handles the
-		* async case internally, so nothing is lost by calling it inline.
-		*/
-		try {
-			/**
-			* One attempt per boundary between catalog changes.
+			* Trigger the load now, then re-read — the same shape the server
+			* branch above already uses.
 			*
-			* Re-reading immediately is what lets a synchronous loader satisfy
-			* the first render tick, and that is worth keeping. Re-*triggering*
-			* on every render is not: when the key is genuinely absent the load
-			* can never satisfy it, and each attempt announces a change that
-			* renders again. See `I18nStore.hydrationAttempts` — with a
-			* reactive framework subscribed this closes into a loop measured at
-			* six figures of console output.
+			* Deferring into a microtask meant a *synchronous* loader could not
+			* satisfy this call, so the first render tick after a hot update
+			* registered a new loader always returned "" even though the strings
+			* were available on that very tick. `loadLazyBoundary` handles the
+			* async case internally, so nothing is lost by calling it inline.
 			*/
-			if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
-			const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
-			if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
-		} catch {}
-		if (message === void 0) {
+			try {
+				/**
+				* One attempt per boundary between catalog changes.
+				*
+				* Re-reading immediately is what lets a synchronous loader satisfy
+				* the first render tick, and that is worth keeping. Re-*triggering*
+				* on every render is not: when the key is genuinely absent the load
+				* can never satisfy it, and each attempt announces a change that
+				* renders again. See `I18nStore.hydrationAttempts` — with a
+				* reactive framework subscribed this closes into a loop measured at
+				* six figures of console output.
+				*/
+				if (instance.claimHydrationAttempt(locale, targetBId || boundaryId, key)) instance.loadLazyBoundary(mgr.id, mgr.loader);
+				const boundaryCatalogAfter = targetBId ? instance.catalogs[locale]?.[targetBId] : void 0;
+				if (boundaryCatalogAfter) message = boundaryCatalogAfter[key];
+			} catch {}
+			if (message === void 0) {
+				if (false) {}
+				return ``;
+			}
+		} else {
 			if (false) {}
 			return ``;
 		}
-	} else {
-		if (false) {}
-		return ``;
 	}
 	if (typeof message === "function") return message(params);
 	if (typeof message !== "string") return "";
@@ -1043,11 +1045,11 @@ __webpack_require__.r(__webpack_exports__);
     },
   };
                 case "ar":
-          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 114)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 0).then(__webpack_require__.bind(__webpack_require__, 115)).then(m => m.default);
         case "es":
-          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 115)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(__webpack_require__, 116)).then(m => m.default);
         case "zh":
-          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 116)).then(m => m.default);
+          return __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(__webpack_require__, 117)).then(m => m.default);
         default: return {};
       }
     }, manifest: [] });
@@ -1080,15 +1082,15 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _internal_client_runtime_js__rspack_import_0 = __webpack_require__(9);
 /* import */ var _internal_shared_utils_js__rspack_import_1 = __webpack_require__(13);
-/* import */ var _internal_client_index_js__rspack_import_2 = __webpack_require__(48);
+/* import */ var _internal_client_index_js__rspack_import_2 = __webpack_require__(49);
 /* import */ var _internal_client_errors_js__rspack_import_3 = __webpack_require__(16);
 /* import */ var _internal_flags_index_js__rspack_import_4 = __webpack_require__(26);
 /* import */ var _internal_client_context_js__rspack_import_5 = __webpack_require__(31);
 /* import */ var esm_env__rspack_import_6 = __webpack_require__(10);
-/* import */ var _internal_client_reactivity_batch_js__rspack_import_7 = __webpack_require__(32);
-/* import */ var _internal_client_hydratable_js__rspack_import_8 = __webpack_require__(108);
-/* import */ var _internal_client_render_js__rspack_import_9 = __webpack_require__(55);
-/* import */ var _internal_client_dom_blocks_snippet_js__rspack_import_10 = __webpack_require__(72);
+/* import */ var _internal_client_reactivity_batch_js__rspack_import_7 = __webpack_require__(33);
+/* import */ var _internal_client_hydratable_js__rspack_import_8 = __webpack_require__(109);
+/* import */ var _internal_client_render_js__rspack_import_9 = __webpack_require__(56);
+/* import */ var _internal_client_dom_blocks_snippet_js__rspack_import_10 = __webpack_require__(73);
 /** @import { ComponentContext, ComponentContextLegacy } from '#client' */ /** @import { EventDispatcher } from './index.js' */ /** @import { NotFunction } from './internal/types.js' */ 
 
 
@@ -1350,17 +1352,17 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_2 = __webpack_require__(14);
 /* import */ var _constants_js__rspack_import_3 = __webpack_require__(15);
 /* import */ var _reactivity_sources_js__rspack_import_4 = __webpack_require__(24);
-/* import */ var _reactivity_deriveds_js__rspack_import_5 = __webpack_require__(41);
+/* import */ var _reactivity_deriveds_js__rspack_import_5 = __webpack_require__(42);
 /* import */ var _flags_index_js__rspack_import_6 = __webpack_require__(26);
 /* import */ var _dev_tracing_js__rspack_import_7 = __webpack_require__(27);
 /* import */ var _shared_dev_js__rspack_import_8 = __webpack_require__(30);
 /* import */ var _context_js__rspack_import_9 = __webpack_require__(31);
-/* import */ var _reactivity_batch_js__rspack_import_10 = __webpack_require__(32);
-/* import */ var _error_handling_js__rspack_import_11 = __webpack_require__(34);
+/* import */ var _reactivity_batch_js__rspack_import_10 = __webpack_require__(33);
+/* import */ var _error_handling_js__rspack_import_11 = __webpack_require__(35);
 /* import */ var _constants_js__rspack_import_12 = __webpack_require__(20);
-/* import */ var _legacy_js__rspack_import_13 = __webpack_require__(47);
-/* import */ var _dom_elements_bindings_shared_js__rspack_import_14 = __webpack_require__(42);
-/* import */ var _reactivity_status_js__rspack_import_15 = __webpack_require__(36);
+/* import */ var _legacy_js__rspack_import_13 = __webpack_require__(48);
+/* import */ var _dom_elements_bindings_shared_js__rspack_import_14 = __webpack_require__(43);
+/* import */ var _reactivity_status_js__rspack_import_15 = __webpack_require__(37);
 /* import */ var _warnings_js__rspack_import_16 = __webpack_require__(21);
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */ 
 
@@ -2171,10 +2173,10 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _shared_utils_js__rspack_import_4 = __webpack_require__(13);
 /* import */ var _dom_operations_js__rspack_import_5 = __webpack_require__(18);
 /* import */ var _context_js__rspack_import_6 = __webpack_require__(31);
-/* import */ var _batch_js__rspack_import_7 = __webpack_require__(32);
-/* import */ var _async_js__rspack_import_8 = __webpack_require__(44);
-/* import */ var _dom_elements_bindings_shared_js__rspack_import_9 = __webpack_require__(42);
-/* import */ var _status_js__rspack_import_10 = __webpack_require__(36);
+/* import */ var _batch_js__rspack_import_7 = __webpack_require__(33);
+/* import */ var _async_js__rspack_import_8 = __webpack_require__(45);
+/* import */ var _dom_elements_bindings_shared_js__rspack_import_9 = __webpack_require__(43);
+/* import */ var _status_js__rspack_import_10 = __webpack_require__(37);
 /** @import { Blocker, ComponentContext, ComponentContextLegacy, Derived, Effect, TemplateNode, TransitionManager } from '#client' */ 
 
 
@@ -3365,11 +3367,11 @@ __webpack_require__.d(__webpack_exports__, {
     }
 }
 /**
- * Context was not set in a parent component
+ * Context was not set in the current component or any of its ancestors
  * @returns {never}
  */ function missing_context() {
     if (esm_env__rspack_import_0.DEV) {
-        const error = new Error(`missing_context\nContext was not set in a parent component\nhttps://svelte.dev/e/missing_context`);
+        const error = new Error(`missing_context\nContext was not set in the current component or any of its ancestors\nhttps://svelte.dev/e/missing_context`);
         error.name = 'Svelte error';
         throw error;
     } else {
@@ -3444,7 +3446,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _runtime_js__rspack_import_4 = __webpack_require__(9);
 /* import */ var _flags_index_js__rspack_import_5 = __webpack_require__(26);
 /* import */ var _client_constants__rspack_import_6 = __webpack_require__(15);
-/* import */ var _reactivity_batch_js__rspack_import_7 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_7 = __webpack_require__(33);
 /* import */ var _constants_js__rspack_import_8 = __webpack_require__(20);
 /** @import { Effect, TemplateNode } from '#client' */ 
 
@@ -4615,10 +4617,10 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _dev_tracing_js__rspack_import_6 = __webpack_require__(27);
 /* import */ var _shared_dev_js__rspack_import_7 = __webpack_require__(30);
 /* import */ var _context_js__rspack_import_8 = __webpack_require__(31);
-/* import */ var _batch_js__rspack_import_9 = __webpack_require__(32);
+/* import */ var _batch_js__rspack_import_9 = __webpack_require__(33);
 /* import */ var _proxy_js__rspack_import_10 = __webpack_require__(23);
-/* import */ var _deriveds_js__rspack_import_11 = __webpack_require__(41);
-/* import */ var _status_js__rspack_import_12 = __webpack_require__(36);
+/* import */ var _deriveds_js__rspack_import_11 = __webpack_require__(42);
+/* import */ var _status_js__rspack_import_12 = __webpack_require__(37);
 /** @import { Derived, Effect, Source, Value } from '#client' */ 
 
 
@@ -4729,7 +4731,13 @@ function source(v, stack) {
  */ function internal_set(source, value) {
     let updated_during_traversal = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
     if (!source.equals(value)) {
-        old_values.set(source, _runtime_js__rspack_import_1.is_destroying_effect ? value : source.v);
+        if (_runtime_js__rspack_import_1.is_destroying_effect) {
+            old_values.set(source, value);
+        } else if (!old_values.has(source)) {
+            // only record the value from before the first write in this flush, otherwise a
+            // teardown would see the value from before whichever write happened to be last
+            old_values.set(source, source.v);
+        }
         var batch = _batch_js__rspack_import_9.Batch.ensure();
         batch.capture(source, value);
         if (esm_env__rspack_import_0.DEV) {
@@ -5343,7 +5351,9 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _flags_index_js__rspack_import_4 = __webpack_require__(26);
 /* import */ var _constants_js__rspack_import_5 = __webpack_require__(20);
 /* import */ var _constants_js__rspack_import_6 = __webpack_require__(15);
+/* import */ var _shared_context_js__rspack_import_7 = __webpack_require__(32);
 /** @import { ComponentContext, DevStackEntry, Effect } from '#client' */ 
+
 
 
 
@@ -5399,25 +5409,19 @@ __webpack_require__.d(__webpack_exports__, {
 /**
  * Returns a `[get, set]` pair of functions for working with context in a type-safe way.
  *
- * `get` will throw an error if no parent component called `set`.
+ * `get` will throw an error if `set` has not yet been called in the current component or any of
+ * its ancestors.
  *
  * @template T
  * @returns {[() => T, (context: T) => T]}
  * @since 5.40.0
  */ function createContext() {
-    const key = {};
-    return [
-        ()=>{
-            if (!hasContext(key)) {
-                _errors_js__rspack_import_1.missing_context();
-            }
-            return getContext(key);
-        },
-        (context)=>setContext(key, context)
-    ];
+    return /** @type {[() => T, (context: T) => T]} */ (0,_shared_context_js__rspack_import_7.create_context)(getContext, setContext, hasContext);
 }
 /**
- * Retrieves the context that belongs to the closest parent component with the specified `key`.
+ * Retrieves the context set with the specified `key` in the current component or any of its
+ * ancestors. If multiple components set the same key, the value from the closest one is returned.
+ * A `setContext` call in the current component is only visible to `getContext` calls that run after it.
  * Must be called during component initialisation.
  *
  * [`createContext`](https://svelte.dev/docs/svelte/svelte#createContext) is a type-safe alternative.
@@ -5426,14 +5430,14 @@ __webpack_require__.d(__webpack_exports__, {
  * @param {any} key
  * @returns {T}
  */ function getContext(key) {
-    const context_map = get_or_init_context_map('getContext');
+    const context_map = (0,_shared_context_js__rspack_import_7.get_or_init_context_map)(component_context, 'getContext');
     const result = /** @type {T} */ context_map.get(key);
     return result;
 }
 /**
  * Associates an arbitrary `context` object with the current component and the specified `key`
- * and returns that object. The context is then available to children of the component
- * (including slotted content) with `getContext`.
+ * and returns that object. The context is then available to the component itself and all of its
+ * descendants (including slotted content) with `getContext`.
  *
  * Like lifecycle functions, this must be called during component initialisation.
  *
@@ -5444,7 +5448,7 @@ __webpack_require__.d(__webpack_exports__, {
  * @param {T} context
  * @returns {T}
  */ function setContext(key, context) {
-    const context_map = get_or_init_context_map('setContext');
+    const context_map = (0,_shared_context_js__rspack_import_7.get_or_init_context_map)(component_context, 'setContext');
     if (_flags_index_js__rspack_import_4.async_mode_flag) {
         var flags = /** @type {Effect} */ _runtime_js__rspack_import_2.active_effect.f;
         var valid = !_runtime_js__rspack_import_2.active_reaction && (flags & _constants_js__rspack_import_6.BRANCH_EFFECT) !== 0 && // pop() runs synchronously, so this indicates we're setting context after an await
@@ -5457,24 +5461,24 @@ __webpack_require__.d(__webpack_exports__, {
     return context;
 }
 /**
- * Checks whether a given `key` has been set in the context of a parent component.
- * Must be called during component initialisation.
+ * Checks whether a given `key` has been set in the context of the current component or any of
+ * its ancestors. Must be called during component initialisation.
  *
  * @param {any} key
  * @returns {boolean}
  */ function hasContext(key) {
-    const context_map = get_or_init_context_map('hasContext');
+    const context_map = (0,_shared_context_js__rspack_import_7.get_or_init_context_map)(component_context, 'hasContext');
     return context_map.has(key);
 }
 /**
- * Retrieves the whole context map that belongs to the closest parent component.
- * Must be called during component initialisation. Useful, for example, if you
- * programmatically create a component and want to pass the existing context to it.
+ * Retrieves the whole context map that belongs to the current component, including entries
+ * inherited from its ancestors. Must be called during component initialisation. Useful, for
+ * example, if you programmatically create a component and want to pass the existing context to it.
  *
  * @template {Map<any, any>} [T=Map<any, any>]
  * @returns {T}
  */ function getAllContexts() {
-    const context_map = get_or_init_context_map('getAllContexts');
+    const context_map = (0,_shared_context_js__rspack_import_7.get_or_init_context_map)(component_context, 'getAllContexts');
     return /** @type {T} */ context_map;
 }
 /**
@@ -5530,33 +5534,61 @@ __webpack_require__.d(__webpack_exports__, {
 /** @returns {boolean} */ function is_runes() {
     return !_flags_index_js__rspack_import_4.legacy_mode_flag || component_context !== null && component_context.l === null;
 }
-/**
- * @param {string} name
- * @returns {Map<unknown, unknown>}
- */ function get_or_init_context_map(name) {
-    if (component_context === null) {
-        _errors_js__rspack_import_1.lifecycle_outside_component(name);
-    }
-    return component_context.c ??= new Map(get_parent_context(component_context) || undefined);
-}
-/**
- * @param {ComponentContext} component_context
- * @returns {Map<unknown, unknown> | null}
- */ function get_parent_context(component_context) {
-    let parent = component_context.p;
-    while(parent !== null){
-        const context_map = parent.c;
-        if (context_map !== null) {
-            return context_map;
-        }
-        parent = parent.p;
-    }
-    return null;
-}
 
 
 },
 32(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+__webpack_require__.r(__webpack_exports__);
+__webpack_require__.d(__webpack_exports__, {
+  create_context: () => (create_context),
+  get_or_init_context_map: () => (get_or_init_context_map)
+});
+/* import */ var _errors_js__rspack_import_0 = __webpack_require__(17);
+
+/**
+ * @template T
+ * @param {(key: object) => T} get_context
+ * @param {(key: object, context: T) => T} set_context
+ * @param {(key: object) => boolean} has_context
+ * @returns {[() => T, (context: T) => T]}
+ */ function create_context(get_context, set_context, has_context) {
+    const key = {};
+    return [
+        ()=>{
+            if (!has_context(key)) {
+                (0,_errors_js__rspack_import_0.missing_context)();
+            }
+            return get_context(key);
+        },
+        (context)=>set_context(key, context)
+    ];
+}
+/**
+ * @typedef {{ p: Context | null, c: Map<unknown, unknown> | null }} Context
+ */ /**
+ * @param {Context} context
+ * @returns {Map<unknown, unknown> | null}
+ */ function get_parent_context(context) {
+    let parent = context.p;
+    while(parent !== null && parent.c === null){
+        parent = parent.p;
+    }
+    return parent?.c ?? null;
+}
+/**
+ * @param {Context | null} context
+ * @param {string} name
+ * @returns {Map<unknown, unknown>}
+ */ function get_or_init_context_map(context, name) {
+    if (context === null) {
+        (0,_errors_js__rspack_import_0.lifecycle_outside_component)(name);
+    }
+    return context.c ??= new Map(get_parent_context(context) || undefined);
+}
+
+
+},
+33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   Batch: () => (Batch),
@@ -5578,18 +5610,18 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _shared_utils_js__rspack_import_2 = __webpack_require__(13);
 /* import */ var _runtime_js__rspack_import_3 = __webpack_require__(9);
 /* import */ var _errors_js__rspack_import_4 = __webpack_require__(16);
-/* import */ var _dom_task_js__rspack_import_5 = __webpack_require__(33);
+/* import */ var _dom_task_js__rspack_import_5 = __webpack_require__(34);
 /* import */ var esm_env__rspack_import_6 = __webpack_require__(10);
-/* import */ var _error_handling_js__rspack_import_7 = __webpack_require__(34);
+/* import */ var _error_handling_js__rspack_import_7 = __webpack_require__(35);
 /* import */ var _sources_js__rspack_import_8 = __webpack_require__(24);
 /* import */ var _effects_js__rspack_import_9 = __webpack_require__(14);
-/* import */ var _utils_js__rspack_import_10 = __webpack_require__(35);
+/* import */ var _utils_js__rspack_import_10 = __webpack_require__(36);
 /* import */ var _constants_js__rspack_import_11 = __webpack_require__(20);
-/* import */ var _status_js__rspack_import_12 = __webpack_require__(36);
-/* import */ var _store_js__rspack_import_13 = __webpack_require__(37);
+/* import */ var _status_js__rspack_import_12 = __webpack_require__(37);
+/* import */ var _store_js__rspack_import_13 = __webpack_require__(38);
 /* import */ var _shared_dev_js__rspack_import_14 = __webpack_require__(30);
-/* import */ var _dev_debug_js__rspack_import_15 = __webpack_require__(40);
-/* import */ var _deriveds_js__rspack_import_16 = __webpack_require__(41);
+/* import */ var _dev_debug_js__rspack_import_15 = __webpack_require__(41);
+/* import */ var _deriveds_js__rspack_import_16 = __webpack_require__(42);
 /** @import { Fork } from 'svelte' */ /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */ 
 
 
@@ -5884,6 +5916,7 @@ class Batch {
             }
         }
         if (next_batch !== null) {
+            _sources_js__rspack_import_8.old_values.clear();
             next_batch.#process();
         }
     }
@@ -6708,14 +6741,14 @@ function eager_flush() {
 
 
 },
-33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+34(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   flush_tasks: () => (flush_tasks),
   queue_micro_task: () => (queue_micro_task)
 });
 /* import */ var _shared_utils_js__rspack_import_0 = __webpack_require__(13);
-/* import */ var _reactivity_batch_js__rspack_import_1 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_1 = __webpack_require__(33);
 
 
 /** @type {Array<() => void>} */ let micro_tasks = [];
@@ -6753,7 +6786,7 @@ function run_micro_tasks() {
 
 
 },
-34(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+35(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   handle_error: () => (handle_error),
@@ -6860,13 +6893,13 @@ const adjustments = new WeakMap();
 
 
 },
-35(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+36(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   defer_effect: () => (defer_effect)
 });
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
-/* import */ var _status_js__rspack_import_1 = __webpack_require__(36);
+/* import */ var _status_js__rspack_import_1 = __webpack_require__(37);
 /** @import { Derived, Effect, Value } from '#client' */ 
 
 /**
@@ -6900,7 +6933,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-36(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+37(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   set_signal_status: () => (set_signal_status),
@@ -6929,7 +6962,7 @@ const STATUS_MASK = ~(_client_constants__rspack_import_0.DIRTY | _client_constan
 
 
 },
-37(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+38(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   capture_store_binding: () => (capture_store_binding),
@@ -6944,8 +6977,8 @@ __webpack_require__.d(__webpack_exports__, {
   update_pre_store: () => (update_pre_store),
   update_store: () => (update_store)
 });
-/* import */ var _store_utils_js__rspack_import_0 = __webpack_require__(38);
-/* import */ var _store_shared_index_js__rspack_import_1 = __webpack_require__(39);
+/* import */ var _store_utils_js__rspack_import_0 = __webpack_require__(39);
+/* import */ var _store_shared_index_js__rspack_import_1 = __webpack_require__(40);
 /* import */ var _shared_utils_js__rspack_import_2 = __webpack_require__(13);
 /* import */ var _runtime_js__rspack_import_3 = __webpack_require__(9);
 /* import */ var _effects_js__rspack_import_4 = __webpack_require__(14);
@@ -7142,7 +7175,7 @@ let IS_UNMOUNTED = Symbol('unmounted');
 
 
 },
-38(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+39(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   subscribe_to_store: () => (subscribe_to_store)
@@ -7176,7 +7209,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-39(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+40(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   derived: () => (derived),
@@ -7187,7 +7220,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _internal_shared_utils_js__rspack_import_0 = __webpack_require__(13);
 /* import */ var _internal_client_reactivity_equality_js__rspack_import_1 = __webpack_require__(25);
-/* import */ var _utils_js__rspack_import_2 = __webpack_require__(38);
+/* import */ var _utils_js__rspack_import_2 = __webpack_require__(39);
 /** @import { Readable, StartStopNotifier, Subscriber, Unsubscriber, Updater, Writable } from '../public.js' */ /** @import { Stores, StoresValues, SubscribeInvalidateTuple } from '../private.js' */ 
 
 
@@ -7377,7 +7410,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-40(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+41(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   log_effect_tree: () => (log_effect_tree),
@@ -7761,7 +7794,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-41(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+42(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   OBSOLETE: () => (OBSOLETE),
@@ -7781,7 +7814,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var esm_env__rspack_import_0 = __webpack_require__(10);
 /* import */ var _client_constants__rspack_import_1 = __webpack_require__(15);
 /* import */ var _runtime_js__rspack_import_2 = __webpack_require__(9);
-/* import */ var _dom_elements_bindings_shared_js__rspack_import_3 = __webpack_require__(42);
+/* import */ var _dom_elements_bindings_shared_js__rspack_import_3 = __webpack_require__(43);
 /* import */ var _equality_js__rspack_import_4 = __webpack_require__(25);
 /* import */ var _errors_js__rspack_import_5 = __webpack_require__(16);
 /* import */ var _warnings_js__rspack_import_6 = __webpack_require__(21);
@@ -7791,10 +7824,10 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _flags_index_js__rspack_import_10 = __webpack_require__(26);
 /* import */ var _context_js__rspack_import_11 = __webpack_require__(31);
 /* import */ var _constants_js__rspack_import_12 = __webpack_require__(20);
-/* import */ var _batch_js__rspack_import_13 = __webpack_require__(32);
-/* import */ var _async_js__rspack_import_14 = __webpack_require__(44);
+/* import */ var _batch_js__rspack_import_13 = __webpack_require__(33);
+/* import */ var _async_js__rspack_import_14 = __webpack_require__(45);
 /* import */ var _shared_utils_js__rspack_import_15 = __webpack_require__(13);
-/* import */ var _status_js__rspack_import_16 = __webpack_require__(36);
+/* import */ var _status_js__rspack_import_16 = __webpack_require__(37);
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */ /** @import { Batch } from './batch.js'; */ /** @import { Boundary } from '../dom/blocks/boundary.js'; */ 
 
 
@@ -8157,7 +8190,7 @@ const OBSOLETE = Symbol('obsolete');
 
 
 },
-42(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+43(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   listen: () => (listen),
@@ -8167,7 +8200,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
 /* import */ var _runtime_js__rspack_import_1 = __webpack_require__(9);
 /* import */ var _constants_js__rspack_import_2 = __webpack_require__(15);
-/* import */ var _misc_js__rspack_import_3 = __webpack_require__(43);
+/* import */ var _misc_js__rspack_import_3 = __webpack_require__(44);
 
 
 
@@ -8233,7 +8266,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-43(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+44(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   add_form_reset_listener: () => (add_form_reset_listener),
@@ -8242,7 +8275,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _hydration_js__rspack_import_0 = __webpack_require__(19);
 /* import */ var _operations_js__rspack_import_1 = __webpack_require__(18);
-/* import */ var _task_js__rspack_import_2 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_2 = __webpack_require__(34);
 /* import */ var _constants_js__rspack_import_3 = __webpack_require__(15);
 
 
@@ -8296,7 +8329,7 @@ function add_form_reset_listener() {
 
 
 },
-44(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+45(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   capture: () => (capture),
@@ -8313,13 +8346,13 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
 /* import */ var esm_env__rspack_import_1 = __webpack_require__(10);
 /* import */ var _context_js__rspack_import_2 = __webpack_require__(31);
-/* import */ var _dom_blocks_boundary_js__rspack_import_3 = __webpack_require__(45);
-/* import */ var _error_handling_js__rspack_import_4 = __webpack_require__(34);
+/* import */ var _dom_blocks_boundary_js__rspack_import_3 = __webpack_require__(46);
+/* import */ var _error_handling_js__rspack_import_4 = __webpack_require__(35);
 /* import */ var _runtime_js__rspack_import_5 = __webpack_require__(9);
-/* import */ var _batch_js__rspack_import_6 = __webpack_require__(32);
-/* import */ var _deriveds_js__rspack_import_7 = __webpack_require__(41);
+/* import */ var _batch_js__rspack_import_6 = __webpack_require__(33);
+/* import */ var _deriveds_js__rspack_import_7 = __webpack_require__(42);
 /* import */ var _effects_js__rspack_import_8 = __webpack_require__(14);
-/* import */ var _dom_task_js__rspack_import_9 = __webpack_require__(33);
+/* import */ var _dom_task_js__rspack_import_9 = __webpack_require__(34);
 /** @import { Blocker, Effect, Source, Value } from '#client' */ 
 
 
@@ -8616,7 +8649,7 @@ function unset_context() {
 
 
 },
-45(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+46(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   Boundary: () => (Boundary),
@@ -8626,20 +8659,20 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(20);
 /* import */ var _context_js__rspack_import_2 = __webpack_require__(31);
-/* import */ var _error_handling_js__rspack_import_3 = __webpack_require__(34);
+/* import */ var _error_handling_js__rspack_import_3 = __webpack_require__(35);
 /* import */ var _reactivity_effects_js__rspack_import_4 = __webpack_require__(14);
 /* import */ var _runtime_js__rspack_import_5 = __webpack_require__(9);
 /* import */ var _hydration_js__rspack_import_6 = __webpack_require__(19);
-/* import */ var _task_js__rspack_import_7 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_7 = __webpack_require__(34);
 /* import */ var _errors_js__rspack_import_8 = __webpack_require__(16);
 /* import */ var _warnings_js__rspack_import_9 = __webpack_require__(21);
 /* import */ var esm_env__rspack_import_10 = __webpack_require__(10);
-/* import */ var _reactivity_batch_js__rspack_import_11 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_11 = __webpack_require__(33);
 /* import */ var _reactivity_sources_js__rspack_import_12 = __webpack_require__(24);
 /* import */ var _dev_tracing_js__rspack_import_13 = __webpack_require__(27);
-/* import */ var _reactivity_create_subscriber_js__rspack_import_14 = __webpack_require__(46);
+/* import */ var _reactivity_create_subscriber_js__rspack_import_14 = __webpack_require__(47);
 /* import */ var _operations_js__rspack_import_15 = __webpack_require__(18);
-/* import */ var _reactivity_utils_js__rspack_import_16 = __webpack_require__(35);
+/* import */ var _reactivity_utils_js__rspack_import_16 = __webpack_require__(36);
 /** @import { Effect, Source, TemplateNode, } from '#client' */ 
 
 
@@ -9038,7 +9071,7 @@ function pending() {
 
 
 },
-46(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+47(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   createSubscriber: () => (createSubscriber)
@@ -9048,7 +9081,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _internal_client_reactivity_sources_js__rspack_import_2 = __webpack_require__(24);
 /* import */ var _internal_client_dev_tracing_js__rspack_import_3 = __webpack_require__(27);
 /* import */ var esm_env__rspack_import_4 = __webpack_require__(10);
-/* import */ var _internal_client_dom_task_js__rspack_import_5 = __webpack_require__(33);
+/* import */ var _internal_client_dom_task_js__rspack_import_5 = __webpack_require__(34);
 
 
 
@@ -9138,7 +9171,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-47(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+48(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   captured_signals: () => (captured_signals),
@@ -9184,7 +9217,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-48(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+49(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   CLASS: () => (/* reexport safe */ _dom_elements_attributes_js__rspack_import_27.CLASS),
@@ -9381,77 +9414,77 @@ __webpack_require__.d(__webpack_exports__, {
   with_script: () => (/* reexport safe */ _dom_template_js__rspack_import_48.with_script),
   wrap_snippet: () => (/* reexport safe */ _dom_blocks_snippet_js__rspack_import_20.wrap_snippet)
 });
-/* import */ var _attachments_index_js__rspack_import_0 = __webpack_require__(49);
+/* import */ var _attachments_index_js__rspack_import_0 = __webpack_require__(50);
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(20);
 /* import */ var _context_js__rspack_import_2 = __webpack_require__(31);
-/* import */ var _dev_assign_js__rspack_import_3 = __webpack_require__(50);
-/* import */ var _dev_css_js__rspack_import_4 = __webpack_require__(52);
-/* import */ var _dev_elements_js__rspack_import_5 = __webpack_require__(53);
-/* import */ var _dev_hmr_js__rspack_import_6 = __webpack_require__(54);
-/* import */ var _dev_ownership_js__rspack_import_7 = __webpack_require__(59);
-/* import */ var _dev_legacy_js__rspack_import_8 = __webpack_require__(60);
+/* import */ var _dev_assign_js__rspack_import_3 = __webpack_require__(51);
+/* import */ var _dev_css_js__rspack_import_4 = __webpack_require__(53);
+/* import */ var _dev_elements_js__rspack_import_5 = __webpack_require__(54);
+/* import */ var _dev_hmr_js__rspack_import_6 = __webpack_require__(55);
+/* import */ var _dev_ownership_js__rspack_import_7 = __webpack_require__(60);
+/* import */ var _dev_legacy_js__rspack_import_8 = __webpack_require__(61);
 /* import */ var _dev_tracing_js__rspack_import_9 = __webpack_require__(27);
-/* import */ var _dev_inspect_js__rspack_import_10 = __webpack_require__(61);
-/* import */ var _dom_blocks_async_js__rspack_import_11 = __webpack_require__(62);
-/* import */ var _dev_validation_js__rspack_import_12 = __webpack_require__(63);
-/* import */ var _dom_blocks_await_js__rspack_import_13 = __webpack_require__(64);
-/* import */ var _dom_blocks_if_js__rspack_import_14 = __webpack_require__(66);
-/* import */ var _dom_blocks_key_js__rspack_import_15 = __webpack_require__(67);
-/* import */ var _dom_blocks_css_props_js__rspack_import_16 = __webpack_require__(68);
-/* import */ var _dom_blocks_each_js__rspack_import_17 = __webpack_require__(69);
-/* import */ var _dom_blocks_html_js__rspack_import_18 = __webpack_require__(70);
-/* import */ var _dom_blocks_slot_js__rspack_import_19 = __webpack_require__(71);
-/* import */ var _dom_blocks_snippet_js__rspack_import_20 = __webpack_require__(72);
-/* import */ var _dom_blocks_svelte_component_js__rspack_import_21 = __webpack_require__(74);
-/* import */ var _dom_blocks_svelte_element_js__rspack_import_22 = __webpack_require__(75);
-/* import */ var _dom_blocks_svelte_head_js__rspack_import_23 = __webpack_require__(79);
-/* import */ var _dom_css_js__rspack_import_24 = __webpack_require__(80);
-/* import */ var _dom_elements_actions_js__rspack_import_25 = __webpack_require__(81);
-/* import */ var _dom_elements_attachments_js__rspack_import_26 = __webpack_require__(82);
-/* import */ var _dom_elements_attributes_js__rspack_import_27 = __webpack_require__(83);
-/* import */ var _dom_elements_class_js__rspack_import_28 = __webpack_require__(87);
-/* import */ var _dom_elements_events_js__rspack_import_29 = __webpack_require__(56);
-/* import */ var _dom_elements_misc_js__rspack_import_30 = __webpack_require__(43);
-/* import */ var _dom_elements_customizable_select_js__rspack_import_31 = __webpack_require__(90);
-/* import */ var _dom_elements_style_js__rspack_import_32 = __webpack_require__(88);
-/* import */ var _dom_elements_transitions_js__rspack_import_33 = __webpack_require__(76);
-/* import */ var _dom_elements_bindings_document_js__rspack_import_34 = __webpack_require__(91);
-/* import */ var _dom_elements_bindings_input_js__rspack_import_35 = __webpack_require__(92);
-/* import */ var _dom_elements_bindings_media_js__rspack_import_36 = __webpack_require__(93);
-/* import */ var _dom_elements_bindings_navigator_js__rspack_import_37 = __webpack_require__(94);
-/* import */ var _dom_elements_bindings_props_js__rspack_import_38 = __webpack_require__(95);
-/* import */ var _dom_elements_bindings_select_js__rspack_import_39 = __webpack_require__(89);
-/* import */ var _dom_elements_bindings_size_js__rspack_import_40 = __webpack_require__(96);
-/* import */ var _dom_elements_bindings_this_js__rspack_import_41 = __webpack_require__(97);
-/* import */ var _dom_elements_bindings_universal_js__rspack_import_42 = __webpack_require__(98);
-/* import */ var _dom_elements_bindings_window_js__rspack_import_43 = __webpack_require__(99);
+/* import */ var _dev_inspect_js__rspack_import_10 = __webpack_require__(62);
+/* import */ var _dom_blocks_async_js__rspack_import_11 = __webpack_require__(63);
+/* import */ var _dev_validation_js__rspack_import_12 = __webpack_require__(64);
+/* import */ var _dom_blocks_await_js__rspack_import_13 = __webpack_require__(65);
+/* import */ var _dom_blocks_if_js__rspack_import_14 = __webpack_require__(67);
+/* import */ var _dom_blocks_key_js__rspack_import_15 = __webpack_require__(68);
+/* import */ var _dom_blocks_css_props_js__rspack_import_16 = __webpack_require__(69);
+/* import */ var _dom_blocks_each_js__rspack_import_17 = __webpack_require__(70);
+/* import */ var _dom_blocks_html_js__rspack_import_18 = __webpack_require__(71);
+/* import */ var _dom_blocks_slot_js__rspack_import_19 = __webpack_require__(72);
+/* import */ var _dom_blocks_snippet_js__rspack_import_20 = __webpack_require__(73);
+/* import */ var _dom_blocks_svelte_component_js__rspack_import_21 = __webpack_require__(75);
+/* import */ var _dom_blocks_svelte_element_js__rspack_import_22 = __webpack_require__(76);
+/* import */ var _dom_blocks_svelte_head_js__rspack_import_23 = __webpack_require__(80);
+/* import */ var _dom_css_js__rspack_import_24 = __webpack_require__(81);
+/* import */ var _dom_elements_actions_js__rspack_import_25 = __webpack_require__(82);
+/* import */ var _dom_elements_attachments_js__rspack_import_26 = __webpack_require__(83);
+/* import */ var _dom_elements_attributes_js__rspack_import_27 = __webpack_require__(84);
+/* import */ var _dom_elements_class_js__rspack_import_28 = __webpack_require__(88);
+/* import */ var _dom_elements_events_js__rspack_import_29 = __webpack_require__(57);
+/* import */ var _dom_elements_misc_js__rspack_import_30 = __webpack_require__(44);
+/* import */ var _dom_elements_customizable_select_js__rspack_import_31 = __webpack_require__(91);
+/* import */ var _dom_elements_style_js__rspack_import_32 = __webpack_require__(89);
+/* import */ var _dom_elements_transitions_js__rspack_import_33 = __webpack_require__(77);
+/* import */ var _dom_elements_bindings_document_js__rspack_import_34 = __webpack_require__(92);
+/* import */ var _dom_elements_bindings_input_js__rspack_import_35 = __webpack_require__(93);
+/* import */ var _dom_elements_bindings_media_js__rspack_import_36 = __webpack_require__(94);
+/* import */ var _dom_elements_bindings_navigator_js__rspack_import_37 = __webpack_require__(95);
+/* import */ var _dom_elements_bindings_props_js__rspack_import_38 = __webpack_require__(96);
+/* import */ var _dom_elements_bindings_select_js__rspack_import_39 = __webpack_require__(90);
+/* import */ var _dom_elements_bindings_size_js__rspack_import_40 = __webpack_require__(97);
+/* import */ var _dom_elements_bindings_this_js__rspack_import_41 = __webpack_require__(98);
+/* import */ var _dom_elements_bindings_universal_js__rspack_import_42 = __webpack_require__(99);
+/* import */ var _dom_elements_bindings_window_js__rspack_import_43 = __webpack_require__(100);
 /* import */ var _dom_hydration_js__rspack_import_44 = __webpack_require__(19);
-/* import */ var _dom_legacy_event_modifiers_js__rspack_import_45 = __webpack_require__(100);
-/* import */ var _dom_legacy_lifecycle_js__rspack_import_46 = __webpack_require__(101);
-/* import */ var _dom_legacy_misc_js__rspack_import_47 = __webpack_require__(102);
-/* import */ var _dom_template_js__rspack_import_48 = __webpack_require__(57);
-/* import */ var _reactivity_async_js__rspack_import_49 = __webpack_require__(44);
-/* import */ var _reactivity_batch_js__rspack_import_50 = __webpack_require__(32);
-/* import */ var _reactivity_deriveds_js__rspack_import_51 = __webpack_require__(41);
+/* import */ var _dom_legacy_event_modifiers_js__rspack_import_45 = __webpack_require__(101);
+/* import */ var _dom_legacy_lifecycle_js__rspack_import_46 = __webpack_require__(102);
+/* import */ var _dom_legacy_misc_js__rspack_import_47 = __webpack_require__(103);
+/* import */ var _dom_template_js__rspack_import_48 = __webpack_require__(58);
+/* import */ var _reactivity_async_js__rspack_import_49 = __webpack_require__(45);
+/* import */ var _reactivity_batch_js__rspack_import_50 = __webpack_require__(33);
+/* import */ var _reactivity_deriveds_js__rspack_import_51 = __webpack_require__(42);
 /* import */ var _reactivity_effects_js__rspack_import_52 = __webpack_require__(14);
 /* import */ var _reactivity_sources_js__rspack_import_53 = __webpack_require__(24);
-/* import */ var _reactivity_props_js__rspack_import_54 = __webpack_require__(103);
-/* import */ var _reactivity_store_js__rspack_import_55 = __webpack_require__(37);
-/* import */ var _dom_blocks_boundary_js__rspack_import_56 = __webpack_require__(45);
-/* import */ var _legacy_js__rspack_import_57 = __webpack_require__(47);
-/* import */ var _render_js__rspack_import_58 = __webpack_require__(55);
+/* import */ var _reactivity_props_js__rspack_import_54 = __webpack_require__(104);
+/* import */ var _reactivity_store_js__rspack_import_55 = __webpack_require__(38);
+/* import */ var _dom_blocks_boundary_js__rspack_import_56 = __webpack_require__(46);
+/* import */ var _legacy_js__rspack_import_57 = __webpack_require__(48);
+/* import */ var _render_js__rspack_import_58 = __webpack_require__(56);
 /* import */ var _runtime_js__rspack_import_59 = __webpack_require__(9);
-/* import */ var _validate_js__rspack_import_60 = __webpack_require__(104);
-/* import */ var _timing_js__rspack_import_61 = __webpack_require__(78);
+/* import */ var _validate_js__rspack_import_60 = __webpack_require__(105);
+/* import */ var _timing_js__rspack_import_61 = __webpack_require__(79);
 /* import */ var _proxy_js__rspack_import_62 = __webpack_require__(23);
-/* import */ var _dom_elements_custom_element_js__rspack_import_63 = __webpack_require__(105);
+/* import */ var _dom_elements_custom_element_js__rspack_import_63 = __webpack_require__(106);
 /* import */ var _dom_operations_js__rspack_import_64 = __webpack_require__(18);
-/* import */ var _shared_attributes_js__rspack_import_65 = __webpack_require__(84);
+/* import */ var _shared_attributes_js__rspack_import_65 = __webpack_require__(85);
 /* import */ var _shared_clone_js__rspack_import_66 = __webpack_require__(28);
 /* import */ var _shared_utils_js__rspack_import_67 = __webpack_require__(13);
-/* import */ var _shared_validate_js__rspack_import_68 = __webpack_require__(73);
+/* import */ var _shared_validate_js__rspack_import_68 = __webpack_require__(74);
 /* import */ var _dev_equality_js__rspack_import_69 = __webpack_require__(22);
-/* import */ var _dev_console_log_js__rspack_import_70 = __webpack_require__(107);
+/* import */ var _dev_console_log_js__rspack_import_70 = __webpack_require__(108);
 
 
 
@@ -9526,13 +9559,13 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-49(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+50(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   createAttachmentKey: () => (createAttachmentKey),
   fromAction: () => (fromAction)
 });
-/* import */ var svelte_internal_client__rspack_import_0 = __webpack_require__(48);
+/* import */ var svelte_internal_client__rspack_import_0 = __webpack_require__(49);
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(20);
 /* import */ var _index_client_js__rspack_import_2 = __webpack_require__(8);
 /* import */ var _internal_client_reactivity_effects_js__rspack_import_3 = __webpack_require__(14);
@@ -9643,14 +9676,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-50(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+51(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   assign: () => (assign),
   assign_async: () => (assign_async)
 });
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(51);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(52);
 /* import */ var _runtime_js__rspack_import_2 = __webpack_require__(9);
 /* import */ var _warnings_js__rspack_import_3 = __webpack_require__(21);
 
@@ -9690,7 +9723,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-51(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+52(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   REGEX_VALID_TAG_NAME: () => (REGEX_VALID_TAG_NAME),
@@ -10175,7 +10208,7 @@ const REGEX_VALID_TAG_NAME = /^[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9.\-_\u00B7\u00C0-
 
 
 },
-52(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+53(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   cleanup_styles: () => (cleanup_styles),
@@ -10206,7 +10239,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-53(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+54(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   add_locations: () => (add_locations)
@@ -10275,7 +10308,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-54(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+55(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   hmr: () => (hmr)
@@ -10285,7 +10318,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _dom_hydration_js__rspack_import_2 = __webpack_require__(19);
 /* import */ var _reactivity_effects_js__rspack_import_3 = __webpack_require__(14);
 /* import */ var _reactivity_sources_js__rspack_import_4 = __webpack_require__(24);
-/* import */ var _render_js__rspack_import_5 = __webpack_require__(55);
+/* import */ var _render_js__rspack_import_5 = __webpack_require__(56);
 /* import */ var _runtime_js__rspack_import_6 = __webpack_require__(9);
 /** @import { Effect, TemplateNode } from '#client' */ 
 
@@ -10363,7 +10396,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-55(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+56(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   hydrate: () => (hydrate),
@@ -10381,13 +10414,13 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_5 = __webpack_require__(14);
 /* import */ var _dom_hydration_js__rspack_import_6 = __webpack_require__(19);
 /* import */ var _shared_utils_js__rspack_import_7 = __webpack_require__(13);
-/* import */ var _dom_elements_events_js__rspack_import_8 = __webpack_require__(56);
+/* import */ var _dom_elements_events_js__rspack_import_8 = __webpack_require__(57);
 /* import */ var _warnings_js__rspack_import_9 = __webpack_require__(21);
 /* import */ var _errors_js__rspack_import_10 = __webpack_require__(16);
-/* import */ var _dom_template_js__rspack_import_11 = __webpack_require__(57);
-/* import */ var _utils_js__rspack_import_12 = __webpack_require__(51);
+/* import */ var _dom_template_js__rspack_import_11 = __webpack_require__(58);
+/* import */ var _utils_js__rspack_import_12 = __webpack_require__(52);
 /* import */ var _constants_js__rspack_import_13 = __webpack_require__(15);
-/* import */ var _dom_blocks_boundary_js__rspack_import_14 = __webpack_require__(45);
+/* import */ var _dom_blocks_boundary_js__rspack_import_14 = __webpack_require__(46);
 /** @import { ComponentContext, Effect, EffectNodes, TemplateNode } from '#client' */ /** @import { Component, ComponentType, SvelteComponent, MountOptions } from '../../index.js' */ 
 
 
@@ -10649,7 +10682,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-56(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+57(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   all_registered_events: () => (all_registered_events),
@@ -10667,11 +10700,11 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
 /* import */ var _shared_utils_js__rspack_import_1 = __webpack_require__(13);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
-/* import */ var _task_js__rspack_import_3 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_3 = __webpack_require__(34);
 /* import */ var _constants_js__rspack_import_4 = __webpack_require__(20);
 /* import */ var _warnings_js__rspack_import_5 = __webpack_require__(21);
 /* import */ var _runtime_js__rspack_import_6 = __webpack_require__(9);
-/* import */ var _bindings_shared_js__rspack_import_7 = __webpack_require__(42);
+/* import */ var _bindings_shared_js__rspack_import_7 = __webpack_require__(43);
 
 
 
@@ -10798,11 +10831,13 @@ __webpack_require__.d(__webpack_exports__, {
     }
 }
 // used to store the reference to the currently propagated event
-// to prevent garbage collection between microtasks in Firefox
+// to prevent garbage collection between microtasks in Firefox (<= 141)
 // If the event object is GCed too early, the expando __root property
 // set on the event object is lost, causing the event delegation
 // to process the event twice
 let last_propagated_event = null;
+// whether a task is already queued to clear `last_propagated_event`
+let last_propagated_event_clear_scheduled = false;
 /**
  * @this {EventTarget}
  * @param {Event} event
@@ -10814,6 +10849,20 @@ let last_propagated_event = null;
     var path = event.composedPath?.() || [];
     var current_target = /** @type {null | Element} */ path[0] || event.target;
     last_propagated_event = event;
+    // The reference is only needed while the event can still reach another
+    // delegated root, i.e. during the current (synchronous) dispatch and its
+    // microtask checkpoints. Clearing it in a later task preserves the
+    // Firefox workaround while making sure the slot doesn't retain the last
+    // event forever — through `event.target` it would otherwise keep the
+    // entire detached subtree of whatever the user last clicked in alive
+    // until the next delegated event happens to arrive.
+    if (!last_propagated_event_clear_scheduled) {
+        last_propagated_event_clear_scheduled = true;
+        setTimeout(()=>{
+            last_propagated_event_clear_scheduled = false;
+            last_propagated_event = null;
+        });
+    }
     // composedPath contains list of nodes the event has propagated through.
     // We check `event_symbol` to skip all nodes below it in case this is a
     // parent of the `event_symbol` node, which indicates that there's nested
@@ -10951,7 +11000,7 @@ let last_propagated_event = null;
 
 
 },
-57(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+58(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   append: () => (append),
@@ -10967,7 +11016,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _hydration_js__rspack_import_0 = __webpack_require__(19);
 /* import */ var _operations_js__rspack_import_1 = __webpack_require__(18);
-/* import */ var _reconciler_js__rspack_import_2 = __webpack_require__(58);
+/* import */ var _reconciler_js__rspack_import_2 = __webpack_require__(59);
 /* import */ var _runtime_js__rspack_import_3 = __webpack_require__(9);
 /* import */ var _constants_js__rspack_import_4 = __webpack_require__(20);
 /* import */ var _client_constants__rspack_import_5 = __webpack_require__(15);
@@ -11247,7 +11296,7 @@ const SCRIPT_TAG = _client_constants__rspack_import_5.IS_XHTML ? 'script' : 'SCR
 
 
 },
-58(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+59(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   create_fragment_from_html: () => (create_fragment_from_html),
@@ -11274,7 +11323,7 @@ globalThis?.window?.trustedTypes && /* @__PURE__ */ globalThis.window.trustedTyp
 
 
 },
-59(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+60(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   create_ownership_validator: () => (create_ownership_validator)
@@ -11284,7 +11333,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _constants_js__rspack_import_2 = __webpack_require__(20);
 /* import */ var _context_js__rspack_import_3 = __webpack_require__(31);
 /* import */ var _warnings_js__rspack_import_4 = __webpack_require__(21);
-/* import */ var _utils_js__rspack_import_5 = __webpack_require__(51);
+/* import */ var _utils_js__rspack_import_5 = __webpack_require__(52);
 /** @typedef {{ file: string, line: number, column: number }} Location */ 
 
 
@@ -11345,7 +11394,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-60(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+61(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   check_target: () => (check_target),
@@ -11376,7 +11425,7 @@ function legacy_api() {
 
 
 },
-61(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+62(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   inspect: () => (inspect)
@@ -11454,15 +11503,15 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-62(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+63(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   async: () => (async)
 });
-/* import */ var _reactivity_async_js__rspack_import_0 = __webpack_require__(44);
+/* import */ var _reactivity_async_js__rspack_import_0 = __webpack_require__(45);
 /* import */ var _runtime_js__rspack_import_1 = __webpack_require__(9);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
-/* import */ var _template_js__rspack_import_3 = __webpack_require__(57);
+/* import */ var _template_js__rspack_import_3 = __webpack_require__(58);
 /** @import { Blocker, TemplateNode, Value } from '#client' */ 
 
 
@@ -11518,7 +11567,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-63(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+64(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   validate_snippet_args: () => (validate_snippet_args)
@@ -11544,7 +11593,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-64(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+65(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   await_block: () => (await_block)
@@ -11553,12 +11602,12 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _reactivity_sources_js__rspack_import_2 = __webpack_require__(24);
 /* import */ var _hydration_js__rspack_import_3 = __webpack_require__(19);
-/* import */ var _task_js__rspack_import_4 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_4 = __webpack_require__(34);
 /* import */ var _constants_js__rspack_import_5 = __webpack_require__(20);
 /* import */ var _context_js__rspack_import_6 = __webpack_require__(31);
-/* import */ var _reactivity_batch_js__rspack_import_7 = __webpack_require__(32);
-/* import */ var _branches_js__rspack_import_8 = __webpack_require__(65);
-/* import */ var _reactivity_async_js__rspack_import_9 = __webpack_require__(44);
+/* import */ var _reactivity_batch_js__rspack_import_7 = __webpack_require__(33);
+/* import */ var _branches_js__rspack_import_8 = __webpack_require__(66);
+/* import */ var _reactivity_async_js__rspack_import_9 = __webpack_require__(45);
 /* import */ var esm_env__rspack_import_10 = __webpack_require__(10);
 /** @import { Source, TemplateNode } from '#client' */ 
 
@@ -11680,12 +11729,12 @@ const CATCH = 2;
 
 
 },
-65(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+66(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   BranchManager: () => (BranchManager)
 });
-/* import */ var _reactivity_batch_js__rspack_import_0 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_0 = __webpack_require__(33);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _constants_js__rspack_import_2 = __webpack_require__(15);
 /* import */ var _hydration_js__rspack_import_3 = __webpack_require__(19);
@@ -11873,7 +11922,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-66(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+67(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   if_block: () => (if_block)
@@ -11881,7 +11930,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
 /* import */ var _hydration_js__rspack_import_1 = __webpack_require__(19);
 /* import */ var _reactivity_effects_js__rspack_import_2 = __webpack_require__(14);
-/* import */ var _branches_js__rspack_import_3 = __webpack_require__(65);
+/* import */ var _branches_js__rspack_import_3 = __webpack_require__(66);
 /** @import { TemplateNode } from '#client' */ 
 
 
@@ -11936,7 +11985,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-67(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+68(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   key: () => (key)
@@ -11944,7 +11993,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _context_js__rspack_import_0 = __webpack_require__(31);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
-/* import */ var _branches_js__rspack_import_3 = __webpack_require__(65);
+/* import */ var _branches_js__rspack_import_3 = __webpack_require__(66);
 /** @import { TemplateNode } from '#client' */ 
 
 
@@ -11978,7 +12027,7 @@ const NAN = Symbol('NaN');
 
 
 },
-68(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+69(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   css_props: () => (css_props)
@@ -12001,10 +12050,10 @@ __webpack_require__.d(__webpack_exports__, {
         var styles = get_styles();
         for(var key in styles){
             var value = styles[key];
-            if (value) {
-                element.style.setProperty(key, value);
-            } else {
+            if (value == null || value === '') {
                 element.style.removeProperty(key);
+            } else {
+                element.style.setProperty(key, value);
             }
         }
     });
@@ -12012,7 +12061,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-69(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+70(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   each: () => (each),
@@ -12025,11 +12074,11 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_sources_js__rspack_import_4 = __webpack_require__(24);
 /* import */ var _shared_utils_js__rspack_import_5 = __webpack_require__(13);
 /* import */ var _client_constants__rspack_import_6 = __webpack_require__(15);
-/* import */ var _task_js__rspack_import_7 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_7 = __webpack_require__(34);
 /* import */ var _runtime_js__rspack_import_8 = __webpack_require__(9);
 /* import */ var esm_env__rspack_import_9 = __webpack_require__(10);
-/* import */ var _reactivity_deriveds_js__rspack_import_10 = __webpack_require__(41);
-/* import */ var _reactivity_batch_js__rspack_import_11 = __webpack_require__(32);
+/* import */ var _reactivity_deriveds_js__rspack_import_10 = __webpack_require__(42);
+/* import */ var _reactivity_batch_js__rspack_import_11 = __webpack_require__(33);
 /* import */ var _errors_js__rspack_import_12 = __webpack_require__(16);
 /* import */ var _dev_tracing_js__rspack_import_13 = __webpack_require__(27);
 /** @import { EachItem, EachOutroGroup, EachState, Effect, EffectNodes, MaybeSource, Source, TemplateNode, TransitionManager, Value } from '#client' */ /** @import { Batch } from '../../reactivity/batch.js'; */ 
@@ -12088,8 +12137,11 @@ __webpack_require__.d(__webpack_exports__, {
     if (remaining === 0) {
         // If we're in a controlled each block (i.e. the block is the only child of an
         // element), and we are removing all items, _and_ there are no out transitions,
-        // we can use the fast path — emptying the element and replacing the anchor
-        var fast_path = transitions.length === 0 && controlled_anchor !== null;
+        // we can use the fast path — emptying the element and replacing the anchor.
+        // Skip the fast path when another batch is still pending on this each block:
+        // that batch's keys still reference EachItems in `state.items`, which
+        // `destroy_effects` needs to preserve offscreen (see #18610).
+        var fast_path = transitions.length === 0 && controlled_anchor !== null && state.pending.size === 0;
         if (fast_path) {
             var anchor = /** @type {Element} */ controlled_anchor;
             var parent_node = /** @type {Element} */ anchor.parentNode;
@@ -12585,7 +12637,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-70(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+71(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   html: () => (html)
@@ -12593,9 +12645,9 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _constants_js__rspack_import_0 = __webpack_require__(20);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
-/* import */ var _template_js__rspack_import_3 = __webpack_require__(57);
+/* import */ var _template_js__rspack_import_3 = __webpack_require__(58);
 /* import */ var _warnings_js__rspack_import_4 = __webpack_require__(21);
-/* import */ var _utils_js__rspack_import_5 = __webpack_require__(51);
+/* import */ var _utils_js__rspack_import_5 = __webpack_require__(52);
 /* import */ var esm_env__rspack_import_6 = __webpack_require__(10);
 /* import */ var _context_js__rspack_import_7 = __webpack_require__(31);
 /* import */ var _operations_js__rspack_import_8 = __webpack_require__(18);
@@ -12709,7 +12761,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-71(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+72(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   sanitize_slots: () => (sanitize_slots),
@@ -12756,7 +12808,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-72(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+73(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   createRawSnippet: () => (createRawSnippet),
@@ -12767,14 +12819,14 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _context_js__rspack_import_2 = __webpack_require__(31);
 /* import */ var _hydration_js__rspack_import_3 = __webpack_require__(19);
-/* import */ var _reconciler_js__rspack_import_4 = __webpack_require__(58);
-/* import */ var _template_js__rspack_import_5 = __webpack_require__(57);
+/* import */ var _reconciler_js__rspack_import_4 = __webpack_require__(59);
+/* import */ var _template_js__rspack_import_5 = __webpack_require__(58);
 /* import */ var _warnings_js__rspack_import_6 = __webpack_require__(21);
 /* import */ var _errors_js__rspack_import_7 = __webpack_require__(16);
 /* import */ var esm_env__rspack_import_8 = __webpack_require__(10);
 /* import */ var _operations_js__rspack_import_9 = __webpack_require__(18);
-/* import */ var _shared_validate_js__rspack_import_10 = __webpack_require__(73);
-/* import */ var _branches_js__rspack_import_11 = __webpack_require__(65);
+/* import */ var _shared_validate_js__rspack_import_10 = __webpack_require__(74);
+/* import */ var _branches_js__rspack_import_11 = __webpack_require__(66);
 /** @import { Snippet } from 'svelte' */ /** @import { TemplateNode } from '#client' */ /** @import { Getters } from '#shared' */ 
 
 
@@ -12865,7 +12917,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-73(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+74(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   invalid_default_snippet: () => (/* reexport safe */ _errors_js__rspack_import_2.invalid_default_snippet),
@@ -12874,7 +12926,7 @@ __webpack_require__.d(__webpack_exports__, {
   validate_store: () => (validate_store),
   validate_void_dynamic_element: () => (validate_void_dynamic_element)
 });
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(51);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(52);
 /* import */ var _warnings_js__rspack_import_1 = __webpack_require__(29);
 /* import */ var _errors_js__rspack_import_2 = __webpack_require__(17);
 
@@ -12918,7 +12970,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-74(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+75(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   component: () => (component)
@@ -12926,7 +12978,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _client_constants__rspack_import_0 = __webpack_require__(15);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
-/* import */ var _branches_js__rspack_import_3 = __webpack_require__(65);
+/* import */ var _branches_js__rspack_import_3 = __webpack_require__(66);
 /* import */ var _constants_js__rspack_import_4 = __webpack_require__(20);
 /** @import { TemplateNode, Dom } from '#client' */ 
 
@@ -12970,7 +13022,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-75(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+76(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   element: () => (element)
@@ -12979,15 +13031,15 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _hydration_js__rspack_import_1 = __webpack_require__(19);
 /* import */ var _operations_js__rspack_import_2 = __webpack_require__(18);
 /* import */ var _reactivity_effects_js__rspack_import_3 = __webpack_require__(14);
-/* import */ var _render_js__rspack_import_4 = __webpack_require__(55);
+/* import */ var _render_js__rspack_import_4 = __webpack_require__(56);
 /* import */ var _runtime_js__rspack_import_5 = __webpack_require__(9);
 /* import */ var _context_js__rspack_import_6 = __webpack_require__(31);
 /* import */ var esm_env__rspack_import_7 = __webpack_require__(10);
 /* import */ var _client_constants__rspack_import_8 = __webpack_require__(15);
-/* import */ var _template_js__rspack_import_9 = __webpack_require__(57);
-/* import */ var _utils_js__rspack_import_10 = __webpack_require__(51);
-/* import */ var _branches_js__rspack_import_11 = __webpack_require__(65);
-/* import */ var _elements_transitions_js__rspack_import_12 = __webpack_require__(76);
+/* import */ var _template_js__rspack_import_9 = __webpack_require__(58);
+/* import */ var _utils_js__rspack_import_10 = __webpack_require__(52);
+/* import */ var _branches_js__rspack_import_11 = __webpack_require__(66);
+/* import */ var _elements_transitions_js__rspack_import_12 = __webpack_require__(77);
 /** @import { Effect, EffectNodes, TemplateNode } from '#client' */ 
 
 
@@ -13103,7 +13155,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-76(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+77(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   animation: () => (animation),
@@ -13113,12 +13165,12 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _shared_utils_js__rspack_import_0 = __webpack_require__(13);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _runtime_js__rspack_import_2 = __webpack_require__(9);
-/* import */ var _loop_js__rspack_import_3 = __webpack_require__(77);
-/* import */ var _render_js__rspack_import_4 = __webpack_require__(55);
+/* import */ var _loop_js__rspack_import_3 = __webpack_require__(78);
+/* import */ var _render_js__rspack_import_4 = __webpack_require__(56);
 /* import */ var _constants_js__rspack_import_5 = __webpack_require__(20);
 /* import */ var _client_constants__rspack_import_6 = __webpack_require__(15);
-/* import */ var _task_js__rspack_import_7 = __webpack_require__(33);
-/* import */ var _bindings_shared_js__rspack_import_8 = __webpack_require__(42);
+/* import */ var _task_js__rspack_import_7 = __webpack_require__(34);
+/* import */ var _bindings_shared_js__rspack_import_8 = __webpack_require__(43);
 /** @import { AnimateFn, Animation, AnimationConfig, EachItem, Effect, EffectNodes, TransitionFn, TransitionManager } from '#client' */ 
 
 
@@ -13495,12 +13547,12 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-77(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+78(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   loop: () => (loop)
 });
-/* import */ var _timing_js__rspack_import_0 = __webpack_require__(78);
+/* import */ var _timing_js__rspack_import_0 = __webpack_require__(79);
 /** @import { TaskCallback, Task, TaskEntry } from '#client' */ 
 // TODO move this into timing.js where it probably belongs
 /**
@@ -13544,7 +13596,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-78(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+79(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   raf: () => (raf)
@@ -13565,7 +13617,7 @@ const now = esm_env__rspack_import_1.BROWSER ? ()=>performance.now() : ()=>Date.
 
 
 },
-79(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+80(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   head: () => (head)
@@ -13624,15 +13676,17 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-80(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+81(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   append_styles: () => (append_styles)
 });
 /* import */ var esm_env__rspack_import_0 = __webpack_require__(10);
-/* import */ var _dev_css_js__rspack_import_1 = __webpack_require__(52);
+/* import */ var _dev_css_js__rspack_import_1 = __webpack_require__(53);
 /* import */ var _reactivity_effects_js__rspack_import_2 = __webpack_require__(14);
 /* import */ var _operations_js__rspack_import_3 = __webpack_require__(18);
+/* import */ var _runtime_js__rspack_import_4 = __webpack_require__(9);
+
 
 
 
@@ -13641,8 +13695,12 @@ __webpack_require__.d(__webpack_exports__, {
  * @param {Node} anchor
  * @param {{ hash: string, code: string }} css
  */ function append_styles(anchor, css) {
-    // Use `queue_micro_task` to ensure `anchor` is in the DOM, otherwise getRootNode() will yield wrong results
+    // Use an effect to ensure `anchor` is in the DOM, otherwise getRootNode() will yield wrong results
     (0,_reactivity_effects_js__rspack_import_2.effect)(()=>{
+        // Bit of a hack: branches.js/each.js use offscreen fragments with temporary text nodes that will
+        // never be connected to the real dom. Therfore walk up to the branch that has created the component
+        // whose styles we want to append, and check its node instead. It will be connected by the time we get here.
+        anchor = _runtime_js__rspack_import_4.active_effect?.parent?.nodes?.start ?? anchor;
         var root = anchor.getRootNode();
         var target = /** @type {ShadowRoot} */ root.host ? /** @type {ShadowRoot} */ root : /** @type {Document} */ root.head ?? /** @type {Document} */ root.ownerDocument.head;
         // Always querying the DOM is roughly the same perf as additionally checking for presence in a map first assuming
@@ -13661,7 +13719,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-81(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+82(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   action: () => (action)
@@ -13705,7 +13763,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-82(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+83(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   attach: () => (attach)
@@ -13738,7 +13796,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-83(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+84(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   CLASS: () => (CLASS),
@@ -13757,21 +13815,21 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var esm_env__rspack_import_0 = __webpack_require__(10);
 /* import */ var _hydration_js__rspack_import_1 = __webpack_require__(19);
 /* import */ var _shared_utils_js__rspack_import_2 = __webpack_require__(13);
-/* import */ var _events_js__rspack_import_3 = __webpack_require__(56);
-/* import */ var _misc_js__rspack_import_4 = __webpack_require__(43);
+/* import */ var _events_js__rspack_import_3 = __webpack_require__(57);
+/* import */ var _misc_js__rspack_import_4 = __webpack_require__(44);
 /* import */ var _warnings_js__rspack_import_5 = __webpack_require__(21);
 /* import */ var _client_constants__rspack_import_6 = __webpack_require__(15);
-/* import */ var _task_js__rspack_import_7 = __webpack_require__(33);
-/* import */ var _utils_js__rspack_import_8 = __webpack_require__(51);
+/* import */ var _task_js__rspack_import_7 = __webpack_require__(34);
+/* import */ var _utils_js__rspack_import_8 = __webpack_require__(52);
 /* import */ var _runtime_js__rspack_import_9 = __webpack_require__(9);
-/* import */ var _attachments_js__rspack_import_10 = __webpack_require__(82);
-/* import */ var _shared_attributes_js__rspack_import_11 = __webpack_require__(84);
-/* import */ var _class_js__rspack_import_12 = __webpack_require__(87);
-/* import */ var _style_js__rspack_import_13 = __webpack_require__(88);
+/* import */ var _attachments_js__rspack_import_10 = __webpack_require__(83);
+/* import */ var _shared_attributes_js__rspack_import_11 = __webpack_require__(85);
+/* import */ var _class_js__rspack_import_12 = __webpack_require__(88);
+/* import */ var _style_js__rspack_import_13 = __webpack_require__(89);
 /* import */ var _constants_js__rspack_import_14 = __webpack_require__(20);
 /* import */ var _reactivity_effects_js__rspack_import_15 = __webpack_require__(14);
-/* import */ var _bindings_select_js__rspack_import_16 = __webpack_require__(89);
-/* import */ var _reactivity_async_js__rspack_import_17 = __webpack_require__(44);
+/* import */ var _bindings_select_js__rspack_import_16 = __webpack_require__(90);
+/* import */ var _reactivity_async_js__rspack_import_17 = __webpack_require__(45);
 /** @import { Blocker, Effect } from '#client' */ 
 
 
@@ -14004,7 +14062,8 @@ const PROGRESS_TAG = _client_constants__rspack_import_6.IS_XHTML ? 'progress' : 
     var current = prev || {};
     var is_option_element = element.nodeName === OPTION_TAG;
     for(var key in prev){
-        if (!(key in next)) {
+        // don't null our internal $$onX listeners
+        if (!(key in next) && key[0] + key[1] !== '$$') {
             next[key] = null;
         }
     }
@@ -14270,7 +14329,7 @@ const PROGRESS_TAG = _client_constants__rspack_import_6.IS_XHTML ? 'progress' : 
 
 
 },
-84(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+85(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   attr: () => (attr),
@@ -14278,8 +14337,8 @@ __webpack_require__.d(__webpack_exports__, {
   to_class: () => (to_class),
   to_style: () => (to_style)
 });
-/* import */ var _escaping_js__rspack_import_0 = __webpack_require__(85);
-/* import */ var clsx__rspack_import_1 = __webpack_require__(86);
+/* import */ var _escaping_js__rspack_import_0 = __webpack_require__(86);
+/* import */ var clsx__rspack_import_1 = __webpack_require__(87);
 /* import */ var _utils_js__rspack_import_2 = __webpack_require__(13);
 
 
@@ -14403,7 +14462,8 @@ const whitespace = [
             normal_styles = styles;
         }
         if (value) {
-            value = String(value).replaceAll(/\s*\/\*.*?\*\/\s*/g, '').trim();
+            // strip comments; surrounding whitespace is handled by the trims below (which is much faster than doing it through regex)
+            value = String(value).replaceAll(/\/\*.*?\*\//g, '').trim();
             /** @type {boolean | '"' | "'"} */ var in_str = false;
             var in_apo = 0;
             var in_comment = false;
@@ -14470,7 +14530,7 @@ const whitespace = [
 
 
 },
-85(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+86(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   escape_html: () => (escape_html)
@@ -14498,12 +14558,12 @@ const CONTENT_REGEX = /[&<]/g;
 
 
 },
-87(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+88(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   set_class: () => (set_class)
 });
-/* import */ var _shared_attributes_js__rspack_import_0 = __webpack_require__(84);
+/* import */ var _shared_attributes_js__rspack_import_0 = __webpack_require__(85);
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(15);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
 
@@ -14549,12 +14609,12 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-88(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+89(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   set_style: () => (set_style)
 });
-/* import */ var _shared_attributes_js__rspack_import_0 = __webpack_require__(84);
+/* import */ var _shared_attributes_js__rspack_import_0 = __webpack_require__(85);
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(15);
 /* import */ var _hydration_js__rspack_import_2 = __webpack_require__(19);
 
@@ -14608,7 +14668,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-89(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+90(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_select_value: () => (bind_select_value),
@@ -14616,11 +14676,11 @@ __webpack_require__.d(__webpack_exports__, {
   select_option: () => (select_option)
 });
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
-/* import */ var _shared_js__rspack_import_1 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_1 = __webpack_require__(43);
 /* import */ var _proxy_js__rspack_import_2 = __webpack_require__(23);
 /* import */ var _shared_utils_js__rspack_import_3 = __webpack_require__(13);
 /* import */ var _warnings_js__rspack_import_4 = __webpack_require__(21);
-/* import */ var _reactivity_batch_js__rspack_import_5 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_5 = __webpack_require__(33);
 /* import */ var _flags_index_js__rspack_import_6 = __webpack_require__(26);
 
 
@@ -14763,7 +14823,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-90(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+91(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   customizable_select: () => (customizable_select),
@@ -14771,8 +14831,8 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _hydration_js__rspack_import_0 = __webpack_require__(19);
 /* import */ var _operations_js__rspack_import_1 = __webpack_require__(18);
-/* import */ var _reconciler_js__rspack_import_2 = __webpack_require__(58);
-/* import */ var _attachments_js__rspack_import_3 = __webpack_require__(82);
+/* import */ var _reconciler_js__rspack_import_2 = __webpack_require__(59);
+/* import */ var _attachments_js__rspack_import_3 = __webpack_require__(83);
 
 
 
@@ -14857,12 +14917,12 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-91(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+92(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_active_element: () => (bind_active_element)
 });
-/* import */ var _shared_js__rspack_import_0 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_0 = __webpack_require__(43);
 
 /**
  * @param {(activeElement: Element | null) => void} update
@@ -14883,7 +14943,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-92(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+93(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_checked: () => (bind_checked),
@@ -14893,13 +14953,13 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var esm_env__rspack_import_0 = __webpack_require__(10);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
-/* import */ var _shared_js__rspack_import_2 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_2 = __webpack_require__(43);
 /* import */ var _errors_js__rspack_import_3 = __webpack_require__(16);
 /* import */ var _proxy_js__rspack_import_4 = __webpack_require__(23);
-/* import */ var _task_js__rspack_import_5 = __webpack_require__(33);
+/* import */ var _task_js__rspack_import_5 = __webpack_require__(34);
 /* import */ var _hydration_js__rspack_import_6 = __webpack_require__(19);
 /* import */ var _runtime_js__rspack_import_7 = __webpack_require__(9);
-/* import */ var _reactivity_batch_js__rspack_import_8 = __webpack_require__(32);
+/* import */ var _reactivity_batch_js__rspack_import_8 = __webpack_require__(33);
 /* import */ var _flags_index_js__rspack_import_9 = __webpack_require__(26);
 /** @import { Batch } from '../../../reactivity/batch.js' */ 
 
@@ -15149,7 +15209,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-93(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+94(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_buffered: () => (bind_buffered),
@@ -15165,7 +15225,7 @@ __webpack_require__.d(__webpack_exports__, {
   bind_volume: () => (bind_volume)
 });
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
-/* import */ var _shared_js__rspack_import_1 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_1 = __webpack_require__(43);
 
 
 /** @param {TimeRanges} ranges */ function time_ranges_to_array(ranges) {
@@ -15384,12 +15444,12 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-94(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+95(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_online: () => (bind_online)
 });
-/* import */ var _shared_js__rspack_import_0 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_0 = __webpack_require__(43);
 
 /**
  * @param {(online: boolean) => void} update
@@ -15405,7 +15465,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-95(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+96(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_prop: () => (bind_prop)
@@ -15434,7 +15494,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-96(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+97(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_element_size: () => (bind_element_size),
@@ -15516,7 +15576,7 @@ var resize_observer_device_pixel_content_box = /* @__PURE__ */ new ResizeObserve
 
 
 },
-97(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+98(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_this: () => (bind_this)
@@ -15592,7 +15652,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-98(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+99(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_content_editable: () => (bind_content_editable),
@@ -15600,7 +15660,7 @@ __webpack_require__.d(__webpack_exports__, {
   bind_property: () => (bind_property)
 });
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
-/* import */ var _shared_js__rspack_import_1 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_1 = __webpack_require__(43);
 
 
 /**
@@ -15672,14 +15732,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-99(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   bind_window_scroll: () => (bind_window_scroll),
   bind_window_size: () => (bind_window_size)
 });
 /* import */ var _reactivity_effects_js__rspack_import_0 = __webpack_require__(14);
-/* import */ var _shared_js__rspack_import_1 = __webpack_require__(42);
+/* import */ var _shared_js__rspack_import_1 = __webpack_require__(43);
 
 
 /**
@@ -15738,7 +15798,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+101(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   nonpassive: () => (nonpassive),
@@ -15752,7 +15812,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 /* import */ var _shared_utils_js__rspack_import_0 = __webpack_require__(13);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
-/* import */ var _elements_events_js__rspack_import_2 = __webpack_require__(56);
+/* import */ var _elements_events_js__rspack_import_2 = __webpack_require__(57);
 
 
 
@@ -15885,14 +15945,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-101(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+102(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   init: () => (init)
 });
 /* import */ var _shared_utils_js__rspack_import_0 = __webpack_require__(13);
 /* import */ var _context_js__rspack_import_1 = __webpack_require__(31);
-/* import */ var _reactivity_deriveds_js__rspack_import_2 = __webpack_require__(41);
+/* import */ var _reactivity_deriveds_js__rspack_import_2 = __webpack_require__(42);
 /* import */ var _reactivity_effects_js__rspack_import_3 = __webpack_require__(14);
 /* import */ var _runtime_js__rspack_import_4 = __webpack_require__(9);
 /** @import { ComponentContextLegacy } from '#client' */ 
@@ -15967,7 +16027,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-102(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+103(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   add_legacy_event_listener: () => (add_legacy_event_listener),
@@ -16038,7 +16098,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-103(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+104(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   legacy_rest_props: () => (legacy_rest_props),
@@ -16052,12 +16112,12 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(20);
 /* import */ var _shared_utils_js__rspack_import_2 = __webpack_require__(13);
 /* import */ var _sources_js__rspack_import_3 = __webpack_require__(24);
-/* import */ var _deriveds_js__rspack_import_4 = __webpack_require__(41);
+/* import */ var _deriveds_js__rspack_import_4 = __webpack_require__(42);
 /* import */ var _runtime_js__rspack_import_5 = __webpack_require__(9);
 /* import */ var _errors_js__rspack_import_6 = __webpack_require__(16);
 /* import */ var _client_constants__rspack_import_7 = __webpack_require__(15);
 /* import */ var _proxy_js__rspack_import_8 = __webpack_require__(23);
-/* import */ var _store_js__rspack_import_9 = __webpack_require__(37);
+/* import */ var _store_js__rspack_import_9 = __webpack_require__(38);
 /* import */ var _flags_index_js__rspack_import_10 = __webpack_require__(26);
 /* import */ var _effects_js__rspack_import_11 = __webpack_require__(14);
 /** @import { Derived, Effect, Source } from './types.js' */ 
@@ -16417,7 +16477,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-104(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+105(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   validate_binding: () => (validate_binding)
@@ -16426,8 +16486,8 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _constants_js__rspack_import_1 = __webpack_require__(20);
 /* import */ var _reactivity_effects_js__rspack_import_2 = __webpack_require__(14);
 /* import */ var _warnings_js__rspack_import_3 = __webpack_require__(21);
-/* import */ var _reactivity_store_js__rspack_import_4 = __webpack_require__(37);
-/* import */ var _reactivity_async_js__rspack_import_5 = __webpack_require__(44);
+/* import */ var _reactivity_store_js__rspack_import_4 = __webpack_require__(38);
+/* import */ var _reactivity_async_js__rspack_import_5 = __webpack_require__(45);
 /** @import { Blocker } from '#client' */ 
 
 
@@ -16471,14 +16531,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-105(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+106(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   create_custom_element: () => (create_custom_element)
 });
-/* import */ var _legacy_legacy_client_js__rspack_import_0 = __webpack_require__(106);
+/* import */ var _legacy_legacy_client_js__rspack_import_0 = __webpack_require__(107);
 /* import */ var _reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
-/* import */ var _template_js__rspack_import_2 = __webpack_require__(57);
+/* import */ var _template_js__rspack_import_2 = __webpack_require__(58);
 /* import */ var _shared_utils_js__rspack_import_3 = __webpack_require__(13);
 /* import */ var _operations_js__rspack_import_4 = __webpack_require__(18);
 
@@ -16767,7 +16827,7 @@ if (typeof HTMLElement === 'function') {
 
 
 },
-106(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+107(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   asClassComponent: () => (asClassComponent),
@@ -16787,9 +16847,9 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _internal_client_constants_js__rspack_import_0 = __webpack_require__(15);
 /* import */ var _internal_client_reactivity_effects_js__rspack_import_1 = __webpack_require__(14);
 /* import */ var _internal_client_reactivity_sources_js__rspack_import_2 = __webpack_require__(24);
-/* import */ var _internal_client_render_js__rspack_import_3 = __webpack_require__(55);
+/* import */ var _internal_client_render_js__rspack_import_3 = __webpack_require__(56);
 /* import */ var _internal_client_runtime_js__rspack_import_4 = __webpack_require__(9);
-/* import */ var _internal_client_reactivity_batch_js__rspack_import_5 = __webpack_require__(32);
+/* import */ var _internal_client_reactivity_batch_js__rspack_import_5 = __webpack_require__(33);
 /* import */ var _internal_shared_utils_js__rspack_import_6 = __webpack_require__(13);
 /* import */ var _internal_client_errors_js__rspack_import_7 = __webpack_require__(16);
 /* import */ var _internal_client_warnings_js__rspack_import_8 = __webpack_require__(21);
@@ -16797,8 +16857,8 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _constants_js__rspack_import_10 = __webpack_require__(20);
 /* import */ var _internal_client_context_js__rspack_import_11 = __webpack_require__(31);
 /* import */ var _internal_flags_index_js__rspack_import_12 = __webpack_require__(26);
-/* import */ var _internal_client_reactivity_status_js__rspack_import_13 = __webpack_require__(36);
-/* import */ var _internal_client_dom_legacy_event_modifiers_js__rspack_import_14 = __webpack_require__(100);
+/* import */ var _internal_client_reactivity_status_js__rspack_import_13 = __webpack_require__(37);
+/* import */ var _internal_client_dom_legacy_event_modifiers_js__rspack_import_14 = __webpack_require__(101);
 /** @import { ComponentConstructorOptions, ComponentType, SvelteComponent, Component } from 'svelte' */ 
 
 
@@ -17037,7 +17097,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-107(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+108(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   log_if_contains_state: () => (log_if_contains_state)
@@ -17083,7 +17143,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-108(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+109(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   hydratable: () => (hydratable)
@@ -17123,9 +17183,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-110(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+111(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
-/* import */ var _version_js__rspack_import_0 = __webpack_require__(111);
+/* import */ var _version_js__rspack_import_0 = __webpack_require__(112);
 
 if (typeof window !== 'undefined') {
     // @ts-expect-error
@@ -17134,7 +17194,7 @@ if (typeof window !== 'undefined') {
 
 
 },
-111(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+112(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   PUBLIC_VERSION: () => (PUBLIC_VERSION),
@@ -17144,12 +17204,12 @@ __webpack_require__.d(__webpack_exports__, {
 /**
  * The current version, as set in package.json.
  * @type {string}
- */ const VERSION = '5.56.8';
+ */ const VERSION = '5.56.10';
 const PUBLIC_VERSION = '5';
 
 
 },
-86(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+87(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   clsx: () => (clsx)

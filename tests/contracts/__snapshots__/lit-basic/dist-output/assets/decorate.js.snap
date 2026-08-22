@@ -144,9 +144,7 @@ var defaultConverter = {
 				value = value ? emptyStringForBooleanAttribute : null;
 				break;
 			case Object:
-			case Array:
-				value = value == null ? value : JSON.stringify(value);
-				break;
+			case Array: value = value == null ? value : JSON.stringify(value);
 		}
 		return value;
 	},
@@ -160,13 +158,11 @@ var defaultConverter = {
 				fromValue = value === null ? null : Number(value);
 				break;
 			case Object:
-			case Array:
-				try {
-					fromValue = JSON.parse(value);
-				} catch (e) {
-					fromValue = null;
-				}
-				break;
+			case Array: try {
+				fromValue = JSON.parse(value);
+			} catch (e) {
+				fromValue = null;
+			}
 		}
 		return fromValue;
 	}
@@ -1125,16 +1121,17 @@ var getTemplateHtml = (strings, type) => {
 					if (rawTextElement.test(match[TAG_NAME])) rawTextEndRegex = new RegExp(`</${match[TAG_NAME]}`, "g");
 					regex = tagEndRegex;
 				} else if (match[DYNAMIC_TAG_NAME] !== void 0) throw new Error("Bindings in tag names are not supported. Please use static templates instead. See https://lit.dev/docs/templates/expressions/#static-expressions");
-			} else if (regex === tagEndRegex) if (match[ENTIRE_MATCH] === ">") {
-				regex = rawTextEndRegex ?? textEndRegex;
-				attrNameEndIndex = -1;
-			} else if (match[ATTRIBUTE_NAME] === void 0) attrNameEndIndex = -2;
-			else {
-				attrNameEndIndex = regex.lastIndex - match[SPACES_AND_EQUALS].length;
-				attrName = match[ATTRIBUTE_NAME];
-				regex = match[QUOTE_CHAR] === void 0 ? tagEndRegex : match[QUOTE_CHAR] === "\"" ? doubleQuoteAttrEndRegex : singleQuoteAttrEndRegex;
-			}
-			else if (regex === doubleQuoteAttrEndRegex || regex === singleQuoteAttrEndRegex) regex = tagEndRegex;
+			} else if (regex === tagEndRegex) {
+				if (match[ENTIRE_MATCH] === ">") {
+					regex = rawTextEndRegex ?? textEndRegex;
+					attrNameEndIndex = -1;
+				} else if (match[ATTRIBUTE_NAME] === void 0) attrNameEndIndex = -2;
+				else {
+					attrNameEndIndex = regex.lastIndex - match[SPACES_AND_EQUALS].length;
+					attrName = match[ATTRIBUTE_NAME];
+					regex = match[QUOTE_CHAR] === void 0 ? tagEndRegex : match[QUOTE_CHAR] === "\"" ? doubleQuoteAttrEndRegex : singleQuoteAttrEndRegex;
+				}
+			} else if (regex === doubleQuoteAttrEndRegex || regex === singleQuoteAttrEndRegex) regex = tagEndRegex;
 			else if (regex === commentEndRegex || regex === comment2EndRegex) regex = textEndRegex;
 			else {
 				regex = tagEndRegex;
@@ -1209,18 +1206,20 @@ var Template = class Template {
 						node.append(strings[lastIndex], createMarker());
 					}
 				}
-			} else if (node.nodeType === 8) if (node.data === markerMatch) parts.push({
-				type: CHILD_PART,
-				index: nodeIndex
-			});
-			else {
-				let i = -1;
-				while ((i = node.data.indexOf(marker, i + 1)) !== -1) {
-					parts.push({
-						type: COMMENT_PART,
-						index: nodeIndex
-					});
-					i += marker.length - 1;
+			} else if (node.nodeType === 8) {
+				if (node.data === markerMatch) parts.push({
+					type: CHILD_PART,
+					index: nodeIndex
+				});
+				else {
+					let i = -1;
+					while ((i = node.data.indexOf(marker, i + 1)) !== -1) {
+						parts.push({
+							type: COMMENT_PART,
+							index: nodeIndex
+						});
+						i += marker.length - 1;
+					}
 				}
 			}
 			nodeIndex++;
@@ -2113,7 +2112,7 @@ function property(options) {
 */
 globalThis.litIssuedWarnings ??= /* @__PURE__ */ new Set();
 //#endregion
-//#region \0@oxc-project+runtime@0.140.0/helpers/esm/decorate.js
+//#region \0@oxc-project+runtime@0.143.0/helpers/esm/decorate.js
 function __decorate(decorators, target, key, desc) {
 	var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
 	if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
