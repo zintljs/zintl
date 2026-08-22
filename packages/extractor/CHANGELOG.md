@@ -1,5 +1,124 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.18
+
+### Minor Changes
+
+- 3bb8466: Extract translatable attributes from markup written inside a JavaScript template.
+
+  An `alt`, `title`, `placeholder` or `aria-label` was extracted from an HTML document, from a Vue or
+  Svelte SFC template, and from JSX — and **silently dropped** from the same markup written inside a
+  JS template literal, which is how every vanilla app and every Lit component writes it. Nothing
+  failed; the string simply never reached a catalog, so no translator ever saw it.
+
+  It was live in one template localized six ways. `react-basic`, `preact-basic`, `solid-basic` and
+  `vue-basic` all had `"Vite logo"` in their catalogs. `lit-basic` and the nine vanilla apps did not,
+  from identical markup.
+
+  **The cause** was that attribute extraction existed in exactly one place: a loop inside `extractHtml`,
+  which runs only for `.html` documents and SFC template blocks. The JavaScript path —
+  `findLiteralsInExpression` — called `stitchHTML` for text nodes and never looked at attributes.
+
+  So the loop became `scanTranslatableAttributes`, in its own module because `context.ts` cannot import
+  `html.ts` without closing a cycle, and both literal branches now call it. What made it shareable is
+  that each caller already had the thing that differs: a function mapping an index in the markup to a
+  source offset. An HTML document adds a constant; a template literal walks its quasis — and _refuses_,
+  by throwing, for a range crossing an interpolation. The scanner reads that refusal as "skip", which is
+  what keeps `src=${logo}` from being mistaken for a translatable string.
+
+  **No new capability was needed**, because of one choice: inside a JS template the sink covers the
+  attribute's **value**, not the whole attribute, and carries `isFragment`. The existing fragment path
+  then drops a `${…}` between quotes that are already there —
+
+  ```js
+  el.innerHTML = `<img alt="${_t("Vite logo", …)}" />`;   // plain JS
+  html`<img alt="${_t("Vite logo", …)}" />`               // a Lit quoted binding
+  ```
+
+  — which is valid in both hosts at once. `wrapHtmlAttribute` is correspondingly gated on `!isFragment`:
+  it rewrites the attribute _and its name_, which is right for the whole-attribute form and would emit
+  the name twice for a fragment.
+
+  Attribute values containing an interpolation (`title="Hello ${name}"`) are skipped rather than
+  mangled. That matches the paths that already worked — `.html` and SFC extraction both pass
+  `variables: []` — so it stays one limitation shared by every path instead of becoming a per-path quirk.
+
+  Eleven example apps now extract strings they were losing; the `.html` and SFC transform snapshots do
+  not move at all, which is what says the lifted loop still behaves as it did on the path it came from.
+
+- 6aafef8: Add Preact, Solid and Lit — the three frameworks `create-vite` and `create-rsbuild`
+  scaffold that Zintl did not support.
+
+  Zintl's claim has been that another framework is additive work rather than a core rewrite. That was
+  untested against anything the project did not write itself: of the eight templates `create-vite`
+  scaffolds, four had no support at all. Three of them do now, on both hosts.
+
+  **Preact** is the claim holding up. Its extraction is React's — both read one shared `JSX_TARGETS`
+  list, because JSX is JSX — and it differs in exactly two declarations. The subscription hook comes
+  from `preact/compat`, not `preact/hooks`. And re-running the entry is _safe_ here where it is not in
+  React: `createRoot` mounts a second root over a container it already owns, while Preact's `render()`
+  diffs against the tree already there. Measured before it was declared — seven consecutive entry
+  edits, one `#center` throughout, with a `window` marker surviving to rule out a page reload.
+
+  **Solid** is the claim being stretched, and it found a real defect. A Solid component runs once; its
+  JSX compiles to fine-grained effects, so subscribing it has nothing to act on. It uses the
+  `reactiveBridge` seam Vue already had, mirroring the store into a signal whose read is spliced into
+  every `_t` call — so rendering a translation _is_ taking the dependency, and no sink can be missed.
+  The observable result is the nicest in the suite: switching locale remounts nothing, and a counter
+  keeps its value across two switches where every other framework example throws it away. Verified in a
+  browser by marking DOM nodes before a switch and finding the same nodes carrying the new text.
+
+  Solid's limit is on the other side, and is a property of Solid rather than a gap here: a component
+  does not self-accept a catalog invalidation, so it propagates to the entry, and re-running a Solid
+  entry is unsafe — `render(code, el)` called twice on one element leaves **two** children, measured.
+  So a _translation-file edit_ arrives by reload and `solid-basic` claims no `hmr`. The template's
+  `/* @refresh reload */` was the obvious suspect and was ruled out: removing it changes nothing.
+
+  The defect it exposed: the compiler injected `useSyncExternalStore(...)` into any file with component
+  functions, gated only on server components. Vue and Svelte escaped because their SFCs have no
+  component functions to find — a property of their file format, not a decision — so the first JSX
+  dialect _without_ a hook got a call to an undefined name. The injection is now gated on the framework
+  having declared a hook to call, which is what the condition should always have been.
+
+  **Lit** needed capability rather than configuration, and each addition is framework-blind:
+
+  - `` tag:`<name>` `` in the extractor — "the contents of a template literal tagged with this
+    identifier are markup". Lit's markup is neither a file format nor JSX but a tagged template inside
+    an ordinary module, and neither existing seam reached it: an `sfcRules` entry for `.ts` would
+    hijack every module in the project or leave the code around the template unextracted, taking the
+    `zintl()` anchor with it. htm and uhtml get this from the same declaration.
+  - `CodegenFacet.codegenImports` — what a dialect's _generated_ markup references. React's
+    `dangerouslySetInnerHTML` and Svelte's `{@html}` are syntax; Lit's `unsafeHTML` is an import.
+  - `CodegenFacet.wrapTemplateFragment` — how a `_t` call is interpolated into a surrounding template
+    literal. `${…}` was hardcoded, which is right for a vanilla `innerHTML` template and wrong for Lit,
+    where an interpolated string is deliberately rendered as text.
+
+  Lit's limits are declared rather than papered over: `repaintsOnCatalogUpdate` is left undeclared,
+  because repainting a live element needs a registry of connected components — a mixin, which is
+  application code — and `lit-basic` claims no `hmr` capability as a result.
+
+  Coverage is a real example app per framework on Vite plus an inline Rsbuild fixture, following
+  `tests/manifests/index.ts`'s own guidance that cost is roughly (projects × matching contracts). The
+  contract suite goes from 309 to 364.
+
+  The three apps are scaffolded from `create-vite` — `preact-ts`, `solid-ts`, `lit-ts` — not
+  approximated from a sibling example, which matters because the templates differ in ways that would
+  otherwise have gone untested. `lit-ts` renders into a **shadow root**, keeps its whole stylesheet in
+  a `css` tagged template, and slots its `<h1>` from `index.html`; `preact-ts` names its component
+  `app.tsx` and writes `class` rather than `className`. `examples/lit-basic/src/my-element.ts` is the
+  template's own file — diffed against a fresh scaffold, it differs only by this repo's formatter and
+  one `@zintl-ignore` line, with no change to logic, structure or markup. That is the strongest form of
+  the claim this change makes.
+
+  Detection prefers Preact over React and resolves it after both scans, because `@preact/preset-vite`
+  aliases `react` — a project resolving as both would activate two codegen facets claiming `.tsx`,
+  which is a hard error by design. Solid is matched on separator boundaries so `splitVendorChunk` is
+  not read as a framework, and Lit is detected from dependencies only, since it has no plugin on either
+  host.
+
+  Qwik remains unsupported: it is Vite-only, and resumability against a module-level reactive store is
+  a question about the runtime rather than a facet.
+
 ## 0.1.0-alpha.17
 
 ## 0.1.0-alpha.16
