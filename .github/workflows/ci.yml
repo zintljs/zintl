@@ -107,20 +107,29 @@ jobs:
         run: |
           pending=$(node -e "
             const fs = require('node:fs');
-            const files = fs.readdirSync('.changeset')
-              .filter((f) => f.endsWith('.md') && f !== 'README.md')
-              .map((f) => f.slice(0, -3));
-            // Counting files is NOT enough. In prerelease mode changeset files
-            // survive versioning — pre.json records which ones have been applied
-            // and the files stay on disk so an eventual stable release can
-            // aggregate them into one entry. On this repo that is 66 applied
-            // files sitting next to the unapplied ones, so a file count would
-            // report 'pending' forever and re-open a version PR on every push.
+            const md = (dir) =>
+              fs.existsSync(dir)
+                ? fs.readdirSync(dir).filter((f) => f.endsWith('.md') && f !== 'README.md')
+                : [];
+            // A consumed changeset is deleted by a normal release but only
+            // MOVED into .changeset/pre/ by a prerelease one, because the
+            // eventual stable release still owes its description to whoever
+            // never installed an alpha. So 'unconsumed' is simply 'still
+            // sitting in .changeset/' — the directory split does the work that
+            // pre.json's applied-list used to (changesets v3 dropped that
+            // field; reading it here returned undefined and counted nothing).
+            //
+            // Mode 'exit' is the exception that matters: the whole prerelease
+            // backlog becomes relevant again, and .changeset/ is normally empty
+            // by then. Without the second clause the stable release is never
+            // cut — the push after 'pre exit' opens no version PR at all.
             const pre = fs.existsSync('.changeset/pre.json')
               ? JSON.parse(fs.readFileSync('.changeset/pre.json', 'utf8'))
               : {};
-            const applied = new Set(pre.changesets ?? []);
-            console.log(files.some((f) => !applied.has(f)));
+            console.log(
+              md('.changeset').length > 0 ||
+                (pre.mode === 'exit' && md('.changeset/pre').length > 0)
+            );
           ")
           echo "pending=$pending" >> "$GITHUB_OUTPUT"
           echo "Unconsumed changesets present: $pending"
@@ -283,14 +292,26 @@ jobs:
       - name: Setup Workspace
         uses: ./.github/actions/setup
 
+      # v2, not v1, and the pairing is not optional: the action bundles its own
+      # copy of the Changesets libraries, and v1's `@changesets/read` predates
+      # the v3 on-disk layout. Its legacy v1-changeset reader treats EVERY
+      # directory under .changeset/ as an old-style changeset and opens
+      # `<dir>/changes.md` — which on a v3 repo means `.changeset/pre/changes.md`
+      # and an ENOENT before the job does anything. v2 depends on
+      # `@changesets/read@^1` and checks the CLI major itself, pointing CLI v2
+      # users back at action v1.
+      #
+      # Inputs were renamed wholesale in v2 (`version` -> `version-script`,
+      # `commit` -> `commit-message`, `title` -> `pr-title`), and a GITHUB_TOKEN
+      # *environment variable* is no longer read at all — the token comes from
+      # the `github-token` input, which already defaults to `${{ github.token }}`.
+      # Do not re-add the env block; it would look like auth while doing nothing.
       - name: Create or Update the Version PR
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: vp run version-packages
-          commit: "chore: version packages"
-          title: "chore: version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version-script: vp run version-packages
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
 
   # Publishes what the merged version PR produced. Reached only when a workspace
   # version is missing from the registry, so an ordinary merge into a channel
@@ -333,14 +354,19 @@ jobs:
       # `changeset publish` shells out to `pnpm publish`, which performs the OIDC
       # exchange itself (trusted publishing, pnpm >= 11.0.7) and takes precedence
       # over any static token. The action is here rather than a bare `vp run
-      # release` because it parses the CLI's "New tag:" output to create the git
-      # tags and GitHub releases for what actually went out.
+      # release` because it turns what actually went out into git tags and
+      # GitHub releases.
+      #
+      # v2 learns what was published from a file named by the CHANGESETS_OUTPUT
+      # environment variable, not by scraping "New tag:" out of stdout. The
+      # action sets that variable; `vp run release` only has to let it reach the
+      # `changeset publish` child, which ordinary env inheritance handles. If it
+      # ever does not, the symptom is quiet — packages publish, and tags and
+      # releases are skipped with a warning.
       - name: Publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          publish: vp run release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          publish-script: vp run release
 
 # Benchmarks are deliberately absent. Perf budgets are noise-sensitive enough to
 # fail on a quiet local machine; on shared runners they would be pure flake.
