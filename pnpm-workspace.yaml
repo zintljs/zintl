@@ -9,11 +9,11 @@ catalog:
   typescript: ^6.0.3
   knip: latest
   "@changesets/cli": latest
-  vite: npm:@voidzero-dev/vite-plus-core@0.2.7
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.9
   # Rsbuild/Rspack — a supported target for single-page apps since proposal 030.
   # It began as proposal 026's falsification harness, which is why the examples
   # and contracts around it read like an investigation.
-  "@rsbuild/core": ^2.1.10
+  "@rsbuild/core": ^2.1.13
   # Frameworks on Rspack. React came first, so that the contract suite had a
   # *framework* app on a non-Rollup host at all — every other Rspack example was
   # vanilla, which left every framework-shaped question there answerable only by
@@ -22,21 +22,21 @@ catalog:
   "@rsbuild/plugin-react": ^2.1.0
   "@rsbuild/plugin-svelte": ^2.0.1
   "@rsbuild/plugin-vue": ^2.0.1
-  vite-plus: 0.2.7
-  "@vitest/coverage-v8": 4.1.10
-  "@vitest/ui": 4.1.10
+  vite-plus: 0.2.9
+  "@vitest/coverage-v8": 4.1.11
+  "@vitest/ui": 4.1.11
 
-  magic-string: ^1.1.0
-  "@formatjs/icu-messageformat-parser": ^3.5.16
+  magic-string: ^1.2.2
+  "@formatjs/icu-messageformat-parser": ^3.5.17
   # Runtime deps of the published @zintljs/extractor — these must be real semver
   # ranges, never `latest`, or every consumer install resolves to whatever oxc
   # shipped that day. oxc is pre-1.0, so caret pins the minor.
   "@oxc-project/types": ^0.142.0
   "oxc-parser": ^0.142.0
 
-  vue: ^3.5.40
+  vue: ^3.5.41
   vue-router: ^5.2.0
-  vue-tsc: ^3.3.9
+  vue-tsc: ^3.3.11
   "@vitejs/plugin-vue": ^6.0.8
   "@vue/tsconfig": ^0.9.1
 
@@ -45,10 +45,10 @@ catalog:
   sirv: ^3.0.2
   "@types/express": ^5.0.6
 
-  svelte: ^5.56.8
-  svelte-check: ^4.7.4
+  svelte: ^5.56.10
+  svelte-check: ^4.7.6
   cross-env: ^10.1.0
-  "@sveltejs/vite-plugin-svelte": ^7.2.0
+  "@sveltejs/vite-plugin-svelte": ^7.3.0
   "@tsconfig/svelte": ^5.0.8
 
   # The frameworks `create-vite` and `create-rsbuild` scaffold that Zintl did not
@@ -72,11 +72,11 @@ catalog:
   react-dom: ^19.2.8
   "@types/react": ^19.2.18
   "@types/react-dom": ^19.2.4
-  "@vitejs/plugin-react": ^6.0.5
-  "@vitejs/plugin-rsc": ^0.5.32
+  "@vitejs/plugin-react": ^6.1.0
+  "@vitejs/plugin-rsc": ^0.5.34
 
   vinext: ^0.1.8
-  next: ^16.2.12
+  next: ^16.3.2
   react-server-dom-webpack: ^19.2.8
 
 catalogMode: prefer
