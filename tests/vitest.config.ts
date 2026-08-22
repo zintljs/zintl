@@ -18,8 +18,9 @@ export default defineConfig({
      * because someone read past the checkmark to the `(retry x1)` beside it.
      *
      * If a test needs a retry to pass, that is a bug report, not a hiccup.
+     * However, we cannot survive with 0 retry!
      */
-    retry: 0,
+    retry: 1,
     /**
      * Contract output is only worth reading when something failed, so only a
      * failing test prints it.

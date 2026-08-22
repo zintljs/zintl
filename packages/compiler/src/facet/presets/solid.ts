@@ -108,12 +108,24 @@ export function solidCodegenFacet(options: SolidFacetOptions = {}): CodegenFacet
  * Preact's `render` — the same word, the same shape of call — replaces, and this
  * facet would be wrong if it had inherited that assumption.
  *
- * The cost is larger here than the phrase "rare" would suggest, and
- * `tests/manifests/solid-basic.ts` records it: a Solid component does not
- * self-accept a catalog invalidation, so the invalidation reaches the entry and
- * a catalog edit arrives by reload. Switching locale does not go through that
- * path — the reactive bridge handles it in place — so what a user notices is
- * confined to editing translation files during development.
+ * **A correction, kept rather than quietly dropped.** This paragraph used to say
+ * that a Solid component "does not self-accept a catalog invalidation, so the
+ * invalidation reaches the entry", and that a catalog edit therefore arrives by
+ * reload. That was wrong on both counts, and it was written confidently enough
+ * to be worth naming.
+ *
+ * What actually happened is that the applier invalidated a boundary's own source
+ * module on a catalog update, and in `examples/solid-basic` the edited string's
+ * boundary *is* the file calling `zintl()` — so the anchor file's injected
+ * handler declined, which bubbles to a reload. Nothing about Solid's acceptance
+ * behaviour was involved. The edge belonged to any non-replayable framework the
+ * moment a translatable string shared a file with an anchor, and it is fixed in
+ * `packages/zintl/src/hmr/vite.ts`: a catalog update no longer needs the source
+ * to re-execute where the file itself can repaint from the store.
+ *
+ * `entryReexecutionSafe: false` above is unaffected and still correct — the
+ * measurement behind it stands. What changed is that a *catalog* update no
+ * longer asks the mount to run again at all.
  */
 export function solidRuntimeFacet(): ZintlFacet {
   return {

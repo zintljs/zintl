@@ -59,10 +59,29 @@ export const solidBasic: ProjectManifest = {
    * re-run at all. Also ruled out: the template's `/* @refresh reload *\/`,
    * which changes nothing when removed and stays because it is the template's.
    */
+  /**
+   * `hmr` yes, `hmr-warm` **no**, and the distinction is the whole point.
+   *
+   * A *catalog* edit is warm here now — `catalog-edit` measured 20 failures in
+   * 20 runs before the applier stopped re-executing a boundary's source module
+   * for an update the file can repaint from, and 0 in 20 after.
+   *
+   * A *source* edit is not, and should not be. `hmr-first-tick` edits the
+   * heading file, which in this app is `src/App.tsx` — the file that also calls
+   * `zintl()`. Re-running a Solid mount appends rather than replaces, so the
+   * anchor file declines and the host reloads, which is correct. Measured
+   * directly: `{"update":2,"full-reload":1}`, and the contract's own observer
+   * dies with "Execution context was destroyed" because the page navigated.
+   *
+   * That is precisely the case `hmr-first-tick` excludes by requiring
+   * `hmr-warm` — "a project that answers an edit with a full reload has none to
+   * observe". Claiming `hmr-warm` here was a mistake of mine while restoring
+   * capabilities for a baseline; it measured 10/20 red, and the fix is to stop
+   * claiming something untrue rather than to chase the red.
+   */
   capabilities: [
     "spa",
     "hmr",
-    "hmr-warm",
     "locale-switch",
     "rtl",
     "boundary-graph",
