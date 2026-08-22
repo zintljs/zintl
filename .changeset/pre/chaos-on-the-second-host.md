@@ -1,5 +1,6 @@
 ---
 "@zintljs/testing": patch
+"zintljs": patch
 ---
 
 Run the chaos contracts on Rspack for the first time, and split the capability the measurement

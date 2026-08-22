@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [["@zintljs/compiler", "@zintljs/extractor", "zintljs"]],
@@ -7,5 +7,8 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "//ignore": "custom-facets is the only example with a zintl package in `dependencies` rather than `devDependencies`, so it is the only one changesets treats as a releasable dependent. v2 never bumped it — it was absent from pre.json's initialVersions, which is what v2 built prereleases from. v3 dropped initialVersions and reads versions off disk, which made it eligible. It is a private example that is never published; ignoring it keeps examples at 0.0.0 the way every release so far has left them.",
+  "ignore": ["@zintl-examples/custom-facets"],
+  "//privatePackages": "changesets v3 (@changesets/config v4) flipped this default from true to false. @zintljs/testing is private, so the flip reclassified it as an *ignored* package, and the 17 changesets naming it alongside a published one became illegal \"mixed\" changesets. Setting it back keeps the pre-v3 behaviour the whole release history was built on: testing is versioned in lockstep with the packages it tests, and stays unpublished because it is private.",
+  "privatePackages": { "version": true, "tag": false }
 }
