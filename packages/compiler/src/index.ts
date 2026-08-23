@@ -1,6 +1,6 @@
 import * as Extractor from "@zintljs/extractor";
 import { existsSync, readFileSync } from "node:fs";
-import { join, isAbsolute, dirname, normalize } from "node:path";
+import { join, isAbsolute, dirname, normalize, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   observe,
@@ -69,6 +69,254 @@ export type * from "./types/capabilities.js";
 // the context, so they must be nameable from the package root.
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
+
+/** One `zintl()` anchor naming a locale the project does not build. */
+interface UnsupportedAnchorLocale {
+  fileId: string;
+  locale: string;
+}
+
+/** One extracted key with no translation in one locale. */
+interface MissingTranslation {
+  locale: string;
+  key: string;
+  fileId: string;
+  /** Where the translation belongs; `null` when the boundary has no catalog file. */
+  catalogPath: string | null;
+}
+
+/**
+ * How many missing keys to name per locale before switching to a count.
+ *
+ * The report exists to make the *shape* of the problem legible in one build —
+ * which locales, which files, roughly how much work. Printing all of them
+ * instead scrolls the actionable part off the terminal, which is the failure
+ * mode this whole report replaced.
+ */
+const INTEGRITY_SAMPLE_LIMIT = 8;
+
+/** Message keys are user prose and can be long; a sample line stays readable. */
+function truncateKey(key: string, max = 60): string {
+  const flat = key.replace(/\s+/g, " ").trim();
+  return flat.length <= max ? flat : `${flat.slice(0, max - 1)}\u2026`;
+}
+
+/**
+ * Report every anchor that targets an unconfigured locale, in one error.
+ *
+ * Raised *instead of* the missing-translation report rather than alongside it:
+ * an anchor on a locale nobody builds makes every downstream missing
+ * translation a consequence rather than a finding.
+ */
+function formatUnsupportedAnchorLocales(
+  bad: UnsupportedAnchorLocale[],
+  configured: string[],
+): string {
+  const byLocale = new Map<string, string[]>();
+  for (const entry of bad) {
+    const files = byLocale.get(entry.locale);
+    if (!files) byLocale.set(entry.locale, [entry.fileId]);
+    else if (!files.includes(entry.fileId)) files.push(entry.fileId);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const lines: string[] = [
+    `[Zintl Integrity Error] zintl() targets ${locales.length} ${
+      locales.length === 1 ? "locale" : "locales"
+    } you do not build.`,
+    ``,
+    `Configured locales: [${configured.join(", ")}]`,
+    ``,
+  ];
+
+  for (const locale of locales) {
+    const files = byLocale.get(locale)!.slice().sort();
+    lines.push(`  "${locale}" \u2014 anchored in:`);
+    for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`      ${file}`);
+    if (files.length > INTEGRITY_SAMPLE_LIMIT) {
+      lines.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
+    }
+    lines.push(``);
+  }
+
+  lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  return lines.join("\n");
+}
+
+/**
+ * Report every missing translation in one error.
+ *
+ * The rule this enforces is unchanged and deliberately absolute. Only the
+ * announcement changed: throwing on the first missing key meant a project
+ * adopting Zintl discovered N missing translations across N builds.
+ *
+ * Two shapes, because the two situations are not the same problem. When every
+ * locale is missing the same strings the catalogs simply have not been filled
+ * in yet — one listing says that, where per-locale grouping would repeat it
+ * once per locale and bury the actionable part. When the sets differ, the
+ * question is *which* locale fell behind, and grouping by locale answers it.
+ */
+function formatMissingTranslations(missing: MissingTranslation[], sourceLocale: string): string {
+  const byLocale = new Map<string, MissingTranslation[]>();
+  for (const entry of missing) {
+    const bucket = byLocale.get(entry.locale);
+    if (bucket) bucket.push(entry);
+    else byLocale.set(entry.locale, [entry]);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const header = `[Zintl Integrity Error] ${missing.length} missing ${
+    missing.length === 1 ? "translation" : "translations"
+  } across ${locales.length} ${locales.length === 1 ? "locale" : "locales"}.`;
+
+  const rule = [
+    `Zintl never falls back to "${sourceLocale}", so these strings would render empty.`,
+    `That is why this is a build error rather than a warning.`,
+  ];
+
+  const footer = [
+    `Fix:   fill in the empty values in the catalog files above.`,
+    `Defer: set \`verifyIntegrity: false\` to skip this check while you evaluate`,
+    `       \u2014 those strings will render empty until they are translated.`,
+  ];
+
+  const uniform = locales.length > 1 && isUniformAcrossLocales(byLocale, locales);
+  const lines = uniform
+    ? [
+        header,
+        ``,
+        `Every locale (${locales.join(", ")}) is missing the same ${
+          byLocale.get(locales[0])!.length
+        } strings.`,
+        `The catalogs have most likely not been filled in yet.`,
+        ``,
+        ...rule,
+        ``,
+        ...describeUniform(byLocale.get(locales[0])!, byLocale, locales),
+      ]
+    : [header, ``, ...rule, ``, ...describePerLocale(byLocale, locales)];
+
+  return [...lines, ...footer].join("\n");
+}
+
+/** Do all locales lack translations for exactly the same keys, in the same files? */
+function isUniformAcrossLocales(
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): boolean {
+  const signature = (entries: MissingTranslation[]) =>
+    entries
+      .map((e) => `${e.fileId}\u0000${e.key}`)
+      .sort()
+      .join("\u0001");
+  const first = signature(byLocale.get(locales[0])!);
+  return locales.every((locale) => signature(byLocale.get(locale)!) === first);
+}
+
+/**
+ * The fresh-adoption listing: the strings once, grouped by the source file they
+ * came from, plus the concrete set of catalogs one of those files needs.
+ *
+ * The example is built from real `catalogPath` values rather than by
+ * substituting a `[locale]` token into `catalogFormat`. The format is
+ * user-supplied and need not mention the locale literally, so a token
+ * substitution would print paths that do not exist.
+ */
+function describeUniform(
+  entries: MissingTranslation[],
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): string[] {
+  const byFile = new Map<string, string[]>();
+  for (const entry of entries) {
+    const bucket = byFile.get(entry.fileId);
+    if (bucket) bucket.push(entry.key);
+    else byFile.set(entry.fileId, [entry.key]);
+  }
+
+  const lines: string[] = [];
+  const files = Array.from(byFile.keys()).sort();
+  let shown = 0;
+  let filesShown = 0;
+
+  for (const file of files) {
+    if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+    const keys = byFile.get(file)!;
+    lines.push(`  ${file} \u2014 ${keys.length} ${keys.length === 1 ? "string" : "strings"}`);
+    filesShown++;
+    for (const key of keys) {
+      if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+      lines.push(`    "${truncateKey(key)}"`);
+      shown++;
+    }
+  }
+  if (files.length > filesShown) {
+    lines.push(
+      `  \u2026 and ${files.length - filesShown} more ${
+        files.length - filesShown === 1 ? "file" : "files"
+      }`,
+    );
+  }
+  lines.push(``);
+
+  // One file's worth of real catalog paths, so the shape is concrete.
+  const example = files[0];
+  const paths: string[] = [];
+  for (const locale of locales) {
+    const match = byLocale.get(locale)!.find((e) => e.fileId === example);
+    if (match?.catalogPath) paths.push(match.catalogPath);
+  }
+  if (paths.length > 0) {
+    lines.push(`Each file needs one catalog per locale. For ${example}:`);
+    for (const path of paths.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`  ${path}`);
+    if (paths.length > INTEGRITY_SAMPLE_LIMIT) {
+      lines.push(`  \u2026 and ${paths.length - INTEGRITY_SAMPLE_LIMIT} more`);
+    }
+    lines.push(``);
+  }
+
+  return lines;
+}
+
+/** The drifted-locale listing: which locale fell behind, and in which catalogs. */
+function describePerLocale(
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): string[] {
+  const lines: string[] = [];
+
+  for (const locale of locales) {
+    const entries = byLocale.get(locale)!;
+    const byCatalog = new Map<string, MissingTranslation[]>();
+    for (const entry of entries) {
+      const path = entry.catalogPath ?? `(no catalog file \u2014 boundary in ${entry.fileId})`;
+      const bucket = byCatalog.get(path);
+      if (bucket) bucket.push(entry);
+      else byCatalog.set(path, [entry]);
+    }
+
+    lines.push(
+      `  ${locale} \u2014 ${entries.length} missing in ${byCatalog.size} ${
+        byCatalog.size === 1 ? "file" : "files"
+      }`,
+    );
+
+    let shown = 0;
+    for (const path of Array.from(byCatalog.keys()).sort()) {
+      if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+      lines.push(`    ${path}`);
+      for (const entry of byCatalog.get(path)!) {
+        if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+        lines.push(`      "${truncateKey(entry.key)}"`);
+        shown++;
+      }
+    }
+    if (entries.length > shown) lines.push(`    \u2026 and ${entries.length - shown} more`);
+    lines.push(``);
+  }
+
+  return lines;
+}
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -2627,6 +2875,35 @@ export class ZintlCompiler {
     );
   }
 
+  /**
+   * A catalog path as the user would type it, relative to the project root.
+   *
+   * Reports print one line per catalog, and an absolute path in a deep checkout
+   * pushes the part that identifies the file off the right of the terminal.
+   * Falls back to the absolute path when the catalog lives outside the root,
+   * which a custom absolute `outputDir` allows.
+   */
+  private relativeCatalogPath(boundaryId: string, locale: string): string | null {
+    const absolute = this.catalog.getCatalogPath(boundaryId, locale);
+    if (!absolute) return null;
+    const rel = relative(this.root, absolute);
+    return rel && !rel.startsWith("..") ? toPosixPath(rel) : absolute;
+  }
+
+  /**
+   * Verify every reachable boundary has a translation for every locale.
+   *
+   * The rule is unchanged and deliberately absolute: there is no fallback to
+   * the source locale, so an untranslated string fails the build. What changed
+   * is the *reporting*. This used to throw on the first missing key, so a
+   * project adopting Zintl discovered its N missing translations across N
+   * builds — the worst moment in the onboarding path, and an artifact of how
+   * the failure was announced rather than of the rule itself.
+   *
+   * Both failure classes are collected in full, and anchor-locale errors are
+   * raised *instead of* missing translations rather than alongside them. See
+   * {@link formatUnsupportedAnchorLocales} and {@link formatMissingTranslations}.
+   */
   private async verifyIntegrity() {
     if (!this._verifyIntegrity) return;
     const bg = this.graph.boundaryGraph;
@@ -2658,6 +2935,9 @@ export class ZintlCompiler {
       }
     }
 
+    const badAnchors: UnsupportedAnchorLocale[] = [];
+    const missing: MissingTranslation[] = [];
+
     for (const [fileId, meta] of Object.entries(this.messages.metadataGraph)) {
       const fileBoundaries =
         this.messages.boundaryOwnership.get(fileId) || new Set([this.io.getNormalizedId(fileId)]);
@@ -2672,11 +2952,7 @@ export class ZintlCompiler {
         if (anchor.locale.type === "literal") {
           const targetLocale = anchor.locale.value;
           if (targetLocale !== "none" && !this.locales.includes(targetLocale)) {
-            throw new Error(
-              `[Zintl Integrity Error] Boundary anchor at "${fileId}" targets unsupported locale "${targetLocale}". \n` +
-                `Active locales: [${this.locales.join(", ")}]. \n` +
-                `Fix: Add "${targetLocale}" to your locales config or update the zintl() call.`,
-            );
+            badAnchors.push({ fileId, locale: targetLocale });
           }
         }
       }
@@ -2732,18 +3008,24 @@ export class ZintlCompiler {
               }
 
               if (translation === undefined || translation === "") {
-                throw new Error(
-                  `[Zintl Integrity Error] Missing or empty translation for key "${msg.text}" in locale "${locale}".\n` +
-                    `Boundary: ${bId}\n` +
-                    `File: ${fileId}\n` +
-                    `Fix: Add the missing translation for key "${msg.text}" in "${locale}" catalog file:\n` +
-                    `    at "${this.catalog.getCatalogPath(bId as string, locale)}"\n`,
-                );
+                missing.push({
+                  locale,
+                  key: msg.text,
+                  fileId,
+                  catalogPath: this.relativeCatalogPath(bId as string, locale),
+                });
               }
             }
           }
         }
       }
+    }
+
+    if (badAnchors.length > 0) {
+      throw new Error(formatUnsupportedAnchorLocales(badAnchors, this.locales));
+    }
+    if (missing.length > 0) {
+      throw new Error(formatMissingTranslations(missing, this.sourceLocale));
     }
   }
 

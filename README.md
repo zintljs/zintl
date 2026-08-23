@@ -110,7 +110,21 @@ A literal is a promise the compiler can keep: it bakes that locale straight into
 
 ## Where it runs
 
-Zintl ships a **Vite plugin** and an **[Rsbuild](https://rsbuild.dev) plugin**, and works with **React, Vue, Svelte, and vanilla** apps. On Vite that means client-rendered, server-rendered, and multi-page alike. On Rsbuild it means single-page and multi-page apps, with all four frameworks — not SSR, and not per-locale HTML fan-out. See [the Rsbuild section](docs/configuration.md#rsbuild) for exactly what is and is not covered. Every example in [`examples/`](examples) is a real app the test suite drives end to end, on both bundlers.
+| Host                                                           | Frameworks                                      | App shapes                              | Status                                                                     |
+| :------------------------------------------------------------- | :---------------------------------------------- | :-------------------------------------- | :------------------------------------------------------------------------- |
+| **[Vite](https://vite.dev)** 6 / 7 / 8                         | React, Preact, Solid, Vue, Svelte, Lit, vanilla | SPA, MPA, SSR, per-locale static builds | Supported                                                                  |
+| **[Rsbuild](https://rsbuild.dev)** 2.x                         | React, Preact, Solid, Vue, Svelte, Lit, vanilla | SPA, MPA                                | Supported — [no SSR, no per-locale fan-out](docs/configuration.md#rsbuild) |
+| **Next.js via [vinext](https://github.com/cloudflare/vinext)** | React (App Router, RSC)                         | SSR                                     | Experimental — [see below](docs/configuration.md#nextjs-via-vinext)        |
+
+Every row but the last is driven end to end by the contract suite: real browsers against real apps, on every change.
+
+**What is not supported**, and why — Zintl needs a plugin seat in the bundler that owns your chunk graph:
+
+- **Next.js on webpack or Turbopack.** Turbopack has no public plugin API, and we are not building on the bundler Next.js is deprecating. `vinext` is the supported path, and it is experimental.
+- **Nuxt, SvelteKit, Astro, Remix, TanStack Start.** These run on Vite, so the plugin _will_ load and appear to work. Nothing here is tested, and their routing and SSR entry shapes are not modelled. Treat as unexplored rather than working.
+- **webpack, Rollup, esbuild, Farm.** No bundler facet claims these hosts, so the plugin refuses to build rather than emitting something subtly wrong.
+
+If you hit one of these, [say so in an issue](https://github.com/zintljs/zintl/issues) — which host to reach for next is a decision we would rather make from reports than from guesses.
 
 That list is a starting point, not the design. The extractor carries no framework knowledge, the compiler is bundler-agnostic, and both frameworks and toolchains are composed from **facets** — so support for another framework or another build tool is something you add, not something the core has to be rewritten around. Rsbuild was the proof: it runs on Rspack, whose plugin model is about as unlike Vite's as a bundler's gets, and it arrived without a single Rspack branch in the compiler. More of both are coming.
 

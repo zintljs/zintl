@@ -60,7 +60,16 @@ export function detectFrameworks({ pluginNames = [], root }: DetectionInput): Fr
     else if (name.includes("react")) frameworks.add("react");
     if (mentions(name, "solid")) frameworks.add("solid");
     if (name.includes("svelte")) frameworks.add("svelte");
-    if (name.includes("next") || name.includes("vinext")) frameworks.add("nextjs");
+    // `nextjs` means **vinext**, and only vinext. This read
+    // `includes("next") || includes("vinext")`, which is wrong twice over: as a
+    // substring it matches any plugin name merely containing those four
+    // letters, and as a concept it claims a framework the facets cannot serve.
+    // They wrap `virtual:vinext-*` entries, so on a real webpack/Turbopack
+    // Next.js build there is nothing for them to bind to — while
+    // `nextjs-runtime` still supersedes `client-spa`, silently removing client
+    // locale sync from a project that merely had `next` somewhere in its
+    // manifest. A false positive here is worse than no detection at all.
+    if (mentions(name, "vinext")) frameworks.add("nextjs");
     // Lit has no plugin on either host — it is plain TypeScript with decorators,
     // so there is no name to match and `lit` is detected from dependencies only.
     // A substring test here would have read `splitVendorChunk` as Lit.
@@ -82,7 +91,7 @@ export function detectFrameworks({ pluginNames = [], root }: DetectionInput): Fr
         if (allDeps["solid-js"]) frameworks.add("solid");
         if (allDeps["svelte"] || allDeps["@sveltejs/kit"]) frameworks.add("svelte");
         if (allDeps["lit"]) frameworks.add("lit");
-        if (allDeps["next"] || allDeps["vinext"]) frameworks.add("nextjs");
+        if (allDeps["vinext"]) frameworks.add("nextjs");
       }
     } catch {}
   }

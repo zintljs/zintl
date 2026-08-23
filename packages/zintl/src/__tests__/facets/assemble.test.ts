@@ -16,6 +16,9 @@ import {
   BUILTINS,
 } from "../../facets/assemble.js";
 import { detectFrameworks } from "../../facets/detect.js";
+import { createTestDir } from "../helpers/fs.js";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { ZintlFacet } from "@zintljs/compiler";
 import type { FacetsInput } from "../../types.js";
 
@@ -237,5 +240,47 @@ describe("detectFrameworks", () => {
   it("does not read a framework out of an unrelated plugin name", () => {
     expect(detectFrameworks({ pluginNames: ["splitVendorChunk"] })).toEqual([]);
     expect(detectFrameworks({ pluginNames: ["vite:build-import-analysis"] })).toEqual([]);
+  });
+
+  /**
+   * `nextjs` means vinext, and only vinext.
+   *
+   * The Next.js facets wrap `virtual:vinext-*` entries, so they can only serve a
+   * Next.js app running on Vite through vinext. Detecting the framework from a
+   * bare `next` dependency claimed apps the facets cannot help — and did real
+   * damage while claiming them, because `nextjs-runtime` supersedes
+   * `client-spa`. A Vite SPA in a monorepo that merely had `next` in its
+   * manifest lost client locale sync to a facet set that then bound to nothing.
+   */
+  it("detects nextjs from vinext, and not from a bare next dependency", async () => {
+    const root = await createTestDir("zintl-detect-nextjs-");
+
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({ dependencies: { next: "^15.0.0", react: "^19.0.0" } }),
+    );
+    expect(detectFrameworks({ root })).toEqual(["react"]);
+
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({
+        dependencies: { next: "^15.0.0", react: "^19.0.0" },
+        devDependencies: { vinext: "^0.1.0" },
+      }),
+    );
+    expect(detectFrameworks({ root })).toEqual(["react", "nextjs"]);
+  });
+
+  /**
+   * The plugin-name rule is separator-bounded for the same reason Solid's is.
+   *
+   * `includes("next")` matched any plugin with those four letters anywhere in
+   * its name, which is a wide net for a facet set that supersedes two others.
+   */
+  it("matches vinext on separator boundaries, not as a substring", () => {
+    expect(detectFrameworks({ pluginNames: ["vinext"] })).toEqual(["nextjs"]);
+    expect(detectFrameworks({ pluginNames: ["vinext:rsc"] })).toEqual(["nextjs"]);
+    expect(detectFrameworks({ pluginNames: ["vite-plugin-nextgen-assets"] })).toEqual([]);
+    expect(detectFrameworks({ pluginNames: ["rollup-plugin-context"] })).toEqual([]);
   });
 });

@@ -162,6 +162,35 @@ Install `@rsbuild/core` yourself — it is an optional peer dependency, tested a
 
 Seven examples cover the supported ground, and between them the two dev behaviours above: [`rsbuild-vanilla-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-basic) (plain JavaScript, localized `.txt` asset), [`rsbuild-react-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-react-basic) (in-place hot updates), [`rsbuild-vue-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-basic), [`rsbuild-svelte-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-svelte-basic), [`rsbuild-vanilla-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-spa) and [`rsbuild-vue-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-spa) (client routers, lazy catalogs), and [`rsbuild-vanilla-mpa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-mpa) / [`rsbuild-vue-mpa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-mpa) (two documents, shared self-anchoring header). See `docs/spec/proposals/026`–`030` for how each of these was established.
 
+## Next.js via vinext
+
+Zintl has Next.js facets, and it is worth being exact about what they cover: **[vinext](https://github.com/cloudflare/vinext)**, which runs a Next.js app on Vite. They are not Next.js support in general.
+
+The facets wrap `virtual:vinext-rsc-entry`, `virtual:vinext-server-entry` and `virtual:vinext-app-ssr-entry` for per-request locale scoping, suppress `metadata` / `viewport` / `generateMetadata` / `generateViewport` from extraction (build-time exports, not UI), and declare `serverComponents: true` so hooks are only injected where `"use client"` allows them. All three bind to vinext's entries, so a Next.js build on webpack or Turbopack has nothing for them to attach to.
+
+Detection is gated on `vinext` for that reason — a bare `next` in `package.json` does not activate them. That gate is not cosmetic: `nextjs-runtime` declares `supersedes: ["ssr-runtime", "client-spa"]`, so a false positive used to strip client locale sync from any Vite SPA that merely had `next` somewhere in its dependency tree.
+
+**Status: experimental.** [`examples/vinext-basic`](https://github.com/zintljs/zintl/tree/main/examples/vinext-basic) builds and runs, but unlike every other example it is **not** in the contract manifest — no browser test drives it on each change. Treat it as a working starting point, not as a tested target, and please report what breaks.
+
+**Next.js on webpack or Turbopack is not planned.** Turbopack has no public plugin API ([proposal 026](https://github.com/zintljs/zintl/blob/main/docs/spec/proposals/026-rsbuild-as-falsification-harness.md) records this), and building on webpack means building on the bundler Next.js is moving away from. If you need i18n on stock Next.js today, Zintl is not the tool.
+
+## Unsupported hosts
+
+Zintl integrates through a facet whose `concern` is `"bundler"`, and exactly one activates per build. On a host where none does — webpack, Rollup, esbuild, Farm — the plugin **refuses to build**:
+
+```
+[Zintl] Unsupported build tool: "webpack".
+
+No bundler facet claims it, so Zintl cannot resolve its virtual modules or align
+catalogs with your chunks. It stops here rather than building something wrong.
+```
+
+That is deliberate. Virtual module resolution, the dynamic-import shape and HMR acceptance all come from the bundler facet; with none active they each fall back to a Vite-shaped default the host does not honour, so the build produces output and the output is wrong. Refusing is the kinder failure.
+
+The check asks the facet system rather than an allowlist, so contributing a bundler facet through `facets` lifts it — see [Writing a facet](#writing-a-facet).
+
+**Vite-based meta-frameworks are a different case.** Nuxt, SvelteKit, Astro, Remix and TanStack Start all report Vite as the host, so the plugin loads and this fence never fires. Nothing about their routing or SSR entry shapes is modelled or tested. They are unexplored, not supported — and unlike the hosts above, nothing will tell you so at build time.
+
 ## Output
 
 | Option     | Type                | Default                          | What it does                                        |

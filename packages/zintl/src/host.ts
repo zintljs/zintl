@@ -190,6 +190,40 @@ export function ensureCompiler(
   const capabilities = resolveFacets(facets);
 
   /**
+   * Fence: a host with no bundler facet is not a host Zintl can serve.
+   *
+   * Every integration point Zintl needs — virtual module resolution, the
+   * dynamic-import shape, HMR acceptance, chunk alignment — arrives from a
+   * facet whose `concern` is `"bundler"`. Exactly one activates, chosen by
+   * `when: { bundler }` against what the host reports. When none does, the
+   * compiler is constructed anyway and every one of those falls back to a
+   * Vite-shaped default that the actual host does not honour: the build gets
+   * far enough to produce output, and the output is wrong.
+   *
+   * Asked here rather than as a bundler allowlist because the facet system is
+   * the authority on what is supported. Contributing a bundler facet lifts this
+   * fence by itself, which is the whole premise of the architecture.
+   */
+  if (!capabilities.facets.some((facet) => facet.concern === "bundler")) {
+    const host =
+      resolved.bundler === "unknown"
+        ? "This host did not identify itself"
+        : `Unsupported build tool: "${resolved.bundler}"`;
+    throw new Error(
+      `[Zintl] ${host}.\n\n` +
+        `No bundler facet claims it, so Zintl cannot resolve its virtual modules or align\n` +
+        `catalogs with your chunks. It stops here rather than building something wrong.\n\n` +
+        `Supported hosts:\n` +
+        `  Vite     import zintl from "zintljs/vite"     (vite.config.ts)\n` +
+        `  Rsbuild  import zintl from "zintljs/rsbuild"  (rsbuild.config.ts)\n\n` +
+        `Adding a host is additive rather than a core change: contribute a facet with\n` +
+        `\`concern: "bundler"\` through the \`facets\` option. See docs/configuration.md.\n\n` +
+        `On a supported host and still seeing this? Please open an issue:\n` +
+        `https://github.com/zintljs/zintl/issues`,
+    );
+  }
+
+  /**
    * Fence for ledger L-022. Multiplex's per-locale HTML fan-out exists only in
    * loadHook/resolveIdHook's Vite-shaped branches (hooks/resolve.ts). A bundler
    * facet that has not declared `htmlFanOut` cannot survive those branches
