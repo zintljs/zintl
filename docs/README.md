@@ -11,6 +11,7 @@ Start with the [README](../README.md) if you haven't installed Zintl yet. These 
 | [Plurals & grammar](icu.md)         | How one source string becomes correct grammar in every language          |
 | [How it works](architecture.md)     | Boundaries, chunking, and why translations are a graph                   |
 | [Glossary](glossary.md)             | The vocabulary used across the codebase                                  |
+| [Stability](stability.md)           | What is settled, what is still moving, and how to remove Zintl           |
 
 Contributors may also want [`spec/`](spec) — the internal specifications and design notes behind these behaviours.
 

@@ -488,6 +488,7 @@ export function loadHook(ctx: Context) {
         isSsr,
         ctx.compiler.isDev,
         await ctx.compiler.getRtlLocales(),
+        ctx.compiler.pseudoLocalize,
       );
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");

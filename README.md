@@ -140,7 +140,13 @@ Most projects only ever install `zintljs`.
 
 ## Status
 
-Zintl is in **alpha**. The ideas are settled and the test suite is thorough — 26 example apps driven through real browsers on every change — but the API can still move between releases. Pin your version, and please [open an issue](https://github.com/zintljs/zintl/issues) when something surprises you. Early reports shape this more than anything else right now.
+Zintl is in **alpha**, heading for beta. The ideas are settled and the suite is thorough — 27 projects, 19 of them real example apps, driven through real browsers on every change, with no retries anywhere. The API can still move, so pin your version.
+
+[**Stability**](docs/stability.md) says which surfaces are settled and which are still in motion, rather than leaving "alpha" to mean everything is.
+
+**Adopting Zintl is reversible in one commit**, and that is worth knowing before you decide rather than after. Your source never changed — no `t()` wrappers to unwind, no keys to delete, no dictionary to reconcile — so removing the plugin leaves the monolingual app you started with, compiling and running. [How that works.](docs/stability.md#removing-zintl)
+
+Please [open an issue](https://github.com/zintljs/zintl/issues) when something surprises you. Early reports shape this more than anything else right now — including "I could not work out how to…", which is a documentation bug and is treated as one.
 
 ## Contributing
 

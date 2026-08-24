@@ -50,6 +50,58 @@ describe("flattenFacets", () => {
     const mine = { name: "mine", concern: "runtime" } as ZintlFacet;
     expect(names(flattenFacets([BUILTINS, mine], builtins).facets)).toEqual(["builtin-a", "mine"]);
   });
+
+  /**
+   * Naming a built-in replaces it, whichever side of `"builtins"` it is on.
+   *
+   * This used to be a coin flip decided by sort stability: same name, same
+   * priority, and `resolveFacets` keeping whichever came first. Listing
+   * `"builtins"` first — which is what the docs show — silently discarded the
+   * user's configured facet, and nothing said so.
+   */
+  it("replaces a built-in with the user's facet of the same name", () => {
+    const mine = { name: "builtin-a", concern: "runtime", priority: 0 } as ZintlFacet;
+
+    for (const inputs of [
+      [BUILTINS, mine],
+      [mine, BUILTINS],
+    ] as FacetsInput[][]) {
+      const result = flattenFacets(inputs, builtins);
+      expect(result.facets).toEqual([mine]);
+      expect(result.facets[0]).toBe(mine);
+      expect(Array.from(result.overridden)).toEqual(["builtin-a"]);
+    }
+  });
+
+  it("reports nothing overridden when the names do not collide", () => {
+    const mine = { name: "mine", concern: "runtime" } as ZintlFacet;
+    expect(Array.from(flattenFacets([BUILTINS, mine], builtins).overridden)).toEqual([]);
+  });
+
+  /**
+   * The bundler facets are always candidates, so they are ours for this purpose
+   * too — a project shipping its own `vite` facet means to replace ours.
+   */
+  it("replaces an always-candidate facet the user names", () => {
+    const ours = { name: "vite", concern: "bundler" } as ZintlFacet;
+    const mine = { name: "vite", concern: "bundler" } as ZintlFacet;
+
+    const result = flattenFacets([BUILTINS, mine], builtins, [ours]);
+    expect(result.facets.filter((f) => f.name === "vite")).toEqual([mine]);
+    expect(result.overridden.has("vite")).toBe(true);
+  });
+
+  it("keeps the surviving facets in the order they were listed", () => {
+    const a = { name: "a", concern: "runtime" } as ZintlFacet;
+    const c = { name: "c", concern: "runtime" } as ZintlFacet;
+    const mineB = { name: "builtin-a", concern: "runtime" } as ZintlFacet;
+
+    expect(names(flattenFacets([a, BUILTINS, mineB, c], builtins).facets)).toEqual([
+      "a",
+      "builtin-a",
+      "c",
+    ]);
+  });
 });
 
 describe("self-activation", () => {
@@ -128,6 +180,47 @@ describe("supersession", () => {
     expect(names(assembleFacets({ ...vite, frameworks: ["react"], ssr: true }))).toContain(
       "ssr-wrapping",
     );
+  });
+
+  /**
+   * Reconfiguring one built-in is the reason `facets` accepts a list at all,
+   * and `["builtins", assetsFacet({ … })]` is the shape the docs show for it.
+   * The user's copy has to be the one that survives — and the trace has to say
+   * the other one went, because being discarded in silence was the defect.
+   */
+  it("lets a project replace a built-in by naming it", () => {
+    const mine = {
+      name: "system-static-assets",
+      concern: "content",
+      contentFacet: { name: "system-static-assets", extensions: [".mdx"] },
+    } as unknown as ZintlFacet;
+
+    const { facets, trace } = assembleFacetsWithTrace({
+      ...vite,
+      frameworks: ["react"],
+      facets: [BUILTINS, mine],
+    });
+
+    expect(facets.filter((f) => f.name === "system-static-assets")).toEqual([mine]);
+    expect(trace.find((e) => e.name === "system-static-assets (built-in)")?.reason).toBe(
+      'replaced by the "system-static-assets" facet you passed',
+    );
+  });
+
+  /**
+   * Order is not load-bearing — the property `activate.ts` states in its header
+   * and the one the old name-dedupe quietly broke.
+   */
+  it("replaces the built-in whichever side of the sentinel it is listed on", () => {
+    const mine = { name: "system-static-assets", concern: "content" } as ZintlFacet;
+
+    for (const facets of [
+      [BUILTINS, mine],
+      [mine, BUILTINS],
+    ] as FacetsInput[][]) {
+      const resolved = assembleFacets({ ...vite, frameworks: ["react"], facets });
+      expect(resolved.filter((f) => f.name === "system-static-assets")).toEqual([mine]);
+    }
   });
 });
 

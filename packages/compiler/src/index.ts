@@ -354,6 +354,8 @@ export class ZintlCompiler {
   private _outputDir: string;
   private _prune: boolean;
   private _verifyIntegrity: boolean;
+  /** @see CompilerOptions.pseudoLocalize */
+  public readonly pseudoLocalize: boolean;
   private readonly debug?: boolean | string;
 
   public get _logger() {
@@ -500,6 +502,7 @@ export class ZintlCompiler {
     this._outputDir = options.outputDir || DEFAULT_OUTPUT_DIR;
     this._prune = options.prune ?? true;
     this._verifyIntegrity = options.verifyIntegrity ?? false;
+    this.pseudoLocalize = options.pseudoLocalize ?? true;
     this.io = new IOManager(
       root,
       isDev,
@@ -3320,6 +3323,15 @@ export function getRuntimeCode(
    * that never had the attribute.
    */
   rtlLocales: string[] = [],
+  /**
+   * Render an untranslated string as visibly-pseudo-localized text instead of
+   * an empty one.
+   *
+   * Defaults to `false` for the same reason `isDev` does: a caller that forgets
+   * gets the production behaviour. Meaningful only alongside `isDev`, since the
+   * branch it controls sits inside the `__ZINTL_DEV__` guard.
+   */
+  pseudo = false,
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -3363,5 +3375,11 @@ export function getRuntimeCode(
    * and simply believes the wrong thing.
    */
   code = code.replace(/\b__ZINTL_RTL_LOCALES__\b/g, JSON.stringify(rtlLocales));
+  /**
+   * Same mechanism again. Folding to a literal `false` is what lets the
+   * minifier drop both the branch and `pseudoLocalize` itself — a dev
+   * affordance that shipped as dead weight would fail the rule it exists under.
+   */
+  code = code.replace(/\b__ZINTL_PSEUDO__\b/g, isDev && pseudo ? "true" : "false");
   return code;
 }

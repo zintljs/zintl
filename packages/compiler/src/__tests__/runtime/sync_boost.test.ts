@@ -37,9 +37,10 @@ describe("Zintl Runtime: Synchronous Boost", () => {
     // Sync part already done!
     expect(t("sync", { _bId: "s1" })).toBe("value");
 
-    // Async part not yet done!
+    // Async part not yet done, so the key is a miss and renders as a marked
+    // placeholder while serving rather than as an empty string.
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(t("async", { _bId: "a1" })).toBe("");
+    expect(t("async", { _bId: "a1" })).toBe("⟦àšýñç⟧");
     spy.mockRestore();
 
     await promise;

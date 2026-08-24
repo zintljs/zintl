@@ -65,6 +65,7 @@ export interface CompilerOptions {
   debug?: boolean | string;
   prune?: boolean;
   verifyIntegrity?: boolean;
+  pseudoLocalize?: boolean;
   multiplex?: boolean;
   /**
    * Entry scripts an HTML document loads, where the markup does not say so.

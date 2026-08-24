@@ -50,6 +50,26 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 `verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do.
 
+## Untranslated strings while you work
+
+| Option           | Type      | Default | What it does                                                                                    |
+| :--------------- | :-------- | :------ | :---------------------------------------------------------------------------------------------- |
+| `pseudoLocalize` | `boolean` | `true`  | While serving, show an untranslated string as `⟦Ẇéļçöṁé ƀàçķ!⟧` rather than as an empty string. |
+
+Catalogs start empty. `verifyIntegrity` is off while serving, and a missing key resolves to `""`, so switching locale on a fresh project used to blank the page — nothing broken, nothing said, the app just emptied.
+
+`pseudoLocalize` replaces that silence with something you can see:
+
+```
+⟦Ýöü ĥàṽé 3 ñéẁ ṁéššàĝéš⟧
+```
+
+**This is not a fallback to the source locale**, and the distinction is the whole design. The text is deliberately unmistakable — nobody reads that as a translation, and nobody ships it. It lives inside the `__ZINTL_DEV__` guard, so a production build folds the branch away and the transform with it; `verifyIntegrity` still fails that build. What you get is a dev server that tells you what is missing by showing you, and a build that refuses on the same set.
+
+Placeholders and markup are left alone, and the result goes through normal interpolation: `{count}` shows the real count, `<a>` renders as a link. The layout stays honest; only the words announce themselves.
+
+Set it to `false` if you would rather see the empty strings.
+
 ## Build shape
 
 | Option      | Type            | Default        | What it does                                                                                                                                          |
@@ -81,6 +101,23 @@ import { excludeFacet } from "zintljs/facets";
 
 zintl({ facets: ["builtins", excludeFacet("client-spa")] });
 ```
+
+### Naming a built-in reconfigures it
+
+Passing a facet with the same name as a built-in **replaces** that built-in, on either side of the sentinel:
+
+```ts
+zintl({ facets: ["builtins", assetsFacet({ targets: ["mdx"] })] }); // yours wins
+zintl({ facets: [assetsFacet({ targets: ["mdx"] }), "builtins"] }); // and here too
+```
+
+The activation trace records the one that stepped aside, so this is visible rather than assumed:
+
+```
+✗ system-static-assets (built-in)   replaced by the "system-static-assets" facet you passed
+```
+
+Order does not decide this, and that is deliberate — membership is settled by name and provenance, precedence by `priority`. Neither depends on where in the list a facet was written.
 
 ### Writing a facet
 

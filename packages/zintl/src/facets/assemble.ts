@@ -144,27 +144,52 @@ function bundlerFacets(): ZintlFacet[] {
  * Flatten user facet input, expanding the builtins sentinel, thunks and arrays.
  *
  * Exclusions are collected rather than returned: they are instructions about
- * the list, not members of it.
+ * the list, not members of it. So are overrides — see below.
+ *
+ * ## Naming a built-in facet replaces it
+ *
+ * `facets: ["builtins", assetsFacet({ targets: ["mdx"] })]` is the obvious way
+ * to reconfigure one built-in, and it used to be a coin flip. Both facets are
+ * called `assets`, both sit at priority 0, and `resolveFacets` dedupes by name
+ * with a stable sort — so whichever the caller happened to list first won, and
+ * the other was discarded in silence. Listing `"builtins"` first, which is what
+ * the docs show, discarded the user's.
+ *
+ * That is a direct violation of the invariant `activate.ts` states in its
+ * header: *order is deliberately not load-bearing*. Membership belongs here,
+ * precedence belongs to `priority`, and neither is supposed to care what order
+ * facets were registered in.
+ *
+ * So provenance is tracked, and a facet the user named by hand replaces the
+ * built-in of the same name wherever either appears in the list. The names it
+ * replaced come back in `overridden` so the activation trace can say so —
+ * silence was the actual defect here, not the choice of winner.
+ *
+ * `alwaysCandidates` (the bundler facets) are treated as built-ins for this
+ * purpose: a project shipping its own `vite` facet means to replace ours.
  */
 export function flattenFacets(
   inputs: FacetsInput[],
   builtins: ZintlFacet[],
-): { facets: ZintlFacet[]; excluded: Set<string> } {
+  alwaysCandidates: ZintlFacet[] = [],
+): { facets: ZintlFacet[]; excluded: Set<string>; overridden: Set<string> } {
   const facets: ZintlFacet[] = [];
+  /** Parallel to `facets`: did this entry come from us rather than the user? */
+  const isOurs: boolean[] = [];
   const excluded = new Set<string>();
 
-  function processInput(input: unknown): void {
+  function processInput(input: unknown, ours: boolean): void {
     if (!input) return;
     if (input === BUILTINS) {
-      for (const f of builtins) processInput(f);
+      for (const f of builtins) processInput(f, true);
       return;
     }
     if (typeof input === "function") {
-      processInput((input as () => unknown)());
+      processInput((input as () => unknown)(), ours);
       return;
     }
     if (Array.isArray(input)) {
-      for (const item of input) processInput(item);
+      for (const item of input) processInput(item, ours);
       return;
     }
     if (isExclusion(input)) {
@@ -173,13 +198,26 @@ export function flattenFacets(
     }
     if (typeof input === "object") {
       facets.push(input as ZintlFacet);
+      isOurs.push(ours);
       return;
     }
   }
 
-  for (const input of inputs) processInput(input);
+  for (const input of inputs) processInput(input, false);
+  for (const facet of alwaysCandidates) processInput(facet, true);
 
-  return { facets, excluded };
+  const userNames = new Set(facets.filter((_, i) => !isOurs[i]).map((f) => f.name));
+  const overridden = new Set<string>();
+
+  // Filtered in place rather than re-grouped: dropping entries preserves the
+  // relative order of everything that survives, where partitioning would not.
+  const kept = facets.filter((facet, i) => {
+    if (!isOurs[i] || !userNames.has(facet.name)) return true;
+    overridden.add(facet.name);
+    return false;
+  });
+
+  return { facets: kept, excluded, overridden };
 }
 
 function toContext(input: AssembleInput): FacetActivationContext {
@@ -198,12 +236,24 @@ function toContext(input: AssembleInput): FacetActivationContext {
  * The active facet list for a project, with the trace explaining every decision.
  */
 export function assembleFacetsWithTrace(input: AssembleInput): ActivationResult {
-  const { facets, excluded } = flattenFacets(input.facets ?? [BUILTINS], builtinFacets(input));
-  const candidates = [...facets, ...bundlerFacets()].filter((f) => !excluded.has(f.name));
+  const { facets, excluded, overridden } = flattenFacets(
+    input.facets ?? [BUILTINS],
+    builtinFacets(input),
+    bundlerFacets(),
+  );
+  const candidates = facets.filter((f) => !excluded.has(f.name));
   const result = activateFacets(candidates, toContext(input));
 
   for (const name of excluded) {
     result.trace.push({ name, active: false, reason: "excluded by configuration" });
+  }
+
+  for (const name of overridden) {
+    result.trace.push({
+      name: `${name} (built-in)`,
+      active: false,
+      reason: `replaced by the "${name}" facet you passed`,
+    });
   }
 
   return result;

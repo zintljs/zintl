@@ -35,12 +35,18 @@ export default defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   /**
-   * `__ZINTL_DEV__` is the runtime's build-time dev sentinel. `getRuntimeCode()`
-   * substitutes it to a literal before serving, but unit tests import the
-   * runtime modules directly and bypass that, so it must be defined here.
+   * The runtime's build-time sentinels. `getRuntimeCode()` substitutes them to
+   * literals before serving, but unit tests import the runtime modules directly
+   * and bypass that, so they must be defined here.
+   *
+   * Both carry their **dev** values, because that is the environment a unit test
+   * importing the runtime is standing in. The production folding is asserted
+   * where it actually happens, against `getRuntimeCode`'s output, rather than
+   * approximated here.
    */
   define: {
     __ZINTL_DEV__: "true",
+    __ZINTL_PSEUDO__: "true",
   },
   test: {
     exclude: [...configDefaults.exclude, "**/__tests__/examples/**", "tests/**"],

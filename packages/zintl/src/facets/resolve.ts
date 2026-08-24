@@ -548,7 +548,17 @@ export function resolveFacets(facets: ZintlFacet[] = []): CompilerCapabilities {
     return pB - pA;
   });
 
-  // 2. Deduplicate facets by name (keeping the one with the highest priority first)
+  /**
+   * 2. Deduplicate by name, highest priority first.
+   *
+   * A last-resort tiebreak, not the place user intent is honoured. The case
+   * that actually matters — a project naming a built-in facet to reconfigure it
+   * — is settled in `flattenFacets`, by provenance, before anything reaches
+   * here. What is left is same-name facets that arrived by another route (a
+   * direct `resolveFacets` call, as the test harness makes), where first-wins
+   * at equal priority is a defined rule rather than an accident of sort
+   * stability.
+   */
   const uniqueFacets: ZintlFacet[] = [];
   const seen = new Set<string>();
   for (const a of sorted) {
