@@ -50,6 +50,22 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 `verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do.
 
+### When a release cannot wait for a translator
+
+It happens: a string lands on Friday, the translators are back Monday, and the build is red. There is no gentler gate for this, and that is deliberate — every design that lets a build pass with holes ships blank text to real users, which is the thing Zintl exists to prevent.
+
+So the escape hatch is one explicit, temporary decision rather than a permanent setting:
+
+```ts
+zintl({ locales: ["en", "ar", "fr"], verifyIntegrity: false });
+```
+
+Ship it knowing those strings render empty for anyone on an affected locale, and turn it back on with the translations. Zintl will not make that choice quiet, but it will not make it for you either.
+
+What stops it being a surprise is the status line below — the completeness you have been watching all week is the same number the gate is about to check.
+
+Standing up a **brand-new** locale over weeks is a different situation, and one where turning the gate off project-wide is the wrong tool. That is [proposal 031](/docs/spec/proposals/031-pending-locales.md), designed and deliberately deferred past the first beta.
+
 ## Untranslated strings while you work
 
 | Option           | Type      | Default | What it does                                                                                    |
@@ -69,6 +85,23 @@ Catalogs start empty. `verifyIntegrity` is off while serving, and a missing key 
 Placeholders and markup are left alone, and the result goes through normal interpolation: `{count}` shows the real count, `<a>` renders as a link. The layout stays honest; only the words announce themselves.
 
 Set it to `false` if you would rather see the empty strings.
+
+### Progress, per locale
+
+Every dev flush prints completeness when it changes:
+
+```
+[Zintl/WARN] Translations ar 44/47 · fr 12/47 — 38 missing, a production build will fail until they are filled
+[Zintl/INFO] Translations complete — ar 47/47 · fr 47/47
+```
+
+Incomplete is a **warning**, not an info, because it is not a status update — it is a build that is going to fail, reported early enough to act on. At `info` it would be the first line to disappear for anyone running `logLevel: "warn"`, who would keep every line they did not care about and lose the one that predicts the failure.
+
+Counted the same way the build gate counts, so the number cannot tell you one thing and CI another. Printed only on change, so a translator saving a catalog is a line you notice rather than one more in a stream.
+
+There is no build-time equivalent, and there is nothing to add: a build either passes at 100% or fails with the full list of what is missing.
+
+`getTranslationStatus()` on the compiler returns the same counts, for a facet or a host integration that wants them without the log.
 
 ## Build shape
 

@@ -2512,6 +2512,12 @@ export class ZintlCompiler {
       clearTimeout(this.autoFlushTimeout);
       this.autoFlushTimeout = null;
     }
+    // A report queued by the previous flush is about to be superseded by this
+    // one, and an unowned timer outliving the compiler holds the process open.
+    if (this._statusTimeout) {
+      clearTimeout(this._statusTimeout);
+      this._statusTimeout = null;
+    }
 
     if (this.flushPromise) {
       /**
@@ -2829,6 +2835,7 @@ export class ZintlCompiler {
       }
 
       await this.verifyIntegrity();
+      this.scheduleTranslationStatus();
       this.logger.debug("Flush complete");
       this.messages.commitReconciliation();
       /**
@@ -2891,6 +2898,111 @@ export class ZintlCompiler {
     if (!absolute) return null;
     const rel = relative(this.root, absolute);
     return rel && !rel.startsWith("..") ? toPosixPath(rel) : absolute;
+  }
+
+  /**
+   * Per-locale translation completeness, as of the last reconciliation.
+   *
+   * Counted against the **hive** rather than by re-reading catalogs from disk,
+   * for two reasons. It is the same thing {@link verifyIntegrity} accepts — a
+   * key the hive can satisfy is a key that passes the gate — so the number
+   * cannot disagree with whether the build will succeed. And it is pure
+   * in-memory set arithmetic, so it costs nothing worth measuring on a dev
+   * flush, where re-reading every catalog for every locale would.
+   *
+   * Source-locale entries are excluded: they are never written to disk and are
+   * translated by definition.
+   */
+  public getTranslationStatus(): { locale: string; translated: number; total: number }[] {
+    const keys = new Set<string>();
+    for (const entries of Object.values(this.internalManifest)) {
+      for (const entry of entries) keys.add(entry.text);
+    }
+
+    return this.locales
+      .filter((locale) => locale !== this.sourceLocale)
+      .map((locale) => {
+        const known = this.messages.hive[locale];
+        let translated = 0;
+        if (known) for (const key of keys) if (known[key]) translated++;
+        return { locale, translated, total: keys.size };
+      });
+  }
+
+  /**
+   * The last status line printed, so an unchanged one is not printed again.
+   *
+   * A dev flush runs on every edit. Without this the terminal fills with the
+   * same counts, and the one line that matters — the count changing because a
+   * translator just saved a catalog — is the one nobody notices.
+   */
+  private _lastStatusLine = "";
+
+  private _statusTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Queue a progress report, coalescing a burst of edits into one line.
+   *
+   * Debounced rather than computed inline, and that is a measurement rather
+   * than a preference: counting every manifest key against every locale is
+   * cheap in isolation and not cheap on the flush path, which is the HMR hot
+   * path. Inline, it pushed `Colony HMR Latency (Manager Sync)` from within
+   * budget to 3.2x calibration against a 1.6x budget — caught by `vpr bench`,
+   * confirmed by re-running the benchmark with the call removed.
+   *
+   * Nothing needs this synchronously. It is a number for a human reading a
+   * terminal, so it can wait for the edits to stop — which also means one line
+   * per burst instead of one per keystroke.
+   */
+  private scheduleTranslationStatus() {
+    if (this._verifyIntegrity) return;
+    if (this._statusTimeout) clearTimeout(this._statusTimeout);
+    this._statusTimeout = setTimeout(() => {
+      this._statusTimeout = null;
+      this.reportTranslationStatus();
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Announce translation progress while serving.
+   *
+   * Only while serving, and that is not an oversight: a build either passes
+   * {@link verifyIntegrity} at 100% or fails with the list, so a build-time
+   * summary could only ever read "everything is translated". Dev is where the
+   * number is both true and interesting, and where finding out beats finding
+   * out from CI on a Friday.
+   */
+  private reportTranslationStatus() {
+    if (this._verifyIntegrity) return;
+    const status = this.getTranslationStatus();
+    if (status.length === 0 || status[0].total === 0) return;
+
+    const line = status
+      .map(({ locale, translated, total }) => `${locale} ${translated}/${total}`)
+      .join(" · ");
+    if (line === this._lastStatusLine) return;
+    this._lastStatusLine = line;
+
+    /**
+     * Severity tracks consequence, not tone.
+     *
+     * An incomplete locale is not a status update — it is a build that will
+     * fail, reported early enough to do something about it. Logged at `info` it
+     * is the first thing to disappear for anyone running `logLevel: "warn"`,
+     * which is a common choice in CI and in quiet-build setups: they would keep
+     * every line they did not care about and lose the one that predicts the
+     * failure. `warn` is where a coming failure belongs.
+     *
+     * Complete is genuinely just news, and stays at `info`.
+     */
+    const missing = status.reduce((n, s) => n + (s.total - s.translated), 0);
+    if (missing === 0) {
+      this.logger.info(`Translations complete — ${line}`);
+    } else {
+      this.logger.warn(
+        `Translations ${line} — ${missing} missing, a production build will fail until they are filled`,
+      );
+    }
   }
 
   /**
