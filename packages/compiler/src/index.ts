@@ -70,6 +70,33 @@ export type * from "./types/capabilities.js";
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
 
+/**
+ * A sink type, as something to show a translator.
+ *
+ * `ObservedSink.sinkType` is written for two audiences at once. From JSX it is
+ * already human — `div`, `button`, the element the text sat in. From HTML it is
+ * machine — `html:attr:alt` names the attribute *and* how to splice a
+ * replacement back into source. A translator can act on `alt`; `html:attr:alt`
+ * tells them nothing, so the transport prefix is dropped.
+ *
+ * Metadata only. This never participates in message identity — see
+ * {@link ManifestEntry.context} and proposal 032 §8.1 — which is what makes
+ * normalising it for readability a safe thing to do at all.
+ */
+function translatorContext(sinkType: string | undefined): string | undefined {
+  if (!sinkType) return undefined;
+  if (sinkType.startsWith("html:attr:")) return sinkType.slice("html:attr:".length) || undefined;
+  /**
+   * The one sink type that names a position rather than a thing — and the one
+   * place this is thinner than it looks. JSX reports the element (`button`),
+   * because the visitor has it; every HTML text node arrives as `HTML_TEXT`, so
+   * an `<h1>` and a `<p>` are indistinguishable by the time it reaches here.
+   * Closing that is extractor work. Proposal 032 §3 assumes the richer version.
+   */
+  if (sinkType === "HTML_TEXT") return "text";
+  return sinkType;
+}
+
 /** One `zintl()` anchor naming a locale the project does not build. */
 interface UnsupportedAnchorLocale {
   fileId: string;
@@ -1927,6 +1954,7 @@ export class ZintlCompiler {
           text: string;
           boundaryId: string;
           location: SourceLocation;
+          sinkType?: string;
           note?: string;
           variables?: { name: string }[];
           passVars?: Record<string, string>;
@@ -1937,6 +1965,19 @@ export class ZintlCompiler {
             text: msg.text,
             boundaryId: msg.boundaryId,
             location: msg.location,
+            /**
+             * Per sink, deliberately not unioned across them.
+             *
+             * The extractor aggregates its own `contexts` because it keys by
+             * message; this keys by sink, so one string reached from a `button`
+             * and a `title` produces two entries carrying one context each.
+             * That is information rather than duplication, and unioning it here
+             * would mean collapsing entries — a change to how many manifest
+             * entries exist, which `generateSchema` and `verifyIntegrity` both
+             * walk. A consumer that wants the union should take it; see
+             * proposal 032 §7.
+             */
+            context: translatorContext(msg.sinkType),
             note: msg.note,
             variables: [
               ...new Set([

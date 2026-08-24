@@ -33,7 +33,30 @@ import type { SourceLocation } from "./types/ast.js";
 export type ManifestEntry = {
   id: string;
   text: string;
-  /** Translator-facing disambiguation context. Declared but never populated or read today. */
+  /**
+   * Where this string appears, as something to *show* a translator — `alt`,
+   * `button`, `meta.desc`. Not populated or read yet; see proposal 032.
+   *
+   * **Metadata, not a key.** It was called "disambiguation context", which
+   * reads as gettext's `msgctxt`, where the same text in two places becomes two
+   * separately translatable units. That is not what this is, and the difference
+   * is decided rather than incidental: `generateMessageId` ignores its
+   * `_context` parameter so one string reached through `title` and `alt` stays
+   * **one** message, and a test pins that. This field annotates that single
+   * message; it never splits it.
+   *
+   * The consequence is worth stating, because it is a real constraint rather
+   * than an oversight. Two identical source strings needing different
+   * translations in one locale cannot be told apart here — and the intended
+   * answer is to make the source distinguish them, since two strings that need
+   * different translations are two different strings. `@zintl-note` covers the
+   * cases where they genuinely are the same string and a translator just needs
+   * telling.
+   *
+   * Source: `ExtractedMessage.contexts` (a `string[]`, accumulated across every
+   * site the text appears at). Collapsing that list is safe precisely because
+   * this is metadata — a key could not be joined.
+   */
   context?: string;
   boundaryId: string;
   location: SourceLocation;

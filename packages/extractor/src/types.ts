@@ -62,7 +62,20 @@ export interface ExtractionResult {
   runtimeImports: string[];
   dependencies: BoundaryDep[];
   usedKeys: Set<string>;
-  /** Map of boundaryId -> sha1 hash of its messages (text+context+note) */
+  /**
+   * Map of boundaryId -> `b_` + the first 12 hex of `sha1(boundaryId)`.
+   *
+   * A hash of the **id**, not of the messages. The comment here used to read
+   * "sha1 hash of its messages (text+context+note)", which describes something
+   * this has never done — `computeBoundaryHashes` has exactly one assignment
+   * and it hashes `bId` alone. Worth correcting rather than leaving, because a
+   * hash that appeared to cover message text would look like the mechanism that
+   * detects message changes, and it is not one.
+   *
+   * Message identity is separate and lives in `generateMessageId`, which hashes
+   * the source text alone — deliberately ignoring its `_context` and `_note`
+   * parameters, so one string reached through two attributes stays one message.
+   */
   boundaryHashes: Record<string, string>;
   /** Location and actual source of existing import from "zintljs" used for merging. */
   zintlImportGroup?: { start: number; end: number; source: string };
