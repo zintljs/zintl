@@ -30,6 +30,15 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+/** The Node range this repo declares, quoted back when the toolchain is wrong. */
+const ENGINES = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).engines?.node;
+  } catch {
+    return undefined;
+  }
+})();
+
 const args = process.argv.slice(2);
 const filter = args.find((a) => !a.startsWith("--"));
 const runsArg = args.find((a) => a.startsWith("--runs="));
@@ -57,8 +66,60 @@ const red = (s) => `\x1b[31m${s}\x1b[39m`;
 
 const log = (m = "") => process.stdout.write(`${m}\n`);
 
+/**
+ * Stop, loudly, when the toolchain is not on PATH.
+ *
+ * `run` spawns with `shell: false`, so it needs the real `vp`/`vpr` binaries —
+ * which live in `node_modules/.bin`, not in the shell function a profile
+ * defines. In a shell missing that entry, or one whose `nvm` left an
+ * unsupported Node first, every spawn fails with `ENOENT`, `status` is `null`,
+ * and the loop below counts each one as a run that failed.
+ *
+ * The report then reads `5/5 runs had a failure   0s total, 0s per run`, which
+ * is a measurement of nothing wearing the costume of a measurement. That is the
+ * one output this instrument must never produce: it exists because judging a
+ * change on unreliable numbers cost this project four reverts in one session,
+ * and a confident 5/5 against a command that never executed is worse than any
+ * of them.
+ *
+ * The `0s per run` was the only tell, and it is not one anybody should have to
+ * notice.
+ */
+function bailMissingBinary(cmd) {
+  log("");
+  log(red(`CANNOT RUN — "${cmd}" is not on PATH, so nothing was measured.`));
+  log("");
+  log(`  Node in use:  ${process.version}`);
+  log(`  This repo needs: ${ENGINES ?? "see package.json engines"}`);
+  log("");
+  log(dim("  `vp` and `vpr` are binaries in node_modules/.bin — a shell function"));
+  log(dim("  of the same name is not enough here, because runs spawn without a shell."));
+  log("");
+  log("  Try:");
+  log(`    export PATH="${ROOT}/node_modules/.bin:$PATH"`);
+  log(dim("    …and check `node --version` against the range above."));
+  process.exit(2);
+}
+
 function run(cmd, cmdArgs) {
-  return spawnSync(cmd, cmdArgs, { cwd: ROOT, encoding: "utf8", shell: false });
+  const result = spawnSync(cmd, cmdArgs, { cwd: ROOT, encoding: "utf8", shell: false });
+  if (result.error?.code === "ENOENT") bailMissingBinary(cmd);
+  return result;
+}
+
+/**
+ * Fail before the header rather than after it.
+ *
+ * `run` catches this too, but with `--no-build` the first spawn is a measured
+ * run, so the banner and a `── 5 runs ──` heading print before anything
+ * discovers there is no toolchain. Checking first means the error is the only
+ * thing on screen.
+ */
+function ensureToolchain() {
+  for (const bin of ["vp", "vpr"]) {
+    const probe = spawnSync(bin, ["--version"], { cwd: ROOT, encoding: "utf8", shell: false });
+    if (probe.error?.code === "ENOENT") bailMissingBinary(bin);
+  }
 }
 
 /**
@@ -140,6 +201,7 @@ function batch(mode) {
   return runsWithFailures;
 }
 
+ensureToolchain();
 ensureBuilt();
 
 const modes = MODE === "both" ? ["warm", "cold"] : [MODE];
