@@ -1,7 +1,10 @@
 # Proposal 033: Structural Defaults and Declared Targets
 
 **Status**: OPEN — design, backed by a measurement (§1). The rule in §3 is settled in principle; §4–§6
-are the mechanisms it needs, and §9 has the decisions that are not mine to make.
+are the mechanisms it needs. §9.1 is decided and **shipped**, including the
+receiver-qualified `dom:<receiver>:<property>` descriptor it needed. §4 is built (both declared-target families) and §10's
+validation gap is closed. §5 (`@zintl-target`) is built. §9.2 and §9.3 remain open, and `obj:field:*` stays in
+the defaults pending §8's migrations.
 **Date**: 2026-08-24
 **Kind**: Design proposal, with an audit attached. Every number below was produced by running the
 extractor, not by reading it.
@@ -112,7 +115,7 @@ English words. §9.1 is the decision.
 3. **Framework-declared user-facing surfaces become structural targets**, because the framework has
    already said what they are. Next.js metadata is the first (§7.2).
 
-## 4. Declared targets: `obj:<name>:<field>`
+## 4. Declared targets: `obj:<name>:<field>` — built 2026-08-25
 
 The DSL is already qualified elsewhere — `jsx:<element>:<attr>`, with `*` for any element
 (`targets.ts:64`). So this is the same shape rather than a new concept:
@@ -155,6 +158,23 @@ relation, and folding it into `obj:` would be a trap. It wants its own spelling:
 what a real strings object looks like, so `obj:ui:title` should match at **any depth** below the
 binding. Direct-child-only would make the feature useless for its main use case.
 
+### 4.2a As built
+
+Both families ship. `obj:<binding>:<field>` with `obj:*:` and `obj:field:` as the any-object
+spellings; `call:<function>:<field>` as its own family, for the reason §4.2 gives.
+
+The three decisions §4.2 forced were settled as proposed: `export default { … }` is **not
+addressable** (no name to declare against — §5's directive is the answer), `cfg({ … })` got its own
+`call:` spelling rather than being folded into `obj:`, and the binding is matched at **any depth**
+below it, because `{ home: { title }, about: { title } }` is what a strings object actually looks
+like.
+
+One thing the probe in §4.1 did not predict, and it is worth recording because it inverts the
+obvious reading: **`parents[0]` is the _immediate_ parent** — `walker.ts` builds the chain as
+`[node, ...parents]`, so ascending index walks _outward_. Iterating in reverse reads naturally and is
+wrong: an enclosing binding answers before the call or object nearer the literal, so
+`const cfg = defineConfig({ title })` resolved to `cfg` and missed `call:defineConfig:title`.
+
 ### 4.3 The residual risk, stated
 
 This is still name-based. Rename `ui` to `strings` and extraction stops silently.
@@ -164,7 +184,7 @@ What changes is _whose_ name it is. Today the silent break is keyed on a noun th
 convention the user declared in their own config, in their own codebase. Same mechanism, very
 different accountability, and it is the accountability the rule in §0 is about.
 
-## 5. `@zintl-target` — opt-in at the site
+## 5. `@zintl-target` — opt-in at the site — built 2026-08-25
 
 The directive vocabulary is `@zintl-ignore`, `@zintl-note`, `@zintl-pass`. **There is no opt-in
 directive**, and that is the missing half.
@@ -188,6 +208,24 @@ They fail in opposite places, which is the argument for having both:
 
 A project uses the descriptor for its convention and the directive for the exceptions. Neither is a
 default, so §0 holds either way.
+
+### 5.1a As built
+
+A region, not a per-node flag — `pushTarget`/`popTarget` mirroring `pushSuppression`, and a counter
+rather than a boolean because regions nest and an inner one ending must not end the outer. Inside one,
+every string field of an object literal is a sink regardless of its name; `@zintl-ignore` is still
+honoured within, so the pair composes.
+
+It attaches to the statement shapes that can carry a directive above an object: `VariableDeclaration`,
+`ExportDefaultDeclaration`, `ExpressionStatement`, `ReturnStatement`, `PropertyDefinition`. The last
+two are there so a marked region behaves the same wherever an object is produced, matching how §4's
+binding walk crosses function bodies.
+
+**The `Property` visitor's registration gate had to be kept.** It was previously "any object-field
+target is configured"; a `@zintl-target` can exist with no targets configured at all, so the gate now
+also asks whether the file contains the directive — a one-off string scan per file rather than a
+per-node check. Removing the gate instead makes the visitor run on every `Property` in every project,
+including the many with no object targets, to answer "no" each time.
 
 ### 5.2 On the name
 
@@ -242,9 +280,9 @@ whole sequencing argument.
 
 Order:
 
-1. Add `obj:<name>:<field>` and `call:<fn>:<field>` (§4). Additive; nothing breaks.
-2. Add `@zintl-target` (§5). Additive.
-3. Document `tag:` and migrate `vanilla-ssr` (§6, §7.1).
+1. ~~Add `obj:<name>:<field>` and `call:<fn>:<field>` (§4).~~ **Done** — additive, nothing broke.
+2. ~~Add `@zintl-target` (§5).~~ **Done** — additive.
+3. Document `tag:` and migrate `vanilla-ssr` (§6, §7.1). ~~Add `@zintl-target` (§5).~~ **Done.**
 4. Turn the Next.js metadata suppression into a target and migrate `vinext-basic` (§7.2).
 5. **Only then** remove nominal targets from the defaults — with every example already migrated, so
    the contract suite proves the removal rather than absorbing it.
@@ -255,16 +293,83 @@ instead?" is documented and demonstrated.
 
 ## 9. Open questions
 
-### 9.1 How absolute is the rule for `dom:prop:*`?
+### 9.1 `dom:prop:*` — decided 2026-08-24: keep the coinages, drop the English words
 
-§0 says _never_, which drops the whole family — including `textContent` and `innerHTML`, which are how
-vanilla apps write text. That is a far larger behavioural change than `obj:field:*`.
+**Kept:** `innerHTML`, `textContent`, `innerText`, and `title` — the last receiver-qualified as
+`dom:document:title`, which is what makes it admissible.
+**Dropped:** `alt`, `placeholder`, `aria-label`, `aria-description`, `value` — variable receivers, so
+there is no evidence available to qualify them with.
 
-§2.1 offers a middle: keep the DOM coinages (`innerHTML`, `textContent`, `innerText`), drop the
-English words (`title`, `value`, `alt`, `placeholder`, `label`, `description`, `aria-*`). Still
-nominal, but the name is strong evidence — nobody calls an ordinary field `innerHTML`.
+The line is §2.1's: `innerHTML` is a DOM coinage, so the name is itself the evidence. `alt`, `value`
+and the rest are English words that appear on configs and telemetry, and as _defaults_ they broke §0
+by construction.
 
-This needs deciding explicitly, not sweeping in with the object fields.
+#### The measurement that was not enough
+
+The static audit said **0 of 30 examples affected, 0 strings lost**, and it was wrong — not in its
+arithmetic, but in its scope. It read the examples **as committed on disk**. Contract fixtures
+_synthesize_ source at test time, and eight of them insert exactly this:
+
+```js
+await zintl(extraLang);
+document.title = "Extra anchor added"; // a dom:prop:title sink
+```
+
+That line is what gives the new anchor's boundary content. Without it the graph does not grow, so the
+structural-HMR route is never taken and `[HMR Growth]` fails on `rsbuild-react-basic` and
+`rsbuild-vue-basic`. Measured with `scripts/flake.js`, both conditions in one batch:
+
+| Condition            | Result           | Per run |
+| :------------------- | :--------------- | :------ |
+| With the six removed | **10/10 failed** | 112s    |
+| Baseline             | **0/10 failed**  | 45s     |
+
+**The lesson generalises past this change: an audit of static sources cannot see strings that tests
+synthesize, and this repository's contract fixtures synthesize a lot of them.** Any future change to
+the default target set needs the contract suite as well as a source audit — and `--runs=10` with a
+same-batch baseline is what turns "2 tests failed" into a number that means something.
+
+#### `title` came back, and then stopped being an exception
+
+`document.title` is the browser tab. It is as user-facing as text gets, and dropping it stopped real
+page titles being extracted — a genuine regression, not a fixture artifact.
+
+It differs from its five neighbours in exactly one way that matters: **its receiver is the `document`
+global**, a literal identifier in the source. That is structural evidence, the same kind
+`jsx:<element>:<attr>` rests on. `img.alt`, `input.placeholder` and `x.value` have variable receivers
+and no such evidence.
+
+`dom:prop:` could not use it, because it matched a property name and nothing else — so
+`telemetry.title` was extracted too, which is the defect this whole change was about.
+
+#### Resolved: `dom:<receiver>:<property>` — built 2026-08-25
+
+The `dom:` family is now qualified the way `jsx:` always was:
+
+```
+dom:prop:innerHTML     any receiver          (the original spelling, unchanged)
+dom:*:innerHTML        any receiver          (alias — jsx's convention, so there is only one)
+dom:document:title     document.title only   (new)
+```
+
+`vanillaFacet` declares `dom:document:title`, and the exception is gone — §0 holds with no carve-out:
+
+```js
+document.title = "REAL_PAGE_TITLE"; // extracted
+telemetry.title = "NOT_UI_title"; // not
+chart.title = "NOT_UI_chart_title"; // not
+```
+
+The receiver must be a plain identifier. `window.document.title` does **not** match, deliberately:
+following member chains means walking arbitrary receivers, which re-admits the guessing the
+descriptor exists to remove. Asserted as a floor rather than left to be discovered. The check runs
+only when the any-receiver set misses, so the common path is untouched.
+
+**This is the argument for §4 as well.** Qualification was proposed there as an opt-in convenience for
+users with a naming convention; it turns out to be what closes a hole in the _defaults_. The same
+reasoning carries to `obj:<name>:<field>`.
+
+`obj:field:*` remains untouched pending §8's migrations.
 
 ### 9.2 Does a declared target belong in config, or in the facet?
 
@@ -285,9 +390,15 @@ before someone relies on the other reading.
 - **Which structural targets are missing.** This argues about what defaults may contain, not whether
   the current structural set is complete. `dom:attr:*` is listed in the DSL docblock (`targets.ts:6`), declared in the
   descriptor union (`types.ts:244`), parsed (`targets.ts:89`) — and consumed by nothing. It pushes a
-  fast-path hint and is never added to any target set, so it matches nothing. Dead syntax or an
-  unfinished feature; either way it is worth its own look, and it should not be discovered by a user
-  who tried it.
+  fast-path hint and is never added to any target set, so it matches nothing.
+- ~~**Descriptor validation**~~ — **built 2026-08-25.** An unrecognised descriptor used to be silently
+  ignored: `obj:ui:title` (§4's proposed form, not yet real) and a typo like `dom:prop:titel` both
+  resolved to zero targets and reported nothing, which is §1.4's silent under-extraction arriving
+  through a config file — worse there, because the intent was stated out loud and dropped. Every form
+  now either matches or is refused at construction with the valid forms listed, covering unknown
+  prefixes, wrong arity, empty segments and paths where a name is expected. `dom:attr:` is refused
+  explicitly as never-implemented rather than accepted-and-inert, which also retired the assertion in
+  `targets.test.ts` that had recorded that no-op as a feature.
 - **The `sinkType` gap** from proposal 032 §7.1 — every HTML text node arrives as `HTML_TEXT`, so an
   `<h1>` and a `<p>` are indistinguishable downstream. Related, since both are about extraction
   carrying more evidence, but independently decidable.

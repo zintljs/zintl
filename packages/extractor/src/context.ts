@@ -390,6 +390,12 @@ export class ExtractionContext {
   public uiAttributes: Set<string>;
   public uiObjectFields: Set<string>;
   public uiSinkProperties: string[];
+  /** @see CompiledExtractionState.domReceiverProperties */
+  public uiSinkReceiverProperties: Map<string, Set<string>>;
+  /** @see CompiledExtractionState.objectNameFields */
+  public uiObjectNameFields: Map<string, Set<string>>;
+  /** @see CompiledExtractionState.callFields */
+  public uiCallFields: Map<string, Set<string>>;
   public jsxElementAttributes: Map<string, Set<string>>;
   public htmlAttributes: Set<string>;
   public targetPlugins: any[];
@@ -397,6 +403,15 @@ export class ExtractionContext {
   public logger: ZintlLogger;
   public isIgnoredFile = false;
   public suppressionLevel = 0;
+  /**
+   * Depth of enclosing `@zintl-target` regions.
+   *
+   * The mirror of {@link suppressionLevel}: inside one, every string field of
+   * an object literal is a sink regardless of its name. A counter rather than a
+   * boolean for the same reason — regions nest, and the inner one ending must
+   * not end the outer.
+   */
+  public targetLevel = 0;
   /** Pre-built fast-path regex derived from the active target configuration. */
   public readonly fastPathRegex: RegExp;
   /** True when at least one dom:prop target is configured (e.g. innerHTML). */
@@ -422,6 +437,19 @@ export class ExtractionContext {
     this.uiAttributes = options.uiAttributes ? new Set(options.uiAttributes) : new Set();
     this.uiObjectFields = options.uiObjectFields ? new Set(options.uiObjectFields) : new Set();
     this.uiSinkProperties = options.uiSinkProperties ? [...options.uiSinkProperties] : [];
+    this.uiSinkReceiverProperties = new Map(
+      options.uiSinkReceiverProperties
+        ? [...options.uiSinkReceiverProperties].map(([k, v]) => [k, new Set(v)])
+        : [],
+    );
+    this.uiObjectNameFields = new Map(
+      options.uiObjectNameFields
+        ? [...options.uiObjectNameFields].map(([k, v]) => [k, new Set(v)])
+        : [],
+    );
+    this.uiCallFields = new Map(
+      options.uiCallFields ? [...options.uiCallFields].map(([k, v]) => [k, new Set(v)]) : [],
+    );
     this.jsxElementAttributes = new Map();
     this.htmlAttributes = new Set();
     this.targetPlugins = [];
@@ -439,6 +467,30 @@ export class ExtractionContext {
       if (!this.uiSinkProperties.includes(prop)) {
         this.uiSinkProperties.push(prop);
       }
+    }
+    for (const [receiver, props] of compiledState.domReceiverProperties) {
+      let existing = this.uiSinkReceiverProperties.get(receiver);
+      if (!existing) {
+        existing = new Set();
+        this.uiSinkReceiverProperties.set(receiver, existing);
+      }
+      for (const prop of props) existing.add(prop);
+    }
+    for (const [binding, fields] of compiledState.objectNameFields) {
+      let existing = this.uiObjectNameFields.get(binding);
+      if (!existing) {
+        existing = new Set();
+        this.uiObjectNameFields.set(binding, existing);
+      }
+      for (const field of fields) existing.add(field);
+    }
+    for (const [fn, fields] of compiledState.callFields) {
+      let existing = this.uiCallFields.get(fn);
+      if (!existing) {
+        existing = new Set();
+        this.uiCallFields.set(fn, existing);
+      }
+      for (const field of fields) existing.add(field);
     }
     this.jsxElementAttributes = compiledState.jsxElementAttributes;
     this.htmlAttributes = compiledState.htmlAttributes;
@@ -491,6 +543,13 @@ export class ExtractionContext {
   }
   public popSuppression(comments: { ignore?: boolean }) {
     if (comments.ignore) this.suppressionLevel--;
+  }
+
+  public pushTarget(comments: { target?: boolean }) {
+    if (comments.target) this.targetLevel++;
+  }
+  public popTarget(comments: { target?: boolean }) {
+    if (comments.target) this.targetLevel--;
   }
 
   public addMessage(

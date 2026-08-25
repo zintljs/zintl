@@ -152,6 +152,92 @@ The activation trace records the one that stepped aside, so this is visible rath
 
 Order does not decide this, and that is deliberate — membership is settled by name and provenance, precedence by `priority`. Neither depends on where in the list a facet was written.
 
+### What counts as a translatable string
+
+Zintl extracts a string when it reaches a **sink target** — a place a string is known to be
+user-facing. Targets are declared by facets, so what a project extracts follows from which facets are
+active.
+
+The descriptor forms:
+
+| Form                    | Matches                                           | Example                                 |
+| :---------------------- | :------------------------------------------------ | :-------------------------------------- |
+| `jsx:<element>:<attr>`  | A JSX attribute; `*` for any element              | `jsx:*:alt`, `jsx:html:dir`             |
+| `html:attr:<attr>`      | An attribute in HTML or an SFC template           | `html:attr:placeholder`                 |
+| `dom:<receiver>:<prop>` | An assignment to a property; `*` for any receiver | `dom:*:innerHTML`, `dom:document:title` |
+| `dom:prop:<prop>`       | The original spelling of `dom:*:<prop>`           | `dom:prop:textContent`                  |
+| `obj:<binding>:<field>` | A field of an object; `*` for any object          | `obj:*:label`, `obj:ui:title`           |
+| `obj:field:<field>`     | The original spelling of `obj:*:<field>`          | `obj:field:label`                       |
+| `call:<fn>:<field>`     | A field of an object passed to that call          | `call:defineConfig:title`               |
+| `tag:<fn>`              | A tagged template literal holding markup          | `tag:html`                              |
+
+Plain text in HTML documents, SFC templates and JSX children needs no descriptor — it is text in
+markup, and that is already the evidence.
+
+**The receiver in `dom:` is what makes a default safe.** `dom:document:title` matches `document.title`
+— the browser tab — and nothing else, so `telemetry.title = "signup_click"` is left alone. The
+receiver must be a plain identifier: `window.document.title` does not match, deliberately, because
+following member chains means guessing again.
+
+The defaults for a plain JavaScript project:
+
+```
+dom:prop:innerHTML   dom:prop:textContent   dom:prop:innerText   dom:document:title
+obj:field:label      obj:field:title        obj:field:description
+obj:field:text       obj:field:tooltip      obj:field:placeholder
+```
+
+The `obj:field:*` entries match on a **field name alone**, with no knowledge of what the object is —
+so `{ label: "signup_click" }` is extracted like any label, and extraction rewrites the value, so it
+comes back translated at runtime. They are on notice; see
+[proposal 033](spec/proposals/033-structural-defaults-and-declared-targets.md).
+
+**Narrow them by naming what they belong to.** `obj:ui:title` matches a `title` inside `const ui = …`
+and nothing else; `call:defineConfig:title` matches the object passed to `defineConfig(…)`:
+
+```ts
+const ui = { home: { title: "Welcome" } }; // obj:ui:title — nested is fine
+const mkUi = () => ({ title: "Welcome" }); // obj:mkUi:title — functions too
+defineConfig({ title: "My site" }); //        call:defineConfig:title
+```
+
+The binding is the nearest one enclosing the object, found by walking outward, so a field several
+levels down still belongs to it. `export default { … }` has no name and cannot be targeted this way.
+
+`obj:` and `call:` are kept apart because _passed to `cfg()`_ and _bound to `cfg`_ are different
+relations — one descriptor covering both would make `call:cfg:title` match a `const cfg = { title }`
+that has nothing to do with the call.
+
+### Changing what is extracted
+
+`targets` **replaces** a facet's list rather than adding to it, so pass a full one:
+
+```ts
+import { vanillaFacet } from "zintljs/facets";
+
+zintl({
+  facets: [
+    "builtins",
+    vanillaFacet({
+      targets: [
+        "dom:prop:innerHTML",
+        "dom:prop:textContent",
+        "dom:document:title",
+        "obj:ui:title", // only objects named `ui`
+      ],
+    }),
+  ],
+});
+```
+
+Naming a built-in facet replaces it, on either side of the sentinel — see above.
+
+Adding a target widens what your build treats as user-facing. A string that should never have been
+translated is not only a wrong catalog entry: because extraction rewrites the value, it comes back
+translated at runtime, and because there is no fallback it also fails the build until someone
+translates it. `@zintl-ignore` opts a single site back out, and `t()` remains available for anything
+the targets cannot express.
+
 ### Writing a facet
 
 A facet with **no condition is unconditional** — it applies always, with no check performed. That is the right default for a facet you added to your own project, because you added it on purpose.

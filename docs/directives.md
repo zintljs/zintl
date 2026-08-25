@@ -18,6 +18,46 @@ Skip the next node, and everything nested inside it.
 
 Reach for this when a string looks like prose but isn't: product codes, brand names, debug output, or a language switcher whose labels are deliberately written in their own language.
 
+## `@zintl-target`
+
+The opposite of `@zintl-ignore`: extract every string in the next node, whatever its fields are called.
+
+```ts
+// @zintl-target
+export default {
+  title: "Zintl — compile-time i18n",
+  description: "Write your app in plain language.",
+};
+```
+
+Zintl finds strings by where they appear — in markup, in an `alt`, assigned to `textContent`. An
+ordinary object is not one of those places, and it cannot be: `{ label: "…" }` is as often an
+analytics event as a button. So plain objects are matched by field name, which is a guess, and you can
+[narrow that by naming the binding](configuration.md#changing-what-is-extracted) — `obj:ui:title`.
+
+This is for when there is no name to point at, or you would rather not depend on one:
+
+- an anonymous `export default`, which has no binding at all
+- an object passed straight into a call
+- anything you would rather stayed extracted after somebody renames the variable
+
+Inside a marked node, **every** string field is taken, including nested ones. That is the point — the
+directive is for objects whose field names carry no signal, and a version that still needed the names
+configured would only work where the configuration already did.
+
+`@zintl-ignore` still applies inside, so the two compose:
+
+```ts
+// @zintl-target
+const meta = {
+  title: "Checkout",
+  // @zintl-ignore
+  icon: "/favicon.svg",
+};
+```
+
+The region ends where its statement does, so the object on the next line is unaffected.
+
 ## `@zintl-note`
 
 Leave a note for whoever translates the string. It lands in the generated JSON schema, so translators see it in their editor rather than having to guess from the string alone.

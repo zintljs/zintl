@@ -241,8 +241,16 @@ export type TargetDescriptor =
    */
   | `tag:${string}`
   | `dom:prop:${string}`
-  | `dom:attr:${string}`
-  | `obj:field:${string}`
+  /**
+   * Receiver-qualified: `dom:document:title` matches only `document.title`.
+   * `dom:prop:` and `dom:*:` mean any receiver.
+   *
+   * `dom:attr:` was listed here and never implemented; it is now rejected at
+   * construction rather than silently matching nothing.
+   */
+  | `dom:${string}:${string}`
+  | `obj:${string}:${string}`
+  | `call:${string}:${string}`
   | `html:attr:${string}`
   | TargetPlugin;
 
@@ -288,9 +296,36 @@ export interface CompiledExtractionState {
   jsxAttributes: Set<string>;
   jsxElementAttributes: Map<string, Set<string>>;
   domProperties: Set<string>;
+  /**
+   * Receiver-qualified DOM properties: receiver identifier -> property names.
+   *
+   * `dom:document:title` lands here; `dom:prop:title` lands in
+   * {@link domProperties} and matches any receiver. The distinction is the
+   * difference between evidence and a guess — `document` is a literal
+   * identifier in the source, so `document.title` is known to be the browser
+   * tab, where a bare `.title` could be telemetry.
+   */
+  domReceiverProperties: Map<string, Set<string>>;
   /** Identifiers whose tagged template literals hold markup — see `tag:`. */
   taggedTemplates: Set<string>;
   objectFields: Set<string>;
+  /**
+   * Binding-qualified object fields: binding identifier -> field names.
+   *
+   * `obj:ui:title` lands here; `obj:field:title` lands in {@link objectFields}
+   * and matches any object literal anywhere. The binding is resolved by walking
+   * to the nearest name-carrying ancestor, so a field nested several levels
+   * inside `const ui = { … }` still counts.
+   */
+  objectNameFields: Map<string, Set<string>>;
+  /**
+   * Call-qualified object fields: callee identifier -> field names.
+   *
+   * `call:defineConfig:title` matches `defineConfig({ title })`. Kept apart from
+   * {@link objectNameFields} because "passed to `cfg()`" and "bound to `cfg`"
+   * are different relations that would otherwise collide on one name.
+   */
+  callFields: Map<string, Set<string>>;
   htmlAttributes: Set<string>;
   plugins: TargetPlugin[];
   fastPathHints: string[];
@@ -310,6 +345,12 @@ export interface ExtractionOptions {
   uiAttributes?: Set<string>;
   uiObjectFields?: Set<string>;
   uiSinkProperties?: string[];
+  /** @see CompiledExtractionState.domReceiverProperties */
+  uiSinkReceiverProperties?: Map<string, Set<string>>;
+  /** @see CompiledExtractionState.objectNameFields */
+  uiObjectNameFields?: Map<string, Set<string>>;
+  /** @see CompiledExtractionState.callFields */
+  uiCallFields?: Map<string, Set<string>>;
   targets?: TargetDescriptor[];
   logger?: ZintlLogger;
   isZeroConfig?: boolean;
