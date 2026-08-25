@@ -60,6 +60,29 @@ export function vanillaFacet(options: VanillaFacetOptions = {}): ZintlFacet {
        * Add them back for a project that wants them — `vanillaFacet({ targets:
        * [...] })` replaces this list, and then the false positives are yours.
        */
+      /**
+       * A tagged template is markup because the author said so, at the site.
+       *
+       * This is the answer for an app that builds its own HTML — the common
+       * vanilla and SSR shape, whose only working answer used to be *name the
+       * field `text`*. Unlike a field name it cannot fire by accident: nobody
+       * wraps an analytics constant in ``html`…` ``.
+       *
+       * Lit declares the same target, and the two union harmlessly.
+       */
+      /**
+       * No `obj:field:*`. It matched a field name on any object literal
+       * anywhere and knew nothing about the object, so
+       * `{ label: "signup_button_click" }` was extracted, translated, and
+       * returned in Arabic at runtime — and, with no fallback, failed the build
+       * until somebody translated an event name. No curation of the list fixes
+       * that, because the name is the entire signal (proposal 033 §1).
+       *
+       * The replacements say which object they mean: `obj:ui:title` for a
+       * binding you name, `call:defineConfig:title` for a call, `@zintl-target`
+       * for a site with no name to point at.
+       */
+      "tag:html",
       "dom:prop:innerHTML",
       "dom:prop:textContent",
       "dom:prop:innerText",
@@ -79,12 +102,6 @@ export function vanillaFacet(options: VanillaFacetOptions = {}): ZintlFacet {
        * is why they were dropped outright rather than qualified.
        */
       "dom:document:title",
-      "obj:field:label",
-      "obj:field:title",
-      "obj:field:description",
-      "obj:field:text",
-      "obj:field:tooltip",
-      "obj:field:placeholder",
     ]) as TargetDescriptor[],
     extensions: options.extensions || [".ts", ".js", ".mts", ".mjs"],
   };

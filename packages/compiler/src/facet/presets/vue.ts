@@ -39,9 +39,6 @@ export function vueExtractionFacet(options: VueFacetOptions = {}): ZintlFacet {
       "jsx:*:title",
       "jsx:*:alt",
       "jsx:*:placeholder",
-      "obj:field:label",
-      "obj:field:description",
-      "obj:field:tooltip",
     ]) as TargetDescriptor[],
     extensions: options.extensions || [".vue"],
     sfcRules: [

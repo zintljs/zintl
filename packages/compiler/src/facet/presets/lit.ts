@@ -51,15 +51,7 @@ export function litExtractionFacet(options: LitFacetOptions = {}): ZintlFacet {
     when: { framework: "lit" },
     concern: "extraction",
     priority: 100,
-    targets: (options.targets || [
-      "tag:html",
-      "obj:field:label",
-      "obj:field:title",
-      "obj:field:description",
-      "obj:field:text",
-      "obj:field:tooltip",
-      "obj:field:placeholder",
-    ]) as TargetDescriptor[],
+    targets: (options.targets || ["tag:html"]) as TargetDescriptor[],
     extensions: options.extensions || [".ts", ".js"],
   };
 }

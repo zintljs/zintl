@@ -70,12 +70,21 @@ function emptySystem(): CompilerSystemView {
  * presets rather than re-listed here, so this fixture cannot drift from
  * production. (Collecting targets is a filter, not facet resolution — that
  * still belongs exclusively to the plugin.)
+ *
+ * @param extra Targets to add on top of the built-in set, for a test that needs
+ *   a declared one — `obj:<binding>:<field>` and friends are opt-in by design,
+ *   so a test asserting them has to opt in too.
  */
-export function baseExtraction(): CompiledExtractionState {
+export function baseExtraction(extra: TargetDescriptor[] = []): CompiledExtractionState {
   const facets = [vanillaFacet(), reactFacet(), htmlFacet()].flat(Infinity) as ZintlFacet[];
-  const extractionTargets = facets
-    .filter((f): f is Extract<ZintlFacet, { concern: "extraction" }> => f.concern === "extraction")
-    .flatMap((f) => f.targets as TargetDescriptor[]);
+  const extractionTargets = [
+    ...facets
+      .filter(
+        (f): f is Extract<ZintlFacet, { concern: "extraction" }> => f.concern === "extraction",
+      )
+      .flatMap((f) => f.targets as TargetDescriptor[]),
+    ...extra,
+  ];
 
   return compileExtractionState({
     extractionTargets,

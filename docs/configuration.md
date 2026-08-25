@@ -182,17 +182,21 @@ following member chains means guessing again.
 The defaults for a plain JavaScript project:
 
 ```
-dom:prop:innerHTML   dom:prop:textContent   dom:prop:innerText   dom:document:title
-obj:field:label      obj:field:title        obj:field:description
-obj:field:text       obj:field:tooltip      obj:field:placeholder
+tag:html   dom:prop:innerHTML   dom:prop:textContent   dom:prop:innerText   dom:document:title
 ```
 
-The `obj:field:*` entries match on a **field name alone**, with no knowledge of what the object is —
-so `{ label: "signup_click" }` is extracted like any label, and extraction rewrites the value, so it
-comes back translated at runtime. They are on notice; see
-[proposal 033](spec/proposals/033-structural-defaults-and-declared-targets.md).
+Every one rests on **evidence rather than a guess**. `innerHTML` and its two neighbours are DOM
+coinages — nobody names an ordinary field `innerHTML`. `document.title` is qualified by its receiver,
+so `telemetry.title` is left alone. And a tagged template is markup because the author wrapped it in
+`` html`…` ``, which cannot happen by accident.
 
-**Narrow them by naming what they belong to.** `obj:ui:title` matches a `title` inside `const ui = …`
+There is deliberately **no `obj:field:*` here**. Matching a field name on any object knows nothing
+about the object, so `{ label: "signup_click" }` was extracted like any label — and since extraction
+rewrites the value, it came back translated at runtime and failed the build until somebody translated
+an analytics constant. Name the object instead, with `obj:<binding>:<field>`, `call:<fn>:<field>` or
+[`@zintl-target`](directives.md#zintl-target).
+
+**Narrow by naming what the strings belong to.** `obj:ui:title` matches a `title` inside `const ui = …`
 and nothing else; `call:defineConfig:title` matches the object passed to `defineConfig(…)`:
 
 ```ts
@@ -202,11 +206,14 @@ defineConfig({ title: "My site" }); //        call:defineConfig:title
 ```
 
 The binding is the nearest one enclosing the object, found by walking outward, so a field several
-levels down still belongs to it. `export default { … }` has no name and cannot be targeted this way.
+levels down still belongs to it. `export default { … }` has no name and cannot be targeted this way —
+that is what the directive is for.
 
 `obj:` and `call:` are kept apart because _passed to `cfg()`_ and _bound to `cfg`_ are different
 relations — one descriptor covering both would make `call:cfg:title` match a `const cfg = { title }`
 that has nothing to do with the call.
+
+`obj:*:title` restores the old any-object behaviour if you want it, and says out loud what it does.
 
 ### Changing what is extracted
 

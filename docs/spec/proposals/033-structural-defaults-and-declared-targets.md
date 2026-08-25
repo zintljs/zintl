@@ -1,10 +1,12 @@
 # Proposal 033: Structural Defaults and Declared Targets
 
-**Status**: OPEN — design, backed by a measurement (§1). The rule in §3 is settled in principle; §4–§6
+**Status**: CLOSED — every section is built; see §8 for the order it happened in and §8.1 for what the
+removal cost (nothing). §9.2 and §9.3 are open questions this document raised and did not answer.
+Originally: design, backed by a measurement (§1). The rule in §3 is settled in principle; §4–§6
 are the mechanisms it needs. §9.1 is decided and **shipped**, including the
-receiver-qualified `dom:<receiver>:<property>` descriptor it needed. §4 is built (both declared-target families) and §10's
-validation gap is closed. §5 (`@zintl-target`) is built. §9.2 and §9.3 remain open, and `obj:field:*` stays in
-the defaults pending §8's migrations.
+receiver-qualified `dom:<receiver>:<property>` descriptor it needed. **§8 is complete**: §4, §5, §6, §7 and §10 are all
+built, and `obj:field:*` is gone from the defaults with zero strings lost (§8.1). §9.2 and §9.3 remain
+open. The rule in §0 now holds across every default target, with no exception.
 **Date**: 2026-08-24
 **Kind**: Design proposal, with an audit attached. Every number below was produced by running the
 extractor, not by reading it.
@@ -237,37 +239,68 @@ One wrinkle worth noting rather than solving: `@zintl-ignore` and `@zintl-target
 opposites, though they are. If that becomes a support question, the pair to consider is
 `@zintl-ignore` / `@zintl-extract`.
 
-## 6. `tag:` is the answer for self-built HTML
+## 6. `tag:` is the answer for self-built HTML — a default since 2026-08-25
 
 The DSL already has a `tag:<name>` family for tagged templates (`targets.ts:82`). A tagged template is
 **structural** opt-in — the author marks the string as markup at the site, and the parser sees it:
 
 ```ts
-const res = { text: html`<section>…</section>` };
+const body = html`<section>…</section>`;
 ```
 
-This is currently undocumented, and it is the missing answer to _"how do I translate an HTML string I
-build myself"_ — a common vanilla and SSR shape whose only working answer today is _name the field
-`text`_.
+It was undocumented, and it is the answer to _"how do I translate an HTML string I build myself"_ — a
+common vanilla and SSR shape whose only working answer used to be _name the field `text`_.
+
+`vanillaFacet` now declares `tag:html`, so it takes no configuration. That is defensible where a field
+name is not: a tag cannot fire by accident, because the author has to write ``html`…` `` around the
+string. Lit already declared the same target and the two union.
 
 ## 7. The two survivors, and what replaces them
 
-### 7.1 `vanilla-ssr`
+### 7.1 `vanilla-ssr` — migrated 2026-08-25
 
-The migration test for this whole proposal. `tag:html` (§6) is the intended answer: it says "this is
-markup" instead of relying on a field name. Whatever this example ends up doing is what the docs will
-tell every vanilla SSR user to do.
+```diff
+- const res = {
+-   text: `
++ const body = html`
+      <section id="center"> … </section>
+- `,
+- };
+- return { html: res.text };
++ `;
++ return { html: body };
+```
 
-### 7.2 `vinext-basic`
+All 15 strings survive, and the file now says what the string _is_ at the site instead of depending on
+a field being called `text`. The tag function is four lines of `String.raw`, and its comment records
+what the old shape cost: renaming `text` to `body` would have stopped the whole page being translated,
+silently, because nothing extracted means nothing to report.
 
-Not a user problem at all. Next.js _declares_ that `metadata`, `generateMetadata`, `viewport` and
-`generateViewport` carry user-facing and SEO-facing text — and `nextjsExtractionFacet` already names
-all four, to suppress them. Turning that suppression into a **structural target** makes the framework's
-own declaration the evidence, and removes the anchor-bypass dance the example currently performs.
+This is the migration the docs point vanilla and SSR users at.
 
-This generalises: any framework with a declared metadata surface (Nuxt's `useHead`, SvelteKit's
-`<svelte:head>`, Astro's frontmatter) gets a target rather than a guess. It is the same argument as
-facets themselves — the framework knows; ask it.
+Two things it turned up that a reader migrating their own code should expect. **The formatter can see
+inside a tagged template**, so oxfmt re-wrapped the SVG and list markup across lines — cosmetic, and
+extraction was verified unchanged by content rather than by count. And **`vanilla-ssr` has three
+snapshot contracts, not two**: `build`, `transform-dev` and `transform-prod`. Updating two of them left
+the gate red, which is the third time on this change that the suite knew where something lived and the
+audit did not (§8.1a).
+
+### 7.2 `vinext-basic` — migrated 2026-08-25
+
+`nextjsExtractionFacet` now declares `obj:metadata:title`, `obj:metadata:description`,
+`obj:generateMetadata:title` and `obj:generateMetadata:description`. Both SEO strings survive, and the
+framework's own contract is the evidence rather than a guess about a noun.
+
+**The suppression rule shrank to `viewport` and `generateViewport`.** All four names used to be
+suppressed with `bypassIf: "hasAnchor"`, which made extraction from metadata conditional on putting a
+`zintl()` call inside the function. That happened to work for `generateMetadata`, where an app needs an
+anchor anyway to resolve the locale — and left the far more common static
+`export const metadata = { … }` unreachable: no anchor, no strings, no message. A framework that
+declares its own metadata surface should not need the user to smuggle a directive into it.
+
+`viewport` stays suppressed and needs no target: `width`, `initialScale` and `themeColor` are not
+prose. Naming `title` and `description` rather than un-suppressing wholesale is what keeps `icons`,
+`robots` and the Open Graph URLs out.
 
 ## 8. Sequencing, and why this is pre-beta
 
@@ -278,18 +311,66 @@ So narrowing these defaults is free today and a **translation-loss event** after
 choice becomes: ship a known-wrong default forever, or delete people's work. That asymmetry is the
 whole sequencing argument.
 
-Order:
+Order, as executed:
 
 1. ~~Add `obj:<name>:<field>` and `call:<fn>:<field>` (§4).~~ **Done** — additive, nothing broke.
 2. ~~Add `@zintl-target` (§5).~~ **Done** — additive.
-3. Document `tag:` and migrate `vanilla-ssr` (§6, §7.1). ~~Add `@zintl-target` (§5).~~ **Done.**
-4. Turn the Next.js metadata suppression into a target and migrate `vinext-basic` (§7.2).
-5. **Only then** remove nominal targets from the defaults — with every example already migrated, so
-   the contract suite proves the removal rather than absorbing it.
+3. ~~Document `tag:` and migrate `vanilla-ssr` (§6, §7.1).~~ **Done.**
+4. ~~Turn the Next.js metadata suppression into a target and migrate `vinext-basic` (§7.2).~~ **Done.**
+5. ~~Remove nominal targets from the defaults.~~ **Done** — `obj:field:*` is gone from `vanilla`,
+   `jsx`, `lit`, `svelte` and `vue`.
 
-Steps 1–4 are each independently useful and independently shippable. Step 5 is the breaking one and
-goes last, which is also what makes its changeset honest: by then the answer to "what do I do
-instead?" is documented and demonstrated.
+### 8.1 What the removal cost, measured
+
+The same harness as §1, re-run across all 30 examples after step 5: **every example extracts the same
+number of strings as before.** For the two that depended on `obj:field:*`, the actual strings were
+compared rather than the counts, because equal counts do not prove equal contents:
+
+| Example        | Before | After | Via                      |
+| :------------- | :----- | :---- | :----------------------- |
+| `vanilla-ssr`  | 15     | 15    | `tag:html`               |
+| `vinext-basic` | 13     | 13    | `obj:generateMetadata:*` |
+
+Zero strings lost. That is what steps 3 and 4 were for, and it is why step 5 is a changeset rather
+than a migration guide.
+
+#### 8.1a Where the audit was blind, three times
+
+The measurement above is sound and its _scope_ was wrong three times over, each caught by the contract
+suite rather than by the audit:
+
+| Missed                                     | Why the audit could not see it                           |
+| :----------------------------------------- | :------------------------------------------------------- |
+| `document.title` in eight manifests (§9.1) | Fixtures **synthesize** source at test time              |
+| `tests/fixtures/ssr-streaming.ts`          | Fixtures define projects **inline**, outside `examples/` |
+| `transform-prod` snapshot                  | Three snapshot contracts drive `vanilla-ssr`, not two    |
+
+One lesson, stated once so the next person does not learn it three times: **an audit that walks
+`examples/` is measuring a fraction of what the suite drives.** Any change to the default target set
+needs `vpr ready:examples`, not a source scan — and the scan is worth running first only because it is
+cheap, never because it is sufficient.
+
+### 8.2 The one thing it does cost users: Vue's Options API
+
+Strings in a `data()` return are ordinary object fields:
+
+```vue
+<script>
+export default {
+  data() {
+    return { field: { label: "Script only string" } };
+  },
+};
+</script>
+```
+
+`obj:field:label` used to reach that. Nothing else does, and **`obj:<binding>:<field>` cannot**: `data`
+is a property of the default-exported object, not a declaration, so the binding walk has no name to
+resolve. `@zintl-target` on the return is the answer, and `sfc_integration.test.ts` now carries that
+shape so the migration is demonstrated rather than described.
+
+This is the only migration the removal forces, and it is worth stating plainly in the changelog rather
+than leaving a Vue user to find it.
 
 ## 9. Open questions
 

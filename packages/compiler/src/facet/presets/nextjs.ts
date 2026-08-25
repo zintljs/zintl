@@ -151,13 +151,41 @@ export function nextjsExtractionFacet(options: NextjsExtractionOptions = {}): Zi
     targets: (options.targets || [
       "jsx:*:aria-label",
       "jsx:*:aria-description",
+      /**
+       * Next.js *declares* that these carry user-facing and SEO-facing text, so
+       * the framework's own contract is the evidence — no guess about a noun
+       * required. Both spellings the App Router accepts: the static
+       * `export const metadata` and the `generateMetadata` function.
+       *
+       * Named precisely rather than by suppression-and-bypass. `metadata` also
+       * holds `icons`, `robots` and Open Graph URLs, none of which are prose;
+       * targeting `title` and `description` takes the two fields that are.
+       */
+      "obj:metadata:title",
+      "obj:metadata:description",
+      "obj:generateMetadata:title",
+      "obj:generateMetadata:description",
     ]) as TargetDescriptor[],
     extensions: options.extensions || [],
+    /**
+     * `viewport` only — `metadata` and `generateMetadata` are targeted above.
+     *
+     * All four used to be suppressed with `bypassIf: "hasAnchor"`, which made
+     * extraction from metadata conditional on putting a `zintl()` call inside
+     * the function. That worked for `generateMetadata`, where an app needs an
+     * anchor anyway to resolve the locale, and left the far more common static
+     * `export const metadata = { … }` unreachable: no anchor, no strings, no
+     * message. A framework that declares its own metadata surface should not
+     * need the user to smuggle a directive into it.
+     *
+     * `viewport` stays suppressed. It holds `width`, `initialScale` and
+     * `themeColor` — no prose at any point, so there is nothing to reach.
+     */
     suppressionRules: [
       {
         match: {
           types: ["FunctionDeclaration", "VariableDeclarator"],
-          names: ["generateMetadata", "generateViewport", "metadata", "viewport"],
+          names: ["generateViewport", "viewport"],
           isTopLevel: true,
         },
         bypassIf: "hasAnchor",

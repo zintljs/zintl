@@ -56,10 +56,4 @@ export const JSX_TARGETS = [
   "jsx:*:description",
   "jsx:*:tooltip",
   "jsx:html:dir",
-  "obj:field:label",
-  "obj:field:title",
-  "obj:field:description",
-  "obj:field:text",
-  "obj:field:tooltip",
-  "obj:field:placeholder",
 ] as const;
