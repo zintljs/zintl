@@ -137,6 +137,8 @@ There is no build-time equivalent, and there is nothing to add: a build either p
 
 `facets` is the extension point. Framework support, SSR handling, asset handling and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
 
+The same goes the other way: `assetsTarget` and `virtualAssets` configure the _built-in_ assets facet, so replacing or excluding that facet while setting them is a hard error too. Configure your own facet instead — `assetsFacet({ targets: [...] })`.
+
 `multiplex` needs a bundler that supports per-locale HTML fan-out — Vite does, [Rsbuild](#rsbuild) does not. Combining `multiplex: true` (explicit or auto-detected) with an unsupported bundler fails your build with a clear error rather than an opaque one.
 
 ### Facets decide for themselves

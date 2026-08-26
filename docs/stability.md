@@ -42,6 +42,21 @@ Because top-level options and facet options overlap, it matters which wins. A fa
 
 Order does not decide it — `["builtins", myAssets]` and `[myAssets, "builtins"]` behave identically. Top-level `assetsTarget` and `virtualAssets` configure the _built-in_ assets facet; if you replace it, configure yours directly instead.
 
+Doing both is refused rather than resolved:
+
+```
+[Zintl] `assetsTarget` configures the built-in "system-static-assets" facet,
+which this project replaced with its own.
+
+The option would have been accepted and then ignored, so the files it names
+would not be localized and nothing would have said so.
+
+Fix:    pass them to your own facet instead — assetsFacet({ targets: [...] }).
+Or:     remove `assetsTarget` from the plugin options.
+```
+
+There is no winner to pick — the option cannot be forwarded into a facet you constructed yourself — so the only thing left to get right is saying so. Both spellings stay; what changed is that neither can be discarded quietly.
+
 ## How a change reaches you
 
 Releases go out from changesets, and every one carries a changelog entry saying what changed and why — those entries are written to be read, not generated. Alpha builds publish under the `alpha` dist-tag.

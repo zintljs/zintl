@@ -490,18 +490,6 @@ them — so the first build after upgrading is where they find out, and the erro
 when it arrives. §6 is that error, and its second remedy (_stop targeting it_) is the correct answer
 for anybody who discovers their asset was never meant to vary by locale.
 
-**With `AssetMergeStrategy` gone, what answers "inline or reference"?** Today the strategy doubles as
-the discriminator: `getAssetTranslations` skips `binary-passthrough` (`assets.ts:628`), which is how
-binary content stays out of catalogs. Deleting the enum removes that answer along with the merging it
-was named for. This is the one thing §4.1's shrink does not by itself replace.
-
-It should **not** come back as a facet option — that would reintroduce a per-format procedure under a
-new name, against §0.1. The two candidates are that delivery mode falls out of §5.3's design (a
-reference is what an artifact gets when it is emitted into the bundler's asset graph, and inlining is
-what a catalog-carried string already is), or that it is declared once per target beside
-`targetPattern` as a positional fact rather than a behaviour. §5.3 decides; step 2 only needs the
-distinction to survive, not to be redesigned.
-
 **With `AssetMergeStrategy` gone, what answers "inline or reference"? — answered 2026-08-26: the
 import does.** The strategy doubled as the discriminator (`getAssetTranslations` skipped
 `binary-passthrough`), so deleting the enum removed that answer along with the merging it was named
@@ -520,9 +508,10 @@ facet option, no per-format procedure, nothing to configure and nothing that can
 before being relied on — every asset import across `examples/` and the test suite already carries
 `?raw`, so nothing depended on the plain-import path meaning something else.
 
-**Does anything currently depend on a targeted binary asset?** §5.3 measured that nothing resolves
-one, which means the feature has no users to break and step 3 is free to design its delivery from
-scratch. Worth confirming against real projects before relying on it.
+**Does anything currently depend on a targeted binary asset? — answered 2026-08-26: nothing did, and
+now something does.** §5.3 measured that nothing resolved one, which is what made step 3 free to
+design delivery from scratch. The `assets-authored` fixture now localizes a real `.png` and asserts
+the bytes a browser fetches, so the path has a standing consumer rather than only a design.
 
 ## 11. What this proposal does not cover
 

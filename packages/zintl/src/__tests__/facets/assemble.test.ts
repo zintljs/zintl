@@ -15,6 +15,7 @@ import {
   flattenFacets,
   BUILTINS,
 } from "../../facets/assemble.js";
+import { assetsFacet } from "@zintljs/compiler/facets";
 import { detectFrameworks } from "../../facets/detect.js";
 import { createTestDir } from "../helpers/fs.js";
 import { writeFile } from "node:fs/promises";
@@ -279,6 +280,103 @@ describe("the builtins sentinel", () => {
     );
     expect(n).not.toContain("client-spa");
     expect(n).toContain("react-extraction");
+  });
+});
+
+/**
+ * An option that configures a facet the project removed is refused.
+ *
+ * `assetsTarget` and `virtualAssets` reach the *built-in* assets facet, and
+ * replacing or excluding that facet used to strand them: accepted, validated,
+ * and configuring nothing, so the files they named were quietly not localized.
+ * Proposal 034 §1.6 and §8.
+ *
+ * The negative cases carry as much weight as the positive one. This guard fires
+ * on a combination that is easy to reach by accident — a shared plugin config
+ * plus a project-level facet override — so a false positive would refuse builds
+ * that are entirely correct.
+ */
+describe("options that configure a built-in facet", () => {
+  const assets = () => assetsFacet({ targets: ["mdx"] });
+
+  it("refuses `assetsTarget` when the assets facet is replaced", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        assetsTarget: ["rst"],
+      }),
+    ).toThrow(/`assetsTarget` configures the built-in "system-static-assets" facet/);
+  });
+
+  it("refuses `assetsTarget` when the assets facet is excluded", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, excludeFacet("system-static-assets")],
+        assetsTarget: ["rst"],
+      }),
+    ).toThrow(/excluded/);
+  });
+
+  it("names every stranded option, not just the first", () => {
+    let message = "";
+    try {
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        assetsTarget: ["rst"],
+        virtualAssets: true,
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("`assetsTarget`");
+    expect(message).toContain("`virtualAssets`");
+    // And the way out, which is the whole reason this is an error.
+    expect(message).toContain("assetsFacet({ targets: [...] })");
+  });
+
+  it("allows the options when the built-in facet is still in the build", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS],
+        assetsTarget: ["rst"],
+        virtualAssets: true,
+      }),
+    ).not.toThrow();
+  });
+
+  it("allows replacing the facet when no option was configuring it", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+      }),
+    ).not.toThrow();
+  });
+
+  /**
+   * `virtualAssets` is resolved against a default before it arrives, so "not
+   * set" and "set to false" are the same value. Treating that as a signal would
+   * refuse every project that replaces the assets facet — and `false` is the
+   * facet's own default, so nothing is lost by ignoring it.
+   */
+  it("does not treat a defaulted `virtualAssets: false` as configuration", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        virtualAssets: false,
+      }),
+    ).not.toThrow();
   });
 });
 

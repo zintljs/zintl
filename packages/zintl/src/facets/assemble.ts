@@ -16,6 +16,7 @@
  * decide what that implies.
  */
 import {
+  ASSETS_FACET_NAME,
   assetsFacet,
   clientSpaFacet,
   htmlFacet,
@@ -261,12 +262,86 @@ function additionalTargetsFacet(targets: string[] | undefined): ZintlFacet[] {
   ];
 }
 
+/**
+ * Plugin options that configure a *built-in* facet, paired with the facet each
+ * one reaches.
+ *
+ * `virtualAssets` counts only when `true`. It is resolved against a default
+ * before it arrives here, so "not set" and "set to false" are indistinguishable
+ * — and `false` is the facet's own default anyway, so a project that lost it
+ * lost nothing. `assetsTarget` has no default and is passed through raw, so
+ * `undefined` really does mean nobody asked.
+ */
+function optionsConfiguringBuiltins(input: AssembleInput): { option: string; facet: string }[] {
+  const configured: { option: string; facet: string }[] = [];
+  if (input.assetsTarget !== undefined) {
+    configured.push({ option: "assetsTarget", facet: ASSETS_FACET_NAME });
+  }
+  if (input.virtualAssets === true) {
+    configured.push({ option: "virtualAssets", facet: ASSETS_FACET_NAME });
+  }
+  return configured;
+}
+
+/**
+ * Refuse a build where a plugin option configures a facet that is not in it.
+ *
+ * `assetsTarget` and `virtualAssets` configure the **built-in** assets facet, and
+ * `builtinFacets()` is the single place that bridge is made. Replace that facet
+ * with your own, or exclude it, and the options are still accepted, still
+ * validated, and configure nothing — the assets they name are simply not
+ * localized, and nothing says so. Proposal 034 §1.6 and §8.
+ *
+ * A hard error rather than a warning, and rather than picking a winner. There is
+ * no sensible winner to pick: the option cannot be forwarded into a facet the
+ * project constructed itself, so honouring both is not on the table. What is on
+ * the table is saying so, and the consequence of not saying so is wrong output
+ * rather than a surprising configuration — assets quietly shipping in one
+ * language, which a line in a build log is a poor defence against.
+ *
+ * Both spellings survive. This is 034 §8's option 3: the harm was never that two
+ * spellings exist, it was that one of them could be discarded in silence.
+ */
+function assertOptionsReachTheirFacet(
+  input: AssembleInput,
+  overridden: Set<string>,
+  excluded: Set<string>,
+): void {
+  const stranded = optionsConfiguringBuiltins(input).filter(
+    ({ facet }) => overridden.has(facet) || excluded.has(facet),
+  );
+  if (stranded.length === 0) return;
+
+  const options = stranded.map(({ option }) => `\`${option}\``);
+  const facet = stranded[0].facet;
+  const replaced = overridden.has(facet);
+  const spelled =
+    options.length === 1 ? options[0] : `${options.slice(0, -1).join(", ")} and ${options.at(-1)}`;
+
+  throw new Error(
+    [
+      `[Zintl] ${spelled} configure${options.length === 1 ? "s" : ""} the built-in ` +
+        `"${facet}" facet, which this project ${replaced ? "replaced with its own" : "excluded"}.`,
+      ``,
+      `The option would have been accepted and then ignored, so the files it names`,
+      `would not be localized and nothing would have said so.`,
+      ``,
+      replaced
+        ? `Fix:    pass them to your own facet instead — assetsFacet({ targets: [...] }).`
+        : `Fix:    stop excluding "${facet}", or drop the option.`,
+      `Or:     remove ${spelled} from the plugin options.`,
+    ].join("\n"),
+  );
+}
+
 export function assembleFacetsWithTrace(input: AssembleInput): ActivationResult {
   const { facets, excluded, overridden } = flattenFacets(
     [...(input.facets ?? [BUILTINS]), ...additionalTargetsFacet(input.additionalTargets)],
     builtinFacets(input),
     bundlerFacets(),
   );
+  assertOptionsReachTheirFacet(input, overridden, excluded);
+
   const candidates = facets.filter((f) => !excluded.has(f.name));
   const result = activateFacets(candidates, toContext(input));
 

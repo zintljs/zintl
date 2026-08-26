@@ -2,12 +2,18 @@
 
 **Status**: SUPERSEDED IN PART — the audit (§1) and the `ContentFacet` finding (§2) stand and are the
 basis for [035](035-localized-assets-are-authored.md). §3 and §4 are **retired outright** as of
-2026-08-26: 035 now deletes `AssetMergeStrategy` rather than declaring it, so there is no table to
-turn into data and no strategy left to resolve once. §7 (sibling-exclusion) has nothing left to act
-on. §5 (the host asking the facet) and §8 (`assetsTarget`) remain live, and §6's guard survives in
-the reduced form §1.4's correction describes.
+2026-08-26: 035 deletes `AssetMergeStrategy` rather than declaring it, so there is no table to turn
+into data and no strategy left to resolve once. §7 (sibling-exclusion) has nothing left to act on.
+§2 and §5 are **built**: `ContentFacet` declares `extensions` and conflicts between content facets
+are caught at construction, and every host site that tested `.md`/`.txt` by hand now asks the facet
+layer — §5 turned out to be nine sites rather than the two this audit found. §8 is **settled** as
+option 3: both spellings stay, and configuring a facet the project then replaced is a hard error.
+**§6 alone remains open**, and it is the whole of what is left here — nothing yet refuses an asset
+target whose output would collide with the catalog namespace, so `assetsTarget: ["json"]` still
+builds silently. Narrower than this audit first claimed (see §1.4's correction), and still unguarded.
 **Corrections (2026-08-26)**: §1.3 and §1.4 were narrowed after re-measurement and carry a note in
-place. Every other line cited in §1 was re-verified against the same file and holds unchanged.
+place; §1.1 was undercounted and carries one too. Every other line cited in §1 was re-verified
+against the same file and holds unchanged.
 **Date**: 2026-08-25
 **Kind**: Audit and design. Every finding in §1 was produced by running the code or reading the line
 cited, never by inference.
@@ -277,6 +283,26 @@ active locale. `isLocalizedOutput` is the right hook and needs to consider sibli
 only emitted files.
 
 ## 8. Proposal: settle `assetsTarget`
+
+> [!NOTE]
+> **Settled 2026-08-26: option 3, as a hard error.** Both spellings stay; the
+> interaction is refused rather than resolved.
+>
+> What decided it is that (1) and (2) answer a question nobody asked. Two
+> spellings were never the harm — `docs/stability.md` had already documented
+> which one wins, and the semantics were not in doubt. The harm was that the
+> _runtime_ did not agree with the documentation, so a project could be told
+> nothing while its assets went unlocalized.
+>
+> An error rather than a warning, because the consequence is **wrong output**
+> rather than a surprising configuration, and because there is genuinely nothing
+> to fall back to: an option cannot be forwarded into a facet the project
+> constructed itself, so "honour both" was never on the table.
+>
+> Implemented in `facets/assemble.ts`, where `flattenFacets` already returned the
+> `overridden` set that makes it detectable. `virtualAssets` counts only when
+> `true` — it is resolved against a default before assembly, so `false` cannot be
+> told apart from unset, and `false` is the facet's own default anyway.
 
 Options, and 033 §9.2 sets the precedent that the distinction to preserve is **replace versus add**:
 

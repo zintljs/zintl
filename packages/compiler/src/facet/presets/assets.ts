@@ -8,6 +8,17 @@ import type { AssetTargetConfig } from "../../types/compiler.js";
 import { sha1, generateMessageId } from "../../utils/hashing.js";
 import { toPosixPath } from "../../utils/paths.js";
 
+/**
+ * This facet's name, exported so callers can refer to it without a string
+ * literal.
+ *
+ * The plugin's `assetsTarget` and `virtualAssets` options configure *this*
+ * facet and no other, so the plugin has to be able to say which one it means
+ * when a project replaces it. Naming it through this constant keeps that a
+ * reference rather than a guess — a renamed facet moves both ends at once.
+ */
+export const ASSETS_FACET_NAME = "system-static-assets";
+
 /** Default asset extensions when the caller names none. */
 const DEFAULT_ASSET_TARGETS: (string | AssetTargetConfig)[] = ["md", "txt"];
 
@@ -700,7 +711,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
   };
 
   return {
-    name: "system-static-assets",
+    name: ASSETS_FACET_NAME,
     concern: "content",
     priority: 100,
     extensions: declaredExtensions(resolvedConfig.targets ?? DEFAULT_ASSET_TARGETS),

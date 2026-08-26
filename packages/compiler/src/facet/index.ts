@@ -63,7 +63,13 @@ export { ssrWrappingFacet, ssrRuntimeFacet, ssrFacet } from "./presets/ssr.js";
 export { clientSpaFacet } from "./presets/client-spa.js";
 export { viteFacet } from "./presets/vite.js";
 export { rspackFacet } from "./presets/rspack.js";
-export { assetsFacet, isContentQuery, isUrlQuery, withUrlQuery } from "./presets/assets.js";
+export {
+  ASSETS_FACET_NAME,
+  assetsFacet,
+  isContentQuery,
+  isUrlQuery,
+  withUrlQuery,
+} from "./presets/assets.js";
 
 // What each preset accepts. These interfaces are declared here and nowhere
 // else, so re-exporting them carries no risk of the duplicate-declaration
