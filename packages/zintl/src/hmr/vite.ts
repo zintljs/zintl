@@ -326,7 +326,8 @@ export class ViteUpdateApplier implements HostUpdateApplier {
          * stay eligible — they are what these comparisons were written for.
          */
         const hasExtension = /\.[a-z0-9]+$/i.test(normalizedId);
-        const extensionBlindEligible = !hasExtension || classifyFile(normalizedId) === "source";
+        const extensionBlindEligible =
+          !hasExtension || classifyFile(this.ctx, normalizedId) === "source";
 
         const isMatch =
           cleanModuleId === relPath ||

@@ -263,8 +263,14 @@ export interface FixtureDefinition {
   /**
    * The whole project, as a path → contents map. Paths are relative to the
    * project root and may nest (`src/locales/src/about.ar.txt`).
+   *
+   * A string is written as UTF-8. `{ base64 }` is written as raw bytes, which is
+   * how a fixture expresses a file that is not text at all — a `.png`, a `.pdf`,
+   * a font. That became expressible because it became testable: a targeted
+   * binary asset is delivered by reference now, and a harness that could only
+   * write UTF-8 could not state the case at all.
    */
-  files: Record<string, string>;
+  files: Record<string, string | { base64: string }>;
   /**
    * Plugin options for the generated `vite.config.ts`.
    *
@@ -335,7 +341,11 @@ export function fixtureSource(def: FixtureDefinition): ProjectSource {
       for (const [relPath, contents] of Object.entries(files)) {
         const absPath = join(root, relPath);
         await mkdir(dirname(absPath), { recursive: true });
-        await writeFile(absPath, contents, "utf-8");
+        if (typeof contents === "string") {
+          await writeFile(absPath, contents, "utf-8");
+        } else {
+          await writeFile(absPath, Buffer.from(contents.base64, "base64"));
+        }
       }
 
       return {

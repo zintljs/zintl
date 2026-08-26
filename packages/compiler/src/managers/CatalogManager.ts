@@ -1150,6 +1150,18 @@ export class CatalogManager {
     }
   }
 
+  /**
+   * Extensions this compiler may reclaim from `outputDir`: catalogs, plus
+   * whatever the content facets declare they own.
+   */
+  private isPrunableOutput(name: string): boolean {
+    const lower = name.toLowerCase();
+    if (lower.endsWith(".json")) return true;
+    return this.contentFacets.some((facet) =>
+      (facet.extensions ?? []).some((ext) => lower.endsWith(ext.toLowerCase())),
+    );
+  }
+
   public async pruneOrphanedBoundaries(
     graph: BoundaryGraph,
     locales: string[],
@@ -1367,6 +1379,18 @@ export class CatalogManager {
     );
     let prunedCount = 0;
 
+    /**
+     * Whether a file under `outputDir` is one of ours to reclaim.
+     *
+     * Catalogs are `.json`; everything else here is a localized artifact, and
+     * which extensions those are is the *facets'* answer, not a constant. This
+     * read `/\.(json|md|txt)$/`, so a project targeting anything else kept every
+     * orphaned artifact forever — the source could be deleted and its artifacts
+     * would outlive it, unreferenced and unexplained.
+     *
+     * Deliberately narrow rather than "delete whatever is not known": this path
+     * removes files, and `outputDir` is a directory people commit and edit.
+     */
     const scan = async (dir: string) => {
       const entries = await this.io.readEntries(dir);
       for (const entry of entries) {
@@ -1377,7 +1401,7 @@ export class CatalogManager {
           // If directory is now empty, remove it
           const remaining = await this.io.readDir(full);
           if (remaining.length === 0) await this.io.rm(full);
-        } else if (/\.(json|md|txt)$/.test(entry.name)) {
+        } else if (this.isPrunableOutput(entry.name)) {
           if (!knownPaths.has(normalizePath(full))) {
             this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
             await this.io.rm(full);

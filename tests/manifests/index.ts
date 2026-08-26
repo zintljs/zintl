@@ -10,6 +10,7 @@ import { svelteSsr } from "./svelte-ssr.js";
 import { vanillaSpaBasic } from "./vanilla-spa-basic.js";
 import { vanillaSsr } from "./vanilla-ssr.js";
 import { assetsBasic } from "../fixtures/assets-basic.js";
+import { assetsAuthored } from "../fixtures/assets-authored.js";
 import { ssrStreaming } from "../fixtures/ssr-streaming.js";
 import { lazyBoundary } from "../fixtures/lazy-boundary.js";
 import { rsbuildVanillaBasic } from "./rsbuild-vanilla-basic.js";
@@ -52,6 +53,7 @@ export const allManifests: ProjectManifest[] = [
   vanillaSpaBasic,
   vanillaSsr,
   assetsBasic,
+  assetsAuthored,
   ssrStreaming,
   lazyBoundary,
   rsbuildVanillaBasic,

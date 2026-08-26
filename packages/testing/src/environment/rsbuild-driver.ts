@@ -61,7 +61,14 @@ export class RsbuildDriver implements BuildToolDriver {
     return compileWithZintl(this.root, this.zintlOptions, mode, "rspack");
   }
 
-  async build(overrides: Record<string, any> = {}): Promise<BuildOutput> {
+  async build(
+    overrides: Record<string, any> = {},
+    opts: { cache?: boolean } = {},
+  ): Promise<BuildOutput> {
+    // Neither read nor written: a build of an edited tree must not be handed to
+    // the next contract, which is expecting one of the project as committed.
+    if (opts.cache === false) return this.runBuildInternal(overrides);
+
     const cacheKey = `${this.exampleName}::${JSON.stringify(overrides)}`;
 
     if (!buildCache.has(cacheKey)) {

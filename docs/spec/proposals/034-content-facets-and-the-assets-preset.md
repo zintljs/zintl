@@ -57,6 +57,27 @@ underneath gets more useful for everyone writing their own.
 
 Every one of those is spelled `ext === ".md" || ext === ".mdx"`.
 
+> [!IMPORTANT]
+> **Undercounted, found 2026-08-26 by building a fixture that targets `.rst`.**
+> Six is the count _inside the assets preset_. Three more sites re-derive the
+> same fact from the same two extensions, in files this audit never opened:
+>
+> | Site                              | Decides                                             | Consequence for a non-default target                                                                                        |
+> | :-------------------------------- | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+> | `pipeline/intent-core.ts:113`     | whether a boundary has translations worth a manager | **No manager is generated at all.** The page renders a pseudo-localized key and the console says only "no manager provided" |
+> | `hmr/plan.ts:32` (`classifyFile`) | what kind of change a watched file is               | An artifact edit is classified as no kind of change; no hot update runs                                                     |
+> | `managers/CatalogManager.ts:1380` | which files under `outputDir` may be reclaimed      | Orphaned artifacts outlive their source indefinitely                                                                        |
+>
+> The first is the one that matters, and it is worse than anything in the table
+> above: the others honour the option on the wrong path, and this one skips the
+> feature entirely. It also explains why the audit missed all three — it searched
+> the preset and the plugin's resolve hooks, which is where an _asset_ concern
+> would sensibly live, and the extension test had leaked two layers past both.
+>
+> Nine sites, then, and the honest generalisation is §2's rather than this
+> section's: the problem was never how many places re-derive the strategy, but
+> that a **predicate nobody can enumerate** invites every caller to guess.
+
 **The consequence is a live bug, not untidiness.** A project writing
 
 ```ts

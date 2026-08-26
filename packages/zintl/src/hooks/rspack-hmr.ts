@@ -176,7 +176,7 @@ export function registerRspackHotUpdate(ctx: Context, compiler: RspackCompilerLi
     const seq = c.watching?.startTime ?? Date.now();
 
     for (const file of modified) {
-      const kind = classifyFile(file);
+      const kind = classifyFile(ctx, file);
       if (!kind) continue;
 
       /**

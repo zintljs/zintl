@@ -37,6 +37,19 @@ export interface ZintlConfig {
   debug?: boolean | string;
   bakedLocale?: string;
   multiplex?: boolean;
+  /**
+   * Whether a content facet owns this file, asked rather than guessed.
+   *
+   * The pipeline needs to recognise a dependency on localizable content, and
+   * tested `.md`/`.txt` by hand to do it — so a project targeting anything else
+   * had its boundaries judged to carry no translations and got no manager
+   * generated at all. The page then rendered a pseudo-localized key and the only
+   * clue was "no manager provided", four layers from the cause.
+   *
+   * Supplied by the compiler with a context already bound, so a hot traversal
+   * pays for one predicate rather than a context per dependency edge.
+   */
+  ownsContent?: (filePath: string) => boolean;
 
   // ── Resolved Capability State ──────────────────────────────────────
   /**

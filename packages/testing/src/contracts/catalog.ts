@@ -121,12 +121,32 @@ export function findCatalogFor(lab: Lab, opts: { locale: string; key?: string })
  * works out the rest from the compiler's own resolved `outputDir`.
  *
  * Returned relative to the project root, ready for `lab.fs`.
+ *
+ * `outputDir` is normally read off the running compiler, and must be passed
+ * explicitly when there is not one — a **project lab** builds without ever
+ * starting a dev server, so `lab.compiler.instance` is undefined there. This
+ * used to fall back to `"./zintl"` in that case, which is the default for
+ * projects that never set the option and silently the wrong path for every
+ * project that does: it produced a plausible filename, `lab.fs` read it, and
+ * the contract failed on a missing file several steps away from the cause.
  */
-export function localizedAssetPath(lab: Lab, assetFile: string, locale: string): string {
-  const outputDir = lab.compiler.instance?.outputDir ?? "./zintl";
+export function localizedAssetPath(
+  lab: Lab,
+  assetFile: string,
+  locale: string,
+  outputDir?: string,
+): string {
+  const resolved = outputDir ?? lab.compiler.instance?.outputDir;
+  if (!resolved) {
+    throw new Error(
+      `localizedAssetPath("${assetFile}", "${locale}") cannot tell where localized assets go: ` +
+        `this lab has no running compiler to ask. Pass the project's \`outputDir\` explicitly — ` +
+        `\`manifest.zintlOptions.outputDir\` is the one a contract already has in hand.`,
+    );
+  }
   const ext = extname(assetFile);
   const withLocale = `${assetFile.slice(0, assetFile.length - ext.length)}.${locale}${ext}`;
-  return relative(lab.root, join(lab.root, outputDir, withLocale));
+  return relative(lab.root, join(lab.root, resolved, withLocale));
 }
 
 /**

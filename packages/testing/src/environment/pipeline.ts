@@ -34,8 +34,11 @@ export class LabPipeline {
     return { ...result.modules, ...result.virtualModules };
   }
 
-  async build(overrides: Record<string, any> = {}): Promise<BuildOutput> {
-    return this.driver.build(overrides);
+  async build(
+    overrides: Record<string, any> = {},
+    opts: { cache?: boolean } = {},
+  ): Promise<BuildOutput> {
+    return this.driver.build(overrides, opts);
   }
 
   public sanitizeCode(code: string): string {

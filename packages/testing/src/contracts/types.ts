@@ -51,6 +51,35 @@ export type Capability =
    */
   | "asset-hmr"
   /**
+   * The project imports a targeted asset **plainly**, so it is delivered by URL.
+   *
+   * A structural claim about the project, not a claim that Zintl gets it right —
+   * the contract that measures it is currently `pending` for a Zintl reason, and
+   * the distinction is the one `chaos-boundary` records: a capability says what a
+   * project can be asked, and a pending contract says what the answer is.
+   *
+   * The other half of `assets`, which only ever measured the `?raw` case — the
+   * import asking for an asset's *contents*. A plain import asks for a URL
+   * instead, and that path did not exist before proposal 035: binary assets were
+   * excluded from catalogs and resolved by nothing, so a targeted `.pdf` was
+   * copied to disk and read by no one.
+   *
+   * Claim it with `referenceAsset` declared.
+   */
+  | "asset-reference"
+  /**
+   * An artifact with no bytes fails the **build**.
+   *
+   * `assets` proves a filled artifact reaches the browser; this proves an
+   * unfilled one never gets that far. The two are opposite halves of the same
+   * guarantee and neither implies the other — before 035 the first held while
+   * the second silently shipped the source locale's bytes.
+   *
+   * Needs a project that can build and an `assetFile` to empty. The contract
+   * restores what it emptied, so claiming it costs one extra build.
+   */
+  | "asset-integrity"
+  /**
    * The project can declare source edits that *grow* the graph (ZHMR §4.1③, §4.2).
    *
    * Adding a sink is the warm path and adding an anchor or a `$L` colony is the
@@ -262,6 +291,29 @@ export interface AssetsAdapter extends BaseAdapter {
    * Omit it and the project cannot claim `asset-hmr`.
    */
   assetFile?: string;
+  /**
+   * A targeted asset imported **plainly**, and so delivered as a URL.
+   *
+   * Declared separately from `assetFile` because it is a different claim about
+   * a different asset: that one is imported with `?raw` and arrives as text,
+   * this one arrives as a link to bytes. A project can have either, both, or
+   * neither.
+   *
+   * `bytes` is the **authored** content per locale, base64-encoded — what the
+   * URL must actually serve. Comparing bytes rather than URLs is deliberate: a
+   * per-locale URL that resolves to the source file looks right in the DOM and
+   * is the exact defect this exists to catch.
+   *
+   * Omit it and the project cannot claim `asset-reference`.
+   */
+  referenceAsset?: {
+    /** Element whose `src` holds the resolved URL. */
+    selector: string;
+    /** The source asset, relative to the project root. */
+    file: string;
+    /** Base64 of the bytes each locale must serve, keyed by locale code. */
+    bytes: Record<string, string>;
+  };
   /**
    * Show the app in `locale` from a cold load.
    *

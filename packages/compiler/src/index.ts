@@ -434,9 +434,21 @@ export class ZintlCompiler {
    * host that reaches for `compiler.assets` has hardcoded which facet matters.
    */
   public ownsContent(filePath: string): boolean {
-    if (!this._resolved) return false;
+    return this.contentOwnershipProbe()(filePath);
+  }
+
+  /**
+   * {@link ownsContent} with the compiler context bound once.
+   *
+   * The pipeline asks this per dependency edge, per file, per boundary, and
+   * building a context inside the predicate would rebuild it on every one of
+   * those. Same answer, paid for once.
+   */
+  private contentOwnershipProbe(): (filePath: string) => boolean {
+    if (!this._resolved) return () => false;
     const context = this.getCompilerContext();
-    return this._resolved.system.contentFacets.some((f) => f.match(filePath, context));
+    const facets = this._resolved.system.contentFacets;
+    return (filePath: string) => facets.some((f) => f.match(filePath, context));
   }
 
   private graphDirty = true;
@@ -3333,6 +3345,7 @@ export class ZintlCompiler {
         bakedLocale,
         multiplex: this._options.multiplex ?? true,
         extensions: this.extensions,
+        ownsContent: this.contentOwnershipProbe(),
         // Resolved facet state — subsystems read these
         capabilities: this._resolved.flags,
         system: this._resolved.system,
