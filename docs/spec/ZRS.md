@@ -10,15 +10,15 @@
 Every source file is classified by the presence of exactly one set of **Symbolic Markers**.
 These markers are mutually exclusive at a given scope (file or function).
 
-| Symbol  | Name   | Detection                                                                                       |
-| :------ | :----- | :---------------------------------------------------------------------------------------------- |
-| **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument).  |
-| **$M**  | Marker | A bare `import "zintljs"` side-effect import with no named specifiers.                          |
-| **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                            |
-| **$S**  | Sink   | A UI string assigned to a translatable property (innerHTML, JSX text, title, aria-label, etc.). |
-| **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                               |
-| **$H**  | Portal | An HTML entry point that projects internationalization state onto the DOM.                      |
-| **$AS** | Asset  | A static asset (.txt, .md) that participates in the localization pipeline.                      |
+| Symbol  | Name   | Detection                                                                                      |
+| :------ | :----- | :--------------------------------------------------------------------------------------------- |
+| **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument). |
+| **$M**  | Marker | A bare `import "zintljs"` side-effect import with no named specifiers.                         |
+| **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                           |
+| **$S**  | Sink   | A string occupying a position declared translatable by a **target**. Formalized in §15.        |
+| **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                              |
+| **$H**  | Portal | An HTML entry point that projects internationalization state onto the DOM.                     |
+| **$AS** | Asset  | A static asset (.txt, .md) that participates in the localization pipeline.                     |
 
 > [!NOTE]
 > A file may contain **both** $A and $S simultaneously. The $A governs ownership; the $S participates in the catalog. A file may also contain $L alongside any other symbol — $L defines storage partitioning at the _dependency edge_, not the file itself.
@@ -489,5 +489,125 @@ In production, localized assets are treated as first-class citizens in the build
 - **Key Generation**: The compiler generates a unique stable key for each asset based on its relative path.
 - **Content Hashing**: Localized assets are emitted with content hashes (e.g., `about.ar-BF8QNONU.txt`) to ensure cache busting and long-term stability.
 - **Mapping**: The mapping between the abstract asset ID and the localized physical path is baked into the production catalogs.
+
+---
+
+## §15 — Sink Targets ($S$ Detection)
+
+§1 defines $S$ as _"a UI string assigned to a translatable property"_. This section is the formal rule
+behind that sentence: which strings are $S$, and on what authority.
+
+### §15.1 — The Evidence Axiom
+
+> A **default** target MUST rest on evidence that the string is user-facing.
+> A target resting on a name alone MUST be declared by the project.
+
+A target is **structural** when the parser can see that the string occupies a rendering position, and
+**nominal** when it matches an identifier and cannot know what that identifier holds.
+
+| Class          | Targets                                                    | The evidence                           |
+| :------------- | :--------------------------------------------------------- | :------------------------------------- |
+| **Structural** | `html:attr:*`, `jsx:*:*`, HTML text, `tag:*`, DOM coinages | The string is in markup, or was tagged |
+| **Qualified**  | `dom:<receiver>:*`, `obj:<binding>:*`, `call:<fn>:*`       | A named receiver, binding or callee    |
+| **Nominal**    | `dom:prop:*`, `obj:*:<field>`                              | A property name; the holder is unknown |
+
+Nominal targets are permitted but MUST NOT be defaults, because a name carries no information about
+its holder: `{ label: "signup_click" }` is indistinguishable from a button caption. Extraction
+**rewrites the value**, so a wrongly-matched string is returned translated at runtime — and under §5's
+no-fallback rule it also fails the build until translated.
+
+> [!NOTE]
+> A property name may itself be evidence when it is not an ordinary word. `innerHTML`, `textContent`
+> and `innerText` are DOM coinages that do not occur as arbitrary field names; `title`, `value`, `alt`
+> and `label` do, and are therefore not defaults in unqualified form.
+
+### §15.2 — Descriptor Grammar
+
+```
+descriptor  ::= jsx ":" element ":" attribute
+              | "html:attr:" attribute
+              | dom ":" receiver ":" property
+              | obj ":" binding ":" field
+              | "call:" callee ":" field
+              | "tag:" identifier
+element     ::= identifier | "*"
+receiver    ::= identifier | "prop" | "*"
+binding     ::= identifier | "field" | "*"
+```
+
+`*` denotes _any_, in **either** position: `obj:*:title` is any object's `title`; `obj:details:*` is
+every field of an object named `details`. `prop` and `field` are the original spellings of `*` in the
+receiver and binding positions and are equivalent to it.
+
+An unrecognised descriptor, a wrong arity, an empty segment, or a path where a single name is expected
+MUST be **rejected at construction**. A descriptor that matches nothing MUST NOT be accepted silently:
+a stated intent that is discarded without a message is indistinguishable from a feature that does not
+exist.
+
+### §15.3 — Binding Resolution
+
+For `obj:<binding>:<field>` and `call:<callee>:<field>`, the qualifying name is resolved by walking
+**outward** from the property to the nearest name-carrying ancestor.
+
+| Ancestor                                    | Contributes             |
+| :------------------------------------------ | :---------------------- |
+| `VariableDeclarator`, `FunctionDeclaration` | its `id`                |
+| `PropertyDefinition` (class field)          | its `key`               |
+| `CallExpression` with an identifier callee  | the callee, for `call:` |
+
+Three rules govern the walk:
+
+1. **The first binding is the answer**, whether or not it claims the field. Walking past it would let
+   an outer scope's name capture an inner object.
+2. **The walk crosses function bodies.** `const ui = () => ({ … })` and
+   `function build() { return { … } }` are as common as the plain declaration, and stopping at the
+   function would serve only the simplest form.
+3. **The walk does not stop at the first object.** A field nested inside `const ui = { home: { … } }`
+   resolves to `ui`, because that nesting is the ordinary shape of a strings object.
+
+The name is the **local binding**, never an export alias. `const ui = …; export { ui as strings }` is
+matched by `obj:ui:title` and not by `obj:strings:title`. There is not always one exported name —
+`export { ui as a, ui as b }` is legal — while the local binding is always singular, and a target
+describes where the object is written rather than how the module exposes it.
+
+`obj:` and `call:` are distinct relations. _Bound to `cfg`_ and _passed to `cfg()`_ MUST NOT be
+conflated, or `call:cfg:title` would match a `const cfg = { title }` unrelated to the call.
+
+An object with no name-carrying ancestor — an anonymous `export default` — is **not addressable** by a
+declared target. §15.5 covers it.
+
+### §15.4 — Receiver Qualification
+
+For `dom:<receiver>:<property>`, the receiver MUST be a plain identifier matching the descriptor.
+`dom:document:title` matches `document.title` and not `telemetry.title`.
+
+A member-expression receiver does not match: `window.document.title` is outside the rule. Following
+member chains means walking arbitrary receivers, which reintroduces the guessing the qualification
+exists to remove.
+
+### §15.5 — Site Marking ($S$ by Declaration)
+
+`@zintl-target` opts a node and its subtree in. Within a marked region every string field of an object
+literal is $S$, regardless of its name.
+
+It is the inverse of `@zintl-ignore` and composes with it: `@zintl-ignore` inside a marked region still
+excludes that site. Regions nest, so the depth MUST be counted rather than flagged — an inner region
+ending must not end the outer.
+
+Marking is the only form that reaches a site with no resolvable name, and the only one that survives
+renaming the binding.
+
+### §15.6 — Target Composition
+
+Targets reach the compiler from three sources and MUST **union**:
+
+| Source              | Semantics                                        |
+| :------------------ | :----------------------------------------------- |
+| Facet `targets`     | **Replaces** that facet's own list               |
+| `additionalTargets` | **Adds** to the resolved set                     |
+| `@zintl-target`     | Adds at one site, for the duration of its region |
+
+A facet declaring a subset of what an unconditional facet already declares narrows nothing — union is
+the merge rule, so subtraction is expressible only by replacing a facet's list or excluding the facet.
 
 ---

@@ -176,6 +176,24 @@ function processSinkSource(
  * a real limit rather than an oversight: there is nothing to declare a target
  * against, and marking the site is what a directive is for.
  */
+/**
+ * Does this field set claim `field`, allowing `*` to mean every field?
+ *
+ * The wildcard has to work in **both** positions or it is a trap. `obj:*:title`
+ * (any object, this field) was supported from the start; `obj:details:*` (this
+ * object, every field) parsed, stored `"*"` as a literal field name, matched
+ * nothing, and passed validation — a structurally valid triple with no empty
+ * segments. Silently doing nothing is the exact defect the validation pass was
+ * added to remove, reappearing one position over.
+ *
+ * `obj:details:*` is also the more useful half in practice: it says *this object
+ * holds UI strings* without listing them, which is what a project reaches for
+ * when the same shape appears in many components.
+ */
+function claims(fields: Set<string> | undefined, field: string): boolean {
+  return fields !== undefined && (fields.has(field) || fields.has("*"));
+}
+
 function qualifiedObjectMatch(field: string, parents: Node[], ctx: ExtractionContext): boolean {
   if (ctx.uiObjectNameFields.size === 0 && ctx.uiCallFields.size === 0) return false;
 
@@ -187,7 +205,7 @@ function qualifiedObjectMatch(field: string, parents: Node[], ctx: ExtractionCon
     const node = parent as any;
 
     if (node.type === "CallExpression" && node.callee?.type === "Identifier") {
-      if (ctx.uiCallFields.get(node.callee.name)?.has(field)) return true;
+      if (claims(ctx.uiCallFields.get(node.callee.name), field)) return true;
     }
 
     const bindingName =
@@ -201,7 +219,7 @@ function qualifiedObjectMatch(field: string, parents: Node[], ctx: ExtractionCon
     // The first binding is the answer, whether or not it claims the field —
     // walking past it would let an outer scope's name capture an inner object.
     if (bindingName !== undefined) {
-      return ctx.uiObjectNameFields.get(bindingName)?.has(field) ?? false;
+      return claims(ctx.uiObjectNameFields.get(bindingName), field);
     }
   }
 

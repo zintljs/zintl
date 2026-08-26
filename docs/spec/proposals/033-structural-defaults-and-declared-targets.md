@@ -1,12 +1,12 @@
 # Proposal 033: Structural Defaults and Declared Targets
 
-**Status**: CLOSED — every section is built; see §8 for the order it happened in and §8.1 for what the
-removal cost (nothing). §9.2 and §9.3 are open questions this document raised and did not answer.
-Originally: design, backed by a measurement (§1). The rule in §3 is settled in principle; §4–§6
+**Status**: CLOSED, with nothing outstanding. Every section is built and every question it raised is
+answered — see §8 for the order the work happened in, §8.1 for what the removal cost (nothing), and
+§8.1a for the three places the audit was blind. Originally: design, backed by a measurement (§1). The rule in §3 is settled in principle; §4–§6
 are the mechanisms it needs. §9.1 is decided and **shipped**, including the
 receiver-qualified `dom:<receiver>:<property>` descriptor it needed. **§8 is complete**: §4, §5, §6, §7 and §10 are all
-built, and `obj:field:*` is gone from the defaults with zero strings lost (§8.1). §9.2 and §9.3 remain
-open. The rule in §0 now holds across every default target, with no exception.
+built, and `obj:field:*` is gone from the defaults with zero strings lost (§8.1). §9.2 (`additionalTargets`) and §9.3 (local binding) are
+both answered. The rule in §0 now holds across every default target, with no exception.
 **Date**: 2026-08-24
 **Kind**: Design proposal, with an audit attached. Every number below was produced by running the
 extractor, not by reading it.
@@ -450,21 +450,82 @@ only when the any-receiver set misses, so the common path is untouched.
 users with a naming convention; it turns out to be what closes a hole in the _defaults_. The same
 reasoning carries to `obj:<name>:<field>`.
 
-`obj:field:*` remains untouched pending §8's migrations.
+`obj:field:*` was untouched at the time this section was written; §8 step 5 has since removed it.
 
-### 9.2 Does a declared target belong in config, or in the facet?
+### 9.2 Declared targets in config — answered 2026-08-25: `additionalTargets`
 
-`targets` sits on facet options, so `obj:ui:title` is passed via `vanillaFacet({ targets: [...] })` —
-which replaces the default list wholesale. For "the defaults plus one of mine" that is awkward. A
-top-level `additionalTargets` would be friendlier, and would be the third instance of the
-option-versus-facet overlap already flagged as the surface most likely to change before 1.0
-(`docs/stability.md`).
+`targets` sits on facet options and **replaces** that facet's list, which is right for reconfiguring
+one and useless for _"the defaults plus one of mine"_: appending a single entry meant re-listing every
+default, and such a config falls behind silently the moment the defaults move.
 
-### 9.3 Should `obj:<name>` match the exported name or the local one?
+There was a route — contribute your own facet, since array capabilities union across them — but it
+required knowing that facets union, that `concern: "extraction"` is the slot, and that the name must
+differ from a built-in or the provenance rule _replaces_ instead. Too much mechanism for one target.
 
-`const ui = {…}; export { ui as strings }`. The declaration site says `ui`; consumers see `strings`.
-The local name is what the visitor has, and it is probably right — but it should be written down
-before someone relies on the other reading.
+`additionalTargets` is a top-level option that adds:
+
+```ts
+zintl({ additionalTargets: ["obj:details:*"] });
+```
+
+**Not the option/facet duplication this document warned about.** Facet `targets` replaces one facet's
+list; `additionalTargets` extends the resolved set. Different jobs, so they never compete for the same
+meaning — which is exactly what `assetsTarget` and the assets facet's `targets` do, and why that pair
+is still the surface most likely to change before 1.0.
+
+It is carried as a synthetic facet named `additional-targets`, so it inherits union semantics, appears
+in the activation trace, and needs no second code path that could disagree with the first. Its own
+name matters: naming it after a built-in would _replace_ that facet under §4's provenance rule.
+
+**A sentinel was considered and rejected.** `targets: ["auto", …]` would mirror `facets: ["builtins"]`,
+but `facets` is expanded by the plugin while `targets` is parsed by the extractor's deliberately
+framework-blind DSL — so the sentinel would either leak an orchestration concept into that parser, or
+mean one thing at the top level and another on a facet. It also reserves a bare word in a namespace of
+prefixed descriptors, foreclosing any future bare-word form.
+
+#### 9.2a The wildcard was only half-implemented
+
+Found while answering this. `*` was supported in the **binding** position (`obj:*:title`) and not the
+**field** position: `obj:details:*` parsed, stored `"*"` as a literal field name, matched nothing, and
+**passed validation** — a structurally valid triple with no empty segments. Silently doing nothing, one
+position over from where §10's validation pass had just removed it.
+
+`obj:details:*` is also the more useful half: it says _this object holds UI strings_ without listing
+them. Both positions now work, for `obj:` and `call:` alike.
+
+### 9.3 `obj:<name>` matches the **local** binding — answered 2026-08-25
+
+```ts
+const ui = { title: "…" };
+export { ui as strings };
+```
+
+`obj:ui:title` matches this. `obj:strings:title` does not. The export alias is ignored, and that is
+the behaviour the implementation already had — the question was whether to keep it.
+
+Three reasons to keep it, in ascending order of weight.
+
+**It is what the walk can see.** The binding comes from the nearest name-carrying ancestor of the
+object literal. An alias lives in a separate export declaration elsewhere in the module, so honouring
+it means a second resolution pass over the module's export bindings, feeding a decision made at the
+literal.
+
+**There is not always one exported name.** `export { ui as strings, ui as messages }` is legal, and a
+re-export chain adds more. "The exported name" is not well-defined, while the local binding always is
+— a rule that cannot be stated for every input is not a rule.
+
+**A target is a statement about the shape of the source, not about a module's public surface.** The
+person writing `obj:ui:title` is reading the file the object is written in, and the answer to "does
+this match?" should be available from the declaration alone, without scanning the module's exports.
+That locality is the same instinct `@zintl-target` follows by marking the site.
+
+The cost is that a consumer importing `strings` must use the _defining_ module's name. That is
+acceptable because targets are project configuration, written by somebody who can open the file.
+
+This adds no new fragility: §4.3 already records that renaming the binding silently stops extraction,
+and export aliasing does not make that worse. Asserted in
+`qualified_object_targets.test.ts` under "which name counts", including the inverted case where the
+alias happens to be the target and must **not** match.
 
 ## 10. What this proposal does not cover
 

@@ -137,6 +137,30 @@ describe("@zintl-target", () => {
     expect([...found]).toEqual(["INSIDE"]);
   });
 
+  /**
+   * ZRS §15.5: *"Regions nest, so the depth MUST be counted rather than
+   * flagged — an inner region ending must not end the outer."*
+   *
+   * This is the assertion that separates a counter from a boolean, and it needs
+   * a field positioned **after** the inner region but still inside the outer
+   * one. With a flag, the inner region's exit clears it and `AFTER_INNER` is
+   * lost; nothing else in the suite would notice.
+   */
+  it("keeps the outer region alive when a nested one ends", async () => {
+    const found = await keys(`
+      // @zintl-target
+      const outer = {
+        a: (() => {
+          // @zintl-target
+          return { b: "INNER" };
+        })(),
+        c: "AFTER_INNER",
+      };
+      void outer;
+    `);
+    expect([...found].sort()).toEqual(["AFTER_INNER", "INNER"]);
+  });
+
   it("survives renaming the binding, which a declared target would not", async () => {
     const found = await keys(`
       // @zintl-target

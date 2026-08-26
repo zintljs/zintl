@@ -12,6 +12,8 @@
  * configs, payloads and telemetry — so as *defaults* they broke the rule that a
  * default target must never catch text that is not user-facing. See proposal
  * 033 §9.1.
+ *
+ * Reference: docs/spec/ZRS.md §15.1, §15.4
  */
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { createTestCompiler } from "../helpers/compiler.js";

@@ -6,6 +6,8 @@
  * narrow the same match by *context*: the binding the object belongs to, or the
  * call it was passed to. Still a name, but one the project chose and controls,
  * which is the whole of the bargain (proposal 033 §4).
+ *
+ * Reference: docs/spec/ZRS.md §15.3
  */
 import { describe, it, expect, beforeEach } from "vite-plus/test";
 import { vanillaFacet, viteFacet } from "@zintljs/compiler/facets";
@@ -151,6 +153,45 @@ describe("qualified object targets", () => {
     it("cannot reach an anonymous default export", async () => {
       const c = await withTargets(["obj:ui:title"]);
       const keys = await keysFor(c, `export default { title: "DEFAULT_EXPORT" };`);
+      expect([...keys]).toEqual([]);
+    });
+  });
+
+  /**
+   * The name is the **local** binding, never an export alias.
+   *
+   * Three reasons, and the third is the one that settles it (proposal 033 §9.3).
+   * It is what the walk can see — an alias lives in a separate export
+   * declaration elsewhere in the module. There is not always *one* exported
+   * name: `export { ui as strings, ui as messages }` is legal, and a re-export
+   * chain adds more, while the local binding is always singular. And a target
+   * is a statement about the shape of the source, not about a module's public
+   * surface — you can answer "does this match?" by reading the declaration,
+   * without scanning the module's exports.
+   */
+  describe("which name counts", () => {
+    it("matches when the binding is exported under its own name", async () => {
+      const c = await withTargets(["obj:ui:title"]);
+      expect([...(await keysFor(c, `export const ui = { title: "PLAIN_EXPORT" };`))]).toEqual([
+        "PLAIN_EXPORT",
+      ]);
+    });
+
+    it("matches the local name even when the export renames it", async () => {
+      const c = await withTargets(["obj:ui:title"]);
+      const keys = await keysFor(
+        c,
+        `const ui = { title: "LOCAL_WINS" };\nexport { ui as strings };`,
+      );
+      expect([...keys]).toEqual(["LOCAL_WINS"]);
+    });
+
+    it("does not match an export alias that happens to be the target", async () => {
+      const c = await withTargets(["obj:ui:title"]);
+      const keys = await keysFor(
+        c,
+        `const strings = { title: "ALIAS_IGNORED" };\nexport { strings as ui };`,
+      );
       expect([...keys]).toEqual([]);
     });
   });

@@ -183,6 +183,7 @@ export function ensureCompiler(
     pluginNames: resolved.pluginNames,
     facets: ctx.options.facets,
     assetsTarget: ctx.options.assetsTarget,
+    additionalTargets: ctx.options.additionalTargets,
     virtualAssets: ctx.options.virtualAssets,
   });
 

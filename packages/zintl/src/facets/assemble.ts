@@ -93,6 +93,8 @@ export interface AssembleInput {
   /** Asset facet configuration drawn from plugin options. */
   assetsTarget?: (string | AssetTargetConfig)[];
   virtualAssets?: boolean;
+  /** Extra extraction targets from the plugin's `additionalTargets` option. */
+  additionalTargets?: string[];
 }
 
 /**
@@ -235,9 +237,33 @@ function toContext(input: AssembleInput): FacetActivationContext {
 /**
  * The active facet list for a project, with the trace explaining every decision.
  */
+/**
+ * The plugin's `additionalTargets`, as a facet.
+ *
+ * Carried this way rather than merged into the compiled state afterwards,
+ * because array capabilities already union across facets — so a synthetic
+ * contributor gets additive behaviour for free, appears in the activation trace
+ * like everything else, and needs no second code path that could disagree with
+ * the first.
+ *
+ * Its own name, never a built-in's: naming it `vanilla-extraction` would
+ * *replace* that facet under the provenance rule rather than add to it, which
+ * is the precise opposite of the option's purpose.
+ */
+function additionalTargetsFacet(targets: string[] | undefined): ZintlFacet[] {
+  if (!targets || targets.length === 0) return [];
+  return [
+    {
+      name: "additional-targets",
+      concern: "extraction",
+      targets,
+    } as unknown as ZintlFacet,
+  ];
+}
+
 export function assembleFacetsWithTrace(input: AssembleInput): ActivationResult {
   const { facets, excluded, overridden } = flattenFacets(
-    input.facets ?? [BUILTINS],
+    [...(input.facets ?? [BUILTINS]), ...additionalTargetsFacet(input.additionalTargets)],
     builtinFacets(input),
     bundlerFacets(),
   );

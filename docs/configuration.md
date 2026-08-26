@@ -206,18 +206,41 @@ defineConfig({ title: "My site" }); //        call:defineConfig:title
 ```
 
 The binding is the nearest one enclosing the object, found by walking outward, so a field several
-levels down still belongs to it. `export default { … }` has no name and cannot be targeted this way —
-that is what the directive is for.
+levels down still belongs to it. It is the **local** name, not an export alias — `const ui = …;
+export { ui as strings }` is matched by `obj:ui:title`, because the target describes where the object
+is written rather than how the module exposes it. `export default { … }` has no name at all and cannot
+be targeted this way; that is what [`@zintl-target`](directives.md#zintl-target) is for.
 
 `obj:` and `call:` are kept apart because _passed to `cfg()`_ and _bound to `cfg`_ are different
 relations — one descriptor covering both would make `call:cfg:title` match a `const cfg = { title }`
 that has nothing to do with the call.
 
-`obj:*:title` restores the old any-object behaviour if you want it, and says out loud what it does.
+`*` works in **either** position: `obj:*:title` is any object's `title`, `obj:details:*` is every
+field of an object named `details`. The second is what you reach for when the same shape repeats
+across components and listing its fields would be busywork.
+
+### Adding a target without losing the rest
+
+`targets` on a facet **replaces** that facet's list. That is right for reconfiguring one and wrong for
+_"I want one more"_ — appending a single entry would mean re-listing every default, and that config
+falls behind silently the moment the defaults move.
+
+`additionalTargets` adds:
+
+```ts
+zintl({
+  locales: ["en", "ar"],
+  additionalTargets: ["obj:details:*"],
+});
+```
+
+Everything the active facets detect stays; yours joins it. Use `targets` on a facet when you mean to
+_replace_ what that facet contributes, and `additionalTargets` when you mean to extend.
 
 ### Changing what is extracted
 
-`targets` **replaces** a facet's list rather than adding to it, so pass a full one:
+To _replace_ what a facet contributes, pass its `targets` a full list — it replaces rather than
+appends. (To extend instead, use `additionalTargets` above.)
 
 ```ts
 import { vanillaFacet } from "zintljs/facets";

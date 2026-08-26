@@ -278,6 +278,33 @@ export interface Options {
   virtualAssets?: boolean;
 
   /**
+   * Extraction targets to add on top of whatever the active facets detect.
+   *
+   * **Additive, and the name says so.** `targets` on a facet *replaces* that
+   * facet's list, which is right for reconfiguring one but wrong for "I want
+   * one more" — re-listing every default to append a single entry means your
+   * config silently falls behind whenever the defaults move. This adds.
+   *
+   * The common case is a shape your codebase repeats that no default can infer:
+   *
+   * ```ts
+   * zintl({ additionalTargets: ["obj:details:*"] })
+   * ```
+   *
+   * Every descriptor form is accepted — see `docs/configuration.md`. `*` works
+   * in either position: `obj:*:title` is any object's `title`, `obj:details:*`
+   * is every field of an object named `details`.
+   *
+   * Adding a target widens what your build treats as user-facing, and you own
+   * the consequences: a string that should not have been translated comes back
+   * translated at runtime, and fails the build until somebody translates it.
+   * `@zintl-ignore` opts a single site back out.
+   *
+   * @default []
+   */
+  additionalTargets?: string[];
+
+  /**
    * Which capabilities the compiler is built with — framework support, SSR,
    * client locale sync, asset handling.
    *

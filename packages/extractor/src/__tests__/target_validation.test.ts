@@ -7,6 +7,8 @@
  * none with nothing to read. That is the same silent under-extraction that
  * makes a missing sink invisible, arriving through a config file, where it is
  * worse: the intent was stated out loud and dropped.
+ *
+ * Reference: docs/spec/ZRS.md §15.2
  */
 import { describe, it, expect } from "vite-plus/test";
 import { resolveTargets } from "../targets.js";
