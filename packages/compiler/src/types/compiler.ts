@@ -14,28 +14,20 @@ export type { LogLevel, ZintlLogger };
  *   bytes for this locale (`null` on first run) and the target locale, and
  *   returns the bytes to emit.
  */
-export type AssetMergeStrategy =
-  | "frontmatter"
-  | "text-passthrough"
-  | "binary-passthrough"
-  | ((source: Buffer, existing: Buffer | null, locale: string) => Buffer);
-
 /**
  * A group of static content files to localize.
  *
  * Passed to the plugin as `assetsTarget`, where a bare extension string like
  * `"md"` is shorthand for `{ targetPattern: "**\/*.md" }`.
+ *
+ * Purely positional: which files are targeted, and where their artifacts go.
+ * The `strategy` this used to carry described how to build a localized copy
+ * *from its source*, and nothing is built from a source any more — every
+ * targeted asset is scaffolded empty and authored (proposal 035 §3).
  */
 export interface AssetTargetConfig {
   /** Glob matching the source files to localize, relative to the project root. */
   targetPattern: string;
-  /**
-   * How to build each localized copy.
-   *
-   * @default inferred from the extension — `.md`/`.mdx` → `"frontmatter"`,
-   * `.txt` → `"text-passthrough"`, otherwise `"binary-passthrough"`
-   */
-  strategy?: AssetMergeStrategy;
   /**
    * Where localized copies are written, relative to `outputDir`.
    *

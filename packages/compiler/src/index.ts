@@ -29,7 +29,6 @@ import {
   type ZintlLogger,
   type LogLevel,
   type AssetTargetConfig,
-  type AssetMergeStrategy,
   type CatalogFormatContext,
   type CompilerCapabilities,
   type CapabilityFlags,
@@ -55,7 +54,6 @@ export type {
   CompilerOptions,
   LogLevel,
   AssetTargetConfig,
-  AssetMergeStrategy,
   CatalogFormatContext,
   HtmlProjectionPayload,
 };
@@ -226,6 +224,58 @@ function formatMissingTranslations(missing: MissingTranslation[], sourceLocale: 
   return [...lines, ...footer].join("\n");
 }
 
+/**
+ * The asset half of the integrity report.
+ *
+ * Its own formatter rather than a branch inside {@link formatMissingTranslations}
+ * because the remedies differ, and the second one is the point: an untargeted
+ * asset is a shared one, so *"stop targeting it"* is a correct and complete
+ * answer for somebody who discovers their asset was never meant to vary by
+ * locale — not a workaround. Proposal 035 §6.
+ */
+function formatUnfilledAssets(
+  unfilled: { locale: string; path: string }[],
+  root: string,
+  sourceLocale: string,
+): string {
+  const byLocale = new Map<string, string[]>();
+  for (const entry of unfilled) {
+    const shown = toPosixPath(relative(root, entry.path)) || entry.path;
+    const bucket = byLocale.get(entry.locale);
+    if (bucket) bucket.push(shown);
+    else byLocale.set(entry.locale, [shown]);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const lines = [
+    `[Zintl Integrity Error] ${unfilled.length} unfilled localized ${
+      unfilled.length === 1 ? "asset" : "assets"
+    } across ${locales.length} ${locales.length === 1 ? "locale" : "locales"}.`,
+    ``,
+    `Every targeted asset needs its own artifact per locale. These files are empty;`,
+    `fill them. Zintl scaffolds them empty rather than copying the source, because`,
+    `an English PDF at the German path is not a German PDF — and a byte-identical`,
+    `copy is a fallback to "${sourceLocale}" that nothing downstream can detect.`,
+    ``,
+  ];
+
+  for (const locale of locales) {
+    const paths = byLocale.get(locale)!.sort();
+    lines.push(`  ${locale} — ${paths.length} empty`);
+    for (const path of paths) lines.push(`    ${path}`);
+    lines.push(``);
+  }
+
+  lines.push(
+    `Fix:   fill the files above.`,
+    `Or:    stop targeting the asset, if it is the same in every locale.`,
+    `Defer: set \`verifyIntegrity: false\` to skip this check while you evaluate`,
+    `       — those assets will be served empty until they are authored.`,
+  );
+
+  return lines.join("\n");
+}
+
 /** Do all locales lack translations for exactly the same keys, in the same files? */
 function isUniformAcrossLocales(
   byLocale: Map<string, MissingTranslation[]>,
@@ -368,6 +418,25 @@ export class ZintlCompiler {
       (a) => a.name === "system-html-projection",
     );
     return facet?.getManagerInstance?.(this.getCompilerContext());
+  }
+
+  /**
+   * Whether any content facet owns `filePath`.
+   *
+   * The host's way of asking instead of guessing. `resolveId` has always asked —
+   * through `isSupportedAsset` — and the *load* path always tested for `.md` and
+   * `.txt` instead, so a configured `.rst` target was recognised when its import
+   * resolved and then unknown when the module loaded, never reaching the
+   * substitution the registration was for. Proposal 034 §1.3.
+   *
+   * Deliberately the whole facet layer rather than the assets facet by name: a
+   * project contributing its own content facet is owed the same answer, and a
+   * host that reaches for `compiler.assets` has hardcoded which facet matters.
+   */
+  public ownsContent(filePath: string): boolean {
+    if (!this._resolved) return false;
+    const context = this.getCompilerContext();
+    return this._resolved.system.contentFacets.some((f) => f.match(filePath, context));
   }
 
   private graphDirty = true;
@@ -3177,11 +3246,38 @@ export class ZintlCompiler {
       }
     }
 
+    /**
+     * Assets are gated too, and by their own question.
+     *
+     * The string loop above skips `b_assets`, and removing that `continue` would
+     * gate nothing: `internalManifest["b_assets"]` is populated only in dev,
+     * while this check runs only in a build, so there are no asset keys there to
+     * iterate. The artifact on disk is the thing to ask, and asking it also
+     * covers a *referenced* asset, whose catalog value is a URL and therefore
+     * non-empty however few bytes stand behind it.
+     *
+     * Same gate, same option, same report — `verifyIntegrity` governs both, and
+     * an unfilled asset is a missing translation with a file for a body.
+     */
+    const unfilledAssets: { locale: string; path: string }[] = [];
+    if (!this.isDev) {
+      const context = this.getCompilerContext();
+      for (const facet of this._resolved.system.contentFacets) {
+        if (!facet.getUnfilledOutputs) continue;
+        unfilledAssets.push(...(await facet.getUnfilledOutputs(context)));
+      }
+    }
+
     if (badAnchors.length > 0) {
       throw new Error(formatUnsupportedAnchorLocales(badAnchors, this.locales));
     }
-    if (missing.length > 0) {
-      throw new Error(formatMissingTranslations(missing, this.sourceLocale));
+    if (missing.length > 0 || unfilledAssets.length > 0) {
+      const reports: string[] = [];
+      if (missing.length > 0) reports.push(formatMissingTranslations(missing, this.sourceLocale));
+      if (unfilledAssets.length > 0) {
+        reports.push(formatUnfilledAssets(unfilledAssets, this.root, this.sourceLocale));
+      }
+      throw new Error(reports.join("\n\n"));
     }
   }
 

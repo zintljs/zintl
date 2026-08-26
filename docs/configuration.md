@@ -35,20 +35,40 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 ## Content beyond code
 
-| Option          | Type                              | Default         | What it does                                                                                                                                                           |
-| :-------------- | :-------------------------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assetsTarget`  | `(string \| AssetTargetConfig)[]` | `["md", "txt"]` | Static content files to localize alongside code. A bare extension is shorthand for `**/*.<ext>`.                                                                       |
-| `virtualAssets` | `boolean`                         | `false`         | Serve localized assets from virtual modules instead of writing them to disk. Keeps the working tree clean, at the cost of not being able to edit the output as a file. |
+| Option          | Type                              | Default         | What it does                                                                                                                                       |
+| :-------------- | :-------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assetsTarget`  | `(string \| AssetTargetConfig)[]` | `["md", "txt"]` | Files whose content varies by locale. A bare extension is shorthand for `**/*.<ext>`. Any file type — `.md`, `.pdf`, `.webp`, `.mp4`.              |
+| `virtualAssets` | `boolean`                         | `false`         | Deliver localized assets through virtual modules rather than resolving imports straight to the artifact on disk. Artifacts are written either way. |
+
+**A targeted asset is authored per locale, not translated into existence.** Targeting `about.txt`
+creates an empty `zintl/src/about.ar.txt` for you to fill — the compiler never copies the English
+into it, because an English PDF at the German path is not a German PDF, and a byte-identical file is
+a source-locale fallback nothing downstream can detect. An unfilled artifact fails your build under
+`verifyIntegrity`, the same way an empty catalog entry does.
+
+If an asset is the same in every locale, do not target it. That is the whole of what targeting means.
+
+How it reaches the browser is decided by your import, not by the file's extension:
+
+```ts
+import text from "./about.txt?raw"; // the contents, inlined into the catalog
+import url from "./hero.webp"; // the bundler's URL for this locale's artifact
+```
+
+A source edit never touches an artifact, and never warns that one is stale — whether the German
+version has fallen behind the English is an editorial question, not one a compiler that can only see
+that bytes differ should be answering. Renaming or moving a source _does_ carry its artifacts with
+it: identity is content-based here as everywhere else.
 
 ## Catalog upkeep
 
-| Option                | Type      | Default                         | What it does                                                                                                                 |
-| :-------------------- | :-------- | :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
-| `prune`               | `boolean` | `true`                          | Remove catalog keys once no source string produces them.                                                                     |
-| `similarityThreshold` | `number`  | `0.6`                           | How similar an edited string must be to keep its existing translation. Lower is more forgiving.                              |
-| `verifyIntegrity`     | `boolean` | `true` on build, `false` on dev | Verify catalogs against the manifest. **This is what makes a missing translation fail your build rather than render blank.** |
+| Option                | Type      | Default                         | What it does                                                                                                                   |
+| :-------------------- | :-------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------------------------- |
+| `prune`               | `boolean` | `true`                          | Remove catalog keys once no source string produces them.                                                                       |
+| `similarityThreshold` | `number`  | `0.6`                           | How similar an edited **string** must be to keep its existing translation. Lower is more forgiving. Assets are never compared. |
+| `verifyIntegrity`     | `boolean` | `true` on build, `false` on dev | Verify catalogs against the manifest. **This is what makes a missing translation fail your build rather than render blank.**   |
 
-`verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do.
+`verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do. It covers localized assets too: an empty artifact is a missing translation with a file for a body.
 
 ### When a release cannot wait for a translator
 

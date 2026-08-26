@@ -375,7 +375,17 @@ describe("HTML Fanning & Asset Multiplexing hooks", () => {
       expect(resolvedId).toBe(localizedAssetFile);
     });
 
-    it("should resolve multiplexed assets to source path if localized path is missing", async () => {
+    /**
+     * Resolution lands on the artifact even when it is missing, and **never** on
+     * the source.
+     *
+     * The inverse of what this asserted before, which was that a missing
+     * localized file resolves back to the source — a fallback to the source
+     * locale, chosen at resolution time and invisible from everywhere else. An
+     * unresolved import is the correct outcome when a person has deleted an
+     * artifact; serving them English is not. Proposal 035 §3.
+     */
+    it("should resolve multiplexed assets to the artifact, never back to the source", async () => {
       const assetFile = "/mock/root/src/about.txt";
       mockExistsSync = (path: string) => false;
 
@@ -385,7 +395,8 @@ describe("HTML Fanning & Asset Multiplexing hooks", () => {
         undefined,
       );
       const resolvedId = typeof resolved === "string" ? resolved : resolved?.id;
-      expect(resolvedId).toBe(assetFile);
+      expect(resolvedId).not.toBe(assetFile);
+      expect(resolvedId).toContain("about.ar.txt");
     });
 
     it("should return translation-only for ?zintl-raw asset query", async () => {
@@ -453,7 +464,17 @@ describe("HTML Fanning & Asset Multiplexing hooks", () => {
       expect(mockThis.addWatchFile).toHaveBeenCalled();
     });
 
-    it("should return translationOnly if neither ?raw nor ?zintl-raw query parameters are present", async () => {
+    /**
+     * A plain import is a **reference**, so Zintl does not load it.
+     *
+     * This asserted the opposite: that an import with no query still got the
+     * file's text back, through a runtime proxy that picked a locale on the fly.
+     * The query is now what decides — `?raw` asks for contents, anything else
+     * asks for the URL every bundler already gives a plain asset import — so
+     * there is nothing here for the load hook to claim, and claiming it on
+     * Rspack would retype the module as JavaScript. Proposal 035 §0.1, §5.3.
+     */
+    it("should decline a plain import, leaving the asset to the bundler", async () => {
       const assetFile = "/mock/root/src/about.txt";
       mockExistsSync = (path: string) => {
         if (path === assetFile) return true;
@@ -464,8 +485,12 @@ describe("HTML Fanning & Asset Multiplexing hooks", () => {
         return "";
       };
 
-      const loaded = await ctx.plugin.load.call(mockThis, assetFile);
-      expect(loaded).toBe("Hello plain content!");
+      expect(await ctx.plugin.load.call(mockThis, assetFile)).toBeUndefined();
+      // The same file *with* the query is still ours, so this is the query
+      // deciding rather than the asset having stopped being targeted.
+      expect(await ctx.plugin.load.call(mockThis, `${assetFile}?zintl-raw`)).toContain(
+        "Hello plain content!",
+      );
     });
   });
 });

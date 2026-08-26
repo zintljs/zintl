@@ -503,6 +503,7 @@ export function htmlProjectionFacet(): ZintlFacet {
     name: "system-html-projection",
     concern: "content",
     priority: 100,
+    extensions: [".html"],
     getManagerInstance(context: CompilerContext) {
       return getManager(context);
     },

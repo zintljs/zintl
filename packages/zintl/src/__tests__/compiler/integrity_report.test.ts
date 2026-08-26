@@ -8,10 +8,11 @@
  * the first build a new user ever runs.
  */
 import { describe, it, expect, beforeEach } from "vite-plus/test";
-import { createTestCompiler } from "../helpers/compiler.js";
+import { createTestCompiler, createTestCompilerWith } from "../helpers/compiler.js";
 import { ZintlCompiler } from "@zintljs/compiler";
+import { assetsFacet, type AssetManager } from "@zintljs/compiler/facets";
 import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { createTestDir, type TestContext } from "../helpers/fs.js";
 
 type LocalContext = TestContext & { compiler?: ZintlCompiler };
@@ -109,6 +110,96 @@ describe("Integrity reporting", () => {
 
     // The concrete catalogs are still spelled out, one per locale.
     expect(message).toContain("Each file needs one catalog per locale");
+  });
+
+  /**
+   * An unfilled asset is a missing translation with a file for a body.
+   *
+   * Same gate and same option as the strings above, because §5.1 of proposal
+   * 035 makes it the same rule: `verifyIntegrity` already reads
+   * `translation === ""` as missing, and `size === 0` is that statement about a
+   * file. The report is its own, because the remedies differ — and the second
+   * one is the point.
+   */
+  describe("unfilled localized assets", () => {
+    const makeAssetCompiler = (root: string) =>
+      createTestCompilerWith(
+        [assetsFacet({ targets: ["txt"] })],
+        {
+          locales: ["en", "ar", "fr"],
+          sourceLocale: "en",
+          outputDir: "locales",
+          logLevel: "silent",
+          verifyIntegrity: true,
+        },
+        root,
+        false, // build mode
+      );
+
+    /**
+     * An anchor, and an asset reachable from it.
+     *
+     * The anchor is load-bearing rather than scenery: an asset no boundary can
+     * reach is not localized at all, so a fixture without one gates nothing and
+     * would pass for the wrong reason.
+     */
+    async function seedAssetProject(compiler: ZintlCompiler, root: string) {
+      await mkdir(join(root, "src"), { recursive: true });
+      await writeFile(join(root, "src/about.txt"), "Hello world.");
+
+      await compiler.transform(
+        `
+          import { zintl } from "zintljs";
+          import about from "./about.txt?raw";
+          zintl(navigator.language);
+          console.log(about);
+        `,
+        join(root, "src/main.ts"),
+        "virtual:zintl/inject",
+      );
+
+      await (compiler.assets as AssetManager).registerAsset(join(root, "src/about.txt"), "inline");
+    }
+
+    it("fails the build, naming every empty artifact and both ways out", async (context: LocalContext) => {
+      const root = context.root as string;
+      const compiler = makeAssetCompiler(root);
+      await compiler.setup();
+      await seedAssetProject(compiler, root);
+
+      const error = await compiler.flush().then(
+        () => undefined,
+        (e: Error) => e,
+      );
+
+      expect(error).toBeDefined();
+      const message = error!.message;
+
+      expect(message).toContain("[Zintl Integrity Error] 2 unfilled localized assets");
+      expect(message).toContain("locales/src/about.ar.txt");
+      expect(message).toContain("locales/src/about.fr.txt");
+
+      // Why it is empty rather than a copy, stated where somebody meets it.
+      expect(message).toContain("not a German PDF");
+
+      // Both remedies. The second is correct and complete for anybody whose
+      // asset was never meant to vary by locale — not a workaround.
+      expect(message).toContain("fill the files above");
+      expect(message).toContain("stop targeting the asset");
+    });
+
+    it("passes once every artifact has bytes", async (context: LocalContext) => {
+      const root = context.root as string;
+      const compiler = makeAssetCompiler(root);
+      await compiler.setup();
+      await seedAssetProject(compiler, root);
+
+      const assets = compiler.assets as AssetManager;
+      await writeFile(assets.getAssetPath("src/about.txt", "ar"), "مرحباً");
+      await writeFile(assets.getAssetPath("src/about.txt", "fr"), "Bonjour");
+
+      await expect(compiler.flush()).resolves.toBeUndefined();
+    });
   });
 
   it("reports an anchor on an unbuilt locale instead of the downstream misses", async (context: LocalContext) => {

@@ -467,28 +467,79 @@ Result: **Zero-latency locale hydration** for SPAs, as the browser fetches the d
 
 ## §14 — Localized Assets ($AS$)
 
-Localized Assets are static files (e.g., `.txt`, `.md`) that Zintl manages to provide locale-specific content without modifying the application's runtime logic.
+A Localized Asset is a static file — `.txt`, `.md`, `.pdf`, `.webp`, `.mp4`, anything a project targets
+— whose content varies by locale. Zintl manages the **slot**, never the content.
 
-### §14.1 — Detection and Registration
+> **Localization is not translation.** Translation is one thing that can happen inside a localized
+> artifact; it is not the relationship between the artifact and its source. A German legal PDF is not
+> derived from the English one, a photograph of the Tokyo storefront is not derived from the Paris
+> one, and a dubbed audio track is not a transformation of anything.
 
-- **Detection**: Files with extensions `.txt` or `.md` that are imported in the source code.
-- **Registration**: When an asset is resolved, it is registered in the `AssetManager`.
-- **Localization Pattern**: If `about.txt` exists, Zintl looks for `about.[locale].txt` (e.g., `about.ar.txt`).
+### §14.1 — Authored, not derived
 
-### §14.2 — Development Mode (HMR)
+- **Targeting**: a file matching `assetsTarget` declares that a slot exists. Targeting _is_ the
+  statement that this file varies by locale; an asset identical in every locale is one you never
+  target.
+- **Scaffolding**: each targeted asset gets an **empty** artifact per non-source locale, under
+  `outputDir` beside the catalogs. A person fills it.
+- **The compiler MUST NOT copy** content from a source asset into a localized one. A byte-identical
+  artifact is a source-locale fallback that nothing downstream can detect, which §5 forbids.
+- **The compiler MUST NOT compare** a source asset with a localized one. A source edit does not imply
+  a localized change, and for binary content the comparison is meaningless. Whether a translation has
+  fallen behind is an editorial question, and belongs to a person or a TMS.
+
+Artifact paths follow `outputPattern` when a target names one, and otherwise
+`<outputDir>/<path>.<locale><ext>` — so `src/about.txt` becomes `zintl/src/about.ar.txt`.
+
+### §14.2 — Identity
+
+The one comparison Zintl performs is between a source asset and **its own previous state**, which
+answers _"did this move?"_ and never _"is that stale?"_.
+
+| Observed            | Meaning          | Action                                      |
+| :------------------ | :--------------- | :------------------------------------------ |
+| Same hash, new path | Moved or renamed | Move the artifacts to follow                |
+| Same path, new hash | Edited in place  | Nothing                                     |
+| New hash, new path  | Ambiguous        | Treat as new; leave the old artifacts alone |
+
+The Hive records a source asset's content hash and the path that last carried it. It stores **no
+asset content**: restoring content into an artifact would be copying, whichever direction it came
+from. Nothing is ever deleted, so a wrong guess costs an orphaned file rather than unrecoverable
+content.
+
+### §14.3 — Delivery
+
+How an artifact's bytes reach the browser is decided by **the import**, not by the file's extension:
+
+| Import                            | Delivery                                               |
+| :-------------------------------- | :----------------------------------------------------- |
+| `import t from "./about.txt?raw"` | **Inline** — the content becomes the catalog value     |
+| `import u from "./hero.webp"`     | **Reference** — the bundler's URL is the catalog value |
+
+Because a URL is a string, every mechanism downstream — chunking, hydration, runtime locale
+switching, hot updates — works on a PDF or a video without knowing it is one. No file type is special,
+and none needs naming.
+
+### §14.4 — Development Mode (HMR)
 
 In development, assets are mapped to a global **Virtual Boundary** named `b_assets`.
 
-- **Dependency Mapping**: In `isDev` mode, every active entry chunk automatically depends on `b_assets`.
-- **Invalidation**: When any registered asset (source or localized) is modified, the compiler invalidates the `b_assets` boundary. This triggers a cascading invalidation of all entry points, ensuring the UI reflects the new asset content immediately.
+- **Dependency Mapping**: in `isDev` mode, every active entry chunk automatically depends on `b_assets`.
+- **Invalidation**: when any registered asset — source or artifact — is modified, the compiler
+  invalidates `b_assets`, cascading to all entry points so the UI reflects the change immediately.
+- **Unfilled artifacts** are served **empty**, never as the source locale, with one warning per
+  artifact naming the file to fill. A dev server is not where a release is decided, and refusing to
+  serve a project mid-translation would refuse its normal state.
 
-### §14.3 — Production Mode (Hashing)
+### §14.5 — Integrity
 
-In production, localized assets are treated as first-class citizens in the build graph:
+An unfilled artifact is a missing translation with a file for a body. `verifyIntegrity` — on for
+builds, off while serving, the same option and default that governs strings — fails a build listing
+every empty artifact by locale and path.
 
-- **Key Generation**: The compiler generates a unique stable key for each asset based on its relative path.
-- **Content Hashing**: Localized assets are emitted with content hashes (e.g., `about.ar-BF8QNONU.txt`) to ensure cache busting and long-term stability.
-- **Mapping**: The mapping between the abstract asset ID and the localized physical path is baked into the production catalogs.
+`translation === ""` and `size === 0` are one rule in two representations. The report offers two
+remedies, and the second is not a workaround: fill the file, **or** stop targeting the asset if it is
+the same in every locale.
 
 ---
 

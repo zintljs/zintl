@@ -1128,7 +1128,7 @@ const proxy = new Proxy({}, {
     const loc = (0,virtual_zintl_runtime_internal__rspack_import_0.getLocale)() || multiplexLocale || "en";
     const val = loc === "en"
       ? sourceContent
-      : ((0,virtual_zintl_runtime_internal__rspack_import_0._t)(assetKey, {}, { _bId: "b_assets" }) || sourceContent);
+      : (0,virtual_zintl_runtime_internal__rspack_import_0._t)(assetKey, {}, { _bId: "b_assets" });
     if (prop === Symbol.toPrimitive) {
       return () => val;
     }
