@@ -55,6 +55,11 @@ import text from "./about.txt?raw"; // the contents, inlined into the catalog
 import url from "./hero.webp"; // the bundler's URL for this locale's artifact
 ```
 
+Both follow the locale at runtime, so switching language re-points the import
+without a reload — a plain import of a targeted asset is not the static binding
+it would ordinarily be. Everything else about it is ordinary: the bundler emits
+and hashes the per-locale file exactly as it would any asset.
+
 A source edit never touches an artifact, and never warns that one is stale — whether the German
 version has fallen behind the English is an editorial question, not one a compiler that can only see
 that bytes differ should be answering. Renaming or moving a source _does_ carry its artifacts with

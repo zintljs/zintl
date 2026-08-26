@@ -46,6 +46,22 @@ export type AssetDelivery = "inline" | "reference";
 const CONTENT_QUERY = /[?&](raw|zintl-raw)(&|$)/;
 
 /**
+ * The marker that says *give me this exact file's URL and stay out of the way*.
+ *
+ * Zintl intercepts a plain import of a targeted asset, because a plain import is
+ * a static binding and the whole point of targeting is that the answer changes
+ * with the locale. The module it returns has to name the underlying files
+ * somehow, and naming them plainly would be intercepted in turn — a module
+ * importing itself through the thing that generated it.
+ *
+ * So the generated imports carry this, and the plugin declines anything wearing
+ * it. Exactly the role `?zintl-raw` plays on the inline side, one delivery mode
+ * over: a query is how an importer says which of two things it wants, and this
+ * is the only spelling that cannot collide with a query a person wrote.
+ */
+const URL_QUERY = "zintl-url";
+
+/**
  * Whether an import specifier asks for an asset's **contents** rather than a URL.
  *
  * One definition, shared by the compiler and the plugin, so the two halves of
@@ -53,6 +69,21 @@ const CONTENT_QUERY = /[?&](raw|zintl-raw)(&|$)/;
  */
 export function isContentQuery(id: string): boolean {
   return CONTENT_QUERY.test(id);
+}
+
+/**
+ * Whether this specifier is one Zintl generated to reach a file's own URL.
+ *
+ * The plugin declines these, so the bundler resolves them the way it resolves
+ * any asset import. See {@link URL_QUERY}.
+ */
+export function isUrlQuery(id: string): boolean {
+  return new RegExp(`[?&]${URL_QUERY}(&|$)`).test(id);
+}
+
+/** Tag a path so {@link isUrlQuery} recognises it. */
+export function withUrlQuery(path: string): string {
+  return `${path}${path.includes("?") ? "&" : "?"}${URL_QUERY}`;
 }
 
 /**
@@ -299,6 +330,11 @@ export class AssetManager {
    * reconstruct it from a URL, while nothing stops a URL consumer being served
    * by an asset whose content is also carried.
    */
+  /** The project-relative id this manager keys an asset by. */
+  public normalizedId(filePath: string): string {
+    return this.io.getNormalizedId(filePath);
+  }
+
   public getDelivery(assetId: string): AssetDelivery {
     const depGraph = this.getDependencyGraph?.();
     if (depGraph) {
@@ -706,6 +742,13 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
     async getActiveOutputPaths(context: CompilerContext) {
       return getManager(context).getActiveAssetPaths(context.locales);
     },
+    deliversUrl(filePath: string, context: CompilerContext) {
+      const mgr = getManager(context);
+      if (!mgr.isSupportedAsset(filePath)) return false;
+      // An artifact is already one locale's answer; there is nothing to follow.
+      if (mgr.isLocalizedArtifact(filePath)) return false;
+      return mgr.getDelivery(mgr.normalizedId(filePath)) === "reference";
+    },
     async getUnfilledOutputs(context: CompilerContext) {
       return getManager(context).getUnfilledOutputs(context.locales);
     },
@@ -770,7 +813,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
          * one thing every bundler already does.
          */
         if (mgr.getDelivery(assetId) === "reference") {
-          imports.push(`import ${varName} from "${toPosixPath(localizedPath)}";`);
+          imports.push(`import ${varName} from "${withUrlQuery(toPosixPath(localizedPath))}";`);
           catalog[assetKey] = { __zintl_pre_serialized: true, code: varName };
           continue;
         }

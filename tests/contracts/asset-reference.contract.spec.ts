@@ -26,38 +26,6 @@ export const assetReferenceContract: Contract<AssetsAdapter> = {
   name: "Asset Reference Delivery",
   description: "Verifies a plainly imported asset resolves to the active locale's authored bytes",
   requires: ["asset-reference"],
-  /**
-   * **Red, for a Zintl reason, and written before the fix rather than after.**
-   *
-   * Measured on `assets-authored`: both locales resolve `#asset-image` to
-   * `/src/hero.png` — the source file — so `en` passes and `ar` serves red
-   * bytes where blue were authored. Not a fixture problem and not a host one.
-   *
-   * Reference delivery is only half built. A plain import is a **static
-   * binding**: the module resolves once, to one URL, and nothing re-reads it
-   * when the locale changes. It therefore varies by locale exactly where module
-   * *identity* varies by locale — a multiplexed build, where resolution rewrites
-   * the import per locale and which
-   * `asset_scenarios.test.ts` covers end to end. It does not vary where the
-   * locale is a runtime variable, which is every dev server and every
-   * runtime-switchable app.
-   *
-   * The inline half solves this with a proxy that calls `_t(assetKey)` on every
-   * read. Reference needs the same treatment with a URL for a value, and that
-   * needs per-locale artifact URLs in the catalog *in dev* — where they are
-   * absent, because `getAssetTranslations` contributes nothing for a reference
-   * asset and a dev-servable URL is a per-host fact. Proposal 035 §5.3 called
-   * this "a locale → URL map reaching the runtime" and named it the one
-   * genuinely new mechanism; §12.2 then claimed the catalog already carried it,
-   * which is true of a build and false of a dev server.
-   *
-   * Kept executable rather than deleted, because the assertion is right and the
-   * behaviour is not. Delete this field to collect the fix.
-   */
-  pending:
-    "Reference delivery is static per module, so it varies by locale only in a " +
-    "multiplexed build. A runtime-variable locale needs per-locale artifact URLs " +
-    "in the dev catalog — 035 §5.3's locale → URL map, not yet built.",
   async execute(lab, adapter) {
     const reference = adapter.referenceAsset;
     if (!reference) {

@@ -51,18 +51,19 @@ export type Capability =
    */
   | "asset-hmr"
   /**
-   * The project imports a targeted asset **plainly**, so it is delivered by URL.
-   *
-   * A structural claim about the project, not a claim that Zintl gets it right —
-   * the contract that measures it is currently `pending` for a Zintl reason, and
-   * the distinction is the one `chaos-boundary` records: a capability says what a
-   * project can be asked, and a pending contract says what the answer is.
+   * A targeted asset imported **plainly** resolves to this locale's bytes.
    *
    * The other half of `assets`, which only ever measured the `?raw` case — the
    * import asking for an asset's *contents*. A plain import asks for a URL
    * instead, and that path did not exist before proposal 035: binary assets were
    * excluded from catalogs and resolved by nothing, so a targeted `.pdf` was
    * copied to disk and read by no one.
+   *
+   * Green since the runtime locale → URL map landed. It was written red and left
+   * `pending` for one release, which is the shape worth keeping: the assertion
+   * was right and the behaviour was not, and a plain import is a *static
+   * binding*, so reference delivery followed the locale only where module
+   * identity did — a multiplexed build, and no dev server.
    *
    * Claim it with `referenceAsset` declared.
    */

@@ -553,17 +553,33 @@ said all along.
 
 Same option, same report, same wording. Just not the same line.
 
-### 12.2 "Binary is never resolved at all" — nearly wrong, and it stopped mattering
+### 12.2 "Binary is never resolved at all" — nearly wrong, and then wrong again
 
 §5.3 said nothing resolves a targeted binary asset. One branch did: under `virtualAssets`, the plugin
 emitted the buffer through `this.emitFile` and returned a real `ROLLUP_FILE_URL` — fed from the hive
 base64 backups §5.2 deletes.
 
 That path survives, re-pointed at the artifact instead of at the hive, but it is no longer how binary
-delivery works. The general answer turned out to be smaller than either: `getChunkContributions`
-imports the per-locale artifact **plainly**, the bundler emits and hashes it as it would any asset,
-and the URL becomes the catalog value. No `emitFile`, no runtime URL map, no host-specific code — the
-"genuinely new mechanism" §5.3 asked for was one query string on an import that already existed.
+delivery works. `getChunkContributions` imports the per-locale artifact **plainly**, the bundler emits
+and hashes it as it would any asset, and the URL becomes the catalog value. No `emitFile` and no
+host-specific code.
+
+> [!CAUTION]
+> **"No runtime URL map" was wrong, and a contract caught it.** This section
+> concluded that putting URLs in the catalog was the whole of §5.3. It is the
+> whole of it _for a build_, where multiplexed resolution rewrites each import to
+> one locale's artifact — and nothing at all for a dev server, where the locale
+> is a runtime variable.
+>
+> A plain import is a **static binding**. It resolves once, to one file, and
+> nothing re-reads it when the locale changes, so putting the answer in the
+> catalog achieves nothing unless something _reads_ the catalog. Measured on the
+> `assets-authored` fixture: both locales resolved `#asset-image` to
+> `/src/hero.png`, the source, and the `asset-reference` contract sat `pending`
+> for a release saying so.
+>
+> §12.5 records what it took, which is closer to what §5.3 asked for than to what
+> this section claimed.
 
 ### 12.3 The fallbacks were not three, and one of them was load-bearing
 
@@ -594,3 +610,35 @@ it is used.
 The reasoning §6.1 gives against silence still stands and is worth keeping in view: a warning in a
 terminal is closer to the thing §1 exists to remove than a failure a person cannot miss. What carries
 the guarantee is the build gate, which is on by default and cannot be scrolled past.
+
+### 12.5 The runtime map, built
+
+An import of a targeted asset now resolves to a module that reads the active locale on **every**
+access, for both delivery modes. Inline already worked this way; reference does now, and the two are
+the same shape differing only in what the catalog holds — text for one, a bundler URL for the other.
+
+Three things it needed, and two of them are lessons rather than code:
+
+**The facet had to be asked a narrower question.** The first attempt gated on `ownsContent`, which is
+true of the HTML projection facet for every `.html` in the project — so the plugin claimed the page
+template and Rspack handed it to the JavaScript parser. Ownership says _whose file this is_; it is not
+a licence to intercept an import of it. `ContentFacet.deliversUrl` is the question that was actually
+being asked, and asking it plainly also states in the type what the two facets do differently.
+
+**The module needed an identity of its own.** Leaving the id as the asset's own path repeated ledger
+L-009 — a host that types modules by extension sees `.png` and retypes our JavaScript — and added a
+second failure on top: unplugin materialises a virtual module as a real file under
+`node_modules/.virtual/`, so a module minted at the asset's path could no longer resolve
+`virtual:zintl/runtime/internal` and Rspack reported a missing module three directories from the
+cause. `RESOLVED_URL_ASSET_PREFIX` is `RESOLVED_RAW_ASSET_PREFIX`'s counterpart, for the same reasons
+and one more.
+
+**The generated module must not be intercepted by the thing that generated it.** The catalog reaches
+each locale's artifact by importing it, and those imports would themselves be rewritten — a module
+importing itself. They carry `?zintl-url`, which the plugin declines, exactly as `?zintl-raw` marks
+the inline side. A query is how an importer says which of two things it wants, and both spellings now
+have one.
+
+The source locale is answered by a direct import rather than through the catalog: its artifact _is_
+the source file, so there is nothing to look up, and in ghost mode there is no catalog on disk to look
+it up in.

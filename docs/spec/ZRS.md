@@ -520,6 +520,24 @@ Because a URL is a string, every mechanism downstream — chunking, hydration, r
 switching, hot updates — works on a PDF or a video without knowing it is one. No file type is special,
 and none needs naming.
 
+**Both modes are resolved through the catalog, not through the module graph.** An import of a
+targeted asset resolves to a module that reads the active locale on every access — the same shape for
+both, differing only in what the catalog holds:
+
+| Mode          | Catalog value                      | Produced by                         |
+| :------------ | :--------------------------------- | :---------------------------------- |
+| **Inline**    | The artifact's text                | Read from disk                      |
+| **Reference** | The bundler's URL for the artifact | A plain import the bundler resolves |
+
+This matters because a plain import is otherwise a **static binding**: it resolves once, to one file,
+and nothing re-reads it when the locale changes. Reference delivery would then follow the locale only
+where module _identity_ does — a multiplexed build — and never on a dev server or in a
+runtime-switchable app.
+
+The source locale is answered directly rather than through the catalog: its artifact is the source
+file, so there is nothing to look up, and under the Ghost Protocol (§9) there is no catalog on disk
+to look it up in.
+
 ### §14.4 — Development Mode (HMR)
 
 In development, assets are mapped to a global **Virtual Boundary** named `b_assets`.

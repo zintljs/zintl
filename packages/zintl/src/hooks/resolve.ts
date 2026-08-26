@@ -3,7 +3,7 @@ import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
 import { ensureCompiler, nativeHostView } from "../host.js";
 import { generateMessageId, getRuntimeCode } from "@zintljs/compiler";
-import { isContentQuery } from "@zintljs/compiler/facets";
+import { isContentQuery, isUrlQuery, withUrlQuery } from "@zintljs/compiler/facets";
 import type { AssetDelivery, AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
   VIRTUAL_PREFIX,
@@ -17,6 +17,7 @@ import {
   RUNTIME_VIRTUAL_ID,
   RUNTIME_INTERNAL_VIRTUAL_ID,
   RESOLVED_RAW_ASSET_PREFIX,
+  RESOLVED_URL_ASSET_PREFIX,
 } from "../constants.js";
 
 /**
@@ -219,6 +220,8 @@ export function resolveIdHook(ctx: Context) {
       const query = id.includes("?") ? "?" + id.split("?").slice(1).join("?") : "";
       const virtualId = rawTextAssetId(ctx, absolutePath + query);
       if (virtualId) return virtualId;
+      const urlId = urlAssetId(ctx, absolutePath + query);
+      if (urlId) return urlId;
     }
 
     if (id.includes("zintl-multiplex=")) {
@@ -465,6 +468,40 @@ function isContentRequest(ctx: Context, id: string, cleanId: string): boolean {
   return ctx.compiler?.ownsContent(cleanId) ?? false;
 }
 
+/**
+ * Give a plain import of a targeted asset an identity of its own.
+ *
+ * The counterpart to {@link rawTextAssetId}, and the reason reference delivery
+ * needed anything at the module layer at all. A plain import is a **static
+ * binding**: it resolves once, to one file, and nothing re-reads it when the
+ * locale changes. So an asset delivered by reference varied by locale exactly
+ * where module *identity* did — a multiplexed build, where resolution rewrites
+ * the import per locale — and nowhere else. Every dev server and every
+ * runtime-switchable app got the source file in every language.
+ *
+ * Minting an id here rather than claiming the asset's own path is what keeps
+ * this safe: `loadInclude` never has to say yes to a `.png`, so no host is ever
+ * invited to retype one as JavaScript.
+ *
+ * Three exclusions, each load-bearing:
+ *
+ * - **`?raw`-style queries** are inline delivery, and {@link rawTextAssetId}'s.
+ * - **`?zintl-url`** marks the imports the catalog module generates to reach the
+ *   underlying files. Rewriting those would have the generated module import
+ *   itself.
+ * - **Ownership is not enough.** The facet is asked whether it *delivers a URL*
+ *   for this file, not whether it owns it — the HTML projection facet owns
+ *   `.html` and delivers nothing to an importer, and conflating the two fed an
+ *   HTML template to the JavaScript parser.
+ */
+function urlAssetId(ctx: Context, fullId: string): string | undefined {
+  const clean = fullId.split("?")[0];
+  if (isContentQuery(fullId) || isUrlQuery(fullId)) return undefined;
+  if (!ctx.compiler?.deliversUrl(clean)) return undefined;
+  if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
+  return `${RESOLVED_URL_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
+}
+
 export function loadHook(ctx: Context) {
   return async function (this: any, rawId: string, options?: { ssr?: boolean }) {
     ensureCompiler(ctx, () => nativeHostView(this));
@@ -480,10 +517,16 @@ export function loadHook(ctx: Context) {
      * keeps the rewrite a property of module identity and nothing else.
      */
     let id = rawId;
+    let isUrlAsset = false;
     if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
       id = Buffer.from(rawId.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1), "base64url").toString(
         "utf8",
       );
+    } else if (rawId.startsWith(RESOLVED_URL_ASSET_PREFIX + "/")) {
+      id = Buffer.from(rawId.slice(RESOLVED_URL_ASSET_PREFIX.length + 1), "base64url").toString(
+        "utf8",
+      );
+      isUrlAsset = true;
     }
 
     const cleanId = id.split("?")[0];
@@ -706,6 +749,74 @@ export default proxy;${
 `;
         }
         return translationOnly;
+      }
+    }
+
+    /**
+     * **A plain import of a targeted asset, answered per locale.**
+     *
+     * The reference half of the same idea `?zintl-raw` serves for text: an
+     * import that wants a URL gets one that follows the active locale, instead
+     * of the static binding a plain import would otherwise be.
+     *
+     * The per-locale URLs are already in the catalog — `getChunkContributions`
+     * imports each locale's artifact and stores what the bundler hands back, so
+     * the bundler still does the emitting and the hashing, and no host-specific
+     * code appears here. What was missing was anything that *read* them. This is
+     * that reader, and it is deliberately the same shape as the inline proxy
+     * below it: one lookup per property read, no caching, so a locale change
+     * needs no invalidation to be seen.
+     *
+     * The source locale is answered by a direct import rather than through the
+     * catalog. Its artifact is the source file itself, so there is nothing to
+     * look up — and in ghost mode the source locale has no catalog on disk to
+     * look it up in.
+     */
+    if (isUrlAsset) {
+      if (existsSync(cleanId)) {
+        const assets = ctx.compiler.assets as AssetManager;
+        const assetId = ctx.compiler.getNormalizedId(cleanId);
+        await assets.registerAsset(cleanId, deliveryOf(id));
+        this.addWatchFile(cleanId);
+
+        const sourceLocale = ctx.options.sourceLocale;
+        for (const loc of ctx.options.locales) {
+          if (loc === sourceLocale) continue;
+          const artifact = assets.getAssetPath(assetId, loc);
+          if (existsSync(artifact)) this.addWatchFile(artifact);
+        }
+
+        const rawAssetKey = `@zintl/asset:${assetId}`;
+        const assetKey = ctx.compiler.isDev ? rawAssetKey : generateMessageId(rawAssetKey);
+
+        return (
+          // Forward slashes: this is an import specifier, not a filesystem path.
+          `import __zintl_source_url from ${JSON.stringify(
+            withUrlQuery(cleanId.replace(/\\/g, "/")),
+          )};\n` +
+          `import { getLocale, _t } from "virtual:zintl/runtime/internal";\n` +
+          `const assetKey = ${JSON.stringify(assetKey)};\n` +
+          `const multiplexLocale = ${JSON.stringify(ctx.getMultiplexLocale(id) || null)};\n` +
+          `const sourceLocale = ${JSON.stringify(sourceLocale)};\n` +
+          `const read = () => {\n` +
+          `  const loc = getLocale() || multiplexLocale || sourceLocale;\n` +
+          `  return loc === sourceLocale\n` +
+          `    ? __zintl_source_url\n` +
+          `    : _t(assetKey, {}, { _bId: "b_assets" });\n` +
+          `};\n` +
+          `const proxy = new Proxy({}, {\n` +
+          `  get(target, prop) {\n` +
+          `    const val = read();\n` +
+          `    if (prop === Symbol.toPrimitive) return () => val;\n` +
+          `    if (prop === "toString" || prop === "valueOf" || prop === "toJSON") return () => val;\n` +
+          `    if (val == null) return undefined;\n` +
+          `    const member = val[prop];\n` +
+          `    return typeof member === "function" ? member.bind(val) : member;\n` +
+          `  }\n` +
+          `});\n` +
+          `export default proxy;` +
+          selfAcceptCode(ctx)
+        );
       }
     }
 

@@ -438,6 +438,22 @@ export class ZintlCompiler {
   }
 
   /**
+   * Whether a content facet answers an import of `filePath` with a per-locale URL.
+   *
+   * Deliberately not {@link ownsContent}: ownership says whose file this is, and
+   * this says whether an import of it should be intercepted. The HTML projection
+   * facet owns `.html` and delivers nothing, so conflating the two hands an HTML
+   * template to the JavaScript parser.
+   */
+  public deliversUrl(filePath: string): boolean {
+    if (!this._resolved) return false;
+    const context = this.getCompilerContext();
+    return this._resolved.system.contentFacets.some(
+      (f) => f.deliversUrl?.(filePath, context) ?? false,
+    );
+  }
+
+  /**
    * {@link ownsContent} with the compiler context bound once.
    *
    * The pipeline asks this per dependency edge, per file, per boundary, and

@@ -708,6 +708,20 @@ export interface ContentFacet extends BaseFacet {
    */
   getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
   /**
+   * Whether this facet answers an import of `filePath` with a **per-locale URL**.
+   *
+   * Narrower than {@link ContentFacet.match | `match`}, and the two must not be
+   * confused: the HTML projection facet *owns* `.html` and delivers nothing to an
+   * importer, so a host that treated ownership as a licence to intercept fed an
+   * HTML template to the JavaScript parser.
+   *
+   * Answer `true` only for a file whose import should resolve to a module that
+   * follows the active locale. That excludes a request for the file's contents
+   * (`?raw`), which is inline delivery, and a localized artifact, which is
+   * already one locale's answer.
+   */
+  deliversUrl?: (filePath: string, context: CompilerContext) => boolean;
+  /**
    * Outputs this facet scaffolded that nobody has filled in yet.
    *
    * The content half of `verifyIntegrity`, and the same statement it already
