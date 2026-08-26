@@ -642,3 +642,28 @@ have one.
 The source locale is answered by a direct import rather than through the catalog: its artifact _is_
 the source file, so there is nothing to look up, and in ghost mode there is no catalog on disk to look
 it up in.
+
+### 12.6 The dev cache-busting caveat, withdrawn
+
+§12.5 shipped with a caveat attached: that re-authoring an artifact in dev would not change its URL,
+so a browser might hold the old bytes until a reload. That was reasoning, not measurement, and it is
+wrong.
+
+`asset-refresh` measures it — writing new bytes to an artifact and fetching what the asset's URL
+serves, through the browser's ordinary cache rather than around it. Both directions pass: the
+translator's edit to `hero.ar.png`, and the developer's edit to the source, whose URL is resolved by a
+direct import rather than through the catalog.
+
+Two things about the contract are worth keeping in view, because both were nearly got wrong:
+
+**The cache mode is the measurement.** The first version fetched with `cache: "no-store"`, which
+bypasses the HTTP cache — so it reported what the _server_ would send rather than what a page
+receives, and a stale-cache failure was invisible to it by construction. It passed, and proved
+nothing. Default semantics are what an `<img>` gets, so they are what the contract must use.
+
+**It does not assert that no reload happened.** A vanilla entry declines hot updates and lets them
+bubble (L-035), so a reload is correct behaviour here and forbidding it would fail a project for being
+right. The guarantee is that the browser ends up with the new bytes, by whichever route it gets there.
+
+Verified falsifiable before being believed: suppressing the write turns it red with the message it
+was written to produce.

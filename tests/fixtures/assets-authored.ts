@@ -47,6 +47,18 @@ const SOURCE_PNG =
 const ARABIC_PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQTX4NAAIkAXSaGkHUAAAAAElFTkSuQmCC";
 
+/**
+ * A third and fourth colour, for `asset-refresh` to write.
+ *
+ * Green for `ar` and amber for `en`, distinct from both originals and from each
+ * other — so "the page still shows the old image" and "the page shows the other
+ * locale's image" fail differently.
+ */
+const ARABIC_PNG_EDITED =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQW+wFAAHWAQSeqOZrAAAAAElFTkSuQmCC";
+const SOURCE_PNG_EDITED =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGO4Wc4GAAODAVdvW79nAAAAAElFTkSuQmCC";
+
 export const assetsAuthored: ProjectManifest = {
   name: "assets-authored",
   source: fixtureSource({
@@ -96,16 +108,25 @@ export const assetsAuthored: ProjectManifest = {
   }),
   zintlOptions,
   /**
-   * **Not `asset-hmr`.** `assets-basic` already measures the Vite dev loop, and
-   * a second Vite fixture asserting the same cascade would cost a pooled dev
-   * server to restate a claim rather than to test one.
+   * `asset-hmr` is claimed now, where it was once declined as a restatement of
+   * what `assets-basic` covers. It is not: this fixture's asset is a `.rst`, and
+   * the hot path for a target outside the default `assetsTarget` was broken
+   * outright until a fixture asked. It is also the precondition
+   * `asset-refresh` needs, which is the reference half of the same loop.
    *
    * **Not `build`.** That capability enrols a project in the full production
    * snapshot contract, and this fixture's build output is already exercised —
    * more precisely — by `asset-integrity`, which reads the error rather than
    * the bytes.
    */
-  capabilities: ["spa", "assets", "asset-reference", "asset-integrity"],
+  capabilities: [
+    "spa",
+    "assets",
+    "asset-hmr",
+    "asset-reference",
+    "asset-integrity",
+    "asset-refresh",
+  ],
   adapter: {
     headingSelector: "#asset-text",
     initialHeadingText: SOURCE_TEXT,
@@ -120,6 +141,7 @@ export const assetsAuthored: ProjectManifest = {
       selector: "#asset-image",
       file: "src/hero.png",
       bytes: { en: SOURCE_PNG, ar: ARABIC_PNG },
+      editedBytes: { en: SOURCE_PNG_EDITED, ar: ARABIC_PNG_EDITED },
     },
     navigateLocale: async (lab, locale) => {
       await lab.page.goto(`${lab.url}/?lang=${locale}`);

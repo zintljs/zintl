@@ -548,6 +548,12 @@ In development, assets are mapped to a global **Virtual Boundary** named `b_asse
 - **Unfilled artifacts** are served **empty**, never as the source locale, with one warning per
   artifact naming the file to fill. A dev server is not where a release is decided, and refusing to
   serve a project mid-translation would refuse its normal state.
+- **Re-authoring an artifact reaches the browser in both delivery modes.** For inline delivery the
+  bytes travel inside the catalog, so a fresh catalog is a fresh page. For reference delivery they do
+  not travel through Zintl at all — the browser fetches them from a URL that need not change when the
+  file behind it does, so the catalog can be correct and the viewport stale. Measured rather than
+  assumed: the URL serves the current artifact under ordinary cache semantics, and a contract asserts
+  it by fetching bytes rather than by comparing strings Zintl produced.
 
 ### §14.5 — Integrity
 

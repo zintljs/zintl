@@ -81,6 +81,21 @@ export type Capability =
    */
   | "asset-integrity"
   /**
+   * Editing a **referenced** artifact's bytes reaches the browser.
+   *
+   * `asset-hmr` proves this for inline delivery, where the artifact's text
+   * travels inside the catalog and arrives by the same route as any other
+   * translation. Reference delivery carries a *URL* instead, so the bytes never
+   * pass through Zintl at all on the way to the page — the browser fetches them
+   * itself, and the question becomes whether it fetches them again.
+   *
+   * A genuinely different failure: the catalog can be perfectly up to date, the
+   * URL unchanged and correct, and the image still stale in the viewport.
+   *
+   * Claim it with `referenceAsset.editedBytes` declared.
+   */
+  | "asset-refresh"
+  /**
    * The project can declare source edits that *grow* the graph (ZHMR §4.1③, §4.2).
    *
    * Adding a sink is the warm path and adding an anchor or a `$L` colony is the
@@ -314,6 +329,18 @@ export interface AssetsAdapter extends BaseAdapter {
     file: string;
     /** Base64 of the bytes each locale must serve, keyed by locale code. */
     bytes: Record<string, string>;
+    /**
+     * Base64 of bytes an edit may write, keyed by locale code.
+     *
+     * Declared rather than invented, for the reason `SourceInsertion` is: a
+     * contract that made up its own content would be writing something no
+     * project ever would. These must differ from `bytes` for the same locale and
+     * be valid content of the same kind — the point is to prove the *new* bytes
+     * are served, and bytes a host might reject prove nothing.
+     *
+     * Omit it and the project cannot claim `asset-refresh`.
+     */
+    editedBytes?: Record<string, string>;
   };
   /**
    * Show the app in `locale` from a cold load.
