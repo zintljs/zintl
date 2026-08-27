@@ -1,5 +1,584 @@
 # @zintl/compiler
 
+## 1.0.0-alpha.19
+
+### Major Changes
+
+- 25917f5: Localized assets are authored, not derived — and an unfilled one now fails your build.
+
+  **This is a breaking change, and the first build after upgrading is where you will meet it.** A
+  project can have had targeted assets for months without ever filling a variant, because nothing has
+  ever said so.
+
+  Zintl used to treat a localized file as something it _made_ from the source: parse the frontmatter,
+  merge it, score how much the body had drifted, back the result up, and warn you to re-translate. When
+  it had nothing to write, it wrote the source's bytes. That last step is the defect. A byte-identical
+  artifact is a fallback to the source locale, and nothing anywhere could tell an untouched one from a
+  finished one — so a German page shipped English text and the build said nothing.
+
+  The assumption underneath it does not survive contact with what people actually localize. A German
+  legal PDF is not derived from the English one. A photograph of the Tokyo storefront is not derived
+  from the Paris one. A dubbed audio track, a right-to-left poster, a table of branch addresses — none
+  of these are transformations of a source. **Localization is not translation.**
+
+  **What happens now.** Targeting a file declares that a slot exists. Each targeted asset gets an
+  _empty_ artifact per locale, and a person fills it:
+
+  ```
+  zintl/src/legal/terms.de.pdf     0 bytes
+  zintl/src/media/hero.de.webp     0 bytes
+  ```
+
+  Empty rather than a copy, because a zero-byte file cannot be mistaken for finished work — and it
+  tells you the exact path to produce, which is the one thing the compiler is in a position to know.
+  An unfilled artifact then joins the integrity report under the same `verifyIntegrity` option, with
+  the same meaning: `translation === ""` and `size === 0` are one rule in two representations.
+
+  ```
+  [Zintl Integrity Error] 3 unfilled localized assets across 2 locales.
+
+    de — 2 empty
+      zintl/src/legal/terms.de.pdf
+      zintl/src/media/hero.de.webp
+
+  Fix:   fill the files above.
+  Or:    stop targeting the asset, if it is the same in every locale.
+  ```
+
+  The second remedy matters as much as the first. An asset identical in every locale is one you never
+  target, so removing it from `assetsTarget` is a correct and complete answer rather than a workaround.
+
+  **No file type is special any more, so none needs naming.** `AssetMergeStrategy` is gone, including
+  its function form — a hook taking the source bytes and returning the localized ones is content
+  crossing a boundary that should not have one. `AssetTargetConfig.strategy` goes with it, leaving
+  `targetPattern` and `outputPattern`: which files are targeted, and where their artifacts go. The
+  extension table that used to infer a strategy is not made configurable, as an earlier design
+  proposed; it is deleted, because there is nothing left for it to decide.
+
+  `similarityThreshold` is gone from the assets facet too. The plugin's option of the same name is
+  untouched — it governs string reconciliation, which still compares things. Assets never are.
+
+  **How an artifact reaches the browser is decided by your import**, which is the bundler's own
+  convention rather than a rule Zintl invented:
+
+  ```ts
+  import text from "./about.txt?raw"; // the contents, inlined into the catalog
+  import url from "./hero.webp"; // the URL of this locale's artifact
+  ```
+
+  That second line works for the first time. Binary assets were excluded from catalogs and resolved by
+  nothing, so a targeted `.pdf` was copied to disk and never read by anything; now the bundler emits
+  and hashes the per-locale artifact and the URL becomes the catalog value, so chunking, hydration,
+  runtime locale switching and hot updates all work on a video without knowing it is one.
+
+  **A source edit no longer touches your artifacts, or warns about them.** Whether the German version
+  has fallen behind the English is a real question, and not one a compiler that can only see that bytes
+  differ can answer; warning on every source edit trains you to ignore the warning. Moving or renaming
+  a source _does_ carry its artifacts with it — identity is content-based here as everywhere else, and
+  restructuring a directory must not orphan a PDF somebody commissioned.
+
+  **Also fixed, all of them the same bug wearing different clothes:** four more paths fell back to the
+  source locale when an artifact was missing — during resolution, during load, and in generated runtime
+  code as a literal `|| sourceContent`. An unfilled artifact now serves empty and, in development, says
+  so once in the terminal naming the file to fill.
+
+  `virtualAssets` keeps its name and narrows its meaning: artifacts are always written, because an
+  author needs a file to fill, so it now chooses the delivery route and nothing else.
+
+  Finally, the plugin's load path used to test for `.md` and `.txt` by hand while its resolve path
+  asked the facet — so a configured `.rst` target was recognised when its import resolved and then
+  unknown when the module loaded. It asks the facet in both places now, and `ContentFacet` can declare
+  the extensions it claims, which makes two content facets fighting over one file an error at
+  construction rather than a silent race.
+
+- 300c310: Remove `obj:field:*` from the default extraction targets.
+
+  A default sink target must never catch text that is not user-facing. `obj:field:label` matched a field
+  name on **any object literal anywhere**, knowing nothing about the object:
+
+  ```js
+  // what you wrote
+  export const analytics = { label: "signup_button_click" };
+
+  // what shipped
+  export const analytics = { label: _t("signup_button_click", …) };
+  ```
+
+  Extraction rewrites the value, so in Arabic that event name came back in Arabic. And with no fallback
+  to the source locale, it also failed the build until somebody translated it. No curation of the field
+  list fixes that, because the name is the entire signal.
+
+  The capability did not go anywhere — it now says _which_ object it means:
+
+  ```ts
+  const ui = { home: { title: "Welcome" } }; // obj:ui:title
+  defineConfig({ title: "My site" }); //        call:defineConfig:title
+
+  // @zintl-target
+  export default { title: "…" }; //             no name to point at
+  ```
+
+  **`tag:html` is a new vanilla default**, and it is the answer for an app that builds its own HTML — the
+  common vanilla and SSR shape whose only working answer used to be _name the field `text`_. A tag cannot
+  fire by accident: the author has to write `` html`…` `` around the string. Lit already declared it.
+
+  **Next.js metadata is targeted rather than suppressed-and-bypassed.** `metadata` and `generateMetadata`
+  used to be suppressed with `bypassIf: "hasAnchor"`, so extraction depended on putting a `zintl()` call
+  inside the function. That happened to work for `generateMetadata`, and left the far more common static
+  `export const metadata = { … }` unreachable — no anchor, no strings, no message. `title` and
+  `description` are now named precisely, which also keeps `icons` and the Open Graph URLs out.
+
+  ### Migrating
+
+  **Almost certainly nothing.** Measured across all 30 examples after the removal: every one extracts the
+  same strings as before. The two that depended on `obj:field:*` were migrated first, and their actual
+  strings — not just counts — were compared.
+
+  **Vue's Options API is the exception, and the only one.** Strings in a `data()` return are ordinary
+  object fields:
+
+  ```vue
+  <script>
+  export default {
+    data() {
+      return { field: { label: "Save changes" } };
+    },
+  };
+  </script>
+  ```
+
+  `obj:<binding>:<field>` cannot reach that either: `data` is a property of the default-exported object,
+  not a declaration, so there is no binding to name. Mark it instead:
+
+  ```diff
+     data() {
+  +    // @zintl-target
+       return { field: { label: "Save changes" } };
+     },
+  ```
+
+  If you were relying on object-field extraction elsewhere, `obj:*:label` restores the old behaviour
+  exactly — and now says out loud what it does.
+
+  **One cosmetic consequence of adopting `tag:html`.** A tagged template is markup the formatter can
+  see, so oxfmt will format the HTML inside it — `examples/vanilla-ssr` came back with its SVG and list
+  markup re-wrapped across lines. Extraction is unaffected (the same 15 strings, verified by content
+  rather than count), but it will show up in your diff the first time you migrate a template, and it is
+  better to expect it than to wonder.
+
+  See [proposal 033](../docs/spec/proposals/033-structural-defaults-and-declared-targets.md), §8.1 for the
+  measurement and §8.2 for the Vue case.
+
+### Minor Changes
+
+- f3549fa: Report per-locale translation completeness on every dev flush.
+
+  `ar 44/47 · fr 12/47`, printed when it changes and only when it changes.
+
+  The gate already tells you, in full, and refuses the build. That is correct and it is also _late_:
+  the first a team hears of a missing translation should not be CI going red on a Friday afternoon.
+  Between "nobody has mentioned this" and "the release is blocked" there was nothing.
+
+  Two decisions worth stating, because both could reasonably have gone the other way.
+
+  **Counted against the hive, not by re-reading catalogs.** The hive is what `verifyIntegrity` already
+  accepts — a key it can satisfy is a key that passes the gate — so the number cannot disagree with
+  whether the build will succeed. A status that read "complete" while the build failed would be worse
+  than no status. It is also pure in-memory set arithmetic, where re-reading every catalog for every
+  locale on every dev flush would not be.
+
+  **Serving only.** A build either passes at 100% or fails with the list, so a build-time summary could
+  only ever say "everything is translated". Dev is where the number is both true and interesting.
+
+  **Incomplete logs at `warn`, complete at `info`** — severity tracking consequence rather than tone.
+  An incomplete locale is not a status update, it is a build that is going to fail. At `info` it would
+  be the first line to vanish for anyone running `logLevel: "warn"`, a common choice in CI, who would
+  keep every line they did not care about and lose the one that predicts the failure. The warning says
+  what it will cost, because that is the justification for the level.
+
+  An empty string counts as untranslated, matching the gate. The source locale is left out entirely —
+  never written to disk, translated by definition, and a permanent `0/N` would mean nothing.
+
+  `getTranslationStatus()` is public, so a facet or a host integration can ask for the same counts
+  without going through the log.
+
+  **Debounced, and that is a measurement rather than a preference.** Computed inline on the flush,
+  counting every manifest key against every locale pushed `Colony HMR Latency (Manager Sync)` from
+  inside its budget to 3.2x calibration against a 1.6x budget — cheap in isolation, not cheap on the
+  HMR hot path. `vpr bench` caught it; re-running the benchmark with the call removed confirmed the
+  cause was the call and not the machine. Nothing needs this number synchronously, so it waits for the
+  edits to stop, which also means one line per burst instead of one per keystroke.
+
+  Pending locales — the case where this number would have content at build time as well — are designed
+  and deliberately deferred past the first beta. See
+  [proposal 031](/docs/spec/proposals/031-pending-locales.md), which also records why they are _not_ an
+  answer to a red build on a Friday, and what is: an explicit, temporary `verifyIntegrity: false`, now
+  documented in `docs/configuration.md`.
+
+- d577ad0: Show untranslated strings as `⟦Ẇéļçöṁé ƀàçķ!⟧` while serving, instead of blanking the page.
+
+  Catalogs start empty. `verifyIntegrity` is off while serving by design, and a missing key resolves
+  to `""`. So the first thing a new project did, on the very first locale switch, was **empty itself**
+  — every string gone, no error, no warning on the page, nothing in the terminal. The dev server is
+  where someone decides whether to keep this package, and what it showed them was a blank app.
+
+  The build error was fixed in the same release. This is the other half, and the worse half: a build
+  failure at least says something.
+
+  `pseudoLocalize` (default `true`) renders a miss as visibly-untranslated text:
+
+  ```
+  ⟦Ýöü ĥàṽé 3 ñéẁ ṁéššàĝéš⟧
+  ```
+
+  **This is not a fallback to the source locale.** That rule is not bending, and the design is what
+  keeps it from bending:
+
+  - The text is unmistakable. Nobody reads `⟦Ẇéļçöṁé⟧` as a translation, nobody ships it, and nobody
+    builds the habit of a dev app that looks finished. A placeholder that could pass for a translation
+    would be a source fallback wearing a costume.
+  - It cannot reach production. The branch sits inside `__ZINTL_DEV__`, and `getRuntimeCode` folds
+    `__ZINTL_PSEUDO__` to a literal `false` for every build — so the guard, the branch and
+    `pseudoLocalize` itself are all eliminable, and the rule that nothing ships unused holds.
+  - The build still fails. `verifyIntegrity` is unchanged and refuses the same set of strings.
+
+  Two details that decide whether this is useful or merely visible.
+
+  **Placeholders and markup are preserved.** `{count}` is read back by `interpolate`, `<t0>` by the
+  tag restoration after it; accenting either would turn a visible placeholder into a broken one. The
+  transform splits on both and leaves them alone.
+
+  **The pseudo string falls through rather than returning early**, so it goes through interpolation and
+  tag restoration like any real message. `{count}` shows the real count and markup renders as markup —
+  the layout stays honest and only the words announce themselves. Returning early would have produced
+  a page full of literal `{count}` and `<t0/>`, which tests nothing about your layout.
+
+  Four unit tests asserted the old empty string on the miss path and now assert the marked one. A fifth
+  that looked similar was left alone on purpose: a catalog entry present but non-string still returns
+  `""`, because that is a different branch and a different bug.
+
+  **The build-output snapshots earned their keep here.** The obvious way to write the miss path — assign
+  in the dev block, re-test `message` after it — folds to a redundant `if (message === void 0)` nested
+  inside its own `if (message === void 0)`, in every shipped bundle. The dev branch disappears; the
+  extra test does not. It is invisible in the source and obvious in the snapshot diff, which is exactly
+  what those snapshots are for. The `else return` shape now carries a comment saying so, because the
+  natural way to write it is the wrong way.
+
+  One asymmetry worth knowing, measured rather than assumed. With minification off — which is how the
+  contract harness builds, so the snapshots stay readable — Rollup drops the now-unreferenced
+  `pseudoLocalize` and its two tables, and **Rspack does not**: it defers unused top-level bindings to
+  the minifier. Every real production build minifies, and `examples/*/dist` is clean of all four
+  symbols on both hosts, so nothing reaches a user either way. But the Rsbuild snapshots do show them,
+  and that is a tree-shaking gap rather than a leak. Closing it properly means giving the helper its
+  own runtime module and serving an empty one when not in dev, the way `store-client` and
+  `store-server` are already composed — deliberately not done here, for a dev-only affordance.
+
+- 5df1221: Report every missing translation in one build error, instead of the first one.
+
+  The rule is unchanged and stays absolute: there is no fallback to the source locale, so an
+  untranslated string fails the build. What was wrong was the **announcement**. `verifyIntegrity`
+  threw from inside a nested loop over files × boundaries × locales × keys, so the first missing key
+  ended the build and the other N-1 were never mentioned.
+
+  Follow what that does to someone adopting Zintl. Dev works — catalogs are written with empty values,
+  nothing complains. Then `vite build` fails, naming one string. They translate it, rebuild, and it
+  fails on the next one. A 200-string app in three locales is 600 sequential builds to discover a
+  failure set the compiler already held in full, on the first one. That is the first build a new user
+  ever runs, and it was the worst-shaped output in the whole tool.
+
+  Both failure classes are now collected and reported once:
+
+  ```
+  [Zintl Integrity Error] 18 missing translations across 3 locales.
+
+  Every locale (ar, fr, zh) is missing the same 6 strings.
+  The catalogs have most likely not been filled in yet.
+
+  Zintl never falls back to "en", so these strings would render empty.
+  That is why this is a build error rather than a warning.
+
+    src/main — 3 strings
+      "Welcome back!"
+      "Sign out"
+      "You have {count} new messages"
+    src/nav — 3 strings
+      "Settings"
+      "Profile"
+      "Dashboard"
+
+  Each file needs one catalog per locale. For src/main:
+    zintl/src/main.ar.json
+    zintl/src/main.fr.json
+    zintl/src/main.zh.json
+
+  Fix:   fill in the empty values in the catalog files above.
+  Defer: set `verifyIntegrity: false` to skip this check while you evaluate
+         — those strings will render empty until they are translated.
+  ```
+
+  Three decisions inside that are worth naming.
+
+  **The report has two shapes, because these are two different problems.** When every locale lacks the
+  same keys the catalogs simply have not been filled in, and the listing says so once — per-locale
+  grouping would repeat an identical block once per locale and, at ten locales, push the actionable
+  part off the terminal. When the sets differ, the question is _which_ locale fell behind, so the
+  grouping is by locale and the counts are per locale.
+
+  **An anchor targeting an unbuilt locale is reported instead of, not alongside, missing
+  translations.** `zintl("de")` with `de` absent from `locales` makes every downstream missing
+  translation a consequence rather than a finding, so that error stands alone.
+
+  **The example catalog paths are real `getCatalogPath` results, relativized to the project root** —
+  not a `[locale]` token substituted into `catalogFormat`. The format is user-supplied and need not
+  mention the locale literally, so substitution would print paths that do not exist.
+
+- d1f0cd9: Stop extracting `el.title`, `el.value` and friends by default.
+
+  `dom:prop:` targets match a property **name** and learn nothing about the receiver. There is no type
+  information on an oxc parse and dataflow tracing was removed deliberately (backlog 005), so nothing
+  ever checked that the thing being assigned to was a DOM node:
+
+  ```ts
+  featureFlag.value = "NON_DOM_value"; // extracted
+  telemetry.title = "NON_DOM_title"; // extracted
+  sqlBuilder.innerHTML = "NON_DOM_innerHTML"; // extracted
+  ```
+
+  Extraction rewrites the value, so an extracted analytics constant comes back **translated at runtime**
+  — and, because there is no fallback, also fails the build until somebody translates an event name.
+
+  A default sink target must never catch text that is not user-facing. These did.
+
+  **Kept:** `innerHTML`, `textContent`, `innerText`. **Dropped:** `alt`, `placeholder`, `aria-label`,
+  `aria-description`, `value`.
+
+  `title` was dropped, had to come back, and then stopped needing an exception. `document.title` is the
+  browser tab — as user-facing as text gets — so removing it stopped real page titles being extracted.
+  It differs from its neighbours in one way that matters: its receiver is the `document` global, a
+  literal identifier in the source, which is structural evidence rather than a guess about a noun.
+
+  So the `dom:` family is now receiver-qualified, the way `jsx:<element>:<attribute>` always was:
+
+  ```
+  dom:prop:innerHTML     any receiver          (the original spelling, unchanged)
+  dom:*:innerHTML        any receiver          (alias, matching jsx's convention)
+  dom:document:title     document.title only   (new)
+  ```
+
+  ```js
+  document.title = "REAL_PAGE_TITLE"; // extracted
+  telemetry.title = "NOT_UI_title"; // not
+  ```
+
+  The receiver must be a plain identifier — `window.document.title` does not match, deliberately, since
+  following member chains re-admits the guessing this removes. The receiver check runs only when the
+  any-receiver set misses, so the common path is untouched.
+
+  Only `vanillaFacet` declared the English words; `svelte` and `vue` already declared just `innerHTML`
+  and `textContent`. The rule was being followed everywhere except the one facet that applies to every
+  project.
+
+  **A note on how this was measured, because the first measurement was insufficient.** A static audit of
+  all 30 examples reported 0 affected and 0 strings lost — true of the sources as committed, and blind
+  to the fact that contract fixtures _synthesize_ source at test time. Eight of them insert
+  `document.title = "Extra anchor added"`, which is what gives a new anchor's boundary content, and
+  without it `[HMR Growth]` fails deterministically: 10/10 runs with the change, 0/10 at baseline,
+  measured in one batch with `scripts/flake.js`. An audit of static sources cannot see strings a test
+  writes.
+
+  Dropped from the defaults, not from the DSL — `vanillaFacet({ targets: [...] })` takes them back, and
+  then the false positives belong to whoever asked for them. There is a test for the opt-in path as well
+  as the removal.
+
+  `obj:field:*` has the same defect and is **not** touched here: two examples depend on it, and it needs
+  somewhere to go first. See [proposal 033](../docs/spec/proposals/033-structural-defaults-and-declared-targets.md),
+  which measures that too and sequences the replacement — declared `obj:<name>:<field>` targets, a
+  `@zintl-target` directive, and `tag:` for self-built HTML.
+
+  The descriptor forms are now documented for users as well, in `docs/configuration.md` — "What counts
+  as a translatable string" and "Changing what is extracted". The DSL had never been documented at all,
+  which made the defaults something you could only discover by being surprised by them.
+
+  **Extraction targets are now validated.** An unrecognised descriptor was silently ignored — no target,
+  no hint, no message — so a typo (`dom:prop:titel`) and a form that does not exist (`obj:ui:title`)
+  both resolved to silence, and a user who asked for an extraction got none with nothing to read. That
+  is the same silent under-extraction that makes a missing sink invisible, arriving through a config
+  file, where it is worse: the intent was stated.
+
+  Every form now either matches or is refused at construction, with the valid forms listed in the error:
+
+  ```
+  [Zintl] Invalid extraction target: "obj:ui:title" — unrecognised form.
+
+  Valid forms:
+    jsx:<element>:<attribute>   e.g. jsx:*:alt, jsx:html:dir
+    html:attr:<attribute>       e.g. html:attr:placeholder
+    dom:<receiver>:<property>   e.g. dom:*:innerHTML, dom:document:title
+    …
+  ```
+
+  Unknown prefixes, wrong arity (`jsx:alt`), empty segments (`tag:`) and paths where a single name is
+  expected (`html:attr:a:b`) are all refused. `dom:attr:` is refused explicitly as never-implemented
+  rather than left accepted-and-inert — it was in the descriptor union and the DSL docblock, registered
+  a fast-path hint, joined no target set, and matched nothing. A test had recorded that no-op as a
+  feature; it now asserts the refusal instead.
+
+  A falsy entry is still skipped rather than refused: a hole in a list is not a stated intent.
+
+### Patch Changes
+
+- 3247708: Make a plainly imported localized asset follow the active locale, instead of only the build.
+
+  Targeting an asset says its content varies by language. For an asset imported with `?raw` that has
+  always held. For one imported plainly — a `.webp`, a `.pdf`, a video, anything you want the _URL_ of
+  — it held in a production build and nowhere else. Every dev server, and every app that switches
+  language at runtime, served the source file in all locales.
+
+  The cause is that a plain import is a **static binding**: it resolves once, to one file, and nothing
+  re-reads it when the locale changes. So reference delivery followed the locale exactly where module
+  _identity_ did — a multiplexed build, where resolution rewrites each import per locale — and the
+  per-locale URLs sitting in the catalog were never read by anything.
+
+  An import of a targeted asset now resolves to a module that reads the active locale on every access,
+  which is what the `?raw` side has always done. The two delivery modes are the same shape and differ
+  only in what the catalog holds: the artifact's text for one, the bundler's URL for the other. The
+  bundler still emits and hashes each locale's file exactly as it would any asset — there is no new
+  emission path and no host-specific code.
+
+  The source locale is answered by a direct import rather than through the catalog, because its artifact
+  _is_ the source file: nothing to look up, and under ghost mode no catalog on disk to look it up in.
+
+  **`ContentFacet` gained `deliversUrl`,** which is the question this needed and `match` could not
+  answer. Ownership says whose file something is; it is not a licence to intercept an import of it. The
+  first attempt gated on ownership, claimed every `.html` — owned by the HTML projection facet, which
+  delivers nothing to an importer — and fed the page template to the JavaScript parser. A facet that
+  answers imports with a per-locale URL now says so.
+
+  Two smaller things came with it. Generated modules for this path get their own virtual id rather than
+  borrowing the asset's, for the reason ledger L-009 documents and one more: unplugin materialises a
+  virtual module as a real file elsewhere on disk, where a bare `virtual:zintl/runtime/internal` no
+  longer resolves. And the imports the catalog uses to reach each artifact carry `?zintl-url`, which the
+  plugin declines — without it the generated module imports itself.
+
+  Found by a contract that was written red and left `pending` for a release, asserting the behaviour
+  this change delivers.
+
+- e4bb3e0: Honour a configured `assetsTarget` everywhere, not only where the default one happened to be looked for.
+
+  `assetsTarget` has been configurable for some time, and three places never asked what it said. Each
+  tested `.md` and `.txt` by hand — which is not a fact about assets, but the _default_ value of the
+  option — so a project targeting anything else got a different feature from the one it configured.
+
+  **A boundary carrying only a non-default asset generated no manager at all.** The pipeline decided
+  whether a boundary had any translations worth loading by scanning its dependencies for `.md` or
+  `.txt`. Target `.rst`, and the answer was no: no manager was emitted, no catalog was ever requested,
+  and the page rendered a pseudo-localized key. The only clue was `no manager provided` in the console,
+  four layers from the cause. This is the one with user-visible consequences, and it was invisible to
+  every test because every asset in the repository was a `.txt`.
+
+  **Editing a non-default artifact did nothing.** The hot-update classifier recognised sources by
+  extension, catalogs by `.json`, and assets by the same two-item list. An edit to `about.ar.rst` was
+  classified as no kind of change at all, so no update ran and the browser kept the previous text until
+  a reload.
+
+  **Orphaned artifacts of non-default targets were never reclaimed.** The scan that removes files under
+  `outputDir` whose source is gone matched `.json`, `.md` and `.txt`. Anything else outlived its source
+  indefinitely, unreferenced and unexplained.
+
+  All three now ask the facet layer, which is the thing that actually knows. `ContentFacet` gained
+  `extensions` in the previous release for exactly this reason and the compiler gained `ownsContent`;
+  these are the callers that should have been using them. The pipeline is handed the predicate with its
+  context already bound, so a hot traversal pays for one closure rather than a context per dependency
+  edge.
+
+  **Found by a fixture, not by reading.** `assets-authored` localizes a `.rst` and a `.png` — neither
+  in the default targets — and the first thing it did was fail. Proposal 034 §1.1 counted six sites
+  that re-derived behaviour from a file extension and called the option "honoured on one path out of
+  six"; it had been looking only at the assets preset and the plugin's resolve hooks. Three more were
+  in the pipeline, the HMR classifier and the catalog pruner.
+
+- 8f2853d: Refuse a build where a localized artifact and a translation catalog want the same file.
+
+  Both are named `<outputDir>/<path>.<locale>.<ext>`, so targeting `.json` — the extension catalogs
+  themselves use — can put an artifact exactly where a boundary's catalog goes. `assetsTarget:
+["json"]` with an asset at `src/data.json` and a boundary in `src/data.ts` sends both to
+  `zintl/src/data.ar.json`, and this succeeded:
+
+  ```
+  zintl/src/data.ar.json   ← the catalog. Written second; the artifact is gone.
+  ```
+
+  Which is the worst of the available outcomes, because it looks like success. The artifact _becomes_ a
+  catalog, so `verifyIntegrity` finds a non-empty file and passes, and the asset ships in the source
+  language with nothing said — a source-locale fallback nothing downstream can detect, which is the one
+  thing this project's first rule forbids.
+
+  It is now a hard error naming the file, the facet that claimed it, the boundary whose catalog it is,
+  and the way out:
+
+  ```
+  [Zintl] A localized artifact lands on a path Zintl already writes a catalog to.
+
+    zintl/src/data.ar.json
+      claimed by "system-static-assets", and by the catalog for "src/data"
+
+  Fix:    give the artifacts their own location, away from the catalogs —
+          assetsTarget: [{ targetPattern: "**/*.json",
+                           outputPattern: "assets/[locale]/[dir]/[name].[ext]" }]
+  Or:     stop targeting this extension, or rename the source file.
+  ```
+
+  **Paths are what is refused, not extensions.** `assetsTarget: ["json"]` is safe in a project whose
+  catalogs live in one multilingual file and unsafe in the default one, so an extension check would be
+  both too strict and too loose. The guard indexes every path the boundary graph will write a catalog
+  or schema to and refuses only on an actual overlap.
+
+  It runs in `runFlush` rather than in the pruning scan, which had both sets in hand: pruning is gated
+  on the `prune` option and short-circuits in dev, and a correctness guard an unrelated option can
+  switch off is not a guard. The scan also could not have found this — it _unions_ catalog paths with
+  content-facet outputs, and a union cannot show an intersection: two subsystems writing one file
+  looked exactly like one subsystem writing it twice.
+
+  Settles proposal 034 §6.
+
+- 199cfae: Refuse a build where `assetsTarget` or `virtualAssets` configures a facet the project removed.
+
+  These options configure the **built-in** assets facet. Name your own `assetsFacet` in `facets`, or
+  drop the built-in with `excludeFacet`, and the options were still accepted, still type-checked, and
+  configured nothing — so the files they named were quietly not localized, and nothing said so.
+
+  That is now a hard error at construction, naming both signals and the way out:
+
+  ```
+  [Zintl] `assetsTarget` configures the built-in "system-static-assets" facet,
+  which this project replaced with its own.
+
+  The option would have been accepted and then ignored, so the files it names
+  would not be localized and nothing would have said so.
+
+  Fix:    pass them to your own facet instead — assetsFacet({ targets: [...] }).
+  Or:     remove `assetsTarget` from the plugin options.
+  ```
+
+  **Both spellings stay.** Two ways to say the same thing was never the harm here — `docs/stability.md`
+  already documented which one wins, and the semantics were not in doubt. The harm was that the runtime
+  did not agree with the documentation. There is also no winner available to pick: an option cannot be
+  forwarded into a facet you constructed yourself, so honouring both was never on the table, and the
+  only thing left to get right was saying so.
+
+  An error rather than a warning because the consequence is wrong output rather than a surprising
+  configuration — assets shipping in one language — and a line in a build log is a poor defence against
+  that.
+
+  `virtualAssets` counts only when `true`. It is resolved against a default before facets are assembled,
+  so `false` cannot be told apart from unset, and `false` is the facet's own default anyway — treating
+  it as a signal would refuse builds that are entirely correct. Settles proposal 034 §8.
+
+- Updated dependencies [d1f0cd9]
+- Updated dependencies [d1f0cd9]
+- Updated dependencies [810ef00]
+  - @zintljs/extractor@1.0.0-alpha.19
+
 ## 0.1.0-alpha.18
 
 ### Minor Changes

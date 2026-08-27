@@ -1,5 +1,132 @@
 # @zintl/extractor
 
+## 1.0.0-alpha.19
+
+### Minor Changes
+
+- d1f0cd9: Add `@zintl-target` — the directive that opts a site in.
+
+  `@zintl-ignore` has had no opposite. Zintl finds strings by _where they appear_ — in markup, in an
+  `alt`, assigned to `textContent` — and a plain object is not one of those places and cannot be:
+  `{ label: "…" }` is as often an analytics event as a button. So objects are matched by field name,
+  which is a guess, and `obj:<binding>:<field>` narrows that guess to a name the project chose.
+
+  Some sites have no name to narrow to.
+
+  ```ts
+  // @zintl-target
+  export default {
+    title: "Zintl — compile-time i18n",
+    description: "Write your app in plain language.",
+  };
+  ```
+
+  An anonymous default export has no binding at all. Neither does an object passed straight into a call
+  whose callee the project does not control. And a name is the thing that breaks when somebody renames
+  the variable — silently, because nothing was extracted, so `verifyIntegrity` has nothing to check.
+
+  Marking the code instead survives the rename, works where no name exists, and is visible to whoever
+  reads the file.
+
+  **Inside a marked node every string field is taken, including nested ones**, whatever it is called.
+  That is the point: the directive is for objects whose field names carry no signal, and a version that
+  still required the names to be configured would only work where the configuration already did.
+
+  `@zintl-ignore` is still honoured inside, so the two compose — mark the object, exclude the field that
+  is a URL. A region ends where its statement does.
+
+  Implemented as a region rather than a per-node flag, mirroring `@zintl-ignore`'s suppression level, and
+  counted rather than flagged because regions nest and an inner one ending must not end the outer.
+
+  One implementation note worth keeping: the `Property` visitor's registration gate previously asked "is
+  any object-field target configured", and a `@zintl-target` can exist with none. The gate now also asks
+  whether the file contains the directive — a one-off string scan per file. Dropping the gate instead
+  would run the visitor on every `Property` in every project, including the many with no object targets,
+  to answer "no" each time.
+
+- d1f0cd9: Add `obj:<binding>:<field>` and `call:<function>:<field>` — object-field targets you can narrow.
+
+  `obj:field:title` matches a `title` on **any object literal anywhere**. That is a guess about a noun,
+  and it is how `{ label: "signup_button_click" }` ends up extracted, translated, and returned in Arabic
+  at runtime. No curation of the field list fixes it, because the field name is the entire signal.
+
+  These two narrow the same match by **context** instead:
+
+  ```ts
+  const ui = { home: { title: "Welcome" } }; // obj:ui:title      — nested is fine
+  const mkUi = () => ({ title: "Welcome" }); // obj:mkUi:title    — functions too
+  defineConfig({ title: "My site" }); // call:defineConfig:title
+  ```
+
+  Still a name — but one the project chose and controls, in its own codebase, rather than a guess about
+  what a noun means in everybody's. That is the trade `dom:document:title` already makes, and it is what
+  lets a target be declared rather than assumed.
+
+  **The binding is the nearest one enclosing the object**, found by walking outward, so a field several
+  levels down still belongs to it — `{ home: { title }, about: { title } }` is what a strings object
+  actually looks like, and a direct-child rule would have missed the main use. The walk crosses function
+  bodies for the same reason: `const ui = () => ({ title })` is as common as the plain form.
+
+  `obj:*:<field>` is a new, honest spelling of the unqualified match; `obj:field:<field>` still works.
+
+  **`call:` is deliberately its own family.** _Passed to `cfg()`_ and _bound to `cfg`_ are different
+  relations, and one descriptor covering both would make `call:cfg:title` match a `const cfg = { title }`
+  that has nothing to do with the call. There is a test for exactly that.
+
+  `export default { … }` carries no name and cannot be targeted this way. A stated limit rather than an
+  oversight — there is nothing to declare against, and marking the site is what a directive is for.
+
+  The descriptor forms are documented in `docs/configuration.md`. Defaults are unchanged: `obj:field:*`
+  stays in the built-in set until the two examples that depend on it have somewhere to go — see
+  [proposal 033](../docs/spec/proposals/033-structural-defaults-and-declared-targets.md) §8.
+
+- 810ef00: Add `additionalTargets`, and make the target wildcard work in both positions.
+
+  **`additionalTargets` extends what the active facets detect.**
+
+  ```ts
+  zintl({
+    locales: ["en", "ar"],
+    additionalTargets: ["obj:details:*"],
+  });
+  ```
+
+  `targets` on a facet _replaces_ that facet's list — right for reconfiguring one, and useless for _"the
+  defaults plus one of mine"_: appending a single entry meant re-listing every default, and such a
+  config falls behind silently the moment the defaults move.
+
+  A route existed — contribute your own extraction facet, since array capabilities union across them —
+  but it required knowing that facets union, that `concern: "extraction"` is the slot, and that the name
+  must differ from a built-in or the provenance rule _replaces_ rather than adds. That is a lot of
+  mechanism for one target.
+
+  The name is doing work. `targets` would read as _all_ the targets, which is precisely the wrong
+  promise; `additionalTargets` cannot. It is carried internally as a synthetic facet, so it inherits
+  union semantics, shows up in the activation trace, and needs no second code path that could disagree
+  with the first.
+
+  A sentinel — `targets: ["auto", …]`, mirroring `facets: ["builtins"]` — was considered and rejected.
+  `facets` is expanded by the plugin, while `targets` is parsed by the extractor's deliberately
+  framework-blind DSL, so a sentinel would either leak an orchestration concept into that parser or mean
+  one thing at the top level and another on a facet. It would also reserve a bare word in a namespace of
+  prefixed descriptors, foreclosing any future bare-word form.
+
+  **`*` now works in either position.**
+
+  ```ts
+  "obj:*:title"; // any object's `title`
+  "obj:details:*"; // every field of an object named `details`
+  ```
+
+  The second used to parse, store `"*"` as a literal field name, match nothing, and **pass validation** —
+  a structurally valid triple with no empty segments. Silently doing nothing, one position over from
+  where descriptor validation had just removed it. `call:<fn>:*` works the same way.
+
+  `obj:<binding>:*` is the more useful half in practice: it says _this object holds UI strings_ without
+  listing them, which is what a project reaches for when the same shape repeats across components.
+
+  See [proposal 033](../docs/spec/proposals/033-structural-defaults-and-declared-targets.md) §9.2.
+
 ## 0.1.0-alpha.18
 
 ### Minor Changes

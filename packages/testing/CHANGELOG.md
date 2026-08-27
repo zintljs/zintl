@@ -1,5 +1,26 @@
 # @zintljs/testing
 
+## 0.1.0-alpha.19
+
+### Patch Changes
+
+- Updated dependencies [5df1221]
+- Updated dependencies [f3549fa]
+- Updated dependencies [3247708]
+- Updated dependencies [e4bb3e0]
+- Updated dependencies [8f2853d]
+- Updated dependencies [d577ad0]
+- Updated dependencies [25917f5]
+- Updated dependencies [199cfae]
+- Updated dependencies [d577ad0]
+- Updated dependencies [5df1221]
+- Updated dependencies [810ef00]
+- Updated dependencies [d1f0cd9]
+- Updated dependencies [300c310]
+- Updated dependencies [d577ad0]
+  - zintljs@1.0.0-alpha.19
+  - @zintljs/compiler@1.0.0-alpha.19
+
 ## 0.1.0-alpha.18
 
 ### Patch Changes

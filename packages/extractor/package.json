@@ -1,6 +1,6 @@
 {
   "name": "@zintljs/extractor",
-  "version": "0.1.0-alpha.18",
+  "version": "1.0.0-alpha.19",
   "description": "AST-based message extractor for Zintl",
   "keywords": [
     "ast",

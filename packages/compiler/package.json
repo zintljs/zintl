@@ -1,6 +1,6 @@
 {
   "name": "@zintljs/compiler",
-  "version": "0.1.0-alpha.18",
+  "version": "1.0.0-alpha.19",
   "description": "Bundler-agnostic compiler intelligence for Zintl",
   "keywords": [
     "compiler",
