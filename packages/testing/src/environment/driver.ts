@@ -54,8 +54,16 @@ export interface BuildToolDriver {
   /**
    * Run a full production build through the real build tool.
    * Tests the **integration contract** — plugin hooks, bundling, etc.
+   *
+   * Builds are memoised per worker by project and overrides, because most
+   * contracts build the same unchanged project and paying for that twice is
+   * waste. Pass `{ cache: false }` when the project is **not** unchanged — a
+   * contract that edits a file and builds again is asking a different question,
+   * and the memo would answer the previous one. Such a build neither reads nor
+   * writes the memo, so it also cannot leave a build of an edited tree behind
+   * for the next contract to collect.
    */
-  build(overrides?: Record<string, any>): Promise<BuildOutput>;
+  build(overrides?: Record<string, any>, opts?: { cache?: boolean }): Promise<BuildOutput>;
 
   dispose(): Promise<void>;
 }

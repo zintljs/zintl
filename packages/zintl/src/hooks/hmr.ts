@@ -27,7 +27,7 @@ export function handleHotUpdateHook(ctx: Context) {
      */
     const applier = ctx.updateApplier ?? new ViteUpdateApplier(ctx, server);
 
-    const kind = classifyFile(file);
+    const kind = classifyFile(ctx, file);
     if (!kind) {
       ctx.hmrTrace.push({ ts: Date.now(), kind: "skip-ineligible", file });
       return;

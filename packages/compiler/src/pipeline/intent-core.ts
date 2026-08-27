@@ -108,10 +108,17 @@ export function planAnchors(
             break;
           }
           const deps = worldState.dependencyGraph[fId] || [];
-          const hasAsset = deps.some((d) => {
-            const cleanId = d.id?.split("?")[0] || "";
-            return cleanId.endsWith(".md") || cleanId.endsWith(".txt");
-          });
+          /**
+           * Asked of the facet layer, never inferred from the extension.
+           *
+           * This tested `.md`/`.txt` and so answered "no translations here" for
+           * every other configured target — no manager was generated, and the
+           * page rendered a pseudo-localized key with "no manager provided" as
+           * its only clue. The same layering fault 034 §1.3 found in the plugin's
+           * load path, one layer down and considerably quieter.
+           */
+          const ownsContent = worldState.config.ownsContent;
+          const hasAsset = deps.some((d) => ownsContent?.(d.id?.split("?")[0] || "") ?? false);
           if (hasAsset) {
             kingdomHasActiveTranslations = true;
             break;

@@ -40,7 +40,14 @@ export class ViteDriver implements BuildToolDriver {
    * Run a full production build through Vite.
    * Tests the integration contract — real plugin hooks, bundling, etc.
    */
-  async build(overrides: Record<string, any> = {}): Promise<BuildOutput> {
+  async build(
+    overrides: Record<string, any> = {},
+    opts: { cache?: boolean } = {},
+  ): Promise<BuildOutput> {
+    // Neither read nor written: a build of an edited tree must not be handed to
+    // the next contract, which is expecting one of the project as committed.
+    if (opts.cache === false) return this.runBuildInternal(overrides);
+
     const cacheKey = `${this.exampleName}::${JSON.stringify(overrides)}`;
 
     if (!buildCache.has(cacheKey)) {

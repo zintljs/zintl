@@ -149,6 +149,83 @@ function processSinkSource(
 
 // ─── Visitor ────────────────────────────────────────────────────────────────
 
+/**
+ * Does a qualified target claim this field, given where the object literal sits?
+ *
+ * `obj:ui:title` and `call:defineConfig:title` both narrow an object-field match
+ * by *context* rather than by the field name alone, which is what separates a
+ * declared target from the guess `obj:*:title` makes. This resolves that
+ * context by walking outward from the property to the nearest thing carrying a
+ * name.
+ *
+ * Two names are collected in one pass, because a literal can sit inside both:
+ *
+ * - the nearest **call**, from a `CallExpression` with an identifier callee
+ * - the nearest **binding**, from a declarator, function declaration or class
+ *   field
+ *
+ * The walk crosses function bodies on purpose. `const ui = () => ({ title })`
+ * and `function build() { return { title } }` are how a strings object gets
+ * written as often as `const ui = { title }` is, and stopping at the function
+ * would serve only the simplest of the three. It also does not stop at the
+ * first object literal, so a field nested inside `const ui = { home: { title } }`
+ * still resolves to `ui` — that nesting is what a real strings object looks
+ * like.
+ *
+ * `export default { title }` carries no name and matches nothing here. That is
+ * a real limit rather than an oversight: there is nothing to declare a target
+ * against, and marking the site is what a directive is for.
+ */
+/**
+ * Does this field set claim `field`, allowing `*` to mean every field?
+ *
+ * The wildcard has to work in **both** positions or it is a trap. `obj:*:title`
+ * (any object, this field) was supported from the start; `obj:details:*` (this
+ * object, every field) parsed, stored `"*"` as a literal field name, matched
+ * nothing, and passed validation — a structurally valid triple with no empty
+ * segments. Silently doing nothing is the exact defect the validation pass was
+ * added to remove, reappearing one position over.
+ *
+ * `obj:details:*` is also the more useful half in practice: it says *this object
+ * holds UI strings* without listing them, which is what a project reaches for
+ * when the same shape appears in many components.
+ */
+function claims(fields: Set<string> | undefined, field: string): boolean {
+  return fields !== undefined && (fields.has(field) || fields.has("*"));
+}
+
+function qualifiedObjectMatch(field: string, parents: Node[], ctx: ExtractionContext): boolean {
+  if (ctx.uiObjectNameFields.size === 0 && ctx.uiCallFields.size === 0) return false;
+
+  // `parents[0]` is the immediate parent and the array grows outward
+  // (`walker.ts`: `[node, ...parents]`), so ascending index *is* walking
+  // outward. Reversing this reads naturally and is wrong: an enclosing binding
+  // would answer before the call or object nearer the literal.
+  for (const parent of parents) {
+    const node = parent as any;
+
+    if (node.type === "CallExpression" && node.callee?.type === "Identifier") {
+      if (claims(ctx.uiCallFields.get(node.callee.name), field)) return true;
+    }
+
+    const bindingName =
+      (node.type === "VariableDeclarator" || node.type === "FunctionDeclaration") &&
+      node.id?.type === "Identifier"
+        ? node.id.name
+        : node.type === "PropertyDefinition" && node.key?.type === "Identifier"
+          ? node.key.name
+          : undefined;
+
+    // The first binding is the answer, whether or not it claims the field —
+    // walking past it would let an outer scope's name capture an inner object.
+    if (bindingName !== undefined) {
+      return claims(ctx.uiObjectNameFields.get(bindingName), field);
+    }
+  }
+
+  return false;
+}
+
 export function createBindingVisitor(ctx: ExtractionContext) {
   const visitor: any = {
     ImportDeclaration(node: ImportDeclaration, ctx: ExtractionContext) {
@@ -179,6 +256,19 @@ export function createBindingVisitor(ctx: ExtractionContext) {
       }
     },
 
+    /**
+     * The statement shapes a `@zintl-target` can sit above.
+     *
+     * `VariableDeclaration` is handled with the ignore region below, since the
+     * two directives share a node. These are the rest, and they are exactly the
+     * sites the declared targets of §4 cannot reach: an anonymous default
+     * export has no binding to name, and an object passed inline to a call has
+     * one only if the callee is an identifier the project controls.
+     *
+     * `ReturnStatement` and `PropertyDefinition` are here so a marked region
+     * behaves the same wherever an object is produced, matching how the binding
+     * walk crosses function bodies.
+     */
     ImportExpression(node: ImportExpression, ctx: ExtractionContext) {
       const src = node.source as any;
       if ((src.type === "StringLiteral" || src.type === "Literal") && src.value.startsWith(".")) {
@@ -192,12 +282,14 @@ export function createBindingVisitor(ctx: ExtractionContext) {
     VariableDeclaration: {
       enter(node: any, ctx: ExtractionContext, parents: Node[]) {
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
+        ctx.pushTarget(comments);
         if (comments.ignore) {
           ctx.suppressionLevel++;
         }
       },
       exit(node: any, ctx: ExtractionContext, parents: Node[]) {
         const comments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
+        ctx.popTarget(comments);
         if (comments.ignore) {
           ctx.suppressionLevel--;
         }
@@ -218,7 +310,23 @@ export function createBindingVisitor(ctx: ExtractionContext) {
       const prop =
         (node.left as any).property.type === "Identifier" ? (node.left as any).property.name : "";
 
-      if (!ctx.uiSinkProperties.includes(prop)) return;
+      if (!ctx.uiSinkProperties.includes(prop)) {
+        /**
+         * Not an any-receiver property. It may still be receiver-qualified —
+         * `dom:document:title` matches `document.title` and nothing else, which
+         * is what lets the browser tab be a default sink while `telemetry.title`
+         * is not.
+         *
+         * The receiver must be a plain identifier. `window.document.title` and
+         * `globalThis.document.title` are member expressions and do not match;
+         * that is a deliberate floor rather than an oversight, because widening
+         * it means walking arbitrary member chains and re-admitting the guessing
+         * this descriptor exists to remove.
+         */
+        const object = (node.left as any).object;
+        if (object?.type !== "Identifier") return;
+        if (!ctx.uiSinkReceiverProperties.get(object.name)?.has(prop)) return;
+      }
 
       const stmtComments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
       const sources = ctx.findLiteralsInExpression(node.right as Node, stmtComments, prop);
@@ -269,7 +377,60 @@ export function createBindingVisitor(ctx: ExtractionContext) {
     };
   }
 
-  if (ctx.uiObjectFields.size > 0) {
+  /**
+   * `@zintl-target` regions, registered only for a file that contains one.
+   *
+   * The gate is not an optimisation, it is the difference between free and
+   * quadratic. `getAttachedComments` scans **every trivia in the file** per
+   * call, with a slice and two regexes per candidate — and these hooks fire on
+   * enter *and* exit of `ExpressionStatement` and `ReturnStatement`, which are
+   * the most common statements there are. Registered unconditionally that is
+   * O(statements x comments) of work added to every file in every project, to
+   * discover that none of them carry the directive.
+   *
+   * `VariableDeclaration` is handled with the ignore region below, since the two
+   * directives share that node and its cost was already being paid.
+   *
+   * These are exactly the sites §4's declared targets cannot reach: an anonymous
+   * default export has no binding to name, and an inline call argument has one
+   * only if the callee is an identifier the project controls. `ReturnStatement`
+   * and `PropertyDefinition` are here so a marked region behaves the same
+   * wherever an object is produced, matching how the binding walk crosses
+   * function bodies.
+   */
+  if (ctx.code.includes("@zintl-target")) {
+    for (const type of [
+      "ExportDefaultDeclaration",
+      "ExpressionStatement",
+      "ReturnStatement",
+      "PropertyDefinition",
+    ] as const) {
+      (visitor as any)[type] = {
+        enter(node: any, ctx: ExtractionContext, parents: Node[]) {
+          ctx.pushTarget(getAttachedComments(node, parents, ctx.trivias, ctx.code));
+        },
+        exit(node: any, ctx: ExtractionContext, parents: Node[]) {
+          ctx.popTarget(getAttachedComments(node, parents, ctx.trivias, ctx.code));
+        },
+      };
+    }
+  }
+
+  /**
+   * Registered when *something* could match: a configured object-field target of
+   * any kind, or a `@zintl-target` anywhere in this file.
+   *
+   * The last clause is a one-off string scan rather than a per-node check, and
+   * it is what keeps the fast path: without it the visitor runs on every
+   * `Property` in every project, including the many that configure no object
+   * targets at all, to answer "no" each time.
+   */
+  if (
+    ctx.uiObjectFields.size > 0 ||
+    ctx.uiObjectNameFields.size > 0 ||
+    ctx.uiCallFields.size > 0 ||
+    ctx.code.includes("@zintl-target")
+  ) {
     visitor.Property = function (node: Property, ctx: ExtractionContext, parents: Node[]) {
       if (ctx.suppressionLevel > 0) return;
       if (ctx.handledNodes.has(node.start)) return;
@@ -286,7 +447,22 @@ export function createBindingVisitor(ctx: ExtractionContext) {
             ? (node.key as any).value
             : "";
 
-      if (!ctx.uiObjectFields.has(keyName)) return;
+      /**
+       * A `@zintl-target` region makes every field a sink, whatever it is
+       * called. That is the point: the directive exists for objects whose field
+       * names carry no signal, and requiring the names to *also* be configured
+       * would leave it useful only where the configuration already sufficed.
+       *
+       * `@zintl-ignore` still applies inside — it is checked above — so the
+       * pair composes: mark the object, exclude the one field that is a URL.
+       */
+      if (
+        ctx.targetLevel === 0 &&
+        !ctx.uiObjectFields.has(keyName) &&
+        !qualifiedObjectMatch(keyName, parents, ctx)
+      ) {
+        return;
+      }
 
       const stmtComments = getAttachedComments(node, parents, ctx.trivias, ctx.code);
       const sources = ctx.findLiteralsInExpression(node.value as Node, stmtComments, keyName);

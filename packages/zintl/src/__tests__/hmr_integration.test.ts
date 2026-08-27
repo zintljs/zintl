@@ -28,6 +28,16 @@ describe("HMR Integration", () => {
       isWritingFile: () => false,
       isUnchangedContent: async () => false,
       forgetKnownContent: () => {},
+      /**
+       * The real answer's shape, not a stub that says yes.
+       *
+       * `classifyFile` asks the compiler which files a content facet owns
+       * rather than testing `.md`/`.txt` by hand, because that list is the
+       * *default* `assetsTarget` and not a fact about assets. A mock that
+       * always agreed would make these tests pass for files the compiler would
+       * decline, so this mirrors the default configuration and nothing more.
+       */
+      ownsContent: (file: string) => /\.(md|txt)$/.test(file),
       assets: {
         registerAsset: vi.fn(),
       },

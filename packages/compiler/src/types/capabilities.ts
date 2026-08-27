@@ -668,6 +668,22 @@ export interface ContentFacet extends BaseFacet {
   /** Whether this facet owns `filePath`. The one required member. */
   match: (filePath: string, context: CompilerContext) => boolean;
   /**
+   * File extensions this facet claims (e.g. `[".md", ".txt"]`), for conflict
+   * detection at construction.
+   *
+   * {@link ContentFacet.match | `match`} answers *"do you own this file?"* one
+   * path at a time and can never answer *"which files do you own?"* — so two
+   * content facets quietly claiming the same file were undetectable, while two
+   * {@link CodegenFacet}s claiming `.tsx` have always been a hard error, purely
+   * because codegen declares `extensions` and content did not. Proposal 034 §2.
+   *
+   * Optional and advisory: `match` stays the authority, and a facet whose
+   * ownership only a predicate can express (a glob with no static extension, a
+   * path-shape rule) declares nothing and is still matched normally. Declaring
+   * buys the conflict check, not the matching.
+   */
+  extensions?: string[];
+  /**
    * Prepare for a build, given whatever the last run returned from
    * {@link ContentFacet.getStateToSave | `getStateToSave`} (`undefined` on a
    * cold start).
@@ -691,6 +707,37 @@ export interface ContentFacet extends BaseFacet {
    * still live is never removed.
    */
   getActiveOutputPaths?: (context: CompilerContext) => Promise<Set<string>> | Set<string>;
+  /**
+   * Whether this facet answers an import of `filePath` with a **per-locale URL**.
+   *
+   * Narrower than {@link ContentFacet.match | `match`}, and the two must not be
+   * confused: the HTML projection facet *owns* `.html` and delivers nothing to an
+   * importer, so a host that treated ownership as a licence to intercept fed an
+   * HTML template to the JavaScript parser.
+   *
+   * Answer `true` only for a file whose import should resolve to a module that
+   * follows the active locale. That excludes a request for the file's contents
+   * (`?raw`), which is inline delivery, and a localized artifact, which is
+   * already one locale's answer.
+   */
+  deliversUrl?: (filePath: string, context: CompilerContext) => boolean;
+  /**
+   * Outputs this facet scaffolded that nobody has filled in yet.
+   *
+   * The content half of `verifyIntegrity`, and the same statement it already
+   * makes about strings: an empty catalog entry is a missing translation, and an
+   * empty file is that statement about an artifact. A facet that scaffolds slots
+   * for a person to author implements this, and the compiler folds the result
+   * into the same integrity report under the same option (035 §5.1, §6).
+   *
+   * Its own hook rather than the generic catalog check, because a catalog value
+   * cannot answer for every delivery mode — a referenced artifact's value is a
+   * URL, which is non-empty whether or not the file behind it has any bytes.
+   * The file is the thing to ask.
+   */
+  getUnfilledOutputs?: (
+    context: CompilerContext,
+  ) => Promise<{ locale: string; path: string }[]> | { locale: string; path: string }[];
   /** State to persist for the next run's `setup`. Must be JSON-serializable. */
   getStateToSave?: (context: CompilerContext) => unknown;
   /**

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vite-plus/test";
 import { createZintlContext } from "./helpers/harness.ts";
-import { sha1 } from "@zintljs/compiler";
 import zintl from "../vite.js";
 /**
  * High-Fidelity Asset Scenarios Test Suite
@@ -209,7 +208,23 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
     }
   });
 
-  it("Scenario 5: Zero-Disk Asset Build Optimization (Zero-Disk Reference Mode)", async () => {
+  /**
+   * **A binary artifact is authored, and reaches the browser as a URL.**
+   *
+   * This scenario used to be called "Zero-Disk": `virtualAssets` meant *do not
+   * write the artifact*, and the localized bytes were reconstructed from base64
+   * backups the hive kept of previous localized content. Both halves are gone.
+   * Artifacts are always written, because an author needs a file to fill, and
+   * the hive stores identity rather than content (035 §5.1, §5.2) — so
+   * `virtualAssets` now chooses the *delivery route* and nothing else.
+   *
+   * What it covers is the case nothing else could: a `.png` is imported plainly,
+   * so it is delivered by reference, and the URL the build emits must point at
+   * the bytes a person authored for Arabic rather than at the English source.
+   * Before this change that path did not exist — binary assets were excluded
+   * from catalogs and resolved by nothing.
+   */
+  it("Scenario 5: an authored binary artifact is emitted by reference", async () => {
     const zeroDiskCtx = await createZintlContext({
       locales: ["en", "ar"],
       outputDir: "./src/locales",
@@ -223,11 +238,9 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
     try {
       const sourceText = "Hello World Text!";
       const translatedText = "مرحباً بالعالم نصاً!";
-      const textHash = sha1(sourceText);
 
       const sourceImageBuffer = Buffer.from([1, 2, 3, 4]);
       const translatedImageBuffer = Buffer.from([5, 6, 7, 8]);
-      const imageHash = sha1(sourceImageBuffer);
 
       const files = {
         "index.html": `
@@ -239,7 +252,6 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
           </html>
         `,
         "src/about.txt": sourceText,
-        "src/hero.png": sourceImageBuffer.toString("binary"),
         "src/main.ts": `
           import { zintl } from "zintljs";
           import aboutText from "./about.txt?raw";
@@ -247,21 +259,23 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
           zintl("ar");
           console.log(aboutText, heroImg);
         `,
-        "node_modules/.zintl/hive.json": JSON.stringify({
-          ar: {
-            [`@zintl/asset-hash:${textHash}`]: translatedText,
-            [`@zintl/asset-hash:${imageHash}`]: translatedImageBuffer.toString("base64"),
-          },
-          en: {
-            [`@zintl/asset-hash:${textHash}`]: sourceText,
-            [`@zintl/asset-hash:${imageHash}`]: sourceImageBuffer.toString("base64"),
-          },
-        }),
+        // Authored by a person, for Arabic. Nothing derives these from above.
+        "src/locales/src/about.ar.txt": translatedText,
       };
 
       for (const [path, content] of Object.entries(files)) {
         await zeroDiskCtx.setupFile(path, content);
       }
+
+      const fs = await import("node:fs");
+      const pathModule = await import("node:path");
+
+      fs.writeFileSync(pathModule.join(zeroDiskCtx.root, "src/hero.png"), sourceImageBuffer);
+      fs.mkdirSync(pathModule.join(zeroDiskCtx.root, "src/locales/src"), { recursive: true });
+      fs.writeFileSync(
+        pathModule.join(zeroDiskCtx.root, "src/locales/src/hero.ar.png"),
+        translatedImageBuffer,
+      );
 
       const { build: viteBuild } = await import("vite");
 
@@ -295,18 +309,15 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
         },
       });
 
-      const fs = await import("node:fs");
-      const pathModule = await import("node:path");
-
+      // Artifacts live on disk under `outputDir`, `virtualAssets` or not: the
+      // file is where the author works, and a scaffold nobody can see is a
+      // scaffold nobody can fill.
       const physicalTextAsset = pathModule.join(zeroDiskCtx.root, "src/locales/src/about.ar.txt");
       const physicalBinaryAsset = pathModule.join(zeroDiskCtx.root, "src/locales/src/hero.ar.png");
-
-      expect(fs.existsSync(physicalTextAsset)).toBe(false);
-      expect(fs.existsSync(physicalBinaryAsset)).toBe(false);
+      expect(fs.existsSync(physicalTextAsset)).toBe(true);
+      expect(fs.existsSync(physicalBinaryAsset)).toBe(true);
 
       const distAssetsDir = pathModule.join(zeroDiskCtx.root, "dist/assets");
-      expect(fs.existsSync(distAssetsDir)).toBe(true);
-
       const arAssetsDir = pathModule.join(distAssetsDir, "ar");
       expect(fs.existsSync(arAssetsDir)).toBe(true);
 
@@ -314,9 +325,12 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
       const arIndexJs = arFiles.find((f) => f.startsWith("index") && f.endsWith(".js"));
       expect(arIndexJs).toBeDefined();
 
+      // `?raw` asked for the contents, so the Arabic text is inlined.
       const arIndexContent = fs.readFileSync(pathModule.join(arAssetsDir, arIndexJs!), "utf-8");
       expect(arIndexContent).toContain(translatedText);
 
+      // The plain import asked for a URL, and the bytes behind it are the ones
+      // authored for Arabic — not the English source, which is the whole point.
       const distFiles = fs.readdirSync(distAssetsDir);
       const emittedImageFile = distFiles.find((f) => f.startsWith("hero") && f.endsWith(".png"));
       expect(emittedImageFile).toBeDefined();

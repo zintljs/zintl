@@ -4,6 +4,16 @@ interface ParsedComments {
   note?: string;
   contextVars: Record<string, string>;
   ignore?: boolean;
+  /**
+   * `@zintl-target` — opt this node and everything under it *in*.
+   *
+   * The mirror of {@link ignore}, and it exists because the declared targets
+   * (`obj:<binding>:<field>`, `call:<fn>:<field>`) resolve a name, and some
+   * sites have none to resolve: `export default { … }` above all. It is also
+   * the only form that survives renaming the binding, and the only one visible
+   * to someone reading the file.
+   */
+  target?: boolean;
 }
 
 export function parseZintlComments(
@@ -11,7 +21,7 @@ export function parseZintlComments(
   trivias: Comment[] | undefined,
   code: string,
 ): ParsedComments {
-  const result: ParsedComments = { contextVars: {}, ignore: false };
+  const result: ParsedComments = { contextVars: {}, ignore: false, target: false };
   if (!trivias) return result;
 
   // We scan the trivias. Only consider those that are "attached" to the node.
@@ -39,6 +49,8 @@ export function parseZintlComments(
 
       if (directive === "@zintl-ignore") {
         result.ignore = true;
+      } else if (directive === "@zintl-target") {
+        result.target = true;
       } else if (directive === "@zintl-note") {
         // Only take the first note found if multiple segments have notes
         if (!result.note) result.note = content.startsWith(":") ? content.slice(1).trim() : content;

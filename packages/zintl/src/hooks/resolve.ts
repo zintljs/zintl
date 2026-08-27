@@ -2,8 +2,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import type Context from "../context.js";
 import { ensureCompiler, nativeHostView } from "../host.js";
-import { generateMessageId, getRuntimeCode, sha1 } from "@zintljs/compiler";
-import type { AssetManager, HtmlManager } from "@zintljs/compiler/facets";
+import { generateMessageId, getRuntimeCode } from "@zintljs/compiler";
+import { isContentQuery, isUrlQuery, withUrlQuery } from "@zintljs/compiler/facets";
+import type { AssetDelivery, AssetManager, HtmlManager } from "@zintljs/compiler/facets";
 import {
   VIRTUAL_PREFIX,
   RESOLVED_VIRTUAL_PREFIX,
@@ -16,6 +17,7 @@ import {
   RUNTIME_VIRTUAL_ID,
   RUNTIME_INTERNAL_VIRTUAL_ID,
   RESOLVED_RAW_ASSET_PREFIX,
+  RESOLVED_URL_ASSET_PREFIX,
 } from "../constants.js";
 
 /**
@@ -42,11 +44,17 @@ import {
  *
  * Returns `undefined` for anything Zintl does not convert, so a `.svg?raw` or
  * any other host-handled `?raw` import keeps falling through untouched.
+ *
+ * Ownership is asked of the facet layer, never inferred from the extension —
+ * this used to test `/\.(md|txt)$/` and so silently declined to convert a
+ * configured `.rst` (034 §1.3). The `?raw`/`?zintl-raw` requirement below is
+ * unchanged and is the other half of the answer: it is the *query* that says
+ * this import wants content rather than a URL.
  */
-function rawTextAssetId(fullId: string): string | undefined {
+function rawTextAssetId(ctx: Context, fullId: string): string | undefined {
   const clean = fullId.split("?")[0];
-  if (!/\.(md|txt)$/.test(clean)) return undefined;
-  if (!/[?&](raw|zintl-raw)(&|$)/.test(fullId)) return undefined;
+  if (!ctx.compiler?.ownsContent(clean)) return undefined;
+  if (!isContentQuery(fullId)) return undefined;
   if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
   return `${RESOLVED_RAW_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
 }
@@ -68,6 +76,53 @@ function rawTextAssetId(fullId: string): string | undefined {
 function selfAcceptCode(ctx: Context): string {
   if (!ctx.compiler.isDev) return "";
   return ctx.compiler._resolved.system.hmrSelfAcceptCode?.() ?? "";
+}
+
+/**
+ * What this import asks for: the contents, or a URL.
+ *
+ * The whole of the inline/reference decision, and it is the *import's* to make.
+ * `?raw`/`?zintl-raw` asks for bytes as a string; anything else asks for the
+ * thing every bundler gives a plain asset import, which is a URL. No table of
+ * formats, and nothing to configure — 035 §0.1.
+ */
+function deliveryOf(id: string): AssetDelivery {
+  return isContentQuery(id) ? "inline" : "reference";
+}
+
+/**
+ * Dev-time record of artifacts already reported as empty, per compiler.
+ *
+ * Keyed weakly so a dev server restart in a test run starts clean rather than
+ * inheriting another compiler's warnings.
+ */
+const warnedUnfilled = new WeakMap<object, Set<string>>();
+
+/**
+ * Say once that an artifact has no bytes, and serve it empty anyway.
+ *
+ * Serving empty rather than the source is the no-fallback rule: an English PDF
+ * at the German path is not a German PDF, and rendering the source text for a
+ * reader who asked for another language is the failure this proposal exists to
+ * remove. What replaces it in development is a line in the terminal naming the
+ * exact file to fill, because a dev server is not where a release is decided and
+ * refusing to serve a project mid-translation would refuse its normal state.
+ *
+ * The build gate carries the guarantee: `verifyIntegrity` fails on the same
+ * artifact, with the same remedies, before anything ships (035 §6).
+ */
+function warnUnfilledArtifact(ctx: Context, locale: string, artifactPath: string): void {
+  if (!ctx.compiler?.isDev) return;
+  let seen = warnedUnfilled.get(ctx.compiler);
+  if (!seen) {
+    seen = new Set<string>();
+    warnedUnfilled.set(ctx.compiler, seen);
+  }
+  if (seen.has(artifactPath)) return;
+  seen.add(artifactPath);
+  ctx.compiler._logger
+    .withPrefix("Assets")
+    .warn(`No "${locale}" artifact yet, serving empty. Fill: ${artifactPath}`);
 }
 
 function injectMultiplexQuery(id: string, locale: string): string {
@@ -146,7 +201,7 @@ export function resolveIdHook(ctx: Context) {
       if (cleanId.startsWith(".") && importer) {
         absolutePath = join(dirname(importer.split("?")[0]), cleanId);
       }
-      await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
+      await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath, deliveryOf(id));
     }
 
     /**
@@ -163,8 +218,10 @@ export function resolveIdHook(ctx: Context) {
           ? join(dirname(importer.split("?")[0]), cleanId)
           : cleanId;
       const query = id.includes("?") ? "?" + id.split("?").slice(1).join("?") : "";
-      const virtualId = rawTextAssetId(absolutePath + query);
+      const virtualId = rawTextAssetId(ctx, absolutePath + query);
       if (virtualId) return virtualId;
+      const urlId = urlAssetId(ctx, absolutePath + query);
+      if (urlId) return urlId;
     }
 
     if (id.includes("zintl-multiplex=")) {
@@ -177,7 +234,7 @@ export function resolveIdHook(ctx: Context) {
             absolutePath = join(dirname(importer.split("?")[0]), cleanId);
           }
 
-          await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath);
+          await (ctx.compiler.assets as AssetManager).registerAsset(absolutePath, deliveryOf(id));
 
           const queries = id.split("?")[1] || "";
           const cleanQueries = queries
@@ -187,7 +244,7 @@ export function resolveIdHook(ctx: Context) {
           const suffix = cleanQueries ? `?${cleanQueries}` : "";
 
           if (locale === (ctx.compiler as any).sourceLocale) {
-            return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
+            return rawTextAssetId(ctx, absolutePath + suffix) ?? absolutePath + suffix;
           }
 
           const assetId = ctx.compiler.getNormalizedId(absolutePath);
@@ -196,12 +253,18 @@ export function resolveIdHook(ctx: Context) {
             return `\0virtual:zintl/asset/${locale}/${assetId}${suffix}`;
           }
 
+          /**
+           * The artifact, unconditionally.
+           *
+           * This used to fall back to the **source** file when the localized one
+           * was missing, which is a source-locale fallback chosen at resolution
+           * time and invisible from everywhere else. `syncSingleAsset` has just
+           * run for this asset (via `registerAsset` above) and scaffolds the slot
+           * for every locale, so the path exists; if a person deleted it, an
+           * unresolved import is the correct and loud outcome.
+           */
           const localizedPath = (ctx.compiler.assets as AssetManager).getAssetPath(assetId, locale);
-
-          if (existsSync(localizedPath)) {
-            return rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
-          }
-          return rawTextAssetId(absolutePath + suffix) ?? absolutePath + suffix;
+          return rawTextAssetId(ctx, localizedPath + suffix) ?? localizedPath + suffix;
         }
       }
     }
@@ -286,7 +349,7 @@ export function resolveIdHook(ctx: Context) {
                 await (ctx.compiler.assets as AssetManager).registerAsset(cleanResolvedId);
 
                 if (locale === (ctx.compiler as any).sourceLocale) {
-                  const sourceVirtual = rawTextAssetId(resolvedId);
+                  const sourceVirtual = rawTextAssetId(ctx, resolvedId);
                   if (!sourceVirtual) return resolved;
                   return typeof resolved === "string"
                     ? sourceVirtual
@@ -314,7 +377,8 @@ export function resolveIdHook(ctx: Context) {
                 );
 
                 if (existsSync(localizedPath)) {
-                  const finalId = rawTextAssetId(localizedPath + suffix) ?? localizedPath + suffix;
+                  const finalId =
+                    rawTextAssetId(ctx, localizedPath + suffix) ?? localizedPath + suffix;
 
                   if (typeof resolved === "string") {
                     return finalId;
@@ -371,13 +435,71 @@ export function loadIncludeHook(ctx: Context) {
       return true;
     }
     if (cleanId.includes(".zintl-")) return true;
-    if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) return true;
+    if (isContentRequest(ctx, id, cleanId)) return true;
     // No local guard for a host with no HTML fan-out: `ensureCompiler`
     // (host.ts) already throws before this hook can run on one — L-022.
     if (cleanId.endsWith(".html")) return ctx.getMultiplex();
 
     return false;
   };
+}
+
+/**
+ * Whether `id` asks a content facet's file for its **contents**.
+ *
+ * Two questions, and the claim needs both to be yes.
+ *
+ * *Who owns the file* is the facet's to answer, never the extension's. This
+ * used to read `.md`/`.txt` here while `resolveId` asked `isSupportedAsset` one
+ * hook away, so a configured `.rst` was registered when its import resolved and
+ * then unknown when the module loaded — 034 §1.3.
+ *
+ * *What the import wants* is the query's to answer. `?raw`/`?zintl-raw` asks for
+ * content; a plain import asks for a URL, which is the bundler's own convention
+ * and what every localized import in this repository already writes.
+ *
+ * Ownership alone is not a licence to load, and the asymmetry
+ * {@link loadIncludeHook} documents is why: on Rspack a claim retypes the module
+ * as JavaScript, so claiming a targeted `.webp` merely because a facet owns it
+ * would feed an image to the JS parser. The query is what keeps this exact.
+ */
+function isContentRequest(ctx: Context, id: string, cleanId: string): boolean {
+  if (!isContentQuery(id)) return false;
+  return ctx.compiler?.ownsContent(cleanId) ?? false;
+}
+
+/**
+ * Give a plain import of a targeted asset an identity of its own.
+ *
+ * The counterpart to {@link rawTextAssetId}, and the reason reference delivery
+ * needed anything at the module layer at all. A plain import is a **static
+ * binding**: it resolves once, to one file, and nothing re-reads it when the
+ * locale changes. So an asset delivered by reference varied by locale exactly
+ * where module *identity* did — a multiplexed build, where resolution rewrites
+ * the import per locale — and nowhere else. Every dev server and every
+ * runtime-switchable app got the source file in every language.
+ *
+ * Minting an id here rather than claiming the asset's own path is what keeps
+ * this safe: `loadInclude` never has to say yes to a `.png`, so no host is ever
+ * invited to retype one as JavaScript.
+ *
+ * Three exclusions, each load-bearing:
+ *
+ * - **`?raw`-style queries** are inline delivery, and {@link rawTextAssetId}'s.
+ * - **`?zintl-url`** marks the imports the catalog module generates to reach the
+ *   underlying files. Rewriting those would have the generated module import
+ *   itself.
+ * - **Ownership is not enough.** The facet is asked whether it *delivers a URL*
+ *   for this file, not whether it owns it — the HTML projection facet owns
+ *   `.html` and delivers nothing to an importer, and conflating the two fed an
+ *   HTML template to the JavaScript parser.
+ */
+function urlAssetId(ctx: Context, fullId: string): string | undefined {
+  const clean = fullId.split("?")[0];
+  if (isContentQuery(fullId) || isUrlQuery(fullId)) return undefined;
+  if (!ctx.compiler?.deliversUrl(clean)) return undefined;
+  if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
+  return `${RESOLVED_URL_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
 }
 
 export function loadHook(ctx: Context) {
@@ -395,10 +517,16 @@ export function loadHook(ctx: Context) {
      * keeps the rewrite a property of module identity and nothing else.
      */
     let id = rawId;
+    let isUrlAsset = false;
     if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
       id = Buffer.from(rawId.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1), "base64url").toString(
         "utf8",
       );
+    } else if (rawId.startsWith(RESOLVED_URL_ASSET_PREFIX + "/")) {
+      id = Buffer.from(rawId.slice(RESOLVED_URL_ASSET_PREFIX.length + 1), "base64url").toString(
+        "utf8",
+      );
+      isUrlAsset = true;
     }
 
     const cleanId = id.split("?")[0];
@@ -412,46 +540,41 @@ export function loadHook(ctx: Context) {
 
         if (existsSync(originalPath)) {
           this.addWatchFile(originalPath);
-          const config = (ctx.compiler.assets as AssetManager).resolveAssetConfig(assetId);
 
-          if (config?.strategy === "binary-passthrough") {
-            const sourceBuffer = readFileSync(originalPath);
-            const sourceHashKey = `@zintl/asset-hash:${sha1(sourceBuffer)}`;
-            const hive = (ctx.compiler as any).messages.hive;
-            const sourceLocale = ctx.options.sourceLocale;
+          /**
+           * **The artifact for this locale, or the source when this *is* the
+           * source locale — never one standing in for the other.**
+           *
+           * This branch used to ask the file's *extension* which of two
+           * procedures to run, and then feed the binary one from base64 backups
+           * the hive kept of previous localized content, defaulting to the source
+           * bytes when it found none. Both halves are gone: nothing is derived
+           * from a source, and the hive stores identity rather than content
+           * (035 §3, §5.2).
+           *
+           * What decides now is the import — `?raw` wants the bytes as a string,
+           * anything else wants a URL — and what it reads is the artifact a
+           * person authored.
+           */
+          const assets = ctx.compiler.assets as AssetManager;
+          const isSource = locale === ctx.options.sourceLocale;
+          const artifactPath = isSource ? originalPath : assets.getAssetPath(assetId, locale);
+          if (!isSource) this.addWatchFile(artifactPath);
 
-            let buffer = sourceBuffer;
-            if (locale !== sourceLocale) {
-              const hiveBackup = hive?.[locale]?.[sourceHashKey];
-              if (hiveBackup) {
-                buffer = Buffer.from(hiveBackup, "base64");
-              }
-            }
-
-            const referenceId = this.emitFile({
-              type: "asset",
-              name: assetId.split("/").pop(),
-              source: buffer,
-            });
-            return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
-          } else {
-            const translations = await (ctx.compiler.assets as AssetManager).getAssetTranslations(
-              locale,
-            );
-            const content =
-              translations[`@zintl/asset:${assetId}`] ?? readFileSync(originalPath, "utf-8");
-
-            if (id.includes("?raw") || id.includes("?zintl-raw")) {
-              return `export default ${JSON.stringify(content)};` + selfAcceptCode(ctx);
-            }
-
-            const referenceId = this.emitFile({
-              type: "asset",
-              name: assetId.split("/").pop(),
-              source: content,
-            });
-            return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+          if (deliveryOf(id) === "inline") {
+            const content = existsSync(artifactPath) ? readFileSync(artifactPath, "utf-8") : "";
+            if (!isSource && content === "") warnUnfilledArtifact(ctx, locale, artifactPath);
+            return `export default ${JSON.stringify(content)};` + selfAcceptCode(ctx);
           }
+
+          const source = existsSync(artifactPath) ? readFileSync(artifactPath) : Buffer.alloc(0);
+          if (!isSource && source.length === 0) warnUnfilledArtifact(ctx, locale, artifactPath);
+          const referenceId = this.emitFile({
+            type: "asset",
+            name: assetId.split("/").pop(),
+            source,
+          });
+          return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
         }
       }
     }
@@ -488,6 +611,7 @@ export function loadHook(ctx: Context) {
         isSsr,
         ctx.compiler.isDev,
         await ctx.compiler.getRtlLocales(),
+        ctx.compiler.pseudoLocalize,
       );
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");
@@ -495,14 +619,21 @@ export function loadHook(ctx: Context) {
       return code;
     }
 
-    if (cleanId.endsWith(".md") || cleanId.endsWith(".txt")) {
+    /**
+     * A content *request*, not merely a file some facet owns.
+     *
+     * Both halves matter here for the same reason they do in
+     * {@link loadIncludeHook}, and briefly only one of them did: gated on
+     * ownership alone, this branch swallowed `index.html` — which the HTML
+     * projection facet owns — and returned its bytes before the fan-out branch
+     * below could ever see it. Ownership says *whose file this is*; the query
+     * says *what the importer asked for*, and only the second decides whether
+     * there is content to serve.
+     */
+    if (isContentRequest(ctx, id, cleanId)) {
       if (existsSync(cleanId)) {
         const content = readFileSync(cleanId, "utf-8");
-        const ext = cleanId.endsWith(".md") ? ".md" : ".txt";
-        const translationOnly = (ctx.compiler.assets as AssetManager).getTranslationOnly(
-          content,
-          ext,
-        );
+        const translationOnly = (ctx.compiler.assets as AssetManager).getTranslationOnly(content);
         this.addWatchFile(cleanId);
 
         if (id.includes("?zintl-raw")) {
@@ -510,11 +641,35 @@ export function loadHook(ctx: Context) {
         }
 
         const assetId = ctx.compiler.getNormalizedId(cleanId);
-        await (ctx.compiler.assets as AssetManager).registerAsset(cleanId);
+        await (ctx.compiler.assets as AssetManager).registerAsset(cleanId, deliveryOf(id));
 
         if (id.includes("?raw")) {
           const multiplexLocale = ctx.getMultiplexLocale(id);
           const sourceLocale = ctx.options.sourceLocale;
+
+          /**
+           * **An id that already names a locale has nothing left to choose.**
+           *
+           * Checked before anything else, because everything else below assumes
+           * `cleanId` is a *source* asset. Multiplexed resolution rewrites the
+           * import to one locale's artifact while keeping the `zintl-multiplex=`
+           * marker, so the branch beneath this one ran on a path that was
+           * already localized and localized it again — asking for
+           * `about.ar.ar.txt`, finding nothing, and serving the source instead.
+           *
+           * That produced the right text for the wrong reason and only by
+           * accident: `|| sourceContent` caught the miss, and `sourceContent`
+           * happened to be this artifact's own text because `cleanId` pointed at
+           * it. Deleting the fallback is what exposed the double localization,
+           * and a path that only worked by missing is not one to repair.
+           */
+          const assets = ctx.compiler.assets as AssetManager;
+          if (assets.isLocalizedArtifact(cleanId)) {
+            if (translationOnly === "") {
+              warnUnfilledArtifact(ctx, multiplexLocale ?? "", cleanId);
+            }
+            return `export default ${JSON.stringify(translationOnly)};` + selfAcceptCode(ctx);
+          }
 
           if (multiplexLocale) {
             const localizedPath =
@@ -522,9 +677,15 @@ export function loadHook(ctx: Context) {
                 ? cleanId
                 : (ctx.compiler.assets as AssetManager).getAssetPath(assetId, multiplexLocale);
 
-            const content = existsSync(localizedPath)
-              ? readFileSync(localizedPath, "utf-8")
-              : translationOnly;
+            /**
+             * Empty when the artifact has no bytes, never the source's text.
+             * `translationOnly` here was a source-locale fallback with a name
+             * that read like a safeguard.
+             */
+            const content = existsSync(localizedPath) ? readFileSync(localizedPath, "utf-8") : "";
+            if (multiplexLocale !== sourceLocale && content === "") {
+              warnUnfilledArtifact(ctx, multiplexLocale, localizedPath);
+            }
             return `export default ${JSON.stringify(content)};` + selfAcceptCode(ctx);
           }
 
@@ -549,7 +710,7 @@ const proxy = new Proxy({}, {
     const loc = getLocale() || multiplexLocale || ${JSON.stringify(sourceLocale)};
     const val = loc === ${JSON.stringify(sourceLocale)}
       ? sourceContent
-      : (_t(assetKey, {}, { _bId: "b_assets" }) || sourceContent);
+      : _t(assetKey, {}, { _bId: "b_assets" });
     if (prop === Symbol.toPrimitive) {
       return () => val;
     }
@@ -588,6 +749,74 @@ export default proxy;${
 `;
         }
         return translationOnly;
+      }
+    }
+
+    /**
+     * **A plain import of a targeted asset, answered per locale.**
+     *
+     * The reference half of the same idea `?zintl-raw` serves for text: an
+     * import that wants a URL gets one that follows the active locale, instead
+     * of the static binding a plain import would otherwise be.
+     *
+     * The per-locale URLs are already in the catalog — `getChunkContributions`
+     * imports each locale's artifact and stores what the bundler hands back, so
+     * the bundler still does the emitting and the hashing, and no host-specific
+     * code appears here. What was missing was anything that *read* them. This is
+     * that reader, and it is deliberately the same shape as the inline proxy
+     * below it: one lookup per property read, no caching, so a locale change
+     * needs no invalidation to be seen.
+     *
+     * The source locale is answered by a direct import rather than through the
+     * catalog. Its artifact is the source file itself, so there is nothing to
+     * look up — and in ghost mode the source locale has no catalog on disk to
+     * look it up in.
+     */
+    if (isUrlAsset) {
+      if (existsSync(cleanId)) {
+        const assets = ctx.compiler.assets as AssetManager;
+        const assetId = ctx.compiler.getNormalizedId(cleanId);
+        await assets.registerAsset(cleanId, deliveryOf(id));
+        this.addWatchFile(cleanId);
+
+        const sourceLocale = ctx.options.sourceLocale;
+        for (const loc of ctx.options.locales) {
+          if (loc === sourceLocale) continue;
+          const artifact = assets.getAssetPath(assetId, loc);
+          if (existsSync(artifact)) this.addWatchFile(artifact);
+        }
+
+        const rawAssetKey = `@zintl/asset:${assetId}`;
+        const assetKey = ctx.compiler.isDev ? rawAssetKey : generateMessageId(rawAssetKey);
+
+        return (
+          // Forward slashes: this is an import specifier, not a filesystem path.
+          `import __zintl_source_url from ${JSON.stringify(
+            withUrlQuery(cleanId.replace(/\\/g, "/")),
+          )};\n` +
+          `import { getLocale, _t } from "virtual:zintl/runtime/internal";\n` +
+          `const assetKey = ${JSON.stringify(assetKey)};\n` +
+          `const multiplexLocale = ${JSON.stringify(ctx.getMultiplexLocale(id) || null)};\n` +
+          `const sourceLocale = ${JSON.stringify(sourceLocale)};\n` +
+          `const read = () => {\n` +
+          `  const loc = getLocale() || multiplexLocale || sourceLocale;\n` +
+          `  return loc === sourceLocale\n` +
+          `    ? __zintl_source_url\n` +
+          `    : _t(assetKey, {}, { _bId: "b_assets" });\n` +
+          `};\n` +
+          `const proxy = new Proxy({}, {\n` +
+          `  get(target, prop) {\n` +
+          `    const val = read();\n` +
+          `    if (prop === Symbol.toPrimitive) return () => val;\n` +
+          `    if (prop === "toString" || prop === "valueOf" || prop === "toJSON") return () => val;\n` +
+          `    if (val == null) return undefined;\n` +
+          `    const member = val[prop];\n` +
+          `    return typeof member === "function" ? member.bind(val) : member;\n` +
+          `  }\n` +
+          `});\n` +
+          `export default proxy;` +
+          selfAcceptCode(ctx)
+        );
       }
     }
 

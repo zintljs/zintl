@@ -100,7 +100,14 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
     expect(messages).not.toContain("Ignored Aria");
   });
 
-  it("should resolve plugin targets and DOM attributes", () => {
+  /**
+   * This used to also assert that `dom:attr:data-my-dom-attr` contributed a
+   * fast-path hint — which it did, and that was the whole of what it did: the
+   * attribute joined no target set and matched nothing. The assertion recorded
+   * a no-op as if it were a feature. `dom:attr:` is now refused at
+   * construction; see `target_validation.test.ts`.
+   */
+  it("should resolve plugin targets and their fast-path hints", () => {
     const plugin1 = {
       name: "my-plugin-1",
       fastPathHint: "hint-1",
@@ -110,14 +117,15 @@ describe("Zintl Extractor - Targets and DSL Presets", () => {
       fastPathHint: ["hint-2", "hint-3"],
     };
 
-    const resolved = resolveTargets([plugin1, plugin2, "dom:attr:data-my-dom-attr", null as any]);
+    // `null` is skipped rather than refused — a falsy entry is a hole in a list,
+    // not a stated intent, which is the thing validation exists to protect.
+    const resolved = resolveTargets([plugin1, plugin2, null as any]);
 
     expect(resolved.plugins).toContain(plugin1);
     expect(resolved.plugins).toContain(plugin2);
     expect(resolved.uniqueHints).toContain("hint-1");
     expect(resolved.uniqueHints).toContain("hint-2");
     expect(resolved.uniqueHints).toContain("hint-3");
-    expect(resolved.uniqueHints).toContain("data-my-dom-attr");
   });
   it("should support extraction using a pre-resolved compiledState option", () => {
     const code = `

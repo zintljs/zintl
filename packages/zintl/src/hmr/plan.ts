@@ -22,14 +22,20 @@ const SOURCE_EXTENSIONS = /\.(ts|tsx|js|jsx|html|vue|svelte)$/;
 /**
  * What kind of update this file is, or `null` if Zintl has no interest in it.
  *
- * Extension-based, deliberately: this runs before the compiler is asked
- * anything, on every file a watcher reports, and the cheap test is what keeps an
- * unrelated `.css` edit from touching the graph at all.
+ * Source and catalog files are recognised by extension, deliberately: this runs
+ * on every file a watcher reports, and the cheap test is what keeps an unrelated
+ * `.css` edit from touching the graph at all.
+ *
+ * **Assets are asked about rather than guessed at.** The cheap test used to
+ * cover them too, as `.md`/`.txt`, which is not a fact about assets but about
+ * the default `assetsTarget` — so editing a configured `.rst` was classified as
+ * nothing at all and no hot update ever ran for it. The two extension tests
+ * above still run first, so the ordinary case never reaches the facet.
  */
-export function classifyFile(file: string): HotUpdateKind | null {
+export function classifyFile(ctx: Context, file: string): HotUpdateKind | null {
   if (SOURCE_EXTENSIONS.test(file)) return "source";
   if (file.endsWith(".json")) return "json";
-  if (file.endsWith(".md") || file.endsWith(".txt")) return "asset";
+  if (ctx.compiler?.ownsContent(file.split("?")[0])) return "asset";
   return null;
 }
 

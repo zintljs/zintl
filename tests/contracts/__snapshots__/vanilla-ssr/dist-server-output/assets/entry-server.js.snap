@@ -1077,13 +1077,25 @@ function currentRoute(pathname) {
 }
 //#endregion
 //#region examples/vanilla-ssr/src/entry-server.ts
+/**
+* Tag the markup as markup.
+*
+* This used to be `const res = { text: \`…\` }`, and Zintl found the strings
+* inside because `text` happened to be one of the object fields it matched by
+* name. Renaming this to `body` would have silently stopped the whole page
+* being translated — nothing extracted, so nothing to report.
+*
+* `html` says what the string *is*, at the site, where a reader can see it. The
+* tag is the evidence, so nothing depends on what the variable is called.
+*/
+var html = (strings, ...values) => String.raw({ raw: strings }, ...values);
 async function _zintl_raw_render(_url) {
 	await (globalThis.__zintl_inst = loadI18nInstance({ loaders: {
 		["b_764631960fa9"]: entry_b_764631960fa9_default.loader,
 		["b_f0c6267f2b46"]: entry_b_f0c6267f2b46_default.loader
 	} }));
 	const { locale } = currentRoute(_url);
-	return { html: { text: `
+	return { html: html`
     ${localeBar(locale)}
 
     <section id="center">
@@ -1120,7 +1132,9 @@ async function _zintl_raw_render(_url) {
 
     <section id="next-steps">
       <div id="docs">
-        <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
+        <svg class="icon" role="presentation" aria-hidden="true">
+          <use href="/icons.svg#documentation-icon"></use>
+        </svg>
         <h2>${_t("9e9cf322", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
@@ -1151,7 +1165,9 @@ async function _zintl_raw_render(_url) {
         </ul>
       </div>
       <div id="social">
-        <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
+        <svg class="icon" role="presentation" aria-hidden="true">
+          <use href="/icons.svg#social-icon"></use>
+        </svg>
         <h2>${_t("65ac13a7", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
@@ -1161,29 +1177,53 @@ async function _zintl_raw_render(_url) {
 		_bId: "b_f0c6267f2b46"
 	})}</p>
         <ul>
-          <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>${_t("5442e2b6", {
+          <li>
+            <a href="https://github.com/vitejs/vite" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#github-icon"></use></svg
+              >${_t("5442e2b6", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
-	})}</a></li>
-          <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>${_t("bccc14ee", {
+	})}</a
+            >
+          </li>
+          <li>
+            <a href="https://chat.vite.dev/" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#discord-icon"></use></svg
+              >${_t("bccc14ee", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
-	})}</a></li>
-          <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>${_t("b3c83ea6", {
+	})}</a
+            >
+          </li>
+          <li>
+            <a href="https://x.com/vite_js" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#x-icon"></use></svg
+              >${_t("b3c83ea6", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
-	})}</a></li>
-          <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>${_t("daf16c03", {
+	})}</a
+            >
+          </li>
+          <li>
+            <a href="https://bsky.app/profile/vite.dev" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#bluesky-icon"></use></svg
+              >${_t("daf16c03", {
 		_mgr: entry_b_f0c6267f2b46_default,
 		_bId: "b_f0c6267f2b46"
-	})}</a></li>
+	})}</a
+            >
+          </li>
         </ul>
       </div>
     </section>
 
     <div class="ticks"></div>
     <section id="spacer"></section>
-  ` }.text };
+  ` };
 }
 async function render(urlOrReq, ...args) {
 	return runInRequestScope$1([urlOrReq, ...args], [

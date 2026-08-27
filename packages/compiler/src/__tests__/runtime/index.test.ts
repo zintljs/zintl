@@ -22,9 +22,17 @@ describe("Zintl Runtime", () => {
     expect(t("title", { name: "World", _bId: "hero" })).toBe("Welcome World");
   });
 
-  it("returns empty string if translation missing", () => {
+  /**
+   * An untranslated string renders as visibly-pseudo-localized text while
+   * serving, rather than as nothing. `__ZINTL_PSEUDO__` is defined true for
+   * unit tests because that is the environment they stand in; a production
+   * build folds the branch away and the miss returns `""` again. That folding
+   * is asserted in `splitting.test.ts`, against `getRuntimeCode`'s output,
+   * which is where it actually happens.
+   */
+  it("marks a missing translation rather than returning nothing", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(t("missing")).toBe("");
+    expect(t("missing")).toBe("⟦ṁíššíñĝ⟧");
     spy.mockRestore();
   });
 

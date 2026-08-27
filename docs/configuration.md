@@ -35,20 +35,121 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 ## Content beyond code
 
-| Option          | Type                              | Default         | What it does                                                                                                                                                           |
-| :-------------- | :-------------------------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assetsTarget`  | `(string \| AssetTargetConfig)[]` | `["md", "txt"]` | Static content files to localize alongside code. A bare extension is shorthand for `**/*.<ext>`.                                                                       |
-| `virtualAssets` | `boolean`                         | `false`         | Serve localized assets from virtual modules instead of writing them to disk. Keeps the working tree clean, at the cost of not being able to edit the output as a file. |
+| Option          | Type                              | Default         | What it does                                                                                                                                       |
+| :-------------- | :-------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assetsTarget`  | `(string \| AssetTargetConfig)[]` | `["md", "txt"]` | Files whose content varies by locale. A bare extension is shorthand for `**/*.<ext>`. Any file type — `.md`, `.pdf`, `.webp`, `.mp4`.              |
+| `virtualAssets` | `boolean`                         | `false`         | Deliver localized assets through virtual modules rather than resolving imports straight to the artifact on disk. Artifacts are written either way. |
+
+**A targeted asset is authored per locale, not translated into existence.** Targeting `about.txt`
+creates an empty `zintl/src/about.ar.txt` for you to fill — the compiler never copies the English
+into it, because an English PDF at the German path is not a German PDF, and a byte-identical file is
+a source-locale fallback nothing downstream can detect. An unfilled artifact fails your build under
+`verifyIntegrity`, the same way an empty catalog entry does.
+
+If an asset is the same in every locale, do not target it. That is the whole of what targeting means.
+
+How it reaches the browser is decided by your import, not by the file's extension:
+
+```ts
+import text from "./about.txt?raw"; // the contents, inlined into the catalog
+import url from "./hero.webp"; // the bundler's URL for this locale's artifact
+```
+
+Both follow the locale at runtime, so switching language re-points the import
+without a reload — a plain import of a targeted asset is not the static binding
+it would ordinarily be. Everything else about it is ordinary: the bundler emits
+and hashes the per-locale file exactly as it would any asset.
+
+A source edit never touches an artifact, and never warns that one is stale — whether the German
+version has fallen behind the English is an editorial question, not one a compiler that can only see
+that bytes differ should be answering. Renaming or moving a source _does_ carry its artifacts with
+it: identity is content-based here as everywhere else.
+
+### Artifacts and catalogs share one naming scheme
+
+Both are named `<outputDir>/<path>.<locale>.<ext>`, so targeting `.json` — the extension catalogs
+themselves use — can put an artifact exactly where a boundary's catalog goes. `assetsTarget:
+["json"]` with an asset at `src/data.json` and a boundary in `src/data.ts` gives both
+`zintl/src/data.ar.json`.
+
+That build is refused, naming the file, the facet that claimed it and the boundary whose catalog it
+is. It is refused rather than resolved because the catalog is written second: the artifact would
+become a catalog, `verifyIntegrity` would find a non-empty file and pass, and your asset would ship
+in the source language with nothing said.
+
+Only an actual overlap is refused, not the extension. `assetsTarget: ["json"]` is fine when nothing
+collides — a differently named source, or a multilingual `catalogFormat` that keeps catalogs out of
+the way. When something does collide, give the artifacts their own location:
+
+```ts
+assetsTarget: [{ targetPattern: "**/*.json", outputPattern: "assets/[locale]/[dir]/[name].[ext]" }];
+```
+
+`outputPattern` is resolved from the project root, not from `outputDir`, and takes `[locale]`,
+`[dir]`, `[name]` and `[ext]`.
 
 ## Catalog upkeep
 
-| Option                | Type      | Default                         | What it does                                                                                                                 |
-| :-------------------- | :-------- | :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
-| `prune`               | `boolean` | `true`                          | Remove catalog keys once no source string produces them.                                                                     |
-| `similarityThreshold` | `number`  | `0.6`                           | How similar an edited string must be to keep its existing translation. Lower is more forgiving.                              |
-| `verifyIntegrity`     | `boolean` | `true` on build, `false` on dev | Verify catalogs against the manifest. **This is what makes a missing translation fail your build rather than render blank.** |
+| Option                | Type      | Default                         | What it does                                                                                                                   |
+| :-------------------- | :-------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------------------------- |
+| `prune`               | `boolean` | `true`                          | Remove catalog keys once no source string produces them.                                                                       |
+| `similarityThreshold` | `number`  | `0.6`                           | How similar an edited **string** must be to keep its existing translation. Lower is more forgiving. Assets are never compared. |
+| `verifyIntegrity`     | `boolean` | `true` on build, `false` on dev | Verify catalogs against the manifest. **This is what makes a missing translation fail your build rather than render blank.**   |
 
-`verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do.
+`verifyIntegrity` is worth understanding before you turn it off. Zintl has no fallback to the source locale — by design. A missing translation is a bug, the same way reading an uninitialised variable is a bug, and this is the check that catches it before your users do. It covers localized assets too: an empty artifact is a missing translation with a file for a body.
+
+### When a release cannot wait for a translator
+
+It happens: a string lands on Friday, the translators are back Monday, and the build is red. There is no gentler gate for this, and that is deliberate — every design that lets a build pass with holes ships blank text to real users, which is the thing Zintl exists to prevent.
+
+So the escape hatch is one explicit, temporary decision rather than a permanent setting:
+
+```ts
+zintl({ locales: ["en", "ar", "fr"], verifyIntegrity: false });
+```
+
+Ship it knowing those strings render empty for anyone on an affected locale, and turn it back on with the translations. Zintl will not make that choice quiet, but it will not make it for you either.
+
+What stops it being a surprise is the status line below — the completeness you have been watching all week is the same number the gate is about to check.
+
+Standing up a **brand-new** locale over weeks is a different situation, and one where turning the gate off project-wide is the wrong tool. That is [proposal 031](/docs/spec/proposals/031-pending-locales.md), designed and deliberately deferred past the first beta.
+
+## Untranslated strings while you work
+
+| Option           | Type      | Default | What it does                                                                                    |
+| :--------------- | :-------- | :------ | :---------------------------------------------------------------------------------------------- |
+| `pseudoLocalize` | `boolean` | `true`  | While serving, show an untranslated string as `⟦Ẇéļçöṁé ƀàçķ!⟧` rather than as an empty string. |
+
+Catalogs start empty. `verifyIntegrity` is off while serving, and a missing key resolves to `""`, so switching locale on a fresh project used to blank the page — nothing broken, nothing said, the app just emptied.
+
+`pseudoLocalize` replaces that silence with something you can see:
+
+```
+⟦Ýöü ĥàṽé 3 ñéẁ ṁéššàĝéš⟧
+```
+
+**This is not a fallback to the source locale**, and the distinction is the whole design. The text is deliberately unmistakable — nobody reads that as a translation, and nobody ships it. It lives inside the `__ZINTL_DEV__` guard, so a production build folds the branch away and the transform with it; `verifyIntegrity` still fails that build. What you get is a dev server that tells you what is missing by showing you, and a build that refuses on the same set.
+
+Placeholders and markup are left alone, and the result goes through normal interpolation: `{count}` shows the real count, `<a>` renders as a link. The layout stays honest; only the words announce themselves.
+
+Set it to `false` if you would rather see the empty strings.
+
+### Progress, per locale
+
+Every dev flush prints completeness when it changes:
+
+```
+[Zintl/WARN] Translations ar 44/47 · fr 12/47 — 38 missing, a production build will fail until they are filled
+[Zintl/INFO] Translations complete — ar 47/47 · fr 47/47
+```
+
+Incomplete is a **warning**, not an info, because it is not a status update — it is a build that is going to fail, reported early enough to act on. At `info` it would be the first line to disappear for anyone running `logLevel: "warn"`, who would keep every line they did not care about and lose the one that predicts the failure.
+
+Counted the same way the build gate counts, so the number cannot tell you one thing and CI another. Printed only on change, so a translator saving a catalog is a line you notice rather than one more in a stream.
+
+There is no build-time equivalent, and there is nothing to add: a build either passes at 100% or fails with the full list of what is missing.
+
+`getTranslationStatus()` on the compiler returns the same counts, for a facet or a host integration that wants them without the log.
 
 ## Build shape
 
@@ -58,6 +159,8 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 | `multiplex` | `boolean`       | auto-detected  | Build each locale as its own set of HTML entries.                                                                                                     |
 
 `facets` is the extension point. Framework support, SSR handling, asset handling and bundler integration are separate, composable pieces rather than flags on a monolith — which is why adding a framework or a build tool is additive rather than a rewrite. Two facets that claim the same file extension are a hard error, not a silent last-one-wins.
+
+The same goes the other way: `assetsTarget` and `virtualAssets` configure the _built-in_ assets facet, so replacing or excluding that facet while setting them is a hard error too. Configure your own facet instead — `assetsFacet({ targets: [...] })`.
 
 `multiplex` needs a bundler that supports per-locale HTML fan-out — Vite does, [Rsbuild](#rsbuild) does not. Combining `multiplex: true` (explicit or auto-detected) with an unsupported bundler fails your build with a clear error rather than an opaque one.
 
@@ -81,6 +184,139 @@ import { excludeFacet } from "zintljs/facets";
 
 zintl({ facets: ["builtins", excludeFacet("client-spa")] });
 ```
+
+### Naming a built-in reconfigures it
+
+Passing a facet with the same name as a built-in **replaces** that built-in, on either side of the sentinel:
+
+```ts
+zintl({ facets: ["builtins", assetsFacet({ targets: ["mdx"] })] }); // yours wins
+zintl({ facets: [assetsFacet({ targets: ["mdx"] }), "builtins"] }); // and here too
+```
+
+The activation trace records the one that stepped aside, so this is visible rather than assumed:
+
+```
+✗ system-static-assets (built-in)   replaced by the "system-static-assets" facet you passed
+```
+
+Order does not decide this, and that is deliberate — membership is settled by name and provenance, precedence by `priority`. Neither depends on where in the list a facet was written.
+
+### What counts as a translatable string
+
+Zintl extracts a string when it reaches a **sink target** — a place a string is known to be
+user-facing. Targets are declared by facets, so what a project extracts follows from which facets are
+active.
+
+The descriptor forms:
+
+| Form                    | Matches                                           | Example                                 |
+| :---------------------- | :------------------------------------------------ | :-------------------------------------- |
+| `jsx:<element>:<attr>`  | A JSX attribute; `*` for any element              | `jsx:*:alt`, `jsx:html:dir`             |
+| `html:attr:<attr>`      | An attribute in HTML or an SFC template           | `html:attr:placeholder`                 |
+| `dom:<receiver>:<prop>` | An assignment to a property; `*` for any receiver | `dom:*:innerHTML`, `dom:document:title` |
+| `dom:prop:<prop>`       | The original spelling of `dom:*:<prop>`           | `dom:prop:textContent`                  |
+| `obj:<binding>:<field>` | A field of an object; `*` for any object          | `obj:*:label`, `obj:ui:title`           |
+| `obj:field:<field>`     | The original spelling of `obj:*:<field>`          | `obj:field:label`                       |
+| `call:<fn>:<field>`     | A field of an object passed to that call          | `call:defineConfig:title`               |
+| `tag:<fn>`              | A tagged template literal holding markup          | `tag:html`                              |
+
+Plain text in HTML documents, SFC templates and JSX children needs no descriptor — it is text in
+markup, and that is already the evidence.
+
+**The receiver in `dom:` is what makes a default safe.** `dom:document:title` matches `document.title`
+— the browser tab — and nothing else, so `telemetry.title = "signup_click"` is left alone. The
+receiver must be a plain identifier: `window.document.title` does not match, deliberately, because
+following member chains means guessing again.
+
+The defaults for a plain JavaScript project:
+
+```
+tag:html   dom:prop:innerHTML   dom:prop:textContent   dom:prop:innerText   dom:document:title
+```
+
+Every one rests on **evidence rather than a guess**. `innerHTML` and its two neighbours are DOM
+coinages — nobody names an ordinary field `innerHTML`. `document.title` is qualified by its receiver,
+so `telemetry.title` is left alone. And a tagged template is markup because the author wrapped it in
+`` html`…` ``, which cannot happen by accident.
+
+There is deliberately **no `obj:field:*` here**. Matching a field name on any object knows nothing
+about the object, so `{ label: "signup_click" }` was extracted like any label — and since extraction
+rewrites the value, it came back translated at runtime and failed the build until somebody translated
+an analytics constant. Name the object instead, with `obj:<binding>:<field>`, `call:<fn>:<field>` or
+[`@zintl-target`](directives.md#zintl-target).
+
+**Narrow by naming what the strings belong to.** `obj:ui:title` matches a `title` inside `const ui = …`
+and nothing else; `call:defineConfig:title` matches the object passed to `defineConfig(…)`:
+
+```ts
+const ui = { home: { title: "Welcome" } }; // obj:ui:title — nested is fine
+const mkUi = () => ({ title: "Welcome" }); // obj:mkUi:title — functions too
+defineConfig({ title: "My site" }); //        call:defineConfig:title
+```
+
+The binding is the nearest one enclosing the object, found by walking outward, so a field several
+levels down still belongs to it. It is the **local** name, not an export alias — `const ui = …;
+export { ui as strings }` is matched by `obj:ui:title`, because the target describes where the object
+is written rather than how the module exposes it. `export default { … }` has no name at all and cannot
+be targeted this way; that is what [`@zintl-target`](directives.md#zintl-target) is for.
+
+`obj:` and `call:` are kept apart because _passed to `cfg()`_ and _bound to `cfg`_ are different
+relations — one descriptor covering both would make `call:cfg:title` match a `const cfg = { title }`
+that has nothing to do with the call.
+
+`*` works in **either** position: `obj:*:title` is any object's `title`, `obj:details:*` is every
+field of an object named `details`. The second is what you reach for when the same shape repeats
+across components and listing its fields would be busywork.
+
+### Adding a target without losing the rest
+
+`targets` on a facet **replaces** that facet's list. That is right for reconfiguring one and wrong for
+_"I want one more"_ — appending a single entry would mean re-listing every default, and that config
+falls behind silently the moment the defaults move.
+
+`additionalTargets` adds:
+
+```ts
+zintl({
+  locales: ["en", "ar"],
+  additionalTargets: ["obj:details:*"],
+});
+```
+
+Everything the active facets detect stays; yours joins it. Use `targets` on a facet when you mean to
+_replace_ what that facet contributes, and `additionalTargets` when you mean to extend.
+
+### Changing what is extracted
+
+To _replace_ what a facet contributes, pass its `targets` a full list — it replaces rather than
+appends. (To extend instead, use `additionalTargets` above.)
+
+```ts
+import { vanillaFacet } from "zintljs/facets";
+
+zintl({
+  facets: [
+    "builtins",
+    vanillaFacet({
+      targets: [
+        "dom:prop:innerHTML",
+        "dom:prop:textContent",
+        "dom:document:title",
+        "obj:ui:title", // only objects named `ui`
+      ],
+    }),
+  ],
+});
+```
+
+Naming a built-in facet replaces it, on either side of the sentinel — see above.
+
+Adding a target widens what your build treats as user-facing. A string that should never have been
+translated is not only a wrong catalog entry: because extraction rewrites the value, it comes back
+translated at runtime, and because there is no fallback it also fails the build until someone
+translates it. `@zintl-ignore` opts a single site back out, and `t()` remains available for anything
+the targets cannot express.
 
 ### Writing a facet
 
@@ -161,6 +397,35 @@ Two things are not supported:
 Install `@rsbuild/core` yourself — it is an optional peer dependency, tested against `^2.1.0`.
 
 Seven examples cover the supported ground, and between them the two dev behaviours above: [`rsbuild-vanilla-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-basic) (plain JavaScript, localized `.txt` asset), [`rsbuild-react-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-react-basic) (in-place hot updates), [`rsbuild-vue-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-basic), [`rsbuild-svelte-basic`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-svelte-basic), [`rsbuild-vanilla-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-spa) and [`rsbuild-vue-spa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-spa) (client routers, lazy catalogs), and [`rsbuild-vanilla-mpa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vanilla-mpa) / [`rsbuild-vue-mpa`](https://github.com/zintljs/zintl/tree/main/examples/rsbuild-vue-mpa) (two documents, shared self-anchoring header). See `docs/spec/proposals/026`–`030` for how each of these was established.
+
+## Next.js via vinext
+
+Zintl has Next.js facets, and it is worth being exact about what they cover: **[vinext](https://github.com/cloudflare/vinext)**, which runs a Next.js app on Vite. They are not Next.js support in general.
+
+The facets wrap `virtual:vinext-rsc-entry`, `virtual:vinext-server-entry` and `virtual:vinext-app-ssr-entry` for per-request locale scoping, suppress `metadata` / `viewport` / `generateMetadata` / `generateViewport` from extraction (build-time exports, not UI), and declare `serverComponents: true` so hooks are only injected where `"use client"` allows them. All three bind to vinext's entries, so a Next.js build on webpack or Turbopack has nothing for them to attach to.
+
+Detection is gated on `vinext` for that reason — a bare `next` in `package.json` does not activate them. That gate is not cosmetic: `nextjs-runtime` declares `supersedes: ["ssr-runtime", "client-spa"]`, so a false positive used to strip client locale sync from any Vite SPA that merely had `next` somewhere in its dependency tree.
+
+**Status: experimental.** [`examples/vinext-basic`](https://github.com/zintljs/zintl/tree/main/examples/vinext-basic) builds and runs, but unlike every other example it is **not** in the contract manifest — no browser test drives it on each change. Treat it as a working starting point, not as a tested target, and please report what breaks.
+
+**Next.js on webpack or Turbopack is not planned.** Turbopack has no public plugin API ([proposal 026](https://github.com/zintljs/zintl/blob/main/docs/spec/proposals/026-rsbuild-as-falsification-harness.md) records this), and building on webpack means building on the bundler Next.js is moving away from. If you need i18n on stock Next.js today, Zintl is not the tool.
+
+## Unsupported hosts
+
+Zintl integrates through a facet whose `concern` is `"bundler"`, and exactly one activates per build. On a host where none does — webpack, Rollup, esbuild, Farm — the plugin **refuses to build**:
+
+```
+[Zintl] Unsupported build tool: "webpack".
+
+No bundler facet claims it, so Zintl cannot resolve its virtual modules or align
+catalogs with your chunks. It stops here rather than building something wrong.
+```
+
+That is deliberate. Virtual module resolution, the dynamic-import shape and HMR acceptance all come from the bundler facet; with none active they each fall back to a Vite-shaped default the host does not honour, so the build produces output and the output is wrong. Refusing is the kinder failure.
+
+The check asks the facet system rather than an allowlist, so contributing a bundler facet through `facets` lifts it — see [Writing a facet](#writing-a-facet).
+
+**Vite-based meta-frameworks are a different case.** Nuxt, SvelteKit, Astro, Remix and TanStack Start all report Vite as the host, so the plugin loads and this fence never fires. Nothing about their routing or SSR entry shapes is modelled or tested. They are unexplored, not supported — and unlike the hosts above, nothing will tell you so at build time.
 
 ## Output
 

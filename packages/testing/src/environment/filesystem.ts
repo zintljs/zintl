@@ -5,6 +5,15 @@ import { existsSync } from "node:fs";
 export type FsMutation =
   | { type: "edit"; path: string; original: string }
   | { type: "write"; path: string; existed: boolean; original?: string }
+  /**
+   * A binary write, tracked separately so the restore is byte-exact.
+   *
+   * Folding it into `write` would mean remembering the original as a UTF-8
+   * string, and restoring a `.png` through that decode returns different bytes
+   * from the ones it replaced — a "restore" that silently corrupts the fixture
+   * for every contract that runs after it.
+   */
+  | { type: "write-bytes"; path: string; existed: boolean; original?: Buffer }
   | { type: "delete"; path: string; original: string }
   | { type: "rename"; from: string; to: string };
 
@@ -131,6 +140,12 @@ export class LabFilesystem {
     await rename(tmp, fullPath);
   }
 
+  private async atomicWriteBytes(fullPath: string, content: Buffer): Promise<void> {
+    const tmp = join(dirname(fullPath), `.${basename(fullPath)}.zintl-tmp`);
+    await writeFile(tmp, content);
+    await rename(tmp, fullPath);
+  }
+
   /**
    * Replace a file atomically and return **without waiting for propagation**.
    *
@@ -211,6 +226,38 @@ export class LabFilesystem {
     }
   }
 
+  /**
+   * Replace a file's **bytes**, for content that is not text.
+   *
+   * {@link write} decodes as UTF-8 in both directions, which is right for source
+   * and catalogs and wrong for the localized artifacts assets now support — a
+   * `.png` written through it is not the `.png` that was handed over. Same
+   * atomic rename, same settle wait, same restore-on-teardown; only the encoding
+   * differs.
+   */
+  async writeBytes(relativePath: string, content: Buffer): Promise<void> {
+    const fullPath = this.resolvePath(relativePath);
+    const existed = existsSync(fullPath);
+    const original = existed ? await readFile(fullPath) : undefined;
+
+    const alreadyMutated = this._mutations.some(
+      (m) =>
+        (m.type === "edit" || m.type === "write" || m.type === "write-bytes") &&
+        m.path === relativePath,
+    );
+    if (!alreadyMutated) {
+      this._mutations.push({ type: "write-bytes", path: relativePath, existed, original });
+    }
+
+    fsTrace("write-bytes", relativePath);
+    await this.runBeforeMutation();
+    await this.atomicWriteBytes(fullPath, content);
+
+    if (this.onMutationCallback) {
+      await this.onMutationCallback();
+    }
+  }
+
   async delete(relativePath: string): Promise<void> {
     const fullPath = this.resolvePath(relativePath);
     if (!existsSync(fullPath)) return;
@@ -252,6 +299,11 @@ export class LabFilesystem {
     return await readFile(fullPath, "utf-8");
   }
 
+  /** {@link read} without the UTF-8 decode. See {@link writeBytes}. */
+  async readBytes(relativePath: string): Promise<Buffer> {
+    return await readFile(this.resolvePath(relativePath));
+  }
+
   async restoreAll(): Promise<void> {
     // 1. Restore tracked mutations
     for (let i = this._mutations.length - 1; i >= 0; i--) {
@@ -269,6 +321,13 @@ export class LabFilesystem {
             if (existsSync(fullPath)) {
               await unlink(fullPath);
             }
+          }
+        } else if (m.type === "write-bytes") {
+          const fullPath = this.resolvePath(m.path);
+          if (m.existed && m.original !== undefined) {
+            await this.atomicWriteBytes(fullPath, m.original);
+          } else if (existsSync(fullPath)) {
+            await unlink(fullPath);
           }
         } else if (m.type === "delete") {
           const fullPath = this.resolvePath(m.path);

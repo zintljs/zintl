@@ -38,8 +38,6 @@ export function svelteExtractionFacet(options: SvelteFacetOptions = {}): ZintlFa
       "jsx:*:title",
       "jsx:*:alt",
       "jsx:*:placeholder",
-      "obj:field:label",
-      "obj:field:description",
     ]) as TargetDescriptor[],
     extensions: options.extensions || [".svelte"],
     sfcRules: [

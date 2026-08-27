@@ -925,6 +925,39 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _store_js__rspack_import_0 = __webpack_require__(2);
 
 //#region src/runtime/resolver.ts
+/**
+* Latin letters, and the accented lookalike at the same index.
+*
+* Two aligned strings rather than a 52-entry map, so the correspondence is one
+* thing you can read instead of fifty-two you have to trust. Every replacement
+* is a single UTF-16 code unit, which is what makes the index lookup safe.
+*
+* Readable enough to debug against, unmistakable enough that nobody ships it —
+* which is the entire point. A dev placeholder that could pass for a
+* translation would be a source-locale fallback wearing a costume, and there is
+* no fallback to the source locale in this project.
+*/
+const PSEUDO_PLAIN = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const PSEUDO_ACCENTED = "àƀçðéƒĝĥíĵķļṁñöþǫŕšţüṽẁẋýžÀƁÇÐÉƑĜĤÍĴĶĻṀÑÖÞǪŔŠŢÜṼẀẊÝŽ";
+/**
+* Spans that must survive untouched: ICU placeholders and markup tags.
+*
+* `{count}` is read back by `interpolate`, and `<t0/>` by the `_tags`
+* restoration below — accent either and the value never lands, which would
+* turn a visible placeholder into a broken one.
+*/
+const PSEUDO_PRESERVE = /(\{[^{}]*\}|<[^<>]*>)/g;
+/**
+* Render a source string as visibly-untranslated text.
+*
+* Dev only. The result still goes through interpolation and tag restoration
+* below rather than being returned early, so `{count}` shows the real count and
+* markup renders as markup — the page keeps its shape, and only the words
+* announce that nobody has translated them yet.
+*/
+function pseudoLocalize(key) {
+	return `\u27e6${key.split(PSEUDO_PRESERVE).map((part, i) => i % 2 === 1 ? part : part.replace(/[A-Za-z]/g, (c) => PSEUDO_ACCENTED[PSEUDO_PLAIN.indexOf(c)])).join("")}\u27e7`;
+}
 function _t(key, params = {}, options) {
 	const instance = (0,_store_js__rspack_import_0.getActiveInstance)();
 	const catalogs = instance.catalogs;
@@ -978,11 +1011,26 @@ function _t(key, params = {}, options) {
 			} catch {}
 			if (message === void 0) {
 				if (false) {}
-				return ``;
+				/**
+				* Assign rather than return, so the pseudo text goes through
+				* interpolation and tag restoration like any real message.
+				*
+				* The `else return` shape is load-bearing. Re-testing `message` after
+				* the block reads more naturally and left a redundant
+				* `if (message === void 0)` nested inside its own
+				* `if (message === void 0)` in every shipped bundle — the dev branch
+				* folds away, the extra test does not. Written this way, both sentinels
+				* folding to `false` collapses the whole thing back to the bare
+				* `return ""` production had before pseudo-localization existed. The
+				* build-output snapshots are what caught it.
+				*/
+				if (false) {}
+				else return ``;
 			}
 		} else {
 			if (false) {}
-			return ``;
+			if (false) {}
+			else return ``;
 		}
 	}
 	if (typeof message === "function") return message(params);
@@ -1080,7 +1128,7 @@ const proxy = new Proxy({}, {
     const loc = (0,virtual_zintl_runtime_internal__rspack_import_0.getLocale)() || multiplexLocale || "en";
     const val = loc === "en"
       ? sourceContent
-      : ((0,virtual_zintl_runtime_internal__rspack_import_0._t)(assetKey, {}, { _bId: "b_assets" }) || sourceContent);
+      : (0,virtual_zintl_runtime_internal__rspack_import_0._t)(assetKey, {}, { _bId: "b_assets" });
     if (prop === Symbol.toPrimitive) {
       return () => val;
     }

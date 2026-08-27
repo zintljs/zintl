@@ -1,6 +1,6 @@
 import * as Extractor from "@zintljs/extractor";
 import { existsSync, readFileSync } from "node:fs";
-import { join, isAbsolute, dirname, normalize } from "node:path";
+import { join, isAbsolute, dirname, normalize, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   observe,
@@ -16,7 +16,7 @@ import {
 import { sha1, generateMessageId } from "./utils/hashing.js";
 import type { ManifestEntry } from "./reconcile.js";
 import { selfAcceptHmrSnippet } from "./utils/hmr.js";
-import { toPosixPath, isExamplePath } from "./utils/paths.js";
+import { toPosixPath, isExamplePath, normalizeOutputPath } from "./utils/paths.js";
 import { isTestEnvironment } from "./utils/env.js";
 import {
   DEFAULT_SOURCE_LOCALE,
@@ -29,7 +29,6 @@ import {
   type ZintlLogger,
   type LogLevel,
   type AssetTargetConfig,
-  type AssetMergeStrategy,
   type CatalogFormatContext,
   type CompilerCapabilities,
   type CapabilityFlags,
@@ -55,7 +54,6 @@ export type {
   CompilerOptions,
   LogLevel,
   AssetTargetConfig,
-  AssetMergeStrategy,
   CatalogFormatContext,
   HtmlProjectionPayload,
 };
@@ -69,6 +67,333 @@ export type * from "./types/capabilities.js";
 // the context, so they must be nameable from the package root.
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
+
+/**
+ * A sink type, as something to show a translator.
+ *
+ * `ObservedSink.sinkType` is written for two audiences at once. From JSX it is
+ * already human — `div`, `button`, the element the text sat in. From HTML it is
+ * machine — `html:attr:alt` names the attribute *and* how to splice a
+ * replacement back into source. A translator can act on `alt`; `html:attr:alt`
+ * tells them nothing, so the transport prefix is dropped.
+ *
+ * Metadata only. This never participates in message identity — see
+ * {@link ManifestEntry.context} and proposal 032 §8.1 — which is what makes
+ * normalising it for readability a safe thing to do at all.
+ */
+function translatorContext(sinkType: string | undefined): string | undefined {
+  if (!sinkType) return undefined;
+  if (sinkType.startsWith("html:attr:")) return sinkType.slice("html:attr:".length) || undefined;
+  /**
+   * The one sink type that names a position rather than a thing — and the one
+   * place this is thinner than it looks. JSX reports the element (`button`),
+   * because the visitor has it; every HTML text node arrives as `HTML_TEXT`, so
+   * an `<h1>` and a `<p>` are indistinguishable by the time it reaches here.
+   * Closing that is extractor work. Proposal 032 §3 assumes the richer version.
+   */
+  if (sinkType === "HTML_TEXT") return "text";
+  return sinkType;
+}
+
+/** One `zintl()` anchor naming a locale the project does not build. */
+interface UnsupportedAnchorLocale {
+  fileId: string;
+  locale: string;
+}
+
+/** One extracted key with no translation in one locale. */
+interface MissingTranslation {
+  locale: string;
+  key: string;
+  fileId: string;
+  /** Where the translation belongs; `null` when the boundary has no catalog file. */
+  catalogPath: string | null;
+}
+
+/**
+ * How many missing keys to name per locale before switching to a count.
+ *
+ * The report exists to make the *shape* of the problem legible in one build —
+ * which locales, which files, roughly how much work. Printing all of them
+ * instead scrolls the actionable part off the terminal, which is the failure
+ * mode this whole report replaced.
+ */
+const INTEGRITY_SAMPLE_LIMIT = 8;
+
+/** Message keys are user prose and can be long; a sample line stays readable. */
+function truncateKey(key: string, max = 60): string {
+  const flat = key.replace(/\s+/g, " ").trim();
+  return flat.length <= max ? flat : `${flat.slice(0, max - 1)}\u2026`;
+}
+
+/**
+ * Report every anchor that targets an unconfigured locale, in one error.
+ *
+ * Raised *instead of* the missing-translation report rather than alongside it:
+ * an anchor on a locale nobody builds makes every downstream missing
+ * translation a consequence rather than a finding.
+ */
+function formatUnsupportedAnchorLocales(
+  bad: UnsupportedAnchorLocale[],
+  configured: string[],
+): string {
+  const byLocale = new Map<string, string[]>();
+  for (const entry of bad) {
+    const files = byLocale.get(entry.locale);
+    if (!files) byLocale.set(entry.locale, [entry.fileId]);
+    else if (!files.includes(entry.fileId)) files.push(entry.fileId);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const lines: string[] = [
+    `[Zintl Integrity Error] zintl() targets ${locales.length} ${
+      locales.length === 1 ? "locale" : "locales"
+    } you do not build.`,
+    ``,
+    `Configured locales: [${configured.join(", ")}]`,
+    ``,
+  ];
+
+  for (const locale of locales) {
+    const files = byLocale.get(locale)!.slice().sort();
+    lines.push(`  "${locale}" \u2014 anchored in:`);
+    for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`      ${file}`);
+    if (files.length > INTEGRITY_SAMPLE_LIMIT) {
+      lines.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
+    }
+    lines.push(``);
+  }
+
+  lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  return lines.join("\n");
+}
+
+/**
+ * Report every missing translation in one error.
+ *
+ * The rule this enforces is unchanged and deliberately absolute. Only the
+ * announcement changed: throwing on the first missing key meant a project
+ * adopting Zintl discovered N missing translations across N builds.
+ *
+ * Two shapes, because the two situations are not the same problem. When every
+ * locale is missing the same strings the catalogs simply have not been filled
+ * in yet — one listing says that, where per-locale grouping would repeat it
+ * once per locale and bury the actionable part. When the sets differ, the
+ * question is *which* locale fell behind, and grouping by locale answers it.
+ */
+function formatMissingTranslations(missing: MissingTranslation[], sourceLocale: string): string {
+  const byLocale = new Map<string, MissingTranslation[]>();
+  for (const entry of missing) {
+    const bucket = byLocale.get(entry.locale);
+    if (bucket) bucket.push(entry);
+    else byLocale.set(entry.locale, [entry]);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const header = `[Zintl Integrity Error] ${missing.length} missing ${
+    missing.length === 1 ? "translation" : "translations"
+  } across ${locales.length} ${locales.length === 1 ? "locale" : "locales"}.`;
+
+  const rule = [
+    `Zintl never falls back to "${sourceLocale}", so these strings would render empty.`,
+    `That is why this is a build error rather than a warning.`,
+  ];
+
+  const footer = [
+    `Fix:   fill in the empty values in the catalog files above.`,
+    `Defer: set \`verifyIntegrity: false\` to skip this check while you evaluate`,
+    `       \u2014 those strings will render empty until they are translated.`,
+  ];
+
+  const uniform = locales.length > 1 && isUniformAcrossLocales(byLocale, locales);
+  const lines = uniform
+    ? [
+        header,
+        ``,
+        `Every locale (${locales.join(", ")}) is missing the same ${
+          byLocale.get(locales[0])!.length
+        } strings.`,
+        `The catalogs have most likely not been filled in yet.`,
+        ``,
+        ...rule,
+        ``,
+        ...describeUniform(byLocale.get(locales[0])!, byLocale, locales),
+      ]
+    : [header, ``, ...rule, ``, ...describePerLocale(byLocale, locales)];
+
+  return [...lines, ...footer].join("\n");
+}
+
+/**
+ * The asset half of the integrity report.
+ *
+ * Its own formatter rather than a branch inside {@link formatMissingTranslations}
+ * because the remedies differ, and the second one is the point: an untargeted
+ * asset is a shared one, so *"stop targeting it"* is a correct and complete
+ * answer for somebody who discovers their asset was never meant to vary by
+ * locale — not a workaround. Proposal 035 §6.
+ */
+function formatUnfilledAssets(
+  unfilled: { locale: string; path: string }[],
+  root: string,
+  sourceLocale: string,
+): string {
+  const byLocale = new Map<string, string[]>();
+  for (const entry of unfilled) {
+    const shown = toPosixPath(relative(root, entry.path)) || entry.path;
+    const bucket = byLocale.get(entry.locale);
+    if (bucket) bucket.push(shown);
+    else byLocale.set(entry.locale, [shown]);
+  }
+  const locales = Array.from(byLocale.keys()).sort();
+
+  const lines = [
+    `[Zintl Integrity Error] ${unfilled.length} unfilled localized ${
+      unfilled.length === 1 ? "asset" : "assets"
+    } across ${locales.length} ${locales.length === 1 ? "locale" : "locales"}.`,
+    ``,
+    `Every targeted asset needs its own artifact per locale. These files are empty;`,
+    `fill them. Zintl scaffolds them empty rather than copying the source, because`,
+    `an English PDF at the German path is not a German PDF — and a byte-identical`,
+    `copy is a fallback to "${sourceLocale}" that nothing downstream can detect.`,
+    ``,
+  ];
+
+  for (const locale of locales) {
+    const paths = byLocale.get(locale)!.sort();
+    lines.push(`  ${locale} — ${paths.length} empty`);
+    for (const path of paths) lines.push(`    ${path}`);
+    lines.push(``);
+  }
+
+  lines.push(
+    `Fix:   fill the files above.`,
+    `Or:    stop targeting the asset, if it is the same in every locale.`,
+    `Defer: set \`verifyIntegrity: false\` to skip this check while you evaluate`,
+    `       — those assets will be served empty until they are authored.`,
+  );
+
+  return lines.join("\n");
+}
+
+/** Do all locales lack translations for exactly the same keys, in the same files? */
+function isUniformAcrossLocales(
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): boolean {
+  const signature = (entries: MissingTranslation[]) =>
+    entries
+      .map((e) => `${e.fileId}\u0000${e.key}`)
+      .sort()
+      .join("\u0001");
+  const first = signature(byLocale.get(locales[0])!);
+  return locales.every((locale) => signature(byLocale.get(locale)!) === first);
+}
+
+/**
+ * The fresh-adoption listing: the strings once, grouped by the source file they
+ * came from, plus the concrete set of catalogs one of those files needs.
+ *
+ * The example is built from real `catalogPath` values rather than by
+ * substituting a `[locale]` token into `catalogFormat`. The format is
+ * user-supplied and need not mention the locale literally, so a token
+ * substitution would print paths that do not exist.
+ */
+function describeUniform(
+  entries: MissingTranslation[],
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): string[] {
+  const byFile = new Map<string, string[]>();
+  for (const entry of entries) {
+    const bucket = byFile.get(entry.fileId);
+    if (bucket) bucket.push(entry.key);
+    else byFile.set(entry.fileId, [entry.key]);
+  }
+
+  const lines: string[] = [];
+  const files = Array.from(byFile.keys()).sort();
+  let shown = 0;
+  let filesShown = 0;
+
+  for (const file of files) {
+    if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+    const keys = byFile.get(file)!;
+    lines.push(`  ${file} \u2014 ${keys.length} ${keys.length === 1 ? "string" : "strings"}`);
+    filesShown++;
+    for (const key of keys) {
+      if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+      lines.push(`    "${truncateKey(key)}"`);
+      shown++;
+    }
+  }
+  if (files.length > filesShown) {
+    lines.push(
+      `  \u2026 and ${files.length - filesShown} more ${
+        files.length - filesShown === 1 ? "file" : "files"
+      }`,
+    );
+  }
+  lines.push(``);
+
+  // One file's worth of real catalog paths, so the shape is concrete.
+  const example = files[0];
+  const paths: string[] = [];
+  for (const locale of locales) {
+    const match = byLocale.get(locale)!.find((e) => e.fileId === example);
+    if (match?.catalogPath) paths.push(match.catalogPath);
+  }
+  if (paths.length > 0) {
+    lines.push(`Each file needs one catalog per locale. For ${example}:`);
+    for (const path of paths.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`  ${path}`);
+    if (paths.length > INTEGRITY_SAMPLE_LIMIT) {
+      lines.push(`  \u2026 and ${paths.length - INTEGRITY_SAMPLE_LIMIT} more`);
+    }
+    lines.push(``);
+  }
+
+  return lines;
+}
+
+/** The drifted-locale listing: which locale fell behind, and in which catalogs. */
+function describePerLocale(
+  byLocale: Map<string, MissingTranslation[]>,
+  locales: string[],
+): string[] {
+  const lines: string[] = [];
+
+  for (const locale of locales) {
+    const entries = byLocale.get(locale)!;
+    const byCatalog = new Map<string, MissingTranslation[]>();
+    for (const entry of entries) {
+      const path = entry.catalogPath ?? `(no catalog file \u2014 boundary in ${entry.fileId})`;
+      const bucket = byCatalog.get(path);
+      if (bucket) bucket.push(entry);
+      else byCatalog.set(path, [entry]);
+    }
+
+    lines.push(
+      `  ${locale} \u2014 ${entries.length} missing in ${byCatalog.size} ${
+        byCatalog.size === 1 ? "file" : "files"
+      }`,
+    );
+
+    let shown = 0;
+    for (const path of Array.from(byCatalog.keys()).sort()) {
+      if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+      lines.push(`    ${path}`);
+      for (const entry of byCatalog.get(path)!) {
+        if (shown >= INTEGRITY_SAMPLE_LIMIT) break;
+        lines.push(`      "${truncateKey(entry.key)}"`);
+        shown++;
+      }
+    }
+    if (entries.length > shown) lines.push(`    \u2026 and ${entries.length - shown} more`);
+    lines.push(``);
+  }
+
+  return lines;
+}
 
 export class ZintlCompiler {
   public readonly io: IOManager;
@@ -95,6 +420,53 @@ export class ZintlCompiler {
     return facet?.getManagerInstance?.(this.getCompilerContext());
   }
 
+  /**
+   * Whether any content facet owns `filePath`.
+   *
+   * The host's way of asking instead of guessing. `resolveId` has always asked —
+   * through `isSupportedAsset` — and the *load* path always tested for `.md` and
+   * `.txt` instead, so a configured `.rst` target was recognised when its import
+   * resolved and then unknown when the module loaded, never reaching the
+   * substitution the registration was for. Proposal 034 §1.3.
+   *
+   * Deliberately the whole facet layer rather than the assets facet by name: a
+   * project contributing its own content facet is owed the same answer, and a
+   * host that reaches for `compiler.assets` has hardcoded which facet matters.
+   */
+  public ownsContent(filePath: string): boolean {
+    return this.contentOwnershipProbe()(filePath);
+  }
+
+  /**
+   * Whether a content facet answers an import of `filePath` with a per-locale URL.
+   *
+   * Deliberately not {@link ownsContent}: ownership says whose file this is, and
+   * this says whether an import of it should be intercepted. The HTML projection
+   * facet owns `.html` and delivers nothing, so conflating the two hands an HTML
+   * template to the JavaScript parser.
+   */
+  public deliversUrl(filePath: string): boolean {
+    if (!this._resolved) return false;
+    const context = this.getCompilerContext();
+    return this._resolved.system.contentFacets.some(
+      (f) => f.deliversUrl?.(filePath, context) ?? false,
+    );
+  }
+
+  /**
+   * {@link ownsContent} with the compiler context bound once.
+   *
+   * The pipeline asks this per dependency edge, per file, per boundary, and
+   * building a context inside the predicate would rebuild it on every one of
+   * those. Same answer, paid for once.
+   */
+  private contentOwnershipProbe(): (filePath: string) => boolean {
+    if (!this._resolved) return () => false;
+    const context = this.getCompilerContext();
+    const facets = this._resolved.system.contentFacets;
+    return (filePath: string) => facets.some((f) => f.match(filePath, context));
+  }
+
   private graphDirty = true;
   private readonly extensions: string[];
 
@@ -106,6 +478,8 @@ export class ZintlCompiler {
   private _outputDir: string;
   private _prune: boolean;
   private _verifyIntegrity: boolean;
+  /** @see CompilerOptions.pseudoLocalize */
+  public readonly pseudoLocalize: boolean;
   private readonly debug?: boolean | string;
 
   public get _logger() {
@@ -252,6 +626,7 @@ export class ZintlCompiler {
     this._outputDir = options.outputDir || DEFAULT_OUTPUT_DIR;
     this._prune = options.prune ?? true;
     this._verifyIntegrity = options.verifyIntegrity ?? false;
+    this.pseudoLocalize = options.pseudoLocalize ?? true;
     this.io = new IOManager(
       root,
       isDev,
@@ -1676,6 +2051,7 @@ export class ZintlCompiler {
           text: string;
           boundaryId: string;
           location: SourceLocation;
+          sinkType?: string;
           note?: string;
           variables?: { name: string }[];
           passVars?: Record<string, string>;
@@ -1686,6 +2062,19 @@ export class ZintlCompiler {
             text: msg.text,
             boundaryId: msg.boundaryId,
             location: msg.location,
+            /**
+             * Per sink, deliberately not unioned across them.
+             *
+             * The extractor aggregates its own `contexts` because it keys by
+             * message; this keys by sink, so one string reached from a `button`
+             * and a `title` produces two entries carrying one context each.
+             * That is information rather than duplication, and unioning it here
+             * would mean collapsing entries — a change to how many manifest
+             * entries exist, which `generateSchema` and `verifyIntegrity` both
+             * walk. A consumer that wants the union should take it; see
+             * proposal 032 §7.
+             */
+            context: translatorContext(msg.sinkType),
             note: msg.note,
             variables: [
               ...new Set([
@@ -2261,6 +2650,12 @@ export class ZintlCompiler {
       clearTimeout(this.autoFlushTimeout);
       this.autoFlushTimeout = null;
     }
+    // A report queued by the previous flush is about to be superseded by this
+    // one, and an unowned timer outliving the compiler holds the process open.
+    if (this._statusTimeout) {
+      clearTimeout(this._statusTimeout);
+      this._statusTimeout = null;
+    }
 
     if (this.flushPromise) {
       /**
@@ -2364,6 +2759,76 @@ export class ZintlCompiler {
     }
   }
 
+  /**
+   * Refuse a build where a localized artifact and a catalog want the same file.
+   *
+   * Both namespaces are `<outputDir>/<path>.<locale>.<ext>` by construction, so
+   * an artifact whose extension matches the catalog's — `.json`, in every
+   * default configuration — can land exactly where a boundary's catalog goes.
+   * Measured: targeting `src/data.json` alongside a boundary in `src/data.ts`
+   * puts both at `zintl/src/data.ar.json`, and the catalog is written second and
+   * wins. The artifact is then a catalog, `verifyIntegrity` sees a non-empty
+   * file and passes, and the content ships in the source language with nothing
+   * said — a source-locale fallback wearing an artifact's name, which is the one
+   * thing this project's first rule forbids.
+   *
+   * That is worse than either subsystem failing, because it looks like success,
+   * so this refuses rather than picks a winner. Proposal 034 §6, option 1.
+   *
+   * Not inside the pruning scan, though that is where both sets were already
+   * computed: pruning is gated on the `prune` option and on a dev short-circuit,
+   * and a correctness guard an unrelated option can switch off is not a guard.
+   * §1.4 of that proposal thought the collision was confined to the branch that
+   * calls `getCatalogPath`; it is not, because the branch that does not still
+   * builds the same naming scheme by hand.
+   *
+   * Generic over content facets rather than special-cased to assets: the assets
+   * preset is the only facet that contributes output paths today, and the
+   * collision is a property of the shared naming scheme, not of that preset.
+   * Which facet claimed a path is carried through so the message can name it.
+   */
+  private assertNamespacesDoNotCollide(contentPaths: Map<string, string>): void {
+    const graph = this.graph.boundaryGraph;
+    if (!graph || contentPaths.size === 0) return;
+
+    const catalogs = this.catalog.catalogOutputPaths(graph, this.locales);
+    const collisions: { path: string; facet: string; boundaryId: string }[] = [];
+    for (const [path, facet] of contentPaths) {
+      const boundaryId = catalogs.get(normalizeOutputPath(this.root, path));
+      if (boundaryId) collisions.push({ path, facet, boundaryId });
+    }
+    if (collisions.length === 0) return;
+
+    const many = collisions.length > 1;
+    const lines = [
+      `[Zintl] ${
+        many
+          ? `${collisions.length} localized artifacts land on paths`
+          : `A localized artifact lands on a path`
+      } Zintl already writes a catalog to.`,
+      ``,
+      `Catalogs and localized artifacts are both named`,
+      `<outputDir>/<path>.<locale>.<ext>, so an artifact whose extension matches the`,
+      `catalog format — \`.json\`, in every default configuration — lands exactly`,
+      `where a boundary's catalog goes. The catalog is written second and wins: the`,
+      `artifact would then *be* a catalog, the integrity gate would see a non-empty`,
+      `file and pass, and the content would ship in "${this.sourceLocale}" with nothing said.`,
+      ``,
+    ];
+    for (const { path, facet, boundaryId } of collisions) {
+      lines.push(`  ${toPosixPath(relative(this.root, path))}`);
+      lines.push(`    claimed by "${facet}", and by the catalog for "${boundaryId}"`);
+    }
+    lines.push(
+      ``,
+      `Fix:    give the artifacts their own location, away from the catalogs —`,
+      `        assetsTarget: [{ targetPattern: "**/*.json",`,
+      `                         outputPattern: "assets/[locale]/[dir]/[name].[ext]" }]`,
+      `Or:     stop targeting this extension, or rename the source file.`,
+    );
+    throw new Error(lines.join("\n"));
+  }
+
   private async runFlush(): Promise<void> {
     {
       this.logger.debug("Flushing compiler state...");
@@ -2387,16 +2852,31 @@ export class ZintlCompiler {
         }
       }
 
-      const activeContentPaths = new Set<string>();
+      /**
+       * Every path the content facets will write to, keyed by the facet that
+       * claimed it.
+       *
+       * Pruning wants the union and nothing else, and had it as a `Set`. The
+       * namespace guard below wants to be able to say *whose* output collided,
+       * and that is knowable only here, while the contributing facet is still in
+       * hand — so the attribution is recorded on the way past and the union is
+       * derived from it rather than accumulated alongside it.
+       */
+      const contentPathOwners = new Map<string, string>();
       const context = this.getCompilerContext();
       for (const facet of this._resolved.system.contentFacets) {
         if (facet.getActiveOutputPaths) {
           const paths = await facet.getActiveOutputPaths(context);
           for (const p of paths) {
-            activeContentPaths.add(p);
+            if (!contentPathOwners.has(p)) {
+              contentPathOwners.set(p, facet.name ?? "a content facet");
+            }
           }
         }
       }
+      const activeContentPaths = new Set(contentPathOwners.keys());
+
+      this.assertNamespacesDoNotCollide(contentPathOwners);
 
       // Compute reachable files ONCE and pass down — avoids DFS traversal per-call in prune/sync.
       if (!this.reachableCache) {
@@ -2578,6 +3058,7 @@ export class ZintlCompiler {
       }
 
       await this.verifyIntegrity();
+      this.scheduleTranslationStatus();
       this.logger.debug("Flush complete");
       this.messages.commitReconciliation();
       /**
@@ -2627,6 +3108,140 @@ export class ZintlCompiler {
     );
   }
 
+  /**
+   * A catalog path as the user would type it, relative to the project root.
+   *
+   * Reports print one line per catalog, and an absolute path in a deep checkout
+   * pushes the part that identifies the file off the right of the terminal.
+   * Falls back to the absolute path when the catalog lives outside the root,
+   * which a custom absolute `outputDir` allows.
+   */
+  private relativeCatalogPath(boundaryId: string, locale: string): string | null {
+    const absolute = this.catalog.getCatalogPath(boundaryId, locale);
+    if (!absolute) return null;
+    const rel = relative(this.root, absolute);
+    return rel && !rel.startsWith("..") ? toPosixPath(rel) : absolute;
+  }
+
+  /**
+   * Per-locale translation completeness, as of the last reconciliation.
+   *
+   * Counted against the **hive** rather than by re-reading catalogs from disk,
+   * for two reasons. It is the same thing {@link verifyIntegrity} accepts — a
+   * key the hive can satisfy is a key that passes the gate — so the number
+   * cannot disagree with whether the build will succeed. And it is pure
+   * in-memory set arithmetic, so it costs nothing worth measuring on a dev
+   * flush, where re-reading every catalog for every locale would.
+   *
+   * Source-locale entries are excluded: they are never written to disk and are
+   * translated by definition.
+   */
+  public getTranslationStatus(): { locale: string; translated: number; total: number }[] {
+    const keys = new Set<string>();
+    for (const entries of Object.values(this.internalManifest)) {
+      for (const entry of entries) keys.add(entry.text);
+    }
+
+    return this.locales
+      .filter((locale) => locale !== this.sourceLocale)
+      .map((locale) => {
+        const known = this.messages.hive[locale];
+        let translated = 0;
+        if (known) for (const key of keys) if (known[key]) translated++;
+        return { locale, translated, total: keys.size };
+      });
+  }
+
+  /**
+   * The last status line printed, so an unchanged one is not printed again.
+   *
+   * A dev flush runs on every edit. Without this the terminal fills with the
+   * same counts, and the one line that matters — the count changing because a
+   * translator just saved a catalog — is the one nobody notices.
+   */
+  private _lastStatusLine = "";
+
+  private _statusTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Queue a progress report, coalescing a burst of edits into one line.
+   *
+   * Debounced rather than computed inline, and that is a measurement rather
+   * than a preference: counting every manifest key against every locale is
+   * cheap in isolation and not cheap on the flush path, which is the HMR hot
+   * path. Inline, it pushed `Colony HMR Latency (Manager Sync)` from within
+   * budget to 3.2x calibration against a 1.6x budget — caught by `vpr bench`,
+   * confirmed by re-running the benchmark with the call removed.
+   *
+   * Nothing needs this synchronously. It is a number for a human reading a
+   * terminal, so it can wait for the edits to stop — which also means one line
+   * per burst instead of one per keystroke.
+   */
+  private scheduleTranslationStatus() {
+    if (this._verifyIntegrity) return;
+    if (this._statusTimeout) clearTimeout(this._statusTimeout);
+    this._statusTimeout = setTimeout(() => {
+      this._statusTimeout = null;
+      this.reportTranslationStatus();
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Announce translation progress while serving.
+   *
+   * Only while serving, and that is not an oversight: a build either passes
+   * {@link verifyIntegrity} at 100% or fails with the list, so a build-time
+   * summary could only ever read "everything is translated". Dev is where the
+   * number is both true and interesting, and where finding out beats finding
+   * out from CI on a Friday.
+   */
+  private reportTranslationStatus() {
+    if (this._verifyIntegrity) return;
+    const status = this.getTranslationStatus();
+    if (status.length === 0 || status[0].total === 0) return;
+
+    const line = status
+      .map(({ locale, translated, total }) => `${locale} ${translated}/${total}`)
+      .join(" · ");
+    if (line === this._lastStatusLine) return;
+    this._lastStatusLine = line;
+
+    /**
+     * Severity tracks consequence, not tone.
+     *
+     * An incomplete locale is not a status update — it is a build that will
+     * fail, reported early enough to do something about it. Logged at `info` it
+     * is the first thing to disappear for anyone running `logLevel: "warn"`,
+     * which is a common choice in CI and in quiet-build setups: they would keep
+     * every line they did not care about and lose the one that predicts the
+     * failure. `warn` is where a coming failure belongs.
+     *
+     * Complete is genuinely just news, and stays at `info`.
+     */
+    const missing = status.reduce((n, s) => n + (s.total - s.translated), 0);
+    if (missing === 0) {
+      this.logger.info(`Translations complete — ${line}`);
+    } else {
+      this.logger.warn(
+        `Translations ${line} — ${missing} missing, a production build will fail until they are filled`,
+      );
+    }
+  }
+
+  /**
+   * Verify every reachable boundary has a translation for every locale.
+   *
+   * The rule is unchanged and deliberately absolute: there is no fallback to
+   * the source locale, so an untranslated string fails the build. What changed
+   * is the *reporting*. This used to throw on the first missing key, so a
+   * project adopting Zintl discovered its N missing translations across N
+   * builds — the worst moment in the onboarding path, and an artifact of how
+   * the failure was announced rather than of the rule itself.
+   *
+   * Both failure classes are collected in full, and anchor-locale errors are
+   * raised *instead of* missing translations rather than alongside them. See
+   * {@link formatUnsupportedAnchorLocales} and {@link formatMissingTranslations}.
+   */
   private async verifyIntegrity() {
     if (!this._verifyIntegrity) return;
     const bg = this.graph.boundaryGraph;
@@ -2658,6 +3273,9 @@ export class ZintlCompiler {
       }
     }
 
+    const badAnchors: UnsupportedAnchorLocale[] = [];
+    const missing: MissingTranslation[] = [];
+
     for (const [fileId, meta] of Object.entries(this.messages.metadataGraph)) {
       const fileBoundaries =
         this.messages.boundaryOwnership.get(fileId) || new Set([this.io.getNormalizedId(fileId)]);
@@ -2672,11 +3290,7 @@ export class ZintlCompiler {
         if (anchor.locale.type === "literal") {
           const targetLocale = anchor.locale.value;
           if (targetLocale !== "none" && !this.locales.includes(targetLocale)) {
-            throw new Error(
-              `[Zintl Integrity Error] Boundary anchor at "${fileId}" targets unsupported locale "${targetLocale}". \n` +
-                `Active locales: [${this.locales.join(", ")}]. \n` +
-                `Fix: Add "${targetLocale}" to your locales config or update the zintl() call.`,
-            );
+            badAnchors.push({ fileId, locale: targetLocale });
           }
         }
       }
@@ -2732,18 +3346,51 @@ export class ZintlCompiler {
               }
 
               if (translation === undefined || translation === "") {
-                throw new Error(
-                  `[Zintl Integrity Error] Missing or empty translation for key "${msg.text}" in locale "${locale}".\n` +
-                    `Boundary: ${bId}\n` +
-                    `File: ${fileId}\n` +
-                    `Fix: Add the missing translation for key "${msg.text}" in "${locale}" catalog file:\n` +
-                    `    at "${this.catalog.getCatalogPath(bId as string, locale)}"\n`,
-                );
+                missing.push({
+                  locale,
+                  key: msg.text,
+                  fileId,
+                  catalogPath: this.relativeCatalogPath(bId as string, locale),
+                });
               }
             }
           }
         }
       }
+    }
+
+    /**
+     * Assets are gated too, and by their own question.
+     *
+     * The string loop above skips `b_assets`, and removing that `continue` would
+     * gate nothing: `internalManifest["b_assets"]` is populated only in dev,
+     * while this check runs only in a build, so there are no asset keys there to
+     * iterate. The artifact on disk is the thing to ask, and asking it also
+     * covers a *referenced* asset, whose catalog value is a URL and therefore
+     * non-empty however few bytes stand behind it.
+     *
+     * Same gate, same option, same report — `verifyIntegrity` governs both, and
+     * an unfilled asset is a missing translation with a file for a body.
+     */
+    const unfilledAssets: { locale: string; path: string }[] = [];
+    if (!this.isDev) {
+      const context = this.getCompilerContext();
+      for (const facet of this._resolved.system.contentFacets) {
+        if (!facet.getUnfilledOutputs) continue;
+        unfilledAssets.push(...(await facet.getUnfilledOutputs(context)));
+      }
+    }
+
+    if (badAnchors.length > 0) {
+      throw new Error(formatUnsupportedAnchorLocales(badAnchors, this.locales));
+    }
+    if (missing.length > 0 || unfilledAssets.length > 0) {
+      const reports: string[] = [];
+      if (missing.length > 0) reports.push(formatMissingTranslations(missing, this.sourceLocale));
+      if (unfilledAssets.length > 0) {
+        reports.push(formatUnfilledAssets(unfilledAssets, this.root, this.sourceLocale));
+      }
+      throw new Error(reports.join("\n\n"));
     }
   }
 
@@ -2799,6 +3446,7 @@ export class ZintlCompiler {
         bakedLocale,
         multiplex: this._options.multiplex ?? true,
         extensions: this.extensions,
+        ownsContent: this.contentOwnershipProbe(),
         // Resolved facet state — subsystems read these
         capabilities: this._resolved.flags,
         system: this._resolved.system,
@@ -3038,6 +3686,15 @@ export function getRuntimeCode(
    * that never had the attribute.
    */
   rtlLocales: string[] = [],
+  /**
+   * Render an untranslated string as visibly-pseudo-localized text instead of
+   * an empty one.
+   *
+   * Defaults to `false` for the same reason `isDev` does: a caller that forgets
+   * gets the production behaviour. Meaningful only alongside `isDev`, since the
+   * branch it controls sits inside the `__ZINTL_DEV__` guard.
+   */
+  pseudo = false,
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -3081,5 +3738,11 @@ export function getRuntimeCode(
    * and simply believes the wrong thing.
    */
   code = code.replace(/\b__ZINTL_RTL_LOCALES__\b/g, JSON.stringify(rtlLocales));
+  /**
+   * Same mechanism again. Folding to a literal `false` is what lets the
+   * minifier drop both the branch and `pseudoLocalize` itself — a dev
+   * affordance that shipped as dead weight would fail the rule it exists under.
+   */
+  code = code.replace(/\b__ZINTL_PSEUDO__\b/g, isDev && pseudo ? "true" : "false");
   return code;
 }

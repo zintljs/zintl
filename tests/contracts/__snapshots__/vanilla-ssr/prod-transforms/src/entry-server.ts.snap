@@ -4,6 +4,20 @@ import heroImg from "./assets/hero.png";
 
 import { currentRoute, localeBar } from "./switcher";
 
+/**
+ * Tag the markup as markup.
+ *
+ * This used to be `const res = { text: \`…\` }`, and Zintl found the strings
+ * inside because `text` happened to be one of the object fields it matched by
+ * name. Renaming this to `body` would have silently stopped the whole page
+ * being translated — nothing extracted, so nothing to report.
+ *
+ * `html` says what the string *is*, at the site, where a reader can see it. The
+ * tag is the evidence, so nothing depends on what the variable is called.
+ */
+const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  String.raw({ raw: strings }, ...values);
+
 export async function render(_url: string) {
   
 
@@ -11,8 +25,7 @@ export async function render(_url: string) {
   // so the bar is rendered with links and needs no wiring on the client.
   const { locale } = currentRoute(_url);
 
-  const res = {
-    text: `
+  const body = html`
     ${localeBar(locale)}
 
     <section id="center">
@@ -32,7 +45,9 @@ export async function render(_url: string) {
 
     <section id="next-steps">
       <div id="docs">
-        <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
+        <svg class="icon" role="presentation" aria-hidden="true">
+          <use href="/icons.svg#documentation-icon"></use>
+        </svg>
         <h2>Documentation</h2>
         <p>Your questions, answered</p>
         <ul>
@@ -51,21 +66,46 @@ export async function render(_url: string) {
         </ul>
       </div>
       <div id="social">
-        <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
+        <svg class="icon" role="presentation" aria-hidden="true">
+          <use href="/icons.svg#social-icon"></use>
+        </svg>
         <h2>Connect with us</h2>
         <p>Join the Vite community</p>
         <ul>
-          <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-          <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-          <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-          <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
+          <li>
+            <a href="https://github.com/vitejs/vite" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#github-icon"></use></svg
+              >GitHub</a
+            >
+          </li>
+          <li>
+            <a href="https://chat.vite.dev/" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#discord-icon"></use></svg
+              >Discord</a
+            >
+          </li>
+          <li>
+            <a href="https://x.com/vite_js" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#x-icon"></use></svg
+              >X.com</a
+            >
+          </li>
+          <li>
+            <a href="https://bsky.app/profile/vite.dev" target="_blank"
+              ><svg class="button-icon" role="presentation" aria-hidden="true">
+                <use href="/icons.svg#bluesky-icon"></use></svg
+              >Bluesky</a
+            >
+          </li>
         </ul>
       </div>
     </section>
 
     <div class="ticks"></div>
     <section id="spacer"></section>
-  `,
-  };
-  return { html: res.text };
+  `;
+  return { html: body };
 }

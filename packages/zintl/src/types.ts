@@ -208,6 +208,30 @@ export interface Options {
   verifyIntegrity?: boolean;
 
   /**
+   * While serving, render an untranslated string as visibly-pseudo-localized
+   * text — `⟦Ẇéļçöṁé ƀàçķ!⟧` — instead of an empty one.
+   *
+   * The default exists because of what the alternative looks like. With
+   * catalogs written but not yet filled, switching locale used to blank the
+   * page: {@link Options.verifyIntegrity | `verifyIntegrity`} is off while
+   * serving, and a missing key resolves to `""`. Nothing was broken and nothing
+   * said anything — the app just emptied.
+   *
+   * This is **not** a fallback to the source locale, and the distinction is the
+   * whole design. The text is deliberately unmistakable, so it can never pass
+   * for a translation or reach production: it is inside the `__ZINTL_DEV__`
+   * guard, so a build folds the branch away and the transform with it.
+   * `verifyIntegrity` still fails that build.
+   *
+   * Placeholders and markup are left alone, and the result goes through normal
+   * interpolation — `{count}` shows the real count, and tags render as tags. So
+   * the page keeps its layout and only the words announce themselves.
+   *
+   * @default true
+   */
+  pseudoLocalize?: boolean;
+
+  /**
    * Build every locale as its own set of HTML entries, instead of one app that
    * loads catalogs at runtime.
    *
@@ -254,6 +278,33 @@ export interface Options {
   virtualAssets?: boolean;
 
   /**
+   * Extraction targets to add on top of whatever the active facets detect.
+   *
+   * **Additive, and the name says so.** `targets` on a facet *replaces* that
+   * facet's list, which is right for reconfiguring one but wrong for "I want
+   * one more" — re-listing every default to append a single entry means your
+   * config silently falls behind whenever the defaults move. This adds.
+   *
+   * The common case is a shape your codebase repeats that no default can infer:
+   *
+   * ```ts
+   * zintl({ additionalTargets: ["obj:details:*"] })
+   * ```
+   *
+   * Every descriptor form is accepted — see `docs/configuration.md`. `*` works
+   * in either position: `obj:*:title` is any object's `title`, `obj:details:*`
+   * is every field of an object named `details`.
+   *
+   * Adding a target widens what your build treats as user-facing, and you own
+   * the consequences: a string that should not have been translated comes back
+   * translated at runtime, and fails the build until somebody translates it.
+   * `@zintl-ignore` opts a single site back out.
+   *
+   * @default []
+   */
+  additionalTargets?: string[];
+
+  /**
    * Which capabilities the compiler is built with — framework support, SSR,
    * client locale sync, asset handling.
    *
@@ -269,7 +320,9 @@ export interface Options {
    * that makes the plugin work at all.
    *
    * To keep the set but drop one member, use `excludeFacet(name)` rather than
-   * re-listing everything.
+   * re-listing everything. To keep it but *reconfigure* one member, pass your
+   * own facet under that member's name — it replaces the built-in, on either
+   * side of the sentinel, and the activation trace names the one it replaced.
    *
    * A facet you write has **no condition by default**, so it applies always —
    * you added it on purpose. Declare `when` if it should not. Two facets that

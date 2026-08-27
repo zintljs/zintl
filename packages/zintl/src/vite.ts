@@ -47,9 +47,4 @@ export default vite;
 export { vite as "module.exports" };
 
 export type { Options, Options as ZintlOptions, FacetsInput } from "./types.js";
-export type {
-  AssetMergeStrategy,
-  AssetTargetConfig,
-  CatalogFormatContext,
-  LogLevel,
-} from "@zintljs/compiler";
+export type { AssetTargetConfig, CatalogFormatContext, LogLevel } from "@zintljs/compiler";

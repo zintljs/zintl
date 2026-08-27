@@ -54,6 +54,12 @@ export const rsbuildVanillaBasic: ProjectManifest = {
    * snapshot — an Rspack build that base64s Zintl's generated JavaScript into a
    * `data:` URI is green everywhere else.
    *
+   * `asset-integrity` rides on `assets` plus this host's real build. The gate
+   * itself is compiler-side and host-neutral, but whether an unfilled artifact
+   * *stops* a build is not: the error has to survive Rspack's own error
+   * handling and surface as a failure rather than a logged warning. Measured
+   * here for that reason, and on the Vite side by `assets-authored`.
+   *
    * `boundary-graph` needs no host support at all: it introspects the compiler,
    * which is the half of the system that was already portable.
    *
@@ -108,6 +114,7 @@ export const rsbuildVanillaBasic: ProjectManifest = {
     "spa",
     "assets",
     "asset-hmr",
+    "asset-integrity",
     "boundary-graph",
     "locale-switch",
     "rtl",

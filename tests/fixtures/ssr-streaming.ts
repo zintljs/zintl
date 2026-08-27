@@ -28,6 +28,9 @@ const zintlOptions: ZintlPluginOptions = {
  */
 const entryServer = `import { zintl } from "zintljs/macro";
 
+// Tags the markup as markup. See the note at the enqueue below.
+const html = (strings, ...values) => String.raw({ raw: strings }, ...values);
+
 export async function render(url) {
   const locale = String(url || "").split("/").filter(Boolean)[0] || "en";
   await zintl(locale);
@@ -67,10 +70,12 @@ export async function render(url) {
       // would happen. A template literal carrying markup is what the extractor
       // stitches, which is why the shape matters and a bare argument to
       // \`encoder.encode\` would extract nothing at all.
-      const page = {
-        text: \`<h1>Get started</h1>\`,
-      };
-      controller.enqueue(encoder.encode(page.text));
+      //
+      // The tag is what makes it a sink. This used to be \`{ text: \\\`…\\\` }\`,
+      // extracted because \`text\` happened to be a matched field name — the
+      // guess that \`obj:field:*\` made about every object in every project.
+      const page = html\`<h1>Get started</h1>\`;
+      controller.enqueue(encoder.encode(page));
 
       controller.enqueue(encoder.encode('</body></html>'));
       controller.close();

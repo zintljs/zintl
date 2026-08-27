@@ -278,14 +278,30 @@ export default {
       const { root, compiler } = context as { root: string; compiler: ZintlCompiler };
       await compiler.setup();
 
-      // `obj:field:label` is a Vue extraction target, so this string is a sink —
-      // and the import Zintl injects lands in the same scope as the rewrite.
+      /**
+       * `@zintl-target` is what makes this string a sink, and it has to be.
+       *
+       * The fixture used to rely on `obj:field:label` being a default, which it
+       * no longer is: a field named `label` on an arbitrary object says nothing
+       * about whether it is a button or an analytics key (proposal 033 §1).
+       *
+       * That lands on Vue's Options API specifically. Strings in a `data()`
+       * return are ordinary object fields, and the binding walk cannot name
+       * them — `data` is a property of the default-exported object, not a
+       * declaration — so `obj:<binding>:<field>` has nothing to point at either.
+       * Marking the site is the answer, and this is the shape a Vue Options API
+       * user now writes.
+       *
+       * The assertion itself is unchanged and is about scope, not targets: the
+       * import Zintl injects must land where the rewrite did (ledger L-053).
+       */
       const sfcCode = `
 <script lang="ts">
 import { zintl } from "zintljs";
 zintl({ locale: "en" });
 export default {
   data() {
+    // @zintl-target
     return { field: { label: "Script only string" } };
   },
 };

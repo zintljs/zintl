@@ -39,10 +39,12 @@ function testFacets(): ZintlFacet[] {
 /**
  * Resolved capabilities for the baseline world, plus any extra facets.
  *
- * `extra` is listed first on purpose: `resolveFacets` dedupes by name and keeps
- * the first occurrence at equal priority, so a test supplying its own
- * `assetsFacet({ targets: [...] })` overrides the baseline one rather than being
- * silently discarded by it.
+ * `extra` is listed first on purpose: this calls `resolveFacets` directly, so it
+ * bypasses the provenance rule in `flattenFacets` that makes a user-named facet
+ * replace the built-in of the same name. What governs here is the dedupe's own
+ * tiebreak — first occurrence wins at equal priority — so a test supplying its
+ * own `assetsFacet({ targets: [...] })` overrides the baseline one rather than
+ * being silently discarded by it.
  */
 function testCapabilities(extra: unknown[] = []): CompilerCapabilities {
   return resolveFacets([...extra, ...testFacets()].flat(Infinity) as ZintlFacet[]);

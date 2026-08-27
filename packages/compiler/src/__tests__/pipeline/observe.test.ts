@@ -50,8 +50,32 @@ describe("Pipeline Phase 1: observe()", () => {
       expect(result.sinks[0].sinkType).toBe("aria-label");
     });
 
-    it("should observe object field as a sink", () => {
+    /**
+     * The variable in this test was called `config`, which is the argument
+     * against the rule it was asserting: a `label` on an arbitrary object is as
+     * likely a settings key or an analytics event as a button (proposal 033
+     * §1). `obj:field:*` is no longer a default, and this now records that.
+     *
+     * The capability did not go anywhere — `obj:<binding>:<field>`,
+     * `call:<fn>:<field>` and `@zintl-target` all reach it, and each says
+     * *which* object it means.
+     */
+    it("no longer observes an arbitrary object field as a sink", () => {
       const result = obs(`const config = { label: "Username" };`);
+
+      expect(result.sinks).toHaveLength(0);
+    });
+
+    it("observes an object field when a target names its binding", () => {
+      const result = observe(
+        `const ui = { label: "Username" };`,
+        "src/test.ts",
+        "src/test",
+        undefined,
+        {
+          compiledState: baseExtraction(["obj:ui:label"]),
+        },
+      );
 
       expect(result.sinks).toHaveLength(1);
       expect(result.sinks[0].text).toBe("Username");

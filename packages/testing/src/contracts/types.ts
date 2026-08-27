@@ -51,6 +51,51 @@ export type Capability =
    */
   | "asset-hmr"
   /**
+   * A targeted asset imported **plainly** resolves to this locale's bytes.
+   *
+   * The other half of `assets`, which only ever measured the `?raw` case — the
+   * import asking for an asset's *contents*. A plain import asks for a URL
+   * instead, and that path did not exist before proposal 035: binary assets were
+   * excluded from catalogs and resolved by nothing, so a targeted `.pdf` was
+   * copied to disk and read by no one.
+   *
+   * Green since the runtime locale → URL map landed. It was written red and left
+   * `pending` for one release, which is the shape worth keeping: the assertion
+   * was right and the behaviour was not, and a plain import is a *static
+   * binding*, so reference delivery followed the locale only where module
+   * identity did — a multiplexed build, and no dev server.
+   *
+   * Claim it with `referenceAsset` declared.
+   */
+  | "asset-reference"
+  /**
+   * An artifact with no bytes fails the **build**.
+   *
+   * `assets` proves a filled artifact reaches the browser; this proves an
+   * unfilled one never gets that far. The two are opposite halves of the same
+   * guarantee and neither implies the other — before 035 the first held while
+   * the second silently shipped the source locale's bytes.
+   *
+   * Needs a project that can build and an `assetFile` to empty. The contract
+   * restores what it emptied, so claiming it costs one extra build.
+   */
+  | "asset-integrity"
+  /**
+   * Editing a **referenced** artifact's bytes reaches the browser.
+   *
+   * `asset-hmr` proves this for inline delivery, where the artifact's text
+   * travels inside the catalog and arrives by the same route as any other
+   * translation. Reference delivery carries a *URL* instead, so the bytes never
+   * pass through Zintl at all on the way to the page — the browser fetches them
+   * itself, and the question becomes whether it fetches them again.
+   *
+   * A genuinely different failure: the catalog can be perfectly up to date, the
+   * URL unchanged and correct, and the image still stale in the viewport.
+   *
+   * Claim it with `referenceAsset.editedBytes` declared.
+   */
+  | "asset-refresh"
+  /**
    * The project can declare source edits that *grow* the graph (ZHMR §4.1③, §4.2).
    *
    * Adding a sink is the warm path and adding an anchor or a `$L` colony is the
@@ -262,6 +307,41 @@ export interface AssetsAdapter extends BaseAdapter {
    * Omit it and the project cannot claim `asset-hmr`.
    */
   assetFile?: string;
+  /**
+   * A targeted asset imported **plainly**, and so delivered as a URL.
+   *
+   * Declared separately from `assetFile` because it is a different claim about
+   * a different asset: that one is imported with `?raw` and arrives as text,
+   * this one arrives as a link to bytes. A project can have either, both, or
+   * neither.
+   *
+   * `bytes` is the **authored** content per locale, base64-encoded — what the
+   * URL must actually serve. Comparing bytes rather than URLs is deliberate: a
+   * per-locale URL that resolves to the source file looks right in the DOM and
+   * is the exact defect this exists to catch.
+   *
+   * Omit it and the project cannot claim `asset-reference`.
+   */
+  referenceAsset?: {
+    /** Element whose `src` holds the resolved URL. */
+    selector: string;
+    /** The source asset, relative to the project root. */
+    file: string;
+    /** Base64 of the bytes each locale must serve, keyed by locale code. */
+    bytes: Record<string, string>;
+    /**
+     * Base64 of bytes an edit may write, keyed by locale code.
+     *
+     * Declared rather than invented, for the reason `SourceInsertion` is: a
+     * contract that made up its own content would be writing something no
+     * project ever would. These must differ from `bytes` for the same locale and
+     * be valid content of the same kind — the point is to prove the *new* bytes
+     * are served, and bytes a host might reject prove nothing.
+     *
+     * Omit it and the project cannot claim `asset-refresh`.
+     */
+    editedBytes?: Record<string, string>;
+  };
   /**
    * Show the app in `locale` from a cold load.
    *

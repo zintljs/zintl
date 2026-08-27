@@ -113,4 +113,52 @@ describe("Runtime Splitting - getRuntimeCode", () => {
       expect(code).not.toContain("__ZINTL_RTL_LOCALES__");
     });
   });
+
+  /**
+   * Pseudo-localization is a dev affordance, and "nothing ships that isn't
+   * used" is not satisfied by a runtime guard the bundler cannot fold. So what
+   * matters is the literal: `false` leaves the branch and `pseudoLocalize` dead
+   * and removable, `true` makes them reachable.
+   */
+  describe("pseudo-localization substitution", () => {
+    const resolver = (isDev: boolean, pseudo: boolean) =>
+      getRuntimeCode("resolver", baseCapabilities, false, isDev, [], pseudo);
+
+    /**
+     * Both guard sites, as the pair of literals each was folded to.
+     *
+     * Matched against the real emitted text rather than an assumed shape: the
+     * guard is `__ZINTL_DEV__ && __ZINTL_PSEUDO__`, and *both* sentinels are
+     * substituted, so a passing assertion here means neither was left behind.
+     */
+    const guards = (code: string) =>
+      Array.from(code.matchAll(/if \((\w+) && (\w+)\) message = pseudoLocalize/g)).map(
+        (m) => `${m[1]}&&${m[2]}`,
+      );
+
+    it("folds to true only when serving with the affordance on", () => {
+      const code = resolver(true, true);
+      expect(guards(code)).toEqual(["true&&true", "true&&true"]);
+      // An unsubstituted sentinel is a ReferenceError in the browser.
+      expect(code).not.toContain("__ZINTL_PSEUDO__");
+    });
+
+    it("folds to false for a production build, even with the affordance on", () => {
+      const code = resolver(false, true);
+      expect(guards(code)).toEqual(["false&&false", "false&&false"]);
+      expect(code).not.toContain("__ZINTL_PSEUDO__");
+    });
+
+    it("folds to false while serving when the project opted out", () => {
+      expect(guards(resolver(true, false))).toEqual(["true&&false", "true&&false"]);
+    });
+
+    it("folds to false when the caller omits the argument", () => {
+      // Serving, but the affordance was not asked for. Same rule as `isDev`:
+      // forgetting yields the production behaviour, never the dev one.
+      const code = getRuntimeCode("resolver", baseCapabilities, false, true);
+      expect(guards(code)).toEqual(["true&&false", "true&&false"]);
+      expect(code).not.toContain("__ZINTL_PSEUDO__");
+    });
+  });
 });

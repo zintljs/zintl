@@ -8,7 +8,58 @@
  * production builds eliminate the branch outright and dev builds keep it.
  */
 declare const __ZINTL_DEV__: boolean;
+
+/**
+ * Build-time sentinel for pseudo-localization, resolved the same way
+ * `__ZINTL_DEV__` is. Always folded to `false` for production, so the branch
+ * behind it — and {@link pseudoLocalize} with it — is eliminated outright.
+ */
+declare const __ZINTL_PSEUDO__: boolean;
 import { getActiveInstance } from "./store.js";
+
+/**
+ * Latin letters, and the accented lookalike at the same index.
+ *
+ * Two aligned strings rather than a 52-entry map, so the correspondence is one
+ * thing you can read instead of fifty-two you have to trust. Every replacement
+ * is a single UTF-16 code unit, which is what makes the index lookup safe.
+ *
+ * Readable enough to debug against, unmistakable enough that nobody ships it —
+ * which is the entire point. A dev placeholder that could pass for a
+ * translation would be a source-locale fallback wearing a costume, and there is
+ * no fallback to the source locale in this project.
+ */
+const PSEUDO_PLAIN = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const PSEUDO_ACCENTED = "àƀçðéƒĝĥíĵķļṁñöþǫŕšţüṽẁẋýžÀƁÇÐÉƑĜĤÍĴĶĻṀÑÖÞǪŔŠŢÜṼẀẊÝŽ";
+
+/**
+ * Spans that must survive untouched: ICU placeholders and markup tags.
+ *
+ * `{count}` is read back by `interpolate`, and `<t0/>` by the `_tags`
+ * restoration below — accent either and the value never lands, which would
+ * turn a visible placeholder into a broken one.
+ */
+const PSEUDO_PRESERVE = /(\{[^{}]*\}|<[^<>]*>)/g;
+
+/**
+ * Render a source string as visibly-untranslated text.
+ *
+ * Dev only. The result still goes through interpolation and tag restoration
+ * below rather than being returned early, so `{count}` shows the real count and
+ * markup renders as markup — the page keeps its shape, and only the words
+ * announce that nobody has translated them yet.
+ */
+function pseudoLocalize(key: string): string {
+  const accented = key
+    .split(PSEUDO_PRESERVE)
+    .map((part, i) =>
+      i % 2 === 1
+        ? part
+        : part.replace(/[A-Za-z]/g, (c) => PSEUDO_ACCENTED[PSEUDO_PLAIN.indexOf(c)]),
+    )
+    .join("");
+  return `\u27e6${accented}\u27e7`;
+}
 
 export function _t(
   key: string,
@@ -91,13 +142,29 @@ export function _t(
             `[Zintl] Missing key "${key}" in boundary "${targetBId || boundaryId}". Triggering hydration...`,
           );
         }
-        return ``;
+        /**
+         * Assign rather than return, so the pseudo text goes through
+         * interpolation and tag restoration like any real message.
+         *
+         * The `else return` shape is load-bearing. Re-testing `message` after
+         * the block reads more naturally and left a redundant
+         * `if (message === void 0)` nested inside its own
+         * `if (message === void 0)` in every shipped bundle — the dev branch
+         * folds away, the extra test does not. Written this way, both sentinels
+         * folding to `false` collapses the whole thing back to the bare
+         * `return ""` production had before pseudo-localization existed. The
+         * build-output snapshots are what caught it.
+         */
+        if (__ZINTL_DEV__ && __ZINTL_PSEUDO__) message = pseudoLocalize(key);
+        else return ``;
       }
     } else {
       if (__ZINTL_DEV__) {
         console.warn(`[Zintl] Missing key "${key}" and no manager provided.`);
       }
-      return ``;
+      // Same shape, same reason — see the note above.
+      if (__ZINTL_DEV__ && __ZINTL_PSEUDO__) message = pseudoLocalize(key);
+      else return ``;
     }
   }
 

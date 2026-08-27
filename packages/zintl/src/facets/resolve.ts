@@ -95,6 +95,41 @@ function mergeCodegenFacets(
   return [...existing, candidate];
 }
 
+/**
+ * Merge content facets with file extension conflict detection.
+ *
+ * The same rule {@link mergeCodegenFacets} enforces, arriving late for the same
+ * reason it was easy there: codegen declares `extensions` and content only had
+ * `match`, a predicate nobody can enumerate — so two content facets claiming one
+ * file raced silently and whichever registered first won (034 §2).
+ *
+ * Extensions are advisory (`ContentFacet.extensions` is optional), so this
+ * catches the declared overlaps and leaves undeclared ownership exactly as
+ * permissive as it was. Priority breaks ties, as everywhere else.
+ */
+function mergeContentFacets(
+  existing: ContentFacet[],
+  candidate: ContentFacet,
+  candidateName: string,
+): ContentFacet[] {
+  for (const other of existing) {
+    for (const ext of candidate.extensions ?? []) {
+      if (!(other.extensions ?? []).includes(ext)) continue;
+      const existingPriority = other.priority ?? 0;
+      const candidatePriority = candidate.priority ?? 0;
+      if (existingPriority === candidatePriority) {
+        throw new Error(
+          `[Zintl] Facet conflict: content facets from "${other.name}" and "${candidateName}" ` +
+            `both claim extension "${ext}" at the same priority (${existingPriority}). ` +
+            `Only one content facet may own a given extension at the same priority.`,
+        );
+      }
+    }
+  }
+
+  return [...existing, candidate];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Core Resolution
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,7 +279,7 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
       break;
     }
     case "content": {
-      state.contentFacets.push(facet);
+      state.contentFacets = mergeContentFacets(state.contentFacets, facet, name);
       if (facet.getProtectedCatalogKeys) {
         state.getProtectedCatalogKeysChain.push(facet.getProtectedCatalogKeys);
       }
@@ -548,7 +583,17 @@ export function resolveFacets(facets: ZintlFacet[] = []): CompilerCapabilities {
     return pB - pA;
   });
 
-  // 2. Deduplicate facets by name (keeping the one with the highest priority first)
+  /**
+   * 2. Deduplicate by name, highest priority first.
+   *
+   * A last-resort tiebreak, not the place user intent is honoured. The case
+   * that actually matters — a project naming a built-in facet to reconfigure it
+   * — is settled in `flattenFacets`, by provenance, before anything reaches
+   * here. What is left is same-name facets that arrived by another route (a
+   * direct `resolveFacets` call, as the test harness makes), where first-wins
+   * at equal priority is a defined rule rather than an accident of sort
+   * stability.
+   */
   const uniqueFacets: ZintlFacet[] = [];
   const seen = new Set<string>();
   for (const a of sorted) {

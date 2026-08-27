@@ -10,15 +10,15 @@
 Every source file is classified by the presence of exactly one set of **Symbolic Markers**.
 These markers are mutually exclusive at a given scope (file or function).
 
-| Symbol  | Name   | Detection                                                                                       |
-| :------ | :----- | :---------------------------------------------------------------------------------------------- |
-| **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument).  |
-| **$M**  | Marker | A bare `import "zintljs"` side-effect import with no named specifiers.                          |
-| **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                            |
-| **$S**  | Sink   | A UI string assigned to a translatable property (innerHTML, JSX text, title, aria-label, etc.). |
-| **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                               |
-| **$H**  | Portal | An HTML entry point that projects internationalization state onto the DOM.                      |
-| **$AS** | Asset  | A static asset (.txt, .md) that participates in the localization pipeline.                      |
+| Symbol  | Name   | Detection                                                                                      |
+| :------ | :----- | :--------------------------------------------------------------------------------------------- |
+| **$A**  | Anchor | A `zintl(...)` or `loadI18nInstance(...)` call used as a statement (not as a config argument). |
+| **$M**  | Marker | A bare `import "zintljs"` side-effect import with no named specifiers.                         |
+| **$L**  | Lazy   | A dynamic `import("./path")` expression creating a code-split point.                           |
+| **$S**  | Sink   | A string occupying a position declared translatable by a **target**. Formalized in §15.        |
+| **$V**  | Vassal | A file bearing none of {$A, $M, $L, $H}. It is logic-only source.                              |
+| **$H**  | Portal | An HTML entry point that projects internationalization state onto the DOM.                     |
+| **$AS** | Asset  | A static asset (.txt, .md) that participates in the localization pipeline.                     |
 
 > [!NOTE]
 > A file may contain **both** $A and $S simultaneously. The $A governs ownership; the $S participates in the catalog. A file may also contain $L alongside any other symbol — $L defines storage partitioning at the _dependency edge_, not the file itself.
@@ -467,27 +467,222 @@ Result: **Zero-latency locale hydration** for SPAs, as the browser fetches the d
 
 ## §14 — Localized Assets ($AS$)
 
-Localized Assets are static files (e.g., `.txt`, `.md`) that Zintl manages to provide locale-specific content without modifying the application's runtime logic.
+A Localized Asset is a static file — `.txt`, `.md`, `.pdf`, `.webp`, `.mp4`, anything a project targets
+— whose content varies by locale. Zintl manages the **slot**, never the content.
 
-### §14.1 — Detection and Registration
+> **Localization is not translation.** Translation is one thing that can happen inside a localized
+> artifact; it is not the relationship between the artifact and its source. A German legal PDF is not
+> derived from the English one, a photograph of the Tokyo storefront is not derived from the Paris
+> one, and a dubbed audio track is not a transformation of anything.
 
-- **Detection**: Files with extensions `.txt` or `.md` that are imported in the source code.
-- **Registration**: When an asset is resolved, it is registered in the `AssetManager`.
-- **Localization Pattern**: If `about.txt` exists, Zintl looks for `about.[locale].txt` (e.g., `about.ar.txt`).
+### §14.1 — Authored, not derived
 
-### §14.2 — Development Mode (HMR)
+- **Targeting**: a file matching `assetsTarget` declares that a slot exists. Targeting _is_ the
+  statement that this file varies by locale; an asset identical in every locale is one you never
+  target.
+- **Scaffolding**: each targeted asset gets an **empty** artifact per non-source locale, under
+  `outputDir` beside the catalogs. A person fills it.
+- **The compiler MUST NOT copy** content from a source asset into a localized one. A byte-identical
+  artifact is a source-locale fallback that nothing downstream can detect, which §5 forbids.
+- **The compiler MUST NOT compare** a source asset with a localized one. A source edit does not imply
+  a localized change, and for binary content the comparison is meaningless. Whether a translation has
+  fallen behind is an editorial question, and belongs to a person or a TMS.
+
+Artifact paths follow `outputPattern` when a target names one, and otherwise
+`<outputDir>/<path>.<locale><ext>` — so `src/about.txt` becomes `zintl/src/about.ar.txt`.
+
+### §14.2 — Identity
+
+The one comparison Zintl performs is between a source asset and **its own previous state**, which
+answers _"did this move?"_ and never _"is that stale?"_.
+
+| Observed            | Meaning          | Action                                      |
+| :------------------ | :--------------- | :------------------------------------------ |
+| Same hash, new path | Moved or renamed | Move the artifacts to follow                |
+| Same path, new hash | Edited in place  | Nothing                                     |
+| New hash, new path  | Ambiguous        | Treat as new; leave the old artifacts alone |
+
+The Hive records a source asset's content hash and the path that last carried it. It stores **no
+asset content**: restoring content into an artifact would be copying, whichever direction it came
+from. Nothing is ever deleted, so a wrong guess costs an orphaned file rather than unrecoverable
+content.
+
+### §14.3 — Delivery
+
+How an artifact's bytes reach the browser is decided by **the import**, not by the file's extension:
+
+| Import                            | Delivery                                               |
+| :-------------------------------- | :----------------------------------------------------- |
+| `import t from "./about.txt?raw"` | **Inline** — the content becomes the catalog value     |
+| `import u from "./hero.webp"`     | **Reference** — the bundler's URL is the catalog value |
+
+Because a URL is a string, every mechanism downstream — chunking, hydration, runtime locale
+switching, hot updates — works on a PDF or a video without knowing it is one. No file type is special,
+and none needs naming.
+
+**Both modes are resolved through the catalog, not through the module graph.** An import of a
+targeted asset resolves to a module that reads the active locale on every access — the same shape for
+both, differing only in what the catalog holds:
+
+| Mode          | Catalog value                      | Produced by                         |
+| :------------ | :--------------------------------- | :---------------------------------- |
+| **Inline**    | The artifact's text                | Read from disk                      |
+| **Reference** | The bundler's URL for the artifact | A plain import the bundler resolves |
+
+This matters because a plain import is otherwise a **static binding**: it resolves once, to one file,
+and nothing re-reads it when the locale changes. Reference delivery would then follow the locale only
+where module _identity_ does — a multiplexed build — and never on a dev server or in a
+runtime-switchable app.
+
+The source locale is answered directly rather than through the catalog: its artifact is the source
+file, so there is nothing to look up, and under the Ghost Protocol (§9) there is no catalog on disk
+to look it up in.
+
+### §14.4 — Development Mode (HMR)
 
 In development, assets are mapped to a global **Virtual Boundary** named `b_assets`.
 
-- **Dependency Mapping**: In `isDev` mode, every active entry chunk automatically depends on `b_assets`.
-- **Invalidation**: When any registered asset (source or localized) is modified, the compiler invalidates the `b_assets` boundary. This triggers a cascading invalidation of all entry points, ensuring the UI reflects the new asset content immediately.
+- **Dependency Mapping**: in `isDev` mode, every active entry chunk automatically depends on `b_assets`.
+- **Invalidation**: when any registered asset — source or artifact — is modified, the compiler
+  invalidates `b_assets`, cascading to all entry points so the UI reflects the change immediately.
+- **Unfilled artifacts** are served **empty**, never as the source locale, with one warning per
+  artifact naming the file to fill. A dev server is not where a release is decided, and refusing to
+  serve a project mid-translation would refuse its normal state.
+- **Re-authoring an artifact reaches the browser in both delivery modes.** For inline delivery the
+  bytes travel inside the catalog, so a fresh catalog is a fresh page. For reference delivery they do
+  not travel through Zintl at all — the browser fetches them from a URL that need not change when the
+  file behind it does, so the catalog can be correct and the viewport stale. Measured rather than
+  assumed: the URL serves the current artifact under ordinary cache semantics, and a contract asserts
+  it by fetching bytes rather than by comparing strings Zintl produced.
 
-### §14.3 — Production Mode (Hashing)
+### §14.5 — Integrity
 
-In production, localized assets are treated as first-class citizens in the build graph:
+An unfilled artifact is a missing translation with a file for a body. `verifyIntegrity` — on for
+builds, off while serving, the same option and default that governs strings — fails a build listing
+every empty artifact by locale and path.
 
-- **Key Generation**: The compiler generates a unique stable key for each asset based on its relative path.
-- **Content Hashing**: Localized assets are emitted with content hashes (e.g., `about.ar-BF8QNONU.txt`) to ensure cache busting and long-term stability.
-- **Mapping**: The mapping between the abstract asset ID and the localized physical path is baked into the production catalogs.
+`translation === ""` and `size === 0` are one rule in two representations. The report offers two
+remedies, and the second is not a workaround: fill the file, **or** stop targeting the asset if it is
+the same in every locale.
+
+---
+
+## §15 — Sink Targets ($S$ Detection)
+
+§1 defines $S$ as _"a UI string assigned to a translatable property"_. This section is the formal rule
+behind that sentence: which strings are $S$, and on what authority.
+
+### §15.1 — The Evidence Axiom
+
+> A **default** target MUST rest on evidence that the string is user-facing.
+> A target resting on a name alone MUST be declared by the project.
+
+A target is **structural** when the parser can see that the string occupies a rendering position, and
+**nominal** when it matches an identifier and cannot know what that identifier holds.
+
+| Class          | Targets                                                    | The evidence                           |
+| :------------- | :--------------------------------------------------------- | :------------------------------------- |
+| **Structural** | `html:attr:*`, `jsx:*:*`, HTML text, `tag:*`, DOM coinages | The string is in markup, or was tagged |
+| **Qualified**  | `dom:<receiver>:*`, `obj:<binding>:*`, `call:<fn>:*`       | A named receiver, binding or callee    |
+| **Nominal**    | `dom:prop:*`, `obj:*:<field>`                              | A property name; the holder is unknown |
+
+Nominal targets are permitted but MUST NOT be defaults, because a name carries no information about
+its holder: `{ label: "signup_click" }` is indistinguishable from a button caption. Extraction
+**rewrites the value**, so a wrongly-matched string is returned translated at runtime — and under §5's
+no-fallback rule it also fails the build until translated.
+
+> [!NOTE]
+> A property name may itself be evidence when it is not an ordinary word. `innerHTML`, `textContent`
+> and `innerText` are DOM coinages that do not occur as arbitrary field names; `title`, `value`, `alt`
+> and `label` do, and are therefore not defaults in unqualified form.
+
+### §15.2 — Descriptor Grammar
+
+```
+descriptor  ::= jsx ":" element ":" attribute
+              | "html:attr:" attribute
+              | dom ":" receiver ":" property
+              | obj ":" binding ":" field
+              | "call:" callee ":" field
+              | "tag:" identifier
+element     ::= identifier | "*"
+receiver    ::= identifier | "prop" | "*"
+binding     ::= identifier | "field" | "*"
+```
+
+`*` denotes _any_, in **either** position: `obj:*:title` is any object's `title`; `obj:details:*` is
+every field of an object named `details`. `prop` and `field` are the original spellings of `*` in the
+receiver and binding positions and are equivalent to it.
+
+An unrecognised descriptor, a wrong arity, an empty segment, or a path where a single name is expected
+MUST be **rejected at construction**. A descriptor that matches nothing MUST NOT be accepted silently:
+a stated intent that is discarded without a message is indistinguishable from a feature that does not
+exist.
+
+### §15.3 — Binding Resolution
+
+For `obj:<binding>:<field>` and `call:<callee>:<field>`, the qualifying name is resolved by walking
+**outward** from the property to the nearest name-carrying ancestor.
+
+| Ancestor                                    | Contributes             |
+| :------------------------------------------ | :---------------------- |
+| `VariableDeclarator`, `FunctionDeclaration` | its `id`                |
+| `PropertyDefinition` (class field)          | its `key`               |
+| `CallExpression` with an identifier callee  | the callee, for `call:` |
+
+Three rules govern the walk:
+
+1. **The first binding is the answer**, whether or not it claims the field. Walking past it would let
+   an outer scope's name capture an inner object.
+2. **The walk crosses function bodies.** `const ui = () => ({ … })` and
+   `function build() { return { … } }` are as common as the plain declaration, and stopping at the
+   function would serve only the simplest form.
+3. **The walk does not stop at the first object.** A field nested inside `const ui = { home: { … } }`
+   resolves to `ui`, because that nesting is the ordinary shape of a strings object.
+
+The name is the **local binding**, never an export alias. `const ui = …; export { ui as strings }` is
+matched by `obj:ui:title` and not by `obj:strings:title`. There is not always one exported name —
+`export { ui as a, ui as b }` is legal — while the local binding is always singular, and a target
+describes where the object is written rather than how the module exposes it.
+
+`obj:` and `call:` are distinct relations. _Bound to `cfg`_ and _passed to `cfg()`_ MUST NOT be
+conflated, or `call:cfg:title` would match a `const cfg = { title }` unrelated to the call.
+
+An object with no name-carrying ancestor — an anonymous `export default` — is **not addressable** by a
+declared target. §15.5 covers it.
+
+### §15.4 — Receiver Qualification
+
+For `dom:<receiver>:<property>`, the receiver MUST be a plain identifier matching the descriptor.
+`dom:document:title` matches `document.title` and not `telemetry.title`.
+
+A member-expression receiver does not match: `window.document.title` is outside the rule. Following
+member chains means walking arbitrary receivers, which reintroduces the guessing the qualification
+exists to remove.
+
+### §15.5 — Site Marking ($S$ by Declaration)
+
+`@zintl-target` opts a node and its subtree in. Within a marked region every string field of an object
+literal is $S$, regardless of its name.
+
+It is the inverse of `@zintl-ignore` and composes with it: `@zintl-ignore` inside a marked region still
+excludes that site. Regions nest, so the depth MUST be counted rather than flagged — an inner region
+ending must not end the outer.
+
+Marking is the only form that reaches a site with no resolvable name, and the only one that survives
+renaming the binding.
+
+### §15.6 — Target Composition
+
+Targets reach the compiler from three sources and MUST **union**:
+
+| Source              | Semantics                                        |
+| :------------------ | :----------------------------------------------- |
+| Facet `targets`     | **Replaces** that facet's own list               |
+| `additionalTargets` | **Adds** to the resolved set                     |
+| `@zintl-target`     | Adds at one site, for the duration of its region |
+
+A facet declaring a subset of what an unconditional facet already declares narrows nothing — union is
+the merge rule, so subtraction is expressible only by replacing a facet's list or excluding the facet.
 
 ---

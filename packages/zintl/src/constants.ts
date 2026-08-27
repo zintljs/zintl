@@ -26,5 +26,20 @@ const RAW_ASSET_VIRTUAL_PREFIX = "virtual:zintl/rawasset";
  * callers outside this file.
  */
 export const RESOLVED_RAW_ASSET_PREFIX = "\0" + RAW_ASSET_VIRTUAL_PREFIX;
+
+/**
+ * The same trick for the other delivery mode.
+ *
+ * A plain import of a targeted asset resolves to a *module* that follows the
+ * active locale, so it needs an identity for exactly the reasons the raw prefix
+ * documents above — and for one more. The generated module imports
+ * `virtual:zintl/runtime/internal`, and unplugin materialises a virtual module
+ * as a real file inside `node_modules/.virtual/`; leaving the id as the asset's
+ * own path put that file next to the asset instead, where the bare specifier no
+ * longer resolved and Rspack reported a missing module three directories away
+ * from the cause.
+ */
+const URL_ASSET_VIRTUAL_PREFIX = "virtual:zintl/urlasset";
+export const RESOLVED_URL_ASSET_PREFIX = "\0" + URL_ASSET_VIRTUAL_PREFIX;
 export const RUNTIME_VIRTUAL_ID = "virtual:zintl/runtime";
 export const RUNTIME_INTERNAL_VIRTUAL_ID = "virtual:zintl/runtime/internal";

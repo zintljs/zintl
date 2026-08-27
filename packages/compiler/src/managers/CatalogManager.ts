@@ -15,7 +15,7 @@ import type { IOManager } from "./IOManager.js";
 import type { GraphManager } from "./GraphManager.js";
 import type { CatalogCache } from "../types/index.js";
 import { sortObjectKeys } from "../utils/serialization.js";
-import { toPosixPath, isExamplePath } from "../utils/paths.js";
+import { toPosixPath, isExamplePath, normalizeOutputPath } from "../utils/paths.js";
 import { isTestEnvironment } from "../utils/env.js";
 import type { CompilerContext, ContentFacet } from "../types/capabilities.js";
 
@@ -55,6 +55,11 @@ export class CatalogManager {
   private readonly _catalogFormat: string | ((ctx: CatalogFormatContext) => string) | undefined;
   public get catalogFormat() {
     return this._catalogFormat;
+  }
+
+  /** {@link normalizeOutputPath}, bound to this manager's root. */
+  private normalizeOutputPath(p: string): string {
+    return normalizeOutputPath(this.root, p);
   }
 
   constructor(
@@ -1150,6 +1155,50 @@ export class CatalogManager {
     }
   }
 
+  /**
+   * Every path this graph will write a catalog or schema to, by boundary.
+   *
+   * Extracted from the pruning scan, which computed the same set and then merged
+   * it with the content facets' outputs into one `knownPaths` — a union that, by
+   * construction, cannot show an *intersection*. Two subsystems writing the same
+   * file looked exactly like one subsystem writing it twice.
+   *
+   * Keyed by normalized absolute path so a caller can ask "does anything else
+   * want this file?" and get the boundary responsible in the answer.
+   *
+   * Every node, without the pruning scan's reachability filter, on purpose. A
+   * boundary that no entry reaches today has its catalog written the moment one
+   * does, and a guard that only fires once the graph happens to have grown the
+   * right edge is a guard that fires on some builds of the same project and not
+   * others. The claim being reported is "a boundary in this graph is named after
+   * that file", which is true either way.
+   */
+  public catalogOutputPaths(graph: BoundaryGraph, locales: string[]): Map<string, string> {
+    const paths = new Map<string, string>();
+    for (const bId of graph.nodes.keys()) {
+      for (const locale of locales) {
+        if (locale === this.sourceLocale) continue;
+        const p = this.getCatalogPath(bId, locale);
+        if (p) paths.set(this.normalizeOutputPath(p), bId);
+      }
+      const sPath = this.getSchemaPath(bId);
+      if (sPath) paths.set(this.normalizeOutputPath(sPath), bId);
+    }
+    return paths;
+  }
+
+  /**
+   * Extensions this compiler may reclaim from `outputDir`: catalogs, plus
+   * whatever the content facets declare they own.
+   */
+  private isPrunableOutput(name: string): boolean {
+    const lower = name.toLowerCase();
+    if (lower.endsWith(".json")) return true;
+    return this.contentFacets.some((facet) =>
+      (facet.extensions ?? []).some((ext) => lower.endsWith(ext.toLowerCase())),
+    );
+  }
+
   public async pruneOrphanedBoundaries(
     graph: BoundaryGraph,
     locales: string[],
@@ -1252,10 +1301,6 @@ export class CatalogManager {
     this.lastPrunedManifestHash = manifestHash;
 
     const knownPaths = new Set<string>();
-    const normalizePath = (p: string) => {
-      const abs = isAbsolute(p) ? p : join(this.root, p);
-      return toPosixPath(abs).replace(/\/+/g, "/").replace(/\/+$/, "");
-    };
 
     // Use pre-computed reachable set if provided, otherwise lazily derive it once.
     let reachableFiles: Set<string> | null = precomputedReachable ?? null;
@@ -1282,21 +1327,23 @@ export class CatalogManager {
       for (const locale of locales) {
         if (locale === this.sourceLocale) continue;
         const p = this.getCatalogPath(bId, locale);
-        if (p) knownPaths.add(normalizePath(p));
+        if (p) knownPaths.add(this.normalizeOutputPath(p));
       }
       const sPath = this.getSchemaPath(bId);
       if (sPath) {
-        knownPaths.add(normalizePath(sPath));
-        knownPaths.add(normalizePath(sPath.replace(/\.schema\.json$/, ".shared.schema.json")));
+        knownPaths.add(this.normalizeOutputPath(sPath));
+        knownPaths.add(
+          this.normalizeOutputPath(sPath.replace(/\.schema\.json$/, ".shared.schema.json")),
+        );
       }
     }
     for (const s of this.activeSchemaPaths) {
-      knownPaths.add(normalizePath(s));
+      knownPaths.add(this.normalizeOutputPath(s));
     }
 
     if (activeContentPaths) {
       for (const p of activeContentPaths) {
-        knownPaths.add(normalizePath(p));
+        knownPaths.add(this.normalizeOutputPath(p));
       }
     }
 
@@ -1308,10 +1355,10 @@ export class CatalogManager {
             for (const locale of locales) {
               if (locale === this.sourceLocale) continue;
               const p = this.getCatalogPath(id, locale);
-              if (p) knownPaths.add(normalizePath(p));
+              if (p) knownPaths.add(this.normalizeOutputPath(p));
             }
             const sPath = this.getSchemaPath(id);
-            if (sPath) knownPaths.add(normalizePath(sPath));
+            if (sPath) knownPaths.add(this.normalizeOutputPath(sPath));
           }
         }
       }
@@ -1322,10 +1369,10 @@ export class CatalogManager {
           for (const locale of locales) {
             if (locale === this.sourceLocale) continue;
             const p = this.getCatalogPath(id, locale);
-            if (p) knownPaths.add(normalizePath(p));
+            if (p) knownPaths.add(this.normalizeOutputPath(p));
           }
           const sPath = this.getSchemaPath(id);
-          if (sPath) knownPaths.add(normalizePath(sPath));
+          if (sPath) knownPaths.add(this.normalizeOutputPath(sPath));
         }
       }
     }
@@ -1367,6 +1414,18 @@ export class CatalogManager {
     );
     let prunedCount = 0;
 
+    /**
+     * Whether a file under `outputDir` is one of ours to reclaim.
+     *
+     * Catalogs are `.json`; everything else here is a localized artifact, and
+     * which extensions those are is the *facets'* answer, not a constant. This
+     * read `/\.(json|md|txt)$/`, so a project targeting anything else kept every
+     * orphaned artifact forever — the source could be deleted and its artifacts
+     * would outlive it, unreferenced and unexplained.
+     *
+     * Deliberately narrow rather than "delete whatever is not known": this path
+     * removes files, and `outputDir` is a directory people commit and edit.
+     */
     const scan = async (dir: string) => {
       const entries = await this.io.readEntries(dir);
       for (const entry of entries) {
@@ -1377,8 +1436,8 @@ export class CatalogManager {
           // If directory is now empty, remove it
           const remaining = await this.io.readDir(full);
           if (remaining.length === 0) await this.io.rm(full);
-        } else if (/\.(json|md|txt)$/.test(entry.name)) {
-          if (!knownPaths.has(normalizePath(full))) {
+        } else if (this.isPrunableOutput(entry.name)) {
+          if (!knownPaths.has(this.normalizeOutputPath(full))) {
             this.logger.debug(`Pruning orphaned file: ${relative(this.root, full)}`);
             await this.io.rm(full);
             prunedCount++;

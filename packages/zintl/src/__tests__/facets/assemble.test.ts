@@ -15,7 +15,11 @@ import {
   flattenFacets,
   BUILTINS,
 } from "../../facets/assemble.js";
+import { assetsFacet } from "@zintljs/compiler/facets";
 import { detectFrameworks } from "../../facets/detect.js";
+import { createTestDir } from "../helpers/fs.js";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { ZintlFacet } from "@zintljs/compiler";
 import type { FacetsInput } from "../../types.js";
 
@@ -46,6 +50,58 @@ describe("flattenFacets", () => {
   it("keeps user facets alongside the expanded builtin set", () => {
     const mine = { name: "mine", concern: "runtime" } as ZintlFacet;
     expect(names(flattenFacets([BUILTINS, mine], builtins).facets)).toEqual(["builtin-a", "mine"]);
+  });
+
+  /**
+   * Naming a built-in replaces it, whichever side of `"builtins"` it is on.
+   *
+   * This used to be a coin flip decided by sort stability: same name, same
+   * priority, and `resolveFacets` keeping whichever came first. Listing
+   * `"builtins"` first — which is what the docs show — silently discarded the
+   * user's configured facet, and nothing said so.
+   */
+  it("replaces a built-in with the user's facet of the same name", () => {
+    const mine = { name: "builtin-a", concern: "runtime", priority: 0 } as ZintlFacet;
+
+    for (const inputs of [
+      [BUILTINS, mine],
+      [mine, BUILTINS],
+    ] as FacetsInput[][]) {
+      const result = flattenFacets(inputs, builtins);
+      expect(result.facets).toEqual([mine]);
+      expect(result.facets[0]).toBe(mine);
+      expect(Array.from(result.overridden)).toEqual(["builtin-a"]);
+    }
+  });
+
+  it("reports nothing overridden when the names do not collide", () => {
+    const mine = { name: "mine", concern: "runtime" } as ZintlFacet;
+    expect(Array.from(flattenFacets([BUILTINS, mine], builtins).overridden)).toEqual([]);
+  });
+
+  /**
+   * The bundler facets are always candidates, so they are ours for this purpose
+   * too — a project shipping its own `vite` facet means to replace ours.
+   */
+  it("replaces an always-candidate facet the user names", () => {
+    const ours = { name: "vite", concern: "bundler" } as ZintlFacet;
+    const mine = { name: "vite", concern: "bundler" } as ZintlFacet;
+
+    const result = flattenFacets([BUILTINS, mine], builtins, [ours]);
+    expect(result.facets.filter((f) => f.name === "vite")).toEqual([mine]);
+    expect(result.overridden.has("vite")).toBe(true);
+  });
+
+  it("keeps the surviving facets in the order they were listed", () => {
+    const a = { name: "a", concern: "runtime" } as ZintlFacet;
+    const c = { name: "c", concern: "runtime" } as ZintlFacet;
+    const mineB = { name: "builtin-a", concern: "runtime" } as ZintlFacet;
+
+    expect(names(flattenFacets([a, BUILTINS, mineB, c], builtins).facets)).toEqual([
+      "a",
+      "builtin-a",
+      "c",
+    ]);
   });
 });
 
@@ -126,6 +182,47 @@ describe("supersession", () => {
       "ssr-wrapping",
     );
   });
+
+  /**
+   * Reconfiguring one built-in is the reason `facets` accepts a list at all,
+   * and `["builtins", assetsFacet({ … })]` is the shape the docs show for it.
+   * The user's copy has to be the one that survives — and the trace has to say
+   * the other one went, because being discarded in silence was the defect.
+   */
+  it("lets a project replace a built-in by naming it", () => {
+    const mine = {
+      name: "system-static-assets",
+      concern: "content",
+      contentFacet: { name: "system-static-assets", extensions: [".mdx"] },
+    } as unknown as ZintlFacet;
+
+    const { facets, trace } = assembleFacetsWithTrace({
+      ...vite,
+      frameworks: ["react"],
+      facets: [BUILTINS, mine],
+    });
+
+    expect(facets.filter((f) => f.name === "system-static-assets")).toEqual([mine]);
+    expect(trace.find((e) => e.name === "system-static-assets (built-in)")?.reason).toBe(
+      'replaced by the "system-static-assets" facet you passed',
+    );
+  });
+
+  /**
+   * Order is not load-bearing — the property `activate.ts` states in its header
+   * and the one the old name-dedupe quietly broke.
+   */
+  it("replaces the built-in whichever side of the sentinel it is listed on", () => {
+    const mine = { name: "system-static-assets", concern: "content" } as ZintlFacet;
+
+    for (const facets of [
+      [BUILTINS, mine],
+      [mine, BUILTINS],
+    ] as FacetsInput[][]) {
+      const resolved = assembleFacets({ ...vite, frameworks: ["react"], facets });
+      expect(resolved.filter((f) => f.name === "system-static-assets")).toEqual([mine]);
+    }
+  });
 });
 
 describe("bundler facets", () => {
@@ -186,6 +283,103 @@ describe("the builtins sentinel", () => {
   });
 });
 
+/**
+ * An option that configures a facet the project removed is refused.
+ *
+ * `assetsTarget` and `virtualAssets` reach the *built-in* assets facet, and
+ * replacing or excluding that facet used to strand them: accepted, validated,
+ * and configuring nothing, so the files they named were quietly not localized.
+ * Proposal 034 §1.6 and §8.
+ *
+ * The negative cases carry as much weight as the positive one. This guard fires
+ * on a combination that is easy to reach by accident — a shared plugin config
+ * plus a project-level facet override — so a false positive would refuse builds
+ * that are entirely correct.
+ */
+describe("options that configure a built-in facet", () => {
+  const assets = () => assetsFacet({ targets: ["mdx"] });
+
+  it("refuses `assetsTarget` when the assets facet is replaced", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        assetsTarget: ["rst"],
+      }),
+    ).toThrow(/`assetsTarget` configures the built-in "system-static-assets" facet/);
+  });
+
+  it("refuses `assetsTarget` when the assets facet is excluded", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, excludeFacet("system-static-assets")],
+        assetsTarget: ["rst"],
+      }),
+    ).toThrow(/excluded/);
+  });
+
+  it("names every stranded option, not just the first", () => {
+    let message = "";
+    try {
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        assetsTarget: ["rst"],
+        virtualAssets: true,
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("`assetsTarget`");
+    expect(message).toContain("`virtualAssets`");
+    // And the way out, which is the whole reason this is an error.
+    expect(message).toContain("assetsFacet({ targets: [...] })");
+  });
+
+  it("allows the options when the built-in facet is still in the build", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS],
+        assetsTarget: ["rst"],
+        virtualAssets: true,
+      }),
+    ).not.toThrow();
+  });
+
+  it("allows replacing the facet when no option was configuring it", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+      }),
+    ).not.toThrow();
+  });
+
+  /**
+   * `virtualAssets` is resolved against a default before it arrives, so "not
+   * set" and "set to false" are the same value. Treating that as a signal would
+   * refuse every project that replaces the assets facet — and `false` is the
+   * facet's own default, so nothing is lost by ignoring it.
+   */
+  it("does not treat a defaulted `virtualAssets: false` as configuration", () => {
+    expect(() =>
+      assembleFacets({
+        bundler: "vite",
+        frameworks: ["react"],
+        facets: [BUILTINS, assets()],
+        virtualAssets: false,
+      }),
+    ).not.toThrow();
+  });
+});
+
 describe("detectFrameworks", () => {
   it("reads frameworks off bundler plugin names", () => {
     expect(detectFrameworks({ pluginNames: ["vite:react-jsx"] })).toEqual(["react"]);
@@ -237,5 +431,47 @@ describe("detectFrameworks", () => {
   it("does not read a framework out of an unrelated plugin name", () => {
     expect(detectFrameworks({ pluginNames: ["splitVendorChunk"] })).toEqual([]);
     expect(detectFrameworks({ pluginNames: ["vite:build-import-analysis"] })).toEqual([]);
+  });
+
+  /**
+   * `nextjs` means vinext, and only vinext.
+   *
+   * The Next.js facets wrap `virtual:vinext-*` entries, so they can only serve a
+   * Next.js app running on Vite through vinext. Detecting the framework from a
+   * bare `next` dependency claimed apps the facets cannot help — and did real
+   * damage while claiming them, because `nextjs-runtime` supersedes
+   * `client-spa`. A Vite SPA in a monorepo that merely had `next` in its
+   * manifest lost client locale sync to a facet set that then bound to nothing.
+   */
+  it("detects nextjs from vinext, and not from a bare next dependency", async () => {
+    const root = await createTestDir("zintl-detect-nextjs-");
+
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({ dependencies: { next: "^15.0.0", react: "^19.0.0" } }),
+    );
+    expect(detectFrameworks({ root })).toEqual(["react"]);
+
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({
+        dependencies: { next: "^15.0.0", react: "^19.0.0" },
+        devDependencies: { vinext: "^0.1.0" },
+      }),
+    );
+    expect(detectFrameworks({ root })).toEqual(["react", "nextjs"]);
+  });
+
+  /**
+   * The plugin-name rule is separator-bounded for the same reason Solid's is.
+   *
+   * `includes("next")` matched any plugin with those four letters anywhere in
+   * its name, which is a wide net for a facet set that supersedes two others.
+   */
+  it("matches vinext on separator boundaries, not as a substring", () => {
+    expect(detectFrameworks({ pluginNames: ["vinext"] })).toEqual(["nextjs"]);
+    expect(detectFrameworks({ pluginNames: ["vinext:rsc"] })).toEqual(["nextjs"]);
+    expect(detectFrameworks({ pluginNames: ["vite-plugin-nextgen-assets"] })).toEqual([]);
+    expect(detectFrameworks({ pluginNames: ["rollup-plugin-context"] })).toEqual([]);
   });
 });
