@@ -151,6 +151,33 @@ function. Measured: building with `assetsTarget: ["json"]` succeeds silently and
 > property of the design. §6's smallest option is correspondingly smaller: guard the branch that
 > collides, and leave the default branch alone.
 
+> [!NOTE]
+> **Corrected again 2026-08-26, while implementing §6.** The paragraph above is wrong about which
+> branch collides, and its "leave the default branch alone" is the one instruction that must not be
+> followed.
+>
+> The default branch does not call `getCatalogPath`, but it builds the _same name by hand_ —
+> `assets.ts:508–515` joins `outputDir` with `<cleanId>.<locale><ext>`, which is exactly what
+> `getCatalogPath` produces for a per-locale format. Not sharing a function is not the same as not
+> sharing a namespace, and the correction mistook the one for the other.
+>
+> Measured on the default configuration — no `catalogFormat` at all, `assetsTarget: ["json"]`, a
+> boundary in `src/data.ts` and an asset at `src/data.json`:
+>
+> ```
+> zintl/src/data.ar.json   ← the catalog. Written second; the artifact is gone.
+> ```
+>
+> So the exposure is the opposite shape from what the correction claimed: the _default_ path is the
+> one that collides, and a per-locale `catalogFormat` changes nothing about it. What actually decides
+> whether anything collides is where the **catalogs** land, not which asset branch ran — a
+> multilingual `catalogFormat: "translations.json"` is safe because it moves every catalog to one
+> file that is named after nothing, leaving `zintl/src/data.ar.json` free.
+>
+> The original "by construction" wording was right, and the guard §6 asks for has to compare paths
+> rather than branches. That is what it does: it indexes every path the boundary graph will write a
+> catalog or schema to and asks whether any active content-facet output is already in it.
+
 ### 1.5 Already-localized siblings are localized again
 
 Measured, with `assetsTarget: ["md"]` and a `src/doc.ar.md` translation present:
@@ -275,6 +302,41 @@ The middle option is the honest one — assets are not catalogs and should not b
 catalog's rules — but the smallest defensible step is the first, because a _silent_ collision between
 a user's asset and a translation catalog is the worst outcome available and the guard removes it
 outright.
+
+> [!NOTE]
+> **Settled 2026-08-26: option 1, as a hard error.** Implemented as
+> `ZintlCompiler.assertNamespacesDoNotCollide`, run from `runFlush` before anything is written.
+>
+> A **target** is not what gets refused, though — a **path** is. Refusing "a target whose output
+> would collide" reads as an extension check, and an extension check is both too strict and too
+> loose: `assetsTarget: ["json"]` is perfectly safe in a project whose catalogs live in one
+> multilingual file, and perfectly unsafe in the default one. So the guard indexes every path the
+> boundary graph will write a catalog or schema to, and refuses only when an active content-facet
+> output is actually in that set. `packages/zintl/src/__tests__/compiler/assets_catalog_collision.test.ts`
+> holds the difference: the same `json` target, refused or accepted depending on where the two land.
+>
+> **Not in the pruning scan**, which is where both sets were already computed and where putting it
+> would have cost nothing. Pruning is gated on the `prune` option and short-circuits in dev, and a
+> correctness guard an unrelated option can switch off is not a guard. The scan's `knownPaths` is
+> also the wrong shape to find this with: it _unions_ the catalog paths with the content facets'
+> outputs, and a union cannot show an intersection — two subsystems writing one file looked exactly
+> like one subsystem writing it twice. The catalog side is now built by
+> `CatalogManager.catalogOutputPaths`, keyed by path so the boundary responsible comes back with the
+> answer, and both call sites normalize through one shared `normalizeOutputPath`.
+>
+> **An error rather than a pick**, for the same reason §8 is an error: the failure mode is wrong
+> output that passes its own gate. The catalog is written second, so the artifact _becomes_ a
+> catalog; `verifyIntegrity` finds a non-empty file and is satisfied; and the content ships in the
+> source locale. That is a source-locale fallback nothing downstream can detect, which is the one
+> thing this project's first rule forbids — and picking a winner would only choose which of two
+> people gets silently overwritten.
+>
+> The message names the artifact path, the facet that claimed it, and the boundary whose catalog it
+> is, then recommends `outputPattern` as the escape. That recommendation is itself tested: a guard
+> that suggests a fix it has never been run against is a guess.
+>
+> The middle option — assets getting their own path builder — is still the honest one and is still
+> open. Nothing here forecloses it; the guard just means nobody loses a file while it waits.
 
 ## 7. Proposal: stop localizing translations
 

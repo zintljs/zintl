@@ -16,7 +16,7 @@ import {
 import { sha1, generateMessageId } from "./utils/hashing.js";
 import type { ManifestEntry } from "./reconcile.js";
 import { selfAcceptHmrSnippet } from "./utils/hmr.js";
-import { toPosixPath, isExamplePath } from "./utils/paths.js";
+import { toPosixPath, isExamplePath, normalizeOutputPath } from "./utils/paths.js";
 import { isTestEnvironment } from "./utils/env.js";
 import {
   DEFAULT_SOURCE_LOCALE,
@@ -2759,6 +2759,76 @@ export class ZintlCompiler {
     }
   }
 
+  /**
+   * Refuse a build where a localized artifact and a catalog want the same file.
+   *
+   * Both namespaces are `<outputDir>/<path>.<locale>.<ext>` by construction, so
+   * an artifact whose extension matches the catalog's — `.json`, in every
+   * default configuration — can land exactly where a boundary's catalog goes.
+   * Measured: targeting `src/data.json` alongside a boundary in `src/data.ts`
+   * puts both at `zintl/src/data.ar.json`, and the catalog is written second and
+   * wins. The artifact is then a catalog, `verifyIntegrity` sees a non-empty
+   * file and passes, and the content ships in the source language with nothing
+   * said — a source-locale fallback wearing an artifact's name, which is the one
+   * thing this project's first rule forbids.
+   *
+   * That is worse than either subsystem failing, because it looks like success,
+   * so this refuses rather than picks a winner. Proposal 034 §6, option 1.
+   *
+   * Not inside the pruning scan, though that is where both sets were already
+   * computed: pruning is gated on the `prune` option and on a dev short-circuit,
+   * and a correctness guard an unrelated option can switch off is not a guard.
+   * §1.4 of that proposal thought the collision was confined to the branch that
+   * calls `getCatalogPath`; it is not, because the branch that does not still
+   * builds the same naming scheme by hand.
+   *
+   * Generic over content facets rather than special-cased to assets: the assets
+   * preset is the only facet that contributes output paths today, and the
+   * collision is a property of the shared naming scheme, not of that preset.
+   * Which facet claimed a path is carried through so the message can name it.
+   */
+  private assertNamespacesDoNotCollide(contentPaths: Map<string, string>): void {
+    const graph = this.graph.boundaryGraph;
+    if (!graph || contentPaths.size === 0) return;
+
+    const catalogs = this.catalog.catalogOutputPaths(graph, this.locales);
+    const collisions: { path: string; facet: string; boundaryId: string }[] = [];
+    for (const [path, facet] of contentPaths) {
+      const boundaryId = catalogs.get(normalizeOutputPath(this.root, path));
+      if (boundaryId) collisions.push({ path, facet, boundaryId });
+    }
+    if (collisions.length === 0) return;
+
+    const many = collisions.length > 1;
+    const lines = [
+      `[Zintl] ${
+        many
+          ? `${collisions.length} localized artifacts land on paths`
+          : `A localized artifact lands on a path`
+      } Zintl already writes a catalog to.`,
+      ``,
+      `Catalogs and localized artifacts are both named`,
+      `<outputDir>/<path>.<locale>.<ext>, so an artifact whose extension matches the`,
+      `catalog format — \`.json\`, in every default configuration — lands exactly`,
+      `where a boundary's catalog goes. The catalog is written second and wins: the`,
+      `artifact would then *be* a catalog, the integrity gate would see a non-empty`,
+      `file and pass, and the content would ship in "${this.sourceLocale}" with nothing said.`,
+      ``,
+    ];
+    for (const { path, facet, boundaryId } of collisions) {
+      lines.push(`  ${toPosixPath(relative(this.root, path))}`);
+      lines.push(`    claimed by "${facet}", and by the catalog for "${boundaryId}"`);
+    }
+    lines.push(
+      ``,
+      `Fix:    give the artifacts their own location, away from the catalogs —`,
+      `        assetsTarget: [{ targetPattern: "**/*.json",`,
+      `                         outputPattern: "assets/[locale]/[dir]/[name].[ext]" }]`,
+      `Or:     stop targeting this extension, or rename the source file.`,
+    );
+    throw new Error(lines.join("\n"));
+  }
+
   private async runFlush(): Promise<void> {
     {
       this.logger.debug("Flushing compiler state...");
@@ -2782,16 +2852,31 @@ export class ZintlCompiler {
         }
       }
 
-      const activeContentPaths = new Set<string>();
+      /**
+       * Every path the content facets will write to, keyed by the facet that
+       * claimed it.
+       *
+       * Pruning wants the union and nothing else, and had it as a `Set`. The
+       * namespace guard below wants to be able to say *whose* output collided,
+       * and that is knowable only here, while the contributing facet is still in
+       * hand — so the attribution is recorded on the way past and the union is
+       * derived from it rather than accumulated alongside it.
+       */
+      const contentPathOwners = new Map<string, string>();
       const context = this.getCompilerContext();
       for (const facet of this._resolved.system.contentFacets) {
         if (facet.getActiveOutputPaths) {
           const paths = await facet.getActiveOutputPaths(context);
           for (const p of paths) {
-            activeContentPaths.add(p);
+            if (!contentPathOwners.has(p)) {
+              contentPathOwners.set(p, facet.name ?? "a content facet");
+            }
           }
         }
       }
+      const activeContentPaths = new Set(contentPathOwners.keys());
+
+      this.assertNamespacesDoNotCollide(contentPathOwners);
 
       // Compute reachable files ONCE and pass down — avoids DFS traversal per-call in prune/sync.
       if (!this.reachableCache) {

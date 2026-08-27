@@ -65,6 +65,29 @@ version has fallen behind the English is an editorial question, not one a compil
 that bytes differ should be answering. Renaming or moving a source _does_ carry its artifacts with
 it: identity is content-based here as everywhere else.
 
+### Artifacts and catalogs share one naming scheme
+
+Both are named `<outputDir>/<path>.<locale>.<ext>`, so targeting `.json` — the extension catalogs
+themselves use — can put an artifact exactly where a boundary's catalog goes. `assetsTarget:
+["json"]` with an asset at `src/data.json` and a boundary in `src/data.ts` gives both
+`zintl/src/data.ar.json`.
+
+That build is refused, naming the file, the facet that claimed it and the boundary whose catalog it
+is. It is refused rather than resolved because the catalog is written second: the artifact would
+become a catalog, `verifyIntegrity` would find a non-empty file and pass, and your asset would ship
+in the source language with nothing said.
+
+Only an actual overlap is refused, not the extension. `assetsTarget: ["json"]` is fine when nothing
+collides — a differently named source, or a multilingual `catalogFormat` that keeps catalogs out of
+the way. When something does collide, give the artifacts their own location:
+
+```ts
+assetsTarget: [{ targetPattern: "**/*.json", outputPattern: "assets/[locale]/[dir]/[name].[ext]" }];
+```
+
+`outputPattern` is resolved from the project root, not from `outputDir`, and takes `[locale]`,
+`[dir]`, `[name]` and `[ext]`.
+
 ## Catalog upkeep
 
 | Option                | Type      | Default                         | What it does                                                                                                                   |
