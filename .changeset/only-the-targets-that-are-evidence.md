@@ -1,5 +1,5 @@
 ---
-"@zintljs/compiler": major
+"@zintljs/compiler": minor
 ---
 
 Remove `obj:field:*` from the default extraction targets.
