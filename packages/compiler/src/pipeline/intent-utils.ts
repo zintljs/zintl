@@ -7,6 +7,40 @@ import type {
   VariableBinding,
 } from "../types/index.js";
 
+/**
+ * Normalize a boundary id to the spelling every map in the system is keyed by.
+ *
+ * ## This rule is shared, and the three copies of it must agree
+ *
+ * Strip the *logic* extensions (`.ts`, `.js`) so a file keeps its identity when
+ * it moves between JS and TS; keep everything else, because `.tsx` and `.jsx`
+ * are part of how a boundary is named and `.vue`/`.svelte`/`.html` name a
+ * document rather than a compilation target.
+ *
+ * The same rule is implemented in {@link IOManager.getNormalizedId}, which keys
+ * the boundary graph and the ownership map, and in
+ * {@link calculateSafeBoundaryId}, which mints the ids that reach emitted code.
+ * All three have to answer identically or the maps stop meeting.
+ *
+ * ## They did not, and the failure was silent in both directions
+ *
+ * This copy used to strip `.tsx` and `.jsx` as well. That is invisible for a
+ * *function-scoped* id, because the regex is anchored at end-of-string and
+ * `src/main.tsx:boot` has no trailing extension — it came back untouched and
+ * matched the graph by accident. A **module-scoped** id did not:
+ * `src/main.tsx` became `src/main`, which names no node.
+ *
+ * Downstream, `resolveKingdom` returned that as the owner id, so
+ * `generateManagerUrl` classified an entry chunk's owner as `boundary:` and
+ * `calculateSafeBoundaryId` minted `b_src_main` for a chunk called
+ * `b_src_main_tsx`. The manager was generated for an id naming no chunk: it
+ * loaded with a 200 and registered no catalog, and every string in any *other*
+ * boundary rendered pseudo-localized. A top-level `zintl()` — the shape
+ * CLAUDE.md documents as the definition of an entry point — was broken for
+ * `.tsx` and `.jsx` projects, and no example used it.
+ *
+ * If a fourth copy of this ever seems necessary, it is not.
+ */
 function stripExtensions(id: string, extensions?: string[], codegenFacets?: any[]): string {
   const exts = extensions || [".ts", ".tsx", ".js", ".jsx", ".html"];
   const sfcExts = (codegenFacets || [])
@@ -16,7 +50,7 @@ function stripExtensions(id: string, extensions?: string[], codegenFacets?: any[
       return a.extensions || [];
     })
     .flat();
-  const keepExts = [".html", ...sfcExts];
+  const keepExts = [".html", ".tsx", ".jsx", ...sfcExts];
   const stripExts = exts.filter(
     (ext) => !keepExts.some((k) => k.toLowerCase() === ext.toLowerCase()),
   );

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="UTF-8" /><title>JSX template fixture</title>  <script type="module" crossorigin src="/assets/index.js"></script>
+  <head><meta charset="UTF-8" /><title>Module-scope anchor</title>  <script type="module" crossorigin src="/assets/module.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/greeting.js">
 
   <!--zintl-bootstrap-->

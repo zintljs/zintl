@@ -67,6 +67,9 @@ export const jsxTemplate: ProjectManifest = {
         `export default defineConfig({`,
         `  logLevel: "silent",`,
         `  esbuild: { jsx: "automatic", jsxImportSource: "preact" },`,
+        // Both pages declared, so the build emits both. Dev serves either from
+        // disk without being told.
+        `  build: { rollupOptions: { input: { index: "index.html", module: "module.html" } } },`,
         `  plugins: [zintl(${JSON.stringify(zintlOptions, null, 2)})],`,
         `});`,
         ``,
@@ -152,6 +155,46 @@ export const jsxTemplate: ProjectManifest = {
       ),
 
       /**
+       * The second page, and the reason this fixture has two.
+       *
+       * CLAUDE.md defines an entry point as "a file with a **top-level**
+       * `zintl()` call", and that shape was broken for `.tsx` and `.jsx`
+       * projects: codegen normalized `src/main.tsx` to `src/main` while the
+       * graph kept the extension, so the generated manager named a chunk that
+       * did not exist. It loaded with a 200 and registered no catalog, and every
+       * string in any *other* boundary rendered pseudo-localized.
+       *
+       * It survived because no project in the manifest used it — every example
+       * wraps `render` in `bootstrap()`, which puts the anchor in function scope
+       * where the bug cannot reach. The two pages here differ in exactly that
+       * one respect and share everything else, including the component and its
+       * catalog, so a divergence between them is about anchor scope and nothing
+       * else.
+       */
+      "module.html": [
+        `<!doctype html>`,
+        `<html lang="en">`,
+        `  <head><meta charset="UTF-8" /><title>Module-scope anchor</title></head>`,
+        `  <body>`,
+        `    <div id="root"></div>`,
+        `    <script type="module" src="/src/main-module.tsx"></script>`,
+        `  </body>`,
+        `</html>`,
+        ``,
+      ].join("\n"),
+
+      "src/main-module.tsx": [
+        `import { render } from "preact";`,
+        `import { zintl } from "zintljs/macro";`,
+        `import { Greeting } from "./greeting.tsx";`,
+        ``,
+        `const lang = new URLSearchParams(window.location.search).get("lang") || "en";`,
+        `await zintl(lang);`,
+        `render(<Greeting user={{ firstName: ${JSON.stringify(NAME)} }} />, document.getElementById("root")!);`,
+        ``,
+      ].join("\n"),
+
+      /**
        * Declared so `detectFrameworks` activates the Preact facet. An empty
        * `package.json` yields no framework, extraction finds nothing, and the
        * page renders in the source locale looking deceptively correct — which
@@ -178,11 +221,20 @@ export const jsxTemplate: ProjectManifest = {
      */
     initialHeadingText: HEADING,
     headingFile: "src/greeting.tsx",
+    /**
+     * The **module-scope** page, deliberately.
+     *
+     * The coverage is asymmetric and the asymmetry is the point: `initial-render`
+     * visits one page, and it should be the one that was broken. The
+     * `bootstrap()` page is covered by the `dist-output` snapshot here and by
+     * every example in the suite, so it is the better one to leave to a
+     * snapshot.
+     */
     navigateHome: async (lab) => {
-      await lab.page.goto(`${lab.url}/`);
+      await lab.page.goto(`${lab.url}/module.html`);
     },
     navigateLocale: async (lab, locale) => {
-      await lab.page.goto(`${lab.url}/?lang=${locale}`);
+      await lab.page.goto(`${lab.url}/module.html?lang=${locale}`);
     },
   },
 };

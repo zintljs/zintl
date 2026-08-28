@@ -1,0 +1,14 @@
+import { a as loadI18nInstance, i as entry_b_14b672badfbb_default, n as u, r as R, t as Greeting } from "./greeting.js";
+//#region fixtures/jsx-template/src/main-module.tsx
+var _jsxFileName = "<MONOREPO_ROOT>/fixtures/jsx-template/src/main-module.tsx";
+var lang = new URLSearchParams(window.location.search).get("lang") || "en";
+await (globalThis.__zintl_inst = loadI18nInstance({
+	locale: lang,
+	loaders: { ["b_14b672badfbb"]: entry_b_14b672badfbb_default.loader }
+}));
+R(/* @__PURE__ */ u(Greeting, { user: { firstName: "Ada" } }, void 0, false, {
+	fileName: _jsxFileName,
+	lineNumber: 9,
+	columnNumber: 8
+}, void 0), document.getElementById("root"));
+//#endregion
