@@ -351,6 +351,50 @@ translated at runtime, and because there is no fallback it also fails the build 
 translates it. `@zintl-ignore` opts a single site back out, and `t()` remains available for anything
 the targets cannot express.
 
+### Handing strings to a translation system
+
+Catalogs are JSON because JSON is what a human edits next to the code, where the call site is a click away. Handed to a translator with no repo, no screen and no build, `{ "Open": "" }` is close to worthless — they cannot tell whether _Open_ is a verb or an adjective.
+
+`xliffFacet` exports what the boundary graph knows, in a format every TMS ingests:
+
+```ts
+import { xliffFacet } from "zintljs/facets";
+
+zintl({
+  locales: ["en", "ar"],
+  facets: ["builtins", xliffFacet({ outDir: "./l10n" })],
+});
+```
+
+A production build then writes `l10n/<locale>.xlf` per locale. **Nothing is written while serving** — an export is a batch act, not a live sync — and your repo never gains an XML file unless you add this facet.
+
+What each string carries, all of it derived rather than typed, so none of it can go stale:
+
+```xml
+<unit id="c711797a">
+  <notes>
+    <note category="zintl:note">Shown after a successful payment</note>
+    <note category="zintl:element">Appears as: h1</note>
+    <note category="zintl:screens">Appears on: src/Checkout.tsx</note>
+    <note category="zintl:placeholder">{user_firstName} is user.firstName</note>
+  </notes>
+  <segment state="initial">
+    <source>Welcome back, {user_firstName}!</source>
+    <target></target>
+  </segment>
+</unit>
+```
+
+Two things there are worth calling out, because no translation system can work them out for itself.
+
+**A shared string is exported once, and says so.** If the same words appear in four places, a translator gets one unit and a note saying one translation covers all four. That is the difference between a safe edit and a regression, and it is knowable only from the import graph.
+
+**A carry-forward arrives pre-filled and flagged.** When you edit a source string, Zintl reconciles first and the export _states the answer_ — the old translation, the similarity, and a warning when a whole word changed. Your TMS's own fuzzy matching never gets a turn, which matters because two translation memories guessing independently disagree in ways that are miserable to debug: neither side is malfunctioning.
+
+A pending locale ([above](#standing-up-a-new-locale)) is exported too. It is exactly the locale a translation system is working through.
+
+Import is not implemented yet. When it lands it will validate before it merges — a placeholder your TMS dropped, a mangled tag, ICU plural categories wrong for the target language — and fail the build as loudly as a missing translation.
+
 ### Writing a facet
 
 A facet with **no condition is unconditional** — it applies always, with no check performed. That is the right default for a facet you added to your own project, because you added it on purpose.

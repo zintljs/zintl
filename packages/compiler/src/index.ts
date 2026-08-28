@@ -45,6 +45,7 @@ import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
 import { DeliveryBus } from "./bus/index.js";
 import { deriveMessageContext, type MessageContext } from "./message-context.js";
+import type { ExportBundle, ExportUnit } from "./types/capabilities.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { serializeDeterministic } from "./utils/serialization.js";
@@ -3239,6 +3240,7 @@ export class ZintlCompiler {
         }
       }
 
+      await this.runExchangeExport();
       await this.verifyIntegrity();
       this.scheduleTranslationStatus();
       this.logger.debug("Flush complete");
@@ -3435,6 +3437,110 @@ export class ZintlCompiler {
       );
     } else {
       this.logger.info(`Translations complete — ${line}`);
+    }
+  }
+
+  /**
+   * Assemble what leaves for each locale, for whatever is configured to send it.
+   *
+   * The compiler's half of the TMS seam (proposal 032 §5): material, never
+   * transport. Nothing here knows what XLIFF is.
+   *
+   * **Maintained locales, not shipped ones.** A pending locale (031) is
+   * precisely the state a TMS is working through — a locale being stood up over
+   * weeks is the reason to hand strings to translators at all — so excluding it
+   * would omit the one locale most likely to need the export. 032 §9 anticipated
+   * the two designs meeting here.
+   *
+   * Returns an empty array when nothing is configured to consume it, so the
+   * whole assembly is skipped rather than built and dropped.
+   */
+  private buildExportBundles(): ExportBundle[] {
+    if (this._resolved.system.exchangeFacets.length === 0) return [];
+
+    /** Carry-forwards, indexed for lookup rather than scanned per unit. */
+    const carried = new Map<string, { from: string; score: number; substitutesWords: boolean }>();
+    for (const r of this.messages.currentReconciliation?.renamed ?? []) {
+      carried.set(`${r.boundaryId}\u0000${r.to}`, {
+        from: r.from,
+        score: r.score,
+        substitutesWords: r.substitutesWords,
+      });
+    }
+
+    const bundles: ExportBundle[] = [];
+    for (const locale of this.maintainedLocales) {
+      if (locale === this.sourceLocale) continue;
+
+      /**
+       * Keyed by source text, not by boundary — 032 §8.1.
+       *
+       * One string is one translatable unit however many places reach it. The
+       * per-boundary shape is right for a catalog, where the file *is* the
+       * boundary; it is wrong for an export, where it would put the same words
+       * in front of a translator twice with nothing to say they must match.
+       */
+      const byKey = new Map<string, ExportUnit>();
+      for (const [boundaryId, entries] of Object.entries(this.messages.internalManifest)) {
+        for (const entry of entries) {
+          const context = this.getMessageContext(boundaryId, entry.text);
+          if (!context) continue;
+
+          const existing = byKey.get(entry.text);
+          if (existing) {
+            if (!existing.boundaryIds.includes(boundaryId)) existing.boundaryIds.push(boundaryId);
+            existing.contexts.push(context);
+            existing.carriedForward ??= carried.get(`${boundaryId}\u0000${entry.text}`);
+            continue;
+          }
+
+          byKey.set(entry.text, {
+            id: entry.id,
+            key: entry.text,
+            /**
+             * Read from the hive, which is what `verifyIntegrity` accepts — so
+             * a string this export calls translated is one the gate agrees is
+             * translated, and the two can never disagree about a locale's state.
+             */
+            target: this.messages.hive[locale]?.[entry.text] ?? "",
+            boundaryIds: [boundaryId],
+            contexts: [context],
+            carriedForward: carried.get(`${boundaryId}\u0000${entry.text}`),
+          });
+        }
+      }
+
+      // Sorted, so a re-export with nothing changed is byte-identical downstream.
+      const units = Array.from(byKey.values()).sort((a, b) => a.key.localeCompare(b.key));
+      for (const u of units) u.boundaryIds.sort();
+
+      bundles.push({ sourceLocale: this.sourceLocale, locale, units });
+    }
+    return bundles;
+  }
+
+  /**
+   * Hand each locale to whatever is configured to send it.
+   *
+   * Build only, and **before** {@link verifyIntegrity} rather than after. That
+   * ordering is the point rather than an accident: the build most in need of an
+   * export is the one about to fail for missing translations, and running after
+   * the gate would mean the export never happens exactly when it is wanted.
+   */
+  private async runExchangeExport(): Promise<void> {
+    if (this.isDev) return;
+    const facets = this._resolved.system.exchangeFacets;
+    if (facets.length === 0) return;
+
+    const bundles = this.buildExportBundles();
+    if (bundles.length === 0) return;
+
+    const context = this.getCompilerContext();
+    for (const facet of facets) {
+      if (!facet.export) continue;
+      for (const bundle of bundles) {
+        await this.runFacetStep("export", facet.name, () => facet.export!(bundle, context));
+      }
     }
   }
 

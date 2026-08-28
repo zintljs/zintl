@@ -62,6 +62,7 @@ export {
 export { ssrWrappingFacet, ssrRuntimeFacet, ssrFacet } from "./presets/ssr.js";
 export { clientSpaFacet } from "./presets/client-spa.js";
 export { viteFacet } from "./presets/vite.js";
+export { xliffFacet, type XliffFacetConfig } from "./presets/xliff.js";
 export { rspackFacet } from "./presets/rspack.js";
 export {
   ASSETS_FACET_NAME,

@@ -32,6 +32,7 @@ import type { DeliveryBus } from "../bus/index.js";
 import type { DependencyGraph, MetadataGraph, BoundaryGraph } from "./graph.js";
 import type { Manifest } from "../reconcile.js";
 import type { SourceMap } from "magic-string";
+import type { MessageContext } from "../message-context.js";
 
 /**
  * The declarative extraction vocabulary, re-exported so that facet authors and
@@ -58,7 +59,14 @@ export type {
  * Represents the primary concern of a facet.
  * This is used to determine the priority of facets.
  */
-export type FacetConcern = "extraction" | "codegen" | "runtime" | "ssr" | "bundler" | "content";
+export type FacetConcern =
+  | "extraction"
+  | "codegen"
+  | "runtime"
+  | "ssr"
+  | "bundler"
+  | "content"
+  | "exchange";
 
 /**
  * What a facet may ask about the project it is being resolved for.
@@ -825,13 +833,98 @@ export interface ContentFacet extends BaseFacet {
  * Every facet owns exactly one concern. The compiler itself is a microkernel that
  * derives its behavior entirely from the installed facet set.
  */
+/**
+ * One string, as it leaves for somewhere that is not this repository.
+ *
+ * Deliberately not a catalog entry. A catalog is `{ source: "translation" }`
+ * and that shape is right next to the code, where the call site is a click
+ * away; handed to a translator with no repo it cannot say whether *Open* is a
+ * verb. Everything beyond `key` and `target` here exists to answer the
+ * questions a catalog cannot (proposal 032 §2, §3).
+ */
+export interface ExportUnit {
+  /** Content-derived message id — stable across a move or a rename. */
+  id: string;
+  /** The source text, which is also the catalog key. */
+  key: string;
+  /** The current translation, or `""` when there is none yet. */
+  target: string;
+  /**
+   * Every boundary carrying this string, sorted.
+   *
+   * Plural, and that is 032 §8.1 rather than a convenience: context is metadata
+   * and never a key, so one string reached through a `button` and a `title` is
+   * **one** translatable unit annotated with both. Exporting it once per
+   * boundary would ask a translator to translate the same words twice and let
+   * them answer differently — and since the hive is keyed by source text
+   * globally, the second answer would silently overwrite the first.
+   */
+  boundaryIds: string[];
+  /** What the graph knows, from each place it appears. */
+  contexts: MessageContext[];
+  /**
+   * Set when reconciliation carried a translation forward onto edited source.
+   *
+   * The export **states the answer** rather than leaving it open, which is the
+   * whole of 032 §1: the hive and a TMS both have fuzzy matching, and two
+   * translation memories guessing independently is a wrong-rename generator
+   * that is miserable to debug because neither side is malfunctioning. Shipping
+   * the carry-forward pre-filled and flagged means the TMS's matcher never gets
+   * a turn.
+   */
+  carriedForward?: {
+    /** The source text this translation was written against. */
+    from: string;
+    /** Levenshtein similarity, 0–1. */
+    score: number;
+    /** True when a whole word was swapped — the dangerous kind of near-match. */
+    substitutesWords: boolean;
+  };
+}
+
+/** Everything leaving for one target locale. */
+export interface ExportBundle {
+  sourceLocale: string;
+  locale: string;
+  units: ExportUnit[];
+}
+
+/**
+ * Hands strings to a translation system, and takes them back.
+ *
+ * The seam proposal 032 §5 argues for, and the division is the same one the
+ * bundler facets have: **the compiler contributes material, the facet
+ * contributes serialization and transport.** Nothing in core knows what XLIFF
+ * is, exactly as nothing in core knows what Rspack is, and a vendor facet can
+ * be written by someone who is not us.
+ *
+ * The direction is forced rather than chosen. A TMS cannot know what a boundary
+ * is — identity here is content-derived and computed from the import graph — so
+ * making the TMS authoritative would mean giving it externally-owned keys, which
+ * means abandoning content-based identity, which is the product. Zintl is not
+ * integrating with a TMS; it is **lending strings to one and taking them back**.
+ */
+export interface ExchangeFacet extends BaseFacet {
+  concern: "exchange";
+  /**
+   * Write one locale's strings out.
+   *
+   * Called once per shipped non-source locale, in a production build only,
+   * *before* `verifyIntegrity` runs — deliberately, because the moment an
+   * export is most wanted is the build that is about to fail for missing
+   * translations.
+   */
+  export?: (bundle: ExportBundle, context: CompilerContext) => Promise<void> | void;
+}
+
 export type ZintlFacet =
   | ExtractionFacet
   | CodegenFacet
   | SsrFacet
   | RuntimeFacet
   | BundlerFacet
-  | ContentFacet;
+  | ContentFacet
+  | ExchangeFacet;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resolved Output Types
@@ -968,6 +1061,11 @@ export interface CompilerSystemView {
 
   /** Chained locale detection (first non-undefined result wins) */
   detectLocale: ((context: LocaleDetectionContext) => string | undefined) | undefined;
+
+  // ── Exchange hooks ──
+
+  /** All registered exchange facets (proposal 032 §5). Empty unless one is configured. */
+  exchangeFacets: ExchangeFacet[];
 
   // ── Content hooks ──
 

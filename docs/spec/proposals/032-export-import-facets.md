@@ -3,7 +3,7 @@
 **Status**: OPEN — steps 1 and 2 of §7 are **built**; steps 3–5 are designed, not authorised work.
 Both blocking decisions are now taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2
 (only `approved` imports, 2026-08-28), so nothing in this document is waiting on an answer — what
-remains is a facet nobody has been asked to write yet. **§7.2 records what building step 2 changed**,
+remains is a facet nobody has been asked to write yet. **§7.2 and §7.3 record what building steps 2 and 3 changed**,
 including two gaps of exactly the same family as §7.1's — both found the same way, and one of them a
 rendering bug rather than the metadata gap it looked like.
 **Date**: 2026-08-24, steps 1–2 built 2026-08-27/28
@@ -198,7 +198,9 @@ Each step is independently useful, which is the test of whether the decompositio
    Pure read, testable without any TMS.~~ — **done**. `deriveMessageContext` in
    `packages/compiler/src/message-context.ts`, with `ZintlCompiler.getMessageContext` wiring the
    graphs in. See §7.2.
-3. **Export facet**, format-first (XLIFF), with §1's pre-filled carry-forwards. _Unblocked by §8.2._
+3. ~~**Export facet**, format-first (XLIFF), with §1's pre-filled carry-forwards.~~ — **done**.
+   `xliffFacet` in `packages/compiler/src/facet/presets/xliff.ts`, on a new `exchange` facet concern.
+   See §7.3.
 4. **Import facet with validation** (§4) before any merge is attempted. The gate lands before the
    convenience, deliberately. _Unblocked by §8.2, which also fixes what it accepts._
 5. **Vendor facets**, if ever. Possibly by other people.
@@ -318,6 +320,46 @@ point with no caller is how 034 §2 found a hook that was both dead and wrong. I
 
 No `CompilerContext` field either, for the same reason. The seam §5 describes is real and the facet
 that consumes it does not exist; the hop lands when it does.
+
+### 7.3 Step 3, as built
+
+`xliffFacet` on a new **`exchange`** facet concern — `export(bundle, context)`, one call per locale,
+production builds only. The compiler assembles an `ExportBundle` and knows nothing about XLIFF;
+`ContentFacet` was the tempting reuse and is a category error, since it requires `match` because it
+exists to own a _file type_ and contribute translations, and an export facet does neither. The
+concern also leaves a named place for step 4's import hook.
+
+**Exported before `verifyIntegrity`, not after.** The build most in need of an export is the one
+about to fail for missing translations; running after the gate would mean the export never happens
+exactly when it is wanted.
+
+**Notes, not `<mda:metadata>`.** Every TMS renders notes to the person doing the work; the metadata
+module is usually invisible in a translator UI. A derived fact nobody sees is a fact that did not
+travel, and §3's whole argument is that these facts should reach a human.
+
+**Maintained locales, not shipped ones.** A pending locale ([031](031-pending-locales.md)) is
+exported. §9 said the two designs would meet and this is where: a locale being stood up over weeks is
+the single most likely reason to be handing strings to translators at all.
+
+#### 7.3.1 The first shape was wrong, and reading the output is what caught it
+
+The obvious grouping is `<file>` per boundary, mirroring how catalogs are laid out — and every test
+passed with it. Then the file itself was read, and `Save changes` appeared **twice**, once under each
+boundary that used it.
+
+That contradicts §8.1 directly. Context is metadata and never a key, so one string reached two ways
+is _one_ translatable unit; exporting it per boundary asks a translator for the same words twice,
+with nothing saying the answers must match — and since the hive is keyed by source text globally,
+whichever answer arrived last would silently overwrite the other. The per-boundary shape is right for
+a catalog, where the file _is_ the boundary, and wrong for an export.
+
+Deduplication happens in the **compiler**, not the writer: "one string is one translatable unit" is a
+semantic claim this document already settled, not a serialization preference. `ExportUnit` carries
+`boundaryIds` and `contexts` as plurals for the same reason.
+
+Worth recording because the test suite was no help. Thirteen tests passed against the wrong shape,
+because every one of them asserted a note or a state that was present either way. The defect was only
+visible in the artifact as a whole.
 
 ## 8. Both decisions, taken
 
