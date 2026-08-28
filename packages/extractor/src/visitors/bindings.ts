@@ -4,13 +4,13 @@ import type {
   ImportDeclaration,
   ImportExpression,
   AssignmentExpression,
-  TemplateLiteral,
   ObjectProperty as Property,
 } from "@oxc-project/types";
 import { ExtractionContext } from "../context.js";
 import { generateMessageId } from "../hashing.js";
 import { getAttachedComments } from "../comments.js";
-import type { LiteralSource, RawVariable } from "../types.js";
+import type { LiteralSource } from "../types.js";
+import { extractRawVariables } from "../variables.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -44,55 +44,6 @@ function resolveBoundaryId(ctx: ExtractionContext, sourcePath: string): string |
   return resolved.replace(/\.(tsx?|jsx?)$/, "");
 }
 
-function extractRawVariables(source: LiteralSource, ctx: ExtractionContext): RawVariable[] {
-  if (!source.variables?.length || source.node.type !== "TemplateLiteral") return [];
-
-  const node = source.node as TemplateLiteral;
-  const variables: RawVariable[] = [];
-
-  node.expressions.forEach((expr: any, i: number) => {
-    const vName = resolveExpressionName(expr, i);
-    const finalName = source.normalizedVariables?.[vName] ?? vName;
-    const withinRange =
-      !source.transformStart ||
-      (expr.start >= source.transformStart &&
-        source.transformEnd !== undefined &&
-        expr.end <= source.transformEnd);
-
-    if (source.variables!.includes(finalName) && withinRange) {
-      variables.push({
-        name: finalName,
-        originalName: vName,
-        expression: ctx.code.slice(expr.start, expr.end),
-        start: expr.start,
-        end: expr.end,
-      });
-    }
-  });
-
-  return variables;
-}
-
-/** Infer a readable variable name from a template expression node. */
-function resolveExpressionName(expr: any, index: number): string {
-  if (expr.type === "Identifier") return expr.name;
-  if (expr.type === "MemberExpression") {
-    const parts: string[] = [];
-    let curr: any = expr;
-    while (curr && curr.type === "MemberExpression" && curr.property.type === "Identifier") {
-      parts.unshift(curr.property.name);
-      curr = curr.object;
-    }
-    if (curr && curr.type === "Identifier") {
-      parts.unshift(curr.name);
-      return parts.join("_");
-    } else if (parts.length > 0) {
-      return parts[parts.length - 1];
-    }
-  }
-  return `var${index}`;
-}
-
 // ─── Core sink processor ────────────────────────────────────────────────────
 
 /**
@@ -119,7 +70,7 @@ function processSinkSource(
     source.passVars,
   );
 
-  const rawVars = extractRawVariables(source, ctx);
+  const rawVars = extractRawVariables(source, ctx.code);
   const isFragment = !!source.inlineReplacement;
   const requiresQuoteConversion = isFragment && source.node.type === ("StringLiteral" as any);
 

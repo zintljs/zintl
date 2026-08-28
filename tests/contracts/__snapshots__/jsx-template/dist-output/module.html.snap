@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><title>Module-scope anchor</title>  <script type="module" crossorigin src="/assets/module.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/greeting.js">
+
+  <!--zintl-bootstrap-->
+    <script id="zintl-projection">
+      (function() {
+        const l = localStorage.getItem('zintl-locale') || 'en';
+        const originals = {
+        title: document.title,
+      };
+        const preloads = {"ar":["assets/entry_b_14b672badfbb.js"]};
+      function preload(locale) {
+        const urls = preloads[locale] || [];
+        for (const url of urls) {
+          const link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.href = url;
+          document.head.appendChild(link);
+        }
+      }
+        function apply(locale) {
+          document.documentElement.lang = locale;
+        }
+        window.__zintlApplyHtml = apply;
+        if (l !== 'en') {
+          apply(l);
+          preload(l);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

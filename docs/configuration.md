@@ -20,10 +20,11 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 ## Locales
 
-| Option         | Type       | Default  | What it does                                                                                          |
-| :------------- | :--------- | :------- | :---------------------------------------------------------------------------------------------------- |
-| `locales`      | `string[]` | `["en"]` | Every locale your app ships, including the source locale.                                             |
-| `sourceLocale` | `string`   | `"en"`   | The locale your source is written in. Never written to disk — the compiler already has those strings. |
+| Option           | Type       | Default  | What it does                                                                                          |
+| :--------------- | :--------- | :------- | :---------------------------------------------------------------------------------------------------- |
+| `locales`        | `string[]` | `["en"]` | Every locale your app ships, including the source locale.                                             |
+| `sourceLocale`   | `string`   | `"en"`   | The locale your source is written in. Never written to disk — the compiler already has those strings. |
+| `pendingLocales` | `string[]` | `[]`     | Locales you are standing up: catalogs are maintained, nothing ships. See below.                       |
 
 ## Where files go
 
@@ -112,7 +113,39 @@ Ship it knowing those strings render empty for anyone on an affected locale, and
 
 What stops it being a surprise is the status line below — the completeness you have been watching all week is the same number the gate is about to check.
 
-Standing up a **brand-new** locale over weeks is a different situation, and one where turning the gate off project-wide is the wrong tool. That is [proposal 031](/docs/spec/proposals/031-pending-locales.md), designed and deliberately deferred past the first beta.
+### Standing up a new locale
+
+Adding `de` to `locales` on the day you start translating it means every build fails for the month it takes, because German is 0% done. Turning `verifyIntegrity` off for that month is the wrong tool: it removes the gate from `ar` and `fr` too, and those have real users.
+
+`pendingLocales` is the per-locale version of that decision:
+
+```ts
+zintl({
+  locales: ["en", "ar", "fr"],
+  pendingLocales: ["de"],
+});
+```
+
+A pending locale is **maintained but not shipped**:
+
+|                             | Pending locale                                                       |
+| :-------------------------- | :------------------------------------------------------------------- |
+| Extraction                  | Yes — it needs keys                                                  |
+| Catalog files written       | Yes — translators need files to fill                                 |
+| Reconciliation and pruning  | Yes — it stays in sync as the source changes, and nothing deletes it |
+| Status line                 | Yes, marked `(pending)` — progress is the whole point                |
+| `verifyIntegrity`           | **Exempt** — incompleteness is the expected state                    |
+| Catalog chunk in your build | **No**                                                               |
+| Runtime locale list         | **No** — a switcher built from it will not offer German              |
+| `zintl("de")`               | **Build error**, naming it as pending rather than as unknown         |
+
+The no-fallback rule is untouched. A locale ships complete or it does not ship — nothing renders blank, because nothing renders in German at all until you promote it.
+
+**Promotion is moving the string into `locales`.** The build gates it from that moment, and the first thing it reports is exactly what is still missing — which by then should be nothing, because the status line has been counting all along.
+
+A locale cannot be in both lists, and `sourceLocale` can never be pending. Both are configuration errors, raised before anything builds.
+
+This does **not** solve the Friday problem above. The locales missing a string added on Friday are `ar` and `fr` — already shipped, with real users — and marking Arabic pending would drop it from the release entirely. That is far worse than a red build. The two situations share a symptom and nothing else.
 
 ## Untranslated strings while you work
 
@@ -317,6 +350,79 @@ translated is not only a wrong catalog entry: because extraction rewrites the va
 translated at runtime, and because there is no fallback it also fails the build until someone
 translates it. `@zintl-ignore` opts a single site back out, and `t()` remains available for anything
 the targets cannot express.
+
+### Handing strings to a translation system
+
+Catalogs are JSON because JSON is what a human edits next to the code, where the call site is a click away. Handed to a translator with no repo, no screen and no build, `{ "Open": "" }` is close to worthless — they cannot tell whether _Open_ is a verb or an adjective.
+
+`xliffFacet` exports what the boundary graph knows, in a format every TMS ingests:
+
+```ts
+import { xliffFacet } from "zintljs/facets";
+
+zintl({
+  locales: ["en", "ar"],
+  facets: ["builtins", xliffFacet({ outDir: "./l10n" })],
+});
+```
+
+A production build then writes `l10n/<locale>.xlf` per locale. **Nothing is written while serving** — an export is a batch act, not a live sync — and your repo never gains an XML file unless you add this facet.
+
+What each string carries, all of it derived rather than typed, so none of it can go stale:
+
+```xml
+<unit id="c711797a">
+  <notes>
+    <note category="zintl:note">Shown after a successful payment</note>
+    <note category="zintl:element">Appears as: h1</note>
+    <note category="zintl:screens">Appears on: src/Checkout.tsx</note>
+    <note category="zintl:placeholder">{user_firstName} is user.firstName</note>
+  </notes>
+  <segment state="initial">
+    <source>Welcome back, {user_firstName}!</source>
+    <target></target>
+  </segment>
+</unit>
+```
+
+Two things there are worth calling out, because no translation system can work them out for itself.
+
+**A shared string is exported once, and says so.** If the same words appear in four places, a translator gets one unit and a note saying one translation covers all four. That is the difference between a safe edit and a regression, and it is knowable only from the import graph.
+
+**A carry-forward arrives pre-filled and flagged.** When you edit a source string, Zintl reconciles first and the export _states the answer_ — the old translation, the similarity, and a warning when a whole word changed. This matters because two translation memories guessing independently disagree in ways that are miserable to debug: neither side is malfunctioning.
+
+It only works if your translation system honours the target it was given. One that re-runs its own fuzzy matching over a pre-filled unit, with no way to switch that off per import, will overwrite Zintl's answer with its own — and nothing in the file that comes back distinguishes that from a translator agreeing. Zintl cannot detect it, so treat such a system as degraded rather than supported: check whether pre-filled targets survive a round trip before trusting carry-forwards through it.
+
+A pending locale ([above](#standing-up-a-new-locale)) is exported too. It is exactly the locale a translation system is working through.
+
+#### Taking them back
+
+The same facet reads the files back on the next production build. Import is a **gate, not a merge** — everything arriving is a proposal from a system Zintl does not control, and three things happen to it before a catalog sees it.
+
+**Only an approved translation is imported.** XLIFF's `reviewed` and `final` count; `translated` and `initial` are skipped, because they are drafts a reviewer has not signed off. That keeps `verifyIntegrity` meaning exactly one thing: a locale that passes is a locale that is done.
+
+**A corrupt translation fails the build**, in one report, with nothing written:
+
+```
+[Zintl Import Error] 2 translations would render incorrectly, across 1 locale.
+
+These came back from an import, so the catalogs on disk are untouched —
+nothing here has been written. Fix them at the source and import again.
+
+  ar — 2 refused
+      "Welcome back, {name}!"
+        {name} is missing from the translation — the value would render with a gap where it should appear
+      "{count, plural, one {# item} other {# items}}"
+        {count} is missing the few, many, two, zero forms that "ar" requires — those counts would fall through to "other"
+```
+
+That second one is worth dwelling on. Arabic has six plural categories and English has two, so a translator working from an English source sees two boxes to fill. A translation system that round-trips the English shape produces a message that silently renders the wrong form for four of them, and nothing anywhere would have told you.
+
+**A string your source no longer has is skipped, not fatal.** Your translation system will always have older data than your repo; failing on that would mean every source edit breaks the next import.
+
+An imported translation overwrites a local catalog value and says so in the build log, with both values. The reviewed answer wins — round-tripping it is the point — and the old value survives in the hive, which is append-only.
+
+The reader handles plain-text segments, which is what Zintl writes. If your system returns XLIFF inline elements (`<pc>`, `<ph>`) it refuses those units by name rather than guessing at them — a gate that guesses is not a gate.
 
 ### Writing a facet
 

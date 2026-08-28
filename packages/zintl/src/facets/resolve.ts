@@ -20,6 +20,7 @@
  */
 import { compileExtractionState } from "@zintljs/compiler";
 import type {
+  ExchangeFacet,
   CapabilityFlags,
   CodegenFacet,
   CompilerCapabilities,
@@ -143,6 +144,7 @@ interface MergeState {
   mustacheRules: MustacheRule[];
   clientReactivityImports: Record<string, string[]>;
   contentFacets: ContentFacet[];
+  exchangeFacets: ExchangeFacet[];
 
   // SSR
   ssrEntryTargets: (string | RegExp | ((id: string) => boolean))[];
@@ -209,6 +211,7 @@ function createEmptyState(): MergeState {
     mustacheRules: [],
     clientReactivityImports: {},
     contentFacets: [],
+    exchangeFacets: [],
     ssrEntryTargets: [],
     ssrWrapCode: undefined,
     ssrWrapCodeProvider: "",
@@ -276,6 +279,19 @@ function mergeFacet(state: MergeState, facet: ZintlFacet): void {
           pattern: facet.mustacheRegex,
         });
       }
+      break;
+    }
+    case "exchange": {
+      /**
+       * Appended, never deduped by claim.
+       *
+       * Content and codegen facets are merged with conflict detection because
+       * two of them claiming one file extension is a genuine ambiguity — only
+       * one can own it. Exchange facets claim nothing: each writes its own
+       * format to its own place, and a project exporting both XLIFF and a
+       * vendor's shape wants both to run. There is nothing here to collide.
+       */
+      state.exchangeFacets.push(facet);
       break;
     }
     case "content": {
@@ -548,6 +564,7 @@ function stateToHooks(state: MergeState): CompilerSystemView {
     clientReactivityImports: state.clientReactivityImports,
     serverComponents: state.serverComponents,
     contentFacets: state.contentFacets,
+    exchangeFacets: state.exchangeFacets,
     virtualBoundaries,
 
     ssrEntryTargets: state.ssrEntryTargets,

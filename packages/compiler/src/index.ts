@@ -44,6 +44,9 @@ import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
 import { DeliveryBus } from "./bus/index.js";
+import { deriveMessageContext, type MessageContext } from "./message-context.js";
+import type { ExportBundle, ExportUnit, ImportedTranslation } from "./types/capabilities.js";
+import { checkTranslation, formatImportProblems, type ImportProblem } from "./import-gate.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { serializeDeterministic } from "./utils/serialization.js";
@@ -68,6 +71,10 @@ export type * from "./types/capabilities.js";
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
 
+// Derived translator context (proposal 032 §3). Exported as types only for now:
+// the seam a facet consumes lands with the export facet that needs it.
+export type { MessageContext, MessageOccurrence, MessageContextWorld } from "./message-context.js";
+
 /**
  * A sink type, as something to show a translator.
  *
@@ -85,20 +92,33 @@ function translatorContext(sinkType: string | undefined): string | undefined {
   if (!sinkType) return undefined;
   if (sinkType.startsWith("html:attr:")) return sinkType.slice("html:attr:".length) || undefined;
   /**
-   * The one sink type that names a position rather than a thing — and the one
-   * place this is thinner than it looks. JSX reports the element (`button`),
-   * because the visitor has it; every HTML text node arrives as `HTML_TEXT`, so
-   * an `<h1>` and a `<p>` are indistinguishable by the time it reaches here.
-   * Closing that is extractor work. Proposal 032 §3 assumes the richer version.
+   * The fallback for HTML text, not the answer.
+   *
+   * `ObservedSink.context` now carries the element for HTML text — `h1`, `p`,
+   * `li` — recorded by `stitchHTML` and preferred by the caller below. This
+   * remains for the cases that field cannot reach: a document whose markup is
+   * unbalanced enough that the enclosing element would be a guess, and text at
+   * the top level with no element around it at all. `text` is thin, and it is
+   * true; a wrong element name would not be.
    */
   if (sinkType === "HTML_TEXT") return "text";
   return sinkType;
 }
 
-/** One `zintl()` anchor naming a locale the project does not build. */
+/** One `zintl()` anchor naming a locale the project does not render. */
 interface UnsupportedAnchorLocale {
   fileId: string;
   locale: string;
+  /**
+   * Which mistake this is.
+   *
+   * `"unknown"` — the locale is in no list, so it is a typo or an unfinished
+   * configuration. `"pending"` — the locale is being stood up, so the anchor is
+   * early rather than wrong, and the fix is a promotion rather than an addition.
+   * The two read identically at the call site and want opposite advice, which is
+   * why the report distinguishes them (031 §8).
+   */
+  kind: "unknown" | "pending";
 }
 
 /** One extracted key with no translation in one locale. */
@@ -127,44 +147,168 @@ function truncateKey(key: string, max = 60): string {
 }
 
 /**
- * Report every anchor that targets an unconfigured locale, in one error.
+ * Refuse a locale configuration that cannot mean one thing.
+ *
+ * Raised at construction rather than discovered at a read site, because every
+ * one of these is quiet downstream. A locale in both lists resolves to whichever
+ * list a given site happens to consult; a pending source locale asks the
+ * compiler to maintain catalogs for the one locale that is diskless by design;
+ * a duplicate entry doubles the work of every per-locale loop and changes no
+ * output, so nothing ever complains.
+ *
+ * The message names the fix rather than the rule — a configuration error should
+ * be over in one read.
+ */
+function assertLocaleConfiguration(
+  sourceLocale: string,
+  locales: string[],
+  pendingLocales: string[],
+): void {
+  const dupes = (list: string[]) =>
+    Array.from(new Set(list.filter((l, i) => list.indexOf(l) !== i)));
+
+  const localeDupes = dupes(locales);
+  if (localeDupes.length > 0) {
+    throw new Error(
+      `[Zintl Config Error] \`locales\` lists ${localeDupes
+        .map((l) => `"${l}"`)
+        .join(", ")} more than once.\n\nFix: remove the duplicate.`,
+    );
+  }
+
+  const pendingDupes = dupes(pendingLocales);
+  if (pendingDupes.length > 0) {
+    throw new Error(
+      `[Zintl Config Error] \`pendingLocales\` lists ${pendingDupes
+        .map((l) => `"${l}"`)
+        .join(", ")} more than once.\n\nFix: remove the duplicate.`,
+    );
+  }
+
+  if (pendingLocales.includes(sourceLocale)) {
+    throw new Error(
+      [
+        `[Zintl Config Error] \`sourceLocale\` ("${sourceLocale}") cannot be pending.`,
+        ``,
+        `The source locale is written in your source and never gets a catalog on`,
+        `disk, so there is nothing to stand up and nothing to gate.`,
+        ``,
+        `Fix: remove "${sourceLocale}" from \`pendingLocales\`.`,
+      ].join("\n"),
+    );
+  }
+
+  const both = pendingLocales.filter((l) => locales.includes(l));
+  if (both.length > 0) {
+    throw new Error(
+      [
+        `[Zintl Config Error] ${both.map((l) => `"${l}"`).join(", ")} ${
+          both.length === 1 ? "is" : "are"
+        } in both \`locales\` and \`pendingLocales\`.`,
+        ``,
+        `A locale is either shipped or being stood up, and which list it is in is`,
+        `the whole of the difference.`,
+        ``,
+        `Fix: keep it in \`locales\` to ship and gate it, or in \`pendingLocales\``,
+        `to maintain catalogs without gating it.`,
+      ].join("\n"),
+    );
+  }
+}
+
+/**
+ * Report every anchor that targets a locale the project does not render, in one
+ * error.
  *
  * Raised *instead of* the missing-translation report rather than alongside it:
  * an anchor on a locale nobody builds makes every downstream missing
  * translation a consequence rather than a finding.
+ *
+ * Two mistakes share this report and are never merged into one sentence. An
+ * anchor on an unknown locale is a typo, fixed by adding the locale or
+ * correcting the call. An anchor on a *pending* locale is a build that arrived
+ * before its translations, fixed by promoting the locale — and telling that
+ * author to "add the locale to `locales`" would be advice to ship German blank,
+ * which is the one thing this compiler will not do.
  */
 function formatUnsupportedAnchorLocales(
   bad: UnsupportedAnchorLocale[],
   configured: string[],
+  pending: string[],
 ): string {
-  const byLocale = new Map<string, string[]>();
-  for (const entry of bad) {
-    const files = byLocale.get(entry.locale);
-    if (!files) byLocale.set(entry.locale, [entry.fileId]);
-    else if (!files.includes(entry.fileId)) files.push(entry.fileId);
-  }
-  const locales = Array.from(byLocale.keys()).sort();
+  const group = (kind: UnsupportedAnchorLocale["kind"]) => {
+    const byLocale = new Map<string, string[]>();
+    for (const entry of bad) {
+      if (entry.kind !== kind) continue;
+      const files = byLocale.get(entry.locale);
+      if (!files) byLocale.set(entry.locale, [entry.fileId]);
+      else if (!files.includes(entry.fileId)) files.push(entry.fileId);
+    }
+    return byLocale;
+  };
+
+  const unknown = group("unknown");
+  const stillPending = group("pending");
+  const total = unknown.size + stillPending.size;
+
+  const describe = (byLocale: Map<string, string[]>, suffix: string): string[] => {
+    const out: string[] = [];
+    for (const locale of Array.from(byLocale.keys()).sort()) {
+      const files = byLocale.get(locale)!.slice().sort();
+      out.push(`  "${locale}" \u2014 ${suffix}`);
+      for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) out.push(`      ${file}`);
+      if (files.length > INTEGRITY_SAMPLE_LIMIT) {
+        out.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
+      }
+      out.push(``);
+    }
+    return out;
+  };
+
+  /**
+   * Accurate about which of the two is being complained about.
+   *
+   * "You do not build" is simply false of a pending locale — the compiler
+   * extracts it, writes its catalogs and reconciles them; the one thing it does
+   * not do is ship it. An error that misdescribes the state it found sends the
+   * reader to check a configuration that is already correct.
+   */
+  const what =
+    unknown.size === 0
+      ? "you do not ship yet"
+      : stillPending.size === 0
+        ? "you do not build"
+        : "you do not render";
 
   const lines: string[] = [
-    `[Zintl Integrity Error] zintl() targets ${locales.length} ${
-      locales.length === 1 ? "locale" : "locales"
-    } you do not build.`,
+    `[Zintl Integrity Error] zintl() targets ${total} ${
+      total === 1 ? "locale" : "locales"
+    } ${what}.`,
     ``,
     `Configured locales: [${configured.join(", ")}]`,
-    ``,
   ];
+  if (pending.length > 0) lines.push(`Pending locales: [${pending.join(", ")}]`);
+  lines.push(``);
 
-  for (const locale of locales) {
-    const files = byLocale.get(locale)!.slice().sort();
-    lines.push(`  "${locale}" \u2014 anchored in:`);
-    for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`      ${file}`);
-    if (files.length > INTEGRITY_SAMPLE_LIMIT) {
-      lines.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
-    }
-    lines.push(``);
+  lines.push(...describe(unknown, "anchored in:"));
+  lines.push(...describe(stillPending, "pending, anchored in:"));
+
+  if (stillPending.size > 0) {
+    lines.push(
+      `A pending locale is maintained but never rendered, so an anchor cannot name one.`,
+      ``,
+    );
   }
 
-  lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  if (unknown.size > 0) {
+    lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  }
+  if (stillPending.size > 0) {
+    lines.push(
+      `Fix: move it from \`pendingLocales\` to \`locales\` once it is ready to ship,`,
+      `or correct the zintl() call.`,
+    );
+  }
   return lines.join("\n");
 }
 
@@ -471,7 +615,39 @@ export class ZintlCompiler {
   private readonly extensions: string[];
 
   public readonly sourceLocale: string;
+  /**
+   * The locales this project **ships**.
+   *
+   * One of two answers `locales` used to give at once. This is the shipping
+   * half: what a catalog chunk is emitted for, what the runtime offers, what
+   * `verifyIntegrity` gates, and what a `zintl("fr")` literal may name. See
+   * {@link maintainedLocales} for the other half, and 031 §4 for why the two
+   * had to come apart.
+   */
   private readonly locales: string[];
+  /**
+   * The locales this project **maintains catalogs for** — shipped and pending
+   * alike.
+   *
+   * Anything that touches a catalog, the hive, or a file on disk a translator
+   * owns reads this, because a pending locale is being translated right now
+   * even though nothing ships it yet. Pruning is the sharp case: a maintained
+   * locale missing from this list is a translator's half-finished file that a
+   * production build would delete as an orphan.
+   *
+   * Equal to {@link locales} whenever `pendingLocales` is unset, which is every
+   * project that has not asked for the feature.
+   */
+  private readonly maintainedLocales: string[];
+  /**
+   * The locales being stood up: maintained, never shipped.
+   *
+   * Held separately from the two lists it is the difference between, because
+   * two places need to name it rather than derive it — the status line, which
+   * marks it, and the anchor error, which tells a `zintl("de")` author that
+   * German is coming rather than that it does not exist.
+   */
+  private readonly pendingLocales: string[];
   private readonly root: string;
   public readonly isDev: boolean;
   private readonly logger: ZintlLogger;
@@ -610,6 +786,12 @@ export class ZintlCompiler {
     this.extensions = this._resolved.system.extensions;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
+    this.pendingLocales = options.pendingLocales || [];
+    assertLocaleConfiguration(this.sourceLocale, this.locales, this.pendingLocales);
+    // Union, not concatenation with a duplicate: the validator above has
+    // already refused any overlap, so this is a disjoint join.
+    this.maintainedLocales =
+      this.pendingLocales.length > 0 ? [...this.locales, ...this.pendingLocales] : this.locales;
     this.root = root;
     this.isDev = isDev;
     this.debug = options.debug;
@@ -665,6 +847,7 @@ export class ZintlCompiler {
       outputDir: this._outputDir,
       sourceLocale: this.sourceLocale,
       locales: this.locales,
+      maintainedLocales: this.maintainedLocales,
       isDev: this.isDev,
       io: this.io,
       logger: this.logger,
@@ -774,7 +957,7 @@ export class ZintlCompiler {
     }
     await this.catalog.harvestHive(
       this.messages.internalManifest,
-      this.locales,
+      this.maintainedLocales,
       this.messages.hive,
       () => this.messages.markHiveDirty(),
     );
@@ -1025,7 +1208,7 @@ export class ZintlCompiler {
     for (const id of wanted) if (!matched.has(id)) normalizedOwners.add(id);
 
     for (const id of normalizedOwners) {
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         const catPath = this.getCatalogPath(id, locale);
         if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
       }
@@ -1340,7 +1523,7 @@ export class ZintlCompiler {
     for (const bId of Object.keys(this.messages.internalManifest)) {
       if (this.io.isVirtualId(bId)) continue;
       if (foundBoundaryIds.includes(bId)) continue;
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         const catPath = this.catalog.getCatalogPath(bId, locale);
         if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
           foundBoundaryIds.push(bId);
@@ -1735,7 +1918,7 @@ export class ZintlCompiler {
           };
         }
 
-        for (const loc of this.locales) {
+        for (const loc of this.maintainedLocales) {
           const locAssets = await this.mergeFacetTranslations(loc, context);
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
 
@@ -2052,6 +2235,7 @@ export class ZintlCompiler {
           boundaryId: string;
           location: SourceLocation;
           sinkType?: string;
+          context?: string;
           note?: string;
           variables?: { name: string }[];
           passVars?: Record<string, string>;
@@ -2074,7 +2258,7 @@ export class ZintlCompiler {
              * walk. A consumer that wants the union should take it; see
              * proposal 032 §7.
              */
-            context: translatorContext(msg.sinkType),
+            context: msg.context ?? translatorContext(msg.sinkType),
             note: msg.note,
             variables: [
               ...new Set([
@@ -2791,7 +2975,7 @@ export class ZintlCompiler {
     const graph = this.graph.boundaryGraph;
     if (!graph || contentPaths.size === 0) return;
 
-    const catalogs = this.catalog.catalogOutputPaths(graph, this.locales);
+    const catalogs = this.catalog.catalogOutputPaths(graph, this.maintainedLocales);
     const collisions: { path: string; facet: string; boundaryId: string }[] = [];
     for (const [path, facet] of contentPaths) {
       const boundaryId = catalogs.get(normalizeOutputPath(this.root, path));
@@ -2833,6 +3017,18 @@ export class ZintlCompiler {
     {
       this.logger.debug("Flushing compiler state...");
       await this.syncGraphs();
+
+      /**
+       * After the graphs, before anything is written.
+       *
+       * After, because the gate checks incoming translations against the
+       * manifest and the manifest is what `syncGraphs` produces. Before,
+       * because an accepted translation should reach a catalog and satisfy
+       * `verifyIntegrity` in *this* build rather than the next one — an import
+       * that needs a second build to take effect is an import people will
+       * believe is broken.
+       */
+      await this.runExchangeImport();
 
       // Clean up old output directory if it changed
       const lastOut = this.messages.lastOutputDir;
@@ -2892,7 +3088,7 @@ export class ZintlCompiler {
 
       await this.catalog.pruneOrphanedBoundaries(
         this.graph.boundaryGraph!,
-        this.locales,
+        this.maintainedLocales,
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
         this.graph,
@@ -2991,7 +3187,7 @@ export class ZintlCompiler {
 
           // Check catalogs for all locales (except source locale)
           if (!missing) {
-            for (const locale of this.locales) {
+            for (const locale of this.maintainedLocales) {
               if (locale === this.sourceLocale) continue;
               const catPath = this.catalog.getCatalogPath(bId, locale);
               if (catPath && !(await this.io.exists(catPath))) {
@@ -3018,7 +3214,7 @@ export class ZintlCompiler {
         }
       }
 
-      const groups = this.catalog.groupBoundariesByPath(affectedBoundaries, this.locales);
+      const groups = this.catalog.groupBoundariesByPath(affectedBoundaries, this.maintainedLocales);
       for (const [path, { locales }] of groups) {
         const allBIds = this.catalog.getAllBoundariesForPath(
           path,
@@ -3057,6 +3253,7 @@ export class ZintlCompiler {
         }
       }
 
+      await this.runExchangeExport();
       await this.verifyIntegrity();
       this.scheduleTranslationStatus();
       this.logger.debug("Flush complete");
@@ -3136,19 +3333,30 @@ export class ZintlCompiler {
    * Source-locale entries are excluded: they are never written to disk and are
    * translated by definition.
    */
-  public getTranslationStatus(): { locale: string; translated: number; total: number }[] {
+  public getTranslationStatus(): {
+    locale: string;
+    translated: number;
+    total: number;
+    /** Maintained but not shipped — its gap is progress, not a coming failure. */
+    pending: boolean;
+  }[] {
     const keys = new Set<string>();
     for (const entries of Object.values(this.internalManifest)) {
       for (const entry of entries) keys.add(entry.text);
     }
 
-    return this.locales
+    return this.maintainedLocales
       .filter((locale) => locale !== this.sourceLocale)
       .map((locale) => {
         const known = this.messages.hive[locale];
         let translated = 0;
         if (known) for (const key of keys) if (known[key]) translated++;
-        return { locale, translated, total: keys.size };
+        return {
+          locale,
+          translated,
+          total: keys.size,
+          pending: this.pendingLocales.includes(locale),
+        };
       });
   }
 
@@ -3201,7 +3409,10 @@ export class ZintlCompiler {
     if (status.length === 0 || status[0].total === 0) return;
 
     const line = status
-      .map(({ locale, translated, total }) => `${locale} ${translated}/${total}`)
+      .map(
+        ({ locale, translated, total, pending }) =>
+          `${locale} ${translated}/${total}${pending ? " (pending)" : ""}`,
+      )
       .join(" · ");
     if (line === this._lastStatusLine) return;
     this._lastStatusLine = line;
@@ -3217,14 +3428,260 @@ export class ZintlCompiler {
      * failure. `warn` is where a coming failure belongs.
      *
      * Complete is genuinely just news, and stays at `info`.
+     *
+     * A pending locale is shown but never summed into `missing`, for the same
+     * reason read the other way: its gap predicts nothing, because
+     * `verifyIntegrity` does not gate it. Warning about it would be false — a
+     * build with a 0%-translated pending locale passes — and it would train
+     * people to ignore the line that does predict a failure.
      */
-    const missing = status.reduce((n, s) => n + (s.total - s.translated), 0);
-    if (missing === 0) {
-      this.logger.info(`Translations complete — ${line}`);
-    } else {
+    const missing = status.reduce((n, s) => n + (s.pending ? 0 : s.total - s.translated), 0);
+    const unfinishedPending = status.filter((s) => s.pending && s.translated < s.total);
+    if (missing > 0) {
       this.logger.warn(
         `Translations ${line} — ${missing} missing, a production build will fail until they are filled`,
       );
+    } else if (unfinishedPending.length > 0) {
+      const names = unfinishedPending.map((s) => s.locale).join(", ");
+      this.logger.info(
+        `Translations ${line} — shipped locales complete; ${names} ${
+          unfinishedPending.length === 1 ? "is" : "are"
+        } not shipped yet`,
+      );
+    } else {
+      this.logger.info(`Translations complete — ${line}`);
+    }
+  }
+
+  /**
+   * Take translations back, and refuse the ones that would render wrong.
+   *
+   * A **gate, not a merge** (032 §4). Everything arriving here is a proposal
+   * from a system Zintl does not control, and three things happen to it before
+   * a catalog ever sees it:
+   *
+   * 1. **Not approved is not imported** (§8.2). A `draft` or in-progress
+   *    translation is skipped entirely, so `translated` keeps meaning exactly
+   *    one thing and `verifyIntegrity` keeps meaning "this locale is done".
+   * 2. **A key the source no longer has is skipped, not fatal.** The TMS simply
+   *    has older data than the repo, which is the normal state of affairs half
+   *    an hour after anyone edits a string. Failing here would mean every source
+   *    edit breaks the next import.
+   * 3. **A corrupt translation fails the build**, in one batched report, with
+   *    nothing written. That is the same instinct as the missing-translation
+   *    gate and deliberately a *different* error from it.
+   *
+   * Runs before catalogs are written, so anything accepted counts toward
+   * `verifyIntegrity` in the same build rather than the next one.
+   */
+  private async runExchangeImport(): Promise<void> {
+    if (this.isDev) return;
+    const facets = this._resolved.system.exchangeFacets.filter((f) => f.import);
+    if (facets.length === 0) return;
+
+    const context = this.getCompilerContext();
+    const proposals: ImportedTranslation[] = [];
+    for (const facet of facets) {
+      await this.runFacetStep("import", facet.name, async () => {
+        proposals.push(...(await facet.import!(context)));
+      });
+    }
+    if (proposals.length === 0) return;
+
+    /**
+     * Every source text the project currently has, and which boundaries carry it.
+     *
+     * Two jobs: the stale-key check, and knowing what to mark dirty afterwards.
+     * A boundary is what a catalog file *is*, so a translation that reaches the
+     * hive and dirties nothing updates memory and leaves the JSON on disk
+     * untouched — an import that looks like it worked and did not.
+     */
+    const carriers = new Map<string, string[]>();
+    for (const [bId, entries] of Object.entries(this.messages.internalManifest)) {
+      for (const e of entries) {
+        const list = carriers.get(e.text);
+        if (list) {
+          if (!list.includes(bId)) list.push(bId);
+        } else carriers.set(e.text, [bId]);
+      }
+    }
+
+    const problems: ImportProblem[] = [];
+    const accepted: ImportedTranslation[] = [];
+    let unapproved = 0;
+    let stale = 0;
+
+    for (const t of proposals) {
+      if (!t.approved) {
+        unapproved++;
+        continue;
+      }
+      /**
+       * Checked after approval, not before: a unit nobody has signed off is
+       * skipped whether or not it could be read, and reporting a parse problem
+       * for a draft would be noise about work still in progress.
+       */
+      if (t.unreadable) {
+        problems.push({ locale: t.locale, key: t.key, value: t.value, reason: t.unreadable });
+        continue;
+      }
+      if (!carriers.has(t.key)) {
+        stale++;
+        continue;
+      }
+      const reason = checkTranslation(t.key, t.value, t.locale);
+      if (reason) problems.push({ locale: t.locale, key: t.key, value: t.value, reason });
+      else accepted.push(t);
+    }
+
+    /**
+     * Thrown before a single value is merged. A partial import is worse than no
+     * import: it leaves the project in a state neither the repo nor the TMS
+     * believes in, and nothing records which half landed.
+     */
+    if (problems.length > 0) throw new Error(formatImportProblems(problems));
+
+    let changed = 0;
+    for (const t of accepted) {
+      const hive = (this.messages.hive[t.locale] ??= {});
+      const previous = hive[t.key];
+      if (previous === t.value) continue;
+
+      /**
+       * The import wins, and says so.
+       *
+       * An approved translation is the reviewed answer and round-tripping it is
+       * the point of the loop. Nothing is destroyed by the overwrite — the hive
+       * is append-only per key and the old value is named here — but a
+       * developer who hand-edited that catalog deserves to find out from the
+       * build rather than from a diff.
+       */
+      if (previous) {
+        this.logger.info(`Import replaced "${t.key}" in ${t.locale}: "${previous}" → "${t.value}"`);
+      }
+      hive[t.key] = t.value;
+      changed++;
+
+      /**
+       * Every boundary carrying this string, because a catalog file is written
+       * per boundary and only for dirty ones. Marking the hive dirty alone
+       * persists the compiler's own bookkeeping and never touches the JSON a
+       * developer commits.
+       */
+      for (const bId of carriers.get(t.key)!) this.messages.markDirty(bId);
+    }
+    if (changed > 0) this.messages.markHiveDirty();
+
+    const skipped: string[] = [];
+    if (unapproved > 0) skipped.push(`${unapproved} not yet approved`);
+    if (stale > 0) skipped.push(`${stale} for strings the source no longer has`);
+    this.logger.info(
+      `Imported ${changed} ${changed === 1 ? "translation" : "translations"}` +
+        (skipped.length > 0 ? ` (skipped ${skipped.join(", ")})` : ""),
+    );
+  }
+
+  /**
+   * Assemble what leaves for each locale, for whatever is configured to send it.
+   *
+   * The compiler's half of the TMS seam (proposal 032 §5): material, never
+   * transport. Nothing here knows what XLIFF is.
+   *
+   * **Maintained locales, not shipped ones.** A pending locale (031) is
+   * precisely the state a TMS is working through — a locale being stood up over
+   * weeks is the reason to hand strings to translators at all — so excluding it
+   * would omit the one locale most likely to need the export. 032 §9 anticipated
+   * the two designs meeting here.
+   *
+   * Returns an empty array when nothing is configured to consume it, so the
+   * whole assembly is skipped rather than built and dropped.
+   */
+  private buildExportBundles(): ExportBundle[] {
+    if (this._resolved.system.exchangeFacets.length === 0) return [];
+
+    /** Carry-forwards, indexed for lookup rather than scanned per unit. */
+    const carried = new Map<string, { from: string; score: number; substitutesWords: boolean }>();
+    for (const r of this.messages.currentReconciliation?.renamed ?? []) {
+      carried.set(`${r.boundaryId}\u0000${r.to}`, {
+        from: r.from,
+        score: r.score,
+        substitutesWords: r.substitutesWords,
+      });
+    }
+
+    const bundles: ExportBundle[] = [];
+    for (const locale of this.maintainedLocales) {
+      if (locale === this.sourceLocale) continue;
+
+      /**
+       * Keyed by source text, not by boundary — 032 §8.1.
+       *
+       * One string is one translatable unit however many places reach it. The
+       * per-boundary shape is right for a catalog, where the file *is* the
+       * boundary; it is wrong for an export, where it would put the same words
+       * in front of a translator twice with nothing to say they must match.
+       */
+      const byKey = new Map<string, ExportUnit>();
+      for (const [boundaryId, entries] of Object.entries(this.messages.internalManifest)) {
+        for (const entry of entries) {
+          const context = this.getMessageContext(boundaryId, entry.text);
+          if (!context) continue;
+
+          const existing = byKey.get(entry.text);
+          if (existing) {
+            if (!existing.boundaryIds.includes(boundaryId)) existing.boundaryIds.push(boundaryId);
+            existing.contexts.push(context);
+            existing.carriedForward ??= carried.get(`${boundaryId}\u0000${entry.text}`);
+            continue;
+          }
+
+          byKey.set(entry.text, {
+            id: entry.id,
+            key: entry.text,
+            /**
+             * Read from the hive, which is what `verifyIntegrity` accepts — so
+             * a string this export calls translated is one the gate agrees is
+             * translated, and the two can never disagree about a locale's state.
+             */
+            target: this.messages.hive[locale]?.[entry.text] ?? "",
+            boundaryIds: [boundaryId],
+            contexts: [context],
+            carriedForward: carried.get(`${boundaryId}\u0000${entry.text}`),
+          });
+        }
+      }
+
+      // Sorted, so a re-export with nothing changed is byte-identical downstream.
+      const units = Array.from(byKey.values()).sort((a, b) => a.key.localeCompare(b.key));
+      for (const u of units) u.boundaryIds.sort();
+
+      bundles.push({ sourceLocale: this.sourceLocale, locale, units });
+    }
+    return bundles;
+  }
+
+  /**
+   * Hand each locale to whatever is configured to send it.
+   *
+   * Build only, and **before** {@link verifyIntegrity} rather than after. That
+   * ordering is the point rather than an accident: the build most in need of an
+   * export is the one about to fail for missing translations, and running after
+   * the gate would mean the export never happens exactly when it is wanted.
+   */
+  private async runExchangeExport(): Promise<void> {
+    if (this.isDev) return;
+    const facets = this._resolved.system.exchangeFacets;
+    if (facets.length === 0) return;
+
+    const bundles = this.buildExportBundles();
+    if (bundles.length === 0) return;
+
+    const context = this.getCompilerContext();
+    for (const facet of facets) {
+      if (!facet.export) continue;
+      for (const bundle of bundles) {
+        await this.runFacetStep("export", facet.name, () => facet.export!(bundle, context));
+      }
     }
   }
 
@@ -3290,7 +3747,14 @@ export class ZintlCompiler {
         if (anchor.locale.type === "literal") {
           const targetLocale = anchor.locale.value;
           if (targetLocale !== "none" && !this.locales.includes(targetLocale)) {
-            badAnchors.push({ fileId, locale: targetLocale });
+            // The shipped list is the right question here even though the
+            // pending one is maintained: an anchor is a declaration that this
+            // file renders in that locale, and a pending locale renders nowhere.
+            badAnchors.push({
+              fileId,
+              locale: targetLocale,
+              kind: this.pendingLocales.includes(targetLocale) ? "pending" : "unknown",
+            });
           }
         }
       }
@@ -3382,7 +3846,9 @@ export class ZintlCompiler {
     }
 
     if (badAnchors.length > 0) {
-      throw new Error(formatUnsupportedAnchorLocales(badAnchors, this.locales));
+      throw new Error(
+        formatUnsupportedAnchorLocales(badAnchors, this.locales, this.pendingLocales),
+      );
     }
     if (missing.length > 0 || unfilledAssets.length > 0) {
       const reports: string[] = [];
@@ -3401,6 +3867,32 @@ export class ZintlCompiler {
 
   public getMessages(boundaryId: string) {
     return this.messages.internalManifest[boundaryId] || [];
+  }
+
+  /**
+   * Everything derivable about one string, for someone who will translate it.
+   *
+   * The material half of the TMS seam (proposal 032 §5): the compiler supplies
+   * facts, a facet supplies serialization and transport. Nothing here knows what
+   * XLIFF is, and nothing here should.
+   *
+   * A pure read — no flush, no write, no graph rebuild. It reports the world as
+   * it currently stands, which means a caller wanting current answers should
+   * ensure the graphs are synced first, the same contract `getMessages` has.
+   *
+   * `null` when this boundary does not carry that string.
+   */
+  public getMessageContext(boundaryId: string, key: string): MessageContext | null {
+    const bg = this.graph.boundaryGraph;
+    return deriveMessageContext(boundaryId, key, {
+      manifest: this.messages.internalManifest,
+      metadataGraph: this.messages.metadataGraph,
+      boundaryGraph: bg,
+      chunkGraph: this.graph.chunkGraph,
+      // Reuses the traversal the graph already owns rather than growing a second
+      // one that could disagree with it.
+      reachableFrom: bg ? (entryId) => this.graph.getStaticDependencyTree(entryId, bg) : undefined,
+    });
   }
 
   public _buildBoundaryGraph() {

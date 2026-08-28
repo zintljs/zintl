@@ -114,6 +114,21 @@ export interface RawSink {
   text: string;
   /** UI context: "innerHTML", "title", "h1", "aria-label", "label", etc. */
   sinkType: string;
+  /**
+   * Where this text sits, as something to *show* a translator — `h1`, `p`, `alt`.
+   *
+   * Split from {@link RawSink.sinkType} rather than folded into it, because that
+   * field is replacement mechanics: `resolve-rewrites.ts` and the html facet
+   * both branch on `sinkType === "HTML_TEXT"` to decide how to splice a call
+   * back into source. Proposal 032 §2 draws the same line — `contexts` is
+   * human-facing, `sinkTypes` is transport — and this is the human half made
+   * reachable, since the compiler never sees `ExtractedMessage.contexts`.
+   *
+   * Only set where it says something `sinkType` does not. JSX already reports
+   * the element it found the text in; HTML text does not, and that is the gap
+   * this closes.
+   */
+  context?: string;
   /** Start offset in source code for the replaceable range. */
   start: number;
   /** End offset in source code for the replaceable range. */

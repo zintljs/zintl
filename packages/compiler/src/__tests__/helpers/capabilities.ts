@@ -47,6 +47,7 @@ function emptySystem(): CompilerSystemView {
     clientReactivityImports: {},
     serverComponents: false,
     contentFacets: [],
+    exchangeFacets: [],
     virtualBoundaries: [],
     ssrEntryTargets: [],
     ssrWrapCode: undefined,

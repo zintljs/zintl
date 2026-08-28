@@ -79,7 +79,7 @@ export function extractHtml(
     // Extract HTML Text nodes
     ctx.stitchHTML(
       activeContent,
-      (trimmed, note, passVars, start, end, tagMap) => {
+      (trimmed, note, passVars, start, end, tagMap, hostTag) => {
         let processedText = trimmed;
         const variables: any[] = [];
 
@@ -133,10 +133,24 @@ export function extractHtml(
         }
 
         const msgId = generateMessageId(processedText, "HTML_TEXT", note);
+        /**
+         * The element goes in `context`; `sinkType` stays the constant.
+         *
+         * Two arguments to `addMessage` that used to be the same string and are
+         * two different questions (032 §2). `context` is what a translator
+         * reads — `h1`, `li`. `sinkType` is how the pipeline splices a call back
+         * into the document, and `resolve-rewrites.ts` and the html facet both
+         * test it for equality against `"HTML_TEXT"`, so widening it here would
+         * be a rewrite of the splice path wearing a metadata change's clothes.
+         *
+         * Safe because context is never a key: `generateMessageId` ignores the
+         * parameter it is passed in (032 §8.1), so an `<h1>` and a `<p>` holding
+         * the same words remain one message with two recorded contexts.
+         */
         ctx.addMessage(
           msgId,
           processedText,
-          "HTML_TEXT",
+          hostTag ?? "HTML_TEXT",
           fileBoundaryId,
           { line: 0, column: 0 },
           variables.map((v) => v.name),
@@ -148,6 +162,7 @@ export function extractHtml(
         ctx.addRawSink({
           text: processedText,
           sinkType: "HTML_TEXT",
+          context: hostTag,
           start: contentOffset + start!,
           end: contentOffset + end!,
           line: 0,

@@ -43,6 +43,15 @@ export interface ObservedSink {
   boundaryId: string;
   rawText: string;
   sinkType: string;
+  /**
+   * Where this text sits, for a translator — `h1`, `p`.
+   *
+   * Set only where {@link ObservedSink.sinkType} cannot answer: JSX already
+   * names the element it found the text in, HTML text arrives as one constant
+   * for every element. Never consulted for splicing, and never part of message
+   * identity (proposal 032 §8.1).
+   */
+  context?: string;
   location: SourceLocation;
   variables: ObservedVariable[];
   note?: string;

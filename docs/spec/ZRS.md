@@ -47,7 +47,7 @@ await zintl(lang);
 ```
 
 - **Build-time determinism**: None. The expression is opaque.
-- **Baking**: Impossible. The compiler generates a **Lazy Manager** with a `switch` over all configured locales, each lazily importing its catalog chunk.
+- **Baking**: Impossible. The compiler generates a **Lazy Manager** with a `switch` over every **shipped** locale, each lazily importing its catalog chunk. A locale in `pendingLocales` is maintained on disk but absent from the switch, so nothing imports its content and no chunk is emitted for it (proposal 031).
 - **No Passthrough**: Sinks are always wrapped in `t()` because the compiler cannot prove the locale at build time.
 
 ### §2.3 — $A_{contextual}$ (Inheritance Tier)

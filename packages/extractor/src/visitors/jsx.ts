@@ -9,7 +9,8 @@ import type {
 import { ExtractionContext, INLINE_PHRASING_TAGS } from "../context.js";
 import { generateMessageId } from "../hashing.js";
 import { getAttachedComments, parseZintlComments } from "../comments.js";
-import type { RawVariable, TagMapEntry } from "../types.js";
+import type { TagMapEntry } from "../types.js";
+import { extractRawVariables } from "../variables.js";
 
 function getJsxTagName(element: any): string {
   if (element.openingElement?.name?.type === "JSXIdentifier") {
@@ -456,22 +457,16 @@ export function createJsxVisitor(_ctx: ExtractionContext) {
             undefined,
             source.passVars,
           );
-          const rawVars: RawVariable[] = [];
-          if (source.variables?.length && source.node.type === "TemplateLiteral") {
-            (source.node as any).expressions.forEach((e: any, i: number) => {
-              const vName = e.type === "Identifier" ? e.name : "var" + i;
-              const finalName =
-                (source.normalizedVariables && source.normalizedVariables[vName]) || vName;
-              if (source.variables!.includes(finalName))
-                rawVars.push({
-                  name: finalName,
-                  originalName: vName,
-                  expression: ctx.code.slice(e.start, e.end),
-                  start: e.start,
-                  end: e.end,
-                });
-            });
-          }
+          /**
+           * The shared derivation, not a local one.
+           *
+           * This was an inlined copy that named only `Identifier` expressions,
+           * so `${user.firstName}` resolved to `var0` here and to
+           * `user_firstName` in the text — and since the pairing is by name, the
+           * binding was silently dropped. Every template literal in JSX reached
+           * the compiler with its placeholder and no record of what produced it.
+           */
+          const rawVars = extractRawVariables(source, ctx.code);
           ctx.addRawSink({
             text: source.text,
             sinkType: source.context,

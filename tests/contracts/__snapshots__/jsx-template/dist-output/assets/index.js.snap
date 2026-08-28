@@ -1,0 +1,17 @@
+import { a as loadI18nInstance, i as entry_b_14b672badfbb_default, n as u, r as R, t as Greeting } from "./greeting.js";
+//#region fixtures/jsx-template/src/main.tsx
+var _jsxFileName = "<MONOREPO_ROOT>/fixtures/jsx-template/src/main.tsx";
+async function bootstrap() {
+	const lang = new URLSearchParams(window.location.search).get("lang") || "en";
+	await (globalThis.__zintl_inst = loadI18nInstance({
+		locale: lang,
+		loaders: { ["b_14b672badfbb"]: entry_b_14b672badfbb_default.loader }
+	}));
+	R(/* @__PURE__ */ u(Greeting, { user: { firstName: "Ada" } }, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 10,
+		columnNumber: 10
+	}, this), document.getElementById("root"));
+}
+bootstrap();
+//#endregion

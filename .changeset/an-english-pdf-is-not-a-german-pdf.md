@@ -1,6 +1,6 @@
 ---
-"@zintljs/compiler": major
-"zintljs": major
+"@zintljs/compiler": minor
+"zintljs": minor
 ---
 
 Localized assets are authored, not derived — and an unfilled one now fails your build.
