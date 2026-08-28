@@ -1,12 +1,13 @@
 # Proposal 032: Export/Import Facets — the TMS Seam
 
-**Status**: OPEN — steps 1 and 2 of §7 are **built**; steps 3–5 are designed, not authorised work.
-Both blocking decisions are now taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2
-(only `approved` imports, 2026-08-28), so nothing in this document is waiting on an answer — what
-remains is a facet nobody has been asked to write yet. **§7.2–§7.4 record what building steps 2–4 changed**,
-including two gaps of exactly the same family as §7.1's — both found the same way, and one of them a
-rendering bug rather than the metadata gap it looked like.
-**Date**: 2026-08-24, steps 1–2 built 2026-08-27/28
+**Status**: BUILT — every sequenced step (§7 1–4) is implemented, and both blocking decisions are
+taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2 (only `approved` imports,
+2026-08-28). Step 5 is _vendor_ facets, which this document deliberately never committed to and which
+the seam exists to make somebody else's job. **§7.2–§7.4 record what building steps 2–4 changed**,
+including three gaps of the same family as §7.1's — all found the same way, one a rendering bug rather
+than the metadata gap it looked like, and one an import that updated memory and never touched disk.
+The one loose thread is §1's corollary; see §10.
+**Date**: 2026-08-24, steps 1–4 built 2026-08-27/29
 **Kind**: Architecture proposal. Names a seam and argues for what belongs on each side of it.
 **Depends on**: the faceted architecture (CLAUDE.md), the translation hive
 (`packages/compiler/src/managers/MessageManager.ts`), reconciliation
@@ -174,7 +175,7 @@ This also means the first target can be a file format rather than a vendor, and 
 written by someone who is not us — which is the same shape as the bundler-facet fence added in the
 beta-prep work.
 
-## 6. The format tension, stated rather than resolved
+## 6. The format tension — resolved as predicted
 
 §2 and §3 mean the interchange **cannot** be `{ source: "" }` — that shape has nowhere to put context.
 
@@ -183,7 +184,7 @@ beta-prep work.
 | JSON key/value | Hand-editable; already what catalogs are; zero new concepts     | Carries no context, no state, no notes — the whole §3 value lost |
 | **XLIFF 2.0**  | `<unit id>`, `<notes>`, `<segment state>`; every TMS ingests it | Heavy; XML; not something anyone hand-edits                      |
 
-Probable answer: **both, at different layers.** JSON stays the repo format and the thing a human
+Answer, and it is what shipped: **both, at different layers.** JSON stays the repo format and the thing a human
 edits; XLIFF is what the export facet emits and the import facet consumes. The repo never gains an XML
 file unless someone asks for one. This keeps the "plain JSON you can open" property that people will
 like, while giving the TMS seam a format that can carry §3.
@@ -487,3 +488,26 @@ is exactly the state a locale in first-pass review is in.
 - Bidirectional live sync. The loop in §0 is batch, deliberately: a build system with a network
   dependency in the middle of `flush()` is a different and much worse proposal.
 - Anything about pending locales beyond noting they will meet — see [031](031-pending-locales.md).
+
+## 10. What is actually left
+
+Nothing in §7 1–4, and nothing waiting on a decision. Two things remain, and neither is a gap in the
+seam.
+
+**Step 5, vendor facets.** Never committed to here — "if ever. Possibly by other people" — and the
+whole argument of §5 is that the first target should be a _format_ precisely so a vendor is additive
+work someone outside this repository can do. A `crowdinFacet` would be evidence the seam holds, not a
+missing piece of it.
+
+**§1's corollary is undelivered.** It says a TMS whose fuzzy matching cannot be disabled per-import
+is "a target we should document as degraded rather than support quietly", and no such note exists.
+It matters more now than when it was written: the export ships a carry-forward pre-filled precisely
+so the TMS's own matcher never gets a turn, and that reasoning only holds for a system that honours
+the pre-filled target. One that re-matches anyway produces exactly the wrong-rename generator §1
+describes, and Zintl would have no way to tell. Documented rather than detected, because there is
+nothing in a returned file that distinguishes "the translator confirmed this" from "the TMS matched
+it again".
+
+Also worth stating plainly, because the §9 list is easy to mistake for a backlog: machine translation
+as a source, vendor auth, and bidirectional live sync are **not** unfinished work. They are decisions
+against, and §9 gives the reasons.

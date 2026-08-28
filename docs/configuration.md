@@ -389,7 +389,9 @@ Two things there are worth calling out, because no translation system can work t
 
 **A shared string is exported once, and says so.** If the same words appear in four places, a translator gets one unit and a note saying one translation covers all four. That is the difference between a safe edit and a regression, and it is knowable only from the import graph.
 
-**A carry-forward arrives pre-filled and flagged.** When you edit a source string, Zintl reconciles first and the export _states the answer_ — the old translation, the similarity, and a warning when a whole word changed. Your TMS's own fuzzy matching never gets a turn, which matters because two translation memories guessing independently disagree in ways that are miserable to debug: neither side is malfunctioning.
+**A carry-forward arrives pre-filled and flagged.** When you edit a source string, Zintl reconciles first and the export _states the answer_ — the old translation, the similarity, and a warning when a whole word changed. This matters because two translation memories guessing independently disagree in ways that are miserable to debug: neither side is malfunctioning.
+
+It only works if your translation system honours the target it was given. One that re-runs its own fuzzy matching over a pre-filled unit, with no way to switch that off per import, will overwrite Zintl's answer with its own — and nothing in the file that comes back distinguishes that from a translator agreeing. Zintl cannot detect it, so treat such a system as degraded rather than supported: check whether pre-filled targets survive a round trip before trusting carry-forwards through it.
 
 A pending locale ([above](#standing-up-a-new-locale)) is exported too. It is exactly the locale a translation system is working through.
 
