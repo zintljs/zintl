@@ -527,13 +527,15 @@ export function htmlProjectionFacet(): ZintlFacet {
      * truth.
      */
     async rtlLocales(context: CompilerContext) {
+      // Shipped: direction is a property of a document that exists, and a
+      // pending locale is not rendered at all (031 §3).
       return getManager(context).collectRtlLocales(reachableHtml(context), context.locales);
     },
     async flush(context: CompilerContext) {
       const htmlMetadatas = reachableHtml(context);
       await getManager(context).syncHtmlProjections(
         htmlMetadatas,
-        context.locales,
+        context.maintainedLocales,
         context.getHive(),
         context.markHiveDirty,
         context.internalManifest,
@@ -558,7 +560,7 @@ export function htmlProjectionFacet(): ZintlFacet {
       const metaGraph = context.getMetadataGraph();
       for (const bId of Object.keys(metaGraph)) {
         if (metaGraph[bId].htmlProjection) {
-          for (const locale of context.locales) {
+          for (const locale of context.maintainedLocales) {
             const catPath = mgr.getCatalogPath(bId, locale);
             if (
               catPath &&

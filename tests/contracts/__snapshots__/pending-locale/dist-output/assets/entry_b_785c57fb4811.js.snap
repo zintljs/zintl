@@ -1,0 +1,7 @@
+//#region \0virtual:zintl/content/ar/entry:b_785c57fb4811
+var catalog = { "b_785c57fb4811": {
+	"1c5b34d6": "مرحباً بعودتك!",
+	"0e900ab6": "مشاريعك في انتظارك."
+} };
+//#endregion
+export { catalog as default };

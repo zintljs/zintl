@@ -95,10 +95,20 @@ function translatorContext(sinkType: string | undefined): string | undefined {
   return sinkType;
 }
 
-/** One `zintl()` anchor naming a locale the project does not build. */
+/** One `zintl()` anchor naming a locale the project does not render. */
 interface UnsupportedAnchorLocale {
   fileId: string;
   locale: string;
+  /**
+   * Which mistake this is.
+   *
+   * `"unknown"` — the locale is in no list, so it is a typo or an unfinished
+   * configuration. `"pending"` — the locale is being stood up, so the anchor is
+   * early rather than wrong, and the fix is a promotion rather than an addition.
+   * The two read identically at the call site and want opposite advice, which is
+   * why the report distinguishes them (031 §8).
+   */
+  kind: "unknown" | "pending";
 }
 
 /** One extracted key with no translation in one locale. */
@@ -127,44 +137,168 @@ function truncateKey(key: string, max = 60): string {
 }
 
 /**
- * Report every anchor that targets an unconfigured locale, in one error.
+ * Refuse a locale configuration that cannot mean one thing.
+ *
+ * Raised at construction rather than discovered at a read site, because every
+ * one of these is quiet downstream. A locale in both lists resolves to whichever
+ * list a given site happens to consult; a pending source locale asks the
+ * compiler to maintain catalogs for the one locale that is diskless by design;
+ * a duplicate entry doubles the work of every per-locale loop and changes no
+ * output, so nothing ever complains.
+ *
+ * The message names the fix rather than the rule — a configuration error should
+ * be over in one read.
+ */
+function assertLocaleConfiguration(
+  sourceLocale: string,
+  locales: string[],
+  pendingLocales: string[],
+): void {
+  const dupes = (list: string[]) =>
+    Array.from(new Set(list.filter((l, i) => list.indexOf(l) !== i)));
+
+  const localeDupes = dupes(locales);
+  if (localeDupes.length > 0) {
+    throw new Error(
+      `[Zintl Config Error] \`locales\` lists ${localeDupes
+        .map((l) => `"${l}"`)
+        .join(", ")} more than once.\n\nFix: remove the duplicate.`,
+    );
+  }
+
+  const pendingDupes = dupes(pendingLocales);
+  if (pendingDupes.length > 0) {
+    throw new Error(
+      `[Zintl Config Error] \`pendingLocales\` lists ${pendingDupes
+        .map((l) => `"${l}"`)
+        .join(", ")} more than once.\n\nFix: remove the duplicate.`,
+    );
+  }
+
+  if (pendingLocales.includes(sourceLocale)) {
+    throw new Error(
+      [
+        `[Zintl Config Error] \`sourceLocale\` ("${sourceLocale}") cannot be pending.`,
+        ``,
+        `The source locale is written in your source and never gets a catalog on`,
+        `disk, so there is nothing to stand up and nothing to gate.`,
+        ``,
+        `Fix: remove "${sourceLocale}" from \`pendingLocales\`.`,
+      ].join("\n"),
+    );
+  }
+
+  const both = pendingLocales.filter((l) => locales.includes(l));
+  if (both.length > 0) {
+    throw new Error(
+      [
+        `[Zintl Config Error] ${both.map((l) => `"${l}"`).join(", ")} ${
+          both.length === 1 ? "is" : "are"
+        } in both \`locales\` and \`pendingLocales\`.`,
+        ``,
+        `A locale is either shipped or being stood up, and which list it is in is`,
+        `the whole of the difference.`,
+        ``,
+        `Fix: keep it in \`locales\` to ship and gate it, or in \`pendingLocales\``,
+        `to maintain catalogs without gating it.`,
+      ].join("\n"),
+    );
+  }
+}
+
+/**
+ * Report every anchor that targets a locale the project does not render, in one
+ * error.
  *
  * Raised *instead of* the missing-translation report rather than alongside it:
  * an anchor on a locale nobody builds makes every downstream missing
  * translation a consequence rather than a finding.
+ *
+ * Two mistakes share this report and are never merged into one sentence. An
+ * anchor on an unknown locale is a typo, fixed by adding the locale or
+ * correcting the call. An anchor on a *pending* locale is a build that arrived
+ * before its translations, fixed by promoting the locale — and telling that
+ * author to "add the locale to `locales`" would be advice to ship German blank,
+ * which is the one thing this compiler will not do.
  */
 function formatUnsupportedAnchorLocales(
   bad: UnsupportedAnchorLocale[],
   configured: string[],
+  pending: string[],
 ): string {
-  const byLocale = new Map<string, string[]>();
-  for (const entry of bad) {
-    const files = byLocale.get(entry.locale);
-    if (!files) byLocale.set(entry.locale, [entry.fileId]);
-    else if (!files.includes(entry.fileId)) files.push(entry.fileId);
-  }
-  const locales = Array.from(byLocale.keys()).sort();
+  const group = (kind: UnsupportedAnchorLocale["kind"]) => {
+    const byLocale = new Map<string, string[]>();
+    for (const entry of bad) {
+      if (entry.kind !== kind) continue;
+      const files = byLocale.get(entry.locale);
+      if (!files) byLocale.set(entry.locale, [entry.fileId]);
+      else if (!files.includes(entry.fileId)) files.push(entry.fileId);
+    }
+    return byLocale;
+  };
+
+  const unknown = group("unknown");
+  const stillPending = group("pending");
+  const total = unknown.size + stillPending.size;
+
+  const describe = (byLocale: Map<string, string[]>, suffix: string): string[] => {
+    const out: string[] = [];
+    for (const locale of Array.from(byLocale.keys()).sort()) {
+      const files = byLocale.get(locale)!.slice().sort();
+      out.push(`  "${locale}" \u2014 ${suffix}`);
+      for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) out.push(`      ${file}`);
+      if (files.length > INTEGRITY_SAMPLE_LIMIT) {
+        out.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
+      }
+      out.push(``);
+    }
+    return out;
+  };
+
+  /**
+   * Accurate about which of the two is being complained about.
+   *
+   * "You do not build" is simply false of a pending locale — the compiler
+   * extracts it, writes its catalogs and reconciles them; the one thing it does
+   * not do is ship it. An error that misdescribes the state it found sends the
+   * reader to check a configuration that is already correct.
+   */
+  const what =
+    unknown.size === 0
+      ? "you do not ship yet"
+      : stillPending.size === 0
+        ? "you do not build"
+        : "you do not render";
 
   const lines: string[] = [
-    `[Zintl Integrity Error] zintl() targets ${locales.length} ${
-      locales.length === 1 ? "locale" : "locales"
-    } you do not build.`,
+    `[Zintl Integrity Error] zintl() targets ${total} ${
+      total === 1 ? "locale" : "locales"
+    } ${what}.`,
     ``,
     `Configured locales: [${configured.join(", ")}]`,
-    ``,
   ];
+  if (pending.length > 0) lines.push(`Pending locales: [${pending.join(", ")}]`);
+  lines.push(``);
 
-  for (const locale of locales) {
-    const files = byLocale.get(locale)!.slice().sort();
-    lines.push(`  "${locale}" \u2014 anchored in:`);
-    for (const file of files.slice(0, INTEGRITY_SAMPLE_LIMIT)) lines.push(`      ${file}`);
-    if (files.length > INTEGRITY_SAMPLE_LIMIT) {
-      lines.push(`      \u2026 and ${files.length - INTEGRITY_SAMPLE_LIMIT} more`);
-    }
-    lines.push(``);
+  lines.push(...describe(unknown, "anchored in:"));
+  lines.push(...describe(stillPending, "pending, anchored in:"));
+
+  if (stillPending.size > 0) {
+    lines.push(
+      `A pending locale is maintained but never rendered, so an anchor cannot name one.`,
+      ``,
+    );
   }
 
-  lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  if (unknown.size > 0) {
+    lines.push(`Fix: add the locale to \`locales\`, or correct the zintl() call.`);
+  }
+  if (stillPending.size > 0) {
+    lines.push(
+      `Fix: move it from \`pendingLocales\` to \`locales\` once it is ready to ship,`,
+      `or correct the zintl() call.`,
+    );
+  }
   return lines.join("\n");
 }
 
@@ -471,7 +605,39 @@ export class ZintlCompiler {
   private readonly extensions: string[];
 
   public readonly sourceLocale: string;
+  /**
+   * The locales this project **ships**.
+   *
+   * One of two answers `locales` used to give at once. This is the shipping
+   * half: what a catalog chunk is emitted for, what the runtime offers, what
+   * `verifyIntegrity` gates, and what a `zintl("fr")` literal may name. See
+   * {@link maintainedLocales} for the other half, and 031 §4 for why the two
+   * had to come apart.
+   */
   private readonly locales: string[];
+  /**
+   * The locales this project **maintains catalogs for** — shipped and pending
+   * alike.
+   *
+   * Anything that touches a catalog, the hive, or a file on disk a translator
+   * owns reads this, because a pending locale is being translated right now
+   * even though nothing ships it yet. Pruning is the sharp case: a maintained
+   * locale missing from this list is a translator's half-finished file that a
+   * production build would delete as an orphan.
+   *
+   * Equal to {@link locales} whenever `pendingLocales` is unset, which is every
+   * project that has not asked for the feature.
+   */
+  private readonly maintainedLocales: string[];
+  /**
+   * The locales being stood up: maintained, never shipped.
+   *
+   * Held separately from the two lists it is the difference between, because
+   * two places need to name it rather than derive it — the status line, which
+   * marks it, and the anchor error, which tells a `zintl("de")` author that
+   * German is coming rather than that it does not exist.
+   */
+  private readonly pendingLocales: string[];
   private readonly root: string;
   public readonly isDev: boolean;
   private readonly logger: ZintlLogger;
@@ -610,6 +776,12 @@ export class ZintlCompiler {
     this.extensions = this._resolved.system.extensions;
     this.sourceLocale = options.sourceLocale || DEFAULT_SOURCE_LOCALE;
     this.locales = options.locales || DEFAULT_LOCALES;
+    this.pendingLocales = options.pendingLocales || [];
+    assertLocaleConfiguration(this.sourceLocale, this.locales, this.pendingLocales);
+    // Union, not concatenation with a duplicate: the validator above has
+    // already refused any overlap, so this is a disjoint join.
+    this.maintainedLocales =
+      this.pendingLocales.length > 0 ? [...this.locales, ...this.pendingLocales] : this.locales;
     this.root = root;
     this.isDev = isDev;
     this.debug = options.debug;
@@ -665,6 +837,7 @@ export class ZintlCompiler {
       outputDir: this._outputDir,
       sourceLocale: this.sourceLocale,
       locales: this.locales,
+      maintainedLocales: this.maintainedLocales,
       isDev: this.isDev,
       io: this.io,
       logger: this.logger,
@@ -774,7 +947,7 @@ export class ZintlCompiler {
     }
     await this.catalog.harvestHive(
       this.messages.internalManifest,
-      this.locales,
+      this.maintainedLocales,
       this.messages.hive,
       () => this.messages.markHiveDirty(),
     );
@@ -1025,7 +1198,7 @@ export class ZintlCompiler {
     for (const id of wanted) if (!matched.has(id)) normalizedOwners.add(id);
 
     for (const id of normalizedOwners) {
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         const catPath = this.getCatalogPath(id, locale);
         if (catPath) inputs.add(isAbsolute(catPath) ? catPath : join(this.rootDir, catPath));
       }
@@ -1340,7 +1513,7 @@ export class ZintlCompiler {
     for (const bId of Object.keys(this.messages.internalManifest)) {
       if (this.io.isVirtualId(bId)) continue;
       if (foundBoundaryIds.includes(bId)) continue;
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         const catPath = this.catalog.getCatalogPath(bId, locale);
         if (catPath && this.io.getNormalizedId(catPath) === this.io.getNormalizedId(filePath)) {
           foundBoundaryIds.push(bId);
@@ -1735,7 +1908,7 @@ export class ZintlCompiler {
           };
         }
 
-        for (const loc of this.locales) {
+        for (const loc of this.maintainedLocales) {
           const locAssets = await this.mergeFacetTranslations(loc, context);
           if (!this.messages.hive[loc]) this.messages.hive[loc] = {};
 
@@ -2791,7 +2964,7 @@ export class ZintlCompiler {
     const graph = this.graph.boundaryGraph;
     if (!graph || contentPaths.size === 0) return;
 
-    const catalogs = this.catalog.catalogOutputPaths(graph, this.locales);
+    const catalogs = this.catalog.catalogOutputPaths(graph, this.maintainedLocales);
     const collisions: { path: string; facet: string; boundaryId: string }[] = [];
     for (const [path, facet] of contentPaths) {
       const boundaryId = catalogs.get(normalizeOutputPath(this.root, path));
@@ -2892,7 +3065,7 @@ export class ZintlCompiler {
 
       await this.catalog.pruneOrphanedBoundaries(
         this.graph.boundaryGraph!,
-        this.locales,
+        this.maintainedLocales,
         this.messages.metadataGraph,
         this.messages.dependencyGraph,
         this.graph,
@@ -2991,7 +3164,7 @@ export class ZintlCompiler {
 
           // Check catalogs for all locales (except source locale)
           if (!missing) {
-            for (const locale of this.locales) {
+            for (const locale of this.maintainedLocales) {
               if (locale === this.sourceLocale) continue;
               const catPath = this.catalog.getCatalogPath(bId, locale);
               if (catPath && !(await this.io.exists(catPath))) {
@@ -3018,7 +3191,7 @@ export class ZintlCompiler {
         }
       }
 
-      const groups = this.catalog.groupBoundariesByPath(affectedBoundaries, this.locales);
+      const groups = this.catalog.groupBoundariesByPath(affectedBoundaries, this.maintainedLocales);
       for (const [path, { locales }] of groups) {
         const allBIds = this.catalog.getAllBoundariesForPath(
           path,
@@ -3136,19 +3309,30 @@ export class ZintlCompiler {
    * Source-locale entries are excluded: they are never written to disk and are
    * translated by definition.
    */
-  public getTranslationStatus(): { locale: string; translated: number; total: number }[] {
+  public getTranslationStatus(): {
+    locale: string;
+    translated: number;
+    total: number;
+    /** Maintained but not shipped — its gap is progress, not a coming failure. */
+    pending: boolean;
+  }[] {
     const keys = new Set<string>();
     for (const entries of Object.values(this.internalManifest)) {
       for (const entry of entries) keys.add(entry.text);
     }
 
-    return this.locales
+    return this.maintainedLocales
       .filter((locale) => locale !== this.sourceLocale)
       .map((locale) => {
         const known = this.messages.hive[locale];
         let translated = 0;
         if (known) for (const key of keys) if (known[key]) translated++;
-        return { locale, translated, total: keys.size };
+        return {
+          locale,
+          translated,
+          total: keys.size,
+          pending: this.pendingLocales.includes(locale),
+        };
       });
   }
 
@@ -3201,7 +3385,10 @@ export class ZintlCompiler {
     if (status.length === 0 || status[0].total === 0) return;
 
     const line = status
-      .map(({ locale, translated, total }) => `${locale} ${translated}/${total}`)
+      .map(
+        ({ locale, translated, total, pending }) =>
+          `${locale} ${translated}/${total}${pending ? " (pending)" : ""}`,
+      )
       .join(" · ");
     if (line === this._lastStatusLine) return;
     this._lastStatusLine = line;
@@ -3217,14 +3404,28 @@ export class ZintlCompiler {
      * failure. `warn` is where a coming failure belongs.
      *
      * Complete is genuinely just news, and stays at `info`.
+     *
+     * A pending locale is shown but never summed into `missing`, for the same
+     * reason read the other way: its gap predicts nothing, because
+     * `verifyIntegrity` does not gate it. Warning about it would be false — a
+     * build with a 0%-translated pending locale passes — and it would train
+     * people to ignore the line that does predict a failure.
      */
-    const missing = status.reduce((n, s) => n + (s.total - s.translated), 0);
-    if (missing === 0) {
-      this.logger.info(`Translations complete — ${line}`);
-    } else {
+    const missing = status.reduce((n, s) => n + (s.pending ? 0 : s.total - s.translated), 0);
+    const unfinishedPending = status.filter((s) => s.pending && s.translated < s.total);
+    if (missing > 0) {
       this.logger.warn(
         `Translations ${line} — ${missing} missing, a production build will fail until they are filled`,
       );
+    } else if (unfinishedPending.length > 0) {
+      const names = unfinishedPending.map((s) => s.locale).join(", ");
+      this.logger.info(
+        `Translations ${line} — shipped locales complete; ${names} ${
+          unfinishedPending.length === 1 ? "is" : "are"
+        } not shipped yet`,
+      );
+    } else {
+      this.logger.info(`Translations complete — ${line}`);
     }
   }
 
@@ -3290,7 +3491,14 @@ export class ZintlCompiler {
         if (anchor.locale.type === "literal") {
           const targetLocale = anchor.locale.value;
           if (targetLocale !== "none" && !this.locales.includes(targetLocale)) {
-            badAnchors.push({ fileId, locale: targetLocale });
+            // The shipped list is the right question here even though the
+            // pending one is maintained: an anchor is a declaration that this
+            // file renders in that locale, and a pending locale renders nowhere.
+            badAnchors.push({
+              fileId,
+              locale: targetLocale,
+              kind: this.pendingLocales.includes(targetLocale) ? "pending" : "unknown",
+            });
           }
         }
       }
@@ -3382,7 +3590,9 @@ export class ZintlCompiler {
     }
 
     if (badAnchors.length > 0) {
-      throw new Error(formatUnsupportedAnchorLocales(badAnchors, this.locales));
+      throw new Error(
+        formatUnsupportedAnchorLocales(badAnchors, this.locales, this.pendingLocales),
+      );
     }
     if (missing.length > 0 || unfilledAssets.length > 0) {
       const reports: string[] = [];

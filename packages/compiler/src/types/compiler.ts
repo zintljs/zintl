@@ -49,6 +49,8 @@ export interface AssetTargetConfig {
 export interface CompilerOptions {
   sourceLocale?: string;
   locales?: string[];
+  /** @see Options.pendingLocales — maintained but not shipped (031). */
+  pendingLocales?: string[];
   outputDir?: string;
   catalogFormat?: string | ((ctx: CatalogFormatContext) => string);
   similarityThreshold?: number;

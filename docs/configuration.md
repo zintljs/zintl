@@ -20,10 +20,11 @@ Each option is documented on the `Options` type too — hover or ctrl-click it i
 
 ## Locales
 
-| Option         | Type       | Default  | What it does                                                                                          |
-| :------------- | :--------- | :------- | :---------------------------------------------------------------------------------------------------- |
-| `locales`      | `string[]` | `["en"]` | Every locale your app ships, including the source locale.                                             |
-| `sourceLocale` | `string`   | `"en"`   | The locale your source is written in. Never written to disk — the compiler already has those strings. |
+| Option           | Type       | Default  | What it does                                                                                          |
+| :--------------- | :--------- | :------- | :---------------------------------------------------------------------------------------------------- |
+| `locales`        | `string[]` | `["en"]` | Every locale your app ships, including the source locale.                                             |
+| `sourceLocale`   | `string`   | `"en"`   | The locale your source is written in. Never written to disk — the compiler already has those strings. |
+| `pendingLocales` | `string[]` | `[]`     | Locales you are standing up: catalogs are maintained, nothing ships. See below.                       |
 
 ## Where files go
 
@@ -112,7 +113,39 @@ Ship it knowing those strings render empty for anyone on an affected locale, and
 
 What stops it being a surprise is the status line below — the completeness you have been watching all week is the same number the gate is about to check.
 
-Standing up a **brand-new** locale over weeks is a different situation, and one where turning the gate off project-wide is the wrong tool. That is [proposal 031](/docs/spec/proposals/031-pending-locales.md), designed and deliberately deferred past the first beta.
+### Standing up a new locale
+
+Adding `de` to `locales` on the day you start translating it means every build fails for the month it takes, because German is 0% done. Turning `verifyIntegrity` off for that month is the wrong tool: it removes the gate from `ar` and `fr` too, and those have real users.
+
+`pendingLocales` is the per-locale version of that decision:
+
+```ts
+zintl({
+  locales: ["en", "ar", "fr"],
+  pendingLocales: ["de"],
+});
+```
+
+A pending locale is **maintained but not shipped**:
+
+|                             | Pending locale                                                       |
+| :-------------------------- | :------------------------------------------------------------------- |
+| Extraction                  | Yes — it needs keys                                                  |
+| Catalog files written       | Yes — translators need files to fill                                 |
+| Reconciliation and pruning  | Yes — it stays in sync as the source changes, and nothing deletes it |
+| Status line                 | Yes, marked `(pending)` — progress is the whole point                |
+| `verifyIntegrity`           | **Exempt** — incompleteness is the expected state                    |
+| Catalog chunk in your build | **No**                                                               |
+| Runtime locale list         | **No** — a switcher built from it will not offer German              |
+| `zintl("de")`               | **Build error**, naming it as pending rather than as unknown         |
+
+The no-fallback rule is untouched. A locale ships complete or it does not ship — nothing renders blank, because nothing renders in German at all until you promote it.
+
+**Promotion is moving the string into `locales`.** The build gates it from that moment, and the first thing it reports is exactly what is still missing — which by then should be nothing, because the status line has been counting all along.
+
+A locale cannot be in both lists, and `sourceLocale` can never be pending. Both are configuration errors, raised before anything builds.
+
+This does **not** solve the Friday problem above. The locales missing a string added on Friday are `ar` and `fr` — already shipped, with real users — and marking Arabic pending would drop it from the release entirely. That is far worse than a red build. The two situations share a symptom and nothing else.
 
 ## Untranslated strings while you work
 

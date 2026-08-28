@@ -192,7 +192,14 @@ export class AssetManager {
     private readonly io: IOManager,
     private readonly root: string,
     private readonly sourceLocale: string,
-    private readonly locales: string[],
+    /**
+     * The maintained locales (031 §3). Every use below asks what exists on
+     * disk — which artifacts are registered, which are live, which must
+     * survive pruning — and a pending locale's artifact is authored well
+     * before anything ships it. The shipping question is asked once, by
+     * {@link getUnfilledOutputs}, whose caller passes the shipped list in.
+     */
+    private readonly maintainedLocales: string[],
     private readonly logger: ZintlLogger,
     private readonly catalog: CatalogManager,
     private readonly options: AssetFacetConfig = {},
@@ -392,7 +399,7 @@ export class AssetManager {
 
     await this.followMove(assetId, originalPath);
 
-    for (const locale of this.locales) {
+    for (const locale of this.maintainedLocales) {
       if (locale === this.sourceLocale) continue;
       const destPath = this.getAssetPath(assetId, locale);
       if (await this.io.exists(destPath)) continue;
@@ -431,7 +438,7 @@ export class AssetManager {
     const previousId = bucket[key];
 
     if (typeof previousId === "string" && previousId !== assetId) {
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         if (locale === this.sourceLocale) continue;
         const from = this.getAssetPath(previousId, locale);
         const to = this.getAssetPath(assetId, locale);
@@ -580,11 +587,18 @@ export class AssetManager {
    * listing. Absence counts as unfilled too — an artifact deleted by hand is a
    * slot to fill, not permission to ship the source.
    */
-  public async getUnfilledOutputs(locales: string[]): Promise<{ locale: string; path: string }[]> {
+  public async getUnfilledOutputs(
+    /**
+     * The **shipped** locales. A pending locale's slot is expected to be empty
+     * — that is what pending means — so gating it here would reinstate exactly
+     * the red build 031 exists to remove.
+     */
+    shippedLocales: string[],
+  ): Promise<{ locale: string; path: string }[]> {
     const unfilled: { locale: string; path: string }[] = [];
     for (const assetId of this.getRegisteredAssets()) {
       if (!(await this.io.exists(join(this.root, assetId)))) continue;
-      for (const locale of locales) {
+      for (const locale of shippedLocales) {
         if (locale === this.sourceLocale) continue;
         const path = this.getAssetPath(assetId, locale);
         if (!(await this.io.exists(path))) {
@@ -609,7 +623,7 @@ export class AssetManager {
   public isLocalizedArtifact(filePath: string): boolean {
     const normalized = this.io.getNormalizedId(filePath);
     for (const assetId of this.registeredAssets.keys()) {
-      for (const locale of this.locales) {
+      for (const locale of this.maintainedLocales) {
         if (locale === this.sourceLocale) continue;
         if (this.io.getNormalizedId(this.getAssetPath(assetId, locale)) === normalized) return true;
       }
@@ -619,7 +633,7 @@ export class AssetManager {
 
   public async isLocalizedAsset(filePath: string): Promise<boolean> {
     const normalized = this.io.getNormalizedId(filePath);
-    const paths = await this.getActiveAssetPaths(this.locales);
+    const paths = await this.getActiveAssetPaths(this.maintainedLocales);
 
     for (const p of paths) {
       if (this.io.getNormalizedId(p) === normalized) return true;
@@ -697,7 +711,9 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
         context.io,
         context.root,
         context.sourceLocale,
-        context.locales,
+        // Which artifacts exist on disk, not which ones ship: a translator is
+        // authoring the pending locale's file right now (031 §3).
+        context.maintainedLocales,
         context.logger,
         context.catalog,
         resolvedConfig,
@@ -742,7 +758,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
       await getManager(context).registerAsset(filePath);
     },
     async flush(context: CompilerContext) {
-      await getManager(context).syncAssets(context.locales);
+      await getManager(context).syncAssets(context.maintainedLocales);
     },
     async getTranslations(locale: string, context: CompilerContext) {
       return getManager(context).getAssetTranslations(locale);
@@ -751,7 +767,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
       return getManager(context).isLocalizedAsset(filePath);
     },
     async getActiveOutputPaths(context: CompilerContext) {
-      return getManager(context).getActiveAssetPaths(context.locales);
+      return getManager(context).getActiveAssetPaths(context.maintainedLocales);
     },
     deliversUrl(filePath: string, context: CompilerContext) {
       const mgr = getManager(context);
@@ -761,6 +777,8 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
       return mgr.getDelivery(mgr.normalizedId(filePath)) === "reference";
     },
     async getUnfilledOutputs(context: CompilerContext) {
+      // The shipped list, deliberately: an unfilled artifact is only a build
+      // failure for a locale the build is about to ship (031 §3).
       return getManager(context).getUnfilledOutputs(context.locales);
     },
     getStateToSave(context: CompilerContext) {
@@ -778,7 +796,7 @@ export function assetsFacet(config: AssetFacetConfig = {}): ZintlFacet {
       const paths: string[] = [];
       for (const assetId of mgr.getRegisteredAssets()) {
         paths.push(join(context.root, assetId));
-        for (const locale of context.locales) {
+        for (const locale of context.maintainedLocales) {
           if (locale === context.sourceLocale) continue;
           paths.push(mgr.getAssetPath(assetId, locale));
         }

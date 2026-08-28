@@ -13,6 +13,7 @@ import { assetsBasic } from "../fixtures/assets-basic.js";
 import { assetsAuthored } from "../fixtures/assets-authored.js";
 import { ssrStreaming } from "../fixtures/ssr-streaming.js";
 import { lazyBoundary } from "../fixtures/lazy-boundary.js";
+import { pendingLocale } from "../fixtures/pending-locale.js";
 import { rsbuildVanillaBasic } from "./rsbuild-vanilla-basic.js";
 import { rsbuildReactBasic } from "./rsbuild-react-basic.js";
 import { rsbuildSvelteBasic } from "./rsbuild-svelte-basic.js";
@@ -56,6 +57,7 @@ export const allManifests: ProjectManifest[] = [
   assetsAuthored,
   ssrStreaming,
   lazyBoundary,
+  pendingLocale,
   rsbuildVanillaBasic,
   rsbuildReactBasic,
   rsbuildSvelteBasic,

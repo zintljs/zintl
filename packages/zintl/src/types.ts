@@ -84,6 +84,39 @@ export interface Options {
   locales?: string[];
 
   /**
+   * Locales you are **standing up but not shipping yet**.
+   *
+   * A pending locale is maintained exactly like a shipped one — extracted,
+   * given catalog files, reconciled as the source changes, and counted in the
+   * status line — but it is exempt from
+   * {@link Options.verifyIntegrity | `verifyIntegrity`}, emits no catalog
+   * chunk, and is absent from the runtime locale list. Nothing renders in it,
+   * so nothing renders blank: the no-fallback rule is untouched.
+   *
+   * This exists for the case where turning the gate off project-wide is the
+   * wrong tool. Adding `de` to `locales` on day one fails every build for the
+   * month it takes to translate; setting `verifyIntegrity: false` instead
+   * removes the protection from `ar` and `fr`, which have real users. A
+   * pending locale is the per-locale version of that decision.
+   *
+   * **Promotion is moving the string into `locales`.** The build gates it from
+   * that moment, and the first thing it reports is exactly what is still
+   * missing — which by then should be nothing, because the status line has
+   * been counting all along.
+   *
+   * A locale may not appear in both lists, and
+   * {@link Options.sourceLocale | `sourceLocale`} can never be pending.
+   *
+   * @default []
+   * @example
+   * ```ts
+   * locales: ["en", "ar", "fr"],
+   * pendingLocales: ["de"],
+   * ```
+   */
+  pendingLocales?: string[];
+
+  /**
    * Where translation catalogs are written, relative to the project root.
    *
    * These files are yours: commit them, edit them, hand them to translators.

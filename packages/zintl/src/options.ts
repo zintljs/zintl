@@ -33,6 +33,7 @@ import type { FacetsInput, Options } from "./types.js";
 export const DEFAULTS = {
   sourceLocale: "en",
   locales: ["en"] as string[],
+  pendingLocales: [] as string[],
   prune: true,
   debug: false as boolean | string,
   virtualAssets: false,
@@ -54,6 +55,7 @@ export const DEFAULTS = {
 export interface ResolvedOptions extends Options {
   sourceLocale: string;
   locales: string[];
+  pendingLocales: string[];
   prune: boolean;
   debug: boolean | string;
   virtualAssets: boolean;
@@ -70,6 +72,7 @@ export function resolveOptions(options?: Options): ResolvedOptions {
     // same array to every caller would let one plugin instance mutate another's
     // locale list.
     locales: o.locales ?? [...DEFAULTS.locales],
+    pendingLocales: o.pendingLocales ?? [...DEFAULTS.pendingLocales],
     prune: o.prune ?? DEFAULTS.prune,
     debug: o.debug ?? DEFAULTS.debug,
     virtualAssets: o.virtualAssets ?? DEFAULTS.virtualAssets,

@@ -1034,7 +1034,24 @@ export interface CompilerContext {
   root: string;
   outputDir: string;
   sourceLocale: string;
+  /**
+   * The locales this project **ships**.
+   *
+   * The safe default for a facet: it is what the runtime offers, what a
+   * document is fanned out for, and what `verifyIntegrity` gates. A facet that
+   * reads this and means it will never ship an untranslated locale.
+   */
   locales: string[];
+  /**
+   * The locales this project **maintains catalogs for** — shipped and pending
+   * alike (031).
+   *
+   * Read this instead of {@link locales} when the question is about a file on
+   * disk rather than about output: which catalogs to write, which artifacts a
+   * translator owns, what pruning must not delete. Equal to `locales` unless
+   * the project declares `pendingLocales`.
+   */
+  maintainedLocales: string[];
   isDev: boolean;
   io: IOManager;
   logger: ZintlLogger;

@@ -1201,7 +1201,14 @@ export class CatalogManager {
 
   public async pruneOrphanedBoundaries(
     graph: BoundaryGraph,
-    locales: string[],
+    /**
+     * The **maintained** locales, not the shipped ones (031 §3).
+     *
+     * Pruning deletes what it does not recognize. Handed the shipped list, a
+     * pending locale's half-finished catalog is an orphan by construction and a
+     * production build removes a translator's work in progress.
+     */
+    maintainedLocales: string[],
     metadataGraph?: MetadataGraph,
     dependencyGraph?: DependencyGraph,
     graphManager?: GraphManager,
@@ -1260,7 +1267,11 @@ export class CatalogManager {
       root: this.root,
       outputDir: this.outputDir,
       sourceLocale: this.sourceLocale,
-      locales,
+      // Both fields carry the maintained list: this context exists solely for
+      // `isContentBoundary`, which asks about identity rather than about
+      // output, and the shipped list is not in scope here.
+      locales: maintainedLocales,
+      maintainedLocales,
       isDev: this.isDev,
       io: this.io,
       logger: this.logger,
@@ -1324,7 +1335,7 @@ export class CatalogManager {
 
       if (!isActive) continue;
 
-      for (const locale of locales) {
+      for (const locale of maintainedLocales) {
         if (locale === this.sourceLocale) continue;
         const p = this.getCatalogPath(bId, locale);
         if (p) knownPaths.add(this.normalizeOutputPath(p));
@@ -1352,7 +1363,7 @@ export class CatalogManager {
         if (isFacetContentBoundary(id)) {
           const check = graphManager.leadsToBoundary(id, dependencyGraph, metadataGraph);
           if (check.leads) {
-            for (const locale of locales) {
+            for (const locale of maintainedLocales) {
               if (locale === this.sourceLocale) continue;
               const p = this.getCatalogPath(id, locale);
               if (p) knownPaths.add(this.normalizeOutputPath(p));
@@ -1366,7 +1377,7 @@ export class CatalogManager {
       // Fallback for simple pruning
       for (const id of Object.keys(metadataGraph)) {
         if (isFacetContentBoundary(id) && graph.nodes.has(id)) {
-          for (const locale of locales) {
+          for (const locale of maintainedLocales) {
             if (locale === this.sourceLocale) continue;
             const p = this.getCatalogPath(id, locale);
             if (p) knownPaths.add(this.normalizeOutputPath(p));
