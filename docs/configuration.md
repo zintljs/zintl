@@ -393,7 +393,34 @@ Two things there are worth calling out, because no translation system can work t
 
 A pending locale ([above](#standing-up-a-new-locale)) is exported too. It is exactly the locale a translation system is working through.
 
-Import is not implemented yet. When it lands it will validate before it merges — a placeholder your TMS dropped, a mangled tag, ICU plural categories wrong for the target language — and fail the build as loudly as a missing translation.
+#### Taking them back
+
+The same facet reads the files back on the next production build. Import is a **gate, not a merge** — everything arriving is a proposal from a system Zintl does not control, and three things happen to it before a catalog sees it.
+
+**Only an approved translation is imported.** XLIFF's `reviewed` and `final` count; `translated` and `initial` are skipped, because they are drafts a reviewer has not signed off. That keeps `verifyIntegrity` meaning exactly one thing: a locale that passes is a locale that is done.
+
+**A corrupt translation fails the build**, in one report, with nothing written:
+
+```
+[Zintl Import Error] 2 translations would render incorrectly, across 1 locale.
+
+These came back from an import, so the catalogs on disk are untouched —
+nothing here has been written. Fix them at the source and import again.
+
+  ar — 2 refused
+      "Welcome back, {name}!"
+        {name} is missing from the translation — the value would render with a gap where it should appear
+      "{count, plural, one {# item} other {# items}}"
+        {count} is missing the few, many, two, zero forms that "ar" requires — those counts would fall through to "other"
+```
+
+That second one is worth dwelling on. Arabic has six plural categories and English has two, so a translator working from an English source sees two boxes to fill. A translation system that round-trips the English shape produces a message that silently renders the wrong form for four of them, and nothing anywhere would have told you.
+
+**A string your source no longer has is skipped, not fatal.** Your translation system will always have older data than your repo; failing on that would mean every source edit breaks the next import.
+
+An imported translation overwrites a local catalog value and says so in the build log, with both values. The reviewed answer wins — round-tripping it is the point — and the old value survives in the hive, which is append-only.
+
+The reader handles plain-text segments, which is what Zintl writes. If your system returns XLIFF inline elements (`<pc>`, `<ph>`) it refuses those units by name rather than guessing at them — a gate that guesses is not a gate.
 
 ### Writing a facet
 

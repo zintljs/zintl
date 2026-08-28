@@ -882,6 +882,35 @@ export interface ExportUnit {
   };
 }
 
+/**
+ * One translation coming back, before anyone has decided whether to believe it.
+ *
+ * `approved` is the facet's reading of its own format — XLIFF has segment
+ * states, another format will have something else — and the *policy* built on
+ * it is the compiler's: only an approved translation is imported (032 §8.2),
+ * because a gate is worth having only while `translated` means exactly one
+ * thing. A graded state entering a binary system would make a passing
+ * `verifyIntegrity` stop meaning "this locale is done".
+ */
+export interface ImportedTranslation {
+  locale: string;
+  /** The source text, which is also the catalog key. */
+  key: string;
+  value: string;
+  /** Whether the originating system considers this signed off by a human. */
+  approved: boolean;
+  /**
+   * Set when the facet could not safely read this unit, with the reason.
+   *
+   * A transport-level refusal, folded into the same batched report the semantic
+   * checks produce — because from the outside "your TMS returned a shape I
+   * cannot read" and "your TMS dropped a placeholder" are one problem with one
+   * owner. The alternative is guessing at a value, and a gate that guesses is
+   * not a gate.
+   */
+  unreadable?: string;
+}
+
 /** Everything leaving for one target locale. */
 export interface ExportBundle {
   sourceLocale: string;
@@ -906,6 +935,19 @@ export interface ExportBundle {
  */
 export interface ExchangeFacet extends BaseFacet {
   concern: "exchange";
+  /**
+   * Read translations back from wherever this facet sent them.
+   *
+   * Returns *proposals*, not decisions. The facet's job is transport — parse
+   * the format, and say whether the originating system considers each unit
+   * signed off. What happens next is the compiler's: 032 §4 makes the import a
+   * **gate**, so a proposal is checked against the manifest before it is
+   * allowed anywhere near a catalog.
+   *
+   * Called once per build, before catalogs are written, so anything accepted
+   * counts toward `verifyIntegrity` in the same run.
+   */
+  import?: (context: CompilerContext) => Promise<ImportedTranslation[]> | ImportedTranslation[];
   /**
    * Write one locale's strings out.
    *

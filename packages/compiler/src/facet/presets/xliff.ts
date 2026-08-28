@@ -31,6 +31,7 @@ import type {
   ExchangeFacet,
   ExportBundle,
   ExportUnit,
+  ImportedTranslation,
 } from "../../types/capabilities.js";
 import { isAbsolute, join } from "node:path";
 
@@ -199,6 +200,92 @@ function renderBundle(bundle: ExportBundle): string {
   return lines.join("\n");
 }
 
+// ─── Reading it back ─────────────────────────────────────────────────────────
+
+/**
+ * XLIFF states that mean a human has signed the translation off.
+ *
+ * 032 §8.2 decided that only an **approved** translation is imported, and these
+ * are XLIFF's two words for it: `reviewed` is "has been reviewed" and `final`
+ * is "is finalized". `translated` is deliberately absent — that is the draft a
+ * reviewer has not seen yet, and letting it through would make a passing
+ * `verifyIntegrity` stop meaning "this locale is done", which is the whole
+ * value of having the gate.
+ */
+const APPROVED_STATES = new Set(["reviewed", "final"]);
+
+/** The five predefined XML entities, plus numeric escapes. */
+function unesc(text: string): string {
+  return (
+    text
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+      // Last, so an escaped `&amp;lt;` survives as the literal text `&lt;`.
+      .replace(/&amp;/g, "&")
+  );
+}
+
+function attr(tag: string, name: string): string | undefined {
+  return new RegExp(`\\b${name}="([^"]*)"`).exec(tag)?.[1];
+}
+
+/**
+ * A reader for the shape this facet writes, which knows what it cannot read.
+ *
+ * Deliberately not a general XML parser. `@zintljs/compiler` has three
+ * dependencies and every one of them is installed by everybody, including the
+ * people who will never enable this facet — a parser in front of all of them to
+ * serve an opt-in feature is the wrong trade.
+ *
+ * What makes that safe is that the limits are **reported rather than guessed
+ * at**. Zintl escapes markup into text when it writes, so a `<` surviving
+ * inside a `<source>` or `<target>` means the other system used XLIFF's inline
+ * elements (`<pc>`, `<ph>`, `<mrk>`) — a shape this cannot reconstruct. It says
+ * so, the gate refuses the unit, and nobody gets a silently mangled string.
+ * That is the same instinct as the rest of §4: a gate that says "I could not
+ * read this" is doing its job.
+ */
+function readUnits(xml: string): ImportedTranslation[] {
+  const locale = attr(xml, "trgLang");
+  if (!locale) return [];
+
+  const out: ImportedTranslation[] = [];
+  for (const [, body] of xml.matchAll(/<unit\b[^>]*>([\s\S]*?)<\/unit>/g)) {
+    const segments = Array.from(body.matchAll(/<segment\b([^>]*)>([\s\S]*?)<\/segment>/g));
+    if (segments.length === 0) continue;
+
+    const rawSource = /<source\b[^>]*>([\s\S]*?)<\/source>/.exec(segments[0][2])?.[1] ?? "";
+    const rawTarget = /<target\b[^>]*>([\s\S]*?)<\/target>/.exec(segments[0][2])?.[1] ?? "";
+    const key = unesc(rawSource);
+    const value = unesc(rawTarget);
+
+    /**
+     * Approval is read from the *first* segment even when a unit was split.
+     * Knowing whether to skip it never needs the content, and a draft should be
+     * skipped quietly rather than reported as unreadable.
+     */
+    const approved = APPROVED_STATES.has(attr(segments[0][1], "state") ?? "");
+
+    let unreadable: string | undefined;
+    if (segments.length > 1) {
+      unreadable =
+        `the translation system split this into ${segments.length} segments — ` +
+        `Zintl treats a stitched sentence as one unit and cannot reassemble the pieces`;
+    } else if (/</.test(rawSource) || /</.test(rawTarget)) {
+      unreadable =
+        `the segment uses XLIFF inline elements, which this importer does not read — ` +
+        `configure the translation system to send plain text, or file this as a shape to support`;
+    }
+
+    out.push({ locale, key, value, approved, unreadable });
+  }
+  return out;
+}
+
 /**
  * Export every locale as XLIFF 2.0.
  *
@@ -232,6 +319,18 @@ export function xliffFacet(config: XliffFacetConfig = {}): ExchangeFacet {
         `Exported ${bundle.units.length} ${bundle.units.length === 1 ? "string" : "strings"} ` +
           `for "${bundle.locale}" to ${outDir}/${bundle.locale}.xlf`,
       );
+    },
+
+    async import(context: CompilerContext) {
+      const base = isAbsolute(outDir) ? outDir : join(context.root, outDir);
+      if (!(await context.io.exists(base))) return [];
+
+      const proposals: ImportedTranslation[] = [];
+      for (const entry of await context.io.readEntries(base)) {
+        if (entry.isDirectory() || !entry.name.endsWith(".xlf")) continue;
+        proposals.push(...readUnits(await context.io.readFile(join(base, entry.name))));
+      }
+      return proposals;
     },
   };
 }

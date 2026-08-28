@@ -45,7 +45,8 @@ import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
 import { DeliveryBus } from "./bus/index.js";
 import { deriveMessageContext, type MessageContext } from "./message-context.js";
-import type { ExportBundle, ExportUnit } from "./types/capabilities.js";
+import type { ExportBundle, ExportUnit, ImportedTranslation } from "./types/capabilities.js";
+import { checkTranslation, formatImportProblems, type ImportProblem } from "./import-gate.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { serializeDeterministic } from "./utils/serialization.js";
@@ -3017,6 +3018,18 @@ export class ZintlCompiler {
       this.logger.debug("Flushing compiler state...");
       await this.syncGraphs();
 
+      /**
+       * After the graphs, before anything is written.
+       *
+       * After, because the gate checks incoming translations against the
+       * manifest and the manifest is what `syncGraphs` produces. Before,
+       * because an accepted translation should reach a catalog and satisfy
+       * `verifyIntegrity` in *this* build rather than the next one — an import
+       * that needs a second build to take effect is an import people will
+       * believe is broken.
+       */
+      await this.runExchangeImport();
+
       // Clean up old output directory if it changed
       const lastOut = this.messages.lastOutputDir;
       const resolvePath = (p?: string) => {
@@ -3438,6 +3451,134 @@ export class ZintlCompiler {
     } else {
       this.logger.info(`Translations complete — ${line}`);
     }
+  }
+
+  /**
+   * Take translations back, and refuse the ones that would render wrong.
+   *
+   * A **gate, not a merge** (032 §4). Everything arriving here is a proposal
+   * from a system Zintl does not control, and three things happen to it before
+   * a catalog ever sees it:
+   *
+   * 1. **Not approved is not imported** (§8.2). A `draft` or in-progress
+   *    translation is skipped entirely, so `translated` keeps meaning exactly
+   *    one thing and `verifyIntegrity` keeps meaning "this locale is done".
+   * 2. **A key the source no longer has is skipped, not fatal.** The TMS simply
+   *    has older data than the repo, which is the normal state of affairs half
+   *    an hour after anyone edits a string. Failing here would mean every source
+   *    edit breaks the next import.
+   * 3. **A corrupt translation fails the build**, in one batched report, with
+   *    nothing written. That is the same instinct as the missing-translation
+   *    gate and deliberately a *different* error from it.
+   *
+   * Runs before catalogs are written, so anything accepted counts toward
+   * `verifyIntegrity` in the same build rather than the next one.
+   */
+  private async runExchangeImport(): Promise<void> {
+    if (this.isDev) return;
+    const facets = this._resolved.system.exchangeFacets.filter((f) => f.import);
+    if (facets.length === 0) return;
+
+    const context = this.getCompilerContext();
+    const proposals: ImportedTranslation[] = [];
+    for (const facet of facets) {
+      await this.runFacetStep("import", facet.name, async () => {
+        proposals.push(...(await facet.import!(context)));
+      });
+    }
+    if (proposals.length === 0) return;
+
+    /**
+     * Every source text the project currently has, and which boundaries carry it.
+     *
+     * Two jobs: the stale-key check, and knowing what to mark dirty afterwards.
+     * A boundary is what a catalog file *is*, so a translation that reaches the
+     * hive and dirties nothing updates memory and leaves the JSON on disk
+     * untouched — an import that looks like it worked and did not.
+     */
+    const carriers = new Map<string, string[]>();
+    for (const [bId, entries] of Object.entries(this.messages.internalManifest)) {
+      for (const e of entries) {
+        const list = carriers.get(e.text);
+        if (list) {
+          if (!list.includes(bId)) list.push(bId);
+        } else carriers.set(e.text, [bId]);
+      }
+    }
+
+    const problems: ImportProblem[] = [];
+    const accepted: ImportedTranslation[] = [];
+    let unapproved = 0;
+    let stale = 0;
+
+    for (const t of proposals) {
+      if (!t.approved) {
+        unapproved++;
+        continue;
+      }
+      /**
+       * Checked after approval, not before: a unit nobody has signed off is
+       * skipped whether or not it could be read, and reporting a parse problem
+       * for a draft would be noise about work still in progress.
+       */
+      if (t.unreadable) {
+        problems.push({ locale: t.locale, key: t.key, value: t.value, reason: t.unreadable });
+        continue;
+      }
+      if (!carriers.has(t.key)) {
+        stale++;
+        continue;
+      }
+      const reason = checkTranslation(t.key, t.value, t.locale);
+      if (reason) problems.push({ locale: t.locale, key: t.key, value: t.value, reason });
+      else accepted.push(t);
+    }
+
+    /**
+     * Thrown before a single value is merged. A partial import is worse than no
+     * import: it leaves the project in a state neither the repo nor the TMS
+     * believes in, and nothing records which half landed.
+     */
+    if (problems.length > 0) throw new Error(formatImportProblems(problems));
+
+    let changed = 0;
+    for (const t of accepted) {
+      const hive = (this.messages.hive[t.locale] ??= {});
+      const previous = hive[t.key];
+      if (previous === t.value) continue;
+
+      /**
+       * The import wins, and says so.
+       *
+       * An approved translation is the reviewed answer and round-tripping it is
+       * the point of the loop. Nothing is destroyed by the overwrite — the hive
+       * is append-only per key and the old value is named here — but a
+       * developer who hand-edited that catalog deserves to find out from the
+       * build rather than from a diff.
+       */
+      if (previous) {
+        this.logger.info(`Import replaced "${t.key}" in ${t.locale}: "${previous}" → "${t.value}"`);
+      }
+      hive[t.key] = t.value;
+      changed++;
+
+      /**
+       * Every boundary carrying this string, because a catalog file is written
+       * per boundary and only for dirty ones. Marking the hive dirty alone
+       * persists the compiler's own bookkeeping and never touches the JSON a
+       * developer commits.
+       */
+      for (const bId of carriers.get(t.key)!) this.messages.markDirty(bId);
+    }
+    if (changed > 0) this.messages.markHiveDirty();
+
+    const skipped: string[] = [];
+    if (unapproved > 0) skipped.push(`${unapproved} not yet approved`);
+    if (stale > 0) skipped.push(`${stale} for strings the source no longer has`);
+    this.logger.info(
+      `Imported ${changed} ${changed === 1 ? "translation" : "translations"}` +
+        (skipped.length > 0 ? ` (skipped ${skipped.join(", ")})` : ""),
+    );
   }
 
   /**

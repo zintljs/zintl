@@ -3,7 +3,7 @@
 **Status**: OPEN — steps 1 and 2 of §7 are **built**; steps 3–5 are designed, not authorised work.
 Both blocking decisions are now taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2
 (only `approved` imports, 2026-08-28), so nothing in this document is waiting on an answer — what
-remains is a facet nobody has been asked to write yet. **§7.2 and §7.3 record what building steps 2 and 3 changed**,
+remains is a facet nobody has been asked to write yet. **§7.2–§7.4 record what building steps 2–4 changed**,
 including two gaps of exactly the same family as §7.1's — both found the same way, and one of them a
 rendering bug rather than the metadata gap it looked like.
 **Date**: 2026-08-24, steps 1–2 built 2026-08-27/28
@@ -201,8 +201,9 @@ Each step is independently useful, which is the test of whether the decompositio
 3. ~~**Export facet**, format-first (XLIFF), with §1's pre-filled carry-forwards.~~ — **done**.
    `xliffFacet` in `packages/compiler/src/facet/presets/xliff.ts`, on a new `exchange` facet concern.
    See §7.3.
-4. **Import facet with validation** (§4) before any merge is attempted. The gate lands before the
-   convenience, deliberately. _Unblocked by §8.2, which also fixes what it accepts._
+4. ~~**Import facet with validation** (§4) before any merge is attempted. The gate lands before the
+   convenience, deliberately.~~ — **done**. `packages/compiler/src/import-gate.ts` plus
+   `xliffFacet.import`. See §7.4.
 5. **Vendor facets**, if ever. Possibly by other people.
 
 ### 7.1 Step 1, as built — and two things this document had wrong
@@ -360,6 +361,52 @@ semantic claim this document already settled, not a serialization preference. `E
 Worth recording because the test suite was no help. Thirteen tests passed against the wrong shape,
 because every one of them asserted a note or a state that was present either way. The defect was only
 visible in the artifact as a whole.
+
+### 7.4 Step 4, as built
+
+`ExchangeFacet.import` returns _proposals_; `import-gate.ts` decides. The facet knows the format and
+whether its own states mean signed-off; the compiler owns the policy, which is the same division as
+the export half.
+
+Runs after `syncGraphs` and before anything is written, so an accepted translation reaches a catalog
+and satisfies `verifyIntegrity` in the **same** build. An import that needs a second build to take
+effect is an import people will reasonably believe is broken.
+
+**§8.2 in XLIFF terms**: `reviewed` and `final` are approved; `translated` and `initial` are not.
+`final`-only was considered and rejected on evidence rather than principle — plenty of TMS workflows
+never set it, and a gate that imports nothing while reporting success is worse than no gate.
+
+**Three outcomes, deliberately different.** Not approved → skipped silently, it is work in progress.
+A key the source no longer has → skipped and counted, because the TMS always has older data than the
+repo and failing there would mean every source edit breaks the next import. Corrupt → the build
+fails, in one batched report, with **nothing merged**: a partial import leaves the project in a state
+neither side believes in and nothing records which half landed.
+
+The check no other tool we know of makes is the plural one. Arabic has six categories and English has
+two, so a translator working from an English source sees two boxes; a system that round-trips the
+English shape produces a message that silently renders the wrong form for four of them.
+`Intl.PluralRules` answers this for free and cannot drift from the rules the baked output uses.
+
+#### 7.4.1 No XML dependency, and the limit is reported
+
+`@zintljs/compiler` has three dependencies and every one is installed by everybody, including people
+who will never enable this facet — a parser in front of all of them for an opt-in feature is the
+wrong trade. So the reader handles the shape this facet writes, and **says when it cannot read
+something** rather than guessing: Zintl escapes markup into text on the way out, so a surviving `<`
+means the other system used XLIFF inline elements, and that unit is refused by name through the same
+report the semantic checks use. A limitation that announces itself is a gate doing its job; a
+limitation that guesses is a corrupted string.
+
+#### 7.4.2 The hive is not the catalog
+
+Caught by a test, and it would have shipped. The first version merged accepted translations into the
+hive and marked the hive dirty — which updates the compiler's own bookkeeping and leaves the JSON a
+developer commits **untouched**, because catalogs are written per _boundary_ and only for dirty ones.
+
+The import looked like it worked from every angle that was being checked: the hive had the value,
+`verifyIntegrity` passed, the build was green. Only reading the catalog file on disk showed nothing
+had changed. Accepted translations now mark every boundary carrying that string, which is why the
+gate needs to know its carriers and not merely that the key exists.
 
 ## 8. Both decisions, taken
 
