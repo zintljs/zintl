@@ -290,19 +290,25 @@ _t("Welcome back, {user_firstName}!", { _mgr, _bId }); // before
 _t("Welcome back, {user_firstName}!", { user_firstName: user.firstName }, { _mgr, _bId }); // after
 ```
 
-No params object, nothing bound to the placeholder, and `{user_firstName}` rendered to a user as
-literal braces. A translator-context question found a rendering bug, which is the second time in this
+No params object, and nothing bound to the placeholder. The built page renders `Welcome back,
+undefined!` — the baked source locale resolves it through `params["user_firstName"]` — which is a
+measurement rather than a reading: `tests/fixtures/jsx-template.ts` renders exactly that with the fix
+reverted. A translator-context question found a rendering bug, which is the second time in this
 document that going to look was worth more than the thing being looked for.
 
 Now one copy, in `packages/extractor/src/variables.ts`, used by all three sites.
 
-**Why nothing caught it.** No example uses a template literal inside JSX.
-`examples/vanilla-ssr/src/counter.ts` uses one on a DOM assignment, which takes the route that was
-already correct, so the contract suite is genuinely blind to this shape — 383 tests and no snapshot
-diff either before or after. The coverage is
-`packages/zintl/src/__tests__/compiler/template_interpolation.test.ts`, asserting the emitted call
-rather than the manifest, because the emitted call is what a user runs. An example or fixture in this
-shape would be worth adding and is not part of this change.
+**Why nothing caught it, and what now does.** No project in the manifest used a template literal
+inside JSX. `examples/vanilla-ssr/src/counter.ts` uses one on a DOM assignment — the route that was
+already correct — and every JSX project writes plain JSX children, so the suite had two well-covered
+halves of one feature and nothing across the join. It ran 383 tests with no snapshot diff either
+before or after the fix.
+
+Closed on both levels. `packages/zintl/src/__tests__/compiler/template_interpolation.test.ts` asserts
+the emitted call rather than the manifest, because the emitted call is what a user runs; and
+`tests/fixtures/jsx-template.ts` puts the shape in a real browser through `spa` and `build`. The
+fixture was confirmed to fail with the fix reverted — `Welcome back, undefined!` in the rendered DOM
+and a `dist-output` mismatch — which is what makes it a guard rather than a description.
 
 #### 7.2.3 What it deliberately does not do
 

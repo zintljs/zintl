@@ -1,0 +1,13 @@
+//#region \0virtual:zintl/content/ar/entry:b_89ad0a7bfa7f
+var catalog = { "b_86a84ab5ba85": {
+	"c711797a": (params) => {
+		const { user_firstName } = params;
+		return `مرحباً بعودتك يا ${params["user_firstName"]}!`;
+	},
+	"26024bf4": (params) => {
+		const { user_firstName } = params;
+		return `صورة ${params["user_firstName"]}`;
+	}
+} };
+//#endregion
+export { catalog as default };

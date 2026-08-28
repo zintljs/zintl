@@ -47,8 +47,8 @@ _t("Welcome back, {user_firstName}!", { _mgr, _bId }); // before
 _t("Welcome back, {user_firstName}!", { user_firstName: user.firstName }, { _mgr, _bId }); // after
 ```
 
-No params object, nothing bound to the placeholder, and `{user_firstName}` rendered to users as
-literal braces.
+No params object, so the value never reached the page: the built page rendered `Welcome back,
+undefined!`.
 
 The cause was three copies of one derivation. `${user.firstName}` becomes `{user_firstName}` in the
 extracted text, and three places decided that independently — the template branch that names the
@@ -57,9 +57,13 @@ same. Two agreed; the JSX copy handled only bare identifiers, so a member expres
 and `user_firstName` everywhere else. Bindings are matched to placeholders **by name**, which is why
 it was silent: a mismatched name produces no binding rather than a wrong one. There is one copy now.
 
-Nothing caught it because no example uses a template literal inside JSX — `vanilla-ssr` uses one on a
-DOM assignment, which took the route that already worked. The new coverage asserts the emitted call
-rather than the manifest, because the emitted call is what a user runs.
+Nothing caught it because no project in the manifest used a template literal inside JSX —
+`vanilla-ssr` uses one on a DOM assignment, the route that already worked, and every JSX project
+writes plain JSX children. Two well-covered halves of one feature and nothing across the join.
+
+That is closed too: a unit test asserting the emitted call rather than the manifest, and a
+`jsx-template` contract fixture that renders the shape in a real browser. Both were confirmed to fail
+with the fix reverted, which is what makes them guards rather than descriptions.
 
 Design, the seam this serves, and both decisions it rests on are in
 `docs/spec/proposals/032-export-import-facets.md` — including §8.2, now settled: only an `approved`

@@ -12,8 +12,10 @@
  * _t("Welcome back, {user_firstName}!", { _mgr, _bId })
  * ```
  *
- * No params object. The placeholder had nothing bound to it, so the UI rendered
- * the literal text `{user_firstName}` to a user.
+ * No params object, so the value never reached the page. The built page renders
+ * `Welcome back, undefined!` — the baked source locale resolves the placeholder
+ * through `params["user_firstName"]` and nothing put it there — measured by
+ * reverting the fix under `tests/fixtures/jsx-template.ts`.
  *
  * Nothing caught it, and the reason is worth recording: **no example uses a
  * template literal inside JSX.** `vanilla-ssr/src/counter.ts` uses one on a DOM
@@ -69,7 +71,7 @@ describe("Template literal interpolation", () => {
     );
 
     expect(code).toContain('"Welcome back, {user_firstName}!"');
-    // The binding, without which the placeholder renders as literal braces.
+    // The binding, without which the page renders "Welcome back, undefined!".
     expect(code).toContain("{ user_firstName: user.firstName }");
   });
 
