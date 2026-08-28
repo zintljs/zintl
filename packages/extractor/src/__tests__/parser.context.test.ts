@@ -258,3 +258,67 @@ describe("File-Level Ignore", () => {
     expect(divFragments).toContain("text"); // it will extract "text" instead of "<div>text</div>" because <div> is not phrasing!
   });
 });
+
+/**
+ * The binding behind a placeholder, recovered wherever the template appears.
+ *
+ * `{user_firstName}` alone is unanswerable — a translator cannot tell whether
+ * it will be a name, a product or a count. `user.firstName` is not (032 §3).
+ *
+ * These are grouped by *route through the extractor* rather than by syntax,
+ * because the routes are what disagreed: the JSX visitor kept its own copy of
+ * the name derivation that handled only `Identifier`, so a member expression
+ * was named `var0` there and `user_firstName` in the extracted text. The two
+ * are paired by name, so the mismatch produced no binding rather than a wrong
+ * one — a silent hole with no symptom until something wanted to read the field.
+ */
+describe("Template placeholder bindings", () => {
+  const varsOf = (code: string, file = "App.tsx", boundary = "App") =>
+    extract(code, file, boundary).rawSinks.map((s) => ({
+      text: s.text,
+      vars: s.variables.map((v) => ({ name: v.name, expression: v.expression })),
+    }));
+
+  it("recovers a member expression from a JSX expression container", () => {
+    const [sink] = varsOf(
+      "function App({ user }) { return <h1>{`Welcome back, ${user.firstName}!`}</h1>; }",
+    );
+    expect(sink.text).toBe("Welcome back, {user_firstName}!");
+    expect(sink.vars).toEqual([{ name: "user_firstName", expression: "user.firstName" }]);
+  });
+
+  it("recovers one from a JSX attribute", () => {
+    const [sink] = varsOf(
+      'function App({ user }) { return <img alt={`Photo of ${user.firstName}`} src="/p.png" />; }',
+    );
+    expect(sink.vars).toEqual([{ name: "user_firstName", expression: "user.firstName" }]);
+  });
+
+  it("recovers one from a DOM sink assignment", () => {
+    const [sink] = varsOf(
+      "function App(el, user) { el.textContent = `Welcome back, ${user.firstName}!`; }",
+      "App.ts",
+      "App",
+    );
+    expect(sink.vars).toEqual([{ name: "user_firstName", expression: "user.firstName" }]);
+  });
+
+  it("keeps a plain identifier as itself", () => {
+    const [sink] = varsOf("function App({ name }) { return <h1>{`Hello, ${name}!`}</h1>; }");
+    expect(sink.text).toBe("Hello, {name}!");
+    expect(sink.vars).toEqual([{ name: "name", expression: "name" }]);
+  });
+
+  /**
+   * A deeper chain and an expression that is neither. `var0` is positional and
+   * says nothing, which is the honest answer for a call — but the *expression*
+   * behind it is still recorded, and that is the half a translator can use.
+   */
+  it("names what it can and still records what it cannot", () => {
+    const [sink] = varsOf(
+      "function App({ a, items }) { return <h1>{`${a.b.c} of ${items.filter(Boolean).length}`}</h1>; }",
+    );
+    expect(sink.vars.map((v) => v.name)).toEqual(["a_b_c", "length"]);
+    expect(sink.vars.map((v) => v.expression)).toEqual(["a.b.c", "items.filter(Boolean).length"]);
+  });
+});

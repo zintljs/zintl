@@ -300,19 +300,15 @@ describe("getMessageContext", () => {
   });
 
   /**
-   * A known gap, asserted so it is visible rather than discovered — the same
-   * shape as the HTML-element gap this file used to record, and closed by the
-   * same kind of work.
+   * The second gap of the same family, also closed.
    *
-   * A JSX expression container records its bindings with their source
-   * expressions; a **template literal** normalises `${user.firstName}` into
-   * `{user_firstName}` and keeps no `variables` on the sink. So the placeholder
-   * survives and the expression behind it does not, and proposal 032 §3's
-   * "`{input}` alone is unanswerable; `user.firstName` is not" holds for one
-   * shape and not the other. Closing it is extractor work in the template
-   * visitor, not compiler work.
+   * This asserted the opposite until the cause was found: the JSX visitor kept
+   * its own copy of the name derivation that handled only `Identifier`, so
+   * `${user.firstName}` was named `var0` there and `user_firstName` in the
+   * text. The two are paired *by name*, so the mismatch did not produce a wrong
+   * binding — it produced none, silently. One copy now, in `variables.ts`.
    */
-  it("cannot yet name the expression behind a template-literal placeholder", async () => {
+  it("names the expression behind a template-literal placeholder", async () => {
     await compiler.transform(
       `
         import { zintl } from "zintljs";
@@ -328,7 +324,31 @@ describe("getMessageContext", () => {
     expect(key).toContain("{user_firstName}");
 
     const ctx = compiler.getMessageContext("src/Tpl.tsx:Hi", key)!;
-    // The placeholder is there; what produced it is not.
-    expect(ctx.occurrences[0].variables).toBeUndefined();
+    expect(ctx.occurrences[0].variables).toEqual([
+      { name: "user_firstName", expression: "user.firstName" },
+    ]);
+  });
+
+  /**
+   * The attribute form of the same shape, which took the third route through
+   * the extractor and was broken for the same reason.
+   */
+  it("names the expression behind a template-literal attribute", async () => {
+    await compiler.transform(
+      `
+        import { zintl } from "zintljs";
+        zintl(navigator.language);
+        export const Pic = ({ user }) => <img alt={\`Photo of \${user.firstName}\`} src="/p.png" />;
+      `,
+      join(root, "src/Pic.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+
+    const key = compiler.getMessages("src/Pic.tsx:Pic")[0].text;
+    const ctx = compiler.getMessageContext("src/Pic.tsx:Pic", key)!;
+    expect(ctx.occurrences[0].variables).toEqual([
+      { name: "user_firstName", expression: "user.firstName" },
+    ]);
   });
 });

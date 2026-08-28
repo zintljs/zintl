@@ -4,7 +4,8 @@
 Both blocking decisions are now taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2
 (only `approved` imports, 2026-08-28), so nothing in this document is waiting on an answer — what
 remains is a facet nobody has been asked to write yet. **§7.2 records what building step 2 changed**,
-including a second gap of exactly the same family as §7.1's, found the same way.
+including two gaps of exactly the same family as §7.1's — both found the same way, and one of them a
+rendering bug rather than the metadata gap it looked like.
 **Date**: 2026-08-24, steps 1–2 built 2026-08-27/28
 **Kind**: Architecture proposal. Names a seam and argues for what belongs on each side of it.
 **Depends on**: the faceted architecture (CLAUDE.md), the translation hive
@@ -130,6 +131,7 @@ compute at all:
 - **Whether it is an `aria-label` or an `h1`** — different registers, different length budgets.
   _True as of step 2, and it was not when this line was written; see §7.2.1._
 - **What expression produced `{input}`** — `{input}` alone is unanswerable; `user.firstName` is not.
+  _True for every shape as of step 2, and it was not; see §7.2.2._
 - **The full stitched sentence a fragment belongs to** — the fragment problem, solved upstream already.
 
 None of this is new machinery. It is a read off the graph that already exists, and because it is
@@ -266,21 +268,41 @@ the pipeline splices a call back into the document and is compared for equality 
 in three places, so widening it would have been a rewrite of the splice path wearing a metadata
 change's clothes.
 
-#### 7.2.2 The same gap exists for template literals, and is left open
+#### 7.2.2 The same gap existed for template literals, and was not a metadata gap
 
-`{input}` alone is unanswerable; `user.firstName` is not — §3's fourth bullet. Measured, it holds for
-one shape and not the other:
+`{input}` alone is unanswerable; `user.firstName` is not — §3's fourth bullet. It held for a JSX
+expression container and failed for a template literal, in both the child and attribute positions.
 
-| Shape                                                       | `variables` on the sink                                      |
-| :---------------------------------------------------------- | :----------------------------------------------------------- |
-| JSX expression container — `<h1>Hi, {user.firstName}!</h1>` | `[{ name: "user_firstName", expression: "user.firstName" }]` |
-| Template literal — ``<h1>{`Hi, ${user.firstName}!`}</h1>``  | `[]`                                                         |
-| Attribute template — ``alt={`Photo of ${user.firstName}`}`` | `[]`                                                         |
+The cause was **three copies of one derivation**. `${user.firstName}` becomes `{user_firstName}` in
+the extracted text, and three places decided that independently: the template branch of
+`findLiteralsInExpression`, which names the placeholder; `bindings.ts`, which pairs a name back to its
+expression for DOM sinks; and `jsx.ts`, which did the same for JSX. Two agreed. The JSX copy handled
+only `Identifier`, so a member expression was `var0` there and `user_firstName` everywhere else.
 
-The template visitor normalises `${user.firstName}` into `{user_firstName}` and keeps no bindings, so
-the placeholder survives and the expression behind it does not. Left open rather than fixed here —
-it is a different visitor and unbudgeted work — and asserted as a known gap in
-`manifest_context.test.ts` so it stays visible, exactly as §7.1's gap was until it was closed.
+Bindings are matched to placeholders **by name**, which is what made the failure silent: a mismatched
+name does not produce a wrong binding, it produces none.
+
+**And it was not only metadata.** The same `variables` array is what `resolve-rewrites.ts` reads to
+build the replacement call, so the emitted code was:
+
+```js
+_t("Welcome back, {user_firstName}!", { _mgr, _bId }); // before
+_t("Welcome back, {user_firstName}!", { user_firstName: user.firstName }, { _mgr, _bId }); // after
+```
+
+No params object, nothing bound to the placeholder, and `{user_firstName}` rendered to a user as
+literal braces. A translator-context question found a rendering bug, which is the second time in this
+document that going to look was worth more than the thing being looked for.
+
+Now one copy, in `packages/extractor/src/variables.ts`, used by all three sites.
+
+**Why nothing caught it.** No example uses a template literal inside JSX.
+`examples/vanilla-ssr/src/counter.ts` uses one on a DOM assignment, which takes the route that was
+already correct, so the contract suite is genuinely blind to this shape — 383 tests and no snapshot
+diff either before or after. The coverage is
+`packages/zintl/src/__tests__/compiler/template_interpolation.test.ts`, asserting the emitted call
+rather than the manifest, because the emitted call is what a user runs. An example or fixture in this
+shape would be worth adding and is not part of this change.
 
 #### 7.2.3 What it deliberately does not do
 

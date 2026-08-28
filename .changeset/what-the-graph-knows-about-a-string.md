@@ -37,10 +37,29 @@ the context it is passed, so an `<h1>` and a `<p>` holding the same words remain
 unit with two recorded contexts. No message identity moves, no catalog changes, and the 383-test
 contract suite produced no snapshot diff.
 
-One gap of the same family is left open and asserted rather than quietly shipped: a template literal
-normalises `${user.firstName}` to `{user_firstName}` and keeps no bindings, so the placeholder
-survives and the expression behind it does not. It holds for JSX interpolation and not for templates,
-and the test says so.
+**Fixes a rendering bug found on the way.** A template literal inside JSX — as a child or in an
+attribute — lost its interpolations entirely:
+
+```js
+<h1>{`Welcome back, ${user.firstName}!`}</h1>;
+
+_t("Welcome back, {user_firstName}!", { _mgr, _bId }); // before
+_t("Welcome back, {user_firstName}!", { user_firstName: user.firstName }, { _mgr, _bId }); // after
+```
+
+No params object, nothing bound to the placeholder, and `{user_firstName}` rendered to users as
+literal braces.
+
+The cause was three copies of one derivation. `${user.firstName}` becomes `{user_firstName}` in the
+extracted text, and three places decided that independently — the template branch that names the
+placeholder, the DOM-sink path that pairs a name back to its expression, and the JSX path that did the
+same. Two agreed; the JSX copy handled only bare identifiers, so a member expression was `var0` there
+and `user_firstName` everywhere else. Bindings are matched to placeholders **by name**, which is why
+it was silent: a mismatched name produces no binding rather than a wrong one. There is one copy now.
+
+Nothing caught it because no example uses a template literal inside JSX — `vanilla-ssr` uses one on a
+DOM assignment, which took the route that already worked. The new coverage asserts the emitted call
+rather than the manifest, because the emitted call is what a user runs.
 
 Design, the seam this serves, and both decisions it rests on are in
 `docs/spec/proposals/032-export-import-facets.md` — including §8.2, now settled: only an `approved`

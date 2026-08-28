@@ -19,6 +19,7 @@ import {
   SuppressionRule,
 } from "./types.js";
 import { parseZintlComments, parseHTMLDirectives } from "./comments.js";
+import { resolveExpressionName } from "./variables.js";
 import { logger as defaultLogger, type ZintlLogger } from "./logger.js";
 
 const VOID_ELEMENTS = new Set([
@@ -1011,26 +1012,13 @@ export class ExtractionContext {
         });
         if (i < node.expressions.length) {
           const expr = node.expressions[i];
-          let vName = "var" + i;
-          if (expr.type === "Identifier") vName = expr.name;
-          else if (expr.type === "MemberExpression") {
-            const parts: string[] = [];
-            let curr: any = expr;
-            while (
-              curr &&
-              curr.type === "MemberExpression" &&
-              curr.property.type === "Identifier"
-            ) {
-              parts.unshift(curr.property.name);
-              curr = curr.object;
-            }
-            if (curr && curr.type === "Identifier") {
-              parts.unshift(curr.name);
-              vName = parts.join("_");
-            } else if (parts.length > 0) {
-              vName = parts[parts.length - 1];
-            }
-          }
+          /**
+           * The same derivation the binding recovery uses, and it has to be:
+           * the two are paired **by name**, so a copy that drifts does not
+           * produce a wrong name — it produces no binding at all, silently.
+           * See `variables.ts`.
+           */
+          const vName = resolveExpressionName(expr as Node, i);
           const varFragment = `{${vName}}`;
           text += varFragment;
           variables.push(vName);
