@@ -1,8 +1,11 @@
 # Proposal 032: Export/Import Facets — the TMS Seam
 
-**Status**: OPEN — design, not authorised work. §8.1 is decided (`context` is metadata, not a key);
-§8.2 remains, and is a product question rather than a technical one. Steps 1–2 of §7 are unblocked.
-**Date**: 2026-08-24
+**Status**: OPEN — steps 1 and 2 of §7 are **built**; steps 3–5 are designed, not authorised work.
+Both blocking decisions are now taken: §8.1 (`context` is metadata, not a key, 2026-08-24) and §8.2
+(only `approved` imports, 2026-08-28), so nothing in this document is waiting on an answer — what
+remains is a facet nobody has been asked to write yet. **§7.2 records what building step 2 changed**,
+including a second gap of exactly the same family as §7.1's, found the same way.
+**Date**: 2026-08-24, steps 1–2 built 2026-08-27/28
 **Kind**: Architecture proposal. Names a seam and argues for what belongs on each side of it.
 **Depends on**: the faceted architecture (CLAUDE.md), the translation hive
 (`packages/compiler/src/managers/MessageManager.ts`), reconciliation
@@ -125,6 +128,7 @@ compute at all:
 - **That it is shared across four boundaries** — so: _editing this translation changes four screens._
   Translators are never told this, and it is the difference between a safe edit and a regression.
 - **Whether it is an `aria-label` or an `h1`** — different registers, different length budgets.
+  _True as of step 2, and it was not when this line was written; see §7.2.1._
 - **What expression produced `{input}`** — `{input}` alone is unanswerable; `user.firstName` is not.
 - **The full stitched sentence a fragment belongs to** — the fragment problem, solved upstream already.
 
@@ -188,11 +192,13 @@ Each step is independently useful, which is the test of whether the decompositio
 
 1. ~~**Populate `ManifestEntry.context`**~~ — **done**, and it corrected this document twice on the
    way. See §7.1.
-2. **Derive the graph context of §3** behind one method, e.g. `getMessageContext(boundaryId, key)`.
-   Pure read, testable without any TMS.
-3. **Export facet**, format-first (XLIFF), with §1's pre-filled carry-forwards.
+2. ~~**Derive the graph context of §3** behind one method, e.g. `getMessageContext(boundaryId, key)`.
+   Pure read, testable without any TMS.~~ — **done**. `deriveMessageContext` in
+   `packages/compiler/src/message-context.ts`, with `ZintlCompiler.getMessageContext` wiring the
+   graphs in. See §7.2.
+3. **Export facet**, format-first (XLIFF), with §1's pre-filled carry-forwards. _Unblocked by §8.2._
 4. **Import facet with validation** (§4) before any merge is attempted. The gate lands before the
-   convenience, deliberately.
+   convenience, deliberately. _Unblocked by §8.2, which also fixes what it accepts._
 5. **Vendor facets**, if ever. Possibly by other people.
 
 ### 7.1 Step 1, as built — and two things this document had wrong
@@ -232,7 +238,60 @@ manifest lives in `metadataDir` (a build artifact); reconciliation never reads t
 visible output changed, which is why it landed with tests asserting the manifest directly rather than
 any behaviour.
 
-## 8. One decision taken, one question still blocking
+### 7.2 Step 2, as built — and a second gap of the same shape
+
+`deriveMessageContext(boundaryId, key, world)` in `packages/compiler/src/message-context.ts`, with
+`ZintlCompiler.getMessageContext` wiring the graphs in. Pure module, in the same shape as
+`reconcile.ts`, so the structurally interesting cases — an entry that reaches one boundary and not
+another, one string in four places — are stated directly against hand-built graphs rather than coaxed
+out of real source.
+
+Everything §3 promises is there and derived: `sharedWith` (every other boundary carrying the string),
+`screens` (the entries that reach this one), `chunk`, and per-occurrence `context`, `note`,
+`variables`, `passVars`, `tagMap`, `isFragment`. Occurrences stay **per sink**, matching step 1 —
+the union is available to a consumer that wants it and is not taken on their behalf.
+
+Three things worth carrying forward.
+
+#### 7.2.1 §3's `aria-label`-vs-`h1` claim is now true, and it was not
+
+§7.1 recorded this as a known gap: every HTML text node reached the compiler as one `sinkType`, so an
+`<h1>` and a `<p>` were the same thing by the time anyone could show them to a translator. §3 was
+written as though it were closed. It is closed now — `stitchHTML` tracks the open block elements and
+reports the enclosing one — but the claim was false for every MPA and every vanilla app for the whole
+life of this document, and it stopped being false because someone went and looked.
+
+The fix is on `context`, never on `sinkType`, which is the line §2 already draws: `sinkType` is how
+the pipeline splices a call back into the document and is compared for equality against `"HTML_TEXT"`
+in three places, so widening it would have been a rewrite of the splice path wearing a metadata
+change's clothes.
+
+#### 7.2.2 The same gap exists for template literals, and is left open
+
+`{input}` alone is unanswerable; `user.firstName` is not — §3's fourth bullet. Measured, it holds for
+one shape and not the other:
+
+| Shape                                                       | `variables` on the sink                                      |
+| :---------------------------------------------------------- | :----------------------------------------------------------- |
+| JSX expression container — `<h1>Hi, {user.firstName}!</h1>` | `[{ name: "user_firstName", expression: "user.firstName" }]` |
+| Template literal — ``<h1>{`Hi, ${user.firstName}!`}</h1>``  | `[]`                                                         |
+| Attribute template — ``alt={`Photo of ${user.firstName}`}`` | `[]`                                                         |
+
+The template visitor normalises `${user.firstName}` into `{user_firstName}` and keeps no bindings, so
+the placeholder survives and the expression behind it does not. Left open rather than fixed here —
+it is a different visitor and unbudgeted work — and asserted as a known gap in
+`manifest_context.test.ts` so it stays visible, exactly as §7.1's gap was until it was closed.
+
+#### 7.2.3 What it deliberately does not do
+
+No bulk variant. `sharedWith` scans the manifest, so calling it per message is quadratic, and the fix
+is obvious — build the index once. It is not built, because nothing iterates yet: an exported entry
+point with no caller is how 034 §2 found a hook that was both dead and wrong. It lands with step 3.
+
+No `CompilerContext` field either, for the same reason. The seam §5 describes is real and the facet
+that consumes it does not exist; the hop lands when it does.
+
+## 8. Both decisions, taken
 
 ### 8.1 `context` is metadata, not a key — decided 2026-08-24
 
@@ -268,17 +327,39 @@ _Export can be generous._ Because context carries no identity, an exporter may a
 a format allows — every recorded context, the note, the derived graph facts of §3 — without any risk
 of changing what is translatable. That is what makes §3 cheap rather than delicate.
 
-### 8.2 Does an in-review string ship? — still open
+### 8.2 Does an in-review string ship? — decided 2026-08-28: no
 
 **A TMS has `draft` / `in-review` / `approved`. Zintl has `translated` or `the build fails`.**
 
-- **Yes** → a graded state enters a binary system, and "translated" stops meaning one thing.
-- **No** → translators find builds blocked by their own reviewers, and the review queue becomes a
-  release dependency.
+**Only `approved` is imported.** A `draft` or `in-review` translation is imported nowhere, the locale
+stays incomplete, and `verifyIntegrity` fails exactly as it would have before anyone opened the TMS.
 
-A product decision, not a technical one. It determines the shape of the import facet, what
-`verifyIntegrity` counts, and whether the hive needs a state field at all. **Steps 3 onward in §7
-should not start before it is answered**; steps 1 and 2 are now unblocked by §8.1.
+| Reading                    | Verdict                                                                                                                                                                               |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Only `approved` counts** | **Chosen.** `translated` keeps meaning one thing, and the hive stays stateless.                                                                                                       |
+| In-review ships            | Rejected. A graded state entering a binary system means a passing `verifyIntegrity` no longer means "this locale is done", and somebody ships an unreviewed string believing it does. |
+
+The argument is the one this project keeps making: the gate is worth having because it means exactly
+one thing. Zintl already refuses to render a half-translated locale; accepting a half-_reviewed_ one
+would reintroduce the same ambiguity through a side door, and it would be worse than the original
+because the ambiguity would be invisible in the build output.
+
+**The cost is real and is not hidden.** A translator can be blocked by their own reviewer, and a
+review queue becomes a release dependency. That is a worse day for the translator than the
+alternative, and it is the same trade the no-fallback rule already makes: the failure is loud, early,
+and attributable, rather than quiet and shipped. Teams that need to unblock have the same escape
+hatches they always had — `verifyIntegrity: false` for a release taken knowingly, or
+`pendingLocales` ([031](031-pending-locales.md)) for a locale that is not ready to ship at all, which
+is exactly the state a locale in first-pass review is in.
+
+**Consequences for steps 3–4**, which are now unblocked:
+
+- The hive needs **no state field**. State lives in the TMS, and the import reads it to decide whether
+  to import, not to record it.
+- `verifyIntegrity` gains **no second axis**. It still asks one question.
+- The import facet's accept rule is a **constant, not an option**. A per-locale `acceptAt` was
+  considered and rejected for now: it recreates the graded-state problem one config key along, and
+  `pendingLocales` already covers the case that motivated it.
 
 ## 9. What this proposal does not cover
 

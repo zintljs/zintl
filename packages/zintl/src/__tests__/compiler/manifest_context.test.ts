@@ -76,19 +76,20 @@ describe("ManifestEntry.context", () => {
 
     const found = contexts();
     expect(found["A cat asleep"]).toEqual(["alt"]);
-    // And the position-naming sink type becomes a word rather than a constant.
-    expect(found["Hello there"]).toEqual(["text"]);
+    // And an HTML text node names the element it sat in, not its sink type.
+    expect(found["Hello there"]).toEqual(["p"]);
   });
 
   /**
-   * A known gap, asserted so it is visible rather than discovered.
+   * The gap 032 §3 assumed away, now closed.
    *
-   * JSX reports the element a string sat in (`button`), because the visitor has
-   * it. HTML text reports only `text` — every element collapses to the same
-   * sink type upstream, so an `<h1>` and a `<p>` are indistinguishable here.
-   * Closing it is extractor work, not compiler work; see proposal 032 §3.
+   * This test used to assert the opposite — that an `<h1>` and a `<p>` were
+   * indistinguishable — because every HTML text node reached the compiler as
+   * one `sinkType`. `stitchHTML` now tracks the open block elements and reports
+   * the enclosing one, so §3's "this is an `aria-label`, not an `h1`" is true
+   * for HTML and not only for JSX.
    */
-  it("cannot yet tell an HTML heading from an HTML paragraph", async () => {
+  it("tells an HTML heading from an HTML paragraph", async () => {
     await compiler.transform(
       `<html><body><h1>A heading</h1><p>A paragraph</p></body></html>`,
       join(root, "index.html"),
@@ -97,8 +98,44 @@ describe("ManifestEntry.context", () => {
     await compiler.flush();
 
     const found = contexts();
-    expect(found["A heading"]).toEqual(["text"]);
-    expect(found["A paragraph"]).toEqual(["text"]);
+    expect(found["A heading"]).toEqual(["h1"]);
+    expect(found["A paragraph"]).toEqual(["p"]);
+  });
+
+  /**
+   * The element is the *block* the text reads as, not whatever tag happens to
+   * wrap it. Stitching treats a single wrapping phrasing tag as a partition, so
+   * following its own phrasing decision would report `b` here.
+   */
+  it("reports the block element, not an inline wrapper", async () => {
+    await compiler.transform(
+      `<html><body><p><b>Bold sentence</b></p><li>A list item</li></body></html>`,
+      join(root, "index.html"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+
+    const found = contexts();
+    expect(found["Bold sentence"]).toEqual(["p"]);
+    expect(found["A list item"]).toEqual(["li"]);
+  });
+
+  /**
+   * No answer beats a wrong one: a translator acts on this field. Unbalanced
+   * markup unwinds to the match rather than leaving an element open and
+   * mislabelling everything after it.
+   */
+  it("does not carry a stale element past unbalanced markup", async () => {
+    await compiler.transform(
+      `<html><body><div><p>Inside both</div><h2>After the mess</h2></body></html>`,
+      join(root, "index.html"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+
+    const found = contexts();
+    expect(found["Inside both"]).toEqual(["p"]);
+    expect(found["After the mess"]).toEqual(["h2"]);
   });
 
   /**
@@ -121,7 +158,11 @@ describe("ManifestEntry.context", () => {
 
     // Two sinks, two entries carrying different contexts, and deliberately
     // *one* identity between them.
-    expect(contexts()["Open"]?.sort()).toEqual(["alt", "title"]);
+    expect(
+      contexts()
+        ["Open"]?.slice()
+        .sort((a, b) => String(a).localeCompare(String(b))),
+    ).toEqual(["alt", "title"]);
     expect(ids.size).toBe(1);
   });
 
@@ -138,5 +179,156 @@ describe("ManifestEntry.context", () => {
     await compiler.flush();
 
     expect(contexts()["Assembled at runtime"]).toEqual([undefined]);
+  });
+});
+
+/**
+ * `getMessageContext` — the same facts, assembled for someone outside the repo.
+ *
+ * `manifest_context` above is about one field. This is about the derived read
+ * on top of it (proposal 032 §3): which screens a string reaches, what else an
+ * edit to it would change, and what expression is behind `{name}`. None of it
+ * is new machinery — all of it is a read off graphs the compiler already keeps —
+ * which is why it cannot go stale the way a hand-typed TMS context field does.
+ *
+ * Wired rather than pure: `message-context.test.ts` covers the derivation
+ * against hand-built graphs, and this covers the wiring against a real one.
+ */
+describe("getMessageContext", () => {
+  let compiler: ZintlCompiler;
+  let root: string;
+
+  beforeEach(async (context: LocalContext) => {
+    root = await createTestDir("zintl-message-context-");
+    context.root = root;
+    compiler = createTestCompiler(
+      {
+        locales: ["en", "ar"],
+        sourceLocale: "en",
+        outputDir: "zintl",
+        logLevel: "silent",
+        verifyIntegrity: false,
+      },
+      root,
+      true,
+    );
+    await compiler.setup();
+    await mkdir(join(root, "src"), { recursive: true });
+  });
+
+  /** Two entries, one shared component, one string in all three. */
+  async function seedSharedProject() {
+    await compiler.transform(
+      `
+        import { t } from "zintljs";
+        export const Footer = () => <footer>{t("Save changes")}</footer>;
+      `,
+      join(root, "src/Footer.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.transform(
+      `
+        import { zintl } from "zintljs";
+        import { Footer } from "./Footer.tsx";
+        zintl(navigator.language);
+        export const Checkout = () => <div><button>Save changes</button><Footer /></div>;
+      `,
+      join(root, "src/Checkout.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.transform(
+      `
+        import { zintl } from "zintljs";
+        zintl(navigator.language);
+        export const Settings = () => <button>Save changes</button>;
+      `,
+      join(root, "src/Settings.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+  }
+
+  it("returns null for a string the boundary does not carry", async () => {
+    await seedSharedProject();
+    expect(compiler.getMessageContext("src/Checkout.tsx:Checkout", "Nothing here")).toBeNull();
+  });
+
+  it("says where the string sits and what else an edit would change", async () => {
+    await seedSharedProject();
+    const ctx = compiler.getMessageContext("src/Checkout.tsx:Checkout", "Save changes")!;
+
+    expect(ctx).not.toBeNull();
+    expect(ctx.occurrences[0].context).toBe("button");
+
+    // The fact no TMS can compute: the same words live in two other boundaries,
+    // so translating this one changes them too.
+    expect(ctx.sharedWith).toEqual(["src/Footer.tsx:Footer", "src/Settings.tsx:Settings"]);
+  });
+
+  it("names the screens that reach a shared boundary", async () => {
+    await seedSharedProject();
+    const ctx = compiler.getMessageContext("src/Footer.tsx:Footer", "Save changes")!;
+
+    // Reached from Checkout, which imports it, and not from Settings, which
+    // does not — the boundary graph answering a question about screens.
+    expect(ctx.screens).toEqual(["src/Checkout.tsx"]);
+  });
+
+  /**
+   * `{name}` alone is unanswerable — a translator cannot tell whether it will
+   * be a person, a product or a count. `user.firstName` is not.
+   */
+  it("carries the expression behind a JSX placeholder", async () => {
+    await compiler.transform(
+      `
+        import { zintl } from "zintljs";
+        zintl(navigator.language);
+        export const Hi = ({ user }) => <h1>Welcome back, {user.firstName}!</h1>;
+      `,
+      join(root, "src/Hi.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+
+    const key = compiler.getMessages("src/Hi.tsx:Hi")[0].text;
+    expect(key).toContain("{user_firstName}");
+
+    const ctx = compiler.getMessageContext("src/Hi.tsx:Hi", key)!;
+    expect(ctx.occurrences[0].variables).toEqual([
+      { name: "user_firstName", expression: "user.firstName" },
+    ]);
+  });
+
+  /**
+   * A known gap, asserted so it is visible rather than discovered — the same
+   * shape as the HTML-element gap this file used to record, and closed by the
+   * same kind of work.
+   *
+   * A JSX expression container records its bindings with their source
+   * expressions; a **template literal** normalises `${user.firstName}` into
+   * `{user_firstName}` and keeps no `variables` on the sink. So the placeholder
+   * survives and the expression behind it does not, and proposal 032 §3's
+   * "`{input}` alone is unanswerable; `user.firstName` is not" holds for one
+   * shape and not the other. Closing it is extractor work in the template
+   * visitor, not compiler work.
+   */
+  it("cannot yet name the expression behind a template-literal placeholder", async () => {
+    await compiler.transform(
+      `
+        import { zintl } from "zintljs";
+        zintl(navigator.language);
+        export const Hi = ({ user }) => <h1>{\`Welcome back, \${user.firstName}!\`}</h1>;
+      `,
+      join(root, "src/Tpl.tsx"),
+      "virtual:zintl/inject",
+    );
+    await compiler.flush();
+
+    const key = compiler.getMessages("src/Tpl.tsx:Hi")[0].text;
+    expect(key).toContain("{user_firstName}");
+
+    const ctx = compiler.getMessageContext("src/Tpl.tsx:Hi", key)!;
+    // The placeholder is there; what produced it is not.
+    expect(ctx.occurrences[0].variables).toBeUndefined();
   });
 });

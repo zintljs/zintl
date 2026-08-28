@@ -73,6 +73,7 @@ function adaptExtractionResult(
     text: raw.text,
     rawText: raw.text, // RawSink doesn't currently store originalText separately
     sinkType: raw.sinkType,
+    context: raw.context,
     location: loc(raw.start, raw.end, { line: raw.line, column: raw.column }),
     boundaryId: raw.boundaryId,
     variables: raw.variables.map((v) => ({

@@ -20,6 +20,104 @@ describe("Semantic Context Extraction", () => {
   });
 });
 
+/**
+ * Which element an HTML text node sat in.
+ *
+ * JSX has always reported this — the visitor holds the element — and HTML never
+ * did: every text node arrived as one `sinkType`, so an `<h1>` and a `<p>` were
+ * the same thing by the time anyone could show them to a translator. That made
+ * proposal 032 §3's "this is an `aria-label`, not an `h1`" true for React and
+ * false for every MPA. `stitchHTML` now tracks the open block elements.
+ *
+ * The field it lands in is the whole safety argument: `context`, never
+ * `sinkType`. `sinkType` is how the pipeline splices a call back into the
+ * document and is compared for equality against `"HTML_TEXT"` in the compiler,
+ * so these tests assert it is *unchanged* as deliberately as they assert the
+ * new value.
+ */
+describe("HTML text element context", () => {
+  const sinks = (code: string) =>
+    extract(code, "index.html", "index").rawSinks.filter((s) => s.sinkType === "HTML_TEXT");
+
+  const byText = (code: string) => Object.fromEntries(sinks(code).map((s) => [s.text, s.context]));
+
+  it("distinguishes a heading from a paragraph", () => {
+    const found = byText(`<html><body><h1>A heading</h1><p>A paragraph</p></body></html>`);
+    expect(found["A heading"]).toBe("h1");
+    expect(found["A paragraph"]).toBe("p");
+  });
+
+  /**
+   * `h1` is the reason the stack stores the raw tag name. `normalizeTags`
+   * aliases *phrasing* tags with a trailing index, and the loop strips a
+   * trailing digit to undo that — which takes `h1` to `h` for a tag that was
+   * never aliased in the first place.
+   */
+  it("does not truncate a numbered heading to its letter", () => {
+    const found = byText(`<html><body><h2>Second level</h2></body></html>`);
+    expect(found["Second level"]).toBe("h2");
+  });
+
+  it("reports the block element rather than an inline wrapper", () => {
+    const found = byText(
+      `<html><body><p>Hello <b>there</b></p><li><em>Emphasised item</em></li></body></html>`,
+    );
+    // Stitched into one message across the inline tag, and reported as the
+    // block it reads as rather than as the tag wrapping it.
+    expect(found["Hello <b>there</b>"]).toBe("p");
+    expect(found["Emphasised item"]).toBe("li");
+  });
+
+  /**
+   * A void element must not open a frame.
+   *
+   * The text has to sit **after** the void tag and inside the same block for
+   * this to mean anything. Put it before, or in a nested block, and the
+   * unwinding close repairs the bad push before anything reads the stack — the
+   * first version of this test was written that way and passed with `<hr>`
+   * pushed, which is to say it tested nothing.
+   */
+  it("is not desynchronised by a void element", () => {
+    const found = byText(`<html><body><div><hr>After the rule</div></body></html>`);
+    expect(found["After the rule"]).toBe("div");
+  });
+
+  /**
+   * Unwinding, not popping — and the difference only shows *after* the badly
+   * closed region. A blind `pop()` on `</div>` removes the still-open `<p>` and
+   * leaves `div` behind forever, so everything at the top level from then on is
+   * attributed to a block that closed. The trailing text is what catches it.
+   */
+  it("unwinds to the match rather than mislabelling what follows", () => {
+    const found = byText(
+      `<html><body><div><p>Inside both</div><h2>After the mess</h2>Trailing text</body></html>`,
+    );
+    expect(found["Inside both"]).toBe("p");
+    expect(found["After the mess"]).toBe("h2");
+    // Top level, so no element — not the `div` a blind pop would have stranded.
+    expect(found["Trailing text"]).toBeUndefined();
+  });
+
+  it("leaves sinkType alone, because the splice path reads it", () => {
+    const all = sinks(`<html><body><h1>A heading</h1></body></html>`);
+    expect(all).toHaveLength(1);
+    expect(all[0].sinkType).toBe("HTML_TEXT");
+    expect(all[0].context).toBe("h1");
+  });
+
+  /**
+   * Context annotates a message; it never splits one (032 §8.1). Two elements
+   * holding the same words stay one translatable unit.
+   */
+  it("does not split a message reached through two different elements", () => {
+    const code = `<html><body><h1>Save</h1><p>Save</p></body></html>`;
+    const result = extract(code, "index.html", "index");
+    const save = result.messages.filter((m) => m.text === "Save");
+    expect(save).toHaveLength(1);
+    expect(save[0].contexts.slice().sort((a, b) => a.localeCompare(b))).toEqual(["h1", "p"]);
+  });
+});
+
 describe("Function-Level Boundaries", () => {
   it("should support function-level trust anchors", () => {
     const code = `

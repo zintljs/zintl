@@ -35,7 +35,7 @@ export type ManifestEntry = {
   text: string;
   /**
    * Where this string appears, as something to *show* a translator — `alt`,
-   * `button`, `meta.desc`. Not populated or read yet; see proposal 032.
+   * `button`, `h1`.
    *
    * **Metadata, not a key.** It was called "disambiguation context", which
    * reads as gettext's `msgctxt`, where the same text in two places becomes two
@@ -53,9 +53,17 @@ export type ManifestEntry = {
    * cases where they genuinely are the same string and a translator just needs
    * telling.
    *
-   * Source: `ExtractedMessage.contexts` (a `string[]`, accumulated across every
-   * site the text appears at). Collapsing that list is safe precisely because
-   * this is metadata — a key could not be joined.
+   * Source: `ObservedSink` — `context` where the extractor recorded something
+   * `sinkType` cannot say (the block element an HTML text node sat in), and the
+   * normalised `sinkType` otherwise. Not `ExtractedMessage.contexts`, which an
+   * earlier draft of 032 named: that aggregation happens on the far side of a
+   * boundary the compiler never crosses, so it is not reachable from here.
+   *
+   * Recorded **per sink**, not unioned per message. One string reached from an
+   * `alt` and a `title` is two entries carrying one context each, and one id
+   * between them. A consumer wanting the union should take it; unioning here
+   * would collapse entries, which changes how many `generateSchema` and
+   * `verifyIntegrity` walk.
    */
   context?: string;
   boundaryId: string;

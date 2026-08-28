@@ -44,6 +44,7 @@ import { GraphManager } from "./managers/GraphManager.js";
 import { CatalogManager } from "./managers/CatalogManager.js";
 import { MessageManager } from "./managers/MessageManager.js";
 import { DeliveryBus } from "./bus/index.js";
+import { deriveMessageContext, type MessageContext } from "./message-context.js";
 
 export { generateMessageId, sha1 } from "./utils/hashing.js";
 export { serializeDeterministic } from "./utils/serialization.js";
@@ -68,6 +69,10 @@ export type * from "./types/capabilities.js";
 export type { IOManager } from "./managers/IOManager.js";
 export type { CatalogManager } from "./managers/CatalogManager.js";
 
+// Derived translator context (proposal 032 §3). Exported as types only for now:
+// the seam a facet consumes lands with the export facet that needs it.
+export type { MessageContext, MessageOccurrence, MessageContextWorld } from "./message-context.js";
+
 /**
  * A sink type, as something to show a translator.
  *
@@ -85,11 +90,14 @@ function translatorContext(sinkType: string | undefined): string | undefined {
   if (!sinkType) return undefined;
   if (sinkType.startsWith("html:attr:")) return sinkType.slice("html:attr:".length) || undefined;
   /**
-   * The one sink type that names a position rather than a thing — and the one
-   * place this is thinner than it looks. JSX reports the element (`button`),
-   * because the visitor has it; every HTML text node arrives as `HTML_TEXT`, so
-   * an `<h1>` and a `<p>` are indistinguishable by the time it reaches here.
-   * Closing that is extractor work. Proposal 032 §3 assumes the richer version.
+   * The fallback for HTML text, not the answer.
+   *
+   * `ObservedSink.context` now carries the element for HTML text — `h1`, `p`,
+   * `li` — recorded by `stitchHTML` and preferred by the caller below. This
+   * remains for the cases that field cannot reach: a document whose markup is
+   * unbalanced enough that the enclosing element would be a guess, and text at
+   * the top level with no element around it at all. `text` is thin, and it is
+   * true; a wrong element name would not be.
    */
   if (sinkType === "HTML_TEXT") return "text";
   return sinkType;
@@ -2225,6 +2233,7 @@ export class ZintlCompiler {
           boundaryId: string;
           location: SourceLocation;
           sinkType?: string;
+          context?: string;
           note?: string;
           variables?: { name: string }[];
           passVars?: Record<string, string>;
@@ -2247,7 +2256,7 @@ export class ZintlCompiler {
              * walk. A consumer that wants the union should take it; see
              * proposal 032 §7.
              */
-            context: translatorContext(msg.sinkType),
+            context: msg.context ?? translatorContext(msg.sinkType),
             note: msg.note,
             variables: [
               ...new Set([
@@ -3611,6 +3620,32 @@ export class ZintlCompiler {
 
   public getMessages(boundaryId: string) {
     return this.messages.internalManifest[boundaryId] || [];
+  }
+
+  /**
+   * Everything derivable about one string, for someone who will translate it.
+   *
+   * The material half of the TMS seam (proposal 032 §5): the compiler supplies
+   * facts, a facet supplies serialization and transport. Nothing here knows what
+   * XLIFF is, and nothing here should.
+   *
+   * A pure read — no flush, no write, no graph rebuild. It reports the world as
+   * it currently stands, which means a caller wanting current answers should
+   * ensure the graphs are synced first, the same contract `getMessages` has.
+   *
+   * `null` when this boundary does not carry that string.
+   */
+  public getMessageContext(boundaryId: string, key: string): MessageContext | null {
+    const bg = this.graph.boundaryGraph;
+    return deriveMessageContext(boundaryId, key, {
+      manifest: this.messages.internalManifest,
+      metadataGraph: this.messages.metadataGraph,
+      boundaryGraph: bg,
+      chunkGraph: this.graph.chunkGraph,
+      // Reuses the traversal the graph already owns rather than growing a second
+      // one that could disagree with it.
+      reachableFrom: bg ? (entryId) => this.graph.getStaticDependencyTree(entryId, bg) : undefined,
+    });
   }
 
   public _buildBoundaryGraph() {

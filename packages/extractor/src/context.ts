@@ -665,6 +665,20 @@ export class ExtractionContext {
       s?: number,
       e?: number,
       tagMap?: TagMapEntry[],
+      /**
+       * The block-level element this text sits in — `h1`, `p`, `li`.
+       *
+       * Translator-facing context, never replacement mechanics (proposal 032
+       * §2). Every HTML text node reaches the compiler as one `sinkType`, so
+       * without this an `<h1>` and a `<p>` are indistinguishable by the time
+       * anyone could show them to a human — which made 032 §3's "this is an
+       * `aria-label`, not an `h1`" half true and JSX-only.
+       *
+       * `undefined` for text at the top level, and for markup unbalanced enough
+       * that the answer would be a guess. No answer beats a wrong one here: a
+       * translator acts on this.
+       */
+      hostTag?: string,
     ) => void,
     initialNote?: string,
     initialPassVars: Record<string, string> = {},
@@ -742,6 +756,17 @@ export class ExtractionContext {
     let currentIdx = 0,
       pendingIgnore = false;
     const ignoreStack: string[] = [];
+    /**
+     * The open block-level elements, outermost first.
+     *
+     * Tracks the document's *structure*, which is deliberately not the same
+     * question the loop below asks. `isPhrasing` is forced to `false` for a
+     * phrasing tag that stitching decided to treat as a partition, and following
+     * that would report `b` for `<p><b>Hello</b></p>` — the tag that happens to
+     * wrap the text rather than the block it reads as. This asks
+     * `INLINE_PHRASING_TAGS` directly, before any stitching override.
+     */
+    const elementStack: string[] = [];
     let localNote = initialNote;
     const localPassVars = { ...initialPassVars };
 
@@ -767,6 +792,7 @@ export class ExtractionContext {
           offsets?.start,
           offsets?.end,
           tagMap.length ? tagMap : undefined,
+          elementStack[elementStack.length - 1],
         );
         localNote = initialNote;
         for (const k in localPassVars) {
@@ -818,6 +844,36 @@ export class ExtractionContext {
           }
         } else {
           flushBuffer();
+
+          /**
+           * Maintained *after* the flush, and that ordering is the whole of the
+           * correctness argument: the buffer standing here belongs to the
+           * element that is about to close, so it must be reported before the
+           * stack moves on.
+           */
+          if (!INLINE_PHRASING_TAGS.has(baseTagName)) {
+            /**
+             * `tagName`, not `baseTagName`, and the difference is `h1`.
+             *
+             * `baseTagName` strips a trailing digit to undo the aliasing
+             * `normalizeTags` applies — but it applies that aliasing only to
+             * *phrasing* tags, so a structural tag never carries an index and
+             * stripping one takes `h1` to `h`. The phrasing test above wants the
+             * stripped form; the name a translator reads wants the real one.
+             */
+            if (isClosing) {
+              /**
+               * Unwind to the match rather than popping blindly, so
+               * `<div><p>x</div>` closes both instead of leaving `p` open and
+               * mislabelling everything after it. A close tag matching nothing
+               * open is ignored.
+               */
+              const at = elementStack.lastIndexOf(tagName);
+              if (at !== -1) elementStack.length = at;
+            } else if (!token.endsWith("/>") && !VOID_ELEMENTS.has(tagName)) {
+              elementStack.push(tagName);
+            }
+          }
 
           // TODO: check this change (in case it broken, revert to the old code)
           // if (directives.ignore) {
