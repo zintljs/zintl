@@ -43,8 +43,10 @@ const handleSwitch = async (lang: string) => {
 
 
 if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
-    console.debug("[Zintl] HMR update accepted for: src/components/LocaleSwitcher.vue");
+  import.meta.hot.accept(() => {
+    // src/components/LocaleSwitcher.vue declares a trust anchor and this framework's mount is not
+    // replayable: re-running it would mount again instead of replacing.
+    import.meta.hot.invalidate();
   });
 }
 </script>

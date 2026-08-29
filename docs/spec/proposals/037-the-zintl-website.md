@@ -376,14 +376,23 @@ a `data:` URI on Rspack (L-009) — so what changed is what gets encoded: the pa
 project root rather than the absolute one. Same properties, no home directory, and 39 fewer
 characters of filename. Changeset: `a-chunk-should-not-name-the-machine`.
 
-**A localized asset edit blanks the page in dev.** Editing `zintl/src/content/<page>.<locale>.md`
-sends an update that re-executes `src/main.ts`, which calls `createApp(App).mount("#app")` a second
-time on a container that already holds an app: Vue warns, then the render dies on a null
-`nextSibling` and the page goes empty until a reload. Reproduced on an unmodified build, so it
-predates the work above and is recorded here rather than blamed on it. A source-string edit HMRs
-cleanly, so it is specific to the artifact path. Worth checking against the Vue facet's claim that
-"Vue's mount is replayable where React's `createRoot` and Svelte's `mount` are not" — on this
-evidence it is replayable only where the entry is not re-executed.
+**A localized asset edit blanks the page in dev. FIXED.** Editing
+`zintl/src/content/<page>.<locale>.md` re-executed `src/main.ts`, which called
+`createApp(App).mount("#app")` a second time on a container that already held an app: Vue warned,
+wiped the page, and died in the first effect reaching a removed node. Reproduced on an unmodified
+build before anything was changed, so it predated the rest of §12.
+
+The Vue facet's claim that "Vue's mount is replayable where React's `createRoot` and Svelte's
+`mount` are not" was simply wrong — `createApp` builds a _new_ application instance each call and
+never unmounts the previous one, so Vue fails the same way React does, only quietly. It now declares
+`entryReexecutionSafe: false` like React, Svelte, Lit and Solid; Preact keeps `true` because its
+`render` genuinely diffs into the same container. Changeset: `a-vue-entry-cannot-mount-twice`.
+
+**Left open, and worth its own look.** `catalogIsHot` is `event.kind === "json"`, so _every_ asset
+edit invalidates each boundary's source module. That is right for a URL asset, whose resolved URL is
+baked into the source, and unnecessary for a content asset delivered through the catalog — the store
+already repaints. Narrowing it would turn a translator's save from a reload back into a hot update.
+The fix above makes the reload correct; this would make it unnecessary.
 
 ### 12.2 The markdown pipeline as built
 

@@ -203,9 +203,32 @@ export function vueFacet(options: VueFacetOptions = {}): ZintlFacet[] {
  * manager *inlines* the catalog or *fetches* it. A fetched catalog on this host
  * updates a module nothing re-runs. See ledger L-064.
  *
- * It declares no `entryReexecutionSafe`, so it keeps the permissive default: the
- * two flags answer different questions, and Vue's mount is replayable where
- * React's `createRoot` and Svelte's `mount` are not.
+ * **`entryReexecutionSafe: false`, corrected.** This facet used to leave the
+ * permissive default, on the reasoning that "Vue's mount is replayable where
+ * React's `createRoot` and Svelte's `mount` are not". It is not, and the
+ * difference from React is only in how loudly it fails.
+ *
+ * `createApp(App).mount("#app")` builds a **new application instance** every
+ * time it runs. On a container that already has one, Vue's DOM mount clears
+ * `innerHTML` and renders the new app into it — and never unmounts the old one,
+ * whose reactive effects are still scheduled and still hold references to the
+ * nodes that were just removed. React throws on a container it already owns;
+ * Vue warns, wipes the page, and then dies in the first effect that reaches for
+ * a `nextSibling` that is no longer there. A blank page is not a milder outcome
+ * than an exception, only a quieter one.
+ *
+ * Measured on the documentation site: editing a localized `.md` artifact
+ * invalidates each boundary's source module — an asset edit is deliberately not
+ * treated as a hot catalog edit — so the entry re-ran, mounted a second app, and
+ * the page went empty until a manual reload.
+ *
+ * Preact keeps `true` and is right to: its `render(vnode, container)` diffs into
+ * the same container rather than constructing a second root. The flag is about
+ * that distinction, not about which frameworks are fashionable to trust.
+ *
+ * The cost is the one the `vite` facet's docblock names — an entry edit becomes
+ * a reload rather than a hot update. That cost is why the flag exists, and a
+ * reload that shows the edit beats a hot update that shows nothing.
  */
 function vueRuntimeFacet(): ZintlFacet {
   return {
@@ -214,5 +237,6 @@ function vueRuntimeFacet(): ZintlFacet {
     concern: "runtime",
     priority: 100,
     repaintsOnCatalogUpdate: true,
+    entryReexecutionSafe: false,
   };
 }
