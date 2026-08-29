@@ -166,7 +166,7 @@ export function transformIndexHtmlHook(ctx: Context) {
         }
       }
 
-      return await ctx.compiler.transformHtml(html, htmlId, preloads);
+      return await ctx.compiler.transformHtml(html, htmlId, preloads, base);
     },
   };
 }

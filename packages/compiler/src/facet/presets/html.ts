@@ -578,6 +578,7 @@ export function htmlProjectionFacet(): ZintlFacet {
       id: string,
       context: CompilerContext,
       preloads?: Record<string, string[]>,
+      base?: string,
     ): Promise<string> {
       let fileId = context.io.getNormalizedId(id);
       let fannedLocale: string | undefined;
@@ -1114,7 +1115,10 @@ export function htmlProjectionFacet(): ZintlFacet {
     <script id="zintl-projection">
       (function() {
         const known = ${JSON.stringify(context.locales)};
-        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const base = ${JSON.stringify(base || "/")};
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
         const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || '${context.sourceLocale}';
         ${rtlChunk}
         ${deltasChunk}

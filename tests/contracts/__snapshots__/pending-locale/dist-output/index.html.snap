@@ -6,7 +6,10 @@
     <script id="zintl-projection">
       (function() {
         const known = ["en","ar"];
-        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const base = "/";
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
         const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const originals = {
         title: document.title,

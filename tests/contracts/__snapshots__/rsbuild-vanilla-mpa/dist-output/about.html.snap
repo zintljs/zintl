@@ -8,7 +8,10 @@
     <script id="zintl-projection">
       (function() {
         const known = ["en","ar","es","zh"];
-        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const base = "/";
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
         const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"من نحن — Rsbuild مع TypeScript — مثال زينتل متعدد الصفحات"},"es":{"title":"Acerca de — Rsbuild con TypeScript — Ejemplo multipágina de Zintl"},"zh":{"title":"关于 — Rsbuild 搭配 TypeScript — Zintl 多页面示例"}};

@@ -614,6 +614,8 @@ export function loadHook(ctx: Context) {
         ctx.compiler.isDev,
         await ctx.compiler.getRtlLocales(),
         ctx.compiler.pseudoLocalize,
+        // So the client store can tell the base path from a locale segment.
+        ctx.publicBase,
       );
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");

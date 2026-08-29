@@ -12,7 +12,10 @@
     <script id="zintl-projection">
       (function() {
         const known = ["en","ar","es","zh"];
-        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const base = "/";
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
         const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"Vite مع TypeScript — مثال زينتل"},"es":{"title":"Vite con TypeScript — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 TypeScript — Zintl 示例"}};
