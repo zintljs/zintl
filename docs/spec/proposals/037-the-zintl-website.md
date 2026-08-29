@@ -1,7 +1,8 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1 and §9.2 are built. §11 records what building it corrected in this document
-and the two compiler defects it found.
+**Status**: IN PROGRESS — §9.1, §9.2 and §9.4 are built; the docs half is complete in four
+languages. §11 and §12 record what building it corrected in this document, and the six compiler
+defects it found.
 **Date**: 2026-08-29
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
 docs cited; every claim about the _site_ is intent.
@@ -89,7 +90,7 @@ one page is not a section, and `/meta/stability` is an ugly URL for a page peopl
 | **Reference** | Configuration         | Every option, as tables                                                    | `configuration.md`               |
 |               | Comment directives    | `@zintl-ignore`, `@zintl-note`, `@zintl-pass`, `@zintl-target`             | `directives.md`                  |
 |               | Integrations          | Vite, Rsbuild, vinext — what is supported and what is not                  | README §where it runs            |
-| **Meta**      | Stability             | What is settled, what is moving, how to remove Zintl                       | `stability.md`                   |
+|               | Stability             | What is settled, what is moving, how to remove Zintl                       | `stability.md`                   |
 
 The repo's `docs/` stay where they are for now and keep serving GitHub readers. Collapsing the two
 into one source is a later decision, and a bigger one; it is out of scope here (§10).
@@ -238,8 +239,16 @@ step that validates §5.2; everything after it assumes the answer.**
 **9.3 — Docs shell polish.** Sidebar grouping and collapse, active-section tracking, scroll-spy TOC,
 breadcrumbs, keyboard navigation, the per-page catalog readout in the footer.
 
-**9.4 — The remaining ten pages, English.** Authored short, against §6's budget. Routes stay
-unregistered until §9.6 fills their artifacts.
+**9.4 — The remaining pages. BUILT, and merged with §9.7 for the pages it covers.** All eleven docs
+pages exist in four languages: thirty-three authored `.md` artifacts, forty-four routes, every one
+verified to serve and render.
+
+The split this document originally drew — English in §9.4, localization in §9.7 — cannot be walked
+in that order. `verifyIntegrity` has no partial mode, so ten English pages with empty artifacts is a
+red build for as long as the split lasts. §8 already said the answer (_content lands
+page-complete_); §9.4 had simply not been rewritten to match it. Pages therefore landed in batches
+of one page × four languages, with the build green at each one. What remains of §9.7 is the RTL
+audit and whatever the landing page adds.
 
 **9.5 — Landing page, static.** Sections 1, 2, 3, 7, 8 and the footer. The page is complete and
 persuasive without any of the interactive work.
@@ -403,3 +412,22 @@ building it: `vp fmt` normalizes Markdown emphasis to `_underscores_` and rewrap
 authored translation artifacts as readily as in the source, so the renderer accepts both spellings;
 and the rendered HTML arrives through `v-html`, so its styles are global rather than scoped — the
 same collision §11.3 records for stitched markup, met a second way.
+
+### 12.3 One more defect, in the renderer this site owns
+
+**A table cell could not contain a pipe.** `catalogFormat`'s type is `string \| (ctx) => string`,
+and an escaped pipe is the only way to write one inside a Markdown table. The cell parser split on
+every `|`, so that row tore in two and every column after it shifted — headers no longer sat above
+their values, and part of the default was lost. Found by reading the Arabic configuration page,
+where a mis-aligned table is impossible to miss.
+
+It splits on unescaped pipes now. Worth recording because it is the second bug in this renderer that
+only appeared once real content met it, and because it argues for the follow-up in §12.4.
+
+### 12.4 The renderer has no tests
+
+`src/lib/markdown.ts` and `src/lib/highlight.ts` are about 290 lines of parsing with two defects
+found so far, and nothing exercises them but the pages themselves. The website package has no test
+setup, and giving one to an example is a change to this repository's testing shape rather than a
+site task — which is why it is written down here instead of done quietly. A unit suite over the
+subset would be cheap and would have caught both.

@@ -14,6 +14,16 @@
  */
 const loaders: Record<string, () => Promise<{ default: string }>> = {
   "guide/what-is-zintl": () => import("./content/what-is-zintl.md?raw"),
+  "guide/getting-started": () => import("./content/getting-started.md?raw"),
+  "guide/translating": () => import("./content/translating.md?raw"),
+  "guide/locales-and-switching": () => import("./content/locales-and-switching.md?raw"),
+  "guide/plurals-and-grammar": () => import("./content/plurals-and-grammar.md?raw"),
+  "concepts/boundaries-and-chunks": () => import("./content/boundaries-and-chunks.md?raw"),
+  "concepts/glossary": () => import("./content/glossary.md?raw"),
+  "reference/configuration": () => import("./content/configuration.md?raw"),
+  "reference/comment-directives": () => import("./content/comment-directives.md?raw"),
+  "reference/integrations": () => import("./content/integrations.md?raw"),
+  "reference/stability": () => import("./content/stability.md?raw"),
 };
 
 export async function loadPage(sectionId: string, slug: string): Promise<string | undefined> {
