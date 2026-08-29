@@ -46,6 +46,35 @@ const routes: RouteRecordRaw[] = [
   },
 ];
 
+/**
+ * Scroll to a heading that does not exist yet.
+ *
+ * Two things stop the obvious `{ el: to.hash }` from working. A docs page
+ * awaits its body, so at the moment `scrollBehavior` runs the heading is not in
+ * the document — the selector matches nothing and the browser stays where it
+ * was. And a hash from a non-English page is percent-encoded (`#cat%C3%A1logo`),
+ * which is not a valid selector at all; it has to be decoded before it can be
+ * looked up.
+ *
+ * Polling a handful of frames rather than watching for a mount: the wait is
+ * bounded, the failure mode is "scroll to the top of the page you asked for",
+ * and neither of those is worth a MutationObserver.
+ */
+async function waitForHeading(hash: string) {
+  const id = decodeURIComponent(hash.slice(1));
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const el = document.getElementById(id);
+    if (el) {
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      return { el, top: 96, behavior: still ? ("auto" as const) : ("smooth" as const) };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
+  return { top: 0 };
+}
+
 export const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -57,7 +86,7 @@ export const router = createRouter({
     if (to.path !== from.path && to.name === from.name && to.params.slug === from.params.slug) {
       return false;
     }
-    if (to.hash) return { el: to.hash, behavior: "smooth", top: 96 };
+    if (to.hash) return waitForHeading(to.hash);
     return { top: 0 };
   },
 });

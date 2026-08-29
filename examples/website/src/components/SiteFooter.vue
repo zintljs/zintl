@@ -27,8 +27,13 @@ const sections = computed(() => {
         </p>
       </div>
 
-      <nav v-for="section in sections" :key="section.id" class="footer-column">
-        <h2>{{ section.title }}</h2>
+      <nav
+        v-for="section in sections"
+        :key="section.id"
+        class="footer-column"
+        :aria-label="section.title"
+      >
+        <p>{{ section.title }}</p>
         <ul>
           <li v-for="page in section.pages" :key="page.slug">
             <RouterLink :to="`/${locale}/${section.id}/${page.slug}`">{{ page.title }}</RouterLink>
@@ -36,8 +41,8 @@ const sections = computed(() => {
         </ul>
       </nav>
 
-      <nav class="footer-column">
-        <h2>Project</h2>
+      <nav class="footer-column" aria-label="Project links">
+        <p>Project</p>
         <ul>
           <!-- @zintl-ignore -->
           <li><a href="https://github.com/zintljs/zintl">GitHub</a></li>
@@ -80,7 +85,7 @@ const sections = computed(() => {
   margin: 0;
 }
 
-.footer-column h2 {
+.footer-column p {
   font-size: var(--text-xs);
   font-weight: 620;
   text-transform: uppercase;

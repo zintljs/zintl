@@ -47,6 +47,7 @@ The element follows the behaviour, and both are correct:
 | :--------- | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
 | `<button>` | The app switches at runtime — `await zintl(lang)`, then repaint | `react-basic`, `preact-basic`, `solid-basic`, `lit-basic`, `vue-basic`, every `rsbuild-*`, … |
 | `<a>`      | Locales are baked into separate documents under `/<locale>/`    | `vanilla-spa-i18n-baked`, `vanilla-mpa-baked-i18n`, `vinext-basic`                           |
+| `<a>`      | The app switches at runtime **and** routes — see below          | `website`                                                                                    |
 
 A baked switch really is a navigation, and deserves an element you can
 middle-click. Everything else about the two is identical, which is why the CSS
@@ -59,13 +60,40 @@ Runtime-switching apps put the locale in `?lang=`, call `await zintl(lang)`, and
 repaint. Baked and multiplexed apps put it in the path and navigate. Either way
 the bar itself holds no state — the active locale is read from the URL.
 
+### The third case: a client router
+
+An app with its own router can do both, and `website` does: the locale is a path
+segment, the elements are `<a>` with real hrefs, and the click is intercepted so
+the switch is `await zintl(lang)` and a repaint with nothing reloading. The href
+means the link is shareable, indexable and middle-clickable; the interception
+means following it costs no page load.
+
+This is not the bar bending to suit one example. **The runtime already reads the
+locale from the first path segment** — `syncLocale` in `store-client.ts` takes
+`parts[0]`, adopts it if it names a locale, and is wired to `popstate` and to a
+patched `pushState`. An app that prefixes its routes gets locale synchronisation
+for free, and the `?lang=` convention above is the one that needs the extra
+wiring.
+
+Two details are load-bearing if you copy it:
+
+- **Prefix every locale, the source language included.** With the default
+  unprefixed, `syncLocale` falls through to its second source — `<html lang>` —
+  which during a back navigation still holds the locale being navigated _away_
+  from, so `/ar/guide/x` → back → `/guide/x` restores Arabic under an English
+  URL.
+- **Swap the catalog before the URL.** `await zintl(lang)` then `router.push`:
+  pushing first navigates into a locale still in flight, and the push that
+  follows is a no-op for `syncLocale` because the locale is already adopted.
+
 ## The mark
 
 The Zintl mark is inlined rather than fetched. Inline is the only form that is
 identical on both hosts: it needs no `public/` directory (the Rsbuild starters
 have none), no sprite injection (the MPA examples inline theirs with `?raw`) and
 no second request. It is drawn in `currentColor`, so it follows the bar into
-light or dark without a filter.
+light or dark without a filter — except in `website`, which fills it with the
+brand gradient so that the header logo and the favicon are the same object.
 
 It is `aria-hidden`, deliberately. Giving it an `aria-label` would put the brand
 name into every catalog in every locale — `aria-label` is a live extraction

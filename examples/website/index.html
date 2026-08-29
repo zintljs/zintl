@@ -12,6 +12,28 @@
     <title>Zintl — write your app in plain language, ship it in every language</title>
 
     <!--
+      Open Graph and Twitter cards.
+
+      `og:title` and `og:description` deliberately repeat the tags above rather
+      than referencing them: a crawler reads one or the other, and Zintl
+      localizes `<title>` and the description per document, so keeping the pair
+      adjacent is what keeps a shared link in the right language.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Zintl" />
+    <meta
+      property="og:title"
+      content="Zintl — write your app in plain language, ship it in every language"
+    />
+    <meta
+      property="og:description"
+      content="A compile-time internationalization engine. Write plain strings; the compiler finds them, works out which screen needs which, and ships exactly those."
+    />
+    <meta property="og:image" content="/assets/zintl-avatar-1000.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!--
       Theme, before first paint. A stylesheet cannot read localStorage, so
       without this the page renders light for one frame and then corrects
       itself, which reads as a flicker on every navigation for every dark-mode

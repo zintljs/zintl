@@ -21,7 +21,16 @@ const activeSlug = computed(() => route.params.slug as string | undefined);
 <template>
   <nav class="sidebar" aria-label="Documentation">
     <div v-for="section in sections" :key="section.id" class="group">
-      <h2 class="group-title">{{ section.title }}</h2>
+      <!--
+        A `<p>`, not an `<h2>`.
+
+        These are labels for grouped links inside a navigation landmark, not
+        sections of the document. As headings they appeared *before* the page's
+        own `<h1>`, so every docs page opened its outline at level two and then
+        went back up — which is what a screen reader reads out. The list markup
+        carries the grouping; the landmark carries the name.
+      -->
+      <p class="group-title">{{ section.title }}</p>
       <ul>
         <li v-for="page in section.pages" :key="page.slug">
           <RouterLink

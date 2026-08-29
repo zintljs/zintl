@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import { localeFromPath } from "../locale";
 import { getSections } from "../nav";
 import LocaleSwitcher from "./LocaleSwitcher.vue";
+import SiteSearch from "./SiteSearch.vue";
 import ThemeToggle from "./ThemeToggle.vue";
 import ZintlMark from "./ZintlMark.vue";
 
@@ -31,7 +32,9 @@ const activeSection = computed(() => route.params.section as string | undefined)
   <header class="header">
     <div class="header-inner">
       <RouterLink :to="`/${locale}`" class="brand">
-        <span class="brand-mark"><ZintlMark /></span>
+        <span class="brand-mark">
+          <ZintlMark />
+        </span>
         <!-- @zintl-ignore -->
         <span class="brand-name">Zintl</span>
       </RouterLink>
@@ -49,6 +52,7 @@ const activeSection = computed(() => route.params.section as string | undefined)
       </nav>
 
       <div class="header-end">
+        <SiteSearch />
         <LocaleSwitcher />
         <div class="divider" role="presentation"></div>
         <ThemeToggle />
@@ -93,7 +97,6 @@ const activeSection = computed(() => route.params.section as string | undefined)
 
 .brand {
   display: flex;
-  align-items: baseline;
   gap: 0.55rem;
   color: var(--text-strong);
   font-weight: 640;
@@ -109,6 +112,7 @@ const activeSection = computed(() => route.params.section as string | undefined)
 
 .brand-name {
   font-size: var(--text-md);
+  padding-top: 1px;
 }
 
 .nav {

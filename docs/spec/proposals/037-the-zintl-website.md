@@ -1,9 +1,9 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1, §9.2 and §9.4–§9.6 are built. The site is complete in four
-languages: eleven docs pages and a landing page with all nine sections. What remains is §9.8
-(search, a11y, gates) and §9.9 (deploy). §11–§14 record what building it corrected in this document,
-and the eight defects it found.
+**Status**: IN PROGRESS — §9.1, §9.2 and §9.4–§9.6 and §9.8 are built. The site is complete in four
+languages: eleven docs pages, a landing page with all nine sections, search, and an accessibility
+pass. **Only §9.9 (deploy) remains**, and it needs a decision this document cannot take. §11–§15
+record what building it corrected here, and the eight defects it found.
 **Date**: 2026-08-29
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
 docs cited; every claim about the _site_ is intent.
@@ -274,9 +274,11 @@ demonstrable rather than illustrable, which is the difference this page was supp
 thirty-three `.md` artifacts; register each page as it completes. RTL audit across every page. _Done
 when_ `verifyIntegrity` passes on a production build with no page excluded.
 
-**9.8 — Polish, gates, and the doc amendment.** Search (§5.4), a11y pass, meta and OG tags, reduced
-motion, Lighthouse. Add the package to `knip.config.ts`. Amend `docs/examples-locale-bar.md` for
-§1.1. Measure the added gate time. `vpr verify`, then `vpr ci`. Changeset.
+**9.8 — Polish, gates, and the doc amendment. BUILT.** Search, an accessibility pass, Open Graph
+tags, and the locale-bar amendment. Measured rather than asserted: the site adds **~6.4s** to any
+gate that builds the examples (`vpr verify` runs 99.8s in total, `vpr ready:examples` 488.7s), which
+is small enough that §7's "if it is material, that is an argument for a separate workspace" does not
+trigger. No changeset — §9.8 touched no published package.
 
 **9.9 — Deploy.** Open, and it needs a decision that is not this document's to take: GitHub Pages
 from `ci.yml` is the default guess for an OSS project, and the domain is unknown here.
@@ -514,3 +516,42 @@ panel whose whole point is that it does not assert things should not have assert
 - The Markdown renderer and highlighter have no tests, and have now produced two defects (§12.4).
 - A bound attribute inside a stitched sentence is silently dead, and the compiler could say so
   (§13.1).
+
+## 15. What building §9.8 changed
+
+**Search is a build-time index, one module per language.** Indexing in the browser would mean
+downloading all eleven pages in order to search them, on a site whose argument is that you receive
+the page you are reading and nothing else. A Vite plugin reads the same `.md` files the pages render
+— the _authored artifacts_ for the translated locales, since that is the only place the translated
+body exists — and emits headings plus one sentence each. `SiteSearch` imports it on the first
+keypress: verified that opening the dialog on a Spanish page fetches the Spanish index and nothing
+else.
+
+`slugify` moved to its own module so the renderer and the plugin cannot drift. If they ever
+disagreed every result would land at the top of its page instead of at the heading it promised — a
+failure that looks like a styling bug and is not one.
+
+### 15.1 Two accessibility defects, found by measuring rather than looking
+
+**Every docs page opened its outline at level two.** The sidebar's group labels were `<h2>`, and
+they precede the article's `<h1>` in the document — so the heading order ran `2,2,2,1,…`. They are
+labels for grouped links inside a navigation landmark, not sections of the document, and are `<p>`
+now. The list markup carries the grouping and the landmark carries the name.
+
+**Four `<nav>` landmarks in the footer had no accessible name**, which makes a landmark list read as
+four identical entries. Each is labelled from its own section title.
+
+After both: one `h1`, no skipped levels, every interactive element named, every landmark labelled,
+in English and in Arabic.
+
+### 15.2 One thing this environment could not verify
+
+Anchor scrolling. `waitForHeading` demonstrably runs, decodes the percent-encoded hash a non-English
+page produces (`#cat%C3%A1logo` → `catálogo`) and finds the heading on the first attempt — but the
+browser pane used for testing reports a zero-height viewport and applies no scroll at all, including
+for a plain `window.scrollTo`. The document is scrollable and nothing locks overflow, so the
+remaining hop is the browser's. It is worth a look on a real one before §9.9.
+
+The two things that made the naive version wrong are fixed regardless, and both were real: a docs
+page _awaits_ its body, so the heading does not exist when `scrollBehavior` first runs; and a hash
+from a translated page is percent-encoded, which is not a valid selector.
