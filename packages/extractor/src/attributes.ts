@@ -73,6 +73,27 @@ export function scanTranslatableAttributes(
       const attrVal = attrMatch[2] || attrMatch[3] || attrMatch[4] || "";
       if (!attrVal || !ctx.htmlAttributes.has(attrName)) continue;
 
+      /**
+       * A bound attribute holds an expression, and an expression is not text.
+       *
+       * `ATTRIBUTE_PAIR` opens with `\b`, and a colon is not a word character —
+       * so `:title="heading"` matches from the `t`, yielding the name `title`
+       * and the value `heading`. Indistinguishable from `title="heading"`, and
+       * treated as such: the *identifier* went into every catalog as a
+       * translatable string, and because extraction rewrites what it extracts,
+       * the binding came back as `_t("heading")` — the translation of a
+       * variable's name, in place of the variable. `:title`, `:alt`,
+       * `:placeholder` and `:aria-label` bound to a value are ordinary Vue, so
+       * this reached anything written that way.
+       *
+       * Looking at the character *before* the match is what distinguishes the
+       * shorthand from a namespaced attribute: `xlink:href` matches from its
+       * own first letter with a space before it, and keeps working. The
+       * `v-bind:` spelling needs nothing — it matches whole and is not a name
+       * any facet declares.
+       */
+      if (attrMatch.index > 0 && attrsString[attrMatch.index - 1] === ":") continue;
+
       const attrIndex = tagMatch.index + attrsIndex + attrMatch.index;
       let start: number;
       let end: number;
