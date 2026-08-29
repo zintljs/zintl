@@ -6,7 +6,7 @@ export default (() => {
     "b_src_my_element": {
       "Lit logo": "Lit logo",
       "Vite logo": "Vite logo",
-      "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>",
+      "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `Count is ${params['count']}`;

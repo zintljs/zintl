@@ -127,7 +127,7 @@ var MyElement = class MyElement extends LitElement {
         <div>
           <slot></slot>
           <p>
-            ${unsafeHTML(_t("da6822c3", {
+            ${unsafeHTML(_t("567850fd", {
 			_mgr: entry_b_aafcf9c6fe16_default,
 			_bId: "b_d602f1d7fa4a",
 			_tags: [{

@@ -116,6 +116,20 @@ function hasNonWhitespaceOutsidePhrasing(html: string): boolean {
   return textOutside.trim().length > 0;
 }
 
+/**
+ * Elements inside which a run of whitespace is content rather than formatting.
+ *
+ * Everywhere else, HTML collapses `\n` and the indentation after it to a single
+ * space before anyone sees it — which is why a paragraph may be wrapped across
+ * lines in the source and still read as one sentence. `stitchHTML` has to
+ * collapse it too, or the *key* it mints carries the author's indentation and
+ * moves the next time the file is formatted.
+ *
+ * These four are the exceptions the HTML specification makes, and the reason
+ * this is a set rather than an unconditional `replace`.
+ */
+const WHITESPACE_PRESERVING_TAGS = new Set(["pre", "textarea", "script", "style"]);
+
 export const INLINE_PHRASING_TAGS = new Set([
   "span",
   "code",
@@ -776,7 +790,26 @@ export class ExtractionContext {
 
     const flushBuffer = () => {
       if (buffer.trim() && hasTranslatableText(buffer)) {
-        const trimmed = buffer.trim();
+        /**
+         * Collapse the whitespace HTML itself collapses, before the text
+         * becomes a key.
+         *
+         * A paragraph wrapped across three lines in the source is one sentence
+         * to every renderer that will ever draw it, and it has to be one string
+         * here for two separate reasons. As a **key**, an uncollapsed newline
+         * ties translation identity to the author's indentation — reformat the
+         * file and the key moves and the translation is orphaned, which is
+         * exactly what content-based identity exists to prevent. As **emitted
+         * code**, the newline lands inside the quoted literal the codegen
+         * writes, and a raw newline in a JavaScript string is a syntax error;
+         * in an SFC that takes the whole component down with it.
+         *
+         * The offsets below are deliberately still measured against the
+         * original `buffer`: the fragment occupies the same span of source
+         * whatever its text collapses to, and that span is what gets replaced.
+         */
+        const preservesWhitespace = elementStack.some((tag) => WHITESPACE_PRESERVING_TAGS.has(tag));
+        const trimmed = preservesWhitespace ? buffer.trim() : buffer.replace(/\s+/g, " ").trim();
         const leadingWhitespaceLen = buffer.length - buffer.trimStart().length;
         const trailingWhitespaceLen = buffer.length - buffer.trimEnd().length;
         const sInNorm = bufferStartIdx + leadingWhitespaceLen;

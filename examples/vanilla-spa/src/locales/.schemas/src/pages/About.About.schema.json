@@ -14,10 +14,10 @@
     "The Philosophy": {
       "type": "string"
     },
-    "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.": {
+    "We believe that the compiler should be your best friend. By analyzing your source code, Zintl can automate the extraction, stitching, and optimization of your translations, leaving you free to focus on building amazing user experiences.": {
       "type": "string"
     },
-    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": {
+    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": {
       "type": "string"
     }
   },
@@ -25,8 +25,8 @@
     "\"Our mission is to make internationalization as seamless as writing your UI code.\"",
     "About Zintl",
     "The Philosophy",
-    "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.",
-    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code."
+    "We believe that the compiler should be your best friend. By analyzing your source code, Zintl can automate the extraction, stitching, and optimization of your translations, leaving you free to focus on building amazing user experiences.",
+    "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. Traditional i18n systems often require manual management of JSON files and complex boilerplate code."
   ],
   "additionalProperties": false
 }

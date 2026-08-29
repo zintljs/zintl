@@ -57,7 +57,7 @@
     "Zintl Visualization": {
       "type": "string"
     },
-    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!": {
+    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs. Experience the future of internationalization today!": {
       "type": "string"
     }
   },
@@ -71,7 +71,7 @@
     "Powerful I18n for Modern Apps",
     "Type Safe",
     "Zero Config",
-    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs.\n          Experience the future of internationalization today!",
+    "Zintl transforms your static strings into optimized, chunk-aware translation catalogs. Experience the future of internationalization today!",
     "Zintl Visualization"
   ],
   "additionalProperties": false
