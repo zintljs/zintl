@@ -18,6 +18,8 @@ import {
   RUNTIME_INTERNAL_VIRTUAL_ID,
   RESOLVED_RAW_ASSET_PREFIX,
   RESOLVED_URL_ASSET_PREFIX,
+  encodeAssetId,
+  decodeAssetId,
 } from "../constants.js";
 
 /**
@@ -32,10 +34,14 @@ import {
  * module type there follows from *who loaded the module* — the id could lie for
  * free.
  *
- * The **whole id** is encoded, query and all, so `loadHook` decodes back to
- * byte-identical input. That is what makes this safe to apply at the several
- * places resolution can land on such a file: it changes identity and nothing
- * else, so no branch downstream has to know it happened.
+ * The path **and its query** are encoded, so `loadHook` decodes back to the
+ * input it was written against. That is what makes this safe to apply at the
+ * several places resolution can land on such a file: it changes identity and
+ * nothing else, so no branch downstream has to know it happened.
+ *
+ * The path is encoded relative to the project root, because this id becomes the
+ * emitted chunk's *name* and an absolute one published the build machine's
+ * filesystem. See `encodeAssetId`.
  *
  * base64url rather than `encodeURIComponent`, which was tried first and failed
  * silently: percent-encoding preserves `.`, so the encoded id still ended in
@@ -56,7 +62,7 @@ function rawTextAssetId(ctx: Context, fullId: string): string | undefined {
   if (!ctx.compiler?.ownsContent(clean)) return undefined;
   if (!isContentQuery(fullId)) return undefined;
   if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
-  return `${RESOLVED_RAW_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
+  return encodeAssetId(RESOLVED_RAW_ASSET_PREFIX, ctx.compiler.rootDir, fullId);
 }
 
 /**
@@ -499,7 +505,7 @@ function urlAssetId(ctx: Context, fullId: string): string | undefined {
   if (isContentQuery(fullId) || isUrlQuery(fullId)) return undefined;
   if (!ctx.compiler?.deliversUrl(clean)) return undefined;
   if (!isAbsolute(clean) || !existsSync(clean)) return undefined;
-  return `${RESOLVED_URL_ASSET_PREFIX}/${Buffer.from(fullId, "utf8").toString("base64url")}`;
+  return encodeAssetId(RESOLVED_URL_ASSET_PREFIX, ctx.compiler.rootDir, fullId);
 }
 
 export function loadHook(ctx: Context) {
@@ -519,13 +525,9 @@ export function loadHook(ctx: Context) {
     let id = rawId;
     let isUrlAsset = false;
     if (rawId.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) {
-      id = Buffer.from(rawId.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1), "base64url").toString(
-        "utf8",
-      );
+      id = decodeAssetId(RESOLVED_RAW_ASSET_PREFIX, ctx.compiler.rootDir, rawId);
     } else if (rawId.startsWith(RESOLVED_URL_ASSET_PREFIX + "/")) {
-      id = Buffer.from(rawId.slice(RESOLVED_URL_ASSET_PREFIX.length + 1), "base64url").toString(
-        "utf8",
-      );
+      id = decodeAssetId(RESOLVED_URL_ASSET_PREFIX, ctx.compiler.rootDir, rawId);
       isUrlAsset = true;
     }
 
@@ -612,6 +614,8 @@ export function loadHook(ctx: Context) {
         ctx.compiler.isDev,
         await ctx.compiler.getRtlLocales(),
         ctx.compiler.pseudoLocalize,
+        // So the client store can tell the base path from a locale segment.
+        ctx.publicBase,
       );
       if (!isSsr) {
         code = code.replace(/await\s+import\(\s*["']node:async_hooks["']\s*\)/g, "null");

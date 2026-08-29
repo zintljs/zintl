@@ -1,7 +1,7 @@
 import type { ModuleNode, ViteDevServer } from "vite";
 import type Context from "../context.js";
 import { multiplexLocaleOf } from "../context.js";
-import { RESOLVED_RAW_ASSET_PREFIX, RESOLVED_VIRTUAL_PREFIX } from "../constants.js";
+import { RESOLVED_RAW_ASSET_PREFIX, RESOLVED_VIRTUAL_PREFIX, decodeAssetId } from "../constants.js";
 import type { HostUpdateApplier, HostUpdateResult } from "./applier.js";
 import { classifyFile } from "./plan.js";
 import type { HotUpdatePlan } from "./types.js";
@@ -181,10 +181,7 @@ export class ViteUpdateApplier implements HostUpdateApplier {
         if (!id.startsWith(RESOLVED_RAW_ASSET_PREFIX + "/")) continue;
         let decoded: string;
         try {
-          decoded = Buffer.from(
-            id.slice(RESOLVED_RAW_ASSET_PREFIX.length + 1),
-            "base64url",
-          ).toString("utf8");
+          decoded = decodeAssetId(RESOLVED_RAW_ASSET_PREFIX, this.ctx.compiler.rootDir, id);
         } catch {
           continue;
         }

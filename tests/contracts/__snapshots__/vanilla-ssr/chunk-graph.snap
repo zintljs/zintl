@@ -6,6 +6,7 @@
     "src/counter:setupCounter": "src/entry-client",
     "src/entry-client": "src/entry-client",
     "src/entry-server:render": "src/entry-server:render",
+    "src/switcher:localeBar": "src/entry-server:render",
     "vite": "vite"
   },
   "chunks": {
@@ -29,7 +30,8 @@
         "src/assets/vite.svg",
         "src/entry-server:render",
         "src/switcher:currentRoute",
-        "src/switcher:localeBar"
+        "src/switcher:localeBar",
+        "src/switcher:localeSwitcher"
       ],
       "colonies": [],
       "entrySources": [

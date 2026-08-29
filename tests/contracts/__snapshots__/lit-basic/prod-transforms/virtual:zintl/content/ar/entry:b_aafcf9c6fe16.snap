@@ -2,7 +2,7 @@ const catalog = {
     "b_d602f1d7fa4a": {
       "cadb7719": "شعار ليت",
       "3473a536": "شعار فيت",
-      "da6822c3": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
+      "567850fd": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
       "aa624128": (params) => {
     const { count } = params;
     return `العدد هو ${params['count']}`;

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../.schemas/src/components/BoundaryGraph.vue.schema.json",
+  "Arrives with the page": "يصل مع الصفحة",
+  "Arrives with the route": "يصل مع المسار",
+  "Everything reachable from the anchor in that route.": "كل ما يمكن بلوغه من المرساة في ذلك المسار.",
+  "Everything the first screen can reach from its anchor.": "كل ما تستطيع الشاشة الأولى بلوغه من مرساتها.",
+  "Nothing until somebody opens settings.": "لا شيء حتى يفتح أحدهم الإعدادات.",
+  "One catalog, in the reader's language only.": "كتالوج واحد، بلغة القارئ وحدها.",
+  "The home boundary": "حدّ الصفحة الرئيسية",
+  "The settings boundary": "حدّ الإعدادات",
+  "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.": "مرساتان، وحدّان، وكتالوجان. ومن لا يفتح الإعدادات أبدًا لا ينزّل ترجماتها أبدًا — والتقسيم هو ذاته الذي صنعه مُحزِّمك أصلًا، لا تقسيمٌ ثانٍ تصونه.",
+  "What it becomes": "ما يصير إليه",
+  "What the browser loads": "ما يحمّله المتصفح",
+  "What you wrote": "ما كتبته"
+}

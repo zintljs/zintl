@@ -3,6 +3,6 @@
   "\"Our mission is to make internationalization as seamless as writing your UI code.\"": "“我们的使命，是让国际化像编写界面代码一样顺畅。”",
   "About Zintl": "关于 Zintl",
   "The Philosophy": "设计理念",
-  "We believe that the compiler should be your best friend. By analyzing your source code, \n          Zintl can automate the extraction, stitching, and optimization of your translations, \n          leaving you free to focus on building amazing user experiences.": "我们相信，编译器应该是你最好的伙伴。通过分析你的源代码，\n          Zintl 可以自动完成翻译的提取、拼接与优化，\n          让你专心打造出色的用户体验。",
-  "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. \n        Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": "Zintl 源自一个需求：在复杂的 Web 应用里，用更贴近开发者的方式处理翻译。\n        传统的国际化方案往往要求手工维护 JSON 文件，并写下大量样板代码。"
+  "We believe that the compiler should be your best friend. By analyzing your source code, Zintl can automate the extraction, stitching, and optimization of your translations, leaving you free to focus on building amazing user experiences.": "我们相信，编译器应该是你最好的伙伴。通过分析你的源代码，\n          Zintl 可以自动完成翻译的提取、拼接与优化，\n          让你专心打造出色的用户体验。",
+  "Zintl was born out of a need for a more developer-friendly way to handle translations in complex web applications. Traditional i18n systems often require manual management of JSON files and complex boilerplate code.": "Zintl 源自一个需求：在复杂的 Web 应用里，用更贴近开发者的方式处理翻译。\n        传统的国际化方案往往要求手工维护 JSON 文件，并写下大量样板代码。"
 }

@@ -211,6 +211,19 @@
       "mode": "entry",
       "usageCount": 0
     },
+    "src/switcher:localeBar": {
+      "activeLocales": "all",
+      "deps": [
+        {
+          "dynamic": false,
+          "id": "src/switcher:localeSwitcher"
+        }
+      ],
+      "filePath": "src/switcher",
+      "id": "src/switcher:localeBar",
+      "mode": "boundary",
+      "usageCount": 0
+    },
     "vite.config": {
       "activeLocales": "all",
       "deps": [

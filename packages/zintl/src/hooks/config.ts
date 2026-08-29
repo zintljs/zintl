@@ -143,6 +143,9 @@ function viteHostView(config: ResolvedConfig): BundlerHostView {
 
 export function configResolvedHook(ctx: Context) {
   return function (config: ResolvedConfig) {
+    // Vite resolves `base` to a value with a trailing slash; the fallback keeps
+    // that shape so callers can concatenate without testing for it.
+    ctx.publicBase = config.base || "/";
     ensureCompiler(ctx, viteHostView(config));
     ctx.getMultiplex(config);
   };

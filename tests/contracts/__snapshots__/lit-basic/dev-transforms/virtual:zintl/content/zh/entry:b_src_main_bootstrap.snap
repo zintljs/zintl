@@ -2,7 +2,7 @@ const catalog = {
     "b_src_my_element": {
       "Lit logo": "Lit 图标",
       "Vite logo": "Vite 图标",
-      "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "编辑 <code>src/my-element.ts</code> 并保存以测试 <code>HMR</code>",
+      "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "编辑 <code>src/my-element.ts</code> 并保存以测试 <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `计数为 ${params['count']}`;

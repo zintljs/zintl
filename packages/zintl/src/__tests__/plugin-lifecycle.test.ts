@@ -503,4 +503,51 @@ describe("Zintl Vite Plugin transformIndexHtml Hook Edge Cases", () => {
     const result = await handler(html, viteCtx);
     expect(result).toContain('preloads:{"en":["/assets/main.js","/assets/other.js"]}');
   });
+
+  /**
+   * The case above carries a `server`, and a production build has none — which
+   * is why the base was read off `server.config` for as long as it was. With
+   * the fixture matching production, the preload URLs came out relative
+   * (`assets/main.js`) and the browser resolved them against the *document*, so
+   * every route below the root asked for `/some/route/assets/…` and got a 404.
+   */
+  it("applies the base to preloads in a real build, where there is no server", async () => {
+    const plugin = zintl({ locales: ["en", "ar"], multiplex: false });
+    (plugin as any).configResolved({ root: "/mock", command: "build", base: "/" });
+
+    const compiler = (plugin as any).__compiler;
+    vi.spyOn(compiler, "transformHtml").mockImplementation(
+      async (html: any, _filename: any, preloads: any) => JSON.stringify(preloads),
+    );
+
+    const handler = (plugin as any).transformIndexHtml.handler;
+    const result = await handler("<html></html>", {
+      filename: "/mock/en/index.html",
+      bundle: {
+        "assets/main.js": { type: "chunk", moduleIds: ["\0virtual:zintl/content/en/entry:b1"] },
+      },
+    });
+
+    expect(result).toBe('{"en":["/assets/main.js"]}');
+  });
+
+  it("honours a project's own base", async () => {
+    const plugin = zintl({ locales: ["en", "ar"], multiplex: false });
+    (plugin as any).configResolved({ root: "/mock", command: "build", base: "/docs/" });
+
+    const compiler = (plugin as any).__compiler;
+    vi.spyOn(compiler, "transformHtml").mockImplementation(
+      async (html: any, _filename: any, preloads: any) => JSON.stringify(preloads),
+    );
+
+    const handler = (plugin as any).transformIndexHtml.handler;
+    const result = await handler("<html></html>", {
+      filename: "/mock/en/index.html",
+      bundle: {
+        "assets/main.js": { type: "chunk", moduleIds: ["\0virtual:zintl/content/en/entry:b1"] },
+      },
+    });
+
+    expect(result).toBe('{"en":["/docs/assets/main.js"]}');
+  });
 });

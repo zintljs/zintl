@@ -1,0 +1,5 @@
+{
+  "$schema": "../../.schemas/src/components/SiteHeader.vue.schema.json",
+  "Documentation sections": "Secciones de la documentación",
+  "Zintl on GitHub": "Zintl en GitHub"
+}

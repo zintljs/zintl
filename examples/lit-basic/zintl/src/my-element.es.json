@@ -3,7 +3,7 @@
   "Connect with us": "Conéctate con nosotros",
   "Count is {count}": "El recuento es {count}",
   "Documentation": "Documentación",
-  "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
+  "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "Edita <code>src/my-element.ts</code> y guarda para probar <code>HMR</code>",
   "Explore Vite": "Explorar Vite",
   "Join the Vite community": "Únete a la comunidad de Vite",
   "Learn more": "Aprender más",

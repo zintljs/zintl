@@ -81,7 +81,7 @@ export const VUE_SFC_RULES: SfcRule[] = [
       scriptBlock,
       {
         id: "template",
-        pattern: /<template\b([^>]*)>([\s\S]*?)<\/template>/gi,
+        pattern: /<template\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*)<\/template>/gi,
         action: "html",
         isActiveContent: true,
       },

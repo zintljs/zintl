@@ -1,0 +1,16 @@
+{
+  "$schema": "../../.schemas/src/components/AnchorToggle.vue.schema.json",
+  "A literal": "قيمة حرفية",
+  "A literal is a promise the compiler can keep. It bakes French in and stops treating the other languages as reachable — so there is nothing left to load, and your English is not in the output at all. The page does not fall back to English; English was never built.": "القيمة الحرفية وعدٌ يستطيع المُصرِّف الوفاء به. يدمج الفرنسية ويكفّ عن اعتبار بقية اللغات قابلة للبلوغ — فلا يبقى شيء يُحمَّل، ولا تكون إنجليزيتك في المُخرَج إطلاقًا. الصفحة لا ترجع إلى الإنجليزية؛ فالإنجليزية لم تُبنَ قط.",
+  "A variable": "متغير",
+  "A variable says the language is still undecided, so every one is built and switchable. This is what you want the moment a reader can change language, or it comes from a URL, a cookie or a header.": "المتغير يقول إن اللغة لم تُحسم بعد، فتُبنى كلها وتصير قابلة للتبديل. وهذا ما تريده فور أن يستطيع القارئ تغيير اللغة، أو تأتي من رابط أو كعكة أو ترويسة.",
+  "Absent": "غائبة",
+  "Catalog chunk emitted": "حزمة كتالوج مُخرَجة",
+  "No": "لا",
+  "None": "لا شيء",
+  "One per language": "واحدة لكل لغة",
+  "Other languages built": "بناء بقية اللغات",
+  "Present": "موجودة",
+  "Yes": "نعم",
+  "Your own language in the bundle": "لغتك أنت داخل الحزمة"
+}

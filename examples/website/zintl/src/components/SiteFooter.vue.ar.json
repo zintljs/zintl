@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/components/SiteFooter.vue.schema.json",
+  "Project": "المشروع",
+  "Project links": "روابط المشروع",
+  "Released under the MIT licence. This site is built with Zintl, and every word on it was extracted from plain source by the compiler it documents.": "منشور برخصة MIT. هذا الموقع مبنيّ بزينتل، وكل كلمة فيه استخرجها من شيفرة عادية المُصرِّف الذي يوثّقه.",
+  "Report an issue": "أبلغ عن مشكلة",
+  "Write your app in plain language. Ship it in every language.": "اكتب تطبيقك بلغة عادية. وانشره بكل اللغات."
+}

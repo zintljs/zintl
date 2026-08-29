@@ -1,0 +1,15 @@
+{
+  "$schema": "../../.schemas/src/components/BoundaryGraph.vue.schema.json",
+  "Arrives with the page": "Llega con la página",
+  "Arrives with the route": "Llega con la ruta",
+  "Everything reachable from the anchor in that route.": "Todo lo alcanzable desde el ancla de esa ruta.",
+  "Everything the first screen can reach from its anchor.": "Todo lo que la primera pantalla puede alcanzar desde su ancla.",
+  "Nothing until somebody opens settings.": "Nada hasta que alguien abre los ajustes.",
+  "One catalog, in the reader's language only.": "Un catálogo, solo en el idioma del lector.",
+  "The home boundary": "El límite de la página principal",
+  "The settings boundary": "El límite de los ajustes",
+  "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.": "Dos anclas, dos límites, dos catálogos. Quien nunca abre los ajustes nunca descarga sus traducciones — la división es la que tu empaquetador ya hizo, no una segunda que mantener.",
+  "What it becomes": "En qué se convierte",
+  "What the browser loads": "Lo que carga el navegador",
+  "What you wrote": "Lo que escribiste"
+}

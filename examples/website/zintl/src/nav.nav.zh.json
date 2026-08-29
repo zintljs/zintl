@@ -1,0 +1,17 @@
+{
+  "$schema": "../.schemas/src/nav.nav.schema.json",
+  "Boundaries and chunks": "边界与分块",
+  "Comment directives": "注释指令",
+  "Concepts": "概念",
+  "Configuration": "配置",
+  "Getting started": "快速开始",
+  "Glossary": "术语表",
+  "Guide": "指南",
+  "Integrations": "集成",
+  "Locales and switching": "语言与切换",
+  "Plurals and grammar": "复数与语法",
+  "Reference": "参考",
+  "Stability": "稳定性",
+  "Translating": "翻译",
+  "What is Zintl": "什么是 Zintl"
+}

@@ -578,6 +578,7 @@ export function htmlProjectionFacet(): ZintlFacet {
       id: string,
       context: CompilerContext,
       preloads?: Record<string, string[]>,
+      base?: string,
     ): Promise<string> {
       let fileId = context.io.getNormalizedId(id);
       let fannedLocale: string | undefined;
@@ -1096,10 +1097,29 @@ export function htmlProjectionFacet(): ZintlFacet {
          * `lang` cannot loop through it either — `syncLocale` is itself guarded
          * by `inst.locale !== docLang`.
          */
+        /**
+         * The path first, then storage — the same precedence `syncLocale` uses.
+         *
+         * This ran off `localStorage` alone, which is the right answer only for
+         * an app that keeps its locale somewhere other than the URL. For one
+         * that prefixes its routes, arriving at `/es/guide` with `ar` left in
+         * storage applied Arabic `lang`, `dir` and `<title>` to a Spanish
+         * document and preloaded the Arabic catalog — a visible right-to-left
+         * flash and a wasted request, both corrected a moment later by the
+         * store, which reads the path.
+         *
+         * A path whose first segment names no locale falls through to storage
+         * exactly as before, so apps that use `?lang=` are unaffected.
+         */
         const bootstrap = `<!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || '${context.sourceLocale}';
+        const known = ${JSON.stringify(context.locales)};
+        const base = ${JSON.stringify(base || "/")};
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || '${context.sourceLocale}';
         ${rtlChunk}
         ${deltasChunk}
         ${originalsChunk}

@@ -1,0 +1,16 @@
+{
+  "$schema": "../../.schemas/src/components/AnchorToggle.vue.schema.json",
+  "A literal": "字面量",
+  "A literal is a promise the compiler can keep. It bakes French in and stops treating the other languages as reachable — so there is nothing left to load, and your English is not in the output at all. The page does not fall back to English; English was never built.": "字面量是一个编译器能够兑现的承诺。它把法语固化进去，并且不再把其他语言视为可达——于是没有任何东西还需要加载，而你的英文根本不在产物里。页面不是回退到英文；英文压根没有被构建。",
+  "A variable": "变量",
+  "A variable says the language is still undecided, so every one is built and switchable. This is what you want the moment a reader can change language, or it comes from a URL, a cookie or a header.": "变量表示语言尚未确定，于是每一种都会被构建，也都可以切换。只要读者能切换语言，或者语言来自 URL、cookie 或请求头，你要的就是这个。",
+  "Absent": "不在",
+  "Catalog chunk emitted": "产出目录分块",
+  "No": "否",
+  "None": "没有",
+  "One per language": "每种语言一个",
+  "Other languages built": "构建其他语言",
+  "Present": "在",
+  "Yes": "是",
+  "Your own language in the bundle": "包中含你自己的语言"
+}

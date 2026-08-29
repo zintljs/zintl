@@ -242,12 +242,30 @@ export class GraphManager {
 
       const rawDeps = normalizedDeps[fileId] || [];
 
+      /**
+       * Internal edges count as dependencies for the pass-through rule.
+       *
+       * `rawDeps` is the *file's* imports, which is the wrong question for a
+       * function-scoped boundary: a module that imports nothing can still have
+       * one export that reads another function's strings. `src/nav:getSections`
+       * carried no messages of its own and its file imported nothing, so it was
+       * dropped here — and with it the only route to `src/nav:nav`, where all
+       * fourteen strings lived. The walk reached a dep with no node, stopped,
+       * and the catalog was never collected into a chunk: filled on disk,
+       * `verifyIntegrity` green, pseudo-localized in dev, **empty in
+       * production**.
+       *
+       * `internalDependencies` is exactly the "intermediate boundary" case the
+       * rule below already means to keep. It was simply asking the file.
+       */
+      const internalDepCount = ((meta?.internalDependencies || {})[normalizedBId] || []).length;
+
       // Skip nodes with no content, no anchor, AND no dependencies.
       // Nodes with deps are kept as "pass-through" so the graph walk can
       // traverse through intermediate files (e.g. parent modules or wrapper layout templates) to reach
       // downstream content-bearing boundaries.
       if (!isDictator && !hasContent) {
-        if (isContent || rawDeps.length === 0) continue;
+        if (isContent || (rawDeps.length === 0 && internalDepCount === 0)) continue;
       }
       const resolvedDeps: BoundaryDep[] = [];
       for (const dep of rawDeps) {
@@ -359,22 +377,6 @@ export class GraphManager {
       });
 
       if (mode === "entry") entries.add(normalizedBId);
-    }
-
-    // Ensure virtual boundaries exist in the graph in dev mode
-    if (this.isDev) {
-      for (const vb of vbList) {
-        if (!nodes.has(vb)) {
-          nodes.set(vb, {
-            id: vb,
-            mode: "boundary",
-            deps: [],
-            usageCount: 1,
-            filePath: "virtual-content",
-            activeLocales: "all",
-          });
-        }
-      }
     }
 
     return { nodes, entries };

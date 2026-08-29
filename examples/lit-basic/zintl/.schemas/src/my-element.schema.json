@@ -25,7 +25,7 @@
     "Documentation": {
       "type": "string"
     },
-    "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": {
+    "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": {
       "type": "string"
     },
     "Explore Vite": {
@@ -51,7 +51,7 @@
     "Connect with us",
     "Count is {count}",
     "Documentation",
-    "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>",
+    "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>",
     "Explore Vite",
     "Join the Vite community",
     "Learn more",

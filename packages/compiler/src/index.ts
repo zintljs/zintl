@@ -2009,6 +2009,7 @@ export class ZintlCompiler {
     html: string,
     id: string,
     preloads?: Record<string, string[]>,
+    base?: string,
   ): Promise<string> {
     const context = this.getCompilerContext();
     /**
@@ -2024,7 +2025,7 @@ export class ZintlCompiler {
     let result = html;
     for (const facet of this._resolved.system.contentFacets) {
       if (facet.transformHtml) {
-        result = await facet.transformHtml(result, id, context, preloads);
+        result = await facet.transformHtml(result, id, context, preloads, base);
       }
     }
     return result;
@@ -4187,6 +4188,17 @@ export function getRuntimeCode(
    * branch it controls sits inside the `__ZINTL_DEV__` guard.
    */
   pseudo = false,
+  /**
+   * The host's public base path, so the client store can tell a base segment
+   * from a locale segment.
+   *
+   * Defaults to `"/"` — an app at a domain root, which is the common case and
+   * the one where getting it wrong costs nothing. A caller that forgets on a
+   * sub-path deployment gets the old behaviour rather than a crash, which is
+   * the wrong default in principle and the only one that cannot break an
+   * existing project.
+   */
+  base = "/",
 ): string {
   const cleanName = String(moduleName).replace(".mjs", "").replace(".js", "");
 
@@ -4236,5 +4248,7 @@ export function getRuntimeCode(
    * affordance that shipped as dead weight would fail the rule it exists under.
    */
   code = code.replace(/\b__ZINTL_PSEUDO__\b/g, isDev && pseudo ? "true" : "false");
+  /** Same mechanism; see `__ZINTL_BASE__` in `store-client.ts` for why. */
+  code = code.replace(/\b__ZINTL_BASE__\b/g, JSON.stringify(base || "/"));
   return code;
 }

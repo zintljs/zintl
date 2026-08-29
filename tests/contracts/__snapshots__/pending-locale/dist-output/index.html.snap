@@ -5,11 +5,16 @@
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || 'en';
+        const known = ["en","ar"];
+        const base = "/";
+        const path = location.pathname;
+        const below = base !== '/' && path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        const seg = below.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const originals = {
         title: document.title,
       };
-        const preloads = {"ar":["assets/entry_b_785c57fb4811.js"]};
+        const preloads = {"ar":["/assets/entry_b_785c57fb4811.js"]};
       function preload(locale) {
         const urls = preloads[locale] || [];
         for (const url of urls) {

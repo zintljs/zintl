@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Back to the home page": {
+      "type": "string"
+    },
+    "The link may be out of date, or the page may have moved. The guide is a good place to pick the thread back up.": {
+      "type": "string"
+    },
+    "This page isn't here": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Back to the home page",
+    "The link may be out of date, or the page may have moved. The guide is a good place to pick the thread back up.",
+    "This page isn't here"
+  ],
+  "additionalProperties": false
+}

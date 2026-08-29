@@ -123,3 +123,78 @@ const message = t("Welcome Svelte");
     expect(textMsg).toBeDefined();
   });
 });
+
+/**
+ * Found by the documentation site, whose page component branches on whether a
+ * body was loaded. `<template v-if>` is ordinary Vue, and the failure was
+ * silent: the file reported zero messages and was transformed not at all.
+ */
+describe("SFC template block — nesting", () => {
+  it("reads the whole template past a nested <template v-if>", () => {
+    const code = `<script setup lang="ts">
+const ready = true;
+</script>
+
+<template>
+  <article>
+    <template v-if="ready">
+      <p>Loaded</p>
+    </template>
+    <template v-else>
+      <p>Not written yet</p>
+    </template>
+    <footer>
+      <a href="/edit">Edit this page</a>
+    </footer>
+  </article>
+</template>`;
+
+    const result = extract(code, "Page.vue", "Page.vue", {
+      compiledState: baseState({ sfcRules: VUE_SFC_RULES, mustacheRegex: VUE_MUSTACHE }),
+    });
+    const texts = result.messages.map((m) => m.text);
+
+    expect(texts).toContain("Loaded");
+    // Everything after the first `</template>` used to be invisible.
+    expect(texts).toContain("Not written yet");
+    expect(texts).toContain("Edit this page");
+  });
+});
+
+/**
+ * Found while building the landing page: `:label="ENTRY_FILE"` put the
+ * identifier in the catalog and rewrote the binding to `_t("ENTRY_FILE")`.
+ */
+describe("SFC attributes — bound is not literal", () => {
+  const state = () => baseState({ sfcRules: VUE_SFC_RULES, mustacheRegex: VUE_MUSTACHE });
+
+  it("extracts a literal attribute", () => {
+    const code = `<template><img src="a.png" alt="A cat asleep" /></template>`;
+    const result = extract(code, "P.vue", "P.vue", { compiledState: state() });
+    expect(result.messages.map((m) => m.text)).toContain("A cat asleep");
+  });
+
+  it("leaves a bound attribute alone", () => {
+    const code = `<template>
+  <img src="a.png" :alt="caption" />
+  <button :title="tooltip">Go</button>
+</template>`;
+    const result = extract(code, "P.vue", "P.vue", { compiledState: state() });
+    const texts = result.messages.map((m) => m.text);
+
+    // The button's own text is prose and stays.
+    expect(texts).toContain("Go");
+    // The expressions are code. Extracting them also rewrites them, which
+    // replaces the binding with a translation of the variable's name.
+    expect(texts).not.toContain("caption");
+    expect(texts).not.toContain("tooltip");
+  });
+
+  it("keeps a namespaced attribute, which only looks like a binding", () => {
+    const code = `<template><use xlink:title="A cat asleep" /></template>`;
+    const result = extract(code, "P.vue", "P.vue", { compiledState: state() });
+    // `xlink:title` is not a declared attribute name, so nothing is extracted —
+    // the point is that the colon inside it does not crash or mis-skip.
+    expect(result.messages.map((m) => m.text)).not.toContain("caption");
+  });
+});

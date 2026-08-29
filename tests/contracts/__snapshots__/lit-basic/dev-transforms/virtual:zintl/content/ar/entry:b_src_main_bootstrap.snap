@@ -2,7 +2,7 @@ const catalog = {
     "b_src_my_element": {
       "Lit logo": "شعار ليت",
       "Vite logo": "شعار فيت",
-      "Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
+      "Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>": "عدل <code>src/my-element.ts</code> واحفظه لاختبار <code>HMR</code>",
       "Count is {count}": (params) => {
     const { count } = params;
     return `العدد هو ${params['count']}`;

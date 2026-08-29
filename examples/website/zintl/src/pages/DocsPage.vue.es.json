@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/pages/DocsPage.vue.schema.json",
+  "Edit this page on GitHub": "Editar esta página en GitHub",
+  "Next": "Siguiente",
+  "Previous": "Anterior",
+  "Previous and next page": "Página anterior y siguiente",
+  "This page has not been written yet.": "Esta página todavía no se ha escrito."
+}

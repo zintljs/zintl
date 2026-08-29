@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/components/ThemeToggle.vue.schema.json",
+  "Switch between light and dark": "切换浅色和深色"
+}

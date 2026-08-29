@@ -32,7 +32,7 @@ export class MyElement extends LitElement {
         <div>
           <slot></slot>
           <p>
-            ${unsafeHTML(_t("da6822c3", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_d602f1d7fa4a", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] }))}
+            ${unsafeHTML(_t("567850fd", { _mgr: _zintl_mgr_b_aafcf9c6fe16, _bId: "b_d602f1d7fa4a", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] }))}
           </p>
         </div>
         <button type="button" class="counter" @click=${this._onClick} part="button">

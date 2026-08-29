@@ -371,6 +371,58 @@ jobs:
         with:
           publish-script: vp run release
 
+  # The documentation site, published to GitHub Pages.
+  #
+  # Gated on `verify`, which builds every example — so the site cannot be
+  # deployed from a commit whose build, lint, knip or tests fail. Only `main`
+  # publishes: `alpha` and `beta` are release channels for the packages, and a
+  # documentation site that changed under readers on every pre-release would
+  # describe something nobody has yet.
+  #
+  # `concurrency` here rather than at the workflow level, because the deployment
+  # is the one job where cancelling a superseded run is what you want — two
+  # deploys racing leave whichever finishes last, which is not necessarily the
+  # newer commit.
+  pages:
+    name: Publish Docs
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write # Deploy to the Pages environment
+      id-token: write # Pages deployment authenticates with OIDC, not a token
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Setup Workspace
+        uses: ./.github/actions/setup
+
+      # The site depends on the workspace packages, so they are built first and
+      # in dependency order. `vpr` is what respects that order; `vp run -r` does
+      # not, and would race `zintljs#build` against the compiler's `dist`.
+      - name: Build Site
+        run: vpr --transitive website#build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: examples/website/dist
+
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
+
 # Benchmarks are deliberately absent. Perf budgets are noise-sensitive enough to
 # fail on a quiet local machine; on shared runners they would be pure flake.
 # Run them locally with `vpr bench`.

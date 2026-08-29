@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "description": {
+      "description": "Original: Zintl is a compile-time internationalization engine. Write plain strings; the compiler finds them, works out which screen needs which, and ships exactly those.",
+      "type": "string"
+    },
+    "dir": {
+      "default": "",
+      "enum": ["ltr", "rtl", "auto", ""],
+      "type": "string"
+    },
+    "title": {
+      "description": "Original: Zintl — write your app in plain language, ship it in every language",
+      "type": "string"
+    }
+  },
+  "required": ["dir"],
+  "type": "object"
+}

@@ -1,0 +1,118 @@
+/*
+ * Design tokens.
+ *
+ * Every colour is written once, as `light-dark(light, dark)`. The theme is then
+ * a single declaration — `color-scheme` — rather than a second copy of the
+ * palette under a media query and a third under an attribute selector. Two
+ * copies of a palette drift; this cannot.
+ *
+ * `color-scheme: light dark` on the root is what makes `light-dark()` resolve at
+ * all, and it also gets form controls, scrollbars and the canvas behind the page
+ * to follow along without being told separately.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Brand. The README's badge palette, which the mark is drawn from. */
+  --brand-coral: #f4795e;
+  --brand-pink: #e8309c;
+  --brand-violet: #b44be0;
+  --brand-gradient: linear-gradient(
+    100deg,
+    var(--brand-coral),
+    var(--brand-pink) 45%,
+    var(--brand-violet)
+  );
+
+  /* Surfaces, from the page backwards. */
+  --bg: light-dark(#ffffff, #141119);
+  --bg-soft: light-dark(#fbfafc, #191520);
+  --bg-mute: light-dark(#f3f1f7, #221d2c);
+  --bg-code: light-dark(#f8f6fb, #17131e);
+  --bg-overlay: light-dark(rgba(255, 255, 255, 0.82), rgba(20, 17, 25, 0.82));
+
+  /* Ink. Three weights is enough; a fourth is always a mistake in hindsight. */
+  --text-strong: light-dark(#171021, #f3f0f7);
+  --text: light-dark(#4f4960, #a8a1b6);
+  --text-soft: light-dark(#837c93, #7b7389);
+
+  /*
+   * The brand pink, in the two shades that can carry text.
+   *
+   * `--brand-pink` itself is `#e8309c`, and it stays exactly that wherever it is
+   * a *mark* rather than a word — the gradient, the logo, a rule. As body-text
+   * colour it measures **3.94:1 on white**, under the 4.5 that AA asks of normal
+   * text, and this site is eleven pages of links inside paragraphs. So the text
+   * role takes one step darker in light and one step lighter in dark, both the
+   * same hue:
+   *
+   *   #d81a85 on #ffffff → 4.77:1
+   *   #ff6fb5 on #141119 → 7.29:1
+   *
+   * Nobody reading the page can tell these from the brand pink; the contrast
+   * checker can, and so can anyone reading at arm's length.
+   */
+  --accent: light-dark(#d81a85, #ff6fb5);
+  --accent-hover: light-dark(#b81470, #ff8ec6);
+  --accent-soft: light-dark(rgba(216, 26, 133, 0.08), rgba(255, 111, 181, 0.13));
+  --accent-line: light-dark(rgba(216, 26, 133, 0.32), rgba(255, 111, 181, 0.36));
+
+  --border: light-dark(#e8e4ee, #2c2636);
+  --border-soft: light-dark(#f1eef5, #221d2b);
+
+  --shadow-sm: 0 1px 2px light-dark(rgba(23, 16, 33, 0.06), rgba(0, 0, 0, 0.4));
+  --shadow-md: 0 12px 32px -14px light-dark(rgba(23, 16, 33, 0.24), rgba(0, 0, 0, 0.7));
+
+  /* Type. */
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    "Noto Sans Arabic", "Noto Sans SC", sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.75rem;
+  --text-4xl: 3.5rem;
+
+  /* Space. A 4px grid, named by use rather than by size. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Layout. The reading column is the one number that decides how the docs
+     feel, and 46rem is roughly 72 characters at this body size. */
+  --width-shell: 90rem;
+  --width-prose: 46rem;
+  --width-sidebar: 16.5rem;
+  --width-toc: 14rem;
+  --header-height: 3.75rem;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration: 180ms;
+}
+
+/* The toggle wins in both directions; absent, the OS decides. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}

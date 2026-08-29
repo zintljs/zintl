@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Edit this page on GitHub": {
+      "type": "string"
+    },
+    "Next": {
+      "type": "string"
+    },
+    "Previous": {
+      "type": "string"
+    },
+    "Previous and next page": {
+      "type": "string"
+    },
+    "This page has not been written yet.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Edit this page on GitHub",
+    "Next",
+    "Previous",
+    "Previous and next page",
+    "This page has not been written yet."
+  ],
+  "additionalProperties": false
+}

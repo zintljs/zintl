@@ -25,7 +25,7 @@
     "2. Multi-Brand Theme Projection Output:": {
       "type": "string"
     },
-    "<strong>Active Brand:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>Active Locale:</strong> <span2>{lang}</span2>": {
+    "<strong>Active Brand:</strong> <span1>{brand}</span1> &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Active Locale:</strong> <span2>{lang}</span2>": {
       "anyOf": [
         {
           "type": "string"
@@ -63,7 +63,7 @@
   },
   "required": [
     "\"{brandSlogan}\"",
-    "<strong>Active Brand:</strong> <span1>{brand}</span1>\n    &nbsp;&nbsp;|&nbsp;&nbsp;\n    <strong>Active Locale:</strong> <span2>{lang}</span2>",
+    "<strong>Active Brand:</strong> <span1>{brand}</span1> &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Active Locale:</strong> <span2>{lang}</span2>",
     "1. Handlebars Template Adapter Output:",
     "2. Multi-Brand Theme Projection Output:",
     "Adidas",

@@ -1,0 +1,168 @@
+/*
+ * The rendered Markdown.
+ *
+ * Global rather than scoped, and not by preference: the body arrives through
+ * `v-html`, and Vue stamps its `data-v-*` attribute only on elements its own
+ * template compiler emits. A scoped rule would match none of this. The
+ * alternative is `:deep()` on every selector below, which is the same thing
+ * written forty times.
+ */
+.prose {
+  font-size: var(--text-md);
+  line-height: 1.75;
+}
+
+.prose > :first-child {
+  margin-block-start: 0;
+}
+
+.prose h2 {
+  margin-block: var(--space-7) var(--space-3);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--border-soft);
+}
+
+.prose h3 {
+  margin-block: var(--space-6) var(--space-2);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--space-4);
+  padding-inline-start: var(--space-5);
+}
+
+.prose li {
+  margin-block-end: var(--space-2);
+}
+
+.prose li::marker {
+  color: var(--text-soft);
+}
+
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: var(--accent-line);
+  text-underline-offset: 3px;
+}
+
+/* A heading you can hand to someone. Hidden until the heading is hovered, so
+   the margin is not permanently decorated with punctuation. */
+.heading-anchor {
+  margin-inline-start: var(--space-2);
+  color: var(--text-soft);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.prose :is(h2, h3, h4):hover .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.code-block {
+  position: relative;
+  margin-block-end: var(--space-5);
+  /* The container, not just the `pre` inside it: a code sample reads
+     left-to-right in every language, and the language label is part of the
+     sample. Left on the container, `inset-inline-end` put the label on the
+     opposite side from the code it labels in Arabic. */
+  direction: ltr;
+}
+
+.code-lang {
+  position: absolute;
+  inset-block-start: 0.55rem;
+  inset-inline-end: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-soft);
+  user-select: none;
+}
+
+.code-block pre {
+  margin: 0;
+}
+
+.tok-comment {
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.tok-string {
+  color: light-dark(#0a7a5c, #4ec9a0);
+}
+
+.tok-keyword {
+  color: var(--accent);
+}
+
+.tok-number {
+  color: light-dark(#b45309, #e0a458);
+}
+
+.callout {
+  margin-block-end: var(--space-5);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  border-inline-start: 3px solid var(--callout-accent);
+  background: var(--callout-bg);
+}
+
+.callout > :last-child {
+  margin-block-end: 0;
+}
+
+.callout-kind {
+  font-size: var(--text-xs);
+  font-weight: 640;
+  letter-spacing: 0.08em;
+  color: var(--callout-accent);
+  margin-block-end: var(--space-1);
+}
+
+.callout-note,
+.callout-tip {
+  --callout-accent: var(--accent);
+  --callout-bg: var(--accent-soft);
+}
+
+.callout-important,
+.callout-warning,
+.callout-caution {
+  --callout-accent: light-dark(#b4530f, #f0a26a);
+  --callout-bg: light-dark(rgba(180, 83, 15, 0.07), rgba(240, 162, 106, 0.11));
+}
+
+blockquote {
+  margin: 0 0 var(--space-5);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 3px solid var(--border);
+  color: var(--text-soft);
+}
+
+/* Wide content scrolls inside its own box; the page itself never does. */
+.table-scroll {
+  overflow-x: auto;
+  margin-block-end: var(--space-5);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+
+.prose :is(th, td) {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.prose th {
+  color: var(--text-strong);
+  font-weight: 620;
+  white-space: nowrap;
+}

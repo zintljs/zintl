@@ -27,6 +27,16 @@ const config: KnipConfig = {
       vue: true,
     },
     /**
+     * The documentation site. It is a Vue app that matches neither
+     * `examples/vue-*` nor the `src/main.ts` entry glob's siblings, so it
+     * claims the framework itself — without `vue: true` knip reads every SFC as
+     * an unused file and every component import as unresolved.
+     */
+    "examples/website": {
+      project: ["src/**/*.{ts,vue}"],
+      vue: true,
+    },
+    /**
      * The Rsbuild framework apps need their framework enabled, and the
      * `examples/{vue,svelte}-*` patterns above do not match `rsbuild-vue-*` /
      * `rsbuild-svelte-*`. Entries are `src/index.ts` (and `src/about.ts` on the

@@ -804,6 +804,8 @@ export interface ContentFacet extends BaseFacet {
     id: string,
     context: CompilerContext,
     preloads?: Record<string, string[]>,
+    /** The host's public base path, so injected script can find the locale below it. */
+    base?: string,
   ) => Promise<string> | string;
   /**
    * Which locales this facet knows to be written right-to-left.

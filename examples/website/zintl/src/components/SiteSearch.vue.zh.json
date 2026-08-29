@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/components/SiteSearch.vue.schema.json",
+  "Nothing matches that.": "没有匹配的内容。",
+  "Search": "搜索",
+  "Search the documentation": "搜索文档",
+  "Type to search the pages in this language.": "输入以搜索这门语言下的页面。"
+}

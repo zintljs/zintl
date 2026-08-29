@@ -1,0 +1,15 @@
+{
+  "$schema": "../../.schemas/src/components/BoundaryGraph.vue.schema.json",
+  "Arrives with the page": "随页面到达",
+  "Arrives with the route": "随路由到达",
+  "Everything reachable from the anchor in that route.": "从那条路由的锚点出发所能到达的一切。",
+  "Everything the first screen can reach from its anchor.": "第一屏从它的锚点出发所能到达的一切。",
+  "Nothing until somebody opens settings.": "在有人打开设置之前，什么都没有。",
+  "One catalog, in the reader's language only.": "一份目录，只包含读者所用的那门语言。",
+  "The home boundary": "首页边界",
+  "The settings boundary": "设置页边界",
+  "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.": "两个锚点、两个边界、两份目录。从不打开设置的人，永远不会下载它的译文——这个切分就是你的打包器已经做过的那一个，而不是另一个需要维护的切分。",
+  "What it becomes": "它变成什么",
+  "What the browser loads": "浏览器加载什么",
+  "What you wrote": "你写下的"
+}

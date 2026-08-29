@@ -2,7 +2,7 @@ import { join, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import type { Node, Expression } from "@oxc-project/types";
 import type { Comment } from "oxc-parser";
-import { RUNTIME_PACKAGE } from "./constants.js";
+import { HTML_TAG_REGEX, HTML_TAG_SPLIT_REGEX, RUNTIME_PACKAGE } from "./constants.js";
 import { resolveTargets } from "./targets.js";
 import { scanTranslatableAttributes } from "./attributes.js";
 
@@ -49,7 +49,7 @@ function isSingleWrappingPhrasingTag(html: string): boolean {
   if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) return false;
   if (trimmed.endsWith("/>")) return false;
 
-  const tokens = trimmed.split(/(<[^>]+>)/g).filter((t) => t.length > 0);
+  const tokens = trimmed.split(HTML_TAG_SPLIT_REGEX).filter((t) => t.length > 0);
   if (tokens.length < 3) return false;
 
   const first = tokens[0];
@@ -86,13 +86,13 @@ function isSingleWrappingPhrasingTag(html: string): boolean {
 }
 
 function hasTranslatableText(text: string): boolean {
-  let stripped = text.replace(/<[^>]+>/g, "");
+  let stripped = text.replace(HTML_TAG_REGEX, "");
   stripped = stripped.replace(/\{[^}]+\}/g, "");
   return stripped.trim().length > 0;
 }
 
 function hasNonWhitespaceOutsidePhrasing(html: string): boolean {
-  const tokens = html.split(/(<[^>]+>)/g);
+  const tokens = html.split(HTML_TAG_SPLIT_REGEX);
   let textOutside = "";
   const stack: string[] = [];
   for (const token of tokens) {
@@ -115,6 +115,20 @@ function hasNonWhitespaceOutsidePhrasing(html: string): boolean {
   }
   return textOutside.trim().length > 0;
 }
+
+/**
+ * Elements inside which a run of whitespace is content rather than formatting.
+ *
+ * Everywhere else, HTML collapses `\n` and the indentation after it to a single
+ * space before anyone sees it — which is why a paragraph may be wrapped across
+ * lines in the source and still read as one sentence. `stitchHTML` has to
+ * collapse it too, or the *key* it mints carries the author's indentation and
+ * moves the next time the file is formatted.
+ *
+ * These four are the exceptions the HTML specification makes, and the reason
+ * this is a set rather than an unconditional `replace`.
+ */
+const WHITESPACE_PRESERVING_TAGS = new Set(["pre", "textarea", "script", "style"]);
 
 export const INLINE_PHRASING_TAGS = new Set([
   "span",
@@ -166,7 +180,7 @@ function normalizeTags(html: string): {
   tagMap: TagMapEntry[];
   offsetMap: number[];
 } {
-  const tokens = html.split(/(<[^>]+>)/g);
+  const tokens = html.split(HTML_TAG_SPLIT_REGEX);
   const tagMap: TagMapEntry[] = [];
   const distinctOpenTags: Record<string, string[]> = {};
 
@@ -686,7 +700,7 @@ export class ExtractionContext {
     getOffsets?: (s: number, e: number) => { start: number; end: number },
   ) {
     const { normalized, tagMap, offsetMap } = normalizeTags(text);
-    const tokens = normalized.split(/(<[^>]+>)/g);
+    const tokens = normalized.split(HTML_TAG_SPLIT_REGEX);
 
     // Identify non-phrasing tokens or comments as partitions
     const isPartition = (t: string) => {
@@ -776,7 +790,26 @@ export class ExtractionContext {
 
     const flushBuffer = () => {
       if (buffer.trim() && hasTranslatableText(buffer)) {
-        const trimmed = buffer.trim();
+        /**
+         * Collapse the whitespace HTML itself collapses, before the text
+         * becomes a key.
+         *
+         * A paragraph wrapped across three lines in the source is one sentence
+         * to every renderer that will ever draw it, and it has to be one string
+         * here for two separate reasons. As a **key**, an uncollapsed newline
+         * ties translation identity to the author's indentation — reformat the
+         * file and the key moves and the translation is orphaned, which is
+         * exactly what content-based identity exists to prevent. As **emitted
+         * code**, the newline lands inside the quoted literal the codegen
+         * writes, and a raw newline in a JavaScript string is a syntax error;
+         * in an SFC that takes the whole component down with it.
+         *
+         * The offsets below are deliberately still measured against the
+         * original `buffer`: the fragment occupies the same span of source
+         * whatever its text collapses to, and that span is what gets replaced.
+         */
+        const preservesWhitespace = elementStack.some((tag) => WHITESPACE_PRESERVING_TAGS.has(tag));
+        const trimmed = preservesWhitespace ? buffer.trim() : buffer.replace(/\s+/g, " ").trim();
         const leadingWhitespaceLen = buffer.length - buffer.trimStart().length;
         const trailingWhitespaceLen = buffer.length - buffer.trimEnd().length;
         const sInNorm = bufferStartIdx + leadingWhitespaceLen;

@@ -32,7 +32,7 @@ export class MyElement extends LitElement {
         <div>
           <slot></slot>
           <p>
-            ${unsafeHTML(_t("Edit <code>src/my-element.ts</code> and save to test\n            <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_my_element", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] }))}
+            ${unsafeHTML(_t("Edit <code>src/my-element.ts</code> and save to test <code>HMR</code>", { _mgr: _zintl_mgr_b_src_main_bootstrap, _bId: "b_src_my_element", _tags: [{"alias":"code","originalOpen":"<code>","tagName":"code"}] }))}
           </p>
         </div>
         <button type="button" class="counter" @click=${this._onClick} part="button">
