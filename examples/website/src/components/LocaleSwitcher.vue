@@ -16,7 +16,7 @@
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { zintl } from "zintljs/macro";
-import { localeBar, localeFromPath, swapLocale, type LocaleId } from "../locale";
+import { localeBar, localeFromPath, swapLocale, withBase, type LocaleId } from "../locale";
 
 const route = useRoute();
 const router = useRouter();
@@ -53,7 +53,7 @@ function onClick(event: MouseEvent, id: LocaleId) {
     <a
       v-for="l in localeBar"
       :key="l.id"
-      :href="swapLocale(route.path, l.id)"
+      :href="withBase(swapLocale(route.path, l.id))"
       :data-lang="l.id"
       :lang="l.id"
       :class="{ active: active === l.id }"

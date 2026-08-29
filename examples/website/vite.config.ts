@@ -4,6 +4,16 @@ import zintl from "zintljs/vite";
 import { searchIndex } from "./build/search-index";
 
 export default defineConfig({
+  /**
+   * The site is published as a GitHub Pages *project* site, which serves it
+   * under the repository name rather than at a domain root.
+   *
+   * Set unconditionally rather than only for the production build, so that dev
+   * and preview run under the same base the deployment does. A base path breaks
+   * things that look fine at `/` — this one broke locale detection — and the
+   * place to find that is here rather than after a deploy.
+   */
+  base: "/zintl/",
   plugins: [
     zintl({
       sourceLocale: "en",

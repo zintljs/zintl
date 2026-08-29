@@ -39,10 +39,50 @@ function isLocale(value: string | undefined): value is LocaleId {
   return value !== undefined && IDS.includes(value);
 }
 
-/** The locale a URL is asking for, defaulting rather than failing. */
+/**
+ * The locale a URL is asking for, defaulting rather than failing.
+ *
+ * Strips the base first, because this is called with both kinds of path:
+ * `route.path`, which vue-router has already stripped, and
+ * `window.location.pathname`, which still carries it. Under the `/zintl/` base
+ * this site is published at, the raw pathname's first segment is the repository
+ * name — so without this the entry point read every URL as the source language.
+ */
 export function localeFromPath(pathname: string): LocaleId {
-  const first = pathname.split("/").filter(Boolean)[0];
+  const base = import.meta.env.BASE_URL;
+  const below =
+    base && base !== "/" && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+  const first = below.split("/").filter(Boolean)[0];
   return isLocale(first) ? first : DEFAULT_LOCALE;
+}
+
+/**
+ * The base this site is served under, without its trailing slash.
+ *
+ * `""` at a domain root, `"/zintl"` on the GitHub Pages project site.
+ */
+const BASE = (() => {
+  const raw = import.meta.env.BASE_URL;
+  if (!raw || raw === "/") return "";
+  return raw.endsWith("/") ? raw.slice(0, -1) : raw;
+})();
+
+/**
+ * A router path made into a real URL.
+ *
+ * vue-router works in paths below the base and adds it back for the `href` of a
+ * `RouterLink`. Anywhere we write an `href` ourselves — the locale bar, a search
+ * result, a link rendered out of Markdown — the base is ours to add, and
+ * forgetting it costs nothing until somebody middle-clicks.
+ */
+export function withBase(path: string): string {
+  return BASE ? `${BASE}${path}` : path;
+}
+
+/** The inverse, for handing a URL back to the router. */
+export function stripBase(path: string): string {
+  if (!BASE || !path.startsWith(BASE)) return path;
+  return path.slice(BASE.length) || "/";
 }
 
 /** Whether a path already names a locale in its first segment. */

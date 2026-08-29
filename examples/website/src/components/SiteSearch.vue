@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { localeFromPath } from "../locale";
+import { localeFromPath, withBase } from "../locale";
 import type { SearchEntry } from "../lib/search";
 
 const route = useRoute();
@@ -72,8 +72,14 @@ const results = computed(() => {
 
 watch(results, () => (selected.value = 0));
 
-function href(entry: SearchEntry) {
+/** The router path, for `router.push`. */
+function path(entry: SearchEntry) {
   return `/${locale.value}/${entry.s}/${entry.p}${entry.h ? `#${entry.h}` : ""}`;
+}
+
+/** The same thing as a URL, for the `href` a reader may middle-click. */
+function href(entry: SearchEntry) {
+  return withBase(path(entry));
 }
 
 async function show() {
@@ -91,7 +97,7 @@ function hide() {
 }
 
 function choose(entry: SearchEntry) {
-  const to = href(entry);
+  const to = path(entry);
   hide();
   void router.push(to);
 }

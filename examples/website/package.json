@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "vue-tsc -b && vp build",
+    "build": "vue-tsc -b && vp build && node build/pages-fallback.js",
     "preview": "vp preview"
   },
   "dependencies": {

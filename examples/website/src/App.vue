@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { isLocalePath, localeFromPath } from "./locale";
+import { isLocalePath, localeFromPath, stripBase } from "./locale";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteHeader from "./components/SiteHeader.vue";
 
@@ -39,7 +39,10 @@ function routeInternalLinks(event: MouseEvent) {
   event.preventDefault();
   // A link written without a locale gets the reader's, the same way the
   // Markdown renderer resolves the ones inside a page body.
-  void router.push(isLocalePath(href) ? href : `/${localeFromPath(route.path)}${href}`);
+  const routerPath = stripBase(href);
+  void router.push(
+    isLocalePath(routerPath) ? routerPath : `/${localeFromPath(route.path)}${routerPath}`,
+  );
 }
 </script>
 

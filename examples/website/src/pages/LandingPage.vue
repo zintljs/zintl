@@ -255,19 +255,22 @@ const FRAMEWORKS = ["React", "Preact", "Solid", "Vue", "Svelte", "Lit", "vanilla
 
       <p class="band-note">
         Every host but the last is driven end to end by the contract suite: real browsers against
-        real apps, on every change. What is missing is listed too:
-        <!--
-          A **static** href, with no locale in it.
+        real apps, on every change. What is missing is listed too, and named rather than left out.
+      </p>
+      <!--
+        The link is its own element, deliberately.
 
-          This anchor sits inside a translatable sentence, so the compiler keeps
-          the whole thing as one key and hands the markup back through `v-html`
-          — where Vue never compiles anything. A `:href` binding here survives
-          into the DOM as a literal attribute named `:href`, and the link goes
-          nowhere. The locale is added when the link is followed, by the same
-          rule the Markdown renderer uses for its own internal links.
-        -->
-        <a href="/reference/integrations">Integrations</a> names the hosts Zintl refuses rather than
-        the ones it merely hasn't reached.
+        Inside the sentence above it would be an `<a>` in a stitched fragment,
+        handed back through `v-html` where Vue compiles nothing — so it could
+        carry no binding, and therefore neither the reader's locale nor the base
+        this site is served under. Out here it is a `RouterLink`, which resolves
+        both, and the sentence above stays a single key rather than three
+        fragments for a translator to reassemble.
+      -->
+      <p class="band-note">
+        <RouterLink :to="`/${locale}/reference/integrations`">
+          See which hosts Zintl refuses, and why
+        </RouterLink>
       </p>
     </div>
   </section>

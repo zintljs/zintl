@@ -20,7 +20,7 @@
     "English has two plural forms and Arabic has six. Your source should not have to know that, and here it doesn't.": {
       "type": "string"
     },
-    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.": {
+    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too, and named rather than left out.": {
       "type": "string"
     },
     "Everything above describes what Zintl does. This reads what it did to the page you are on.": {
@@ -48,6 +48,9 @@
       "type": "string"
     },
     "One character, two applications": {
+      "type": "string"
+    },
+    "See which hosts Zintl refuses, and why": {
       "type": "string"
     },
     "Six plural forms, one sentence": {
@@ -111,7 +114,7 @@
     "Copied",
     "Copy",
     "English has two plural forms and Arabic has six. Your source should not have to know that, and here it doesn't.",
-    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.",
+    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too, and named rather than left out.",
     "Everything above describes what Zintl does. This reads what it did to the page you are on.",
     "Everywhere else",
     "Experimental",
@@ -122,6 +125,7 @@
     "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.",
     "never written",
     "One character, two applications",
+    "See which hosts Zintl refuses, and why",
     "Six plural forms, one sentence",
     "Supported",
     "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.",

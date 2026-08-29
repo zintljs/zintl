@@ -1,10 +1,15 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1, §9.2 and §9.4–§9.6 and §9.8 are built. The site is complete in four
-languages: eleven docs pages, a landing page with all nine sections, search, and an accessibility
-pass. **Only §9.9 (deploy) remains**, and it needs a decision this document cannot take. §11–§15
-record what building it corrected here, and the eight defects it found.
-**Date**: 2026-08-29
+**Status**: COMPLETE — every step of §9 is built. The site is finished in four languages: eleven
+docs pages, a landing page with all nine sections, search, an accessibility pass, and a GitHub Pages
+deployment.
+
+§11–§16 record what building it corrected in this document, and the **nine** defects it found. Every
+one of those was in Zintl rather than in the site, and every one was reachable only by a project
+shaped like a real documentation site — which is the strongest argument this exercise produced for
+keeping it under the same gates as everything else. §17 records what is left.
+
+**Date**: 2026-08-29 — 2026-08-30
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
 docs cited; every claim about the _site_ is intent.
 **Depends on**: the assets preset (`packages/compiler/src/facet/presets/assets.ts`), the Vue facet,
@@ -280,8 +285,20 @@ gate that builds the examples (`vpr verify` runs 99.8s in total, `vpr ready:exam
 is small enough that §7's "if it is material, that is an argument for a separate workspace" does not
 trigger. No changeset — §9.8 touched no published package.
 
-**9.9 — Deploy.** Open, and it needs a decision that is not this document's to take: GitHub Pages
-from `ci.yml` is the default guess for an OSS project, and the domain is unknown here.
+**9.9 — Deploy. BUILT.** GitHub Pages, on the domain Pages provides —
+`https://zintljs.github.io/zintl/`. A `pages` job in `ci.yml`, gated on `verify` so the site cannot
+be published from a commit whose build, lint, knip or tests fail, and restricted to `main`: `alpha`
+and `beta` are package release channels, and documentation that changed under readers on every
+pre-release would describe something nobody has yet.
+
+Two consequences of the host, both handled and neither free:
+
+- **A base path.** A Pages project site is served under the repository name, which broke locale
+  detection outright (§16) and left every hand-written `href` pointing above the base.
+- **No SPA rewrite.** Pages serves files and nothing else, so `dist/404.html` is a copy of
+  `index.html`: the app boots on any unmatched path and the router resolves it. The status really is
+  404, which matters to crawlers rather than readers, and a `multiplex` per-locale static build would
+  remove the need entirely — the better answer if this site outgrows the trade.
 
 ## 10. Not in scope
 
@@ -555,3 +572,53 @@ remaining hop is the browser's. It is worth a look on a real one before §9.9.
 The two things that made the naive version wrong are fixed regardless, and both were real: a docs
 page _awaits_ its body, so the heading does not exist when `scrollBehavior` first runs; and a hash
 from a translated page is percent-encoded, which is not a valid selector.
+
+## 16. What building §9.9 changed
+
+One defect, and it is the most consequential of the nine because it was invisible until the site was
+deployed somewhere other than a domain root.
+
+**A base path was read as the locale.** `syncLocale` took the first segment of
+`location.pathname`, and the HTML bootstrap did the same. Under `/zintl/` that segment is `zintl`,
+which names no locale — so the lookup fell through to `<html lang>` and storage, and every page
+rendered in the **source language** with the right locale in the address bar. Reproduced before it
+was fixed: `/zintl/ar/guide/what-is-zintl` served English.
+
+The base now reaches the runtime as `__ZINTL_BASE__`, folded in by `getRuntimeCode` exactly as
+`__ZINTL_RTL_LOCALES__` is, and reaches the HTML projection as an argument to `transformHtml`. It
+comes from the resolved config — the same `ctx.publicBase` the preload URLs have used since §12.1 —
+so nothing new is configured. Changeset: `a-base-path-is-not-a-locale`.
+
+This is not an exotic deployment: GitHub Pages project sites, path-prefixed reverse proxies, and any
+app mounted under a sub-path all hit it, and path-based locale routing is the shape the client facet
+was built for.
+
+### 16.1 The site's own half of the same mistake
+
+Zintl was not alone in assuming a root. `localeFromPath` read the raw pathname, and every `href`
+written by hand — the locale bar, search results, links rendered out of Markdown — pointed above the
+base. Those work when clicked, because the click is intercepted; they fail when middle-clicked,
+which is the harder failure to notice. A `withBase`/`stripBase` pair fixed all of them, and
+`base: "/zintl/"` is set unconditionally so dev and preview run under the same base the deployment
+does. **Finding this class of bug at `/` is not possible**, which is the argument for that setting.
+
+One consequence worth recording: the landing page's cross-reference moved _out_ of its sentence.
+Inside translatable prose an `<a>` cannot carry a binding (§13.1), and therefore cannot carry the
+locale or the base either. As its own `RouterLink` it resolves both, and the sentence beside it is
+still a single key.
+
+## 17. What is left
+
+Nothing in §9. Five things are recorded and unfixed, none of them blocking:
+
+- `catalogIsHot` treats every asset edit as needing a source re-run, so a translator's `.md` save is
+  a reload rather than a hot update (§12.1).
+- A content asset's body is run through the ICU baker and warns on every brace in a code sample —
+  dev-only noise, correct output (§13.2).
+- The Markdown renderer and highlighter have no tests, and have produced two defects (§12.4).
+- A bound attribute inside a stitched sentence is silently dead, and the compiler could say so
+  (§13.1).
+- Anchor scrolling was never verified in a real browser (§15.2).
+
+And two pieces of scope this document declined at the start and still declines: merging the repo's
+`docs/` into the site, and contract coverage for the site itself.
