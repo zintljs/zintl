@@ -5,6 +5,9 @@
     "$schema": {
       "type": "string"
     },
+    "Both of these ship the same three languages. Only one of them is still readable a year from now.": {
+      "type": "string"
+    },
     "Compile-time internationalization": {
       "type": "string"
     },
@@ -14,7 +17,22 @@
     "Copy": {
       "type": "string"
     },
+    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.": {
+      "type": "string"
+    },
+    "Everywhere else": {
+      "type": "string"
+    },
+    "Experimental": {
+      "type": "string"
+    },
+    "Frameworks": {
+      "type": "string"
+    },
     "Get started": {
+      "type": "string"
+    },
+    "Here": {
       "type": "string"
     },
     "How it works": {
@@ -23,22 +41,72 @@
     "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": {
       "type": "string"
     },
+    "Supported": {
+      "type": "string"
+    },
     "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.": {
+      "type": "string"
+    },
+    "That is not an excerpt. There is no wrapper to put the heading in, no key to invent for it, and no dictionary to keep in sync.": {
+      "type": "string"
+    },
+    "The compiler already holds those strings — it read them out of your source. Nothing is lost and nothing is shipped twice.": {
+      "type": "string"
+    },
+    "The difference is the source": {
+      "type": "string"
+    },
+    "The keys still exist — the compiler mints them from the text and keeps them attached to it. You just never have to name one, or find the one you named last spring.": {
+      "type": "string"
+    },
+    "The whole API": {
+      "type": "string"
+    },
+    "Where it runs": {
       "type": "string"
     },
     "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": {
       "type": "string"
+    },
+    "Your language is never written down": {
+      "type": "string"
+    },
+    "Zintl needs a plugin seat in the bundler that owns your chunk graph. That is the whole of what decides this list.": {
+      "type": "string"
+    },
+    "Zintl writes a catalog for every language you translate into, and none for the one you wrote in. A file of keys mapped to themselves is a maintenance burden pretending to be data.": {
+      "type": "string"
+    },
+    "never written": {
+      "type": "string"
     }
   },
   "required": [
+    "Both of these ship the same three languages. Only one of them is still readable a year from now.",
     "Compile-time internationalization",
     "Copied",
     "Copy",
+    "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.",
+    "Everywhere else",
+    "Experimental",
+    "Frameworks",
     "Get started",
+    "Here",
     "How it works",
     "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.",
+    "never written",
+    "Supported",
     "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.",
-    "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>."
+    "That is not an excerpt. There is no wrapper to put the heading in, no key to invent for it, and no dictionary to keep in sync.",
+    "The compiler already holds those strings — it read them out of your source. Nothing is lost and nothing is shipped twice.",
+    "The difference is the source",
+    "The keys still exist — the compiler mints them from the text and keeps them attached to it. You just never have to name one, or find the one you named last spring.",
+    "The whole API",
+    "Where it runs",
+    "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.",
+    "Your language is never written down",
+    "Zintl needs a plugin seat in the bundler that owns your chunk graph. That is the whole of what decides this list.",
+    "Zintl writes a catalog for every language you translate into, and none for the one you wrote in. A file of keys mapped to themselves is a maintenance burden pretending to be data."
   ],
   "additionalProperties": false
 }

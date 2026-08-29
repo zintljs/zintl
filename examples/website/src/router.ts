@@ -27,6 +27,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/DocsPage.vue"),
   },
   {
+    /**
+     * A docs path with no locale, sent to the default one.
+     *
+     * Links written inside translatable prose cannot carry a locale: they are
+     * plain `<a href>` in a stitched sentence, so there is no binding to put
+     * one in. The click handler in `App.vue` supplies it while the app is
+     * running; this covers the rest — a link opened in a new tab, a URL typed
+     * by hand, a crawler.
+     */
+    path: "/:section(guide|concepts|reference)/:slug",
+    redirect: (to) => `/${DEFAULT_LOCALE}/${to.params.section}/${to.params.slug}`,
+  },
+  {
     path: "/:pathMatch(.*)*",
     name: "not-found",
     component: () => import("./pages/NotFoundPage.vue"),

@@ -36,10 +36,26 @@
   --text: light-dark(#4f4960, #a8a1b6);
   --text-soft: light-dark(#837c93, #7b7389);
 
-  --accent: light-dark(#7c2fd0, #c58bfa);
-  --accent-hover: light-dark(#6624b3, #d6a9ff);
-  --accent-soft: light-dark(rgba(124, 47, 208, 0.08), rgba(197, 139, 250, 0.13));
-  --accent-line: light-dark(rgba(124, 47, 208, 0.32), rgba(197, 139, 250, 0.36));
+  /*
+   * The brand pink, in the two shades that can carry text.
+   *
+   * `--brand-pink` itself is `#e8309c`, and it stays exactly that wherever it is
+   * a *mark* rather than a word — the gradient, the logo, a rule. As body-text
+   * colour it measures **3.94:1 on white**, under the 4.5 that AA asks of normal
+   * text, and this site is eleven pages of links inside paragraphs. So the text
+   * role takes one step darker in light and one step lighter in dark, both the
+   * same hue:
+   *
+   *   #d81a85 on #ffffff → 4.77:1
+   *   #ff6fb5 on #141119 → 7.29:1
+   *
+   * Nobody reading the page can tell these from the brand pink; the contrast
+   * checker can, and so can anyone reading at arm's length.
+   */
+  --accent: light-dark(#d81a85, #ff6fb5);
+  --accent-hover: light-dark(#b81470, #ff8ec6);
+  --accent-soft: light-dark(rgba(216, 26, 133, 0.08), rgba(255, 111, 181, 0.13));
+  --accent-line: light-dark(rgba(216, 26, 133, 0.32), rgba(255, 111, 181, 0.36));
 
   --border: light-dark(#e8e4ee, #2c2636);
   --border-soft: light-dark(#f1eef5, #221d2b);

@@ -45,6 +45,11 @@ export function localeFromPath(pathname: string): LocaleId {
   return isLocale(first) ? first : DEFAULT_LOCALE;
 }
 
+/** Whether a path already names a locale in its first segment. */
+export function isLocalePath(pathname: string): boolean {
+  return isLocale(pathname.split("/").filter(Boolean)[0]);
+}
+
 /** The same page, in another language. */
 export function swapLocale(pathname: string, locale: LocaleId): string {
   const parts = pathname.split("/").filter(Boolean);

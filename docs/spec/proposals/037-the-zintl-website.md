@@ -1,8 +1,8 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1, §9.2 and §9.4 are built; the docs half is complete in four
-languages. §11 and §12 record what building it corrected in this document, and the six compiler
-defects it found.
+**Status**: IN PROGRESS — §9.1, §9.2, §9.4 and §9.5 are built; the docs half is complete in four
+languages and the landing page stands without its interactive sections. §11, §12 and §13 record
+what building it corrected in this document, and the eight defects it found.
 **Date**: 2026-08-29
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
 docs cited; every claim about the _site_ is intent.
@@ -250,8 +250,11 @@ page-complete_); §9.4 had simply not been rewritten to match it. Pages therefor
 of one page × four languages, with the build green at each one. What remains of §9.7 is the RTL
 audit and whatever the landing page adds.
 
-**9.5 — Landing page, static.** Sections 1, 2, 3, 7, 8 and the footer. The page is complete and
-persuasive without any of the interactive work.
+**9.5 — Landing page, static. BUILT.** Sections 1, 2, 3, 7, 8 and the footer, in four languages.
+The accent moved to the brand pink at the same time — `#e8309c` measures 3.94:1 on white, under
+AA for body text, so the _text_ role takes a hue-matched step darker in light and lighter in dark
+while the mark and the gradient keep the brand colour exactly. `ZintlMark` now carries the
+favicon's gradient rather than `currentColor`, so the tab icon and the header logo are one object.
 
 **9.6 — Landing page, interactive.** Sections 4, 5, 6 and 9 — the boundary graph, the variable/literal
 toggle, the ICU counter, and the live meta panel.
@@ -431,3 +434,46 @@ found so far, and nothing exercises them but the pages themselves. The website p
 setup, and giving one to an example is a change to this repository's testing shape rather than a
 site task — which is why it is written down here instead of done quietly. A unit suite over the
 subset would be cheap and would have caught both.
+
+## 13. What building §9.5 changed
+
+Three defects and one constraint, all found by putting real markup on a page.
+
+**A bound attribute's expression was extracted as text.** `:label="ENTRY_FILE"` put the identifier
+in the catalog and rewrote the binding to `_t("ENTRY_FILE")` — a translation of a variable's name in
+place of the variable. `:title`, `:alt` and `:placeholder` bound to a value are ordinary Vue, so
+this reached anything written that way. Fixed in the extractor. Changeset:
+`a-bound-attribute-is-not-text`.
+
+**A Markdown table cell could not hold a pipe** — recorded in §12.3, found on the Arabic
+configuration page.
+
+**Internal links in rendered Markdown were full page loads.** Every cross-reference in the docs
+reloaded the application, which is a strange thing for a site whose pitch is that switching
+languages reloads nothing. `App.vue` now delegates clicks from `<main>` and routes any same-origin
+path, handing modified clicks, `target`s and downloads back to the browser. A link written without a
+locale gets the reader's, by the same rule the Markdown renderer uses.
+
+### 13.1 A constraint worth knowing: no bindings inside a stitched sentence
+
+A sentence containing an `<a>` stays **one key** — that is stitching working, and it is what a
+translator should be given. The consequence is that the anchor comes back through `v-html`, where
+Vue compiles nothing: a `:href` binding survives into the DOM as a literal attribute named `:href`
+and the link goes nowhere.
+
+So markup inside translatable prose has to be static. The site writes `href="/reference/integrations"`
+with no locale and resolves it at click time, with a router redirect covering the cold case — a new
+tab, a typed URL, a crawler.
+
+This is a real trade rather than a bug: the alternative is to cut the sentence into three fragments
+so the link can be a `RouterLink`, and hand a translator an order English chose. But Zintl could say
+so — a bound attribute inside a stitched fragment is always dead, and the compiler is in a position
+to notice.
+
+### 13.2 Recorded, not fixed
+
+**A content asset's body is run through the ICU baker.** Every `.md` page produces
+`Failed to bake ICU string` in dev, because a document contains braces — `import { zintl }` in a code
+sample is enough. Twenty warnings per dev session on this site. The output is correct (the string is
+used unbaked) and a production build is silent, so this is noise rather than breakage. A document is
+not a message with arguments, and arguably should not reach the baker at all.
