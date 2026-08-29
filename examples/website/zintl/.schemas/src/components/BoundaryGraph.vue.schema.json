@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Arrives with the page": {
+      "type": "string"
+    },
+    "Arrives with the route": {
+      "type": "string"
+    },
+    "Everything reachable from the anchor in that route.": {
+      "type": "string"
+    },
+    "Everything the first screen can reach from its anchor.": {
+      "type": "string"
+    },
+    "Nothing until somebody opens settings.": {
+      "type": "string"
+    },
+    "One catalog, in the reader's language only.": {
+      "type": "string"
+    },
+    "The home boundary": {
+      "type": "string"
+    },
+    "The settings boundary": {
+      "type": "string"
+    },
+    "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.": {
+      "type": "string"
+    },
+    "What it becomes": {
+      "type": "string"
+    },
+    "What the browser loads": {
+      "type": "string"
+    },
+    "What you wrote": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Arrives with the page",
+    "Arrives with the route",
+    "Everything reachable from the anchor in that route.",
+    "Everything the first screen can reach from its anchor.",
+    "Nothing until somebody opens settings.",
+    "One catalog, in the reader's language only.",
+    "The home boundary",
+    "The settings boundary",
+    "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.",
+    "What it becomes",
+    "What the browser loads",
+    "What you wrote"
+  ],
+  "additionalProperties": false
+}

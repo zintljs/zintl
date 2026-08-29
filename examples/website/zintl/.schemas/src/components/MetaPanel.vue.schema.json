@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "A dev server hands catalogs over as virtual modules, which have no resource timing to read — so rather than print a confident zero, this panel says nothing. Open the published site and it will show you what that page cost.": {
+      "type": "string"
+    },
+    "Active language": {
+      "type": "string"
+    },
+    "Catalog chunks fetched": {
+      "type": "string"
+    },
+    "Languages you are not reading": {
+      "type": "string"
+    },
+    "Measured in your browser with the Resource Timing API, not written down here in advance. The other three languages this site is published in were built, and none of them was sent to you.": {
+      "type": "string"
+    },
+    "None of them": {
+      "type": "string"
+    },
+    "The measurement is only meaningful in a build.": {
+      "type": "string"
+    },
+    "This page": {
+      "type": "string"
+    },
+    "This page downloaded <span>{kilobytes} KB</span> of translations.": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Variables: {kilobytes}"
+    },
+    "You are reading the source language, so no catalog was downloaded at all.": {
+      "type": "string"
+    },
+    "Zintl never writes your own language to disk — the compiler already holds those strings. The other three this site is published in were built, and none of them was sent to you.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "A dev server hands catalogs over as virtual modules, which have no resource timing to read — so rather than print a confident zero, this panel says nothing. Open the published site and it will show you what that page cost.",
+    "Active language",
+    "Catalog chunks fetched",
+    "Languages you are not reading",
+    "Measured in your browser with the Resource Timing API, not written down here in advance. The other three languages this site is published in were built, and none of them was sent to you.",
+    "None of them",
+    "The measurement is only meaningful in a build.",
+    "This page",
+    "This page downloaded <span>{kilobytes} KB</span> of translations.",
+    "You are reading the source language, so no catalog was downloaded at all.",
+    "Zintl never writes your own language to disk — the compiler already holds those strings. The other three this site is published in were built, and none of them was sent to you."
+  ],
+  "additionalProperties": false
+}

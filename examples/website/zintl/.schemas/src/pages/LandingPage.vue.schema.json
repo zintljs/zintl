@@ -17,7 +17,13 @@
     "Copy": {
       "type": "string"
     },
+    "English has two plural forms and Arabic has six. Your source should not have to know that, and here it doesn't.": {
+      "type": "string"
+    },
     "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.": {
+      "type": "string"
+    },
+    "Everything above describes what Zintl does. This reads what it did to the page you are on.": {
       "type": "string"
     },
     "Everywhere else": {
@@ -41,6 +47,12 @@
     "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": {
       "type": "string"
     },
+    "One character, two applications": {
+      "type": "string"
+    },
+    "Six plural forms, one sentence": {
+      "type": "string"
+    },
     "Supported": {
       "type": "string"
     },
@@ -62,7 +74,19 @@
     "The whole API": {
       "type": "string"
     },
+    "This page is the demonstration": {
+      "type": "string"
+    },
+    "Translation is a bundling problem": {
+      "type": "string"
+    },
+    "What you pass to the anchor tells the compiler how much of your app is still undecided. Flip it and watch what gets built.": {
+      "type": "string"
+    },
     "Where it runs": {
+      "type": "string"
+    },
+    "Which strings exist, and which screen can reach them, are both known before your app runs. Once you have those two facts, translations can split the way code splits.": {
       "type": "string"
     },
     "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": {
@@ -86,7 +110,9 @@
     "Compile-time internationalization",
     "Copied",
     "Copy",
+    "English has two plural forms and Arabic has six. Your source should not have to know that, and here it doesn't.",
     "Every host but the last is driven end to end by the contract suite: real browsers against real apps, on every change. What is missing is listed too: <a>Integrations</a> names the hosts Zintl refuses rather than the ones it merely hasn't reached.",
+    "Everything above describes what Zintl does. This reads what it did to the page you are on.",
     "Everywhere else",
     "Experimental",
     "Frameworks",
@@ -95,6 +121,8 @@
     "How it works",
     "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.",
     "never written",
+    "One character, two applications",
+    "Six plural forms, one sentence",
     "Supported",
     "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.",
     "That is not an excerpt. There is no wrapper to put the heading in, no key to invent for it, and no dictionary to keep in sync.",
@@ -102,7 +130,11 @@
     "The difference is the source",
     "The keys still exist — the compiler mints them from the text and keeps them attached to it. You just never have to name one, or find the one you named last spring.",
     "The whole API",
+    "This page is the demonstration",
+    "Translation is a bundling problem",
+    "What you pass to the anchor tells the compiler how much of your app is still undecided. Flip it and watch what gets built.",
     "Where it runs",
+    "Which strings exist, and which screen can reach them, are both known before your app runs. Once you have those two facts, translations can split the way code splits.",
     "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.",
     "Your language is never written down",
     "Zintl needs a plugin seat in the bundler that owns your chunk graph. That is the whole of what decides this list.",

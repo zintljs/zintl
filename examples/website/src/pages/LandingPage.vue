@@ -2,7 +2,11 @@
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { localeFromPath } from "../locale";
+import AnchorToggle from "../components/AnchorToggle.vue";
+import BoundaryGraph from "../components/BoundaryGraph.vue";
 import CodeSample from "../components/CodeSample.vue";
+import MetaPanel from "../components/MetaPanel.vue";
+import PluralDemo from "../components/PluralDemo.vue";
 
 const route = useRoute();
 const locale = computed(() => localeFromPath(route.path));
@@ -155,6 +159,39 @@ const FRAMEWORKS = ["React", "Preact", "Solid", "Vue", "Svelte", "Lit", "vanilla
   </section>
 
   <section class="band">
+    <div class="band-inner">
+      <h2>Translation is a bundling problem</h2>
+      <p class="band-lede">
+        Which strings exist, and which screen can reach them, are both known before your app runs.
+        Once you have those two facts, translations can split the way code splits.
+      </p>
+      <BoundaryGraph />
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="band-inner narrow">
+      <h2>One character, two applications</h2>
+      <p class="band-lede">
+        What you pass to the anchor tells the compiler how much of your app is still undecided. Flip
+        it and watch what gets built.
+      </p>
+      <AnchorToggle />
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-inner narrow">
+      <h2>Six plural forms, one sentence</h2>
+      <p class="band-lede">
+        English has two plural forms and Arabic has six. Your source should not have to know that,
+        and here it doesn't.
+      </p>
+      <PluralDemo />
+    </div>
+  </section>
+
+  <section class="band">
     <div class="band-inner narrow">
       <h2>Your language is never written down</h2>
       <p class="band-lede">
@@ -232,6 +269,16 @@ const FRAMEWORKS = ["React", "Preact", "Solid", "Vue", "Svelte", "Lit", "vanilla
         <a href="/reference/integrations">Integrations</a> names the hosts Zintl refuses rather than
         the ones it merely hasn't reached.
       </p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-inner narrow">
+      <h2>This page is the demonstration</h2>
+      <p class="band-lede">
+        Everything above describes what Zintl does. This reads what it did to the page you are on.
+      </p>
+      <MetaPanel />
     </div>
   </section>
 </template>

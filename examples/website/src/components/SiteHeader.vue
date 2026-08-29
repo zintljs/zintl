@@ -93,7 +93,7 @@ const activeSection = computed(() => route.params.section as string | undefined)
 
 .brand {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.55rem;
   color: var(--text-strong);
   font-weight: 640;

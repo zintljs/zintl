@@ -1,0 +1,14 @@
+{
+  "$schema": "../../.schemas/src/components/MetaPanel.vue.schema.json",
+  "A dev server hands catalogs over as virtual modules, which have no resource timing to read — so rather than print a confident zero, this panel says nothing. Open the published site and it will show you what that page cost.": "خادم التطوير يسلّم الكتالوجات وحداتٍ افتراضية، ولا توقيت موارد فيها ليُقرأ — فبدل طباعة صفرٍ واثق، لا تقول هذه اللوحة شيئًا. افتح الموقع المنشور وسيريك ما كلّفته تلك الصفحة.",
+  "Active language": "اللغة النشطة",
+  "Catalog chunks fetched": "حزم الكتالوج المجلوبة",
+  "Languages you are not reading": "اللغات التي لا تقرؤها",
+  "Measured in your browser with the Resource Timing API, not written down here in advance. The other three languages this site is published in were built, and none of them was sent to you.": "قِيس في متصفحك بواجهة Resource Timing، لا كُتب هنا سلفًا. اللغات الثلاث الأخرى التي يُنشر بها هذا الموقع بُنيت، ولم تُرسَل إليك أيٌّ منها.",
+  "None of them": "ولا واحدة منها",
+  "The measurement is only meaningful in a build.": "القياس لا معنى له إلا في بناء.",
+  "This page": "هذه الصفحة",
+  "This page downloaded <span>{kilobytes} KB</span> of translations.": "نزّلت هذه الصفحة <span>{kilobytes} كيلوبايت</span> من الترجمات.",
+  "You are reading the source language, so no catalog was downloaded at all.": "أنت تقرأ لغة المصدر، فلم يُنزَّل أي كتالوج إطلاقًا.",
+  "Zintl never writes your own language to disk — the compiler already holds those strings. The other three this site is published in were built, and none of them was sent to you.": "زينتل لا يكتب لغتك أنت على القرص أبدًا — فالمُصرِّف يملك تلك النصوص أصلًا. أما اللغات الثلاث الأخرى التي يُنشر بها هذا الموقع فقد بُنيت، ولم تُرسَل إليك أيٌّ منها."
+}

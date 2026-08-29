@@ -1,0 +1,12 @@
+{
+  "$schema": "../../.schemas/src/components/PluralDemo.vue.schema.json",
+  "Fewer": "减少",
+  "More": "增加",
+  "Showing {count} of 12 files": "正在显示 12 个文件中的 {count} 个",
+  "Six forms, because Arabic has six. Your source still says one sentence.": "六种形式，因为阿拉伯语有六种。而你的源码依然只说了一句话。",
+  "Switch the language in the bar at the top and press the numbers again. The grammar changes; the line in your source does not. And none of it reaches the browser as a rule to interpret — the forms compile to plain JavaScript at build time.": "在页面顶部的语言栏切换语言，再按一次这些数字。语法变了；你源码里的那一行没有变。而且这一切都不会作为需要解释的规则抵达浏览器——这些形式在构建时就编译成了普通的 JavaScript。",
+  "This language needs no plural forms for this sentence, so its catalog carries none.": "这门语言在这句话上不需要复数形式，所以它的目录里一个也没有。",
+  "This language's catalog": "这门语言的目录",
+  "Two forms, because that is what this language distinguishes.": "两种形式，因为这门语言只区分这么多。",
+  "Your source": "你的源码"
+}

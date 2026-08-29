@@ -1,0 +1,14 @@
+{
+  "$schema": "../../.schemas/src/components/MetaPanel.vue.schema.json",
+  "A dev server hands catalogs over as virtual modules, which have no resource timing to read — so rather than print a confident zero, this panel says nothing. Open the published site and it will show you what that page cost.": "Un servidor de desarrollo entrega los catálogos como módulos virtuales, que no tienen tiempos de recurso que leer — así que en vez de imprimir un cero con aplomo, este panel no dice nada. Abre el sitio publicado y te mostrará lo que costó esa página.",
+  "Active language": "Idioma activo",
+  "Catalog chunks fetched": "Fragmentos de catálogo obtenidos",
+  "Languages you are not reading": "Idiomas que no estás leyendo",
+  "Measured in your browser with the Resource Timing API, not written down here in advance. The other three languages this site is published in were built, and none of them was sent to you.": "Medido en tu navegador con la API de Resource Timing, no escrito aquí de antemano. Los otros tres idiomas en los que se publica este sitio se construyeron, y no se te envió ninguno.",
+  "None of them": "Ninguno de ellos",
+  "The measurement is only meaningful in a build.": "La medición solo tiene sentido en una compilación.",
+  "This page": "Esta página",
+  "This page downloaded <span>{kilobytes} KB</span> of translations.": "Esta página descargó <span>{kilobytes} KB</span> de traducciones.",
+  "You are reading the source language, so no catalog was downloaded at all.": "Estás leyendo el idioma de origen, así que no se descargó ningún catálogo.",
+  "Zintl never writes your own language to disk — the compiler already holds those strings. The other three this site is published in were built, and none of them was sent to you.": "Zintl nunca escribe tu propio idioma en disco — el compilador ya tiene esas cadenas. Los otros tres en los que se publica este sitio se construyeron, y no se te envió ninguno."
+}

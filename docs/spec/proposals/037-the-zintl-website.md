@@ -1,8 +1,9 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1, §9.2, §9.4 and §9.5 are built; the docs half is complete in four
-languages and the landing page stands without its interactive sections. §11, §12 and §13 record
-what building it corrected in this document, and the eight defects it found.
+**Status**: IN PROGRESS — §9.1, §9.2 and §9.4–§9.6 are built. The site is complete in four
+languages: eleven docs pages and a landing page with all nine sections. What remains is §9.8
+(search, a11y, gates) and §9.9 (deploy). §11–§14 record what building it corrected in this document,
+and the eight defects it found.
 **Date**: 2026-08-29
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
 docs cited; every claim about the _site_ is intent.
@@ -256,8 +257,18 @@ AA for body text, so the _text_ role takes a hue-matched step darker in light an
 while the mark and the gradient keep the brand colour exactly. `ZintlMark` now carries the
 favicon's gradient rather than `currentColor`, so the tab icon and the header logo are one object.
 
-**9.6 — Landing page, interactive.** Sections 4, 5, 6 and 9 — the boundary graph, the variable/literal
-toggle, the ICU counter, and the live meta panel.
+**9.6 — Landing page, interactive. BUILT.** Sections 4, 5, 6 and 9. Two of the four turned out to be
+demonstrable rather than illustrable, which is the difference this page was supposed to make:
+
+- **The plural counter is real Zintl.** The sentence is an ordinary line of markup, the interpolation
+  becomes the placeholder `{count}`, and the grammar lives in this site's own catalogs. Pressing the
+  numbers resolves an actual message: Arabic returns all six CLDR forms (0 zero, 1 one, 2 two, 3
+  few, 11 many, 100 other), Spanish two, English and Chinese none — from one source sentence that
+  mentions no plural at all.
+- **The meta panel measures rather than claims.** Resource Timing over the emitted catalog chunks:
+  17.0 KB and one chunk on Spanish, and on English a **measured** zero, because ghost mode meant no
+  catalog was ever fetched. In dev it says so instead of printing a confident zero — the dev branch
+  is folded out of the build by `import.meta.env.DEV`.
 
 **9.7 — Localization pass.** Fill the chrome and landing catalogs for `ar`, `es`, `zh`; author the
 thirty-three `.md` artifacts; register each page as it completes. RTL audit across every page. _Done
@@ -477,3 +488,29 @@ to notice.
 sample is enough. Twenty warnings per dev session on this site. The output is correct (the string is
 used unbaked) and a production build is silent, so this is noise rather than breakage. A document is
 not a message with arguments, and arguably should not reach the baker at all.
+
+## 14. What building §9.6 changed
+
+No new compiler defects. The four sections went in as designed, and two of them stopped being
+illustrations:
+
+**The plural section demonstrates rather than describes.** Writing `Showing {{ count }} of 12 files`
+as ordinary markup produced the key `Showing {count} of 12 files`, and the Arabic catalog carries a
+six-branch ICU plural against it. What a reader operates is Zintl selecting a form, not a mock of
+Zintl selecting a form. The sentence was chosen so English needs no forms — which is the argument
+the section is making, made by the example rather than beside it.
+
+**The meta panel had a bug worth keeping in mind.** It first treated "no catalog chunks found" as
+"cannot measure", which hid the single most interesting reading on the site: on the source language
+the answer _is_ zero, and it is measured. Absence of data and a datum of zero are different, and a
+panel whose whole point is that it does not assert things should not have asserted that one.
+
+### 14.1 Still open from earlier steps
+
+- `catalogIsHot` treats every asset edit as needing a source re-run, so a translator's `.md` save is
+  a reload rather than a hot update (§12.1).
+- A content asset's body is run through the ICU baker and warns on every brace in a code sample —
+  dev-only noise, correct output (§13.2).
+- The Markdown renderer and highlighter have no tests, and have now produced two defects (§12.4).
+- A bound attribute inside a stitched sentence is silently dead, and the compiler could say so
+  (§13.1).

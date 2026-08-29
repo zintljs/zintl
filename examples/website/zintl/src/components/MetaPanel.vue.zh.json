@@ -1,0 +1,14 @@
+{
+  "$schema": "../../.schemas/src/components/MetaPanel.vue.schema.json",
+  "A dev server hands catalogs over as virtual modules, which have no resource timing to read — so rather than print a confident zero, this panel says nothing. Open the published site and it will show you what that page cost.": "开发服务器以虚拟模块的形式交付目录，而虚拟模块没有可读的资源计时——所以这块面板宁可什么都不说，也不打印一个煞有介事的零。打开已发布的站点，它会告诉你那个页面花了多少。",
+  "Active language": "当前语言",
+  "Catalog chunks fetched": "已获取的目录分块",
+  "Languages you are not reading": "你没在读的语言",
+  "Measured in your browser with the Resource Timing API, not written down here in advance. The other three languages this site is published in were built, and none of them was sent to you.": "这是用 Resource Timing API 在你的浏览器里测出来的，不是事先写在这里的。本站发布的另外三种语言都被构建过，但一种也没有发送给你。",
+  "None of them": "一个也没有",
+  "The measurement is only meaningful in a build.": "这项测量只有在构建产物中才有意义。",
+  "This page": "本页",
+  "This page downloaded <span>{kilobytes} KB</span> of translations.": "本页下载了 <span>{kilobytes} KB</span> 的译文。",
+  "You are reading the source language, so no catalog was downloaded at all.": "你正在阅读源语言，所以根本没有下载任何目录。",
+  "Zintl never writes your own language to disk — the compiler already holds those strings. The other three this site is published in were built, and none of them was sent to you.": "Zintl 从不把你自己的语言写入磁盘——编译器本来就持有这些字符串。本站发布的另外三种语言都被构建过，但一种也没有发送给你。"
+}
