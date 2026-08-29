@@ -1,6 +1,6 @@
 {
   "name": "@zintljs/testing",
-  "version": "0.1.0-alpha.19",
+  "version": "0.1.0-alpha.20",
   "private": true,
   "description": "Browser laboratory environment for testing Zintl applications (internal, not published)",
   "license": "MIT",

@@ -1,5 +1,100 @@
 # zintl
 
+## 0.1.0-alpha.20
+
+### Patch Changes
+
+- 92ad9fe: Read the locale from below the base path, not from the top of the URL.
+
+  `syncLocale` took the locale from the first segment of `location.pathname`, and the HTML bootstrap
+  did the same. For an app served from a domain root that is correct. For one served under a base
+  path it reads the base:
+
+  ```
+  /zintl/ar/guide/what-is-zintl
+   ^^^^^ ← "the locale"
+  ```
+
+  `zintl` names no locale, so the lookup fell through to `<html lang>` and to storage, and a site
+  deployed under a sub-path served every reader its **source language** no matter which URL they
+  opened. Silently — the page rendered, in the wrong language, with the right one in the address bar.
+
+  This is not an unusual deployment. GitHub Pages project sites, anything behind a path-prefixed
+  reverse proxy, and any app mounted under a sub-path all hit it, and path-based locale routing is the
+  shape the client facet was built for.
+
+  The base now reaches the runtime as `__ZINTL_BASE__`, folded to a literal by `getRuntimeCode` the
+  same way `__ZINTL_RTL_LOCALES__` is, and to the HTML projection as an argument to `transformHtml`.
+  Both strip it before looking for a locale. It comes from the resolved config — the same
+  `ctx.publicBase` the preload URLs already use — so nothing new has to be configured.
+
+  `"/"` is the default at every level, so an app at a domain root is unaffected: across the suite this
+  changes two generated lines and no behaviour, and every project still resolves its locale exactly as
+  before.
+
+  Found by deploying the documentation site to `zintljs.github.io/zintl/`, where every page rendered
+  in English.
+
+- 3b3a558: Stop publishing the build machine's filesystem in a chunk name.
+
+  A localized asset's module id is base64-encoded, and deliberately so: an id that still ends in `.md`
+  gets typed by its extension, and Rspack then base64s the JavaScript we return into a `data:` URI —
+  a green build that ships a URI where the translation belongs (ledger L-009). That part is unchanged.
+
+  What was wrong is _what_ got encoded. The id becomes the emitted chunk's name, so encoding the
+  absolute path put the author's home directory into a public artifact:
+
+  ```
+  assets/L1VzZXJzL2toYWxpZC9MaW5ndWEvbGluZ3VhL2V4YW1wbGVzL3dlYnNpdGUvc3JjL2NvbnRlbnQv….js
+  ```
+
+  which decodes to `/Users/khalid/…/src/content/what-is-zintl.md?raw`. Anyone with a base64 decoder
+  had the path it was built from.
+
+  The path is now encoded relative to the project root — `src/content/what-is-zintl.md?raw` — which
+  keeps every property the design depends on (opaque, extension-free, unique within the project, a
+  pure function of its input) and drops the filename from 94 characters to 55. A file outside the root
+  encodes as `../…` and round-trips unchanged.
+
+  The four sites that encoded and decoded this by hand now share one codec, which is where the
+  reasoning lives.
+
+- a496952: Make the locale preload hint point at the catalog it means to warm.
+
+  The HTML projection writes a `modulepreload` per locale so the catalog is in
+  cache by the time the store asks for it. It had two faults, and between them the
+  hint never once did its job on a route below the root.
+
+  **The URL was relative.** The base was read from `viteCtx.server.config.base`, and `server` exists
+  only in dev — so a production build fell back to `""` and emitted a bare `assets/entry_….js`.
+  Assigned to `link.href` that resolves against the _document_, so `/guide/page` asked for
+  `/guide/assets/entry_….js`: a 404 on every deep-route load, and a preload that warmed nothing.
+  Quietly, because the real import is written `./entry_….js` from inside a module and resolves
+  correctly — the page worked, and only the network panel showed otherwise.
+
+  On a host with the SPA fallback a single-page app needs, it is worse than a 404: the request returns
+  `index.html` with a 200 and the preload fails on its content type instead.
+
+  The base now comes from `configResolved`, where it exists in both modes. **Every project's preloads
+  were relative** — this shows up as an absolute path in twenty contract snapshots.
+
+  **And it preloaded the wrong locale.** The bootstrap chose from `localStorage` alone, so arriving at
+  `/es/guide` with `ar` left in storage applied Arabic `lang`, `dir` and `<title>` to a Spanish
+  document and fetched the Arabic catalog. It now reads the first path segment first and falls back to
+  storage, which is the precedence `syncLocale` already uses. A path whose first segment names no
+  locale falls through exactly as before, so apps that keep the locale in `?lang=` are unaffected.
+
+  Guarded by two tests whose fixture has **no `server`**, which is what a build looks like. The test
+  that covered this path supplied one, and that is why the relative URL survived being tested.
+
+- Updated dependencies [92ad9fe]
+- Updated dependencies [375e226]
+- Updated dependencies [2937c0c]
+- Updated dependencies [a496952]
+- Updated dependencies [4d7ae52]
+- Updated dependencies [5ddac1a]
+  - @zintljs/compiler@0.1.0-alpha.20
+
 ## 0.1.0-alpha.19
 
 ### Minor Changes

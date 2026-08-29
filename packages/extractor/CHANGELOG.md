@@ -1,5 +1,87 @@
 # @zintl/extractor
 
+## 0.1.0-alpha.20
+
+### Minor Changes
+
+- 2d21d06: Collapse the whitespace HTML collapses, before markup text becomes a key.
+
+  A paragraph wrapped across lines in an HTML document or an SFC template was extracted with the
+  author's newlines and indentation intact, so this
+
+  ```html
+  <p>Released under the MIT licence, and every word of it was extracted from plain source.</p>
+  ```
+
+  became the key `"…every word of it\n          was extracted from plain source."` — one sentence to
+  every renderer that will ever draw it, and two lines to the compiler.
+
+  That is wrong twice. As a **key** it ties translation identity to formatting: reindent the file, or
+  let a formatter rewrap the paragraph, and the key moves and its translation is orphaned. Content-based
+  identity exists precisely so that moving code does not cost a day of reconciling catalogs, and this
+  was a way to lose translations by running `vp fmt`. As **emitted code** the newline lands inside the
+  quoted literal codegen writes, and a raw newline in a JavaScript string is a syntax error — in a Vue
+  SFC it takes the whole component down with it, which is how it was found.
+
+  JSX already normalized (`jsx.ts` has collapsed whitespace since it was written); the HTML and SFC
+  path, which shares one stitcher, never did. It does now, with `<pre>`, `<textarea>`, `<script>` and
+  `<style>` excepted — the four places the HTML specification says a run of whitespace is content.
+  Fragment offsets are still measured against the original text, because a fragment occupies the same
+  span of source whatever its text collapses to.
+
+  **Keys move for any project with markup prose wrapped across lines**, and three examples here had
+  some. Every translation survived: reconciliation matched each cleaned key to its old one and carried
+  the value across, so the diff is thirteen keys changed and thirteen values preserved. Worth a look at
+  your catalogs after upgrading all the same.
+
+### Patch Changes
+
+- 40b2a56: Stop extracting a bound attribute's expression as if it were text.
+
+  `ATTRIBUTE_PAIR` opens with `\b`, and a colon is not a word character — so `:title="heading"` matched
+  from the `t`, giving the attribute name `title` and the value `heading`. Indistinguishable from
+  `title="heading"`, and treated as such.
+
+  The consequences ran in both directions. The _identifier_ went into every catalog as a translatable
+  string, so translators were asked to translate `heading`. And because extraction rewrites what it
+  extracts, the binding came back as
+
+  ```
+  title: _t("heading")
+  ```
+
+  — the translation of a variable's name, in place of the variable. `:title`, `:alt`, `:placeholder`
+  and `:label` bound to a value are ordinary Vue, so this reached anything written that way.
+
+  Bound attributes are now skipped by looking at the character _before_ the match, which is what
+  distinguishes the shorthand from a namespaced attribute: `xlink:href` matches from its own first
+  letter with a space before it, and is unaffected. The `v-bind:` spelling needed nothing — it matches
+  whole and is not a name any facet declares.
+
+  Literal attributes are untouched, and so is every project in the suite: 386 contract tests pass with
+  no snapshot movement, which says no example was relying on the old behaviour.
+
+  Found while building the documentation site's landing page, where a `:label` on a code sample turned
+  a filename into a catalog entry.
+
+- d3d3112: Stop reading a `>` inside a quoted attribute as the end of the tag.
+
+  Markup was split on `/(<[^>]+>)/g`, which takes the first `>` it meets. In a template
+  dialect that is wrong the moment anyone writes a comparison:
+
+  ```html
+  <nav v-if="count > 0" class="toc" aria-label="On this page"></nav>
+  ```
+
+  The "tag" ended at `count >`, and `0" class="toc" aria-label="On this page">` became **text** —
+  extracted as a translatable string and, because extraction rewrites what it extracts, replaced by a
+  `_t(…)` call sitting in the middle of an attribute list. The component then failed to parse at all,
+  so the symptom was a build error pointing at a line some distance from the actual one.
+
+  The split now matches quoted runs as units, and matches comments first so a `>` inside one does not
+  end it either. It lives in `HTML_TAG_SPLIT_REGEX` — which already existed and which nothing used —
+  and the five inline copies now go through it.
+
 ## 0.1.0-alpha.19
 
 ### Minor Changes

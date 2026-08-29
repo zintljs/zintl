@@ -1,5 +1,171 @@
 # @zintl/compiler
 
+## 0.1.0-alpha.20
+
+### Patch Changes
+
+- 92ad9fe: Read the locale from below the base path, not from the top of the URL.
+
+  `syncLocale` took the locale from the first segment of `location.pathname`, and the HTML bootstrap
+  did the same. For an app served from a domain root that is correct. For one served under a base
+  path it reads the base:
+
+  ```
+  /zintl/ar/guide/what-is-zintl
+   ^^^^^ ← "the locale"
+  ```
+
+  `zintl` names no locale, so the lookup fell through to `<html lang>` and to storage, and a site
+  deployed under a sub-path served every reader its **source language** no matter which URL they
+  opened. Silently — the page rendered, in the wrong language, with the right one in the address bar.
+
+  This is not an unusual deployment. GitHub Pages project sites, anything behind a path-prefixed
+  reverse proxy, and any app mounted under a sub-path all hit it, and path-based locale routing is the
+  shape the client facet was built for.
+
+  The base now reaches the runtime as `__ZINTL_BASE__`, folded to a literal by `getRuntimeCode` the
+  same way `__ZINTL_RTL_LOCALES__` is, and to the HTML projection as an argument to `transformHtml`.
+  Both strip it before looking for a locale. It comes from the resolved config — the same
+  `ctx.publicBase` the preload URLs already use — so nothing new has to be configured.
+
+  `"/"` is the default at every level, so an app at a domain root is unaffected: across the suite this
+  changes two generated lines and no behaviour, and every project still resolves its locale exactly as
+  before.
+
+  Found by deploying the documentation site to `zintljs.github.io/zintl/`, where every page rendered
+  in English.
+
+- 375e226: Read the whole of a Vue component past a nested `<template>`.
+
+  The SFC template block was matched non-greedily, so it ended at the _first_ `</template>`. Vue's own
+  control flow nests template elements:
+
+  ```html
+  <template>
+    <template v-if="ready">…</template>
+    <template v-else>…</template>
+  </template>
+  ```
+
+  Everything after that first branch — the other branch, and the rest of the component under it — was
+  invisible to extraction. The failure was silent rather than loud: the file reported zero messages,
+  was transformed not at all, and its strings rendered in the source language in every locale. A page
+  component that branches on whether its content loaded is an ordinary shape, and this is what it did.
+
+  Greedy now, because a component has exactly **one** template block — unlike `<script>`, of which it
+  may have two, and `<style>`, of which it may have several; those two stay non-greedy and the
+  docblock says why. The opening tag's attribute list is quote-aware for the same reason
+  `HTML_TAG_SPLIT_REGEX` is.
+
+- 2937c0c: Give a lazily-routed page's own components their catalogs.
+
+  Two different walks answer "what does this chunk reach dynamically", and they disagreed.
+  `computeTranslationChunks` records the full set on the chunk; the set the catalog collection actually
+  used came from `getReachableHandshake`, which stops earlier. For a lazy route made of components the
+  page arrived and the components it renders did not — so a sidebar and a table of contents behind a
+  lazy route had catalogs on disk, a green `verifyIntegrity`, and empty text in every locale but the
+  source.
+
+  The collection now takes the union of the two rather than only the caller's set. Neither is a
+  superset of the other — the caller's is computed from an anchor and can name boundaries the chunk
+  walk does not — so dropping either would trade this defect for its mirror image.
+
+  Found by the documentation site, whose docs shell is exactly that shape: one lazy route rendering a
+  sidebar, a table of contents and a pager.
+
+- a496952: Make the locale preload hint point at the catalog it means to warm.
+
+  The HTML projection writes a `modulepreload` per locale so the catalog is in
+  cache by the time the store asks for it. It had two faults, and between them the
+  hint never once did its job on a route below the root.
+
+  **The URL was relative.** The base was read from `viteCtx.server.config.base`, and `server` exists
+  only in dev — so a production build fell back to `""` and emitted a bare `assets/entry_….js`.
+  Assigned to `link.href` that resolves against the _document_, so `/guide/page` asked for
+  `/guide/assets/entry_….js`: a 404 on every deep-route load, and a preload that warmed nothing.
+  Quietly, because the real import is written `./entry_….js` from inside a module and resolves
+  correctly — the page worked, and only the network panel showed otherwise.
+
+  On a host with the SPA fallback a single-page app needs, it is worse than a 404: the request returns
+  `index.html` with a 200 and the preload fails on its content type instead.
+
+  The base now comes from `configResolved`, where it exists in both modes. **Every project's preloads
+  were relative** — this shows up as an absolute path in twenty contract snapshots.
+
+  **And it preloaded the wrong locale.** The bootstrap chose from `localStorage` alone, so arriving at
+  `/es/guide` with `ar` left in storage applied Arabic `lang`, `dir` and `<title>` to a Spanish
+  document and fetched the Arabic catalog. It now reads the first path segment first and falls back to
+  storage, which is the precedence `syncLocale` already uses. A path whose first segment names no
+  locale falls through exactly as before, so apps that keep the locale in `?lang=` are unaffected.
+
+  Guarded by two tests whose fixture has **no `server`**, which is what a build looks like. The test
+  that covered this path supplied one, and that is why the relative URL survived being tested.
+
+- 4d7ae52: Stop a Vue entry re-mounting itself into a blank page.
+
+  The Vue runtime facet left `entryReexecutionSafe` at its permissive default, on the stated reasoning
+  that "Vue's mount is replayable where React's `createRoot` and Svelte's `mount` are not". It is not.
+  The difference from React is only in how loudly it fails.
+
+  `createApp(App).mount("#app")` builds a **new application instance** every time it runs. On a
+  container that already has one, Vue's DOM mount clears `innerHTML` and renders the new app into it,
+  and never unmounts the old one — whose reactive effects are still scheduled and still hold
+  references to the nodes just removed. React throws on a container it already owns; Vue warns, wipes
+  the page, and then dies in the first effect reaching for a `nextSibling` that is no longer there.
+
+  Measured on a Vue documentation site: editing a localized `.md` artifact invalidates each boundary's
+  source module — an asset edit is deliberately not treated as a hot catalog edit, because a URL asset
+  bakes its resolved URL into the source — so the entry re-ran, mounted a second app, and the page
+  went empty until a manual reload. Reproduced on an unmodified checkout before anything was changed.
+
+  With the flag declared, such an entry accepts and immediately invalidates, and the update bubbles to
+  a reload: the edit is shown rather than swallowed. That cost is exactly what the flag exists to
+  trade for, and it is the trade React, Svelte, Lit and Solid already make.
+
+  Preact keeps `true` and is right to — its `render(vnode, container)` diffs into the same container
+  rather than constructing a second root. The flag is about that distinction.
+
+  No behaviour changed for any non-Vue project. Across the suite this moves two dev-transform
+  snapshots and the `entryReexecutionSafe` line of sixteen facet compositions; every HMR contract
+  passes unchanged.
+
+- 5ddac1a: Fix strings reached through an exported function never arriving in any catalog chunk.
+
+  A module whose strings live in one function and whose entry point imports another — the shape every
+  data module takes — shipped empty:
+
+  ```ts
+  function nav() {
+    return { sections: [{ title: "Guide" }] }; // sinks land on `src/nav:nav`
+  }
+  export function getSections() {
+    return nav().sections; // the boundary an importer resolves to
+  }
+  ```
+
+  The catalog was written to disk and filled, `verifyIntegrity` passed because the file was complete,
+  and the titles rendered pseudo-localized in dev and **empty in production**. A missing translation
+  is supposed to fail your build; this one passed it.
+
+  `GraphManager` drops a boundary that has no strings of its own, no anchor, and no dependencies,
+  keeping only those that can serve as pass-throughs to content further down. The dependency test asked
+  the **file's** imports — and `src/nav` imports nothing, so `src/nav:getSections` was deleted as a
+  leaf. It was not a leaf: `internalDependencies` already recorded `getSections → nav`, the very edge
+  that reaches the fourteen strings. Every walk over the boundary graph then hit a dependency with no
+  node behind it and stopped there.
+
+  The guard now counts internal edges as dependencies, which is the case the rule already meant to
+  keep — it was simply asking the file instead of the boundary.
+
+  Surgical reachability is untouched: an export still reaches only what it calls, and a module-level
+  string nothing reads is still left out of the entry catalog. In the suite this adds one intermediate
+  node to `vanilla-ssr`'s graph and gives it an owner; no chunk lost a boundary.
+
+- Updated dependencies [40b2a56]
+- Updated dependencies [d3d3112]
+- Updated dependencies [2d21d06]
+  - @zintljs/extractor@0.1.0-alpha.20
+
 ## 0.1.0-alpha.19
 
 ### Minor Changes
