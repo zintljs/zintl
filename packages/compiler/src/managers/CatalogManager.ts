@@ -635,11 +635,24 @@ export class CatalogManager {
     }
 
     // Include Colony boundaries in both manager and content modules
-    if (colonyBoundaries.length > 0) {
-      for (const colonyId of colonyBoundaries) {
-        boundariesToCollect.add(colonyId);
-      }
-      this.logger?.debug(`[Catalog] Added ${colonyBoundaries.length} colony boundaries`);
+    /**
+     * The chunk's own colonies, as well as the caller's.
+     *
+     * Two different walks compute "what does this chunk reach dynamically", and
+     * they disagreed. `computeTranslationChunks` records the full set on the
+     * chunk; the set passed in here comes from `getReachableHandshake`, which
+     * stops earlier. For a lazily-routed page that is itself made of
+     * components, the page arrived and the components it renders did not — so a
+     * documentation site's sidebar and table of contents had catalogs on disk,
+     * a green `verifyIntegrity`, and empty text in every locale but the source.
+     *
+     * Taking the union rather than replacing the parameter: the caller's set is
+     * computed from an anchor and can name boundaries the chunk walk does not,
+     * so neither is a superset of the other and dropping either would trade
+     * this defect for its mirror image.
+     */
+    for (const colonyId of [...colonyBoundaries, ...targetChunk.colonies]) {
+      boundariesToCollect.add(colonyId);
     }
 
     const result: Record<string, Record<string, any>> = {};
