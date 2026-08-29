@@ -544,3 +544,78 @@ describe("GraphManager.hasTranslatableContent", () => {
     ).toBe(false);
   });
 });
+
+/**
+ * Both cases were found by the documentation site's navigation tree — a data
+ * module whose titles are prose. Each one produced the same silent failure: a
+ * catalog written and filled on disk, `verifyIntegrity` green because the file
+ * was complete, and the strings rendering pseudo-localized in dev and **empty
+ * in production**, because no walk over the boundary graph could reach the
+ * boundary that held them.
+ */
+describe("GraphManager — an export reaches the strings it calls", () => {
+  const meta = (over: Partial<BoundaryMetadata> = {}): BoundaryMetadata => ({
+    hasZintlMacro: false,
+    hasZintlMarker: false,
+    isEntry: false,
+    anchorSites: [],
+    needsLoader: false,
+    exportedBoundaries: {},
+    internalDependencies: {},
+    ...over,
+  });
+
+  const reachable = (graph: ReturnType<GraphManager["buildBoundaryGraph"]>, from: string) => {
+    const seen = new Set<string>();
+    const walk = (id: string) => {
+      if (seen.has(id)) return;
+      const node = graph.nodes.get(id);
+      if (!node) return;
+      seen.add(id);
+      for (const dep of node.deps) if (!dep.dynamic) walk(dep.id);
+    };
+    walk(from);
+    return seen;
+  };
+
+  it("keeps an export with internal dependencies as a pass-through node", () => {
+    const io = new IOManager("/root", false, logger, {}, [], []);
+    const graphMgr = new GraphManager(io, false, logger, ["en", "ar"]);
+
+    // `function nav() { return { title: "Guide" } }` — the strings sit on a
+    // function boundary, and the exported function only *calls* it. The file
+    // imports nothing, which is what used to delete the intermediate node.
+    const internalManifest = {
+      "src/main": [entry("k_main", "src/main")],
+      "src/nav:nav": [entry("Guide", "src/nav:nav")],
+    };
+    const metadataGraph: Record<string, BoundaryMetadata> = {
+      "src/main": meta({
+        isEntry: true,
+        anchorSites: [
+          {
+            boundaryId: "src/main",
+            locale: { type: "expression", source: "locale" },
+            isTopLevel: true,
+            location: { start: 1, end: 1, line: 1, column: 1 },
+            scope: "module",
+            originalName: "src/main",
+          },
+        ],
+      }),
+      "src/nav": meta({
+        exportedBoundaries: { getSections: "src/nav:getSections" },
+        internalDependencies: { "src/nav:getSections": ["src/nav:nav"] },
+      }),
+    };
+    const dependencyGraph: Record<string, ObservedDependency[]> = {
+      "src/main": [{ id: "src/nav", dynamic: false, bindings: ["getSections"] }],
+      "src/nav": [],
+    };
+
+    const graph = graphMgr.buildBoundaryGraph(internalManifest, metadataGraph, dependencyGraph);
+
+    expect(graph.nodes.has("src/nav:getSections")).toBe(true);
+    expect(reachable(graph, "src/main").has("src/nav:nav")).toBe(true);
+  });
+});
