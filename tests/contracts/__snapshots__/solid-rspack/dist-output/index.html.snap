@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"><script defer src="/static/js/3.js"></script><script defer src="/static/js/index.js"></script><!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || 'en';
+        const known = ["en","ar","es","zh"];
+        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"Solid على Rspack"},"es":{"title":"Solid en Rspack"},"zh":{"title":"Rspack 上的 Solid"}};
         const originals = {

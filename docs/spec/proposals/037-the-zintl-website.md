@@ -362,12 +362,13 @@ of contents rendered empty in every locale but English. Changeset: `a-lazy-page-
 
 ### 12.1 Two findings recorded, not fixed
 
-**A catalog chunk is requested at a path-relative URL first.** On `/ar/guide/what-is-zintl` the
-manager asks for `/ar/guide/assets/entry_b_…js`, takes a 404, and then asks for the correct
-`/assets/entry_b_…js`. It works here because `vp preview` 404s a missing asset. On a host with the
-SPA fallback any single-page app needs, that first request returns `index.html` with a 200 and the
-import fails on the MIME type instead — so this is a latent hard failure on deployment, not only a
-wasted round trip. §9.9 must not ship before it is fixed.
+**A catalog chunk is requested at a path-relative URL first. FIXED.** It was the `modulepreload`
+hint, not the import — the base was read from `server.config`, which a build does not have, so the
+URL came out relative and resolved against the document. Every project's preloads were affected, and
+the hint had therefore never warmed anything on a route below the root. Fixed with the base taken
+from `configResolved`, and while there the bootstrap was taught to read the locale from the path
+before storage — it was preloading whichever locale the reader last visited. Changeset:
+`a-preload-that-warms-nothing`.
 
 **A localized asset's chunk is named after its absolute path.** The English body lands in
 `assets/L1VzZXJzL2toYWxpZC9MaW5ndWEv…js`, which is base64 of

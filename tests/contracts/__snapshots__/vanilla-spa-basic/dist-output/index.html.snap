@@ -11,13 +11,15 @@
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || 'en';
+        const known = ["en","ar","es","zh"];
+        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"title":"Vite مع TypeScript — مثال زينتل"},"es":{"title":"Vite con TypeScript — Ejemplo de Zintl"},"zh":{"title":"Vite 搭配 TypeScript — Zintl 示例"}};
         const originals = {
         title: document.title,
       };
-        const preloads = {"ar":["assets/entry_b_ae1e7cbb2f74.js"],"es":["assets/entry_b_ae1e7cbb2f742.js"],"zh":["assets/entry_b_ae1e7cbb2f743.js"]};
+        const preloads = {"ar":["/assets/entry_b_ae1e7cbb2f74.js"],"es":["/assets/entry_b_ae1e7cbb2f742.js"],"zh":["/assets/entry_b_ae1e7cbb2f743.js"]};
       function preload(locale) {
         const urls = preloads[locale] || [];
         for (const url of urls) {

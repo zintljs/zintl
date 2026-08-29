@@ -11,12 +11,14 @@
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || 'en';
+        const known = ["en","ar","es","zh"];
+        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const rtl = ["ar"];
         const deltas = {"ar":{"z_0":{"type":"text","name":"","val":"البدء"},"title":"Vite مع Lit — مثال زينتل"},"es":{"z_0":{"type":"text","name":"","val":"Empezar"},"title":"Vite con Lit — Ejemplo de Zintl"},"zh":{"z_0":{"type":"text","name":"","val":"开始"},"title":"Vite 搭配 Lit — Zintl 示例"}};
         const originals = {
         title: document.title,"z_0":{"type":"text","name":"","val":"Get started"}};
-        const preloads = {"ar":["assets/entry_b_aafcf9c6fe16.js"],"es":["assets/entry_b_aafcf9c6fe162.js"],"zh":["assets/entry_b_aafcf9c6fe163.js"]};
+        const preloads = {"ar":["/assets/entry_b_aafcf9c6fe16.js"],"es":["/assets/entry_b_aafcf9c6fe162.js"],"zh":["/assets/entry_b_aafcf9c6fe163.js"]};
       function preload(locale) {
         const urls = preloads[locale] || [];
         for (const url of urls) {

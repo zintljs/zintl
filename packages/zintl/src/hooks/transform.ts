@@ -143,7 +143,7 @@ export function transformIndexHtmlHook(ctx: Context) {
       }
 
       const preloads: Record<string, string[]> = {};
-      const base = (viteCtx.server?.config?.base || "") as string;
+      const base = ctx.publicBase;
 
       if (viteCtx.bundle) {
         // Production Mode: Scan for virtual content chunks in the bundle

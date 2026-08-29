@@ -5,11 +5,13 @@
   <!--zintl-bootstrap-->
     <script id="zintl-projection">
       (function() {
-        const l = localStorage.getItem('zintl-locale') || 'en';
+        const known = ["en","ar"];
+        const seg = location.pathname.split('/').filter(Boolean)[0];
+        const l = (known.indexOf(seg) !== -1 ? seg : null) || localStorage.getItem('zintl-locale') || 'en';
         const originals = {
         title: document.title,
       };
-        const preloads = {"ar":["assets/entry_b_785c57fb4811.js"]};
+        const preloads = {"ar":["/assets/entry_b_785c57fb4811.js"]};
       function preload(locale) {
         const urls = preloads[locale] || [];
         for (const url of urls) {

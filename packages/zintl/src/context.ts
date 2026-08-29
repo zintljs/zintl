@@ -118,6 +118,21 @@ export default class Context {
   public multiplexEnabled: boolean | null = null;
 
   /**
+   * The host's public base path, as resolved, always with a trailing slash.
+   *
+   * Captured at `configResolved` rather than read off `server.config` where it
+   * is needed, because `server` exists only in dev. In a build it was
+   * `undefined`, the base fell back to `""`, and the locale preload hints the
+   * HTML projection writes came out as bare `assets/…` — relative, and so
+   * resolved against the *document*. On `/guide/page` that asked for
+   * `/guide/assets/…`: a 404 on every deep-route load, and a modulepreload that
+   * therefore warmed nothing, silently, on every route but the root. On a host
+   * with the SPA fallback a single-page app needs, it is worse than a 404 — the
+   * request returns `index.html` with a 200 and the preload fails on its type.
+   */
+  public publicBase = "/";
+
+  /**
    * Host facts supplied out-of-band, by a layer `getNativeBuildContext()`
    * cannot see. Merged over the native view by {@link ensureCompiler}.
    *

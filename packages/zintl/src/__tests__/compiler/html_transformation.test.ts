@@ -238,7 +238,10 @@ describe("HTML Production Mode Transformation", () => {
     await compiler.flush();
 
     const transformed = await compiler.transformHtml(htmlCode, join(root!, "index.html"));
-    expect(transformed).toContain(`const l = localStorage.getItem('zintl-locale') || 'es';`);
+    // Storage is the fallback behind the path, and the source locale the
+    // fallback behind that — which is what this test is about.
+    expect(transformed).toContain(`localStorage.getItem('zintl-locale') || 'es';`);
+    expect(transformed).toContain(`const known = ["es","en"];`);
     expect(transformed).toContain(`        if (l !== 'es') {\n          apply(l);`);
     expect(transformed).toContain('lang="es"');
   });
