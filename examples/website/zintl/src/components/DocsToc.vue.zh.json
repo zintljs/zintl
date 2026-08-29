@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/components/DocsToc.vue.schema.json",
+  "On this page": "本页内容"
+}

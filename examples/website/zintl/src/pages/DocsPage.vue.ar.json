@@ -1,4 +1,8 @@
 {
   "$schema": "../../.schemas/src/pages/DocsPage.vue.schema.json",
-  "This page is still being written. The docs shell lands with it in the next step.": "لا تزال هذه الصفحة قيد الكتابة. سيصل معها هيكل التوثيق في الخطوة التالية."
+  "Edit this page on GitHub": "حرّر هذه الصفحة على غيت‌هاب",
+  "Next": "التالي",
+  "Previous": "السابق",
+  "Previous and next page": "الصفحة السابقة والتالية",
+  "This page has not been written yet.": "لم تُكتب هذه الصفحة بعد."
 }

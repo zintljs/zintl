@@ -80,3 +80,15 @@ function flatPages(): { section: DocSection; page: DocPage }[] {
 export function findPage(sectionId: string, slug: string) {
   return flatPages().find(({ section, page }) => section.id === sectionId && page.slug === slug);
 }
+
+/** The pages either side of this one, in reading order across section borders. */
+export function neighbours(sectionId: string, slug: string) {
+  const pages = flatPages();
+  const index = pages.findIndex(
+    ({ section, page }) => section.id === sectionId && page.slug === slug,
+  );
+  return {
+    previous: index > 0 ? pages[index - 1] : undefined,
+    next: index >= 0 && index < pages.length - 1 ? pages[index + 1] : undefined,
+  };
+}

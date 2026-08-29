@@ -1,4 +1,8 @@
 {
   "$schema": "../../.schemas/src/pages/DocsPage.vue.schema.json",
-  "This page is still being written. The docs shell lands with it in the next step.": "此页面仍在撰写中。文档框架将在下一步随它一同落地。"
+  "Edit this page on GitHub": "在 GitHub 上编辑此页",
+  "Next": "下一页",
+  "Previous": "上一页",
+  "Previous and next page": "上一页和下一页",
+  "This page has not been written yet.": "此页面尚未撰写。"
 }

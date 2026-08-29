@@ -16,9 +16,18 @@ import SiteHeader from "./components/SiteHeader.vue";
   <a class="skip-link" href="#main">Skip to content</a>
   <SiteHeader />
   <main id="main">
-    <RouterView v-slot="{ Component }">
+    <!--
+      Keyed on the path, which carries the locale.
+
+      The chrome above and below repaints in place, but a routed page whose body
+      is an *awaited* localized asset cannot: `await loadPage(...)` runs in
+      `setup`, and a store notification does not re-run `setup`. Keying on the
+      path rebuilds the page whenever the locale or the slug changes, which is
+      exactly when its body has to be fetched again.
+    -->
+    <RouterView v-slot="{ Component, route }">
       <Suspense>
-        <component :is="Component" />
+        <component :is="Component" :key="route.path" />
       </Suspense>
     </RouterView>
   </main>

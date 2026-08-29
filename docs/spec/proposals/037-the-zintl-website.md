@@ -1,6 +1,6 @@
 # Proposal 037: The Zintl Website
 
-**Status**: IN PROGRESS — §9.1 is built. §11 records what building it corrected in this document
+**Status**: IN PROGRESS — §9.1 and §9.2 are built. §11 records what building it corrected in this document
 and the two compiler defects it found.
 **Date**: 2026-08-29
 **Kind**: Design and plan. Every claim about current behaviour below was read from the code or the
@@ -340,3 +340,48 @@ translatable sentence containing two `<span>`s comes back through `v-html`, and 
 `<style scoped>` never matches. `:deep()` is the fix. The alternative, splitting the sentence into
 three so every span is template-emitted, is exactly the trade this project exists to refuse. Also
 Guide material, and the clearest example of stitching earning its keep.
+
+## 12. What building §9.2 changed
+
+The `.md`-as-localized-asset path works exactly as `configuration.md` describes it, which is the
+answer §9.2 existed to get. Three more defects surfaced on the way, all in the same seam — what
+counts as markup, and what a lazy route brings with it.
+
+**A `>` inside a quoted attribute ended the tag.** `<nav v-if="count > 0" …>` was split at the
+comparison and the remainder of the attribute list was extracted as prose, then rewritten into a
+`_t(…)` call between two attributes. Changeset: `a-comparison-is-not-the-end-of-a-tag`.
+
+**A nested `<template v-if>` ended the component.** The SFC template block matched non-greedily, so
+extraction stopped at the first `</template>` and everything below it — the other branch, the
+footer, the pager — was invisible. Silent: zero messages, no transform, source language everywhere.
+Changeset: `a-component-has-one-template-block`.
+
+**A lazily-routed page did not bring its own components.** Two walks disagree about what a chunk
+reaches dynamically, and the catalog collection used the shallower one, so the sidebar and the table
+of contents rendered empty in every locale but English. Changeset: `a-lazy-page-brings-its-components`.
+
+### 12.1 Two findings recorded, not fixed
+
+**A catalog chunk is requested at a path-relative URL first.** On `/ar/guide/what-is-zintl` the
+manager asks for `/ar/guide/assets/entry_b_…js`, takes a 404, and then asks for the correct
+`/assets/entry_b_…js`. It works here because `vp preview` 404s a missing asset. On a host with the
+SPA fallback any single-page app needs, that first request returns `index.html` with a 200 and the
+import fails on the MIME type instead — so this is a latent hard failure on deployment, not only a
+wasted round trip. §9.9 must not ship before it is fixed.
+
+**A localized asset's chunk is named after its absolute path.** The English body lands in
+`assets/L1VzZXJzL2toYWxpZC9MaW5ndWEv…js`, which is base64 of
+`/Users/khalid/Lingua/lingua/examples/website/src/content/what-is-zintl.md?raw`. A public build
+artifact should not carry the machine it was built on, and a reader of a base64 decoder gets the
+author's home directory. Worth fixing where the asset id is resolved rather than papering over it
+with `chunkFileNames` in one project.
+
+### 12.2 The markdown pipeline as built
+
+Bodies live in `src/content/`, are imported dynamically so each page is its own chunk, and are
+rendered by a ~200-line subset renderer and a ~90-line highlighter in `src/lib/` — no dependency, on
+a site whose second principle is that nothing ships that isn't used. Two constraints found by
+building it: `vp fmt` normalizes Markdown emphasis to `_underscores_` and rewraps tables, in the
+authored translation artifacts as readily as in the source, so the renderer accepts both spellings;
+and the rendered HTML arrives through `v-html`, so its styles are global rather than scoped — the
+same collision §11.3 records for stitched markup, met a second way.

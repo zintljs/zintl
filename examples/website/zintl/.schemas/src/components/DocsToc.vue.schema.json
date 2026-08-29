@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "On this page": {
+      "type": "string"
+    }
+  },
+  "required": ["On this page"],
+  "additionalProperties": false
+}

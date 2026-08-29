@@ -5,12 +5,28 @@
     "$schema": {
       "type": "string"
     },
-    "This page is still being written. The docs shell lands with it in the next step.": {
+    "Edit this page on GitHub": {
+      "type": "string"
+    },
+    "Next": {
+      "type": "string"
+    },
+    "Previous": {
+      "type": "string"
+    },
+    "Previous and next page": {
+      "type": "string"
+    },
+    "This page has not been written yet.": {
       "type": "string"
     }
   },
   "required": [
-    "This page is still being written. The docs shell lands with it in the next step."
+    "Edit this page on GitHub",
+    "Next",
+    "Previous",
+    "Previous and next page",
+    "This page has not been written yet."
   ],
   "additionalProperties": false
 }

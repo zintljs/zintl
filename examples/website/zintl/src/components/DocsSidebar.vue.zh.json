@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/components/DocsSidebar.vue.schema.json",
+  "Documentation": "文档"
+}
