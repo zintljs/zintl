@@ -41,4 +41,27 @@ export function isRuntimeSpecifier(source: string, runtimePackage = RUNTIME_PACK
   return source === runtimePackage || RUNTIME_SPECIFIERS.includes(source);
 }
 
-export const HTML_TAG_SPLIT_REGEX = /(<[^>]+>)/g;
+/**
+ * Splits markup into tags and the text between them.
+ *
+ * The alternation is the entire point. A naive `<[^>]+>` treats the first `>`
+ * it meets as the end of the tag, and a `>` inside a quoted attribute value is
+ * not that — so
+ *
+ * ```html
+ * <nav v-if="count > 0" class="toc">
+ * ```
+ *
+ * was cut at the comparison, and `0" class="toc">` became *text*: extracted as
+ * a translatable string, and rewritten into a `_t(…)` call in the middle of an
+ * attribute list. The template then failed to parse at all. `v-if="a > b"` is
+ * ordinary in every template dialect there is, which is why this is one regex
+ * in one place rather than a pattern each caller writes out.
+ *
+ * Comments come first so that a `>` inside one — `<!-- a > b -->` — does not
+ * end it either.
+ */
+export const HTML_TAG_SPLIT_REGEX = /(<!--[\s\S]*?-->|<(?:[^>"']|"[^"]*"|'[^']*')*>)/g;
+
+/** {@link HTML_TAG_SPLIT_REGEX} without the capture, for stripping tags out. */
+export const HTML_TAG_REGEX = /<!--[\s\S]*?-->|<(?:[^>"']|"[^"]*"|'[^']*')*>/g;

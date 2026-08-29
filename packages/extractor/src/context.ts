@@ -2,7 +2,7 @@ import { join, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import type { Node, Expression } from "@oxc-project/types";
 import type { Comment } from "oxc-parser";
-import { RUNTIME_PACKAGE } from "./constants.js";
+import { HTML_TAG_REGEX, HTML_TAG_SPLIT_REGEX, RUNTIME_PACKAGE } from "./constants.js";
 import { resolveTargets } from "./targets.js";
 import { scanTranslatableAttributes } from "./attributes.js";
 
@@ -49,7 +49,7 @@ function isSingleWrappingPhrasingTag(html: string): boolean {
   if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) return false;
   if (trimmed.endsWith("/>")) return false;
 
-  const tokens = trimmed.split(/(<[^>]+>)/g).filter((t) => t.length > 0);
+  const tokens = trimmed.split(HTML_TAG_SPLIT_REGEX).filter((t) => t.length > 0);
   if (tokens.length < 3) return false;
 
   const first = tokens[0];
@@ -86,13 +86,13 @@ function isSingleWrappingPhrasingTag(html: string): boolean {
 }
 
 function hasTranslatableText(text: string): boolean {
-  let stripped = text.replace(/<[^>]+>/g, "");
+  let stripped = text.replace(HTML_TAG_REGEX, "");
   stripped = stripped.replace(/\{[^}]+\}/g, "");
   return stripped.trim().length > 0;
 }
 
 function hasNonWhitespaceOutsidePhrasing(html: string): boolean {
-  const tokens = html.split(/(<[^>]+>)/g);
+  const tokens = html.split(HTML_TAG_SPLIT_REGEX);
   let textOutside = "";
   const stack: string[] = [];
   for (const token of tokens) {
@@ -180,7 +180,7 @@ function normalizeTags(html: string): {
   tagMap: TagMapEntry[];
   offsetMap: number[];
 } {
-  const tokens = html.split(/(<[^>]+>)/g);
+  const tokens = html.split(HTML_TAG_SPLIT_REGEX);
   const tagMap: TagMapEntry[] = [];
   const distinctOpenTags: Record<string, string[]> = {};
 
@@ -700,7 +700,7 @@ export class ExtractionContext {
     getOffsets?: (s: number, e: number) => { start: number; end: number },
   ) {
     const { normalized, tagMap, offsetMap } = normalizeTags(text);
-    const tokens = normalized.split(/(<[^>]+>)/g);
+    const tokens = normalized.split(HTML_TAG_SPLIT_REGEX);
 
     // Identify non-phrasing tokens or comments as partitions
     const isPartition = (t: string) => {

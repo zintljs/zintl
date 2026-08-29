@@ -67,3 +67,44 @@ line two</pre>
     expect(result.messages.map((m) => m.text)).toContain("line one\nline two");
   });
 });
+
+/**
+ * Also found by the documentation site — a table-of-contents component whose
+ * root element was `<nav v-if="headings.length > 0" …>`.
+ */
+describe("HTML tag boundaries", () => {
+  it("does not end a tag at a > inside a quoted attribute", () => {
+    const code = `
+      <html>
+      <body>
+        <nav v-if="count > 0" class="toc" aria-label="On this page">
+          <span>Contents</span>
+        </nav>
+      </body>
+      </html>
+    `;
+    const result = extract(code, "index.html", "index.html");
+    const texts = result.messages.map((m) => m.text);
+
+    expect(texts).toContain("Contents");
+    // The remainder of the attribute list is markup, not prose. Extracting it
+    // also rewrites it, which put a `_t(…)` call between two attributes.
+    expect(texts.some((t) => t.includes("aria-label") || t.includes('class="toc"'))).toBe(false);
+  });
+
+  it("does not end a comment at a > inside it", () => {
+    const code = `
+      <html>
+      <body>
+        <!-- keep while count > 0 -->
+        <p>Still here</p>
+      </body>
+      </html>
+    `;
+    const result = extract(code, "index.html", "index.html");
+    const texts = result.messages.map((m) => m.text);
+
+    expect(texts).toContain("Still here");
+    expect(texts.some((t) => t.includes("keep while"))).toBe(false);
+  });
+});
