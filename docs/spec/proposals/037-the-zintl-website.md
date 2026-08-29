@@ -370,12 +370,20 @@ from `configResolved`, and while there the bootstrap was taught to read the loca
 before storage — it was preloading whichever locale the reader last visited. Changeset:
 `a-preload-that-warms-nothing`.
 
-**A localized asset's chunk is named after its absolute path.** The English body lands in
-`assets/L1VzZXJzL2toYWxpZC9MaW5ndWEv…js`, which is base64 of
-`/Users/khalid/Lingua/lingua/examples/website/src/content/what-is-zintl.md?raw`. A public build
-artifact should not carry the machine it was built on, and a reader of a base64 decoder gets the
-author's home directory. Worth fixing where the asset id is resolved rather than papering over it
-with `chunkFileNames` in one project.
+**A localized asset's chunk is named after its absolute path. FIXED.** The encoding itself is
+load-bearing — an id ending in `.md` is typed by its extension and the generated JavaScript becomes
+a `data:` URI on Rspack (L-009) — so what changed is what gets encoded: the path relative to the
+project root rather than the absolute one. Same properties, no home directory, and 39 fewer
+characters of filename. Changeset: `a-chunk-should-not-name-the-machine`.
+
+**A localized asset edit blanks the page in dev.** Editing `zintl/src/content/<page>.<locale>.md`
+sends an update that re-executes `src/main.ts`, which calls `createApp(App).mount("#app")` a second
+time on a container that already holds an app: Vue warns, then the render dies on a null
+`nextSibling` and the page goes empty until a reload. Reproduced on an unmodified build, so it
+predates the work above and is recorded here rather than blamed on it. A source-string edit HMRs
+cleanly, so it is specific to the artifact path. Worth checking against the Vue facet's claim that
+"Vue's mount is replayable where React's `createRoot` and Svelte's `mount` are not" — on this
+evidence it is replayable only where the entry is not re-executed.
 
 ### 12.2 The markdown pipeline as built
 

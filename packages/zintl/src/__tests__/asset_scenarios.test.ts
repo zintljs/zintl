@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vite-plus/test";
 import { createZintlContext } from "./helpers/harness.ts";
 import zintl from "../vite.js";
+import { encodeAssetId, decodeAssetId } from "../constants.js";
 /**
  * High-Fidelity Asset Scenarios Test Suite
  *
@@ -340,5 +341,43 @@ describe("Scenario: Asset Support under Anchor Hierarchies", () => {
     } finally {
       await zeroDiskCtx.cleanup();
     }
+  });
+});
+
+/**
+ * The id these mint becomes the emitted chunk's *name*, which is why it is
+ * encoded relative to the root: an absolute path published the build machine's
+ * filesystem to anyone with a base64 decoder.
+ */
+describe("asset module ids", () => {
+  const RAW = "\0virtual:zintl/rawasset";
+  const ROOT = "/Users/someone/projects/site";
+
+  it("round-trips a path and its query", () => {
+    const original = `${ROOT}/src/content/page.md?raw`;
+    const encoded = encodeAssetId(RAW, ROOT, original);
+    expect(decodeAssetId(RAW, ROOT, encoded)).toBe(original);
+  });
+
+  it("names the chunk without naming the machine", () => {
+    const encoded = encodeAssetId(RAW, ROOT, `${ROOT}/src/content/page.md?raw`);
+    const decodedName = Buffer.from(encoded.slice(RAW.length + 1), "base64url").toString("utf8");
+
+    expect(decodedName).toBe("src/content/page.md?raw");
+    expect(decodedName).not.toContain(ROOT);
+    // The extension must stay out of the id itself, or a host types the module
+    // by it and base64s our JavaScript into a data: URI (L-009).
+    expect(encoded.endsWith(".md")).toBe(false);
+  });
+
+  it("round-trips a file outside the root", () => {
+    const original = "/Users/someone/projects/shared/notice.txt?raw";
+    const encoded = encodeAssetId(RAW, ROOT, original);
+    expect(decodeAssetId(RAW, ROOT, encoded)).toBe(original);
+  });
+
+  it("round-trips an id with no query", () => {
+    const original = `${ROOT}/src/hero.webp`;
+    expect(decodeAssetId(RAW, ROOT, encodeAssetId(RAW, ROOT, original))).toBe(original);
   });
 });
