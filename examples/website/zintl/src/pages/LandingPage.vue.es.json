@@ -1,0 +1,11 @@
+{
+  "$schema": "../../.schemas/src/pages/LandingPage.vue.schema.json",
+  "Compile-time internationalization": "Internacionalización en tiempo de compilación",
+  "Copied": "Copiado",
+  "Copy": "Copiar",
+  "Get started": "Empezar",
+  "How it works": "Cómo funciona",
+  "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": "La mayoría de las bibliotecas de i18n te piden cambiar tu forma de escribir código: envolver cada cadena en una función, inventarle una clave y mantener un diccionario sincronizado a mano. Zintl no. Tú escribes cadenas normales; el compilador las encuentra, deduce cuáles necesita realmente cada pantalla y envía exactamente esas.",
+  "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.": "Cambia el idioma en la barra de arriba. Nada se recarga, y nada que no estés leyendo llegó a descargarse.",
+  "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": "Escribe tu aplicación en <span1>lenguaje corriente</span1>.<br/> Publícala en <span2>todos los idiomas</span2>."
+}

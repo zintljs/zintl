@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Project": {
+      "type": "string"
+    },
+    "Released under the MIT licence. This site is built with Zintl, and every word on it was extracted from plain source by the compiler it documents.": {
+      "type": "string"
+    },
+    "Report an issue": {
+      "type": "string"
+    },
+    "Write your app in plain language. Ship it in every language.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Project",
+    "Released under the MIT licence. This site is built with Zintl, and every word on it was extracted from plain source by the compiler it documents.",
+    "Report an issue",
+    "Write your app in plain language. Ship it in every language."
+  ],
+  "additionalProperties": false
+}

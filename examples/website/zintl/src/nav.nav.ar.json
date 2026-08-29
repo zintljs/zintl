@@ -1,0 +1,17 @@
+{
+  "$schema": "../.schemas/src/nav.nav.schema.json",
+  "Boundaries and chunks": "الحدود والحزم",
+  "Comment directives": "توجيهات التعليقات",
+  "Concepts": "المفاهيم",
+  "Configuration": "الإعدادات",
+  "Getting started": "البداية",
+  "Glossary": "المصطلحات",
+  "Guide": "الدليل",
+  "Integrations": "التكاملات",
+  "Locales and switching": "اللغات والتبديل بينها",
+  "Plurals and grammar": "الجمع والقواعد",
+  "Reference": "المرجع",
+  "Stability": "الاستقرار",
+  "Translating": "الترجمة",
+  "What is Zintl": "ما هو زينتل"
+}

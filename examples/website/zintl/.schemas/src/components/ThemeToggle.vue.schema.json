@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Switch between light and dark": {
+      "type": "string"
+    }
+  },
+  "required": ["Switch between light and dark"],
+  "additionalProperties": false
+}

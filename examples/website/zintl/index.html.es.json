@@ -1,0 +1,6 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "description": "Zintl es un motor de internacionalización en tiempo de compilación. Escribe cadenas normales; el compilador las encuentra, deduce qué necesita cada pantalla y envía exactamente eso.",
+  "dir": "ltr",
+  "title": "Zintl — escribe tu aplicación en lenguaje corriente y publícala en todos los idiomas"
+}

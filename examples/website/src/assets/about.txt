@@ -1,2 +1,0 @@
-This is an awesome about page text file loaded dynamically.
-Thank you for using Zintl!

@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Boundaries and chunks": {
+      "type": "string"
+    },
+    "Comment directives": {
+      "type": "string"
+    },
+    "Concepts": {
+      "type": "string"
+    },
+    "Configuration": {
+      "type": "string"
+    },
+    "Getting started": {
+      "type": "string"
+    },
+    "Glossary": {
+      "type": "string"
+    },
+    "Guide": {
+      "type": "string"
+    },
+    "Integrations": {
+      "type": "string"
+    },
+    "Locales and switching": {
+      "type": "string"
+    },
+    "Plurals and grammar": {
+      "type": "string"
+    },
+    "Reference": {
+      "type": "string"
+    },
+    "Stability": {
+      "type": "string"
+    },
+    "Translating": {
+      "type": "string"
+    },
+    "What is Zintl": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Boundaries and chunks",
+    "Comment directives",
+    "Concepts",
+    "Configuration",
+    "Getting started",
+    "Glossary",
+    "Guide",
+    "Integrations",
+    "Locales and switching",
+    "Plurals and grammar",
+    "Reference",
+    "Stability",
+    "Translating",
+    "What is Zintl"
+  ],
+  "additionalProperties": false
+}

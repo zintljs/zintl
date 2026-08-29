@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/pages/DocsPage.vue.schema.json",
+  "This page is still being written. The docs shell lands with it in the next step.": "لا تزال هذه الصفحة قيد الكتابة. سيصل معها هيكل التوثيق في الخطوة التالية."
+}

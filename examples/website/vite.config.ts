@@ -1,16 +1,17 @@
-import { defineConfig } from "vite-plus";
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
 import zintl from "zintljs/vite";
 
 export default defineConfig({
-  // logLevel: "silent",
   plugins: [
     zintl({
       sourceLocale: "en",
       locales: ["en", "ar", "es", "zh"],
-      outputDir: "./src/locales",
-      catalogFormat: "i18n.json",
-      similarityThreshold: 0.01,
-      // debug: "compiler",
+      // The docs tree in `src/nav.ts` is data, and its titles are prose.
+      // `obj:field` is deliberately not a default target, so the object is
+      // named instead — which leaves `slug` and `id` beside it untouched.
+      additionalTargets: ["obj:nav:title"],
     }),
+    vue(),
   ],
 });

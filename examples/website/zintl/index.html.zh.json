@@ -1,0 +1,6 @@
+{
+  "$schema": ".schemas/index.html.schema.json",
+  "description": "Zintl 是一个编译期国际化引擎。你只管写普通字符串；编译器会找到它们，算出每个页面真正需要哪些，然后只发送这些。",
+  "dir": "ltr",
+  "title": "Zintl — 用平实的语言编写应用，用所有语言发布"
+}

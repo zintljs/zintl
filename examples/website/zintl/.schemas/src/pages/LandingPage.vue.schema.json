@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "Compile-time internationalization": {
+      "type": "string"
+    },
+    "Copied": {
+      "type": "string"
+    },
+    "Copy": {
+      "type": "string"
+    },
+    "Get started": {
+      "type": "string"
+    },
+    "How it works": {
+      "type": "string"
+    },
+    "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": {
+      "type": "string"
+    },
+    "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.": {
+      "type": "string"
+    },
+    "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "Compile-time internationalization",
+    "Copied",
+    "Copy",
+    "Get started",
+    "How it works",
+    "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.",
+    "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.",
+    "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>."
+  ],
+  "additionalProperties": false
+}

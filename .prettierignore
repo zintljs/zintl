@@ -1,0 +1,14 @@
+# Zintl's generated JSON schemas.
+#
+# Nobody edits these — they exist so a translator's editor can autocomplete and
+# validate the catalog beside them — and the two tools that write them disagree
+# about one thing. The compiler serializes with `JSON.stringify(…, 2)`, which
+# puts every array element on its own line; oxfmt collapses a short array onto
+# one. A schema whose `required` list holds a single string lands on whichever
+# side of oxfmt's width the string happens to fall, so `vp fmt` and the next
+# build take turns rewriting the same file and `vp fmt --check` fails on
+# generated output nobody touched.
+#
+# The catalogs themselves stay formatted: they are plain objects with no arrays
+# to collapse, they have no such conflict, and people do edit them.
+**/zintl/.schemas/

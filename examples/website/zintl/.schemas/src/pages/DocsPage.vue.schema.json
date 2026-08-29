@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "This page is still being written. The docs shell lands with it in the next step.": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "This page is still being written. The docs shell lands with it in the next step."
+  ],
+  "additionalProperties": false
+}

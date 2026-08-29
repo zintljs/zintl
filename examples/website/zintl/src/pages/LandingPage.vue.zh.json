@@ -1,0 +1,11 @@
+{
+  "$schema": "../../.schemas/src/pages/LandingPage.vue.schema.json",
+  "Compile-time internationalization": "编译期国际化",
+  "Copied": "已复制",
+  "Copy": "复制",
+  "Get started": "开始使用",
+  "How it works": "工作原理",
+  "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": "大多数 i18n 库都要求你改变写代码的方式——把每个字符串包进函数、为它编一个键、再手动维护一份字典。Zintl 不这样。你写普通字符串；编译器会找到它们，算出每个页面真正需要哪些，然后只发送这些。",
+  "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.": "在上方的语言栏切换语言。没有任何东西会重新加载，你没在读的内容也从未被下载。",
+  "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": "用<span1>平实的语言</span1>编写应用。<br/>用<span2>所有语言</span2>发布。"
+}

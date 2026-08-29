@@ -1,0 +1,11 @@
+{
+  "$schema": "../../.schemas/src/pages/LandingPage.vue.schema.json",
+  "Compile-time internationalization": "تدويل وقت التصريف",
+  "Copied": "تم النسخ",
+  "Copy": "انسخ",
+  "Get started": "ابدأ الآن",
+  "How it works": "كيف يعمل",
+  "Most i18n libraries ask you to change how you write code — wrap every string in a function, invent a key for it, keep a dictionary in sync by hand. Zintl doesn't. You write normal strings; the compiler finds them, works out which ones each screen actually needs, and ships exactly those.": "تطلب منك معظم مكتبات التدويل أن تغيّر طريقة كتابتك للشيفرة — أن تغلّف كل نص بدالّة، وتخترع له مفتاحًا، وتبقي قاموسًا متزامنًا يدويًا. زينتل لا يفعل. أنت تكتب نصوصًا عادية؛ والمُصرِّف يجدها، ويحسب ما تحتاجه كل شاشة فعلًا، ويشحن ذلك بالضبط.",
+  "Switch the language in the bar above. Nothing reloads, and nothing you are not reading was ever downloaded.": "بدّل اللغة من الشريط أعلاه. لا شيء يُعاد تحميله، ولا شيء لا تقرأه جرى تنزيله أصلًا.",
+  "Write your app in <span1>plain language</span1>.<br/> Ship it in <span2>every language</span2>.": "اكتب تطبيقك <span1>بلغة عادية</span1>.<br/> وانشره <span2>بكل اللغات</span2>."
+}
