@@ -19,6 +19,17 @@ const LOCALES = [
   { id: "ar", name: "العربية" },
   { id: "es", name: "Español" },
   { id: "zh", name: "中文" },
+  // { id: "fr", name: "Français" },
+  // { id: "de", name: "Deutsch" },
+  // { id: "ja", name: "日本語" },
+  // { id: "ko", name: "한국어" },
+  // { id: "it", name: "Italiano" },
+  // { id: "pt", name: "Português" },
+  // { id: "ru", name: "Русский" },
+  // { id: "tr", name: "Türkçe" },
+  // { id: "fa", name: "فارسی" },
+  // { id: "he", name: "עברית" },
+  // { id: "ur", name: "اردو" },
 ] as const;
 
 export type LocaleId = (typeof LOCALES)[number]["id"];

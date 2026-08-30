@@ -18,6 +18,7 @@ export default defineConfig({
     zintl({
       sourceLocale: "en",
       locales: ["en", "ar", "es", "zh"],
+      pendingLocales: ["fr", "de", "ja", "ko", "it", "pt", "ru", "tr", "fa", "he", "ur"],
       // The docs tree in `src/nav.ts` is data, and its titles are prose.
       // `obj:field` is deliberately not a default target, so the object is
       // named instead — which leaves `slug` and `id` beside it untouched.

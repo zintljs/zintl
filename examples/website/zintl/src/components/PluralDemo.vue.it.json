@@ -1,0 +1,12 @@
+{
+  "$schema": "../../.schemas/src/components/PluralDemo.vue.schema.json",
+  "Fewer": "",
+  "More": "",
+  "Showing {count} of 12 files": "",
+  "Six forms, because Arabic has six. Your source still says one sentence.": "",
+  "Switch the language in the bar at the top and press the numbers again. The grammar changes; the line in your source does not. And none of it reaches the browser as a rule to interpret — the forms compile to plain JavaScript at build time.": "",
+  "This language needs no plural forms for this sentence, so its catalog carries none.": "",
+  "This language's catalog": "",
+  "Two forms, because that is what this language distinguishes.": "",
+  "Your source": ""
+}

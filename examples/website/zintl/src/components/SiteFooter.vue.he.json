@@ -1,0 +1,8 @@
+{
+  "$schema": "../../.schemas/src/components/SiteFooter.vue.schema.json",
+  "Project": "",
+  "Project links": "",
+  "Released under the MIT licence. This site is built with Zintl, and every word on it was extracted from plain source by the compiler it documents.": "",
+  "Report an issue": "",
+  "Write your app in plain language. Ship it in every language.": ""
+}

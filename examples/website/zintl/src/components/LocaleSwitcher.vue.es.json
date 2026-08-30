@@ -1,0 +1,4 @@
+{
+  "$schema": "../../.schemas/src/components/LocaleSwitcher.vue.schema.json",
+  "Select language": "Seleccionar idioma"
+}
