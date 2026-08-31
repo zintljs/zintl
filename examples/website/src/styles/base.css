@@ -84,6 +84,7 @@ samp {
   /* Arabic and Chinese have no monospace forms; unicode-range in the stack
      handles it, but the digits still need to line up in code. */
   font-variant-numeric: tabular-nums;
+  direction: ltr;
 }
 
 :not(pre) > code {
