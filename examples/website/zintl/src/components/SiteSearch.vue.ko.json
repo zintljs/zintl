@@ -1,0 +1,7 @@
+{
+  "$schema": "../../.schemas/src/components/SiteSearch.vue.schema.json",
+  "Nothing matches that.": "",
+  "Search": "",
+  "Search the documentation": "",
+  "Type to search the pages in this language.": ""
+}

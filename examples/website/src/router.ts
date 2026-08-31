@@ -1,15 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
-import { DEFAULT_LOCALE } from "./locale";
+import { DEFAULT_LOCALE, localeBar } from "./locale";
 import LandingPage from "./pages/LandingPage.vue";
 
-/**
- * `en|ar|es|zh` is spelled into the path pattern rather than derived from
- * `LOCALES`, because vue-router wants a literal regex fragment and a generated
- * one would be a string the type system stops checking. Four locales is a size
- * where the duplication is cheaper than the indirection; if it grows, generate
- * it and keep this comment as the reason it used to be written out.
- */
-const LOCALE_SEGMENT = ":locale(en|ar|es|zh)";
+const LOCALE_SEGMENT = `:locale(${localeBar.map((l) => l.id).join("|")})`;
 
 const routes: RouteRecordRaw[] = [
   { path: "/", redirect: `/${DEFAULT_LOCALE}` },

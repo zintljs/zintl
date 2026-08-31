@@ -1,0 +1,6 @@
+{
+  "$schema": "../../.schemas/src/pages/NotFoundPage.vue.schema.json",
+  "Back to the home page": "",
+  "The link may be out of date, or the page may have moved. The guide is a good place to pick the thread back up.": "",
+  "This page isn't here": ""
+}

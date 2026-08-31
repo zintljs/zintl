@@ -1,0 +1,15 @@
+{
+  "$schema": "../../.schemas/src/components/BoundaryGraph.vue.schema.json",
+  "Arrives with the page": "",
+  "Arrives with the route": "",
+  "Everything reachable from the anchor in that route.": "",
+  "Everything the first screen can reach from its anchor.": "",
+  "Nothing until somebody opens settings.": "",
+  "One catalog, in the reader's language only.": "",
+  "The home boundary": "",
+  "The settings boundary": "",
+  "Two anchors, two boundaries, two catalogs. Someone who never opens settings never downloads its translations — the split is the one your bundler already made, not a second one to maintain.": "",
+  "What it becomes": "",
+  "What the browser loads": "",
+  "What you wrote": ""
+}

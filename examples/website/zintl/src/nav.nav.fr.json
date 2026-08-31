@@ -1,0 +1,17 @@
+{
+  "$schema": "../.schemas/src/nav.nav.schema.json",
+  "Boundaries and chunks": "",
+  "Comment directives": "",
+  "Concepts": "",
+  "Configuration": "",
+  "Getting started": "",
+  "Glossary": "",
+  "Guide": "",
+  "Integrations": "",
+  "Locales and switching": "",
+  "Plurals and grammar": "",
+  "Reference": "",
+  "Stability": "",
+  "Translating": "",
+  "What is Zintl": ""
+}
