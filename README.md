@@ -1,10 +1,14 @@
-<h1 style="display: flex; gap: 10px; align-items: center" >
+<h1 style="display: flex; gap: 0.1rem; align-items: flex-end; flex-shrink: 0; padding: 0px">
   <a href="https://github.com/zintljs/zintl" target="_blank" rel="noopener noreferrer">
     <picture>
-      <img alt="Zintl logo" src="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg" height="60">
+      <img
+        alt="Zintl logo"
+        src="https://raw.githubusercontent.com/zintljs/zintl/main/examples/website/public/favicon.svg"
+        height="44"
+      >
     </picture>
-  </a> 
-  Zintl
+  </a>
+  <span style="margin: 6px; font-weight: 640; letter-spacing: -0.02em;">Zintl</span>
 </h1>
 
 <p>
@@ -15,7 +19,7 @@
   <a href="https://npmjs.com/package/zintljs"><img alt="npm version" src="https://img.shields.io/npm/v/zintljs?label=&color=F4795E&labelColor=1B1420&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48bWFzayBpZD0ibSI%2BPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNMTYgNDVWODRNMTYgMjR2MU02MiA4NFY1ME02MiA2MGExNCAxNCAwIDAgMSAyOCAwdjI0IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMTMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjIxLjUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9Ijc0IiByPSIyMyIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjE3LjUiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzOSIgY3k9IjczIiByPSIxOSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjM5IiBjeT0iNTIiIHI9IjUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9Ijc0IiByPSI2LjUiLz48L21hc2s%2BPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmZmYiIG1hc2s9InVybCgjbSkiLz48L3N2Zz4%3D"></a>
   <a href="https://github.com/zintljs/zintl/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/zintljs/zintl/ci.yml?branch=main&label=CI&labelColor=1B1420&logo=githubactions&logoColor=fff"></a>
   <a href="https://nodejs.org/en/about/previous-releases"><img alt="node compatibility" src="https://img.shields.io/node/v/zintljs?label=node&color=E8309C&labelColor=1B1420&logo=nodedotjs&logoColor=fff"></a>
-  <a href="docs/"><img alt="documentation" src="https://img.shields.io/badge/docs-guide-B44BE0?labelColor=1B1420&logo=bookstack&logoColor=fff"></a>
+  <a href="https://zintljs.github.io/zintl/guide/what-is-zintl"><img alt="documentation" src="https://img.shields.io/badge/docs-guide-B44BE0?labelColor=1B1420&logo=bookstack&logoColor=fff"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/zintljs?label=license&color=1B1420&labelColor=1B1420&logo=opensourceinitiative&logoColor=fff"></a>
 </p>
 
